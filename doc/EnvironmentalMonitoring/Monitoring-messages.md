@@ -37,7 +37,7 @@ This document describes the request and response messages for environmental moni
 
 ### 1.1 Terms and abbreviations
 
-See X-Road terms and abbreviations documentation [TA-TERMS](#Ref_TERMS).
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.2 References
 

@@ -4,8 +4,8 @@
 # X-Road: Configuration Proxy Use Case Model
 **Analysis**
 
-Version: 1.3
-29.08.2017
+Version: 1.4  
+07.03.2018
 <!-- 20 pages -->
 Doc. ID: UC-CP
 --------------------------------------------
@@ -22,6 +22,7 @@ Date       | Version | Description                                              
 08.11.2015 |  1.1    |   Renamed *Scope* element to *System*. *Native* (X-Road instance) renamed to *local*. Minor corrections done.   | Riin Saarmäe
 14.12.2015 |  1.2    |   UC CP\_06 fixed                                                                                               | Riin Saarmäe
 29.08.2017 |  1.3    |   Changed documentation type from docx to md file |   Lasse Matikainen
+07.03.2018 |  1.4    |   Moved terms to term doc, added term doc reference and link | Tatu Repo
 
 ## Table of Contents
 
@@ -85,15 +86,15 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)]\.
     <http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/csprd01/pkcs11-base-v2.40-csprd01.html#_Toc372627249>
 
 2.  <a id="Ref_PR-GCONF" class="anchor"></a>\[PR-GCONF\] X-Road: Protocol for
-    Downloading Configuration. Document ID: PR-GCONF.
+    Downloading Configuration. Document ID: [PR-GCONF](../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).
 
 3.  <a id="Ref_UG-CP" class="anchor"></a>\[UG-CP\] X-Road: Configuration Proxy Manual.
-    Document ID: UG-CP.
+    Document ID: [UG-CP](../Manuals/ug-cp_x-road_v6_configuration_proxy_manual.md).
 
 4.  <a id="Ref_UC-GCONF" class="anchor"></a>\[UC-GCONF\] X-Road: Use Case Model for
-    Global Configuration Distribution. Document ID: UC-GCONF.
+    Global Configuration Distribution. Document ID: [UC-GCONF](uc-gconf_x-road_use_case_model_for_global_configuration_distribution_1.4_Y-883-8.md).
     
-5. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
+5.  <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 ## 2 Overview
 

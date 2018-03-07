@@ -33,7 +33,7 @@ Doc. ID: IG-CSHA
 - [1 Introduction](#1-introduction)
   * [1.1 High Availability for X-Road Central Server](#11-high-availability-for-x-road-central-server)
   * [1.2 Target Audience](#12-target-audience)
-  * [1.3 Terms and abbreviations](#13-terms-and-conditions)
+  * [1.3 Terms and abbreviations](#13-terms-and-abbreviations)
   * [1.4 References](#14-references)
 - [2 Key Points and Known Limitations for X-Road Central Server HA Deployment](#2-key-points-and-known-limitations-for-x-road-central-server-ha-deployment)
 - [3 Requirements and Workflows for HA Configuration](#3-requirements-and-workflows-for-ha-configuration)

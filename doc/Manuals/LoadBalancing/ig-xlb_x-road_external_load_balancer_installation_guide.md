@@ -871,7 +871,7 @@ server cluster behind a load balancer.
 To test the configuration file replication from the admin user interface, a key can be created in the admin interface of the
 master node. In addition, a certificate signing request can be created for the key in the UI, downloaded, signed by an
 external CA and then uploaded back to the admin UI. For help on these tasks, see the  Security Server User Guide
-\[[UG-SS](#12-references)\].
+\[[UG-SS](#13-references)\].
 
 The keys and certificate changes should be propagated to the slave nodes in a few minutes.
 
@@ -889,7 +889,7 @@ disrupt message delivery while the online option should allow upgrades with mini
 If the X-Road security server cluster can be shut down for an offline upgrade, the procedure remains fairly simple:
 1. Stop the X-Road services (`xroad-proxy`, `xroad-signer`, `xroad-confclient`, `xroad-jetty` and `xroad-monitor`) on all
    the nodes. You can read more about the services in the Security Server User Guide
-\[[UG-SS](#12-references)\] chapter on [System services](../ug-ss_x-road_6_security_server_user_guide.md#161-system-services).
+\[[UG-SS](#13-references)\] chapter on [System services](../ug-ss_x-road_6_security_server_user_guide.md#161-system-services).
 2. Upgrade the packages on the master node to the new software version.
 3. Let any database and configuration changes propagate to the cluster members.
 4. Upgrade the packages on the slave nodes.
@@ -945,7 +945,7 @@ The steps are in more detail below, but in short, the procedure is:
 2. <a name="master-upgrade-step-2">Check</a> that the master is no longer processing requests and stop the X-Road services
    (`xroad-proxy`, `xroad-signer`, `xroad-confclient`, `xroad-jetty`, `xroad-monitor`) on the master node. You can read
    more about the services in the Security Server User Guide
-   \[[UG-SS](#12-references)\] chapter on [System services](../ug-ss_x-road_6_security_server_user_guide.md#161-system-services).
+   \[[UG-SS](#13-references)\] chapter on [System services](../ug-ss_x-road_6_security_server_user_guide.md#161-system-services).
 
    To ensure that the node is no longer processing requests, you can monitor `/var/log/xroad/proxy.log` to verify that
    no more requests are arriving or check that there are no connections to the port 5500 with:

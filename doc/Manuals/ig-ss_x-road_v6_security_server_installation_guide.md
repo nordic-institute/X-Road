@@ -35,7 +35,7 @@ Doc. ID: IG-SS
  13.04.2017 | 2.8     | Added token ID formatting                                       | Cybernetica AS
  25.08.2017 | 2.9     | Update environmental monitoring installation information | Ilkka Seppälä
  15.09.2017 | 2.10    | Added package with configuration specific to Estonia xroad-securityserver-ee | Cybernetica AS
- 05.03.2018 | 2.11    | Added terms and abbreviations reference and document links
+ 05.03.2018 | 2.11    | Added terms and abbreviations reference and document links | Tatu Repo
 
 ## Table of Contents
 

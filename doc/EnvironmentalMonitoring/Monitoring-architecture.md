@@ -26,10 +26,10 @@ Doc. ID: ARC-ENVMON
   * [2.3 Central monitoring client](#23-central-monitoring-client)
   * [2.4 Central monitoring data collector](#24-central-monitoring-data-collector)
   * [2.5 Central server admin user interface](#25-central-server-admin-user-interface)
-- [3 Monitoring in action](#26-monitoring-in-action)
-  * [3.1 Pull messaging model](#27-pull-messaging-model)
-  * [3.2 Modified X-Road message protocol](#28-modified-x-road-message-protocol)
-  * [3.3 Access control](#29-access-control)
+- [3 Monitoring in action](#3-monitoring-in-action)
+  * [3.1 Pull messaging model](#31-pull-messaging-model)
+  * [3.2 Modified X-Road message protocol](#32-modified-x-road-message-protocol)
+  * [3.3 Access control](#33-access-control)
     * [3.3.1 Limiting central monitoring client access for environmental monitor data](#331-limiting-central-monitoring-client-access-for-environmental-monitor-data)
 
 <!-- tocstop -->

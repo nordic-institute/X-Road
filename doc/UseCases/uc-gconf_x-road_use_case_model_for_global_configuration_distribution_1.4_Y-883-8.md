@@ -5,7 +5,7 @@
 # X-Road: Use Case Model for Global Configuration Distribution
 **Analysis**
 
-Version: 1.6
+Version: 1.6  
 06.03.2018
 <!-- 36 pages -->
 Doc. ID: UC-GCONF

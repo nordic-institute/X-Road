@@ -21,7 +21,7 @@ Doc. ID: PR-SECTOKEN
   * [2.2 Added `securityToken` element](#22-added-securitytoken-element)
   * [2.3 JSON Web Tokens and the `securityToken` attribute `tokenType`](#23-json-web-tokens-and-the-securitytoken-attribute-tokentype)
   * [2.4 Message headers](#24-message-headers)
-- [3 X-Road message logging and the security token](3-x-road-message-logging-and-the-security-token)
+- [3 X-Road message logging and the security token](#3-x-road-message-logging-and-the-security-token)
 - [4 XML Schema for the extension](#4-xml-schema-for-the-extension)
 - [5 Examples](#5-examples)
   * [5.1 Request](#51-request)
@@ -54,7 +54,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 | <a name="Ref_UG-SS"></a>\[UG-SS\] | [Security Server User guide](../../Manuals/ug-ss_x-road_6_security_server_user_guide.md)      |
 | <a name="Ref_UG-SYSPAR"></a>\[UG-SYSPAR\] | [X-Road: System Parameters User Guide](../../Manuals/ug-syspar_x-road_v6_system_parameters.md)      |
 | <a name="Ref_JWT-RFC"></a>\[JWT-RFC\] | [Internet Engineering Task Force Request for Comments 7516:  JSON Web Token (JWT)](https://tools.ietf.org/html/rfc7519)      |
-| <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] | [X-Road Terms and Abbreviations](../terms_x-road_docs.md)
+| <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] | [X-Road Terms and Abbreviations](../../terms_x-road_docs.md)
 
 ## 2 Format of messages
 

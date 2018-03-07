@@ -72,10 +72,10 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ## 1.3 References
 
-1. [UG-CS] Cybernetica AS. X-Road 6. Central Server User Guide, [UG-CS](ug-cs_x-road_6_central_server_user_guide.md) 
-2. [IG-SS] Cybernetica AS. X-Road 6. Security Server Installation Guide, [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md)
-3. [UG-SS] Cybernetica AS. X-Road 6. Security Server User Guide, [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
-4. [IG-CSHA] Cybernetica AS. X-Road 6. Central Server High Availability Installation Guide [IG-CSHA](ig-csha_x-road_6_ha_installation_guide.md)
+1. <a id="Ref_UG-CS" class="anchor"></a>\[UG-CS\] Cybernetica AS. X-Road 6. Central Server User Guide. Document ID: [UG-CS](ug-cs_x-road_6_central_server_user_guide.md) 
+2. <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] Cybernetica AS. X-Road 6. Security Server Installation Guide. Document ID: [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md)
+3. <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] Cybernetica AS. X-Road 6. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
+4. <a id="Ref_IG-CSHA" class="anchor"></a>\[IG-CSHA\] Cybernetica AS. X-Road 6. Central Server High Availability Installation Guide. Document ID: [IG-CSHA](ig-csha_x-road_6_ha_installation_guide.md)
 5. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 # 2. Installation
@@ -85,7 +85,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 The central server software assumes an existing installation of the Ubuntu 14.04 operating system, on an x86-64bit platform.
 To provide management services, a security server is installed alongside the central server.
 The central server’s software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
-Note: If the central server is a part of a cluster for achieving high availability, the database cluster must be installed and configured before the central server itself can be installed. Please refer to the Central Server High Availability Installation Guide [IG-CSHA](#13-references) for details.
+Note: If the central server is a part of a cluster for achieving high availability, the database cluster must be installed and configured before the central server itself can be installed. Please refer to the Central Server High Availability Installation Guide [IG-CSHA](#Ref_IG-CSHA) for details.
 
 ## 2.2 Reference Data
 
@@ -122,7 +122,7 @@ Requirements for software and settings:
 
 ## 2.4 Preparing OS
 
-- Add a system user (reference data: 1.3) whom all roles in the user interface are granted to. Add the new user with the command: `sudo adduser username`. User roles are discussed in detail in the X-Road Security Server User Guide [UG-SS](#13-references).
+- Add a system user (reference data: 1.3) whom all roles in the user interface are granted to. Add the new user with the command: `sudo adduser username`. User roles are discussed in detail in the X-Road Security Server User Guide [UG-SS](#Ref_UG-SS).
 - Set the operating system locale. Add the following line to the file /etc/environment. `LC_ALL=en_US.UTF-8`
 
 ## 2.5 Installation
@@ -171,7 +171,7 @@ To configure support for hardware security tokens (smartcard, USB token, Hardwar
 
 The optional configuration for environmental monitoring parameters is installed by package xroad-centralserver-monitoring. This package also includes the components that validate the updated xml monitoring configuration. The package is included in the central server installation by default.
 
-The central monitoring client may be configured as specified in the [UG-CS](#13-references).
+The central monitoring client may be configured as specified in the [UG-CS](#Ref_UG-CS).
 
 # 3 Initial Configuration
 
@@ -202,21 +202,21 @@ Upon the first configuration of the central server and the management services' 
 
 Actions 7 and 8 must be performed in the management services' security server.
 
-1. Generate the internal and external configuration signing keys. Refer to [UG-CS](#13-references) section „Generating a Configuration Signing Key“.
-2. Configure the member classes. Refer to [UG-CS](#13-references) section „Managing the Member Classes“. (reference data: 2.4).
+1. Generate the internal and external configuration signing keys. Refer to [UG-CS](#Ref_UG-CS) section „Generating a Configuration Signing Key“.
+2. Configure the member classes. Refer to [UG-CS](#Ref_UG-CS) section „Managing the Member Classes“. (reference data: 2.4).
 3. Configure the management service provider:
-add the X-Road member who will be responsible for management services - [UG-CS](#13-references) section „Adding a Member“;
-add the subsystem that will provide the management services to the X-Road member - [UG-CS](#13-references) section “Adding a Subsystem to an X-Road Member”;
-appoint the subsystem as the management service provider - [UG-CS](#13-references) section “Appointing the Management Service Provider”.
-4. Configure the certification services. Refer to [UG-CS](#13-references) section „Managing the Approved Certification Services“.
-5. Configure the timestamping services. Refer to [UG-CS](#13-references) section „Managing the Approved Timestamping Services“.
-6. Verify that the global configuration generation succeeds (no global error messages should be displayed in the user interface at this point) and download the internal configuration anchor - [UG-CS](#13-references) section “Downloading the Configuration Anchor”. The anchor is needed to set up the management services' security server.
-7. Install and configure the management services' security server as described in [IG-SS](#13-references).
-8. Register the management services' security server in the central server. Refer to [UG-SS](#13-references) section „Security Server Registration“.
-9. Complete the registration of the management services' security server - [UG-CS](#13-references) section “Registering a Member's Security Server”.
-10. Register the management service provider as a client of the management services' security server - [UG-CS](#13-references) section “Registering the Management Service Provider as a Security Server Client”.
-11. Add the management service provider as a client to the management services' security server. Refer to [UG-SS](#13-references) section „Adding a Security Server Client”. (The client should appear in “Registered” state, as the association between the client and the security server was already registered in the central server in the previous step). If necessary, configure the signing keys and certificates for the client - [UG-SS](#13-references) section „Configuring a Signing Key and Certificate for a Security Server Client”
-12. Configure the management services. Refer to [UG-CS](#13-references) section „Configuring the Management Services in The Management Services’ Security Server”.
+add the X-Road member who will be responsible for management services - [UG-CS](#Ref_UG-CS) section „Adding a Member“;
+add the subsystem that will provide the management services to the X-Road member - [UG-CS](#Ref_UG-CS) section “Adding a Subsystem to an X-Road Member”;
+appoint the subsystem as the management service provider - [UG-CS](#Ref_UG-CS) section “Appointing the Management Service Provider”.
+4. Configure the certification services. Refer to [UG-CS](#Ref_UG-CS) section „Managing the Approved Certification Services“.
+5. Configure the timestamping services. Refer to [UG-CS](#Ref_UG-CS) section „Managing the Approved Timestamping Services“.
+6. Verify that the global configuration generation succeeds (no global error messages should be displayed in the user interface at this point) and download the internal configuration anchor - [UG-CS](#Ref_UG-CS) section “Downloading the Configuration Anchor”. The anchor is needed to set up the management services' security server.
+7. Install and configure the management services' security server as described in [IG-SS](#Ref_IG-SS).
+8. Register the management services' security server in the central server. Refer to [UG-SS](#Ref_UG-SS) section „Security Server Registration“.
+9. Complete the registration of the management services' security server - [UG-CS](#Ref_UG-CS) section “Registering a Member's Security Server”.
+10. Register the management service provider as a client of the management services' security server - [UG-CS](#Ref_UG-CS) section “Registering the Management Service Provider as a Security Server Client”.
+11. Add the management service provider as a client to the management services' security server. Refer to [UG-SS](#Ref_UG-SS) section „Adding a Security Server Client”. (The client should appear in “Registered” state, as the association between the client and the security server was already registered in the central server in the previous step). If necessary, configure the signing keys and certificates for the client - [UG-SS](#Ref_UG-SS) section „Configuring a Signing Key and Certificate for a Security Server Client”
+12. Configure the management services. Refer to [UG-CS](#Ref_UG-CS) section „Configuring the Management Services in The Management Services’ Security Server”.
 
 # 4 Additional configuration
 

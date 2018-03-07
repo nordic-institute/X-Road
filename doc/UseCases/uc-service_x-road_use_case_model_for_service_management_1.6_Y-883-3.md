@@ -5,7 +5,7 @@
 # X-Road: Use Case Model for Service Management
 **Analysis**
 
-Version: 1.8
+Version: 1.8  
 06.03.2018
 <!-- 45 pages -->
   

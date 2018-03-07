@@ -35,7 +35,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ## 1 Introduction
 
-This document describes the system parameters of the X-Road operational monitoring system components – the operational monitoring daemon, the operational monitoring buffer and the operational monitoring service. Changing the default values of the system parameters is explained in ([[UG-SYSPAR]](#UG-SYSPAR)).
+This document describes the system parameters of the X-Road operational monitoring system components – the operational monitoring daemon, the operational monitoring buffer and the operational monitoring service. Changing the default values of the system parameters is explained in \[[UG-SYSPAR](#UG-SYSPAR)\].
 
 ### 1.1 Terms and abbreviations
 
@@ -44,13 +44,13 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 ### 1.2 References
 
 <a name="UG-SYSPAR"></a>**UG-SYSPAR** -- Cybernetica AS. X-Road: System Parameters. Document ID: [UG-SYSPAR](../../Manuals/ug-syspar_x-road_v6_system_parameters.md).  
-<a name="UG-SS"></a>**UG-SS** -- Cybernetica AS. X-Road: Security Server User Guide. Document ID: [UG-SS](../../Manuals/ug-ss_x-road_6_security_server_user_guide_2.14_Y-883-32.docx).  
+<a name="UG-SS"></a>**UG-SS** -- Cybernetica AS. X-Road: Security Server User Guide. Document ID: [UG-SS](../../Manuals/ug-ss_x-road_6_security_server_user_guide.md).  
 <a name="CRON"></a>**CRON** -- Quartz Scheduler Cron Trigger Tutorial,  http://www.quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/crontrigger.html  
-<a id="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
+<a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../../terms_x-road_docs.md).
 
 ## 2 Operational Monitoring System Parameters
 
-This chapter describes the system parameters used by the X-Road operational monitoring system. Changing the parameter values in the configuration file requires restarting of the system services. Managing the system services is explained in ([[UG-SS]](#UG-SS)).
+This chapter describes the system parameters used by the X-Road operational monitoring system. Changing the parameter values in the configuration file requires restarting of the system services. Managing the system services is explained in \[[UG-SS](#UG-SS)\].
 
 * To change the parameter values for the server component *op-monitor*, the service *xroad-opmonitor* must be restarted after changing all parameters except *op-monitor.tls-certificate*.
 * The service *xroad-proxy* must be restarted after changing the parameters:  
@@ -64,7 +64,7 @@ This chapter describes the system parameters used by the X-Road operational moni
 
 Server Component  | Parameter                 | Default Value        | Explanation
 ----------------- | ------------------------- | -------------------- | ------------------
-op-monitor        | clean-interval            | 0 0 0/12 1/1 \* ? \* | CRON expression ([[CRON]](#CRON)) defining the interval of deleting any operational data records that are older than *op-monitor.keep-records-for-days* from the operational monitoring database.
+op-monitor        | clean-interval            | 0 0 0/12 1/1 \* ? \* | CRON expression \[[CRON](#CRON)\] defining the interval of deleting any operational data records that are older than *op-monitor.keep-records-for-days* from the operational monitoring database.
 op-monitor        | client-tls-certificate    | /etc/xroad/ssl/internal.crt | Absolute filename of the TLS certificate (security server internal certificate) used by the HTTP client sending requests to the operational monitoring daemon. Configured in monitoring daemon server in case an external monitoring daemon is used.
 op-monitor        | health-statistics-period-seconds | 600           | The period for gathering health statistics about services in seconds.
 op-monitor        | host                      | localhost            | The host address on which the operational monitoring daemon listens.

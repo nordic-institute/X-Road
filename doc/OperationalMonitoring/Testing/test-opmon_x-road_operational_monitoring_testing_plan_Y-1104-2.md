@@ -54,7 +54,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ### 1.1 Purpose
 
-The purpose of this document is to describe the levels and procedures of testing used during the development of the operational monitoring components of the X-Road system. While the testing strategy of the development project ([[TEST-OPMONSTRAT]](#TEST-OPMONSTRAT)) describes the overall approach to testing, this plan offers a more technical and detailed view of the testing levels, the tools used and the functionality covered by testing.
+The purpose of this document is to describe the levels and procedures of testing used during the development of the operational monitoring components of the X-Road system. While the testing strategy of the development project (\[[TEST-OPMONSTRAT](#TEST-OPMONSTRAT)\]) describes the overall approach to testing, this plan offers a more technical and detailed view of the testing levels, the tools used and the functionality covered by testing.
 
 ### 1.2 Terms and Abbreviations
 
@@ -66,15 +66,15 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 <a name="ARC-OPMOND"></a>**ARC-OPMOND** -- Cybernetica AS. X-Road: Operational Monitoring Daemon Architecture. Document ID: [ARC-OPMOND](../Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).  
 <a name="TEST-OPMONSTRAT"></a>**TEST-OPMONSTRAT** -- Cybernetica AS. X-Road: Operational Monitoring Testing Strategy. Document ID: [TEST-OPMONSTRAT](test-opmonstrat_x-road_operational_monitoring_testing_strategy_Y-1104-1.md)  
 <a name="UC-OPMON"></a>**UC-OPMON** -- Cybernetica AS. X-Road: Operational Monitoring Daemon Use Case Model. Document ID: [UC-OPMON](../UseCases/uc-opmon_x-road_use_case_model_for_operational_monitoring_daemon_Y-1095-2.md).  
-<a name="UG-SS"></a>**UG-SS** -- Cybernetica AS. X-Road: Security Server User Guide. Document ID: [UG-SS](../../Manuals/ug-ss_x-road_6_security_server_user_guide_2.14_Y-883-32.docx).  
+<a name="UG-SS"></a>**UG-SS** -- Cybernetica AS. X-Road: Security Server User Guide. Document ID: [UG-SS](../../Manuals/ug-ss_x-road_6_security_server_user_guide.md).  
 <a name="PR-OPMONJMX"></a>**PR-OPMONJMX** -- Cybernetica AS. Operational Monitoring Daemon JMXMP Interface. Document ID: [PR-OPMONJMX](../Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md).  
-<a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
+<a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../../terms_x-road_docs.md).
 
 ## 2 Components of the Operational Monitoring System in the Context of Testing
 
 The operational monitoring system involves the X-Road security server and the operational monitoring daemon. In addition, global configuration is obtained from the X-Road central server.
 
-According to the architecture of the operational monitoring daemon ([[ARC-OPMOND]](#ARC-OPMOND)), the daemon is divided into the following components:
+According to the architecture of the operational monitoring daemon (\[[ARC-OPMOND](#ARC-OPMOND)\]), the daemon is divided into the following components:
 * operational monitoring database
 * operational monitoring service
 
@@ -84,7 +84,7 @@ In this project, testing will mainly focus on the behaviour of the operational m
 
 ### 2.1 Testing the Operational Monitoring Database
 
-The operational monitoring database component collects operational data of the X-Road security server(s) via the Store Operational Data interface. The requirements for data stored in the database are defined in [[HD_1]](#HD_1).
+The operational monitoring database component collects operational data of the X-Road security server(s) via the Store Operational Data interface. The requirements for data stored in the database are defined in \[[HD_1](#HD_1)\].
 
 The database is tested at the following levels:
 * Direct SQL is used by the developers and testers for ad-hoc queries during development and testing. The source code of the operational monitoring daemon does not make any raw SQL queries, however.
@@ -114,14 +114,14 @@ The JMXMP interface is tested manually.
 
 ## 4 The Use Cases of the Operational Monitoring Daemon in the Context of Testing
 
-The use cases defined in [[UC-OPMON]](#UC-OPMON) are directly or indirectly covered by the automated integration tests. In particular:
+The use cases defined in \[[UC-OPMON](#UC-OPMON)\] are directly or indirectly covered by the automated integration tests. In particular:
 * UC OPMON_01: Storing operational data (and updating the in-memory health data) is carried out in all the automated test cases, unless the test checks that operational data is *not* written.
-* UC OPMON_02: Querying operational data is carried out in all the automated test cases except for [[test_health_data]](#test_health_data) which only queries health data.
-* UC OPMON_03: Health data of the security server is queried in the automated test case [[test_health_data]](#test_health_data).
+* UC OPMON_02: Querying operational data is carried out in all the automated test cases except for \[[test_health_data](#test_health_data)\] which only queries health data.
+* UC OPMON_03: Health data of the security server is queried in the automated test case \[[test_health_data](#test_health_data)\].
 
 ## 5 Automated Integration Testing in Detail
 
-Automated integration tests are carried out on a pre-configured testing system with the required X-Road components installed and configured, as described in [[TEST-OPMONSTRAT]](#TEST-OPMONSTRAT). It is assumed that during integration testing, no manual testing is carried out on the same systems. Otherwise, arbitrary X-Road message exchange would interfere with the tests and cause false negative results.
+Automated integration tests are carried out on a pre-configured testing system with the required X-Road components installed and configured, as described in \[[TEST-OPMONSTRAT](#TEST-OPMONSTRAT)\]. It is assumed that during integration testing, no manual testing is carried out on the same systems. Otherwise, arbitrary X-Road message exchange would interfere with the tests and cause false negative results.
 
 The testcases are listed in alphabetical order. They can be run in an arbitrary order and do not depend on the results of each other.
 
@@ -162,7 +162,7 @@ During general load testing of the operational monitoring system, it was observe
 
 ### 6.2 Setup of the Simulations
 
-Load simulations can be run automatically, provided the testing environment has been set up as described in [[TEST-OPMONSTRAT]](#TEST-OPMONSTRAT). The reports of the simulation should be analyzed for information about the behaviour of the system under the simulated load.
+Load simulations can be run automatically, provided the testing environment has been set up as described in \[[TEST-OPMONSTRAT](#TEST-OPMONSTRAT)\]. The reports of the simulation should be analyzed for information about the behaviour of the system under the simulated load.
 
 The load test runner and the related source code can be found in the source repository of the project at `src/systemtest/op-monitoring/load`.
 
@@ -192,7 +192,7 @@ In order to measure the effect on the round-trip times of X-Road requests by the
 1. The operational monitoring buffer has been disabled by specifying *op-monitor-buffer.size=0* in the configuration of the security server under test (and the xroad-proxy service restarted).
 2. The operational monitoring buffer has been enabled by removing the parameter *op-monitor-buffer.size* from the configuration of the security server under test (and the xroad-proxy service restarted).
 
-Please refer to [[UG-SS]](#UG-SS) for instructions on configuring and restarting the components of the security server.
+Please refer to \[[UG-SS](#UG-SS)\] for instructions on configuring and restarting the components of the security server.
 
 Under both setups, the desired load simulation must be be run at least 3 times, assuming there are no other sources of load on the system under test during the simulations. In the output of the simulations, the request statistics will be observed, comparing the results for both setups. Because the initial handshake of the TLS session between security servers affects the round-trip time of the first request in the simulation by the order of a second, the mean response time is not a reliable value. Rather the "response time 50th percentile" value will give a good average estimate of response times.
 
@@ -241,7 +241,7 @@ In the environment under test, enabling the operational monitoring buffer added 
 
 ## 7 Testing the JMXMP Interface
 
-The JMXMP interface gets the data it exposes from the same component that is used to serve health data over the Operational Monitoring Query interface. Thus, the internal implementation of the health metrics registry is tested in the automated test case [test_health_data](#test_health_data). The main difference when directly using the JMXMP interface is in the format that the items are presented. The data exposed over JMXMP and their format are described in detail in [[PR-OPMONJMX]](#PR-OPMONJMX).
+The JMXMP interface gets the data it exposes from the same component that is used to serve health data over the Operational Monitoring Query interface. Thus, the internal implementation of the health metrics registry is tested in the automated test case [test_health_data](#test_health_data). The main difference when directly using the JMXMP interface is in the format that the items are presented. The data exposed over JMXMP and their format are described in detail in \[[PR-OPMONJMX](#PR-OPMONJMX)\].
 
 For quick reference, a couple of examples follow.
 
@@ -280,13 +280,13 @@ where `address` should be set to the desired listening address for access by `jc
 
 The health metrics of the operational monitoring daemon will appear on the `MBeans` tab, in the `metrics` subtree.
 
-The items appearing under this subtree can be observed as the automated integration tests are run. Please refer to [[PR-OPMONJMX]](#PR-OPMONJMX) for the exact set of items required for each mediated request. Note that a separate `jconsole` session should be opened for the producer and the consumer security servers, to gain access to all the metrics made available.
+The items appearing under this subtree can be observed as the automated integration tests are run. Please refer to \[[PR-OPMONJMX](#PR-OPMONJMX)\] for the exact set of items required for each mediated request. Note that a separate `jconsole` session should be opened for the producer and the consumer security servers, to gain access to all the metrics made available.
 
 **NOTE** Because the health metrics related to mediated services are reset upon each restart of the operational monitoring daemon, the necessary configuration of the system should be carried out before running each automated test case. Please refer to `src/systemtest/op-monitoring/integration/run_tests.py` (`LOCAL_INI_PARAMETERS` and each test case in `OperationalMonitoringIntegrationTest`) for information about the necessary configuration.
 
 ## 8 Manual Integration Testing in Detail
 
-This chapter contains the descriptions of manual test cases of the operational monitoring system. Manual test cases cover only the functionality that is not covered by automated integration tests. Manual integration tests are carried out on a pre-configured testing system with the required X-Road components installed and configured, as described in [[TEST-OPMONSTRAT]](#TEST-OPMONSTRAT).
+This chapter contains the descriptions of manual test cases of the operational monitoring system. Manual test cases cover only the functionality that is not covered by automated integration tests. Manual integration tests are carried out on a pre-configured testing system with the required X-Road components installed and configured, as described in \[[TEST-OPMONSTRAT](#TEST-OPMONSTRAT)\].
 
 ### 8.1 Test Helpers
 The test steps described here are to be executed when refered to in test cases.
@@ -403,11 +403,11 @@ All test steps are executed in security server *xtee9.ci.kit*.
 Test case for verifying that it is possible to configure a secure connection between the security server and the external operational monitoring daemon.
 
 **Preconditions:**
-* The tester has superuser access to a server corresponding to the minimum requirements for an external monitoring daemon (see [[UG-SS]](#UG-SS)) to be used for installing an external operational monitoring daemon.
+* The tester has superuser access to a server corresponding to the minimum requirements for an external monitoring daemon (see \[[UG-SS](#UG-SS)\]) to be used for installing an external operational monitoring daemon.
 
 **Test scenario:**
-* Install an external operational monitoring daemon according to the instructions in [[UG-SS]](#UG-SS).
-* Configure security server *xtee10.ci.kit* to use the external operational monitoring daemon installed in the previous step over a secure connection. Follow the instructions in [[UG-SS]](#UG-SS).
+* Install an external operational monitoring daemon according to the instructions in \[[UG-SS](#UG-SS)\].
+* Configure security server *xtee10.ci.kit* to use the external operational monitoring daemon installed in the previous step over a secure connection. Follow the instructions in \[[UG-SS](#UG-SS)\].
 * Send an X-Road request to a service provider in security server *xtee10.ci.kit*. The example request can be found in the source repository of the project at `src/systemtest/op-monitoring/requests/service_in_ss2.query` (the request endpoint is security server *xtee9.ci.kit*).
 * Log in to the operational monitoring database in the external monitoring daemon (see [logging in to operational monitoring database](#log_in_db)) and ascertain that the operational monitoring data of the request sent in the previous step has been saved in the database. SQL example:
   ```sql

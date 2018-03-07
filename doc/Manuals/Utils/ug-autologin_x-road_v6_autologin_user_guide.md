@@ -7,7 +7,20 @@ Doc. ID: UG-AUTOLOGIN
 | Date        | Version     | Description                                                                                             
 |-------------|-------------|---------------------------------------------------------------------------------------------------------
 | 23.08.2017  | 1.0         | Initial version             
-| 06.03.2018  | 1.1         | Added chapter and section structure, terms and refs sections and term doc reference and link                   
+| 06.03.2018  | 1.1         | Added chapter and section structure, terms and refs sections and term doc reference and link, toc                   
+
+## Table of Contents
+
+<!-- toc -->
+
+- [1 Introduction](#1-introduction)
+    + [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
+    + [1.2 References](#12-references)
+- [2 Overview](#2-overview)
+    + [2.1 Usage](#21-usage)
+    + [2.2 Implementation details](#22-implementation-details)
+    
+<!-- tocstop -->
 
 ## 1 Introduction
 

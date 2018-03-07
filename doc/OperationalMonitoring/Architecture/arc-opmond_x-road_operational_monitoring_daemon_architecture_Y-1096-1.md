@@ -66,14 +66,14 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-<a name="ARC-G"></a>**ARC-G** -- Cybernetica AS. X-Road Architecture. Document ID: [ARC-G](../../Architecture/arc-g_x-road_arhitecture_1.4_Y-879-3.docx).  
+<a name="ARC-G"></a>**ARC-G** -- Cybernetica AS. X-Road Architecture. Document ID: [ARC-G](../../Architecture/arc-g_x-road_arhitecture.md).  
 <a name="PR-GCONF"></a>**PR-GCONF** -- Cybernetica AS. X-Road: Protocol for Downloading Configuration. Document ID: [PR-GCONF](../../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).  
-<a name="PR-MESS"></a>**PR-MESS** -- Cybernetica AS. X-Road: Message Transport Protocol v4.0. Document ID: [PR-MESS](../../Protocols/pr-mess_x-road_message_protocol_v4.0_4.0.17.md).  
+<a name="PR-MESS"></a>**PR-MESS** -- Cybernetica AS. X-Road: Message Transport Protocol v4.0. Document ID: [PR-MESS](../../Protocols/pr-mess_x-road_message_protocol.md).  
 <a name="PR-OPMON"></a>**PR-OPMON** -- Cybernetica AS. X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md).   
 <a name="PR-OPMONJMX"></a>**PR-OPMONJMX** -- Cybernetica AS. X-Road: Operational Monitoring JMX Protocol. Document ID: [PR-OPMONJMX](../Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md).  
 <a name="PSQL"></a>**PSQL** -- PostgreSQL, https://www.postgresql.org/  
 <a name="ARC-TEC"></a>**ARC-TEC** -- X-Road technologies. Document ID: [ARC-TEC](../../Architecture/arc-tec_x-road_technologies.md).  
-<a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
+<a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../../terms_x-road_docs.md).
 
 
 ## 2 Component View

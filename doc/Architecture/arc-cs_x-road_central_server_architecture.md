@@ -6,7 +6,7 @@
 # X-Road: Central Server Architecture
 **Technical Specification**
 
-Version: 2.4
+Version: 2.4  
 02.03.2018
 <!-- 12 pages -->
 Doc. ID: ARC-CS

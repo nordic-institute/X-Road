@@ -67,12 +67,12 @@ Doc. ID: UG-SYSPAR
   * [4.1 System Parameters in the Configuration File](#41-system-parameters-in-the-configuration-file)
     + [4.1.1 Common parameters: `[common]`](#411-common-parameters-common)
     + [4.1.2 Center parameters: `[center]`](#412-center-parameters-center)
-    + [4.1.3 Signer parameters: `[signer]`](#413-signer-parameters-signer-1)
+    + [4.1.3 Signer parameters: `[signer]`](#413-signer-parameters-signer)
   * [4.2 System Parameters in the Database](#42-system-parameters-in-the-database)
   * [4.3 Global Configuration Generation Interval Parameter](#43-global-configuration-generation-interval-parameter)
 - [5 Configuration Proxy System Parameters](#5-configuration-proxy-system-parameters)
     + [5.1 Configuration proxy module parameters: `[configuration-proxy]`](#51-configuration-proxy-module-parameters-configuration-proxy)
-    + [5.2 Signer parameters: `[signer]`](#52-signer-parameters-signer-2)
+    + [5.2 Signer parameters: `[signer]`](#52-signer-parameters-signer)
 
 <!-- tocstop -->
 
@@ -109,7 +109,7 @@ The system parameters specify various characteristics of the system, such as por
 
 ### 2.1 Changing the System Parameter Values in Configuration Files
 
-The configuration files are INI files [[INI](#Ref_INI)], where each section contains parameters for a particular server component.
+The configuration files are INI files \[[INI](#Ref_INI)\], where each section contains parameters for a particular server component.
 
 In order to override the default values of system parameters, create or edit the file
 
@@ -161,7 +161,7 @@ To restore the default value of a system parameter, delete the parameter from th
 
 ### 2.3 Changing the Global Configuration Generation Interval in the Central Server
 
-In order to override the default value of the global configuration generation interval, edit the cron expression [[CRON](#Ref_CRON)] in the file
+In order to override the default value of the global configuration generation interval, edit the cron expression \[[CRON](#Ref_CRON)\] in the file
 
 	/etc/cron.d/xroad-center
 
@@ -206,7 +206,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 | jetty-serverproxy-configuration-file             | /etc/xroad/jetty/serverproxy.xml           |   |   | Absolute filename of the Jetty configuration file for the service provider's security server. For more information about configuring Jetty server, see https://wiki.eclipse.org/Jetty/Reference/jetty.xml\_usage. |
 | jetty-ocsp-responder-configuration-file          | /etc/xroad/jetty/ocsp-responder.xml        |   |   | Absolute filename of the Jetty configuration file for the OCSP responder of the service provider's security server. For more information about configuring Jetty server, see https://wiki.eclipse.org/Jetty/Reference/jetty.xml\_usage. |
 | ssl-enabled                                      | true                                       |   |   | If true, TLS is used for connections between the service client's and service provider's security servers. |
-| client-tls-ciphers                               | See [1]                                    | See [1] |   | TLS ciphers enabled on the client-side interfaces (for both incoming and outgoing requests). (since version 6.7) |
+| client-tls-ciphers                               | See [1](#Ref_note1)                        | See [1](#Ref_note1) |   | TLS ciphers enabled on the client-side interfaces (for both incoming and outgoing requests). (since version 6.7) |
 | client-tls-protocols                             | TLSv1.2,TLSv1.1                            | TLSv1.2 |   | TLS protocols enabled on the client-side interfaces (for both incoming and outgoing requests) (since version 6.7) |
 | server-connector-max-idle-time                   | 0                                          | 120000 |   | The maximum time (in milliseconds) that connections from a service consuming security server to a service providing security server are allowed to be idle before the provider security server starts closing them. Value of 0 means that an infinite idle time is allowed. A non-zero value should allow some time for a pooled connection to be idle, if  pooled connections are to be supported.|
 | server-connector-so-linger                       | -1                                         |   |   | The SO_LINGER time (in seconds) at the service providing security server end for connections between security servers.<br>A value larger than 0 means that upon closing a connection, the system will allow SO_LINGER seconds for the transmission and acknowledgement of all data written to the peer, at which point the socket is closed gracefully. Upon reaching the linger timeout, the socket is closed forcefully, with a TCP RST. Enabling the option with a timeout of zero does a forceful close immediately.<br>Value of -1 disables the forceful close.|
@@ -364,7 +364,7 @@ The global configuration generation interval parameter regulates the timing for 
 
 	/etc/cron.d/xroad-center
 
-The file is deployed during X-Road installation and by default has following content (see exact cron specifications) [[CRONHOW](#Ref_CRONHOW)]:
+The file is deployed during X-Road installation and by default has following content (see exact cron specifications) \[[CRONHOW](#Ref_CRONHOW)\]:
 
 	#!/bin/sh
 	* * * * * xroad curl http://127.0.0.1:8084/managementservice/gen_conf 2>1 >/dev/null;
@@ -395,7 +395,7 @@ This chapter describes the system parameters used by the X-Road configuration pr
 | ocsp-cache-path                | /var/cache/xroad                        | Absolute path to the directory where the cached OCSP responses are stored. |
 | enforce-token-pin-policy       | false                                   | Controls enforcing the token pin policy. When set to true, software token pin is required to be at least 10 ASCII characters from at least tree character classes (lowercase letters, uppercase letters, digits, special characters). (since version 6.7.7) |
 
-[1] Default value for proxy.client-tls-ciphers.
+<a id="Ref_note1"></a>[1] Default value for proxy.client-tls-ciphers.
 >TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
 TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
 TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,

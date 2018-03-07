@@ -4,7 +4,7 @@
 # X-Road: Use Case Model for Security Server Management
 **Analysis**
 
-Version: 1.7
+Version: 1.7  
 06.03.2018
 <!-- 49 pages -->
 Doc. ID: UC-SS
@@ -132,7 +132,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 ### 1.3 References
 
 1.  <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\]
-    X-Road 6. Security Server Installation Guide. Document ID: IG-SS.
+    X-Road 6. Security Server Installation Guide. Document ID: [IG-SS](../Manuals/ig-ss_x-road_v6_security_server_installation_guide.md).
 
 2.  <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road:
     Audit Log Events. Document ID: SPEC-AL.
@@ -146,13 +146,13 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
     Profile, Internet Engineering Task Force, 2008.
 
 5.  <a id="Ref_UC-MESS" class="anchor"></a>\[UC-MESS\] X-Road: Use Case Model for
-    Member Communication. Document ID: UC-MESS.
+    Member Communication. Document ID: [UC-MESS](uc-mess_x-road_member_communication_use_case_model.md).
 
 6.  <a id="Ref_UC-MEMBER" class="anchor"></a>\[UC-MEMBER\] X-Road: Use Case Model for Member Management. Document
-    ID: UC-MEMBER.
+    ID: [UC-MEMBER](uc-member_x-road_use_case_model_for_member_management.md).
 
 7.  <a id="Ref_PR-MSERV" class="anchor"></a>\[PR-MSERV\]
-    X-Road: Protocol for Management Services. Document ID: PR-MSERV.
+    X-Road: Protocol for Management Services. Document ID: [PR-MSERV](../Protocols/pr-mserv_x-road_protocol_for_management_services.md).
 
 8. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 

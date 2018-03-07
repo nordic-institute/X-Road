@@ -6,8 +6,8 @@
 # X-Road: Use Case Model for Federation
 **Analysis**
 
-Version: 1.3
-06.03.2017
+Version: 1.3  
+06.03.2018
 <!-- 15 pages -->
 Doc. ID: UC-FED
 

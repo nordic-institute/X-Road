@@ -136,7 +136,7 @@ Instructions for the installation and initial configuration of the central serve
 
 ## 1.2 Terms and abbreviations
 
-See X-Road terms and abbreviations documentation \[[TA-TERMS](#13-references)\].
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ## 1.3 References
 

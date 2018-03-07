@@ -4,8 +4,8 @@
 # X-Road: Use Case Model for Trust Service Management
 **Analysis**
 
-Version: 1.3
-06.03.2017
+Version: 1.3  
+06.03.2018
 <!-- 23 pages-->
 Doc. ID: UC-TRUST
 
