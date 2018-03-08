@@ -22,19 +22,19 @@
  */
 package ee.ria.xroad.common.request;
 
-import java.security.SecureRandom;
-
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
+import ee.ria.xroad.common.PortNumbers;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.StartStop;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
-import ee.ria.xroad.common.PortNumbers;
-import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.StartStop;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+
+import java.security.SecureRandom;
 
 /**
  * Dummy central service.

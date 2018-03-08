@@ -33,6 +33,7 @@ import ee.ria.xroad.proxy.testsuite.TestServerConf;
 import ee.ria.xroad.proxy.util.MetaserviceTestUtil;
 
 import javax.xml.soap.SOAPBody;
+
 import java.util.Arrays;
 import java.util.List;
 

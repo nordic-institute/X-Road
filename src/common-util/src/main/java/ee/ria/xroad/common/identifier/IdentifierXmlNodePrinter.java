@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.common.identifier;
 
+import ee.ria.xroad.common.message.JaxbUtils;
+
+import org.w3c.dom.Node;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
-
-import org.w3c.dom.Node;
-
-import ee.ria.xroad.common.message.JaxbUtils;
 
 /**
  * XML element generator for X-Road identifiers.

@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.common.signature;
 
+import ee.ria.xroad.proxy.signedmessage.SigningKey;
+
+import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.bouncycastle.cert.ocsp.OCSPResp;
-
-import ee.ria.xroad.proxy.signedmessage.SigningKey;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Collects all the parts to be signed and creates the signature.

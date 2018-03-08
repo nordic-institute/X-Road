@@ -22,16 +22,6 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
-import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotActive;
-import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotInitialized;
-
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-
-import org.bouncycastle.cert.ocsp.OCSPResp;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
@@ -51,7 +41,17 @@ import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil;
+
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+
+import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotActive;
+import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotInitialized;
 
 /**
  * Handles authentication key retrieval requests.
@@ -158,7 +158,7 @@ public class GetAuthKeyRequestHandler
                 + "(server id from global conf: {})", new Object[] {
                         CertUtils.identify(cert),
                         securityServer, serverIdFromConf});
-        
+
         return false;
     }
 

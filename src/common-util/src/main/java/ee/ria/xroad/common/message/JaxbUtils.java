@@ -22,17 +22,17 @@
  */
 package ee.ria.xroad.common.message;
 
-import java.util.HashMap;
-import java.util.Map;
+import ee.ria.xroad.common.ErrorCodes;
+
+import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
-import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
-
-import ee.ria.xroad.common.ErrorCodes;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Contains utility functions for working with JAXB.

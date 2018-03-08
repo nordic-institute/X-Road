@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.common.message;
 
+import ee.ria.xroad.common.util.MimeUtils;
+
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-
-import ee.ria.xroad.common.util.MimeUtils;
 
 /**
  * Output stream that produces MIME multipart content.

@@ -22,18 +22,16 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
+import ee.ria.xroad.common.util.JsonUtils;
+
 import com.google.gson.Gson;
 import com.google.gson.annotations.JsonAdapter;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import ee.ria.xroad.common.util.JsonUtils;
 
 import static org.junit.Assert.assertEquals;
 

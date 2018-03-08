@@ -22,19 +22,20 @@
  */
 package ee.ria.xroad.common.cert;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_CERT_PATH;
-import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_CERT_PATH;
+import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 
 /**
  * Holds the certificate chain containing the trusted root certificate,

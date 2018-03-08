@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.proxy.util;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.signature.TestSigningKey;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 import ee.ria.xroad.proxy.conf.SigningCtxImpl;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Contains various test utility methods.

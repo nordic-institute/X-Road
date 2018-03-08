@@ -24,7 +24,12 @@ package ee.ria.xroad.signer.tokenmanager;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.AbstractXmlConf;
-import ee.ria.xroad.common.conf.keyconf.*;
+import ee.ria.xroad.common.conf.keyconf.CertRequestType;
+import ee.ria.xroad.common.conf.keyconf.CertificateType;
+import ee.ria.xroad.common.conf.keyconf.DeviceType;
+import ee.ria.xroad.common.conf.keyconf.KeyConfType;
+import ee.ria.xroad.common.conf.keyconf.KeyType;
+import ee.ria.xroad.common.conf.keyconf.ObjectFactory;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.model.Cert;
 import ee.ria.xroad.signer.model.CertRequest;
@@ -33,6 +38,7 @@ import ee.ria.xroad.signer.model.Token;
 import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
 import ee.ria.xroad.signer.tokenmanager.token.TokenType;
 import ee.ria.xroad.signer.util.SignerUtil;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.eclipse.jetty.util.StringUtil;
@@ -40,7 +46,9 @@ import org.eclipse.jetty.util.StringUtil;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.util.CryptoUtils.*;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static java.util.Objects.requireNonNull;
 
 /**

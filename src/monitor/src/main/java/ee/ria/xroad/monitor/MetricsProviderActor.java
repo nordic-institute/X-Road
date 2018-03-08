@@ -22,11 +22,6 @@
  */
 package ee.ria.xroad.monitor;
 
-import akka.actor.UntypedActor;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
-import com.codahale.metrics.*;
-import com.google.common.collect.Lists;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 import ee.ria.xroad.monitor.common.SystemMetricsRequest;
@@ -37,6 +32,17 @@ import ee.ria.xroad.monitor.common.dto.MetricSetDto;
 import ee.ria.xroad.monitor.common.dto.SimpleMetricDto;
 import ee.ria.xroad.monitor.executablelister.PackageInfo;
 import ee.ria.xroad.monitor.executablelister.ProcessInfo;
+
+import akka.actor.UntypedActor;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Histogram;
+import com.codahale.metrics.Metric;
+import com.codahale.metrics.MetricFilter;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Snapshot;
+import com.google.common.collect.Lists;
 
 import java.io.Serializable;
 import java.util.List;

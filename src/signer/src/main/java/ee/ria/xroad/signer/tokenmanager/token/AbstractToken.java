@@ -22,11 +22,6 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
-import akka.actor.ActorRef;
-import akka.actor.Props;
-import akka.actor.SupervisorStrategy;
-import lombok.extern.slf4j.Slf4j;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.message.ActivateToken;
@@ -37,7 +32,14 @@ import ee.ria.xroad.signer.util.AbstractSignerActor;
 import ee.ria.xroad.signer.util.SignerUtil;
 import ee.ria.xroad.signer.util.Update;
 
-import static ee.ria.xroad.common.ErrorCodes.*;
+import akka.actor.ActorRef;
+import akka.actor.Props;
+import akka.actor.SupervisorStrategy;
+import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.signer.protocol.ComponentNames.TOKEN_SIGNER;
 import static ee.ria.xroad.signer.protocol.ComponentNames.TOKEN_WORKER;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotActive;

@@ -23,6 +23,7 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
+
 import lombok.Data;
 import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
@@ -33,7 +34,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.util.MimeUtils.*;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_FILE_NAME;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_IDENTIFIER;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_LOCATION;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODING;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGORITHM_ID;
+import static ee.ria.xroad.common.util.MimeUtils.PARAM_INSTANCE;
 
 final class ConfigurationFile extends AbstractConfigurationPart {
 

@@ -22,6 +22,29 @@
  */
 package ee.ria.xroad.signer.util;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
+
+import akka.actor.ActorRef;
+import akka.actor.ActorSelection;
+import akka.actor.OneForOneStrategy;
+import akka.actor.SupervisorStrategy;
+import akka.pattern.Patterns;
+import akka.util.Timeout;
+import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
+import lombok.SneakyThrows;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.operator.ContentSigner;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
+
+import javax.xml.bind.DatatypeConverter;
+
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
@@ -32,34 +55,14 @@ import java.util.GregorianCalendar;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import javax.xml.bind.DatatypeConverter;
-
-import akka.actor.ActorRef;
-import akka.actor.ActorSelection;
-import akka.actor.OneForOneStrategy;
-import akka.actor.SupervisorStrategy;
-import akka.pattern.Patterns;
-import akka.util.Timeout;
-
-import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
-
-import lombok.SneakyThrows;
-
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
-import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
-import org.bouncycastle.operator.ContentSigner;
-
-import scala.concurrent.Await;
-import scala.concurrent.duration.Duration;
-
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.tokenmanager.TokenManager;
-
-import static ee.ria.xroad.common.util.CryptoUtils.*;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA1WITHRSA_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA256WITHRSAANDMGF1_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA256WITHRSA_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA384WITHRSAANDMGF1_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA384WITHRSA_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA512WITHRSAANDMGF1_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA512WITHRSA_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 
 /**
  * Collection of various utility methods.

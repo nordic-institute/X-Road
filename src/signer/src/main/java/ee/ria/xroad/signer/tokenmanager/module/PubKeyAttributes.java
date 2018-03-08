@@ -22,9 +22,9 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
-import java.util.Set;
-
 import lombok.Data;
+
+import java.util.Set;
 
 /**
  * PKCS#11 public key attributes.

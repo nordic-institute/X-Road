@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.monitor.common.dto;
 
-import java.io.Serializable;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+
+import java.io.Serializable;
 
 /**
  * Created by hyoty on 24.9.2015.

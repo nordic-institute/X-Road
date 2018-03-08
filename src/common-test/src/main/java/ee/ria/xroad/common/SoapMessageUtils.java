@@ -22,8 +22,11 @@
  */
 package ee.ria.xroad.common;
 
-import java.util.List;
-import java.util.Map;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.SoapUtils;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import javax.xml.soap.Detail;
 import javax.xml.soap.SOAPBody;
@@ -32,11 +35,8 @@ import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPFault;
 import javax.xml.soap.SOAPMessage;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
-import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapUtils;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Contains various utility methods for working with SOAP messages.

@@ -22,14 +22,9 @@
  */
 package ee.ria.xroad.proxy.antidos;
 
-import java.io.IOException;
-import java.nio.channels.SelectableChannel;
-import java.nio.channels.SocketChannel;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Semaphore;
+import ee.ria.xroad.common.util.SystemMetrics;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.eclipse.jetty.io.EndPoint;
 import org.eclipse.jetty.io.SelectorManager;
 import org.eclipse.jetty.server.Server;
@@ -37,7 +32,11 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.Scheduler;
 
-import ee.ria.xroad.common.util.SystemMetrics;
+import java.io.IOException;
+import java.nio.channels.SelectableChannel;
+import java.nio.channels.SocketChannel;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Semaphore;
 
 /**
  * This class implements a connector that prevents DoS attacks.

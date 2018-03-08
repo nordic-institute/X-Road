@@ -22,21 +22,21 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import akka.actor.ActorSystem;
-import com.typesafe.config.ConfigFactory;
-import lombok.extern.slf4j.Slf4j;
-
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.StartStop;
+
+import akka.actor.ActorSystem;
+import com.typesafe.config.ConfigFactory;
+import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_OP_MONITOR;
 

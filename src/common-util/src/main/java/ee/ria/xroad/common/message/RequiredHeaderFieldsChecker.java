@@ -22,20 +22,21 @@
  */
 package ee.ria.xroad.common.message;
 
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER_FIELD;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
+import ee.ria.xroad.common.CodedException;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+
+import javax.xml.bind.Unmarshaller.Listener;
+import javax.xml.bind.annotation.XmlElement;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.xml.bind.Unmarshaller.Listener;
-import javax.xml.bind.annotation.XmlElement;
-
-import ee.ria.xroad.common.CodedException;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER_FIELD;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
 
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 class RequiredHeaderFieldsChecker extends Listener {

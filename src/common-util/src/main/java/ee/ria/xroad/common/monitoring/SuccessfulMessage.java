@@ -22,10 +22,10 @@
  */
 package ee.ria.xroad.common.monitoring;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Date;
-
-import lombok.Data;
 
 /**
  * Serizalizable message denoting successful message exchange.

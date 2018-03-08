@@ -22,15 +22,15 @@
  */
 package ee.ria.xroad.common.util;
 
-import java.io.InputStream;
-import java.net.URI;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+
+import java.io.InputStream;
+import java.net.URI;
 
 /**
  * This class encapsulates the sending and receiving of content via HTTP POST

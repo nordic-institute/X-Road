@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import java.io.StringReader;
+import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.util.SchemaValidator;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 
-import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.util.SchemaValidator;
+import java.io.StringReader;
 
 /**
  * Schema validator of private parameters.

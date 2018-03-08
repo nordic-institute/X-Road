@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.common.signature;
 
+import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
-import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
 
 /**
  * Default hash chain reference resolver implementation.

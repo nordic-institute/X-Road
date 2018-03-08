@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.common.conf.serverconf.dao;
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
-
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.model.UiUserType;
+
+import org.hibernate.Criteria;
+import org.hibernate.criterion.Restrictions;
 
 /**
  * UiUser data access object implementation.

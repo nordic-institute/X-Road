@@ -24,6 +24,7 @@ package ee.ria.xroad.commonui;
 
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedCodedException;
+
 import org.hamcrest.core.StringContains;
 import org.junit.Rule;
 import org.junit.Test;

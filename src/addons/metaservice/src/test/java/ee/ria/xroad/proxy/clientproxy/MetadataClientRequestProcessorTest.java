@@ -34,7 +34,11 @@ import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.testsuite.TestGlobalConf;
 import ee.ria.xroad.proxy.testsuite.TestKeyConf;
 import ee.ria.xroad.proxy.util.MetaserviceTestUtil;
-import org.junit.*;
+
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
 
@@ -43,18 +47,27 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.identifier.CentralServiceId.create;
-import static ee.ria.xroad.common.metadata.MetadataRequests.*;
+import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CENTRAL_SERVICES;
+import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CLIENTS;
+import static ee.ria.xroad.common.metadata.MetadataRequests.WSDL;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.xmlUtf8ContentTypes;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.arrayContaining;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit test for {@link MetadataClientRequestProcessor}

@@ -23,6 +23,7 @@
 package ee.ria.xroad.signer.util;
 
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+
 import lombok.Value;
 
 /**

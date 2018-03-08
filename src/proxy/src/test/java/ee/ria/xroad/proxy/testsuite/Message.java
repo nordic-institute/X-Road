@@ -22,7 +22,12 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
-import ee.ria.xroad.common.message.*;
+import ee.ria.xroad.common.message.Soap;
+import ee.ria.xroad.common.message.SoapFault;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.SoapParserImpl;
+import ee.ria.xroad.common.message.SoapUtils;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.james.mime4j.MimeException;

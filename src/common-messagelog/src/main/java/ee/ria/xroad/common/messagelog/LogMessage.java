@@ -24,6 +24,7 @@ package ee.ria.xroad.common.messagelog;
 
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
+
 import lombok.Value;
 
 /**

@@ -22,12 +22,14 @@
  */
 package ee.ria.xroad.proxy.opmonitoring;
 
-import java.net.NetworkInterface;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonHttpClient;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
+import ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataRequest;
+import ee.ria.xroad.common.util.JsonUtils;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import akka.actor.ActorRef;
 import akka.actor.Cancellable;
@@ -39,14 +41,12 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import scala.concurrent.duration.FiniteDuration;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
-import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonHttpClient;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
-import ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataRequest;
-import ee.ria.xroad.common.util.JsonUtils;
-import ee.ria.xroad.common.util.TimeUtils;
+import java.net.NetworkInterface;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static java.net.NetworkInterface.getNetworkInterfaces;
 import static java.util.Collections.list;

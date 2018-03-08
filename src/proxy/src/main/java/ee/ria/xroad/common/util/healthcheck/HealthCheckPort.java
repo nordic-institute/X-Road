@@ -24,6 +24,7 @@ package ee.ria.xroad.common.util.healthcheck;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.StartStop;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -37,6 +38,7 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.concurrent.atomic.AtomicBoolean;

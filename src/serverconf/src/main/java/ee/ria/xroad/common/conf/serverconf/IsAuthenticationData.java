@@ -22,9 +22,9 @@
  */
 package ee.ria.xroad.common.conf.serverconf;
 
-import java.security.cert.X509Certificate;
-
 import lombok.Data;
+
+import java.security.cert.X509Certificate;
 
 /**
  * The client information system authentication data contains

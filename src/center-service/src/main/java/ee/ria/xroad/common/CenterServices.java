@@ -22,15 +22,15 @@
  */
 package ee.ria.xroad.common;
 
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CENTER;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
-
-import com.typesafe.config.ConfigFactory;
+import ee.ria.xroad.signer.protocol.SignerClient;
 
 import akka.actor.ActorSystem;
-import ee.ria.xroad.signer.protocol.SignerClient;
+import com.typesafe.config.ConfigFactory;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
+
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CENTER;
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
 
 /**
  * Contains the center actor system.

@@ -22,7 +22,10 @@
  */
 package ee.ria.xroad.common.request;
 
-import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
+import lombok.extern.slf4j.Slf4j;
+
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.X509ExtendedKeyManager;
 
 import java.io.File;
 import java.net.Socket;
@@ -31,10 +34,7 @@ import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.X509ExtendedKeyManager;
-
-import lombok.extern.slf4j.Slf4j;
+import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
 
 @Slf4j
 class ManagementRequestServerKeyManager extends X509ExtendedKeyManager {

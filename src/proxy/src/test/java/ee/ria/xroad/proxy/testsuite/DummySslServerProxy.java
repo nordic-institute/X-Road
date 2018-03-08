@@ -22,12 +22,14 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
-import java.net.Socket;
-import java.security.Principal;
-import java.security.PrivateKey;
-import java.security.SecureRandom;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
+import ee.ria.xroad.common.PortNumbers;
+import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.StartStop;
+
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -36,14 +38,12 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509TrustManager;
 
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.util.ssl.SslContextFactory;
-
-import ee.ria.xroad.common.PortNumbers;
-import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.StartStop;
+import java.net.Socket;
+import java.security.Principal;
+import java.security.PrivateKey;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
 /**
  * This server proxy dummy is currently only used by one SSL test case.

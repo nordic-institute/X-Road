@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.common.request;
 
-import static ee.ria.xroad.common.message.SoapMessageTestUtil.createRequest;
-import static org.hamcrest.MatcherAssert.assertThat;
+import ee.ria.xroad.common.message.SoapMessageImpl;
 
 import org.hamcrest.Matcher;
 import org.hamcrest.core.StringContains;
 import org.junit.Test;
 
-import ee.ria.xroad.common.message.SoapMessageImpl;
+import static ee.ria.xroad.common.message.SoapMessageTestUtil.createRequest;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Tests that ensure management requests are handled properly.

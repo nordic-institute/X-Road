@@ -22,10 +22,10 @@
  */
 package ee.ria.xroad.common.asic;
 
+import lombok.Data;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import lombok.Data;
 
 /**
  * Builds an ASiC manifest XML file (according to ASiC XML schema) with the specified entries.

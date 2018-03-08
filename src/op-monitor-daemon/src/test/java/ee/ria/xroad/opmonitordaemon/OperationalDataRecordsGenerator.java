@@ -22,13 +22,10 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import java.util.ArrayList;
-import java.util.List;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 
 import com.google.common.base.Strings;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
@@ -36,7 +33,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Generates operational data records into the database.

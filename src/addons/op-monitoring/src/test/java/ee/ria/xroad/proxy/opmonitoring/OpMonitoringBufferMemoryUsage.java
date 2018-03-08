@@ -22,13 +22,13 @@
  */
 package ee.ria.xroad.proxy.opmonitoring;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.RepresentedParty;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 
 import com.google.common.base.Strings;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
@@ -36,10 +36,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.RepresentedParty;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Operational monitoring buffer simulation class to measure heap size usage.

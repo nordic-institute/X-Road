@@ -22,12 +22,12 @@
  */
  package ee.ria.xroad.common.certificateprofile.impl;
 
-import java.security.cert.X509Certificate;
-
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CertUtils;
+
+import java.security.cert.X509Certificate;
 
 /**
  * Default implementation (EJBCA) of SignCertificateProfileInfo.

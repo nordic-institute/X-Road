@@ -22,6 +22,15 @@
  */
 package ee.ria.xroad.confproxy.util;
 
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV1;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2;
+import ee.ria.xroad.confproxy.ConfProxyProperties;
+
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -31,15 +40,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV1;
-import org.apache.commons.io.FileUtils;
-
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2;
-import ee.ria.xroad.confproxy.ConfProxyProperties;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Provides configuration proxy utility functions.

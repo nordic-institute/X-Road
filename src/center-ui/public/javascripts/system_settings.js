@@ -42,7 +42,7 @@
                     var self = this;
 
                     var oldValue = $("#central_server_address").val();
-                    var newValue = $("#central_server_address_new").val();
+                    var newValue = $.trim($("#central_server_address_new").val());
 
                     if (oldValue == newValue) {
                         $(self).dialog("close");

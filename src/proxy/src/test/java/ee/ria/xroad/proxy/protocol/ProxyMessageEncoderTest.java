@@ -22,21 +22,6 @@
  */
 package ee.ria.xroad.proxy.protocol;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-
-import org.apache.commons.io.IOUtils;
-
-import org.bouncycastle.cert.ocsp.OCSPResp;
-
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapFault;
@@ -45,7 +30,23 @@ import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 
-import static org.junit.Assert.*;
+import org.apache.commons.io.IOUtils;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests to verify correct proxy message encoder behavior.

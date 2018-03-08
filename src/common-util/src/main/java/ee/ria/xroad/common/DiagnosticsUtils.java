@@ -22,6 +22,10 @@
  */
 package ee.ria.xroad.common;
 
+import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
+import java.util.concurrent.TimeoutException;
+
 import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_CANNOT_DOWNLOAD_CONF;
 import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_EXPIRED_CONF;
 import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_INTERNAL;
@@ -31,10 +35,6 @@ import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_REQ
 import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
-
-import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Utilities for configuration client module

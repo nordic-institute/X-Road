@@ -22,13 +22,14 @@
  */
 package ee.ria.xroad.signer.protocol;
 
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
+
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.Await;
 

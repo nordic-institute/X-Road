@@ -24,6 +24,7 @@ package ee.ria.xroad.signer.model;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
+
 import lombok.Value;
 
 /**

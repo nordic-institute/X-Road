@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.common.conf.serverconf.dao;
 
-import org.hibernate.Session;
-
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
 import ee.ria.xroad.common.identifier.ServiceId;
+
+import org.hibernate.Session;
 
 /**
  * Wsdl data access object implementation.

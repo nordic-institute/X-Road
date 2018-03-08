@@ -22,14 +22,13 @@
  */
 package ee.ria.xroad.common.util;
 
+import akka.actor.ActorRef;
+import akka.actor.ActorSelection;
+import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-
-import akka.actor.ActorRef;
-import akka.actor.ActorSelection;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Job that sends messages to actors.

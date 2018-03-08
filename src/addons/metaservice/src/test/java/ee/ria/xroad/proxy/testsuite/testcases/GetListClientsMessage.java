@@ -35,6 +35,7 @@ import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 import ee.ria.xroad.proxy.testsuite.TestGlobalConf;
 import ee.ria.xroad.proxy.util.MetaserviceTestUtil;
+
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 
@@ -43,6 +44,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -54,7 +56,9 @@ import java.util.stream.Collectors;
 import static ee.ria.xroad.proxy.clientproxy.WsdlRequestProcessor.PARAM_INSTANCE_IDENTIFIER;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.DUMMY_QUERY_FILE;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.arrayContaining;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.isIn;
 import static org.junit.Assert.assertThat;
 
 /**

@@ -22,18 +22,18 @@
  */
 package ee.ria.xroad.common.conf.monitoringconf;
 
-import java.io.File;
-import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
+import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.util.SchemaValidator;
+
+import org.apache.commons.io.FileUtils;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 
-import org.apache.commons.io.FileUtils;
-
-import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.util.SchemaValidator;
+import java.io.File;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Validator for monitoring parameters xml

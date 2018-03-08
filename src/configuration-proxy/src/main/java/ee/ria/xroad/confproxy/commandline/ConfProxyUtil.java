@@ -22,19 +22,19 @@
  */
 package ee.ria.xroad.confproxy.commandline;
 
-import java.io.File;
-import java.io.PrintWriter;
-import java.nio.file.Paths;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.confproxy.ConfProxyProperties;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.confproxy.ConfProxyProperties;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import java.io.File;
+import java.io.PrintWriter;
+import java.nio.file.Paths;
 
 /**
  * Base for all the configuration proxy utility tools.

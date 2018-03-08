@@ -22,19 +22,19 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.proxy.testsuite.Message;
+import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
-import ee.ria.xroad.common.util.MimeTypes;
-import ee.ria.xroad.proxy.testsuite.Message;
-import ee.ria.xroad.proxy.testsuite.MessageTestCase;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import java.io.FileInputStream;
+import java.io.IOException;
 
 /**
  * Client sends normal message. Service sends fault with 500 error code.

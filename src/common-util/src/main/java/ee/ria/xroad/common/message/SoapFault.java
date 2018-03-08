@@ -23,6 +23,7 @@
 package ee.ria.xroad.common.message;
 
 import ee.ria.xroad.common.CodedException;
+
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringEscapeUtils;
 

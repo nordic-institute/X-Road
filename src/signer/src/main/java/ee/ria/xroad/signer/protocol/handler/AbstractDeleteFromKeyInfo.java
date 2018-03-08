@@ -22,8 +22,6 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -32,7 +30,10 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.message.DeleteCert;
 import ee.ria.xroad.signer.protocol.message.DeleteKey;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
+
 import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 
 @Slf4j
 abstract class AbstractDeleteFromKeyInfo<T> extends AbstractRequestHandler<T> {

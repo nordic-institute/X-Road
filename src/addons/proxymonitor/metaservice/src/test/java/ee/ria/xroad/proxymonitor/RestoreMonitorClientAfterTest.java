@@ -23,6 +23,7 @@
 package ee.ria.xroad.proxymonitor;
 
 import ee.ria.xroad.proxymonitor.util.MonitorClient;
+
 import org.junit.rules.ExternalResource;
 
 /** A JUnit rule to restore the {@link ProxyMonitor} MonitorClient after the test has run. */

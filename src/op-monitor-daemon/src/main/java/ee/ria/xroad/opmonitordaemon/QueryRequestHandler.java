@@ -22,15 +22,24 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.UUID;
-import java.util.function.Consumer;
-import java.util.zip.GZIPOutputStream;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.message.JaxbUtils;
+import ee.ria.xroad.common.message.SoapMessageEncoder;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.SoapUtils;
+import ee.ria.xroad.common.util.JsonUtils;
+import ee.ria.xroad.common.util.ResourceUtils;
+import ee.ria.xroad.opmonitordaemon.message.ObjectFactory;
+
+import com.google.gson.Gson;
+import com.sun.istack.ByteArrayDataSource;
+import com.sun.xml.bind.api.AccessorException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.commons.lang3.StringUtils;
+import org.xml.sax.SAXException;
+
 import javax.activation.DataHandler;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
@@ -44,29 +53,19 @@ import javax.xml.bind.attachment.AttachmentMarshaller;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
-import com.google.gson.Gson;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.zip.GZIPOutputStream;
 
-import com.sun.istack.ByteArrayDataSource;
-import com.sun.xml.bind.api.AccessorException;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.commons.lang3.StringUtils;
-
-import org.xml.sax.SAXException;
-
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.message.JaxbUtils;
-import ee.ria.xroad.common.message.SoapMessageEncoder;
-import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapUtils;
-import ee.ria.xroad.common.util.JsonUtils;
-import ee.ria.xroad.common.util.ResourceUtils;
-import ee.ria.xroad.opmonitordaemon.message.ObjectFactory;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODING;
 
