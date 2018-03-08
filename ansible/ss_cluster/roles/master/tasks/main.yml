@@ -1,6 +1,6 @@
 ---
 - name: setup master database
-  include: serverconf_master_db.yml
+  import_tasks: serverconf_master_db.yml
 
 - name: enable master role for node
   ini_file: dest=/etc/xroad/conf.d/node.ini

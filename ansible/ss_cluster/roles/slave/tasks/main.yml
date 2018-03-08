@@ -1,6 +1,6 @@
 ---
 - name: configure slave serverconf db
-  include: serverconf_slave_db.yml
+  import_tasks: serverconf_slave_db.yml
 
 - name: do initial configuration sync
   become_user: xroad
@@ -8,7 +8,7 @@
   command: rsync -e "ssh -o StrictHostKeyChecking=no" -aqz --delete-delay --exclude "/db.properties" --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/nginx" "{{ xroad_slave_ssh_user }}@{{ master_host }}":/etc/xroad/ /etc/xroad/
 
 - name: install configuration sync
-  include: "{{ ansible_distribution | lower }}.yml"
+  import_tasks: "{{ ansible_distribution | lower }}.yml"
 
 - name: setup sync log rotation
   copy:
