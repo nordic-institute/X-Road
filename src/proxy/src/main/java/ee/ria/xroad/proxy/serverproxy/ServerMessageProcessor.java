@@ -424,7 +424,6 @@ class ServerMessageProcessor extends MessageProcessorBase {
         log.trace("sendRequest({})", serviceAddress);
 
         URI uri;
-
         try {
             uri = new URI(serviceAddress);
         } catch (URISyntaxException e) {
@@ -433,22 +432,9 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
 
         log.info("Sending request to {}", uri);
-
-        String contentType = servletRequest.getHeader(HEADER_ORIGINAL_CONTENT_TYPE);
-        // 6.7.x series security servers don't know to add the original content type header.
-        // Not setting a content type will cause trouble with management requests to central server and
-        // normal requests to 6.9.x servers that pass the request on to services that expect a certain content type.
-
-        if (contentType == null) {
-            // set the content type like version 6.7.x
-            contentType = requestMessage.getSoapContentType();
-        }
-
         try (InputStream in = requestMessage.getSoapContent()) {
             opMonitoringData.setRequestOutTs(getEpochMillisecond());
-
-            httpSender.doPost(uri, in, CHUNKED_LENGTH, contentType);
-
+            httpSender.doPost(uri, in, CHUNKED_LENGTH, servletRequest.getHeader(HEADER_ORIGINAL_CONTENT_TYPE));
             opMonitoringData.setResponseInTs(getEpochMillisecond());
         } catch (Exception ex) {
             if (ex instanceof CodedException) {
