@@ -1,6 +1,6 @@
 # X-Road: Central Server Configuration Data Model
 
-Version: 1.5  
+Version: 1.6  
 Doc. ID: DM-CS
 
 | Date       | Version | Description                                             | Author             |
@@ -18,18 +18,21 @@ Doc. ID: DM-CS
 | 11.12.2015 | 1.3     | Subsystems can only be clients of security servers      | Siim Annuk         |
 | 02.02.2017 | 1.4     | Update distributed_files and convert to markdown format | Ilkka Seppälä      |
 | 05.06.2017 | 1.5     | System parameter *confSignAlgoId* replaced with *confSignDigestAlgoId* | Kristo Heero |
+| 02.03.2018 | 1.6     | Added uniform terms and conditions reference            | Tatu Repo |
 
 ## Table of Contents
 
 - [1 General](#1-general)
 	- [1.1 Preamble](#11-preamble)
-	- [1.2 Database Version](#12-database-version)
-	- [1.3 Creating, Backing Up and Restoring the Database](#13-creating-backing-up-and-restoring-the-database)
-	- [1.4 Saving Database History](#14-saving-database-history)
-	- [1.5 High Availability Support](#15-high-availability-support)
-	- [1.6 Entity-Relationship Diagram](#16-entity-relationship-diagram)
-	- [1.7 List of Stored Procedures](#17-list-of-stored-procedures)
-	- [1.8 List of Triggers](#18-list-of-triggers)
+	- [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+	- [1.3 References](#13-references)
+	- [1.4 Database Version](#14-database-version)
+	- [1.5 Creating, Backing Up and Restoring the Database](#15-creating-backing-up-and-restoring-the-database)
+	- [1.6 Saving Database History](#16-saving-database-history)
+	- [1.7 High Availability Support](#17-high-availability-support)
+	- [1.8 Entity-Relationship Diagram](#18-entity-relationship-diagram)
+	- [1.9 List of Stored Procedures](#19-list-of-stored-procedures)
+	- [1.10 List of Triggers](#110-list-of-triggers)
 - [2 Description of Entities](#2-description-of-entities)
 	- [2.1 ANCHOR_URL_CERTS](#21-anchorurlcerts)
 		- [2.1.1 Indexes](#211-indexes)
@@ -115,17 +118,25 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 This document describes the database model of the X-Road central server.
 
-## 1.2 Database Version
+## 1.2 Terms and abbreviations
+
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
+
+### 1.3 References
+
+1. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
+
+## 1.4 Database Version
 
 This database assumes PostgreSQL version 9.3 or 9.4 depending on whether the central server is deployed in a simple setup or in a cluster for achieving high availability (HA) (see section 1.5 for details). Ubuntu 14.04 default settings are used in simple setup, while a custom configuration is used in HA setup.
 
-## 1.3 Creating, Backing Up and Restoring the Database
+## 1.5 Creating, Backing Up and Restoring the Database
 
 This database is integrated into X-Road central server application. The database management functions are embedded into the application user interface.
 The database, the database user and the data model is created by the application's installer. The database updates are packaged as application updates and are applied when the application is upgraded. From the technical point of view, the database structure is created and updated using Rails migrations (see http://guides.rubyonrails.org/). The migration scripts can be found both in application source and in WAR file of central server's web based user interface (WAR – Java Web Archive).
 Database backup functionality is built into the application. The backup operation can be invoked from the web-based user interface or from the command line. The backup contains dump of all the database structure and contents. When restoring the application, first the software is installed and then the configuration database is restored together with all the other necessary files. This produces a working central server.
 
-## 1.4 Saving Database History
+## 1.6 Saving Database History
 
 This section describes the general mechanism for storing the history of the database tables. All the history-aware tables have an associated trigger update_history that records all the modifications to data. All the tables of central database are history-aware, except for
 
@@ -135,7 +146,7 @@ This section describes the general mechanism for storing the history of the data
 
 When a row is created, updated or deleted in one of the history-aware tables, the trigger update_history is activated and invokes the stored procedure add_history_rows. For each changed column, add_history_rows inserts a row into the history table. The details of the stored procedures are described in section 1.7.
 
-## 1.5 High Availability Support
+## 1.7 High Availability Support
 
 High availability of the X-Road central server has been implemented using the BDR extension of the PostgreSQL database (http://2ndquadrant.com/en/resources/bdr/). The implementation is an asynchronous multi-master setup where the database changes to any node of the cluster are replicated to the rest of the nodes. Each node runs a separate instance of the UI of the central server and uses separate keys for signing configuration.
 
@@ -145,7 +156,7 @@ The logic of taking into account the value of ha_node_name where applicable, has
 
 Database history records are aware of the node name in an HA setup and are replicated just like other records. Thus each node contains the full history of database changes. Because replication events happen at a lower level than insertions of records, the replication of history records themselves does not trigger any subsequent insertions of history records on target nodes.
 
-## 1.6 Entity-Relationship Diagram
+## 1.8 Entity-Relationship Diagram
 
 The data model is described in two entity relationship diagrams (ERD). The first diagram contains tables related to security servers and security server clients. The second diagram contains the rest of the tables.
 
@@ -153,7 +164,7 @@ The data model is described in two entity relationship diagrams (ERD). The first
 
 Figure 1. ERD describing the database tables in the central server database
 
-## 1.7 List of Stored Procedures
+## 1.9 List of Stored Procedures
 
 The following stored procedures are present in the database, regardless of whether a given central server has been installed in standalone or HA setup.
 
@@ -163,7 +174,7 @@ The following stored procedures are present in the database, regardless of wheth
 - the default value in standalone systems
 - the name of the cluster node that initiated the insertion, in an HA setup.
 
-## 1.8 List of Triggers
+## 1.10 List of Triggers
 
 The following triggers are present in the database, regardless of whether a given central server has been installed in standalone or HA setup.
 

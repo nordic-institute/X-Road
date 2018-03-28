@@ -1,6 +1,6 @@
 # X-Road: Environmental Monitoring Architecture
 
-Version: 1.3  
+Version: 1.6  
 Doc. ID: ARC-ENVMON
 
 | Date       | Version     | Description                                                                  | Author             |
@@ -11,23 +11,26 @@ Doc. ID: ARC-ENVMON
 | 23.2.2017 | 1.3       | Added reference to the Security Server targeting extension and moved the modified X-Road protocol details there | Olli Lindgren |
 | 18.8.2017 | 1.4       | Added details about the security server certificates monitoring data | Olli Lindgren |
 | 18.10.2017| 1.5       |  | Joni Laurila |
+| 02.03.2018| 1.6       | Added numbering, terms document references, removed unnecessary anchors | Tatu Repo
 
-## Table of Contents
+# Table of Contents
 <!-- toc -->
 
   * [License](#license)
-  * [Overview](#overview)
-  * [References](#references)
-- [Components](#components)
-  * [Monitoring metaservice (proxymonitor add-on)](#monitoring-metaservice-proxymonitor-add-on)
-  * [Monitoring service (xroad-monitor)](#monitoring-service-xroad-monitor)
-  * [Central monitoring client](#central-monitoring-client)
-  * [Central monitoring data collector](#central-monitoring-data-collector)
-  * [Central server admin user interface](#central-server-admin-user-interface)
-- [Monitoring in action](#monitoring-in-action)
-  * [Pull messaging model](#pull-messaging-model)
-  * [Modified X-Road message protocol](#modified-x-road-message-protocol)
-  * [Access control](#access-control)
+- [1 Overview](#1-overview)
+  * [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
+  * [1.2 References](#12-references)
+- [2 Components](#2-components)
+  * [2.1 Monitoring metaservice (proxymonitor add-on)](#21-monitoring-metaservice-proxymonitor-add-on)
+  * [2.2 Monitoring service (xroad-monitor)](#22-monitoring-service-xroad-monitor)
+  * [2.3 Central monitoring client](#23-central-monitoring-client)
+  * [2.4 Central monitoring data collector](#24-central-monitoring-data-collector)
+  * [2.5 Central server admin user interface](#25-central-server-admin-user-interface)
+- [3 Monitoring in action](#3-monitoring-in-action)
+  * [3.1 Pull messaging model](#31-pull-messaging-model)
+  * [3.2 Modified X-Road message protocol](#32-modified-x-road-message-protocol)
+  * [3.3 Access control](#33-access-control)
+    * [3.3.1 Limiting central monitoring client access for environmental monitor data](#331-limiting-central-monitoring-client-access-for-environmental-monitor-data)
 
 <!-- tocstop -->
 
@@ -36,7 +39,7 @@ Doc. ID: ARC-ENVMON
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
 
 
-## Overview
+## 1 Overview
 
 X-Road monitoring is conceptually split into two parts: _environmental_ and _operational_ monitoring:
 
@@ -45,29 +48,33 @@ X-Road monitoring is conceptually split into two parts: _environmental_ and _ope
 
 This document describes environmental monitoring architecture.
 
-<a name="refsanchor"></a>
-## References
+### 1.1 Terms and abbreviations
 
-| Code||
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
+
+### 1.2 References
+
+| Document ID||
 | ------------- |-------------|
-| PR-GCONF      | Cybernetica AS. X-Road: Protocol for Downloading Configuration |
-| UC-GCONF      | Cybernetica AS. X-Road: Use Case Model for Global Configuration Distribution|
-| PR-MESS | Cybernetica AS.X-Road: Message Protocol v4.0      |
-| PR-TARGETSS | Security Server targeting extension for the X-Road message protocol |
+| PR-GCONF      | [Cybernetica AS. X-Road: Protocol for Downloading Configuration](../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md) |
+| UC-GCONF      | [Cybernetica AS. X-Road: Use Case Model for Global Configuration Distribution](../UseCases/uc-gconf_x-road_use_case_model_for_global_configuration_distribution_1.4_Y-883-8.md)|
+| PR-MESS | [Cybernetica AS.X-Road: Message Protocol v4.0](../Protocols/pr-mess_x-road_message_protocol.md)      |
+| PR-TARGETSS | [Security Server targeting extension for the X-Road message protocol](../Protocols/SecurityServerExtension/pr-targetss_security_server_targeting_extension_for_the_x-road_protocol.md) |
+| <a id="Ref_TERMS" class="anchor"></a> TA-TERMS | [X-Road Terms and Abbreviations](../terms_x-road_docs.md)| 
 
-# Components
+## 2 Components
 
 ![monitoring architecture](img/monitoring.png)
 
-## Monitoring metaservice (proxymonitor add-on)
+### 2.1 Monitoring metaservice (proxymonitor add-on)
 
 Monitoring metaservice responds to queries for monitoring data from security server's serverproxy interface. This metaservice requests the current monitoring data from local monitoring service, using [Akka](http://akka.io/). Monitoring metaservice translates the monitoring data to a SOAP XML response.
 
-Monitoring service handles authorization of the requests, see [Access control](#acanchor). It reads monitoring configuration from distributed global monitoring configuration (see [UC-GCONF, PR-GCONF](#refsanchor)).
+Monitoring service handles authorization of the requests, see [Access control](#33-access-control). It reads monitoring configuration from distributed global monitoring configuration (see [UC-GCONF, PR-GCONF](#12-references)).
 
 Monitoring metaservice is installed as a proxy add-on, with name `xroad-addon-proxymonitor`.
 
-## Monitoring service (xroad-monitor)
+### 2.2 Monitoring service (xroad-monitor)
 
 Monitoring service is responsible for collecting the monitoring data from one security server instance. It distributes the collected data to monitoring clients (normally the local monitoring metaservice) when requested through an Akka interface.
 
@@ -121,20 +128,19 @@ The service also publishes the monitoring data via JMX. Local monitoring agents 
 
 ![monitoring JMX agent](img/monitoring-jmx.png)
 
-## Central monitoring client
+### 2.3 Central monitoring client
 
-Central monitoring client is a specific security server, which has been granted access to query monitoring data from other security servers. See [Access control](#acanchor). The identity of this security server is configured using central server's admin user interface.
+Central monitoring client is a specific security server, which has been granted access to query monitoring data from other security servers. See [Access control](#33-access-control). The identity of this security server is configured using central server's admin user interface.
 
-## Central monitoring data collector
+### 2.4 Central monitoring data collector
 
 Central monitoring data collector is responsible for collecting monitoring data from all the security servers. It does this by executing monitoring requests through the central monitoring client to all known security server instances. Data collector stores the data in some permanent storage, where it can be analyzed.
 
 Data collector has not been implemented yet.
 
-<a name="adminanchor"></a>
-## Central server admin user interface
+### 2.5 Central server admin user interface
 
-Identity of central monitoring client (if any) is configured using central server's admin user interface. Configuration is done by updating a specific optional configuration file (see [UC-GCONF](#refsanchor), "UC GCONF_05: Upload an Optional Configuration Part File") `monitoring-params.xml`. This configuration file is distributed to all security servers through the global configuration distribution process (see [UC-GCONF](#refsanchor), "UC GCONF_24: Download Configuration from a Configuration Source")
+Identity of central monitoring client (if any) is configured using central server's admin user interface. Configuration is done by updating a specific optional configuration file (see [UC-GCONF](#12-references), "UC GCONF_05: Upload an Optional Configuration Part File") `monitoring-params.xml`. This configuration file is distributed to all security servers through the global configuration distribution process (see [UC-GCONF](#12-references), "UC GCONF_24: Download Configuration from a Configuration Source")
 
 ```xml
 <tns:conf xmlns:id="http://x-road.eu/xsd/identifiers"
@@ -167,9 +173,9 @@ To disable central monitoring client altogether, update configuration to one whi
 </tns:conf>
 ```
 
-# Monitoring in action
+## 3 Monitoring in action
 
-## Pull messaging model
+### 3.1 Pull messaging model
 
 Currently central monitoring data collection is done using _pull_ messaging model. Here, pull means that the central monitoring client sends requests to the individual security servers.
 
@@ -177,9 +183,9 @@ An alternative to this would be model where security servers periodically _push_
 
 To support clustered configurations, monitoring queries use an extended X-Road message protocol.
 
-## Using an extension of the X-Road message protocol
+### 3.2 Using an extension of the X-Road message protocol
 
-Fetching security server metrics uses the X-Road protocol. The original X-Road message protocol version 4.0  (described in [PR-MESS](#refsanchor)) had header element `service` to define the recipient of a message.
+Fetching security server metrics uses the X-Road protocol. The original X-Road message protocol version 4.0  (described in [PR-MESS](#12-references)) had header element `service` to define the recipient of a message.
 
 ```xml
 <SOAP-ENV:Envelope
@@ -210,7 +216,7 @@ xmlns:prod="http://vrk-test.x-road.fi/producer">
 </SOAP-ENV:Envelope>
 ```
 
-For monitoring queries this is not enough. In a clustered security server configuration, one service can be served from multiple security servers. When X-Road routes the message, it picks one candidate based on which one answers the quickest. When executing monitoring queries, we need to be able to fetch monitoring data from a specific security server in a cluster. To make this possible the Security server targeting extension for the X-Road message protocol \[[PR-TARGETSS](#refsanchor)\] is used, which adds a new SOAP header element `securityServer`. Using this element, the caller identifies which security server should respond with the monitoring data (`servercode` = `fdev-ss1.i.palveluvayla.com`). To execute a query, we call service `getSecurityServerMetrics`:
+For monitoring queries this is not enough. In a clustered security server configuration, one service can be served from multiple security servers. When X-Road routes the message, it picks one candidate based on which one answers the quickest. When executing monitoring queries, we need to be able to fetch monitoring data from a specific security server in a cluster. To make this possible the Security server targeting extension for the X-Road message protocol \[[PR-TARGETSS](#12-references)\] is used, which adds a new SOAP header element `securityServer`. Using this element, the caller identifies which security server should respond with the monitoring data (`servercode` = `fdev-ss1.i.palveluvayla.com`). To execute a query, we call service `getSecurityServerMetrics`:
 
 ```xml
 <SOAP-ENV:Envelope
@@ -374,20 +380,19 @@ The schema for the monitoring response is defined in `monitoring.xsd`:
 </schema>
 ```
 
-## Access control
-<a name="acanchor"></a>
+### 3.3 Access control
 
 Monitoring queries are allowed from
 - client that is the _owner_ of the security server
 - central monitoring client (if any have been configured)
 
-Central monitoring client is configured using central server admin user interface, see [Admin user interface](#adminanchor).
+Central monitoring client is configured using central server admin user interface, see [Admin user interface](#25-central-server-admin-user-interface).
 
 Attempts to query monitoring data from other clients results in an `AccessDenied` -error.
 
 JMX API, in case port and network access is enabled, will provide monitoring data directly without access control checks by security server. 
 
-### Limiting central monitoring client access for environmental monitor data
+#### 3.3.1 Limiting central monitoring client access for environmental monitor data
 
 Request for monitor data can be set for limiting optional parts by changing env-monitor.limit-remote-data-set parameter. By limiting data set environmental monitoring will return only proxyVersion, OperatingSystem and Certificate information. 
 

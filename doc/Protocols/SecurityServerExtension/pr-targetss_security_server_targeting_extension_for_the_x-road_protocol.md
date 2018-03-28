@@ -1,27 +1,28 @@
 # Security server targeting extension for the X-Road message protocol
 
-Version: 1.0  
+Version: 1.1  
 Doc. ID: PR-TARGETSS
 
-| Date      | Version  | Description                                                                  | Author             |
-|-----------|----------|------------------------------------------------------------------------------|--------------------|
-| 2.3.2017 | 1.0       | Initial version                                                              | Olli Lindgren     |
-
+| Date       | Version  | Description                                                                  | Author             |
+|------------|----------|------------------------------------------------------------------------------|--------------------|
+| 02.03.2017 | 1.0      | Initial version                                                              | Olli Lindgren      |
+| 06.03.2018 | 1.1      | Added terms doc reference and link                                           | Tatu Repo          |
 
 ## Table of Contents
 <!-- toc -->
 
 - [License](#license)
-- [Introduction](#introduction)
-- [References](#references)
-- [Format of messages](#format-of-messages)
-  * [Schema header](#schema-header)
-  * [Added `securityServer` element](#added-securityserver-element)
-  * [Message headers](#message-headers)
-- [XML Schema for the extension](#xml-schema-for-the-extension)
-- [Examples](#examples)
-  *  [Request](#request)
-  * [Response](#response)
+- [1 Introduction](#1-introduction)
+  * [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
+  * [1.2 References](#12-references)
+- [2 Format of messages](#2-format-of-messages)
+  * [2.1 Schema header](#21-schema-header)
+  * [2.2 Added `securityServer` element](#22-added-securityserver-element)
+  * [2.3 Message headers](#23-message-headers)
+- [3 XML Schema for the extension](#3-xml-schema-for-the-extension)
+- [4 Examples](#4-examples)
+  * [4.1 Request](#41-request)
+  * [4.2 Response](#42-response)
 
 <!-- tocstop -->
 
@@ -30,7 +31,7 @@ Doc. ID: PR-TARGETSS
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
 
 
-## Introduction
+## 1 Introduction
 
 This specification describes an extension of the X-Road protocol for targeting a message to a specific security server.
 
@@ -41,14 +42,19 @@ There is no guarantee about the actual target server &mdash; it can be any of th
 like environmental monitoring \[[ARC-ENVMON](#Ref_ARC-ENVMON)\], where targeting messages to a specific security server is needed.
 Using the `securityServer` element makes this possible.
 
-## References
+### 1.1 Terms and abbreviations
 
-| Code||
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\] 
+
+### 1.2 References
+
+| Document ID||
 | ------------- |-------------|
-| <a name="Ref_PR-MESS"></a>\[PR-MESS\] | Cybernetica AS.X-Road: Message Protocol v4.0      |
-| <a name="Ref_ARC-ENVMON"></a>\[ARC-ENVMON\] | X-Road: Environmental Monitoring Architecture |
+| <a name="Ref_PR-MESS"></a>\[PR-MESS\] | [Cybernetica AS.X-Road: Message Protocol v4.0](../pr-mess_x-road_message_protocol.md)
+| <a name="Ref_ARC-ENVMON"></a>\[ARC-ENVMON\] | [X-Road: Environmental Monitoring Architecture](../../EnvironmentalMonitoring/Monitoring-architecture.md)
+| <a name="Ref_TERMS"></a>\[TA-TERMS\] | [X-Road Terms and Abbreviations](../../terms_x-road_docs.md)
 
-## Format of messages
+## 2 Format of messages
 
 This section describes the XML format for expressing the target security server. The data
 structures and elements defined in this section are in the namespace `http://x-road.eu/xsd/xroad.xsd`. This is the same
@@ -65,7 +71,7 @@ be part of the actual [`http://x-road.eu/xsd/xroad.xsd`](http://x-road.eu/xsd/xr
 The XML Schema for this extension is listed in the section [XML Schema for the extension](#xml-schema-for-the-extension).
 
 
-### Schema header
+### 2.1 Schema header
 
 The following listing shows the header of the schema definition
 
@@ -84,7 +90,7 @@ The following listing shows the header of the schema definition
 
 ```
 
-### Added `securityServer` element
+### 2.2 Added `securityServer` element
 A new `securityServer` element was added to identify the specific target security server.
 
 ```xml
@@ -114,7 +120,7 @@ A new `securityServer` element was added to identify the specific target securit
 </xs:complexType>
 ```
 
-### Message headers
+### 2.3 Message headers
  This section describes the additional SOAP headers that are added by this extension.
 
 |Field | Type | Mandatory/Optional | Description |
@@ -122,7 +128,7 @@ A new `securityServer` element was added to identify the specific target securit
 | securityServer | XRoadSecurityServerIdentifierType | Optional | The security server this message is for |
 
 
-## XML Schema for the extension
+## 3 XML Schema for the extension
  ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema elementFormDefault="qualified"
@@ -144,11 +150,11 @@ A new `securityServer` element was added to identify the specific target securit
 </xs:schema>
 ```
 
-## Examples
+## 4 Examples
 Below are examples from a request and response related to the Environmental Monitoring
 \[[ARC-ENVMON](#Ref_ARC-ENVMON)\] service `getSecurityServerMetrics` which uses the `securityServer` element protocol extension.
 
-### Request
+### 4.1 Request
 ```xml
 <SOAP-ENV:Envelope
     xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
@@ -181,7 +187,7 @@ Below are examples from a request and response related to the Environmental Moni
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>
 ```
-### Response
+### 4.2 Response
 ```xml
 <SOAP-ENV:Envelope
     xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
