@@ -74,10 +74,9 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
 
     private FileContentChangeChecker confFileChecker;
 
-    // For subclasses to use only default parameters if no valid serverconf
-    // present.
+    // For subclasses to use only default parameters if no valid serverconf present.
     protected AbstractXmlConf() {
-        this.schemaValidator = null;
+        schemaValidator = null;
         jaxbCtx = null;
     }
 
@@ -85,15 +84,14 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
         this(objectFactory, fileName, null);
     }
 
-    protected AbstractXmlConf(Class<?> objectFactory,
-            Class<? extends SchemaValidator> schemaValidator) {
+    protected AbstractXmlConf(Class<?> objectFactory, Class<? extends SchemaValidator> schemaValidator) {
         this(objectFactory, (String) null, schemaValidator);
     }
 
     protected AbstractXmlConf(Class<?> objectFactory, String fileName,
             Class<? extends SchemaValidator> schemaValidator) {
         try {
-            this.jaxbCtx = JAXBContext.newInstance(objectFactory);
+            jaxbCtx = JAXBContext.newInstance(objectFactory);
             this.schemaValidator = schemaValidator;
 
             load(fileName);
@@ -105,11 +103,11 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
     protected AbstractXmlConf(Class<?> objectFactory, JAXBElement<T> root,
             Class<? extends SchemaValidator> schemaValidator) {
         try {
-            this.jaxbCtx = JAXBContext.newInstance(objectFactory);
+            jaxbCtx = JAXBContext.newInstance(objectFactory);
             this.schemaValidator = schemaValidator;
 
             this.root = root;
-            this.confType = root.getValue();
+            confType = root.getValue();
         } catch (Exception e) {
             throw translateException(e);
         }
@@ -140,7 +138,8 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
         confType = result.getConfType();
     }
 
-    /** Load the xml configuration to a {@link LoadResult} that can be manipulated further.
+    /**
+     * Load the xml configuration to a {@link LoadResult} that can be manipulated further.
      * @return
      * @throws IOException if opening {@link #confFileName} fails.
      * @throws JAXBException if an unmarshalling error occurs
@@ -172,14 +171,13 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
     }
 
     protected static class LoadResult<T> {
-
         private JAXBElement<T> root;
 
         private T confType;
 
         LoadResult(JAXBElement<T> root) {
             this.root = root;
-            this.confType = root.getValue();
+            confType = root.getValue();
         }
 
         public JAXBElement<T> getRoot() {
@@ -193,14 +191,14 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
 
     @Override
     public void save() throws Exception {
-        AtomicSave.execute(confFileName, "tmpconf",
-                out -> AbstractXmlConf.this.save(out),
+        AtomicSave.execute(confFileName, "tmpconf", out -> AbstractXmlConf.this.save(out),
                 StandardCopyOption.ATOMIC_MOVE);
     }
 
     @Override
     public void save(OutputStream out) throws Exception {
         Marshaller marshaller = jaxbCtx.createMarshaller();
+
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
         marshaller.marshal(root, out);
     }
@@ -243,17 +241,16 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
 
     private void validateSchemaWithValidator(InputStream in) throws IllegalAccessException {
         try {
-            Method validateMethod =
-                    schemaValidator.getMethod("validate", Source.class);
+            Method validateMethod = schemaValidator.getMethod("validate", Source.class);
+
             try {
                 validateMethod.invoke(null, new StreamSource(in));
             } catch (InvocationTargetException e) {
                 throw translateException(e.getCause());
             }
         } catch (NoSuchMethodException e) {
-            throw new RuntimeException("SchemaValidator '"
-                    + schemaValidator.getName() + "' must implement static "
-                        + "method 'void validate(Source)'");
+            throw new RuntimeException("SchemaValidator '" + schemaValidator.getName() + "' must implement static "
+                    + "method 'void validate(Source)'");
         }
     }
 }
