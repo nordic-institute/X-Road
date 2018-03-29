@@ -1,5 +1,5 @@
 # Guide to use build environment and local X-Road instance
-This guide is for development tool set. User can build and test changes in local environment. Environment doesn't ship with gui.
+This guide is for development tool set. User can build and test changes in local environment. Environment doesn't ship with GUI.
 
 ## 1. Setup virtualbox image
 1. Install [Vagrant](https://www.vagrantup.com/docs/installation/) and [Virtualbox](https://www.virtualbox.org/manual/ch02.html) (==v5.1). Host machine will need ~20GB free Storage and 4GB ram for virtual machine.
@@ -7,18 +7,18 @@ This guide is for development tool set. User can build and test changes in local
 3. Get X-Road repository
     - ```vagrant ssh```
         - ```git clone https://github.com/ria-ee/X-Road.git```
-        - ```cd X-Road/src```
-        - ```./update_ruby_dependencies.sh```
 
 ## 2. Build X-Road
 - ```vagrant ssh```
     - ```cd X-Road/src```
+    - ```./prepare_buildhost.sh```
+    - ```./update_ruby_dependencies.sh```
     - ```./build_packages.sh```
 
-## 3. Setup ldx containers
+## 3. Setup LXD containers
 - ```vagrant ssh```
-    - ```cd ../ansible```
-    - ```ansible-playbook  -i hosts/lxd_hosts.txt xroad_dev.yml```
+    - ```cd X-Road/ansible```
+    - ```ansible-playbook -i hosts/lxd_hosts.txt xroad_dev.yml```
 
 ## 4. Access X-Road from host
 1. Create routing
@@ -40,9 +40,9 @@ This guide is for development tool set. User can build and test changes in local
         ```
 
 ## 5. Troubleshoot
-- If you get ```Stderr: VBoxManage: error: Could not find a controller named 'SCSI'``` error. Theses commants happens in host machine.
+- If you get ```Stderr: VBoxManage: error: Could not find a controller named 'SCSI'``` error on host machine.
 
-    Solution is find out what is your VirtualBox Storage controller type or uptadeting virtualbox
+    Solution is to find out what is your VirtualBox Storage controller type and set it correctly. Alternatively you can try updating Virtualbox.
     - ```vboxmanage showvminfo {virtualboxname}```
-    - Find line with ```Storage Controller Name (1):``` it will follow name of Storage contoller, you need to change line 27 from Vagrant file to match that.
-        ```'--storagectl', '{Storage-Contoler-Name}',```
+    - Find line with ```Storage Controller Name (1):``` followed with name of Storage controller. Change line 27 of Vagrantfile to match that.
+        ```'--storagectl', '{Storage-Controller-Name}',```
