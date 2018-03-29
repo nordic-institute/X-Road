@@ -236,10 +236,6 @@ public final class ConfigurationClientMain {
             @Override
             void delete(Path path) {
             }
-
-            @Override
-            void save() throws Exception {
-            }
         };
     }
 

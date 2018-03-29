@@ -3,7 +3,7 @@
 ## 6.18.0 - XXXX-XX-XX
 - XTE-314: Central Server: Bugfix: Write globalconf files atomic way.
 - XTE-377: Fixed XXE issues (CWE-827) found by Coverity.
-- XTE-396: Security Server / Central Server: Improved the globalconf validity check and removal of the globalconf files not distributed any more.
+- XTE-396: Security Server / Central Server / Configuration Proxy: Improved the globalconf validity check and removal of the globalconf files not distributed any more.
 - XTE-397: Configuration-Client: Better old globalconf files cleanup after download.
 - XTE-409: Document UG-OPMONSYSPAR: Better explanation for the parameter 'op-monitor-buffer.sending-interval-seconds'.
 
