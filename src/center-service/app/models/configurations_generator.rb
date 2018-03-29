@@ -124,12 +124,12 @@ class ConfigurationsGenerator
     @conf_generators.each do |generator|
       Rails.logger.debug("Writing V#{generator.getVersion} configuration to disk")
 
-      DistributedFiles.get_all(generator.getVersion).each do |file|
-        write_public_copy(file, @conf_locations.fetch(generator.getVersion))
+      distributed_files = DistributedFiles.get_all(generator.getVersion)
 
-        if generator.isCurrentVersion?
-          write_local_copy(file)
-        end
+      write_public_copy(distributed_files, @conf_locations.fetch(generator.getVersion))
+
+      if generator.isCurrentVersion?
+        write_local_copy(distributed_files)
       end
 
       Rails.logger.debug("Wrote configuration successfully")
@@ -142,31 +142,58 @@ class ConfigurationsGenerator
     raise "Failed to save configuration to disk: #{$!.message}"
   end
 
-  def write_public_copy(file, conf_dir)
-    target_file = "#{conf_dir}/#{file.file_name}"
-    write_to_disk(target_file, file.file_data)
+  def write_public_copy(distributed_files, conf_dir)
+    distributed_files.each do |file|
+      target_file = "#{conf_dir}/#{file.file_name}"
+      write_to_disk(target_file, file.file_data)
+    end
   end
 
-  # Creates a local copy of the global conf file to /etc/xroad/globalconf.
+  # Creates a local copy of the global conf files to /etc/xroad/globalconf.
   # This is necessary so that central server Java components could easily read
   # the global configuration through the same API as the security server.
-  def write_local_copy(file)
+  def write_local_copy(distributed_files)
     instance_identifier = SystemParameter.instance_identifier
     target_directory = "#{get_local_conf_directory()}/#{instance_identifier}"
 
-    # Create the target directory, if it does not exist
+    # Create the target directory, if it does not exist.
     FileUtils.mkdir_p(target_directory, :mode => 0755)
 
-    target_file = "#{target_directory}/#{file.file_name}"
-    write_to_disk(target_file, file.file_data)
+    target_dist_files = []
 
-    # Create a dummy metadata so that ConfigurationDirectory could read the conf
-    conf_expire_time = Time.now + SystemParameter.conf_expire_interval_seconds
-    dummy_metadata = "{\"contentIdentifier\":\"DUMMY\","\
-      "\"instanceIdentifier\":\"#{instance_identifier}\",\"contentFileName\":null,"\
-      "\"contentLocation\":\"\""\
-      ",\"expirationDate\":\"#{conf_expire_time.utc().strftime "%Y-%m-%dT%H:%M:%SZ"}\"}"
-    write_to_disk("#{target_file}.metadata", dummy_metadata)
+    # Write distributed files with corresponding metadata files.
+    distributed_files.each do |file|
+      target_file = "#{target_directory}/#{file.file_name}"
+      write_to_disk(target_file, file.file_data)
+
+      # Create a dummy metadata so that ConfigurationDirectory could read the conf.
+      conf_expire_time = Time.now + SystemParameter.conf_expire_interval_seconds
+      dummy_metadata = "{\"contentIdentifier\":\"DUMMY\","\
+        "\"instanceIdentifier\":\"#{instance_identifier}\",\"contentFileName\":null,"\
+        "\"contentLocation\":\"\""\
+        ",\"expirationDate\":\"#{conf_expire_time.utc().strftime "%Y-%m-%dT%H:%M:%SZ"}\"}"
+      write_to_disk("#{target_file}.metadata", dummy_metadata)
+
+      target_dist_files.push(target_file)
+    end
+
+    # Write 'files' file needed for globalconf validation checking.
+    target_file = "#{get_local_conf_directory()}/files"
+    write_to_disk(target_file, target_dist_files.join("\n"))
+
+    # Delete lost distributed files.
+    delete_files = Dir.entries(target_directory).select {
+      |f| File.file?(File.join(target_directory, f)) && !f.end_with?(".metadata")
+    } .map {|f| File.join(target_directory, f)} - target_dist_files
+
+    delete_files.each do |file|
+       begin
+         remove_file(file)
+         remove_file(file + ".metadata")
+       rescue
+           logger.error("Failed to remove old globalconf local file '#{file}'':\n#{$!.message}")
+       end
+    end
   end
 
   def write_local_instance

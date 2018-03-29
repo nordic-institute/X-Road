@@ -35,101 +35,101 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
 /**
- * Configuration directory interface
+ * Configuration directory interface.
  */
 public interface ConfigurationDirectory {
+    String METADATA_SUFFIX = ".metadata";
+    String INSTANCE_IDENTIFIER_FILE = "instance-identifier";
 
-  String METADATA_SUFFIX = ".metadata";
-  String INSTANCE_IDENTIFIER_FILE =
-          "instance-identifier";
+    // Logger specified here because annotation does not work in interface
+    Logger LOG = LoggerFactory.getLogger(ConfigurationDirectory.class);
 
-  // Logger specified here because annotation does not work in interface
-  Logger LOG = LoggerFactory.getLogger(ConfigurationDirectory.class);
-  /**
-   * Saves the file to disk along with corresponding expiration date file.
-   * @param fileName the name of the file to save
-   * @param content the content of the file
-   * @param expirationDate the file expiration date
-   * @throws Exception if an error occurs
-   */
-  static void save(Path fileName, byte[] content,
-                   ConfigurationPartMetadata expirationDate) throws Exception {
-    if (fileName == null) {
-      return;
+    /**
+     * Saves the file to disk along with corresponding expiration date file.
+     *
+     * @param fileName the name of the file to save
+     * @param content the content of the file
+     * @param expirationDate the file expiration date
+     * @throws Exception if an error occurs
+     */
+    static void save(Path fileName, byte[] content, ConfigurationPartMetadata expirationDate) throws Exception {
+        if (fileName == null) {
+            return;
+        }
+
+        Path parent = fileName.getParent();
+
+        if (parent != null) {
+            Files.createDirectories(parent);
+        }
+
+        LOG.info("Saving content to file {}", fileName);
+
+        // Save the content to disk.
+        AtomicSave.execute(fileName.toString(), "conf", content, StandardCopyOption.ATOMIC_MOVE);
+
+        // Save the content metadata date to disk.
+        saveMetadata(fileName, expirationDate);
     }
 
-    Path parent = fileName.getParent();
-    if (parent != null) {
-      Files.createDirectories(parent);
+    /**
+     * Saves the expiration date for the given file.
+     *
+     * @param fileName the file
+     * @param metadata the metadata
+     * @throws Exception if an error occurs
+     */
+    static void saveMetadata(Path fileName, ConfigurationPartMetadata metadata) throws Exception {
+        AtomicSave.execute(fileName.toString() + METADATA_SUFFIX, "expires", metadata.toByteArray(),
+                StandardCopyOption.ATOMIC_MOVE);
     }
 
-    LOG.info("Saving content to file {}", fileName);
+    /**
+     * Saves the instance identifier of this security server to file.
+     *
+     * @param confPath path to the configuration
+     * @param instanceIdentifier the instance identifier
+     * @throws Exception if saving instance identifier fails
+     */
+    static void saveInstanceIdentifier(String confPath, String instanceIdentifier) throws Exception {
+        Path file = Paths.get(confPath, INSTANCE_IDENTIFIER_FILE);
 
-    // save the content to disk
-    AtomicSave.execute(fileName.toString(), "conf", content,
-        StandardCopyOption.ATOMIC_MOVE);
+        LOG.trace("Saving instance identifier to {}", file);
 
-    // save the content metadata date to disk
-    saveMetadata(fileName, expirationDate);
-  }
+        AtomicSave.execute(file.toString(), "inst", instanceIdentifier.getBytes(StandardCharsets.UTF_8));
+    }
 
-  /**
-   * Saves the expiration date for the given file.
-   * @param fileName the file
-   * @param metadata the metadata
-   * @throws Exception if an error occurs
-   */
-  static void saveMetadata(Path fileName,
-                           ConfigurationPartMetadata metadata) throws Exception {
-      AtomicSave.execute(fileName.toString() + METADATA_SUFFIX, "expires",
-              metadata.toByteArray(), StandardCopyOption.ATOMIC_MOVE);
-  }
+    /**
+     * Deletes the file and accompanying expire date.
+     *
+     * @param fileName the file name
+     */
+    static void delete(String fileName) {
+        File file = new File(fileName);
 
-  /**
-   * Saves the instance identifier of this security server to file.
-   * @param confPath path to the configuration
-   * @param instanceIdentifier the instance identifier
-   * @throws Exception if saving instance identifier fails
-   */
-  static void saveInstanceIdentifier(String confPath,
-                                     String instanceIdentifier) throws Exception {
-      Path file = Paths.get(confPath, INSTANCE_IDENTIFIER_FILE);
+        if (!file.delete()) {
+            LOG.error("Failed to delete file {}", file);
+        }
 
-      LOG.trace("Saving instance identifier to {}", file);
+        File metadataFile = new File(fileName + METADATA_SUFFIX);
 
-      AtomicSave.execute(file.toString(), "inst",
-              instanceIdentifier.getBytes(StandardCharsets.UTF_8));
-  }
+        if (!metadataFile.delete()) {
+            LOG.error("Failed to delete file {}", metadataFile);
+        }
 
-  /**
-   * Deletes the file and accompanying expire date.
-   * @param fileName the file name
-   */
-  static void delete(String fileName) {
-      File file = new File(fileName);
-      if (!file.delete()) {
-          LOG.error("Failed to delete file {}", file);
-      }
+        File directory = file.getParentFile();
 
-      File metadataFile = new File(fileName + METADATA_SUFFIX);
-      if (!metadataFile.delete()) {
-          LOG.error("Failed to delete file {}", metadataFile);
-      }
+        if (directory.isDirectory()) {
+            directory.delete(); // No need to check for return value.
+        }
+    }
 
-      File directory = file.getParentFile();
-      if (directory.isDirectory()) {
-          directory.delete(); // no need to check for return value
-      }
-  }
-
-
-  /**
-   * Applies the given function to all files belonging to
-   * the configuration directory.
-   * @param consumer the function instance that should be applied to
-   * all files belonging to the configuration directory.
-   * @throws Exception if an error occurs
-   */
-  void eachFile(FileConsumer consumer) throws Exception;
-
+    /**
+     * Applies the given function to all files belonging to the configuration directory.
+     *
+     * @param consumer the function instance that should be applied to all files belonging to the configuration
+     * directory.
+     * @throws Exception if an error occurs
+     */
+    void eachFile(FileConsumer consumer) throws Exception;
 }
