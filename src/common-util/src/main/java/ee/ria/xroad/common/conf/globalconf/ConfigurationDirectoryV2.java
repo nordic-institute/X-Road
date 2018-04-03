@@ -23,7 +23,6 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.ConfProvider;
 
 import lombok.Getter;
@@ -212,10 +211,10 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
         getConfigurationFiles().forEach(consumer);
     }
 
-    private static List<Path> getConfigurationFiles() throws Exception {
+    private List<Path> getConfigurationFiles() throws Exception {
         List<Path> confFiles = new ArrayList<>();
 
-        File files = Paths.get(SystemProperties.getConfigurationPath(), "files").toFile();
+        File files = Paths.get(path.toString(), "files").toFile();
 
         if (files.exists() && files.isFile()) {
             FileUtils.readLines(files, StandardCharsets.UTF_8).forEach(f -> confFiles.add(Paths.get(f)));
