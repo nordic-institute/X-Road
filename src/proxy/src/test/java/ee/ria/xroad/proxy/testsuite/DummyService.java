@@ -63,7 +63,7 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 @Slf4j
 class DummyService extends Server implements StartStop {
 
-    private static X509Certificate serverCert;
+    private static X509Certificate[] serverCertChain;
     private static PrivateKey serverKey;
 
     DummyService() {
@@ -92,7 +92,7 @@ class DummyService extends Server implements StartStop {
 
     private ServerConnector createSslConnector() throws Exception {
         PKCS12 consumer = TestCertUtil.getConsumer();
-        serverCert = consumer.cert;
+        serverCertChain = consumer.certChain;
         serverKey = consumer.key;
 
         SslContextFactory cf = new SslContextFactory(false);
@@ -233,7 +233,7 @@ class DummyService extends Server implements StartStop {
 
         @Override
         public X509Certificate[] getCertificateChain(String alias) {
-            return new X509Certificate[] {serverCert};
+            return serverCertChain;
         }
 
         @Override
@@ -273,8 +273,7 @@ class DummyService extends Server implements StartStop {
 
         @Override
         public X509Certificate[] getAcceptedIssuers() {
-            log.debug("getAcceptedIssuers {}", serverCert);
-            return new X509Certificate[] {serverCert};
+            return serverCertChain;
         }
 
         @Override

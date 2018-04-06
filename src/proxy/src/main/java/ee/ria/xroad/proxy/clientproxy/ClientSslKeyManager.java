@@ -56,7 +56,7 @@ class ClientSslKeyManager extends X509ExtendedKeyManager {
 
     @Override
     public X509Certificate[] getCertificateChain(String alias) {
-        return new X509Certificate[] {getSslKey().getCert()};
+        return getSslKey().getCertChain();
     }
 
     @Override

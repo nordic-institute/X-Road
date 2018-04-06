@@ -166,7 +166,7 @@ public class GlobalConfTest {
      */
     @Test
     public void getCaCertForOrg() throws Exception {
-        X509Certificate org = TestCertUtil.getProducer().cert;
+        X509Certificate org = TestCertUtil.getProducer().certChain[0];
         assertNotNull(org);
 
         X509Certificate x509 = GlobalConf.getCaCert("EE", org);
@@ -214,7 +214,7 @@ public class GlobalConfTest {
     @Test
     public void getOcspResponderAddresses() throws Exception {
         // Does not matter which org exactly as long as CA is adminca1
-        X509Certificate orgCert = TestCertUtil.getConsumer().cert;
+        X509Certificate orgCert = TestCertUtil.getConsumer().certChain[0];
         List<String> actualAddresses =
                 GlobalConf.getOcspResponderAddresses(orgCert);
         List<String> expectedAddresses = Arrays.asList(
@@ -233,8 +233,8 @@ public class GlobalConfTest {
      */
     @Test
     public void authCertMatchesMember() throws Exception {
-        X509Certificate producerCert = TestCertUtil.getProducer().cert;
-        X509Certificate consumerCert = TestCertUtil.getConsumer().cert;
+        X509Certificate producerCert = TestCertUtil.getProducer().certChain[0];
+        X509Certificate consumerCert = TestCertUtil.getConsumer().certChain[0];
         ClientId producer = newClientId("producer");
         ClientId consumer = newClientId("consumer");
         assertTrue(GlobalConf.authCertMatchesMember(producerCert, producer));
@@ -252,7 +252,7 @@ public class GlobalConfTest {
         SecurityServerId server =
                 SecurityServerId.create("EE", "BUSINESS", "foo",
                         "fooServerCode");
-        X509Certificate cert = TestCertUtil.getProducer().cert;
+        X509Certificate cert = TestCertUtil.getProducer().certChain[0];
         assertEquals(server, GlobalConf.getServerId(cert));
     }
 
@@ -286,7 +286,7 @@ public class GlobalConfTest {
         assertFalse(GlobalConf.isOcspResponderCert(caCert, caCert));
 
         PKCS12 ocspSigner = TestCertUtil.getOcspSigner();
-        X509Certificate ocspCert = ocspSigner.cert;
+        X509Certificate ocspCert = ocspSigner.certChain[0];
         assertTrue(GlobalConf.isOcspResponderCert(caCert, ocspCert));
     }
 
@@ -296,7 +296,7 @@ public class GlobalConfTest {
      */
     @Test
     public void getSubjectName() throws Exception {
-        X509Certificate cert = TestCertUtil.getProducer().cert;
+        X509Certificate cert = TestCertUtil.getProducer().certChain[0];
 
         ClientId expected = ClientId.create("EE", "BUSINESS", "producer");
         ClientId actual = GlobalConf.getSubjectName(

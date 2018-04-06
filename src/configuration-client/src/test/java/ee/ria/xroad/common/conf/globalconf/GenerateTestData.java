@@ -106,7 +106,7 @@ public final class GenerateTestData {
             sig.update(parts.toString().getBytes());
 
             String topMp = getTopMultipart(parts.toString(), encodeBase64(sig.sign()),
-                    hash(getSignCert().cert.getEncoded()));
+                    hash(getSignCert().certChain[0].getEncoded()));
 
             try (FileOutputStream out = new FileOutputStream(ROOT + name + ".txt")) {
                 out.write(topMp.getBytes());

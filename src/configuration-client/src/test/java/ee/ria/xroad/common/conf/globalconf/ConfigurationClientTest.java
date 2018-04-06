@@ -136,8 +136,7 @@ public class ConfigurationClientTest {
                 try {
                     return Arrays.asList(new ConfigurationLocation(this,
                             fileName, Arrays.asList(
-                                    TestCertUtil.getConsumer().cert
-                                        .getEncoded())));
+                                    TestCertUtil.getConsumer().certChain[0].getEncoded())));
                 } catch (CertificateEncodingException e) {
                     throw new RuntimeException(e);
                 }

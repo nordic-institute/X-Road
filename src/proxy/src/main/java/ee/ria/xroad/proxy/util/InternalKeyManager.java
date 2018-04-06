@@ -75,8 +75,8 @@ public class InternalKeyManager extends X509ExtendedKeyManager {
 
     @Override
     public X509Certificate[] getCertificateChain(String alias) {
-        LOG.trace("getCertificateChain: {}", sslKey.getCert());
-        return new X509Certificate[] {sslKey.getCert()};
+        LOG.trace("getCertificateChain: {}", (Object)sslKey.getCertChain());
+        return sslKey.getCertChain();
     }
 
     @Override

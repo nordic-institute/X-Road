@@ -80,6 +80,6 @@ public final class TestUtil {
     private static SigningCtx getSigningCtx(TestCertUtil.PKCS12 pkcs12) {
         ClientId subject = ClientId.create("EE", "BUSINESS", "foo");
         return new SigningCtxImpl(subject, new TestSigningKey(pkcs12.key),
-                pkcs12.cert);
+                pkcs12.certChain[0]);
     }
 }

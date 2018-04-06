@@ -264,7 +264,7 @@ public class OcspClientTest {
         OCSP_RESPONSES.clear();
 
         if (ocspResponderCert == null) {
-            ocspResponderCert = TestCertUtil.getOcspSigner().cert;
+            ocspResponderCert = TestCertUtil.getOcspSigner().certChain[0];
         }
 
         testActor = TestActorRef.create(ACTOR_SYSTEM, Props.create(TestOcspClient.class));
@@ -297,7 +297,7 @@ public class OcspClientTest {
     }
 
     private static X509Certificate getDefaultClientCert() throws Exception {
-        return TestCertUtil.getConsumer().cert;
+        return TestCertUtil.getConsumer().certChain[0];
     }
 
     private static String hash(X509Certificate cert) throws Exception {

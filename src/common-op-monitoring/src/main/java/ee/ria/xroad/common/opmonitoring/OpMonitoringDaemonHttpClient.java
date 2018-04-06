@@ -206,7 +206,7 @@ public final class OpMonitoringDaemonHttpClient {
 
         @Override
         public X509Certificate[] getCertificateChain(String alias) {
-            return new X509Certificate[] {authKey.getCert()};
+            return authKey.getCertChain();
         }
 
         @Override

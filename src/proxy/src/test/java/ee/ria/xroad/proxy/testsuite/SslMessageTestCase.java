@@ -22,6 +22,9 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.TestCertUtil;
+
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
@@ -36,6 +39,10 @@ import org.apache.http.nio.conn.SchemeIOSessionStrategy;
 import org.apache.http.nio.conn.ssl.SSLIOSessionStrategy;
 import org.apache.http.nio.reactor.ConnectingIOReactor;
 import org.apache.http.ssl.SSLContexts;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.security.cert.X509Certificate;
 
 /**
  *  All test cases extending this class will be executed in a separate batch
@@ -59,7 +66,16 @@ public class SslMessageTestCase extends MessageTestCase {
         Registry<SchemeIOSessionStrategy> sessionStrategyRegistry = RegistryBuilder.<SchemeIOSessionStrategy>create()
                 .register("http", NoopIOSessionStrategy.INSTANCE)
                 .register("https", new SSLIOSessionStrategy(
-                        SSLContexts.custom().loadTrustMaterial((chain, authType) -> true).build(),
+                        SSLContexts.custom()
+                                .loadTrustMaterial((chain, authType) -> {
+                                    final X509Certificate[] internalKey = TestCertUtil.getInternalKey().certChain;
+                                    if (internalKey.length != chain.length) return false;
+                                    for (int i = 0; i < internalKey.length; i++) {
+                                        if (!chain[i].equals(internalKey[i])) return false;
+                                    }
+                                    return true;
+                                })
+                                .build(),
                         NoopHostnameVerifier.INSTANCE))
                 .build();
 
@@ -71,6 +87,11 @@ public class SslMessageTestCase extends MessageTestCase {
 
         builder.setConnectionManager(connManager);
         return builder.build();
+    }
+
+    @Override
+    protected URI getClientUri() throws URISyntaxException {
+        return new URI("https://localhost:" + SystemProperties.getClientProxyHttpsPort());
     }
 
 }

@@ -121,7 +121,7 @@ public class OcspVerifierTest {
     public void errorSignerUnauthorized() throws Exception {
         // we now sign the response with a cert that has been
         // issued by another CA
-        X509Certificate anotherSignerCert = TestCertUtil.getCa2TestOrg().cert;
+        X509Certificate anotherSignerCert = TestCertUtil.getCa2TestOrg().certChain[0];
         assertNotNull(anotherSignerCert);
         PrivateKey anotherSignerKey = TestCertUtil.getCa2TestOrg().key;
         assertNotNull(anotherSignerKey);

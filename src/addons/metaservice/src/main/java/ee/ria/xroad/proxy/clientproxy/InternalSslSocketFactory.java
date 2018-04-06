@@ -56,7 +56,7 @@ final class InternalSslSocketFactory {
                     SSLContext sslContext = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
                     sslContext.init(
                             new KeyManager[]{new InternalKeyManager(sslKey)},
-                            new TrustManager[]{new InternalTrustManager(sslKey.getCert())},
+                            new TrustManager[]{new InternalTrustManager(sslKey.getCertChain())},
                             new SecureRandom());
                     sslSocketFactory = sslContext.getSocketFactory();
                 }
@@ -69,8 +69,8 @@ final class InternalSslSocketFactory {
 
         private final X509Certificate internalCert;
 
-        private InternalTrustManager(X509Certificate internalCert) {
-            this.internalCert = internalCert;
+        private InternalTrustManager(X509Certificate[] internalCert) {
+            this.internalCert = internalCert[0];
         }
 
         @Override
