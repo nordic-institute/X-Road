@@ -54,7 +54,7 @@ Doc. ID: UG-SS
  25.09.2017 | 2.18    | Added chapter [16 Environmental Monitoring](#16-environmental-monitoring) | Tomi Tolvanen
  17.10.2017 | 2.19    | Added section [16.3 Limiting environmental monitoring remote data set](#163-limiting-environmental-monitoring-remote-data-set)| Joni Laurila
  05.03.2018 | 2.20    | Added terms and abbreviations reference, document links, moved concepts to terms and abbreviations. | Tatu Repo 
- 
+ 10.04.2018 | 2.21    | Update internal server certificate documentation. | Jarkko Hyöty
 ## Table of Contents
 
 <!-- toc -->
@@ -1187,41 +1187,40 @@ To delete a timestamping service, follow these steps.
 
 **Access rights:** [Security Officer](#xroad-security-officer), [System Administrator](#xroad-system-administrator)
 
-To change the security server’s internal TLS key and certificate, follow these steps.
+_To change the security server’s internal TLS key and certificate_, follow these steps.
 
-1.  On the **Configuration** menu, select **System Parameters**. The system parameters view is opened.
+1. On the **Configuration** menu, select **System Parameters**. The system parameters view is opened.
+2. In the **Internal TLS Certificate** section, click **Generate New TLS Key** and in the window that opens, click **Confirm**.
 
-2.  In the **Internal TLS Certificate** section, click **Generate New TLS Key** and in the window that opens, click **Confirm**.
+   The security server generates a key used for communication with the client information systems, and the corresponding self-signed certificate. The security server's certificate fingerprint will also change. The security server's domain name is saved to the certificate's *Common Name* field, and the internal IP address to the *subjectAltName* extension field.
 
-The security server generates a key used for communication with the client information systems, and the corresponding self-signed certificate. The security server's certificate fingerprint will also change. The security server's domain name is saved to the certificate's *Common Name* field, and the internal IP address to the *subjectAltName* extension field.
+_To generate a new certificate request_, follow these steps.
 
-To generate a new certificate request, follow these steps.
+1. On the **Configuration** menu, select **System Parameters**. The system parameters view is opened.
+2. In the “Internal TLS Certificate” section, click **Generate Certificate Request**, input the **Distinguished Name** and save the certificate request file to the local file system.  
 
-1.  On the **Configuration** menu, select **System Parameters**. The system parameters view is opened.
+   The security server generates a certificate request using the current key and the provided **Distinguished Name**.
 
-2.  In the “Internal TLS Certificate” section, click **Generate Certificate Request**, input the **Distinguished Name** and save the certificate request file to the local file system.
+_To import a new TLS certificate_, follow these steps.
 
-The security server generates a certificate request using the current key and the provided **Distinguished Name**.
+1. On the **Configuration** menu, select **System Parameters**. The system parameters view is opened.
+2. In the “Internal TLS Certificate” section, click **Import Certificate** and point to the file to be imported.
 
-To import a new TLS certificate, follow these steps.
+   The imported certificate must be in PEM-format to be accepted. Certificate chains are supported; concatenate possible intermediate certificate(s) to the server certificate before importing the file.
 
-1.  On the **Configuration** menu, select **System Parameters**. The system parameters view is opened.
+   Note that importing a new TLS certificate will restart the xroad-proxy and thus affects providing services from the security server.
 
-2.  In the “Internal TLS Certificate” section, click **Import Certificate** and point to the file to be imported.
+_To export the security server’s internal TLS certificate_, follow these steps.
 
-The imported certificate must be in PEM-format to be accepted. Note that importing a new TLS certificate will restart the xroad-proxy and thus affects providing services from the security server.
+1. On the **Configuration** menu, select **System Parameters**. The system parameters view is opened.
+2. In the **Internal TLS Certificate** section, click **Export** and save the prompted file to the local file system.
 
-To export the security server’s internal TLS certificate, follow these steps.
+   Note that only the internal server certificate is exported, not the possible intermediate certificates.
 
-1.  On the **Configuration** menu, select **System Parameters**. The system parameters view is opened.
+_To view the detailed information of the security server’s internal TLS certificate_, follow these steps.
 
-2.  In the **Internal TLS Certificate** section, click **Export** and save the prompted file to the local file system.
-
-To view the detailed information of the security server’s internal TLS certificate, follow these steps.
-
-1.  On the **Configuration** menu, select **System Parameters**. The system parameters view is opened.
-
-2.  In the **Internal TLS Certificate** section, click **Certificate Details**.
+1. On the **Configuration** menu, select **System Parameters**. The system parameters view is opened.
+2. In the **Internal TLS Certificate** section, click **Certificate Details**.
 
 
 ## 11 Message Log
