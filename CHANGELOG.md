@@ -1,7 +1,14 @@
 # Change Log
 
 ## 6.18.0 - XXXX-XX-XX
-- TBD
+- PVAYLADEV-989 / XRDJ #206: Fixed incomplete back-up archives remaining on disk after back-up ending in error
+- PVAYLADEV-1081 / XRDJ #210: Fixed visible whitespace in central server address text field
+- PVAYLADEV-981 / XRDJ #183: Fix java import order to comply with the style guide
+- PVAYLADEV-1102: Fixed test CA instructions, added UTF-8 support for test certificate fields and replaced deprecated Ansible include commands with import_tasks commands
+- PVAYLADEV-814: Removed XroadSizeBasedRollingPolicy.java which was previously used as a work-around for a logback bug.
+- PVAYLADEV-1101: JRuby, Rubocop and Warbler updated
+- PVAYLADEV-594: Removed obsolete 6.9x/6.7x compatibility fix
+- PVAYLADEV-984: X-Road term and abbreviation explanations collected into one terminology document
 
 ## 6.17.0 - 2018-02-14
 - PVAYLADEV-861 / XRJD #172: Built a mechanism for configuration loader, that allows the loading of mutually alternative configuration files without unnecessary log errors. This mechanism is used to load explicit configuration values from either proxy, center or confproxy components on signer startup. Also refactored central server UI configuration loading to avoid unnecessary log errors. Update performs a migration for existing local configuration values if needed.
