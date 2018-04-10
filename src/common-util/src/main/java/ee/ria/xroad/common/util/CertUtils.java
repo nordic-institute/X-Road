@@ -78,6 +78,7 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
+import java.util.Collection;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -358,18 +359,18 @@ public final class CertUtils {
     }
 
     /**
-     * Read X509 certificate from file
+     * Read X509 certificate chain from file
      * @param filename input file
      * @return X509Certificate
      * @throws CertificateException when certificate is invalid
      * @throws java.io.FileNotFoundException when file is not found
      * @throws IOException when I/O error occurs
      */
-    public static X509Certificate readCertificate(String filename) throws CertificateException, IOException {
+    public static X509Certificate[] readCertificateChain(String filename) throws CertificateException, IOException {
         CertificateFactory fact = CertificateFactory.getInstance("X.509");
         try (FileInputStream is = new FileInputStream(filename)) {
-            X509Certificate cer = (X509Certificate) fact.generateCertificate(is);
-            return cer;
+            final Collection<? extends Certificate> certs = fact.generateCertificates(is);
+            return certs.toArray(new X509Certificate[0]);
         }
     }
 
@@ -386,8 +387,7 @@ public final class CertUtils {
         KeyPair keyPair = readKeyPairFromPemFile(filenameKey);
         PrivateKey privateKey = keyPair.getPrivate();
 
-        X509Certificate cert = readCertificate(filenamePem);
-        Certificate[] outChain = {cert};
+        Certificate[] outChain = readCertificateChain(filenamePem);
 
         KeyStore outStore = KeyStore.getInstance("PKCS12");
         outStore.load(null, InternalSSLKey.getKEY_PASSWORD());
