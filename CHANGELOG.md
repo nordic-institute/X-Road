@@ -9,6 +9,7 @@
 - PVAYLADEV-1101: JRuby, Rubocop and Warbler updated
 - PVAYLADEV-594: Removed obsolete 6.9x/6.7x compatibility fix
 - PVAYLADEV-984: X-Road term and abbreviation explanations collected into one terminology document
+- PVAYLADEV-1116: Update Vagrant development environment instructions
 
 ## 6.17.0 - 2018-02-14
 - PVAYLADEV-861 / XRJD #172: Built a mechanism for configuration loader, that allows the loading of mutually alternative configuration files without unnecessary log errors. This mechanism is used to load explicit configuration values from either proxy, center or confproxy components on signer startup. Also refactored central server UI configuration loading to avoid unnecessary log errors. Update performs a migration for existing local configuration values if needed.
