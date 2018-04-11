@@ -109,9 +109,9 @@ public final class BatchSignerIntegrationTest {
 
         BatchSigner.init(actorSystem);
 
-        X509Certificate subjectCert = TestCertUtil.getConsumer().cert;
+        X509Certificate subjectCert = TestCertUtil.getConsumer().certChain[0];
         X509Certificate issuerCert = TestCertUtil.getCaCert();
-        X509Certificate signerCert = TestCertUtil.getOcspSigner().cert;
+        X509Certificate signerCert = TestCertUtil.getOcspSigner().certChain[0];
         PrivateKey signerKey = TestCertUtil.getOcspSigner().key;
 
         List<String> messages = new ArrayList<>();

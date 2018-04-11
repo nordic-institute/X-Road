@@ -44,7 +44,7 @@ public class CertHelperTest {
      */
     @Test
     public void getSubjectCommonName() {
-        X509Certificate cert = TestCertUtil.getProducer().cert;
+        X509Certificate cert = TestCertUtil.getProducer().certChain[0];
         String commonName = CertHelper.getSubjectCommonName(cert);
         assertEquals("producer", commonName);
     }
@@ -69,7 +69,7 @@ public class CertHelperTest {
      */
     @Test
     public void subjectSerialNumberNotAvailable() throws Exception {
-        X509Certificate cert = TestCertUtil.getProducer().cert;
+        X509Certificate cert = TestCertUtil.getProducer().certChain[0];
         String serialNumber = CertHelper.getSubjectSerialNumber(cert);
         assertNull(serialNumber);
     }

@@ -267,7 +267,7 @@ public class CertChainTest {
         for (X509Certificate cert : certs) {
             responses.add(OcspTestUtils.createOCSPResponse(cert,
                     getIssuerCert(cert, certs),
-                    TestCertUtil.getOcspSigner().cert,
+                    TestCertUtil.getOcspSigner().certChain[0],
                     TestCertUtil.getOcspSigner().key,
                     status));
         }
@@ -290,7 +290,7 @@ public class CertChainTest {
         @Override
         public List<X509Certificate> getOcspResponderCertificates() {
             try {
-                return Arrays.asList(TestCertUtil.getOcspSigner().cert);
+                return Arrays.asList(TestCertUtil.getOcspSigner().certChain[0]);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

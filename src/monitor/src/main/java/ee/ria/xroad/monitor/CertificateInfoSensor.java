@@ -147,7 +147,7 @@ public class CertificateInfoSensor extends AbstractSensor {
         public Stream<CertificateMonitoringInfo> getCertificates() {
             try {
                 return convertToMonitoringInfo(
-                        ServerConf.getSSLKey().getCert(),
+                        ServerConf.getSSLKey().getCertChain()[0],
                         CertificateType.SECURITY_SERVER_TLS,
                         true);
             } catch (Exception e) {

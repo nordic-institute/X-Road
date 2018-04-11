@@ -99,9 +99,9 @@ public class CertUtilsTest {
      */
     @Test
     public void testReadCertificate() throws CertificateException, IOException {
-        X509Certificate certificate = CertUtils.readCertificate("src/test/resources/internal.crt");
+        X509Certificate[] certificate = CertUtils.readCertificateChain("src/test/resources/internal.crt");
         assertNotNull(certificate);
-        assertEquals(certificate.getSubjectDN().getName(), "CN=ubuntu-xroad-securityserver-dev");
+        assertEquals(certificate[0].getSubjectDN().getName(), "CN=ubuntu-xroad-securityserver-dev");
     }
 
     /**

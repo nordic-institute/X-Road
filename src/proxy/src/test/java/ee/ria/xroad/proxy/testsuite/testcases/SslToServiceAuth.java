@@ -62,7 +62,7 @@ public class SslToServiceAuth extends SslMessageTestCase {
             @Override
             public List<X509Certificate> getIsCerts(ClientId client)
                     throws Exception {
-                return singletonList(TestCertUtil.getConsumer().cert);
+                return singletonList(TestCertUtil.getConsumer().certChain[0]);
             }
         });
     }

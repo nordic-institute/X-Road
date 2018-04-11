@@ -148,11 +148,11 @@ class FastestConnectionSelectingSSLSocketFactory
             if (cachedSSLSessionURI != null) {
                 // could not connect to cached host, try all others.
                 // .. and make sure the previous "fastest" host does not come up as "fastest" anymore
-                log.trace("Could not connect to {}, clearing the URI cache", addresses);
+                log.trace("Could not connect to {}, clearing the URI cache", (Object)addresses);
                 cachedSSLSessionURI = null;
                 cachedHostInfo.clearCachedURIForSession();
 
-                log.trace("Continue connecting to all providers {}", addressesFromContext);
+                log.trace("Continue connecting to all providers {}", (Object)addressesFromContext);
                 selectedSocket = connect(
                     //swap the failed address to the last
                     swap(addressesFromContext, 0, addressesFromContext.length - 1), context, timeout);
