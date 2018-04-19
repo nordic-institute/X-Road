@@ -191,7 +191,7 @@ class ConfigurationsGenerator
          remove_file(file)
          remove_file(file + ".metadata")
        rescue
-           logger.error("Failed to remove old globalconf local file '#{file}'':\n#{$!.message}")
+           Rails.logger.error("Failed to remove old globalconf local file '#{file}'':\n#{$!.message}")
        end
     end
   end
