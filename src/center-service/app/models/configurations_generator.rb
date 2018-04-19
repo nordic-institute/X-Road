@@ -186,10 +186,12 @@ class ConfigurationsGenerator
       |f| File.file?(File.join(target_directory, f)) && !f.end_with?(".metadata")
     } .map {|f| File.join(target_directory, f)} - target_dist_files
 
+    Rails.logger.info("Remove lost distributed files #{delete_files}") if delete_files.length > 0
+
     delete_files.each do |file|
        begin
-         remove_file(file)
-         remove_file(file + ".metadata")
+         FileUtils.remove_entry_secure(file, :force => true)
+         FileUtils.remove_entry_secure(file + ".metadata", :force => true)
        rescue
            Rails.logger.error("Failed to remove old globalconf local file '#{file}'':\n#{$!.message}")
        end
