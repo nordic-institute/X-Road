@@ -24,19 +24,12 @@ package ee.ria.xroad.common.util;
 
 import ee.ria.xroad.common.ErrorCodes;
 
-import lombok.SneakyThrows;
 import org.junit.Rule;
 import org.junit.Test;
-import org.xml.sax.SAXException;
 
-import javax.xml.XMLConstants;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-
-import java.net.URL;
-import java.nio.file.Paths;
 
 import static org.junit.Assert.fail;
 
@@ -55,7 +48,7 @@ public class SchemaValidatorTest {
      */
     @Test
     public void testOkValidation() throws Exception {
-        StreamSource source = new StreamSource(ResourceUtils.getClasspathResourceStream("ocsp-fetchinterval-part.xml"));
+        StreamSource source = new StreamSource(ResourceUtils.getClasspathResourceStream("test-part.xml"));
         TestValidator.validate(source);
     }
 
@@ -68,8 +61,7 @@ public class SchemaValidatorTest {
     public void testXxeFailsValidation() throws Exception {
         thrown.expectError(ErrorCodes.X_MALFORMED_OPTIONAL_PARTS_CONF);
 
-        StreamSource source = new StreamSource(
-                ResourceUtils.getClasspathResourceStream("ocsp-fetchinterval-part-with-xxe.xml"));
+        StreamSource source = new StreamSource(ResourceUtils.getClasspathResourceStream("test-part-with-xxe.xml"));
 
         TestValidator.validate(source);
 
@@ -77,23 +69,11 @@ public class SchemaValidatorTest {
     }
 
     private static class TestValidator extends SchemaValidator {
+
         private static Schema schema;
 
         static {
-            schema = createSchema("../common-verifier/src/main/resources/ocsp-fetchinterval-conf.xsd");
-        }
-
-        @SneakyThrows
-        protected static Schema createSchema(String fileName) {
-            SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-
-            try {
-                URL schemaLocation = Paths.get(fileName).toUri().toURL();
-
-                return factory.newSchema(schemaLocation);
-            } catch (SAXException e) {
-                throw new RuntimeException("Unable to create schema validator", e);
-            }
+            schema = createSchema("test-conf.xsd");
         }
 
         static void validate(Source source) throws Exception {
@@ -101,5 +81,3 @@ public class SchemaValidatorTest {
         }
     }
 }
-
-

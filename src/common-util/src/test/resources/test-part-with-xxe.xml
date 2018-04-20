@@ -3,6 +3,5 @@
     <!ENTITY passwd SYSTEM "file:///etc/passwd">
 ]>
 <xro:conf xmlns:xro="http://x-road.eu/xsd/xroad.xsd">
-    <ocspFetchInterval>&passwd;</ocspFetchInterval>
+    <data>&passwd;</data>
 </xro:conf>
-
