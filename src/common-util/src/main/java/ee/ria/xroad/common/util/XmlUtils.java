@@ -74,10 +74,17 @@ public final class XmlUtils {
      * @throws Exception if an error occurs
      */
     public static Document parseDocument(InputStream documentXml, boolean namespaceAware) throws Exception {
-        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-        documentBuilderFactory.setNamespaceAware(namespaceAware);
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
-        return documentBuilderFactory.newDocumentBuilder().parse(documentXml);
+        dbf.setNamespaceAware(namespaceAware);
+        dbf.setIgnoringComments(true);
+
+        dbf.setValidating(false);
+        dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+        dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+
+        return dbf.newDocumentBuilder().parse(documentXml);
     }
 
     /**

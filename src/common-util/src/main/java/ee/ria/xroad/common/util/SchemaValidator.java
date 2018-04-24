@@ -39,38 +39,34 @@ import java.net.URL;
  * Base class for schema-based validators.
  */
 @Slf4j
-public class SchemaValidator {
+public abstract class SchemaValidator {
 
     protected static Schema createSchema(String fileName) {
-        SchemaFactory factory =
-                SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI,
+                "com.sun.org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory", null);
         try {
             URL schemaLocation = ResourceUtils.getClasspathResource(fileName);
+
             return factory.newSchema(schemaLocation);
         } catch (SAXException e) {
-            log.error("Creating schema from file '{}' failed",
-                    fileName, e);
-            throw new RuntimeException(
-                    "Unable to create schema validator", e);
+            log.error("Creating schema from file '{}' failed", fileName, e);
+
+            throw new RuntimeException("Unable to create schema validator", e);
         }
     }
 
-    protected static void validate(Schema schema, Source source,
-            String errorCode) throws Exception {
+    protected static void validate(Schema schema, Source source, String errorCode) throws Exception {
         if (schema == null) {
             throw new IllegalStateException("Schema is not initialized");
         }
 
         try {
             Validator validator = schema.newValidator();
+            validator.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+
             validator.validate(source);
         } catch (SAXException e) {
             throw new CodedException(errorCode, e);
         }
-    }
-
-    @Override
-    public String toString() {
-        return super.toString();
     }
 }

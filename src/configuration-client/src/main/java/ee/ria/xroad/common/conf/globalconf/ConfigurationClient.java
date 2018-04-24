@@ -42,16 +42,13 @@ import java.util.stream.Collectors;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
 
 /**
- * Configuration client downloads the configuration from sources found in the
- * configuration anchor.
+ * Configuration client downloads the configuration from sources found in the configuration anchor.
  */
 @Slf4j
 @RequiredArgsConstructor
 @AllArgsConstructor
 class ConfigurationClient {
-
-    private final Map<String, Set<ConfigurationSource>> additionalSources =
-            new HashMap<>();
+    private final Map<String, Set<ConfigurationSource>> additionalSources = new HashMap<>();
 
     private final DownloadedFiles downloadedFiles;
     private final ConfigurationDownloader downloader;
@@ -62,8 +59,11 @@ class ConfigurationClient {
     synchronized void execute() throws Exception {
         log.debug("Configuration client executing...");
 
+        downloadedFiles.reset();
+
         if (configurationAnchor == null || configurationAnchor.hasChanged()) {
             log.debug("Initializing configuration anchor");
+
             initConfigurationAnchor();
         }
 
@@ -73,7 +73,7 @@ class ConfigurationClient {
             downloadConfigurationFromAdditionalSources();
         }
 
-        // only sync if download was successful
+        // Only sync if download was successful.
         try {
             downloadedFiles.sync();
         } catch (Exception e) {
@@ -85,9 +85,10 @@ class ConfigurationClient {
         log.trace("initConfigurationAnchor()");
 
         String anchorFileName = SystemProperties.getConfigurationAnchorFile();
+
         if (!Files.exists(Paths.get(anchorFileName))) {
-            log.warn("Cannot download configuration, anchor file {} does not "
-                    + "exist", anchorFileName);
+            log.warn("Cannot download configuration, anchor file {} does not exist", anchorFileName);
+
             throw new FileNotFoundException(anchorFileName);
         }
 
@@ -98,11 +99,10 @@ class ConfigurationClient {
                 configurationAnchor = new ConfigurationAnchorV2(anchorFileName);
             }
         } catch (Exception e) {
-            String message = String.format(
-                    "Failed to load configuration anchor from file %s",
-                    anchorFileName);
+            String message = String.format("Failed to load configuration anchor from file %s", anchorFileName);
 
             log.error(message, e);
+
             throw new CodedException(X_INVALID_XML, message);
         }
 
@@ -112,8 +112,7 @@ class ConfigurationClient {
     }
 
     void saveInstanceIdentifier() throws Exception {
-        ConfigurationDirectory.saveInstanceIdentifier(
-                SystemProperties.getConfigurationPath(),
+        ConfigurationDirectory.saveInstanceIdentifier(SystemProperties.getConfigurationPath(),
                 configurationAnchor.getInstanceIdentifier());
     }
 
@@ -123,18 +122,17 @@ class ConfigurationClient {
         additionalSources.clear();
 
         String confDir = SystemProperties.getConfigurationPath();
+
         try {
             ConfigurationDirectoryV2 dir = new ConfigurationDirectoryV2(confDir);
-            PrivateParametersV2 privateParameters =
-                    dir.getPrivate(configurationAnchor.getInstanceIdentifier());
+            PrivateParametersV2 privateParameters = dir.getPrivate(configurationAnchor.getInstanceIdentifier());
+
             if (privateParameters != null) {
-                putAdditionalConfigurationSources(
-                        privateParameters.getInstanceIdentifier(),
+                putAdditionalConfigurationSources(privateParameters.getInstanceIdentifier(),
                         privateParameters.getConfigurationSource());
             }
         } catch (Exception e) {
-            log.error("Failed to initialize configuration directory "
-                    + confDir, e);
+            log.error("Failed to initialize configuration directory " + confDir, e);
         }
     }
 
@@ -148,8 +146,8 @@ class ConfigurationClient {
     }
 
     private void downloadConfigurationFromAdditionalSources() throws Exception {
-        log.trace("Downloading configuration from additional sources ({})",
-                additionalSources.size());
+        log.trace("Downloading configuration from additional sources ({})", additionalSources.size());
+
         FederationConfigurationSourceFilter filter =
                 new FederationConfigurationSourceFilterImpl(configurationAnchor.getInstanceIdentifier());
 
@@ -158,17 +156,16 @@ class ConfigurationClient {
                 if (!filter.shouldDownloadConfigurationFor(source.getInstanceIdentifier())) {
                     continue;
                 }
-                DownloadResult result =
-                        downloader.download(source,
-                            ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS);
+
+                DownloadResult result = downloader.download(
+                        source, ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS);
                 handleResult(result, source.getInstanceIdentifier().equals(
                         configurationAnchor.getInstanceIdentifier()));
             }
         }
     }
 
-    private void handleResult(DownloadResult result, boolean throwIfFailure)
-            throws Exception {
+    private void handleResult(DownloadResult result, boolean throwIfFailure) throws Exception {
         if (result.isSuccess()) {
             handleSuccess(result);
         } else {
@@ -194,9 +191,9 @@ class ConfigurationClient {
     }
 
     private void handleFailure(DownloadResult result) throws Exception {
-        final StringBuilder errorMessage =
-                new StringBuilder("Failed to download configuration from any "
-                        + "configuration location:\n");
+        final StringBuilder errorMessage = new StringBuilder(
+                "Failed to download configuration from any configuration location:\n");
+
         result.getExceptions().forEach((l, e) -> {
             errorMessage.append("\tlocation: ");
             errorMessage.append(l.getDownloadURL());
@@ -209,13 +206,13 @@ class ConfigurationClient {
 
         Exception lastException = result.getExceptions().values().stream()
                 .reduce((a, b) -> b).orElse(null);
+
         if (lastException != null) {
             throw lastException;
         }
     }
 
-    private void putAdditionalConfigurationSources(String instanceIdentifier,
-            Collection<ConfigurationSource> sources) {
+    private void putAdditionalConfigurationSources(String instanceIdentifier, Collection<ConfigurationSource> sources) {
         additionalSources.put(instanceIdentifier, new HashSet<>(sources));
     }
 }
