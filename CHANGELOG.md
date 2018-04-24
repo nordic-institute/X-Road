@@ -1,7 +1,11 @@
 # Change Log
 
 ## 6.18.0 - XXXX-XX-XX
-- TBD
+- XTE-314: Central Server: Bugfix: Write globalconf files atomic way.
+- XTE-377: Fixed XXE issues (CWE-827) found by Coverity.
+- XTE-396: Security Server / Central Server / Configuration Proxy: Improved the globalconf validity check and removal of the globalconf files not distributed any more.
+- XTE-397: Configuration-Client: Better old globalconf files cleanup after download.
+- XTE-409: Document UG-OPMONSYSPAR: Better explanation for the parameter 'op-monitor-buffer.sending-interval-seconds'.
 
 ## 6.17.0 - 2018-02-14
 - PVAYLADEV-861 / XRJD #172: Built a mechanism for configuration loader, that allows the loading of mutually alternative configuration files without unnecessary log errors. This mechanism is used to load explicit configuration values from either proxy, center or confproxy components on signer startup. Also refactored central server UI configuration loading to avoid unnecessary log errors. Update performs a migration for existing local configuration values if needed.

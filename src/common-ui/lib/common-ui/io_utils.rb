@@ -23,6 +23,7 @@
 
 require 'thread'
 require 'fileutils'
+require 'tempfile'
 
 java_import Java::ee.ria.xroad.common.SystemProperties
 
@@ -65,12 +66,14 @@ module CommonUi
     def write_public(file_path, writing_process)
       @@mutex.synchronize do
         begin
-          file = File.open(file_path, "w:#{Rails.configuration.encoding}")
+          file = Tempfile.new(File.basename(file_path), SystemProperties::getTempFilesPath, "w:#{Rails.configuration.encoding}")
           writing_process.call(file)
-          FileUtils.chmod(0644, file.path)
         ensure
           file.close()
         end
+
+        FileUtils.chmod(0644, file.path)
+        FileUtils.mv(file.path, file_path)
       end
     end
 

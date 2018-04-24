@@ -25,25 +25,26 @@ package ee.ria.xroad.common.hashchain;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.SchemaValidator;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.transforms.Transforms;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.util.JAXBSource;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -64,9 +65,8 @@ import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
 /**
  * Verification of hash chains.
  */
+@Slf4j
 public final class HashChainVerifier {
-    private static final Logger LOG = LoggerFactory.getLogger(
-            HashChainVerifier.class);
 
     /** For accessing JAXB functionality. Shared between all the verifiers. */
     private static JAXBContext jaxbCtx;
@@ -86,33 +86,22 @@ public final class HashChainVerifier {
 
     /**
      * Verifies a set of inputs with respect to hash chain result.
-     * Silently returns when all the inputs are correctly referenced by the
-     * hash chain. Throws exception on error.
-     * @param hashChainResultXml hash chain result that is the starting point
-     *                           of the verification.
-     * @param referenceResolver used to resolve references from hash chain
-     *                          result and hash chains.
-     *                          The resolver is not called for file names
-     *                          that are given as inputs that have the
-     *                          target present.
-     * @param inputs set of inputs that are to be verified with respect to the
-     *               hash chain result. All the inputs must be referenced by
-     *               the hash chain in order to the verification to succeed.
-     *               The parameter should contain mapping from file names
-     *               to input hashes. The Input object (key value) can be null,
-     *               in which case the reference resolver is used to
-     *               download the input data for hashing.
+     * Silently returns when all the inputs are correctly referenced by the hash chain. Throws exception on error.
+     * @param hashChainResultXml hash chain result that is the starting point of the verification.
+     * @param referenceResolver used to resolve references from hash chain result and hash chains.
+     * The resolver is not called for file names that are given as inputs that have the target present.
+     * @param inputs set of inputs that are to be verified with respect to the hash chain result.
+     * All the inputs must be referenced by the hash chain in order to the verification to succeed.
+     * The parameter should contain mapping from file names to input hashes. The Input object (key value) can be null,
+     * in which case the reference resolver is used to download the input data for hashing.
      * @throws Exception in case of any errors
      */
-    public static void verify(InputStream hashChainResultXml,
-            HashChainReferenceResolver referenceResolver,
+    public static void verify(InputStream hashChainResultXml, HashChainReferenceResolver referenceResolver,
             Map<String, DigestValue> inputs) throws Exception {
-        new HashChainVerifier(hashChainResultXml, referenceResolver,
-                inputs).verify();
+        new HashChainVerifier(hashChainResultXml, referenceResolver, inputs).verify();
     }
 
-    private HashChainVerifier(InputStream hashChainResultXml,
-            HashChainReferenceResolver referenceResolver,
+    private HashChainVerifier(InputStream hashChainResultXml, HashChainReferenceResolver referenceResolver,
             Map<String, DigestValue> inputs) {
         this.hashChainResultXml = hashChainResultXml;
         this.referenceResolver = referenceResolver;
@@ -120,18 +109,16 @@ public final class HashChainVerifier {
     }
 
     private void verify() throws Exception {
-        LOG.trace("verify()");
+        log.trace("verify()");
 
-        HashChainResultType hashChainResult =
-                parseHashChainResult(hashChainResultXml);
+        HashChainResultType hashChainResult = parseHashChainResult(hashChainResultXml);
 
         // Resolve last hash step in chain.
         byte[] hashStepData = resolveHashStep(hashChainResult.getURI(), null);
 
         // Digest the last hash step result.
-        byte[] digestedData = calculateDigest(getAlgorithmId(
-                        hashChainResult.getDigestMethod().getAlgorithm()),
-                        hashStepData);
+        byte[] digestedData = calculateDigest(
+                getAlgorithmId(hashChainResult.getDigestMethod().getAlgorithm()), hashStepData);
 
         // Compare with the signed hash chain result.
         if (!Arrays.equals(digestedData, hashChainResult.getDigestValue())) {
@@ -143,55 +130,50 @@ public final class HashChainVerifier {
     }
 
     private void checkReferencedInputs() {
-        LOG.trace("checkReferencedInputs(). Used = {}", usedInputs);
+        log.trace("checkReferencedInputs(). Used = {}", usedInputs);
+
         Set<String> untouchedInputs = new HashSet<>(inputs.keySet());
         untouchedInputs.removeAll(usedInputs);
 
         if (!untouchedInputs.isEmpty()) {
             throw new CodedException(X_HASHCHAIN_UNUSED_INPUTS,
-                    "Some inputs were not referenced by hash chain: %s",
-                    StringUtils.join(untouchedInputs, ", "));
+                    "Some inputs were not referenced by hash chain: %s", StringUtils.join(untouchedInputs, ", "));
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private static HashChainResultType parseHashChainResult(InputStream xml)
-            throws Exception {
-        Unmarshaller unmarshaller = jaxbCtx.createUnmarshaller();
-        JAXBElement<HashChainResultType> element =
-                (JAXBElement<HashChainResultType>) unmarshaller.unmarshal(xml);
+    private static HashChainResultType parseHashChainResult(InputStream xml) throws Exception {
+        return validateAndParse(xml, HashChainResultType.class);
+    }
 
-        HashChainValidator.validate(new JAXBSource(jaxbCtx, element));
 
-        return element.getValue();
+    private static HashChainType parseHashChain(InputStream xml) throws Exception {
+        return validateAndParse(xml, HashChainType.class);
     }
 
     @SuppressWarnings("unchecked")
-    private static HashChainType parseHashChain(InputStream xml)
-            throws Exception {
-        Unmarshaller unmarshaller = jaxbCtx.createUnmarshaller();
-        JAXBElement<HashChainType> element =
-                (JAXBElement<HashChainType>) unmarshaller.unmarshal(xml);
+    private static <T> T validateAndParse(InputStream xml, Class<T> type) throws Exception {
+        // They have made it rather impossible to get the actual source from JAXBSource so let's
+        // pass StreamSource which we are actually able to handle later in SchemaVerfier.
+        byte[] xmlBytes = IOUtils.toByteArray(xml);
 
-        HashChainValidator.validate(new JAXBSource(jaxbCtx, element));
+        HashChainValidator.validate(new StreamSource(new ByteArrayInputStream(xmlBytes)));
+
+        Unmarshaller unmarshaller = jaxbCtx.createUnmarshaller();
+        JAXBElement<T> element = (JAXBElement<T>) unmarshaller.unmarshal(new ByteArrayInputStream(xmlBytes));
 
         return element.getValue();
     }
 
     /**
-     * Downloads hash step, calculates all the values and concatenates the
-     * results to DigestList data structure.
+     * Downloads hash step, calculates all the values and concatenates the results to DigestList data structure.
      * @return DER-encoding of the DigestList data structure.
      */
-    private byte[] resolveHashStep(String uri, HashChainType currentChain)
-            throws Exception {
-        LOG.trace("resolveHashStep({})", uri);
+    private byte[] resolveHashStep(String uri, HashChainType currentChain) throws Exception {
+        log.trace("resolveHashStep({})", uri);
 
-        Pair<HashStepType, HashChainType> hashStep =
-                fetchHashStep(uri, currentChain);
+        Pair<HashStepType, HashChainType> hashStep = fetchHashStep(uri, currentChain);
 
-        List<AbstractValueType> values =
-                hashStep.getLeft().getHashValueOrStepRefOrDataRef();
+        List<AbstractValueType> values = hashStep.getLeft().getHashValueOrStepRefOrDataRef();
 
         DigestValue[] digests = new DigestValue[values.size()];
 
@@ -204,9 +186,8 @@ public final class HashChainVerifier {
     }
 
     /** Calculates digest of the value in a hash step. */
-    private DigestValue resolveValue(AbstractValueType value,
-            HashChainType currentChain) throws Exception {
-        LOG.trace("resolveValue({})", value);
+    private DigestValue resolveValue(AbstractValueType value, HashChainType currentChain) throws Exception {
+        log.trace("resolveValue({})", value);
 
         if (value instanceof DataRefType) {
             return resolveDataRef((DataRefType) value, currentChain);
@@ -219,28 +200,23 @@ public final class HashChainVerifier {
         }
     }
 
-    private DigestValue resolveHashValue(HashValueType hashValue,
-            HashChainType currentChain) {
+    private DigestValue resolveHashValue(HashValueType hashValue, HashChainType currentChain) {
         // Everything is already done for us.
-        String digestMethodUri =
-                getValueDigestMethodUri(hashValue, currentChain);
+        String digestMethodUri = getValueDigestMethodUri(hashValue, currentChain);
+
         return new DigestValue(digestMethodUri, hashValue.getDigestValue());
     }
 
-    private DigestValue resolveStepRef(StepRefType stepRef,
-            HashChainType currentChain) throws Exception {
+    private DigestValue resolveStepRef(StepRefType stepRef, HashChainType currentChain) throws Exception {
         // Calculate result of the referenced hash step
         byte[] resolved = resolveHashStep(stepRef.getURI(), currentChain);
         String digestMethodUri = getValueDigestMethodUri(stepRef, currentChain);
 
         // Digest the hash step result.
-        return new DigestValue(
-                digestMethodUri,
-                calculateDigest(getAlgorithmId(digestMethodUri), resolved));
+        return new DigestValue(digestMethodUri, calculateDigest(getAlgorithmId(digestMethodUri), resolved));
     }
 
-    private DigestValue resolveDataRef(DataRefType dataRef,
-            HashChainType currentChain) throws Exception {
+    private DigestValue resolveDataRef(DataRefType dataRef, HashChainType currentChain) throws Exception {
         if (isInputRef(dataRef)) {
             // Hash chain referenced given input
             usedInputs.add(dataRef.getURI());
@@ -248,17 +224,16 @@ public final class HashChainVerifier {
 
         // Check if we can use the DigestValue in the input.
         DigestValue inputDigest = getMatchingInputHash(dataRef, currentChain);
+
         if (inputDigest != null) {
             return inputDigest;
         }
 
         // We'll have to retrieve and hash the data.
 
-        String digestMethodUri =
-                getValueDigestMethodUri(dataRef, currentChain);
+        String digestMethodUri = getValueDigestMethodUri(dataRef, currentChain);
 
-        if (!referenceResolver.shouldResolve(dataRef.getURI(),
-                dataRef.getDigestValue())) {
+        if (!referenceResolver.shouldResolve(dataRef.getURI(), dataRef.getDigestValue())) {
             return new DigestValue(digestMethodUri, dataRef.getDigestValue());
         }
 
@@ -266,39 +241,35 @@ public final class HashChainVerifier {
 
         // Check if we need to run transforms on the input data.
         if (dataRef.getTransforms() != null) {
-            toDigest = performTransforms(
-                    dataRef.getURI(), dataRef.getTransforms());
+            toDigest = performTransforms(dataRef.getURI(), dataRef.getTransforms());
         } else {
             // No transforms, just resolve the URI.
             toDigest = referenceResolver.resolve(dataRef.getURI());
         }
 
         if (toDigest == null) {
-            throw new CodedException(X_INVALID_REFERENCE,
-                    "Cannot resolve URI: %s", dataRef.getURI());
+            throw new CodedException(X_INVALID_REFERENCE, "Cannot resolve URI: %s", dataRef.getURI());
         }
 
-        byte[] digest =
-                calculateDigest(getAlgorithmId(digestMethodUri), toDigest);
+        byte[] digest = calculateDigest(getAlgorithmId(digestMethodUri), toDigest);
 
         // Compare the calculated digest with the digest in the hash chain
         if (!Arrays.equals(digest, dataRef.getDigestValue())) {
-            LOG.debug("Calculated: {}", encodeBase64(digest));
+            log.debug("Calculated: {}", encodeBase64(digest));
+
             throw new CodedException(X_INVALID_HASH_CHAIN_REF,
-                    "Invalid digest value in hash chain reference to %s",
-                    dataRef.getURI());
+                    "Invalid digest value in hash chain reference to %s", dataRef.getURI());
         }
 
         return new DigestValue(digestMethodUri, digest);
     }
 
     /** Returns DigestValue from input if it exactly matches the reference. */
-    private DigestValue getMatchingInputHash(DataRefType dataRef,
-            HashChainType currentChain) {
+    private DigestValue getMatchingInputHash(DataRefType dataRef, HashChainType currentChain) {
         DigestValue inputDigest = inputs.get(dataRef.getURI());
+
         if (inputDigest != null
-                && inputDigest.getDigestMethod().equals(
-                    getValueDigestMethodUri(dataRef, currentChain))) {
+                && inputDigest.getDigestMethod().equals(getValueDigestMethodUri(dataRef, currentChain))) {
             return inputDigest;
         } else {
             return null;
@@ -310,12 +281,10 @@ public final class HashChainVerifier {
     }
 
     /** Downloads data from the URI and runs transforms on it. */
-    private InputStream performTransforms(String uri, TransformsType transforms)
-            throws Exception {
-        LOG.trace("performTransforms({}, {})", uri, transforms);
+    private InputStream performTransforms(String uri, TransformsType transforms) throws Exception {
+        log.trace("performTransforms({}, {})", uri, transforms);
 
-        JAXBElement<TransformsType> transformsElement =
-                new ObjectFactory().createTransforms(transforms);
+        JAXBElement<TransformsType> transformsElement = new ObjectFactory().createTransforms(transforms);
 
         // Create the Document
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -327,8 +296,7 @@ public final class HashChainVerifier {
 
         Transforms tr = new Transforms(document.getDocumentElement(), null);
 
-        XMLSignatureInput before = new XMLSignatureInput(
-                referenceResolver.resolve(uri));
+        XMLSignatureInput before = new XMLSignatureInput(referenceResolver.resolve(uri));
 
         XMLSignatureInput after = tr.performTransforms(before);
 
@@ -338,10 +306,8 @@ public final class HashChainVerifier {
     /**
      * Returns either the digest method from value or the hash chain default.
      */
-    private String getValueDigestMethodUri(AbstractValueType value,
-            HashChainType currentChain) {
-        if (value.getDigestMethod() != null
-                && value.getDigestMethod().getAlgorithm() != null) {
+    private String getValueDigestMethodUri(AbstractValueType value, HashChainType currentChain) {
+        if (value.getDigestMethod() != null && value.getDigestMethod().getAlgorithm() != null) {
             return value.getDigestMethod().getAlgorithm();
         } else {
             return currentChain.getDefaultDigestMethod().getAlgorithm();
@@ -349,14 +315,12 @@ public final class HashChainVerifier {
     }
 
     /** Retrieve hash step based on the URI. */
-    private Pair<HashStepType, HashChainType> fetchHashStep(
-            String uri, HashChainType currentChain) throws Exception {
+    private Pair<HashStepType, HashChainType> fetchHashStep(String uri, HashChainType currentChain) throws Exception {
         // Find the fragment separator.
         int hashIndex = uri.indexOf('#');
 
         if (hashIndex < 0) {
-            throw new CodedException(X_MALFORMED_HASH_CHAIN,
-                    "Invalid hash step URI: %s", uri);
+            throw new CodedException(X_MALFORMED_HASH_CHAIN, "Invalid hash step URI: %s", uri);
         }
 
         String baseUri = uri.substring(0, hashIndex);
@@ -364,8 +328,7 @@ public final class HashChainVerifier {
 
         if (fragment.isEmpty()) {
             // Hash step must be indicated by a fragment in a hash chain.
-            throw new CodedException(X_MALFORMED_HASH_CHAIN,
-                    "Invalid hash step URI: %s", uri);
+            throw new CodedException(X_MALFORMED_HASH_CHAIN, "Invalid hash step URI: %s", uri);
         }
 
         HashChainType hashChain;
@@ -384,18 +347,19 @@ public final class HashChainVerifier {
         }
 
         // No hash step with given fragment ID found.
-        throw new CodedException(X_MALFORMED_HASH_CHAIN,
-                "Invalid hash step URI: %s", uri);
+        throw new CodedException(X_MALFORMED_HASH_CHAIN, "Invalid hash step URI: %s", uri);
     }
 
     private HashChainType getHashChain(String uri) throws Exception {
         HashChainType ret = hashChainCache.get(uri);
+
         if (ret == null) {
             InputStream is = referenceResolver.resolve(uri);
+
             if (is == null) {
-                throw new CodedException(X_INVALID_REFERENCE,
-                        "Cannot resolve URI: %s", uri);
+                throw new CodedException(X_INVALID_REFERENCE, "Cannot resolve URI: %s", uri);
             }
+
             ret = parseHashChain(is);
             hashChainCache.put(uri, ret);
         }
@@ -419,7 +383,7 @@ public final class HashChainVerifier {
         try {
             jaxbCtx = JAXBContext.newInstance(ObjectFactory.class);
         } catch (Exception ex) {
-            LOG.error("Failed to initialize JAXB context", ex);
+            log.error("Failed to initialize JAXB context", ex);
         }
     }
 }

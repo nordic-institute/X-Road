@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+        xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
+        targetNamespace="http://x-road.eu/xsd/xroad.xsd">
+
+  <element name="conf" type="tns:DataType"/>
+
+  <complexType name="DataType">
+    <sequence>
+      <element name="data" type="string"/>
+    </sequence>
+  </complexType>
+</schema>

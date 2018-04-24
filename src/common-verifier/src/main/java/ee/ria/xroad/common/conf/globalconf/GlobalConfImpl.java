@@ -103,9 +103,11 @@ public class GlobalConfImpl implements GlobalConfProvider {
     public boolean isValid() {
         try {
             confDir.verifyUpToDate();
+
             return true;
         } catch (Exception e) {
-            log.warn("Global configuration is invalid: {}", e);
+            log.warn("Global configuration is invalid", e);
+
             return false;
         }
     }

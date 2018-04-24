@@ -22,15 +22,17 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 
-import java.io.File;
-import java.io.FileWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Holds the list of recently downloaded files. Used for checking for removed
@@ -38,61 +40,55 @@ import java.util.Set;
  */
 @Slf4j
 class DownloadedFiles {
+    @Getter
+    private final Set<String> downloadedFileList = new HashSet<>();
 
-    private final Set<String> oldList = new HashSet<>();
-    private final Set<String> newList = new HashSet<>();
-
+    private final Path confDir;
     private final Path confFile;
-    private final int version;
 
-    DownloadedFiles(Path confFile, int version) {
-        this.confFile = confFile;
-        this.version = version;
-        try {
-            load();
-        } catch (Exception e) {
-            log.error("Failed to load last list of downloaded files", e);
-        }
+    DownloadedFiles(String confDir) {
+        this.confDir = Paths.get(confDir);
+
+        confFile = Paths.get(confDir, ConfigurationDirectory.FILES);
+    }
+
+    void reset() {
+        downloadedFileList.clear();
     }
 
     void add(Set<String> files) {
         log.trace("add({})", files);
 
-        newList.addAll(files);
+        downloadedFileList.addAll(files);
     }
 
     void sync() throws Exception {
-        log.trace("sync({})", newList);
+        log.debug("sync({})", downloadedFileList);
 
-        oldList.stream().filter(f -> !newList.contains(f))
-            .forEach(this::delete);
-
-        oldList.clear();
-        oldList.addAll(newList);
-        newList.clear();
+        try (Stream<Path> paths = excludeMetadataAndDirs(Files.walk(confDir))) {
+            paths.filter(f -> !downloadedFileList.contains(f.toString()))
+                    .forEach(this::delete);
+        }
 
         save();
     }
 
-    void delete(String file) {
-        log.trace("delete({})", file);
-        ConfigurationDirectory.delete(file);
+    private static Stream<Path> excludeMetadataAndDirs(Stream<Path> stream) {
+        return stream.filter(Files::isRegularFile)
+                .filter(p -> !p.endsWith(ConfigurationDirectory.FILES))
+                .filter(p -> !p.endsWith(ConfigurationDirectory.INSTANCE_IDENTIFIER_FILE))
+                .filter(p -> !p.toString().endsWith(ConfigurationDirectory.METADATA_SUFFIX));
     }
 
-    void load() throws Exception {
-        log.trace("load()");
+    void delete(Path path) {
+        log.trace("delete({})", path);
 
-        File file = confFile.toFile();
-        if (file.exists()) {
-            oldList.addAll(FileUtils.readLines(file));
-        }
+        ConfigurationDirectory.delete(path.toString());
     }
 
     void save() throws Exception {
         log.trace("save()");
 
-        try (FileWriter file = new FileWriter(confFile.toFile())) {
-            IOUtils.writeLines(oldList, null, file);
-        }
+        FileUtils.writeLines(confFile.toFile(), StandardCharsets.UTF_8.name(), downloadedFileList);
     }
 }

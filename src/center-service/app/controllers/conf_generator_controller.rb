@@ -67,7 +67,7 @@ class ConfGeneratorController < ApplicationController
 
     render :text => ""
   rescue
-    @configurations_generator.remove_conf_locations
+    @configurations_generator.remove_conf_locations if @configurations_generator
 
     logger.error($!.message)
     logger.error($!.backtrace.join("\n"))
