@@ -4,8 +4,8 @@
 # X-Road: Configuration Proxy Use Case Model
 **Analysis**
 
-Version: 1.3
-29.08.2017
+Version: 1.4  
+07.03.2018
 <!-- 20 pages -->
 Doc. ID: UC-CP
 --------------------------------------------
@@ -22,6 +22,7 @@ Date       | Version | Description                                              
 08.11.2015 |  1.1    |   Renamed *Scope* element to *System*. *Native* (X-Road instance) renamed to *local*. Minor corrections done.   | Riin Saarmäe
 14.12.2015 |  1.2    |   UC CP\_06 fixed                                                                                               | Riin Saarmäe
 29.08.2017 |  1.3    |   Changed documentation type from docx to md file |   Lasse Matikainen
+07.03.2018 |  1.4    |   Moved terms to term doc, added term doc reference and link | Tatu Repo
 
 ## Table of Contents
 
@@ -76,64 +77,7 @@ The use cases including a human actor (the *level* of the use case is
 
 ### 1.2 Terms and Abbreviations
 
-The definitions for general X-Road terms can be found at
-<https://confluence.ria.ee/display/XROADDOCS/Terms%2C+definitions+and+abbrevations>.
-
-This section defines the terms that are not defined in the
-aforementioned document or that have contextual meaning specific to this
-document in addition to the general definition.
-
--   **Configuration provider** is an entity responsible for maintaining
-    and distributing global configuration. The configuration provider
-    manages one or two configuration sources through which configuration
-    is made available for configuration clients. In an X-Roads system,
-    the central server and the configuration proxy act as configuration
-    providers.
-
--   **Central server** is the primary configuration source in an X-Road
-    system. Central server always manages an internal configuration
-    source (i.e. configuration source distributing the internal
-    configuration) and in addition, an external configuration source
-    (i.e. configuration source distributing the external configuration)
-    in case the X-Road system is federation-capable.
-
--   **Configuration proxy** may optionally be used to mediate
-    configuration originating from the central server to the
-    configuration clients. Configuration proxy manages configuration
-    sources that are used to distribute configuration downloaded from
-    other configuration sources.
-
--   **Configuration source** is a component (HTTP server) managed by a
-    configuration provider. The configuration distributed by the source
-    can either be internal configuration or external configuration. The
-    information needed to access and download configuration from a
-    source is contained in the configuration anchor.
-
--   **Configuration anchor** is a set of information that can be used by
-    configuration clients to access a configuration source and to verify
-    the downloaded configuration. The configuration anchor is
-    distributed as either a separate XML file in case the anchor points
-    to a local configuration source or as a part of private parameters
-    in case the anchor points to the configuration source managed by a
-    federation partner.
-
--   **Configuration client** is an entity that uses configuration
-    anchor(s) for downloading configuration from configuration
-    source(s). In an X-Roads system, security server and configuration
-    proxy act as configuration clients.
-
--   **Security server** is a configuration client that uses a
-    configuration anchor provided by the internal configuration provider
-    to download internal configuration from its local configuration
-    source. Subsequently, in case of federated X-Road systems, the
-    security server uses configuration anchors contained in the private
-    parameters part of the downloaded internal configuration to download
-    the external configuration of X-Road systems federated with the
-    local system.
-
--   **Trusted anchor** is a configuration anchor that points to a
-    configuration source and has been uploaded to the configuration
-    proxy.
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)]\.
 
 ### 1.3 References
 
@@ -142,13 +86,15 @@ document in addition to the general definition.
     <http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/csprd01/pkcs11-base-v2.40-csprd01.html#_Toc372627249>
 
 2.  <a id="Ref_PR-GCONF" class="anchor"></a>\[PR-GCONF\] X-Road: Protocol for
-    Downloading Configuration. Document ID: PR-GCONF.
+    Downloading Configuration. Document ID: [PR-GCONF](../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).
 
 3.  <a id="Ref_UG-CP" class="anchor"></a>\[UG-CP\] X-Road: Configuration Proxy Manual.
-    Document ID: UG-CP.
+    Document ID: [UG-CP](../Manuals/ug-cp_x-road_v6_configuration_proxy_manual.md).
 
 4.  <a id="Ref_UC-GCONF" class="anchor"></a>\[UC-GCONF\] X-Road: Use Case Model for
-    Global Configuration Distribution. Document ID: UC-GCONF.
+    Global Configuration Distribution. Document ID: [UC-GCONF](uc-gconf_x-road_use_case_model_for_global_configuration_distribution_1.4_Y-883-8.md).
+    
+5.  <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 ## 2 Overview
 

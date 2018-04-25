@@ -6,8 +6,8 @@
 
 **Analysis**
 
-Version: 1.6
-22.02.2017
+Version: 1.7  
+06.03.2018
 <!-- 38 pages -->
 Doc. ID: UC-MESS
 
@@ -29,6 +29,7 @@ Doc. ID: UC-MESS
  05.02.2016 | 1.4     | XTE-225 - use case [MESS\_04](#35-uc-mess_04-verify-soap-message) updated.                            | Meril Vaht
  14.12.2016 | 1.5     | Operational monitoring functionality added                      | Meril Vaht
  22.02.2017 | 1.6     | Converted to Github flavoured Markdown, added license text, adjusted tables and identification for better output in PDF, re-numbered and re-bulleted [MESS\_16](#317-uc-mess_16-store-operational-monitoring-data-and-forward-the-data-to-operational-monitoring-daemon)| Toomas Mölder
+ 06.03.2018 | 1.7     | Moved terms to term doc, added term doc reference and link, added internal MD-doc links | Tatu Repo
 
 ## Table of Contents
 
@@ -76,18 +77,7 @@ The purpose of this document is to describe the events and verifications that ta
 
 ### 1.2 Terms and Abbreviations
 
-The definitions for general X-Road terms can be found at <https://confluence.ria.ee/display/XROADDOCS/Terms%2C+definitions+and+abbrevations>.
-
-The following terms are used in this document in addition to the general terms:
-
--   **System configuration** consists of data stored in the database, and in the various configuration files held in the file system of an X-Road component.
-
--   **TLS certificate** is a certificate used by the security server to authenticate the information system when HTTPS protocol is used for connections between the service client's or service provider's security server and information system.
-
--   **Operational monitoring data** contains operational data (such as which services have been called, how many times, what was the size of the response, etc.) of the X-Road security server(s).
-
--   **Operational monitoring daemon** collects and shares operational monitoring data of the X-Road security server(s), calculates and shares health data of the X-Road security server(s) that is based on collected operational monitoring data.
-
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
@@ -95,26 +85,27 @@ The following terms are used in this document in addition to the general terms:
 
 2.  <a id="Ref_HPDS" class="anchor"></a>\[HPDS\] Freudenthal, M. Profile for High-Perfomance Digital Signature. T-4-23, 2015. <http://cyber.ee/en/research/publications/research-reports/>
 
-3.  <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Message Protocol v4.0. Document ID: PR-MESS.
+3.  <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Message Protocol v4.0. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md).
 
-4.  <a id="Ref_PR-MESSTRANSP" class="anchor"></a>\[PR-MESSTRANSP\] Cybernetica AS. X-Road: Message Transport Protocol. Document ID: PR-MESSTRANSP.
+4.  <a id="Ref_PR-MESSTRANSP" class="anchor"></a>\[PR-MESSTRANSP\] Cybernetica AS. X-Road: Message Transport Protocol. Document ID: [PR-MESSTRANSP](../Protocols/pr-messtransp_x-road_message_transport_protocol_2.2_Y-743-4.docx).
 
-5.  <a id="Ref_UG-GCONF" class="anchor"></a>\[UG-GCONF\] Cybernetica AS. X-Road: Use Case Model for Global Configuration Distribution. Document ID: UG-GCONF.
+5.  <a id="Ref_UC-GCONF" class="anchor"></a>\[UC-GCONF\] Cybernetica AS. X-Road: Use Case Model for Global Configuration Distribution. Document ID: [UC-GCONF](uc-gconf_x-road_use_case_model_for_global_configuration_distribution_1.4_Y-883-8.md).
 
-6.  <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] Cybernetica AS. X-Road: System Parameters. Document ID: UG-SYSPAR.
+6.  <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] Cybernetica AS. X-Road: System Parameters. Document ID: [UG-SYSPAR](../Manuals/ug-syspar_x-road_v6_system_parameters.md).
 
 7.  <a id="Ref_XAdES" class="anchor"></a>\[XAdES\] XML Advanced Electronic Signatures (XadES). ETSI TS 101 903 V1.3.2.
 
-8.  <a id="Ref_UC-SS" class="anchor"></a>\[UC-SS\] X-Road: Use Case Model for Security Server Management. Document ID: UC-SS.
+8.  <a id="Ref_UC-SS" class="anchor"></a>\[UC-SS\] X-Road: Use Case Model for Security Server Management. Document ID: [UC-SS](uc-ss_x-road_use_case_model_for_security_server_management_1.4_Y-883-4.md).
 
-9.  <a id="Ref_UC-OPMON" class="anchor"></a>\[UC-OPMON\] Cybernetica AS. X-Road Operational Monitoring Daemon: Use Case Model. Document ID: UC-OPMON.
+9.  <a id="Ref_UC-OPMON" class="anchor"></a>\[UC-OPMON\] Cybernetica AS. X-Road Operational Monitoring Daemon: Use Case Model. Document ID: [UC-OPMON](../OperationalMonitoring/UseCases/uc-opmon_x-road_use_case_model_for_operational_monitoring_daemon_Y-1095-2.md).
 
+10. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 ## 2 Overview
 
 X-Road services are used by X-Road members communicating directly with each other via security servers, using synchronous request-response messaging pattern.
 
-Security servers periodically download global configuration from the central server (see \[[UG-GCONF](#Ref_UG-GCONF)\]). The global configuration is used to check validity of various data items, such as certificates, OCSP responses and timestamps. In addition, the global configuration is used to verify that communicating parties are registered on the X-Road.
+Security servers periodically download global configuration from the central server (see \[[UC-GCONF](#Ref_UC-GCONF)\]). The global configuration is used to check validity of various data items, such as certificates, OCSP responses and timestamps. In addition, the global configuration is used to verify that communicating parties are registered on the X-Road.
 
 Security servers ensure the integrity and confidentiality of the exchanged messages by signing the messages with the X-Road member's signing key and using mutually authenticated Transport Layer Security (TLS) channel for transport. The long-term evidential value of the signed messages is ensured by logging the exchanged messages and periodically timestamping the message logs.
 

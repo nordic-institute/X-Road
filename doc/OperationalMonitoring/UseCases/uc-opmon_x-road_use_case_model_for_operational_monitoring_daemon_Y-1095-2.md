@@ -4,16 +4,17 @@
 
 # X-Road: Use Case Model for Operational Monitoring Daemon
 
-Version: 0.6  
+Version: 0.7  
 Doc. ID: UC-OPMON
 
 | Date       | Version     | Description                                                                  | Author             |
 |------------|-------------|------------------------------------------------------------------------------|--------------------|
 |  | 0.5       | Initial version               |          |
 | 23.01.2017 | 0.6       | Added license text, table of contents and version history | Sami Kallio |
+| 05.03.2018 | 0.7       | Added terms and abbreviations reference and moved terms to term doc | Tatu Repo |
 
 ## Table of Contents
-
+    
 <!-- toc -->
 
 - [License](#license)
@@ -45,20 +46,21 @@ The use cases include verifications that take place, and the main error conditio
 
 ### 1.2 Terms and Abbreviations
 
-JMX -- Java Management Extensions  
-JMXMP -- Java Management Extensions Messaging Protocol
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
 <a name="ARC-OPMOND"></a>**ARC-OPMOND** -- Cybernetica AS. X-Road: Operational Monitoring Daemon Architecture. Document ID: [ARC-OPMOND](../Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).  
 <a name="PR-OPMON"></a>**PR-OPMON** -- Cybernetica AS. X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md).  
-<a name="PR-OPMONJMX"></a>**PR-OPMONJMX** -- Cybernetica AS. X-Road: Operational Monitoring JMX Protocol. Document ID: [PR-OPMONJMX](../Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md).
+<a name="PR-OPMONJMX"></a>**PR-OPMONJMX** -- Cybernetica AS. X-Road: Operational Monitoring JMX Protocol. Document ID: [PR-OPMONJMX](../Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md).  
+<a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../../terms_x-road_docs.md).
+
 
 ## 2 Overview
 
 The main function of the operational monitoring daemon is to collect operational monitoring data and health data of the X-Road security server(s). The operational monitoring daemon makes operational and health data available for the owner of the security server, regular client and central monitoring client via security server. Local health data is available for external monitoring systems (e.g. Zabbix) over JMXMP interface.
 
-An overview of the components of the monitoring daemon and its interfaces is provided in [[ARC-OPMOND]](#ARC-OPMOND).
+An overview of the components of the monitoring daemon and its interfaces is provided in \[[ARC-OPMOND](#ARC-OPMOND)\].
 
 ## 3 Use Case Model
 
@@ -250,7 +252,7 @@ The relationships between the actors and use cases are described in Figure 1.
   * 4b.2. Use case continues from step 5.
 
 **Related information:**
-- Operational data SOAP messages must conform to the profile described in document “X-Road: Operational Monitoring Protocol” [[PR-OPMON]](#PR-OPMON).
+- Operational data SOAP messages must conform to the profile described in document “X-Road: Operational Monitoring Protocol” \[[PR-OPMON](#PR-OPMON)\].
 
 
 ### 3.5 UC OPMON_03: Query Security Server Health Data
@@ -336,5 +338,5 @@ The relationships between the actors and use cases are described in Figure 1.
   * 2b.2. Use case continues from step 4.
 
 **Related information:**
-- Health data SOAP messages must conform to the profile described in document “X-Road: Operational Monitoring Protocol” [[PR-OPMON]](#PR-OPMON).
-- Health data JMX messages must confirm to the profile described in document "X-Road: Operational Monitoring JMX Protocol" [[PR-OPMONJMX]](#PR-OPMONJMX).
+- Health data SOAP messages must conform to the profile described in document “X-Road: Operational Monitoring Protocol” \[[PR-OPMON](#PR-OPMON)\].
+- Health data JMX messages must confirm to the profile described in document "X-Road: Operational Monitoring JMX Protocol" \[[PR-OPMONJMX](#PR-OPMONJMX)\].

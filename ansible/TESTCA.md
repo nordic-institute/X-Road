@@ -61,12 +61,13 @@ xroad_ca_tsa_cn: "Customized Test TSA CN"
 	- `home`
 	- `usr`
 4. Copy `roles/xroad-ca/templates/init.sh` to `home/ca/CA/`
-4. Add user `ocsp` to group `ca`
-5. Grant `ca` ownership and all permissions to files under `/home/ca/CA`
-6. Grant read permission for group `ca` to files under `/home/ca/CA`
-7. Create a file called `ocsp.log` under `/var/log`
-8. Grant `ca` ownership and group `ca` read and write permissions for `ocsp.log`
-9. Fill in parameters for CA, OCSP and TSA distinguished names (DN) in `/home/ca/CA/init.sh`:
+5. Add user `ocsp` to group `ca`
+6. Grant `ca` ownership and all permissions to files under `/home/ca/CA`
+7. Grant read permission for group `ca` to files under `/home/ca/CA`
+8. Grant read + execute permissions for group `ca` to directories under `/home/ca/CA`
+9. Create a file called `ocsp.log` under `/var/log`
+10. Grant `ca` ownership and group `ca` read and write permissions for `ocsp.log`
+11. Fill in parameters for CA, OCSP and TSA distinguished names (DN) in `/home/ca/CA/init.sh`:
 ```
 # dn parameters
 DN_COUNTRY="{{ xroad_ca_dn_country }}"
@@ -128,6 +129,8 @@ To configure the central server to use the test-CA:
 ---------------------------------------------
 
 ## 7. Signing certificates
+
+NOTE: The test CA setup only accepts DER as input format.
 
 To sign a CSR, you have two options: 
 

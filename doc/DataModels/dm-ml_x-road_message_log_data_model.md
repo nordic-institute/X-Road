@@ -1,6 +1,6 @@
 # X-Road: Message Log Data Model
 
-Version: 1.3  
+Version: 1.5  
 Doc. ID: DM-ML
 
 | Date       | Version     | Description                                     | Author             |
@@ -17,15 +17,18 @@ Doc. ID: DM-ML
 | 16.12.2016 | 1.2         | Described index added to message log            | Martin Lind        |
 | 16.02.2017 | 1.3         | Converted to markdown                           | Ilkka Seppälä      |
 | 16.02.2017 | 1.4         | Added index to logrecord, fixed earlier logrecord index name  | Olli Lindgren      |
+| 02.03.2018 | 1.5         | Added uniform terms and conditions reference    | Tatu Repo |
 
 ##Table of Contents
 
-- [General](#1-general)
-  - [Preamble](#11-preamble)
-  - [Database Version](#12-database-version)
-  - [Creating, Backing Up and Restoring the Database](#13-creating-backing-up-and-restoring-the-database)
-  - [Message Logging and Timestamping](#14-message-logging-and-timestamping)
-  - [Entity-Relationship Diagram](#15-entity-relationship-diagram)
+- [1 General](#1-general)
+  - [1.1 Preamble](#11-preamble)
+  - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+  - [1.3 References](#13-references)
+  - [1.4 Database Version](#14-database-version)
+  - [1.5 Creating, Backing Up and Restoring the Database](#15-creating-backing-up-and-restoring-the-database)
+  - [1.6 Message Logging and Timestamping](#16-message-logging-and-timestamping)
+  - [1.7 Entity-Relationship Diagram](#17-entity-relationship-diagram)
 - [Description of Entities](#2-description-of-entities)
   - [LOGRECORD](#21-logrecord)
     - [Indexes](#211-indexes)
@@ -43,11 +46,19 @@ Doc. ID: DM-ML
 
 This document describes database model of X-Road message log.
 
-## 1.2 Database Version
+## 1.2 Terms and abbreviations
+
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
+
+### 1.3 References
+
+1. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
+
+## 1.4 Database Version
 
 This database assumes PostgreSQL version 9.3. Ubuntu 14.04 default settings are used.
 
-## 1.3 Creating, Backing Up and Restoring the Database
+## 1.5 Creating, Backing Up and Restoring the Database
 
 This database is integrated into X-Road message log component.
 
@@ -55,7 +66,7 @@ The database, the database user and the data model is created by the component's
 
 The database is used for logging purposes only and does not contain any configuration. Backing-up and restoring the database is not necessary for the functioning of the component.
 
-## 1.4 Message Logging and Timestamping
+## 1.6 Message Logging and Timestamping
 
 The input to the message log component consists of a message and its corresponding signature (along with hash chain and hash chain result if the signature is a batch signature). Depending on the security policy, timestamping can be asynchronous (one or more signatures are batch timestamped) or synchronous (to guarantee the timestamp).
 
@@ -70,7 +81,7 @@ When timestamping synchronously, the logging call will block until the timestamp
 1. The system saves the message and signature in the message log.
 2. System timestamps the message synchronously.
 
-## 1.5 Entity-Relationship Diagram
+## 1.7 Entity-Relationship Diagram
 
 ![Entity-Relationship Diagram](img/messagelog-er-diagram.png)
 

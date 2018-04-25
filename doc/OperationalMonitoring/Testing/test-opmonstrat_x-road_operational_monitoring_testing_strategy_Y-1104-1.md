@@ -4,13 +4,14 @@
 
 # X-Road: Operational Monitoring Testing Strategy
 
-Version: 0.6  
+Version: 0.7  
 Doc. ID: TEST-OPMONSTRAT
 
 | Date       | Version     | Description                                                                  | Author             |
 |------------|-------------|------------------------------------------------------------------------------|--------------------|
 |  | 0.5       | Initial version               |          |
 | 23.01.2017 | 0.6       | Added license text, table of contents and version history | Sami Kallio |
+| 05.03.2018 | 0.7       | Added terms and abbreviations reference and moved terms to term doc | Tatu Repo | 
 
 ## Table of Contents
 
@@ -51,18 +52,11 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 In this document, we define the testing strategy for the development project of the operational monitoring components of the X-Road system.
 
-A detailed testing plan will be delivered as a separate document in [[TEST-OPMON]](#TEST-OPMON).
+A detailed testing plan will be delivered as a separate document in \[[TEST-OPMON](#TEST-OPMON)\].
 
 ### 1.2 Terms and Abbreviations
 
-HTTP -- Hypertext Transfer Protocol  
-HTTPS -- Hypertext Transfer Protocol Secure  
-JMXMP -- Java Management Extensions Messaging Protocol  
-SOAP -- Simple Object Access Protocol  
-DSL -- Domain Specific Language  
-CA -- Certification Authority  
-TSA -- Timestamping Authority  
-CI -- Continuous Integration  
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
@@ -75,16 +69,17 @@ CI -- Continuous Integration
 <a name="UC-OPMON"></a>**UC-OPMON** -- Cybernetica AS. X-Road: Operational Monitoring Daemon Use Case Model. Document ID: [UC-OPMON](../UseCases/uc-opmon_x-road_use_case_model_for_operational_monitoring_daemon_Y-1095-2.md).  
 <a name="TEST-OPMON"></a>**TEST-OPMON** -- Cybernetica AS. X-Road: Operational Monitoring Testing Plan. Document ID: [TEST-OPMON](test-opmon_x-road_operational_monitoring_testing_plan_Y-1104-2.md).  
 <a name="IG-SS"></a>**IG-SS** -- Cybernetica AS. X-Road: Security Server Installation Guide. Document ID: [IG-SS](../../Manuals/ig-ss_x-road_v6_security_server_installation_guide.md).  
+<a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../../terms_x-road_docs.md).
 
 ## 2 Requirements Relevant to Testing
 
-The functional requirements of the monitoring system are described in [[REC-OPMON]](#REC-OPMON).  
-The architecture of the system is described in [[ARC-OPMOND]](#ARC-OPMOND).  
-The items of data that are collected and forwarded by the monitoring system, are defined in [[HD_1]](#HD_1).  
-The required paths of data exchange are defined in [[HD_1]](#HD_1).  
-The requirements of access control are defined in [[HD_1]](#HD_1).  
-The proper default configuration of the system is defined in [[HD_1]](#HD_1).  
-The non-functional requirements of the monitoring system are described in [[REC-OPMON]](#REC-OPMON) and [[HD_2]](#HD_2).
+The functional requirements of the monitoring system are described in \[[REC-OPMON](#REC-OPMON)\].  
+The architecture of the system is described in \[[ARC-OPMOND](#ARC-OPMOND)\].  
+The items of data that are collected and forwarded by the monitoring system, are defined in \[[HD_1](#HD_1)\].  
+The required paths of data exchange are defined in \[[HD_1](#HD_1)\].  
+The requirements of access control are defined in \[[HD_1](#HD_1)\].  
+The proper default configuration of the system is defined in \[[HD_1](#HD_1)\].  
+The non-functional requirements of the monitoring system are described in \[[REC-OPMON](#REC-OPMON)\] and \[[HD_2](#HD_2)\].
 
 ## 3 Testability of the System
 
@@ -94,11 +89,11 @@ Regular X-Road message exchange as well as monitoring data exchange via all the 
 
 ## 4. Types of Testing Used
 
-The required types of testing are defined in [[HD_4]](#HD_4). In the following sections, all the required types are covered.
+The required types of testing are defined in \[[HD_4](#HD_4)\]. In the following sections, all the required types are covered.
 
 ### 4.1 Integration Testing
 
-The integration tests will be used for testing the required functionality of the security servers and the operational monitoring daemon working together, while regular X-Road requests as well as operational monitoring and health data requests are handled. The goal is to cover the main functionality with automated tests. Manual tests will be carried out by the development team as needed, as well as during acceptance testing if necessary. The descriptions of manual tests will be provided in [[TEST-OPMON]](#TEST-OPMON).
+The integration tests will be used for testing the required functionality of the security servers and the operational monitoring daemon working together, while regular X-Road requests as well as operational monitoring and health data requests are handled. The goal is to cover the main functionality with automated tests. Manual tests will be carried out by the development team as needed, as well as during acceptance testing if necessary. The descriptions of manual tests will be provided in \[[TEST-OPMON](#TEST-OPMON)\].
 
 ### 4.2 Load Requirements and the Scope of Load Tests
 
@@ -107,7 +102,7 @@ The integration tests will be used for testing the required functionality of the
 A general test plan and the requirements for hardware for load testing was specified by RIA by e-mail (message ID `CC0A4AA94EE060438CD300941B8EF1EED37D61@exc2a.ria.ee`), with the following contents:
 
 * As a result of load testing, the throughput of the system is noted. No comparable benchmarks are available. The format of the tests will be suggested by Cybernetica AS.
-* The security servers of the service provider and the service consumer are installed on separate hosts that conform to the minimum requirements defined in [[IG-SS]](#IG-SS).
+* The security servers of the service provider and the service consumer are installed on separate hosts that conform to the minimum requirements defined in \[[IG-SS](#IG-SS)\].
 * Virtual machines can be used during testing -- both by the developers and at RIA's environment.
 * The operational monitoring application is installed at localhost at both security servers and TLS in not used.
 
@@ -131,7 +126,7 @@ Due to the asynchronous nature of the operational monitoring system, the overhea
 
 Under a heavy load and if the operational monitoring database component is unavailable, the monitoring buffer may use a considerable amount of memory or drop the eldest operational data records before having forwarded these to the operational monitoring database component.
 
-Thus, the focus of load testing is to find the balance between memory usage and possible data loss. Details of load testing are provided in [[TEST-OPMON]](#TEST-OPMON).
+Thus, the focus of load testing is to find the balance between memory usage and possible data loss. Details of load testing are provided in \[[TEST-OPMON](#TEST-OPMON)\].
 
 ### 4.3 Unit Testing
 
@@ -145,7 +140,7 @@ Unit tests will not be written for third-party protocol implementations (such as
 
 ## 5 The Team and the Workflow
 
-The schedule of the project and the roles of the team are described in [[PP]](#project_plan).
+The schedule of the project and the roles of the team are described in \[[PP](#project_plan)\].
 
 The testing activities and the programming of tests are carried out by testers and developers. The architecture and the tools of testing are reviewed by the architect of the project.
 
@@ -154,7 +149,7 @@ Unit tests will be implemented by the developers in parallel with the functional
 Integration and load testing will be carried out according to the following plan:
 - *Elaboration phase:* the tools for testing at the required levels will be chosen and an initial testing plan will be written.
 - *Construction phase:* the initial version of load tests will be written and the framework of automated integration tests will be constructed.
-- *Transition phase:* The load tests and the automated integration tests will be implemented and integrated with the Continuous Integration system and the testing environment. If manual integration test cases are written, these will be formatted as part of [[TEST-OPMON]](#TEST-OPMON).
+- *Transition phase:* The load tests and the automated integration tests will be implemented and integrated with the Continuous Integration system and the testing environment. If manual integration test cases are written, these will be formatted as part of \[[TEST-OPMON](#TEST-OPMON)\].
 
 ## 6 Tools, Languages and Libraries
 
@@ -170,7 +165,7 @@ All the source code and the necessary data and configuration files (or samples w
 
 ## 8 Setup and Management of the Testing Environment. Continuous Integration
 
-The testing environment and continuous integration setup during development will closely mimic the required target testing environment (as described in [[HD_4]](#HD_4)) with some additions. The relevant configuration files and documentation will be committed to the main Git development repository for simple migration to the target testing system.
+The testing environment and continuous integration setup during development will closely mimic the required target testing environment (as described in \[[HD_4](#HD_4)\]) with some additions. The relevant configuration files and documentation will be committed to the main Git development repository for simple migration to the target testing system.
 
 ## 8.1 The Servers Used for Automated Testing
 The main automated testing environment consists of the following virtual machines, with the name of the corresponding machine at RIA given in parentheses:

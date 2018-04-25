@@ -1,6 +1,6 @@
 # X-Road: Environmental Monitoring Messages
 
-Version: 1.3  
+Version: 1.5  
 Doc. ID: PR-ENVMONMES
 
 | Date       | Version     | Description                                                | Author          |
@@ -10,17 +10,20 @@ Doc. ID: PR-ENVMONMES
 | 20.01.2017 | 1.2         | Added license text, table of contents and version history  | Sami Kallio     |
 | 23.02.2017 | 1.3         | Added reference to security server targeting extension     | Olli Lindgren   |
 | 24.08.2017 | 1.4         | Added outputSpec parameter to getSecurityServerMetrics     | Tomi Tolvanen   |
+| 06.03.2018 | 1.5         | Added terms and abbreviations references, numbering and Introduction chapter structure | Tatu Repo |
 
 ## Table of Contents
 
 <!-- toc -->
 
 - [License](#license)
-- [Fetching security server metrics](#fetching-security-server-metrics)
-  * [Request](#request)
-  * [Response](#response)
-  * [Response Schema](#response-schema)
-- [References](#references)
+- [1 Introduction](#1-introduction)
+  * [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
+  * [1.2 References](#12-references)
+- [2 Fetching security server metrics](#2-fetching-security-server-metrics)
+  * [2.1 Request](#21-request)
+  * [2.2 Response](#22-response)
+  * [2.3 Response Schema](#23-response-schema)
 
 <!-- tocstop -->
 
@@ -28,9 +31,25 @@ Doc. ID: PR-ENVMONMES
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
 
-## Fetching security server metrics
+## 1 Introduction
 
-### Request
+This document describes the request and response messages for environmental monitoring. 
+
+### 1.1 Terms and abbreviations
+
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
+
+### 1.2 References
+
+| Document ID||
+| ------------- |-------------|
+| <a name="Ref_PR-TARGETSS"></a>\[PR-TARGETSS\] | [Security server targeting extension for the X-Road message protocol](../Protocols/SecurityServerExtension/pr-targetss_security_server_targeting_extension_for_the_x-road_protocol.md)  |
+| <a name="Ref_TERMS"></a>\[TA-TERMS\] | [X-Road Terms and Abbreviations](../terms_x-road_docs.md)
+
+
+## 2 Fetching security server metrics
+
+### 2.1 Request
 
 Fetching security server metrics uses the X-Road protocol. The `getSecurityServerMetrics` request requires a `securityServer` header element as specified by the security server targeting extension for the X-Road message protocol \[[PR-TARGETSS](#Ref_PR-TARGETSS)\] so that the request can be routed to a specific security server.
 
@@ -82,7 +101,7 @@ An optional `outputSpec` child element can be used to request a subset of the me
 </SOAP-ENV:Envelope>
 ```
 
-### Response
+### 2.2 Response
 
 The response `Body` contains one `getSecurityServerMetricsResponse` element which contains one `metricSet` as direct child. The name of the top level set is the security server identifier. The set contains a _proxyVersion_ `stringMetric` and a _systemMetrics_ `metricSet`. The _systemMetrics_ set contains the requested metrics.
 
@@ -140,7 +159,7 @@ The response `Body` contains one `getSecurityServerMetricsResponse` element whic
 </SOAP-ENV:Envelope>
 ```
 
-### Response Schema
+### 2.3 Response Schema
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -212,8 +231,3 @@ The response `Body` contains one `getSecurityServerMetricsResponse` element whic
     <xs:element name="getSecurityServerMetrics" type="tns:getSecurityServerMetricsType"/>
 </schema>
 ```
-## References
-
-| Code||
-| ------------- |-------------|
-| <a name="Ref_PR-TARGETSS"></a>\[PR-TARGETSS\] | Security server targeting extension for the X-Road message protocol  |

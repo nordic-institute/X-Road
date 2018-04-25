@@ -3,8 +3,8 @@
   become: yes
   file: path=/xroad state=directory mode=0755
 
-- include: ubuntu.yml
+- import_tasks: ubuntu.yml
   when: ansible_os_family == "Debian"
 
-- include: rhel.yml
+- import_tasks: rhel.yml
   when: ansible_os_family == "RedHat"
