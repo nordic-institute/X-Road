@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE r [
+    <!ENTITY passwd SYSTEM "file:///etc/passwd">
+]>
+<xro:conf xmlns:xro="http://x-road.eu/xsd/xroad.xsd">
+    <data>&passwd;</data>
+</xro:conf>
