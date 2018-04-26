@@ -879,7 +879,7 @@ function warning(text, params, success) {
         defaultValue: _("layouts.application.warning_title")
     }, false);
 
-    $("#warning").html(_(text, params)).initDialog({
+    $("#warning").html(_(text, params, false)).initDialog({
         title: title,
         autoOpen: true,
         modal: true,

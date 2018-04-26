@@ -106,7 +106,7 @@ class InitController < ApplicationController
     audit_log_data[:generatedAt] = anchor_details[:generated_at_iso]
 
     apply_temp_anchor_file
-    
+
     download_configuration
     notice(t('init.configuration_downloaded'))
 
@@ -148,8 +148,8 @@ class InitController < ApplicationController
 
       unless get_member_name(params[:owner_class], params[:owner_code])
         warn_message = t('init.unregistered_member', {
-          :member_class => params[:owner_class].upcase,
-          :member_code => params[:owner_code]
+          :member_class => Encode.forHtml(params[:owner_class].upcase),
+          :member_code =>  Encode.forHtml(params[:owner_code])
         })
         warn("unregistered_member", warn_message)
       end
