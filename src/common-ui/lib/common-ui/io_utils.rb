@@ -66,10 +66,11 @@ module CommonUi
     def write_public(file_path, writing_process)
       @@mutex.synchronize do
         begin
-          file = Tempfile.new(File.basename(file_path), SystemProperties::getTempFilesPath, "w:#{Rails.configuration.encoding}")
+          file = Tempfile.new(File.basename(file_path), SystemProperties::getTempFilesPath,
+                              :encoding => "#{Rails.configuration.encoding}")
           writing_process.call(file)
         ensure
-          file.close()
+          file&.close()
         end
 
         FileUtils.chmod(0644, file.path)
