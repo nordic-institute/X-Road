@@ -34,6 +34,7 @@ java_import Java::ee.ria.xroad.commonui.SignerProxy
 java_import Java::ee.ria.xroad.signer.protocol.dto.TokenStatusInfo
 
 java_import Java::org.apache.commons.lang3.exception.ExceptionUtils
+java_import Java::org.owasp.encoder.Encode
 
 class BaseController < ActionController::Base
 
@@ -358,7 +359,7 @@ class BaseController < ActionController::Base
 
   def add_flash(type, text)
     flash[type] = [] unless flash[type]
-    flash[type] << CGI.escapeHTML(text) if text && text.length > 0
+    flash[type] << Encode.forHtml(text) if text && text.length > 0
   end
 
   def render_json(data = nil)

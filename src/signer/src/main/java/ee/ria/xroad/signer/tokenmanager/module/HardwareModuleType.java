@@ -34,6 +34,10 @@ public class HardwareModuleType implements ModuleType {
 
     private final String pkcs11LibraryPath;
 
+    // Library initialization boolean flags.
+    private final Boolean libraryCantCreateOsThreads;
+    private final Boolean osLockingOk;
+
     private final String tokenIdFormat;
 
     private final boolean pinVerificationPerSigning;
@@ -47,5 +51,4 @@ public class HardwareModuleType implements ModuleType {
     private final PrivKeyAttributes privKeyAttributes;
 
     private final PubKeyAttributes pubKeyAttributes;
-
 }

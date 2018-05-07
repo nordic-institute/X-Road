@@ -51,21 +51,24 @@ public final class ModuleConf {
     /** The type used to identify software keys in key configuration. */
     private static final String SOFTKEY_TYPE = "softToken";
 
-    // Maps Type (UID) to ModuleType
+    // Maps Type (UID) to ModuleType.
     private static final Map<String, ModuleType> MODULES = new HashMap<>();
 
     private static final String DEFAULT_TOKEN_ID_FORMAT = "{moduleType}{slotIndex}{serialNumber}{label}";
 
-    // Maps mechanism name to mechanism code of supported sign mechanisms
+    // Maps mechanism name to mechanism code of supported sign mechanisms.
     private static final Map<String, Long> SUPPORTED_SIGN_MECHANISMS = createSupportedSignMechanismsMap();
 
-    // Maps mechanism name to mechanism code of supported key allowed mechanisms
+    // Maps mechanism name to mechanism code of supported key allowed mechanisms.
     private static final Map<String, Long> SUPPORTED_KEY_ALLOWED_MECHANISMS = createSupportedKeyAllowedMechanismMap();
 
     private static final String DEFAULT_SIGN_MECHANISM_NAME = PKCS11Constants.NAME_CKM_RSA_PKCS;
 
-    // Module configuration fields
+    // Module configuration fields.
     private static final String ENABLED_PARAM = "enabled";
+    private static final String LIBRARY_PARAM = "library";
+    private static final String LIBRARY_CANT_CREATE_OS_THREADS_PARAM = "library_cant_create_os_threads";
+    private static final String OS_LOCKING_OK_PARAM = "os_locking_ok";
     private static final String SIGN_VERIFY_PIN_PARAM = "sign_verify_pin";
     private static final String BATCH_SIGNING_ENABLED_PARAM = "batch_signing_enabled";
     private static final String READ_ONLY_PARAM = "read_only";
@@ -197,13 +200,16 @@ public final class ModuleConf {
             return;
         }
 
-        String library = section.getString("library");
+        String library = section.getString(LIBRARY_PARAM);
 
         if (StringUtils.isBlank(library)) {
             log.error("No pkcs#11 library specified for module ({}), skipping...", uid);
 
             return;
         }
+
+        Boolean libraryCantCreateOsThreads = getBoolean(section, LIBRARY_CANT_CREATE_OS_THREADS_PARAM, null);
+        Boolean osLockingOk = getBoolean(section, OS_LOCKING_OK_PARAM, null);
 
         boolean verifyPin = getBoolean(section, SIGN_VERIFY_PIN_PARAM, false);
         boolean batchSigning = getBoolean(section, BATCH_SIGNING_ENABLED_PARAM, true);
@@ -232,10 +238,11 @@ public final class ModuleConf {
         PubKeyAttributes pubKeyAttributes = loadPubKeyAttributes(section);
         PrivKeyAttributes privKeyAttributes = loadPrivKeyAttributes(section);
 
-        log.trace("Read module configuration (UID = {}, library = {}, tokenIdFormat = {}"
-                + ", pinVerificationPerSigning = {}, batchSigning = {}, signMechanism = {}"
-                + ", pubKeyAttributes = {}, privKeyAttributes = {})", uid, library, tokenIdFormat, verifyPin,
-                batchSigning, signMechanismName, pubKeyAttributes, privKeyAttributes);
+        log.debug("Read module configuration (UID = {}, library = {}, library_cant_create_os_threads = {}"
+                + ", os_locking_ok = {}, token_id_format = {}, pin_verification_per_signing = {}, batch_signing = {}"
+                + ", sign_mechanism = {}, pub_key_attributes = {}, priv_key_attributes = {})",
+                uid, library, libraryCantCreateOsThreads, osLockingOk, tokenIdFormat, verifyPin, batchSigning,
+                signMechanismName, pubKeyAttributes, privKeyAttributes);
 
         if (MODULES.containsKey(uid)) {
             log.warn("Module information already defined for {}, skipping...", uid);
@@ -243,8 +250,8 @@ public final class ModuleConf {
             return;
         }
 
-        MODULES.put(uid, new HardwareModuleType(uid, library, tokenIdFormat, verifyPin, batchSigning, readOnly,
-                signMechanismName, privKeyAttributes, pubKeyAttributes));
+        MODULES.put(uid, new HardwareModuleType(uid, library, libraryCantCreateOsThreads, osLockingOk, tokenIdFormat,
+                verifyPin, batchSigning, readOnly, signMechanismName, privKeyAttributes, pubKeyAttributes));
     }
 
     private static PubKeyAttributes loadPubKeyAttributes(SubnodeConfiguration section) {

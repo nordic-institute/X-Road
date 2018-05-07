@@ -126,8 +126,8 @@ class ClientsController < ApplicationController
     if !member_name
       warn("new_member", t('clients.unregistered_member', {
         :member_name => member_name,
-        :member_class => client_id.memberClass,
-        :member_code => client_id.memberCode
+        :member_class => Encode.forHtml(client_id.memberClass),
+        :member_code => Encode.forHtml(client_id.memberCode)
       }))
     end
 

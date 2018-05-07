@@ -538,13 +538,11 @@ module Clients::Services
     end
 
     unless added.values.flatten.empty?
-      add_text =
-        t('clients.adding_services', :added => added.values.join(", "))
+      add_text = t('clients.adding_services', :added => Encode.forHtml(added.values.join(", ")))
     end
 
     unless deleted.values.flatten.empty?
-      delete_text =
-        t('clients.deleting_services', :deleted => deleted.values.join(", "))
+      delete_text = t('clients.deleting_services', :deleted => Encode.forHtml(deleted.values.join(", ")))
     end
 
     unless deleted.values.flatten.empty? && added.values.flatten.empty?
@@ -588,9 +586,7 @@ module Clients::Services
       end if added_objs.has_key?(wsdl.url)
     end
 
-    if deleted_codes.any?
-      remove_access_rights(client.acl, nil, deleted_codes)
-    end
+    clean_service_acls(client, deleted_codes, nil)
   end
 
   def parse_and_check_services(wsdl)
@@ -659,11 +655,11 @@ module Clients::Services
     elsif output.size > 0
       warnings = ""
       output.each do |line|
-        warnings += "#{CGI.escapeHTML(line)}<br/>"
+        warnings += "#{Encode.forHtml(line)}<br/>"
       end
 
       warn("wsdl_validation_warnings",
-        t("clients.wsdl_validation_warnings", {:wsdl => url, :warnings => warnings}))
+        t("clients.wsdl_validation_warnings", {:wsdl => Encode.forHtml(url), :warnings => warnings}))
     end
   end
 
@@ -713,13 +709,18 @@ module Clients::Services
   end
 
   def clean_acls(client, wsdl)
-    service_codes = get_service_codes(wsdl)
+    clean_service_acls(client, get_service_codes(wsdl), wsdl.id)
+  end
 
-    # exclude services existing with different version
+  def clean_service_acls(client, service_codes, wsdl_id)
+    return if service_codes.empty?
+
+    # Exclude services existing with different version.
     client.wsdl.each do |w|
-
-      if w.id != wsdl.id
+      if w.id != wsdl_id
         service_codes.subtract(get_service_codes(w))
+
+        break if service_codes.empty?
       end
     end
 
