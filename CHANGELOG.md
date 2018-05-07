@@ -17,7 +17,7 @@
 - PVAYLADEV-1116: Update Vagrant development environment instructions
 - XTE-385 / Backlog #199: Security Server: Fixed ACL removal after refreshing WSDLs.
 - XTE-406 / Backlog #218: Common: Improved hardware module initialization with additional (multithreading) properties.
-- XTE-411 / Backlog #220: Security Server: Actually TLS1.1 is not supported, documentation improved.
+- XTE-411 / Backlog #220: Security Server: Actually TLSv1.1 is not supported on the client-side interfaces for incoming requests, documentation improved.
 
 ## 6.17.0 - 2018-02-14
 - PVAYLADEV-861 / XRJD #172: Built a mechanism for configuration loader, that allows the loading of mutually alternative configuration files without unnecessary log errors. This mechanism is used to load explicit configuration values from either proxy, center or confproxy components on signer startup. Also refactored central server UI configuration loading to avoid unnecessary log errors. Update performs a migration for existing local configuration values if needed.
