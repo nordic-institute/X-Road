@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.11  
+Version: 2.12  
 Doc. ID: IG-SS
 
 ---
@@ -36,6 +36,7 @@ Doc. ID: IG-SS
  25.08.2017 | 2.9     | Update environmental monitoring installation information | Ilkka Seppälä
  15.09.2017 | 2.10    | Added package with configuration specific to Estonia xroad-securityserver-ee | Cybernetica AS
  05.03.2018 | 2.11    | Added terms and abbreviations reference and document links | Tatu Repo
+ 10.04.2018 | 2.12    | Updated chapter "[Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)" with configurable parameters described in the configuration file 'devices.ini' | Cybernetica AS
 
 ## Table of Contents
 
@@ -242,7 +243,7 @@ To configure support for hardware security tokens (smartcard, USB token, Hardwar
 
 1.  Install the hardware token support module using the following command:
 
-    sudo apt-get install xroad-addon-hwtokens
+        sudo apt-get install xroad-addon-hwtokens
 
 2.  Install and configure a PKCS\#11 driver for the hardware token according to the manufacturer's instructions.
 
@@ -252,7 +253,32 @@ To configure support for hardware security tokens (smartcard, USB token, Hardwar
 
         sudo service xroad-signer restart
 
-If you are running a high availability (HA) hardware token setup (such as a cluster with replicated tokens) then you may need to constrain the token identifier format such that the token replicas can be seen as the same token. The token identifier format can be changed in /etc/xroad/devices.ini via the `token_id_format` property (default value: `{moduleType}{slotIndex}{serialNumber}{label}`). Removing certain parts of the identifier will allow the HA setup to work correctly when one of the tokens goes down and is replaced by a replica. For example, if the token replicas are reported to be on different slots the `{slotIndex}` part should be removed from the identifier format.
+If you are running a high availability (HA) hardware token setup (such as a cluster with replicated tokens) then you may need to constrain the token identifier format such that the token replicas can be seen as the same token. The token identifier format can be changed in `/etc/xroad/devices.ini` via the `token_id_format` property (default value: `{moduleType}{slotIndex}{serialNumber}{label}`). Removing certain parts of the identifier will allow the HA setup to work correctly when one of the tokens goes down and is replaced by a replica. For example, if the token replicas are reported to be on different slots the `{slotIndex}` part should be removed from the identifier format.
+
+Depending on the hardware token there may be a need for more additional configuration. All possible configurable parameters in the `/etc/xroad/devices.ini` are described in the next table.
+
+Parameter   | Type    | Default Value | Explanation
+----------- | ------- |-------------- | ---------------------------------------
+*enabled*     | BOOLEAN | *true* | Indicates whether this device is enabled.
+*library*     | STRING  |      | The path to the pkcs#11 library of the device driver.
+*library_cant_create_os_threads* | BOOLEAN | *false* | Indicates whether application threads, which are executing calls to the pkcs#11 library, may not use native operating system calls to spawn new threads (in other words, the library’s code may not create its own threads). 
+*os_locking_ok* | BOOLEAN | *false* | Indicates whether the pkcs#11 library may use the native operation system threading model for locking.
+*sign_verify_pin* | BOOLEAN | *false* | Indicates whether the PIN should be entered per signing operation.
+*token_id_format* | STRING | *{moduleType}{slotIndex}{serialNumber}{label}* | Specifies the identifier format used to uniquely identify a token. In certain high availability setups may need be constrained to support replicated tokens (eg. by removing the slot index part which may be diffirent for the token replicas).
+*sign_mechanism*  | STRING | *CKM_RSA_PKCS* | Specifies the signing mechanism. Supported values: *CKM_RSA_PKCS*, *CKM_RSA_PKCS_PSS*.
+*pub_key_attribute_encrypt*  | BOOLEAN | *true* | Indicates whether public key can be used for encryption.
+*pub_key_attribute_verify* | BOOLEAN | *true* | Indicates whether public key can be used for verification.
+*pub_key_attribute_wrap* | BOOLEAN | | Indicates whether public key can be used for wrapping other keys.
+*pub_key_attribute_allowed_mechanisms* | STRING LIST | | Specifies public key allowed mechanisms. Supported values: *CKM_RSA_PKCS*, *CKM_SHA256_RSA_PKCS*, *CKM_SHA384_RSA_PKCS*, *CKM_SHA512_RSA_PKCS*, and *CKM_RSA_PKCS_PSS*, *CKM_SHA256_RSA_PKCS_PSS*, *CKM_SHA384_RSA_PKCS_PSS*, *CKM_SHA512_RSA_PKCS_PSS*.
+*priv_key_attribute_sensitive* | BOOLEAN | *true* | Indicates whether private key is sensitive.
+*priv_key_attribute_decrypt* | BOOLEAN | *true* | Indicates whether private key can be used for encryption.
+*priv_key_attribute_sign* | BOOLEAN | *true* | Indicates whether private key can be used for signing.
+*priv_key_attribute_unwrap* | BOOLEAN | | Indicates whether private key can be used for unwrapping wrapped keys.
+*priv_key_attribute_allowed_mechanisms* | STRING LIST | | Specifies private key allowed mechanisms. Supported values: *CKM_RSA_PKCS*, *CKM_SHA256_RSA_PKCS*, *CKM_SHA384_RSA_PKCS*, *CKM_SHA512_RSA_PKCS*, and *CKM_RSA_PKCS_PSS*, *CKM_SHA256_RSA_PKCS_PSS*, *CKM_SHA384_RSA_PKCS_PSS*, *CKM_SHA512_RSA_PKCS_PSS*.
+
+**Note 1:** Only parameter *library* is mandatory, all the others are optional.  
+**Note 2:** The item separator of the type STRING LIST is ",".
+
 
 ### 2.8 Installing the Support for Environmental Monitoring
 

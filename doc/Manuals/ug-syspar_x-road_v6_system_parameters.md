@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.30  
+Version: 2.31  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -40,6 +40,7 @@ Doc. ID: UG-SYSPAR
 | 02.01.2018 | 2.28     | Added proxy parameter allow-get-wsdl-request. | Ilkka Seppälä |
 | 29.01.2018 | 2.29     | Removed proxy parameter client-fastest-connecting-ssl-use-uri-cache. Added proxy parameter client-fastest-connecting-ssl-uri-cache-period. | Ilkka Seppälä |
 | 05.03.2018 | 2.30     | Added reference to terms and abbreviations, modified reference handling, added numbering. | Tatu Repo |
+| 06.04.2018 | 2.31     | Removed TLSv1.1 support (client-side interfaces for incoming request) and TLS SHA-1 ciphers from default ciphers list. | Kristo Heero |
 
 ## Table of Contents
 
@@ -98,7 +99,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 4.  <a id="Ref_PR-TARGETSS"></a>\[PR-TARGETSS\] [Security Server Targeting Extension for the X-Road Message Protocol](../Protocols/SecurityServerExtension/pr-targetss_security_server_targeting_extension_for_the_x-road_protocol.md).
 5.  <a id="Ref_PR-SECTOKEN"></a>\[PR-SECTOKEN\] [Security Token Extension for the X-Road Message Protocol](../Protocols/SecurityTokenExtension/pr-sectoken_security_token_extension_for_the_x-road_protocol.md).
 6.  <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] [X-Road Terms and Abbreviations](../terms_x-road_docs.md).
-7.  <a id="Ref_CRONMAN"></a>\[CRONMAN\] [http://linux.die.net/man/8/cron](http://linux.die.net/man/8/cron). 
+7.  <a id="Ref_CRONMAN"></a>\[CRONMAN\] [http://linux.die.net/man/8/cron](http://linux.die.net/man/8/cron).
 8.  <a id="Ref_CRONHOW"></a>\[CRONHOW\] Cron format specifications [https://help.ubuntu.com/community/CronHowto](https://help.ubuntu.com/community/CronHowto).
 
 ## 2 Changing the System Parameter Values
@@ -206,8 +207,8 @@ This chapter describes the system parameters used by the components of the X-Roa
 | jetty-serverproxy-configuration-file             | /etc/xroad/jetty/serverproxy.xml           |   |   | Absolute filename of the Jetty configuration file for the service provider's security server. For more information about configuring Jetty server, see https://wiki.eclipse.org/Jetty/Reference/jetty.xml\_usage. |
 | jetty-ocsp-responder-configuration-file          | /etc/xroad/jetty/ocsp-responder.xml        |   |   | Absolute filename of the Jetty configuration file for the OCSP responder of the service provider's security server. For more information about configuring Jetty server, see https://wiki.eclipse.org/Jetty/Reference/jetty.xml\_usage. |
 | ssl-enabled                                      | true                                       |   |   | If true, TLS is used for connections between the service client's and service provider's security servers. |
-| client-tls-ciphers                               | See [1](#Ref_note1)                        | See [1](#Ref_note1) |   | TLS ciphers enabled on the client-side interfaces (for both incoming and outgoing requests). (since version 6.7) |
-| client-tls-protocols                             | TLSv1.2,TLSv1.1                            | TLSv1.2 |   | TLS protocols enabled on the client-side interfaces (for both incoming and outgoing requests) (since version 6.7) |
+| client-tls-ciphers                               | See [1](#Ref_note1)                                  |   |   | TLS ciphers (comma-separated list) enabled on the client-side interfaces (for both incoming and outgoing requests). (since version 6.7) |
+| client-tls-protocols                             | TLSv1.2                            |   |   | TLS protocols (comma-separated list) enabled on the client-side interfaces (for both incoming and outgoing requests). For backward compatibility TLSv1.1 is still supported on the client-side interfaces for outgoing requests (since version 6.7) |
 | server-connector-max-idle-time                   | 0                                          | 120000 |   | The maximum time (in milliseconds) that connections from a service consuming security server to a service providing security server are allowed to be idle before the provider security server starts closing them. Value of 0 means that an infinite idle time is allowed. A non-zero value should allow some time for a pooled connection to be idle, if  pooled connections are to be supported.|
 | server-connector-so-linger                       | -1                                         |   |   | The SO_LINGER time (in seconds) at the service providing security server end for connections between security servers.<br>A value larger than 0 means that upon closing a connection, the system will allow SO_LINGER seconds for the transmission and acknowledgement of all data written to the peer, at which point the socket is closed gracefully. Upon reaching the linger timeout, the socket is closed forcefully, with a TCP RST. Enabling the option with a timeout of zero does a forceful close immediately.<br>Value of -1 disables the forceful close.|
 | server-support-clients-pooled-connections        | false                                      | true |   | Whether this service providing security server supports pooled connections from the service consumer side. If set to *false*, connections are to be closed immediately after each message. This may be a wanted approached for security servers behind load balancers. |
@@ -403,21 +404,7 @@ TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,
 TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
 TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,
 TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
-TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,
-TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
-TLS_DHE_RSA_WITH_AES_128_CBC_SHA,
-TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
-TLS_DHE_RSA_WITH_AES_256_CBC_SHA
-
-In Finnish package overridden to:
-> TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-  TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
-  TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-  TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,
-  TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
-  TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,
-  TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
-  TLS_DHE_RSA_WITH_AES_256_GCM_SHA384
+TLS_DHE_RSA_WITH_AES_256_GCM_SHA384
 
 > (see [*https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider*](https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider) for possible values)
 >
