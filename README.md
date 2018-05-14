@@ -51,17 +51,13 @@ Submit a pull request to [X-Road source code Github repository](https://github.c
 
 ## X-Road installation
 
-**Local installation**
-
-X-Road central servers, configuration proxies and security servers can be automatically installed with the Ansible scripts found in ansible subdirectory. See instructions in [ansible/README.md](ansible/README.md)
-
-**Development installation**
-
-To setup a Virtualbox based development machine with X-Road servers running in LXD containers follow the instructions in [src/Vagrant.md](src/Vagrant.md)
-
 **How to build X-Road?**
 
 See instructions in [src/BUILD.md](src/BUILD.md)
+
+**Local installation**
+
+X-Road central servers, configuration proxies and security servers can be automatically installed with the Ansible scripts found in ansible subdirectory. See instructions in [ansible/README.md](ansible/README.md)
 
 ## X-Road technical documentation
 
