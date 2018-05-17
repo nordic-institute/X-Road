@@ -74,8 +74,9 @@ Vagrant.configure('2') do |config|
   config.vm.provision 'config', type: 'shell', inline: <<-SHELL
      apt-add-repository ppa:ansible/ansible
      apt-get -qqy update
-     apt-get -qqy install virtualbox-guest-utils linux-virtual lxd git software-properties-common ansible python-docker
-     adduser vagrant lxd
+     apt-get -qqy install virtualbox-guest-utils linux-virtual lxd git software-properties-common ansible docker.io python-docker
+     addgroup vagrant lxd
+     addgroup vagrant docker
      lxd init --auto --storage-backend=dir
      echo net.ipv4.ip_forward=1 >>/etc/sysctl.conf
      sysctl -p
@@ -83,5 +84,4 @@ Vagrant.configure('2') do |config|
      systemctl reload sshd
   SHELL
 
-  config.vm.provision 'prepare_buildhost', type: 'shell', path: 'prepare_buildhost.sh', privileged: false
 end

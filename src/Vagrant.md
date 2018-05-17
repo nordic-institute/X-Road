@@ -15,6 +15,7 @@ One-time setup:
 ```
 git clone https://github.com/ria-ee/X-Road.git
 cd X-Road/src
+./prepare_buildhost.sh
 ./update_ruby_dependencies.sh
 ```
 Build the software and create deb/rpm packages:
@@ -57,4 +58,4 @@ If you get `Stderr: VBoxManage: error: Could not find a controller named 'SCSI'`
 
 `vboxmanage showvminfo xroad_dev | grep "Storage Controller Name (1)"`
 
-Change line 27 of Vagrantfile to match the contorller name (`'--storagectl', '{Storage-Controller-Name}' )
+Change line 27 of Vagrantfile to match the controller name (`'--storagectl', '{Storage-Controller-Name}' )
