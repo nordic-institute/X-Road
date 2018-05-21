@@ -186,9 +186,11 @@ public final class GlobalConf {
      * @return true if the global configuration is valid
      */
     public static boolean isValid() {
-
-        //TODO Null pointer exception if old global conf
-        return getInstance().isValid();
+        try {
+            return getInstance().isValid();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**

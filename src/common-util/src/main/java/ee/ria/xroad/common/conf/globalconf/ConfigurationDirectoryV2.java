@@ -126,9 +126,16 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(path, Files::isDirectory)) {
             for (Path instanceDir : stream) {
                 log.trace("Loading parameters from {}", instanceDir);
-
-                loadPrivateParameters(instanceDir, privateParams);
-                loadSharedParameters(instanceDir, sharedParams);
+                try {
+                    loadPrivateParameters(instanceDir, privateParams);
+                } catch (Exception e) {
+                    log.error("Unable to load private parameters from {}", instanceDir);
+                }
+                try {
+                    loadSharedParameters(instanceDir, sharedParams);
+                } catch (Exception e) {
+                    log.error("Unable to load shared parameters from {}", instanceDir);
+                }
             }
         }
 
