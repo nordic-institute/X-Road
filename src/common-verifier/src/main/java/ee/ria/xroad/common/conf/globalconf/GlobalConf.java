@@ -189,6 +189,7 @@ public final class GlobalConf {
         try {
             return getInstance().isValid();
         } catch (Exception e) {
+            log.error("Error in global configuration validation: {}", e);
             return false;
         }
     }
