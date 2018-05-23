@@ -55,6 +55,7 @@ Doc. ID: UG-SS
  17.10.2017 | 2.19    | Added section [16.3 Limiting environmental monitoring remote data set](#163-limiting-environmental-monitoring-remote-data-set)| Joni Laurila
  05.03.2018 | 2.20    | Added terms and abbreviations reference, document links, moved concepts to terms and abbreviations. | Tatu Repo 
  10.04.2018 | 2.21    | Update internal server certificate documentation. | Jarkko Hyöty
+ 23.05.2018 | 2.22    | Update system parameters documentation. | Jarkko Hyöty
 ## Table of Contents
 
 <!-- toc -->
@@ -1133,6 +1134,8 @@ The security server system parameters are:
 -   **Configuration anchor's information.** The configuration anchor contains data that is used to periodically download signed configuration from the central server and to verify the signature of the downloaded configuration.
 
 -   **Timestamping service information.** Timestamping is used to preserve the evidential value of messages exchanged over X-Road.
+
+-   **Approved Certificate Authorities.** A read-only list of approved certificate authorities (defined in the global configuration). The security server trusts authentication and signing certificates signed by the listed authorities.
 
 -   **The internal TLS key and certificate.** The internal TLS certificate is used to establish a TLS connection with the security server client's information system if the "HTTPS" connection method is chosen for the client's servers.
 
