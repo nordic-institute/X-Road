@@ -186,12 +186,11 @@ public final class GlobalConf {
      * @return true if the global configuration is valid
      */
     public static boolean isValid() {
-        try {
-            return getInstance().isValid();
-        } catch (Exception e) {
-            log.error("Error in global configuration validation: {}", e);
+        GlobalConfProvider provider = getInstance();
+        if (provider == null) {
             return false;
         }
+        return provider.isValid();
     }
 
     /**

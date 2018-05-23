@@ -129,12 +129,12 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
                 try {
                     loadPrivateParameters(instanceDir, privateParams);
                 } catch (Exception e) {
-                    log.error("Unable to load private parameters from {}", instanceDir);
+                    log.error("Unable to load private parameters from {}", instanceDir, e);
                 }
                 try {
                     loadSharedParameters(instanceDir, sharedParams);
                 } catch (Exception e) {
-                    log.error("Unable to load shared parameters from {}", instanceDir);
+                    log.error("Unable to load shared parameters from {}", instanceDir, e);
                 }
             }
         }
