@@ -1,4 +1,4 @@
-var oTsps, oTspsApproved, isAnchorUpload;
+var oTsps, oTspsApproved, oCas, isAnchorUpload;
 
 function uploadCallback(response) {
     if (!response.success) {
@@ -54,6 +54,25 @@ function initTables() {
     $("#tsps_approved tbody tr").live("click", function() {
         oTspsApproved.setFocus(0, this);
     });
+
+    var opts = scrollableTableOpts(300);
+    opts.sDom = "t";
+    opts.aoColumns = [
+        {
+          "mData": "name",
+          "mRender": function(data, type, src) {
+            if ( type === "display") {
+              return '<span title="Issuer: '+util.escape(src.issuer)+'">'+util.escape(data)+'</span>'
+            } else {
+              return data;
+            }
+          }
+        },
+        { "mData": "resp", mRender: util.escape, "sWidth": "12em" },
+        { "mData": "expires", mRender: util.escape, "sWidth": "10em" }
+    ];
+    opts.asStripeClasses = [];
+    oCas = $("#cas").dataTable(opts)
 }
 
 function initAnchorActions() {
@@ -192,6 +211,10 @@ function populate() {
         } else {
             $("#cert_details, #export_internal_ssl_cert").disable();
         }
+
+        if (response.data.ca_status) {
+            oCas.fnReplaceData(response.data.ca_status)
+        }
     }, "json");
 }
 
@@ -249,5 +272,5 @@ $(document).ready(function() {
     initInternalSSLActions();
     initDialogs();
     populate();
-    initTestability();  
+    initTestability();
 });

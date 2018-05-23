@@ -21,13 +21,20 @@
 # THE SOFTWARE.
 #
 
+
+require 'base64'
+require 'java'
+
 java_import Java::ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.TspType
 java_import Java::ee.ria.xroad.common.util.CryptoUtils
 java_import Java::ee.ria.xroad.common.conf.InternalSSLKey
+java_import Java::ee.ria.xroad.common.util.CertUtils
+java_import Java::ee.ria.xroad.signer.protocol.message.GetOcspResponses
+java_import Java::ee.ria.xroad.signer.protocol.SignerClient
+java_import Java::org.bouncycastle.cert.ocsp.RevokedStatus
 
 class SysparamsController < ApplicationController
-
   include Keys::TokenRenderer
 
   def index
@@ -49,9 +56,11 @@ class SysparamsController < ApplicationController
 
     if can?(:view_internal_ssl_cert)
       sysparams[:internal_ssl_cert] = {
-        :hash => CommonUi::CertUtils.cert_hash(read_internal_ssl_cert)
+          :hash => CommonUi::CertUtils.cert_hash(read_internal_ssl_cert)
       }
     end
+
+    sysparams[:ca_status] = approved_ca_status
 
     render_json(sysparams)
   end
@@ -60,7 +69,7 @@ class SysparamsController < ApplicationController
     authorize!(:upload_anchor)
 
     validate_params({
-      :file_upload => [:required]
+        :file_upload => [:required]
     })
 
     save_temp_anchor_file(params[:file_upload].read)
@@ -102,7 +111,7 @@ class SysparamsController < ApplicationController
     generated_at = read_anchor[:generated_at].gsub(" ", "_")
 
     send_file(SystemProperties::getConfigurationAnchorFile, :filename =>
-      "configuration_anchor_#{generated_at}.xml")
+        "configuration_anchor_#{generated_at}.xml")
   end
 
   def tsps_approved
@@ -117,15 +126,15 @@ class SysparamsController < ApplicationController
     authorize!(:add_tsp)
 
     validate_params({
-      :name => [:required],
-      :url => [:required]
+        :name => [:required],
+        :url => [:required]
     })
 
     GlobalConf::verifyValidity
 
     added_tsp = {
-      :name => params[:name],
-      :url => params[:url]
+        :name => params[:name],
+        :url => params[:url]
     }
 
     audit_log_data[:tspName] = params[:name]
@@ -158,7 +167,7 @@ class SysparamsController < ApplicationController
     authorize!(:delete_tsp)
 
     validate_params({
-      :name => [:required]
+        :name => [:required]
     })
 
     GlobalConf::verifyValidity
@@ -186,8 +195,8 @@ class SysparamsController < ApplicationController
     cert_obj = read_internal_ssl_cert
 
     render_json({
-      :dump => CommonUi::CertUtils.cert_dump(cert_obj),
-      :hash => CommonUi::CertUtils.cert_hash(cert_obj)
+        :dump => CommonUi::CertUtils.cert_dump(cert_obj),
+        :hash => CommonUi::CertUtils.cert_hash(cert_obj)
     })
   end
 
@@ -220,7 +229,7 @@ class SysparamsController < ApplicationController
     audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
 
     render_json({
-      :hash => cert_hash
+        :hash => cert_hash
     })
   end
 
@@ -235,16 +244,16 @@ class SysparamsController < ApplicationController
       f.write(csr)
     end
     render_json({
-                    :tokens => tokens_to_json(SignerProxy::getTokens),
-                    :redirect => csr_file
-                })
+        :tokens => tokens_to_json(SignerProxy::getTokens),
+        :redirect => csr_file
+    })
   end
 
   def download_csr
     validate_params({
-                        :csr => [:required, :filename],
-                        :key_usage => [:required]
-                    })
+        :csr => [:required, :filename],
+        :key_usage => [:required]
+    })
 
     file = CommonUi::IOUtils.temp_file(params[:csr])
 
@@ -258,8 +267,8 @@ class SysparamsController < ApplicationController
     audit_log("Import TLS certificate from file", audit_log_data = {})
 
     validate_params({
-                        :file_upload => [:required]
-                    })
+        :file_upload => [:required]
+    })
 
     cert_bytes = params[:file_upload].read.to_java_bytes
 
@@ -288,8 +297,8 @@ class SysparamsController < ApplicationController
     audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
 
     render_json({
-                    :hash => cert_hash
-                })
+        :hash => cert_hash
+    })
 
   rescue
     error(t('sysparams.cert_invalid'))
@@ -303,14 +312,14 @@ class SysparamsController < ApplicationController
     content = IO.read(file)
 
     hash = CryptoUtils::hexDigest(
-      CryptoUtils::DEFAULT_ANCHOR_HASH_ALGORITHM_ID, content.to_java_bytes)
+        CryptoUtils::DEFAULT_ANCHOR_HASH_ALGORITHM_ID, content.to_java_bytes)
 
     anchor = ConfigurationAnchorV2.new(file)
     generated_at = Time.at(anchor.getGeneratedAt.getTime / 1000).utc
 
     return {
-      :hash => hash.upcase.scan(/.{1,2}/).join(':'),
-      :generated_at => format_time(generated_at, true)
+        :hash => hash.upcase.scan(/.{1,2}/).join(':'),
+        :generated_at => format_time(generated_at, true)
     }
   end
 
@@ -319,8 +328,8 @@ class SysparamsController < ApplicationController
 
     GlobalConf::getApprovedTsps(xroad_instance).each do |tsp|
       approved_tsps << {
-        :name => GlobalConf::getApprovedTspName(xroad_instance, tsp),
-        :url => tsp
+          :name => GlobalConf::getApprovedTspName(xroad_instance, tsp),
+          :url => tsp
       }
     end
 
@@ -332,11 +341,56 @@ class SysparamsController < ApplicationController
 
     serverconf.tsp.each do |tsp|
       tsps << {
-        :name => tsp.name,
-        :url => tsp.url
+          :name => tsp.name,
+          :url => tsp.url
       }
     end
 
     tsps
   end
+
+  def approved_ca_status
+    Rails.cache.fetch("sysparams/approved_ca_status", expires_in: 1.minutes) do
+      approved_cas = []
+      begin
+        certs = GlobalConf::all_ca_certs
+        response = SignerClient::execute(GetOcspResponses.new(CertUtils::getCertHashes(certs)))
+
+        certs.zip(response.base64EncodedResponses).each do |cert, base64_response|
+          expires = Time.at(cert.notAfter.time / 1000)
+          cert_object = CommonUi::CertUtils.cert_object(cert.encoded)
+          approved_cas << {
+              :name => cert_object.subject.to_s,
+              :issuer => cert_object.issuer.to_s,
+              :expires => expires.strftime("%F"),
+              :resp => ocsp_response(base64_response, expires)
+          }
+        end
+      rescue StandardError => e
+        logger.error(e)
+        raise "Fetching CA certificate status failed"
+      end
+      approved_cas
+    end
+  end
+
+  def ocsp_response(base64_response, expires)
+    return "expired" if Time.now > expires
+    return "not available" unless base64_response
+    status = OCSPResp.new(Base64.decode64(base64_response).to_java_bytes).responseObject.responses[0].certStatus
+    case status
+    when nil
+      #nil is good (see org.bouncycastle.cert.ocsp.SingleResp)
+      CertificateInfo::OCSP_RESPONSE_GOOD
+    when status.java_kind_of?(RevokedStatus)
+      if status.hasRevocationReason && status.revocationReason == CRLReason::certificateHold
+        CertificateInfo::OCSP_RESPONSE_SUSPENDED
+      else
+        CertificateInfo::OCSP_RESPONSE_REVOKED
+      end
+    else
+      CertificateInfo::OCSP_RESPONSE_UNKNOWN
+    end
+  end
+
 end

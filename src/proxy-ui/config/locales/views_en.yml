@@ -256,6 +256,10 @@ en:
       generate_internal_ssl_confirm: "Generate new internal TLS key and certificate?"
       distinguished_name: "Distinguished name"
       import_certificate: "Import certificate"
+      certificate_authorities: "Approved Certificate Authorities"
+      ca_name: "Distinguished Name"
+      ocsp_response: "OCSP response"
+      expires: "Expires"
     tsp_add_dialog:
       add_tsp: "Add Timestamping Service"
       approved_tsp: "Trusted Timestamping Services"
