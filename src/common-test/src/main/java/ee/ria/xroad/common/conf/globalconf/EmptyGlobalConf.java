@@ -79,6 +79,11 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
+    public List<X509Certificate> getAllCaCerts(String instanceIdentifier) {
+        return Collections.emptyList();
+    }
+
+    @Override
     public boolean isOcspResponderCert(X509Certificate ca,
             X509Certificate ocspCert) {
         return true;
