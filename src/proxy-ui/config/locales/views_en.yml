@@ -260,6 +260,9 @@ en:
       ca_name: "Distinguished Name"
       ocsp_response: "OCSP response"
       expires: "Expires"
+      expired: "expired"
+      issuer: "Issuer: "
+      top_ca: "top-level CA"
     tsp_add_dialog:
       add_tsp: "Add Timestamping Service"
       approved_tsp: "Trusted Timestamping Services"

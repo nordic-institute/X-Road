@@ -380,6 +380,15 @@ public final class GlobalConf {
     }
 
     /**
+     * @return a list of all CA certificates for a given instance
+     */
+    public static Collection<X509Certificate> getAllCaCerts(String instanceIdentifier) {
+        log.trace("getAllCaCerts()");
+
+        return getInstance().getAllCaCerts(instanceIdentifier);
+    }
+
+    /**
      * @param instanceIdentifier the instance identifier
      * @param subject the subject certificate
      * @return the top CA and any intermediate CA certificates for a

@@ -351,31 +351,53 @@ class SysparamsController < ApplicationController
 
   def approved_ca_status
     Rails.cache.fetch("sysparams/approved_ca_status", expires_in: 1.minutes) do
-      approved_cas = []
+      approved_cas = {}
       begin
-        certs = GlobalConf::all_ca_certs
+        certs = GlobalConf::all_ca_certs(GlobalConf::instanceIdentifier())
         response = SignerClient::execute(GetOcspResponses.new(CertUtils::getCertHashes(certs)))
 
         certs.zip(response.base64EncodedResponses).each do |cert, base64_response|
-          expires = Time.at(cert.notAfter.time / 1000)
           cert_object = CommonUi::CertUtils.cert_object(cert.encoded)
-          approved_cas << {
-              :name => cert_object.subject.to_s,
+          subject = cert_object.subject.to_s;
+          approved_cas[subject] = {
+              :subject => subject,
               :issuer => cert_object.issuer.to_s,
-              :expires => expires.strftime("%F"),
-              :resp => ocsp_response(base64_response, expires)
+              :expires => cert_object.not_after.strftime("%F"),
+              :resp => ocsp_response(base64_response),
+              :expired => Time.now > cert_object.not_after,
+              :top_ca => true
           }
         end
+
+        approved_cas.each_value do |ca|
+          ca[:path] = build_path(approved_cas, ca)
+          if ca[:path] != ca[:subject]
+            ca[:top_ca] = false
+          end
+        end
+
       rescue StandardError => e
         logger.error(e)
         raise "Fetching CA certificate status failed"
       end
-      approved_cas
+
+      approved_cas.values
     end
   end
 
-  def ocsp_response(base64_response, expires)
-    return "expired" if Time.now > expires
+  def build_path(approved_cas, ca)
+    path = [ca[:subject]]
+    current = ca
+    issuer = current[:issuer]
+    while current[:subject] != issuer && approved_cas.has_key?(issuer)
+      path.unshift(issuer)
+      current = approved_cas[issuer]
+      issuer = current[:issuer]
+    end
+    path.join(":")
+  end
+
+  def ocsp_response(base64_response)
     return "not available" unless base64_response
     status = OCSPResp.new(Base64.decode64(base64_response).to_java_bytes).responseObject.responses[0].certStatus
     case status

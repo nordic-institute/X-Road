@@ -7,8 +7,8 @@ function uploadCallback(response) {
     }
 
     if (isAnchorUpload) {
-        confirm("anchor.upload_confirm", response.data, function () {
-            $.post(action("anchor_apply"), null, function () {
+        confirm("anchor.upload_confirm", response.data, function() {
+            $.post(action("anchor_apply"), null, function() {
                 if (!response.success) {
                     // Let just the dialog remain open.
                     return;
@@ -30,8 +30,8 @@ function initTables() {
     var opts = scrollableTableOpts(200);
     opts.sDom = "t";
     opts.aoColumns = [
-        { "mData": "name", mRender: util.escape },
-        { "mData": "url", mRender: util.escape }
+        {"mData": "name", mRender: util.escape},
+        {"mData": "url", mRender: util.escape}
     ];
     opts.asStripeClasses = [];
 
@@ -40,7 +40,7 @@ function initTables() {
     opts = scrollableTableOpts(200);
     opts.sDom = "t";
     opts.aoColumns = [
-        { "mData": "name" }
+        {"mData": "name"}
     ];
     opts.asStripeClasses = [];
 
@@ -59,17 +59,35 @@ function initTables() {
     opts.sDom = "t";
     opts.aoColumns = [
         {
-          "mData": "name",
-          "mRender": function(data, type, src) {
-            if ( type === "display") {
-              return '<span title="Issuer: '+util.escape(src.issuer)+'">'+util.escape(data)+'</span>'
-            } else {
-              return data;
+            "mData": "subject",
+            "mRender": function(data, type, src) {
+                if (type === "display") {
+                    if (src.top_ca) {
+                        return '<span class="top-ca" title="' + _("sysparams.index.top_ca") + '"><strong>' + util.escape(data) + '</strong></span>';
+                    } else {
+                        return '<span class="intermediate-ca" title="'
+                            + _("sysparams.index.issuer")
+                            + util.escape(src.issuer) + '">'
+                            + util.escape(data) + '</span>';
+                    }
+                } else if (type === 'sort') {
+                    return src.path;
+                } else {
+                    return data
+                }
             }
-          }
         },
-        { "mData": "resp", mRender: util.escape, "sWidth": "12em" },
-        { "mData": "expires", mRender: util.escape, "sWidth": "10em" }
+        {
+            "mData": function(src, type) {
+                if (type === undefined) return src;
+                if (type !== "set") {
+                    return src.expired ? _("sysparams.index.expired") : (src.top_ca ? "N/A" : src.resp)
+                }
+            },
+            "mRender": util.escape,
+            "sWidth": "12em"
+        },
+        {"mData": "expires", mRender: util.escape, "sWidth": "10em"}
     ];
     opts.asStripeClasses = [];
     oCas = $("#cas").dataTable(opts)
@@ -101,28 +119,28 @@ function initTspActions() {
             });
         },
         buttons: [
-        {
-            text: _("common.ok"),
-            click: function() {
-                var selected = oTspsApproved.getFocusData();
-                var params = {
-                    name: selected.name,
-                    url: selected.url
-                };
+            {
+                text: _("common.ok"),
+                click: function() {
+                    var selected = oTspsApproved.getFocusData();
+                    var params = {
+                        name: selected.name,
+                        url: selected.url
+                    };
 
-                $.post(action("tsp_add"), params, function(response) {
-                    oTsps.fnReplaceData(response.data);
-                });
+                    $.post(action("tsp_add"), params, function(response) {
+                        oTsps.fnReplaceData(response.data);
+                    });
 
-                $(this).dialog("close");
-            }
-        },
-        {
-            text: _("common.cancel"),
-            click: function() {
-                $(this).dialog("close");
-            }
-        }]
+                    $(this).dialog("close");
+                }
+            },
+            {
+                text: _("common.cancel"),
+                click: function() {
+                    $(this).dialog("close");
+                }
+            }]
     });
 
     $("#tsp_add").click(function() {
@@ -155,12 +173,12 @@ function initInternalSSLActions() {
             }, "json");
         },
         buttons: [
-        {
-            text: _("common.ok"),
-            click: function() {
-                $(this).dialog("close");
-            }
-        }]
+            {
+                text: _("common.ok"),
+                click: function() {
+                    $(this).dialog("close");
+                }
+            }]
     });
 
     $("#cert_details").click(function(event) {
@@ -177,14 +195,14 @@ function initInternalSSLActions() {
         event.preventDefault();
 
         confirm("sysparams.index.generate_internal_ssl_confirm", null,
-                function() {
-            $.get(action("internal_ssl_generate"), function(response) {
-                if (response.data.hash) {
-                    $("#internal_ssl_cert_hash").text(response.data.hash);
-                    $("#cert_details, #export_internal_ssl_cert").enable();
-                }
-            }, "json");
-        });
+            function() {
+                $.get(action("internal_ssl_generate"), function(response) {
+                    if (response.data.hash) {
+                        $("#internal_ssl_cert_hash").text(response.data.hash);
+                        $("#cert_details, #export_internal_ssl_cert").enable();
+                    }
+                }, "json");
+            });
     });
 
     $("#import_internal_ssl_cert").click(function() {
@@ -226,7 +244,8 @@ function initDialogs() {
         close: function() {
         },
         buttons: [
-            { text: _("common.ok"),
+            {
+                text: _("common.ok"),
                 click: function() {
                     $("#key_usage", this).val("auth");
 
@@ -243,7 +262,8 @@ function initDialogs() {
                     });
                 }
             },
-            { text: _("common.cancel"),
+            {
+                text: _("common.cancel"),
                 click: function() {
                     $(this).dialog("close");
                 }
@@ -257,11 +277,11 @@ function initDialogs() {
 }
 
 function initTestability() {
-        // add data-name attributes to improve testability
-        $("#internal_ssl_generate_csr_dialog").parent().attr("data-name", "internal_ssl_generate_csr_dialog");
-        $("button span:contains('Close')").parent().attr("data-name", "close");
-        $("button span:contains('OK')").parent().attr("data-name", "ok");
-        $("#tsp_add_dialog").parent().attr("data-name", "tsp_add_dialog");
+    // add data-name attributes to improve testability
+    $("#internal_ssl_generate_csr_dialog").parent().attr("data-name", "internal_ssl_generate_csr_dialog");
+    $("button span:contains('Close')").parent().attr("data-name", "close");
+    $("button span:contains('OK')").parent().attr("data-name", "ok");
+    $("#tsp_add_dialog").parent().attr("data-name", "tsp_add_dialog");
 }
 
 
