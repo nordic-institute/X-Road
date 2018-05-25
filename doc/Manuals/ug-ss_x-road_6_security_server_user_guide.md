@@ -6,8 +6,8 @@
 
 **X-ROAD 6**
 
-Version: 2.20  
-05.03.2018  
+Version: 2.22  
+25.05.2018  
 Doc. ID: UG-SS
 
 ---
@@ -55,7 +55,7 @@ Doc. ID: UG-SS
  17.10.2017 | 2.19    | Added section [16.3 Limiting environmental monitoring remote data set](#163-limiting-environmental-monitoring-remote-data-set)| Joni Laurila
  05.03.2018 | 2.20    | Added terms and abbreviations reference, document links, moved concepts to terms and abbreviations. | Tatu Repo 
  10.04.2018 | 2.21    | Update internal server certificate documentation. | Jarkko Hyöty
- 23.05.2018 | 2.22    | Update system parameters documentation. | Jarkko Hyöty
+ 25.05.2018 | 2.22    | Update system parameters documentation. | Jarkko Hyöty
 ## Table of Contents
 
 <!-- toc -->
@@ -122,6 +122,7 @@ Doc. ID: UG-SS
   * [10.1 Managing the Configuration Anchor](#101-managing-the-configuration-anchor)
   * [10.2 Managing the Timestamping Services](#102-managing-the-timestamping-services)
   * [10.3 Changing the Internal TLS Key and Certificate](#103-changing-the-internal-tls-key-and-certificate)
+  * [10.4 Approved Certificate Authorities](#104-approved-certificate-authorities)
 - [11 Message Log](#11-message-log)
   * [11.1 Changing the Configuration of the Message Log](#111-changing-the-configuration-of-the-message-log)
     + [11.1.1 Common parameters](#1111-common-parameters)
@@ -1225,6 +1226,15 @@ _To view the detailed information of the security server’s internal TLS certif
 1. On the **Configuration** menu, select **System Parameters**. The system parameters view is opened.
 2. In the **Internal TLS Certificate** section, click **Certificate Details**.
 
+### 10.4 Approved Certificate Authorities
+
+Lists approved certificate authorities. The listing contains the following information:
+
+* CA certificate subject distinguished name. Top-level CAs are **emphasized**.
+* OCSP response status (not applicable to top-level CAs, shown as N/A). See [5.3 Validity States of Certificates](#53-validity-states-of-certificates) for explanation, with the following exceptions:
+  * Disabled status is not used
+  * Additional status "not available" if the OCSP response is not available at all, e.g. due to an error.
+* Certificate expiration date.
 
 ## 11 Message Log
 
