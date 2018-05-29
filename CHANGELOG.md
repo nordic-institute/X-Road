@@ -1,5 +1,8 @@
 # Change Log
 
+## 6.19.0 - XXX
+- TBD
+
 ## 6.18.0 - 2018-05-14
 - XTE-314 / Backlog #221: Central Server: Bugfix: Write globalconf files atomic way.
 - XTE-377: Fixed XXE issues (CWE-827) found by Coverity.
