@@ -1,11 +1,11 @@
 # X-Road: Central Server Installation Guide
 
-Version: 2.5  
+Version: 2.7  
 Doc. ID: IG-CS
 
 
-| Date       | Version     | Description                                                                  | Author             |
-|------------|-------------|------------------------------------------------------------------------------|--------------------|
+| Date       | Version | Description                      | Author             |
+|------------|--------------------------------------------|--------------------|
 | 01.12.2014 | 1.0     | Initial version                                         ||
 | 19.01.2015 | 1.1     | License information added                               ||
 | 02.02.2015 | 1.2     | References fixed                                        ||
@@ -19,17 +19,20 @@ Doc. ID: IG-CS
 | 16.12.2015 | 2.1     | Added installation instructions for monitoring          ||
 | 09.12.2016 | 2.2     | Converted to markdown format          | Ilkka Seppälä |
 | 20.12.2016 | 2.3     | Add chapter about additional configuration to central server's user manual          | Ilkka Seppälä |
-| 20.01.2017 | 2.4       | Added license text and version history | Sami Kallio |
-| 25.08.2017 | 2.5       | Update installation instructions concerning the support for environmental monitoring  | Ilkka Seppälä |
+| 20.01.2017 | 2.4     | Added license text and version history | Sami Kallio |
+| 25.08.2017 | 2.5     | Update installation instructions concerning the support for environmental monitoring  | Ilkka Seppälä |
+| 05.03.2018 | 2.6     | Added terms and abbreviations reference, links to references and actual documents | Tatu Repo | 
+| 10.04.2018 | 2.7     | Updated chapter "[Installing the Support for Hardware Tokens](#26-installing-the-support-for-hardware-tokens)" with configurable parameters described in the configuration file 'devices.ini' | Cybernetica AS |
 
 ## Table of Contents
 
 <!-- toc -->
 
-  * [License](#license)
+- [License](#license)
 - [1. Introduction](#1-introduction)
   * [1.1 Target Audience](#11-target-audience)
-  * [1.2 References](#12-references)
+  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+  * [1.3 References](#13-references)
 - [2. Installation](#2-installation)
   * [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
   * [2.2 Reference Data](#22-reference-data)
@@ -57,6 +60,7 @@ Doc. ID: IG-CS
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
 
+
 # 1. Introduction
 
 ## 1.1 Target Audience
@@ -64,12 +68,19 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 The intended audience of this installation guide are the X-Road central server administrators responsible for installing and configuring the X-Road central server software.
 The document is intended for readers with a good knowledge of Linux server management, computer networks, and the X-Road functioning principles.
 
-## 1.2 References
 
-1. [UG-CS] Cybernetica AS. X-Road 6. Central Server User Guide
-2. [IG-SS] Cybernetica AS. X-Road 6. Security Server Installation Guide
-3. [UG-SS] Cybernetica AS. X-Road 6. Security Server User Guide
-4. [IG-CSHA] Cybernetica AS. X-Road 6. Central Server High Availability Installation Guide
+## 1.2 Terms and abbreviations
+
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
+
+## 1.3 References
+
+1. <a id="Ref_UG-CS" class="anchor"></a>\[UG-CS\] Cybernetica AS. X-Road 6. Central Server User Guide. Document ID: [UG-CS](ug-cs_x-road_6_central_server_user_guide.md) 
+2. <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] Cybernetica AS. X-Road 6. Security Server Installation Guide. Document ID: [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md)
+3. <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] Cybernetica AS. X-Road 6. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
+4. <a id="Ref_IG-CSHA" class="anchor"></a>\[IG-CSHA\] Cybernetica AS. X-Road 6. Central Server High Availability Installation Guide. Document ID: [IG-CSHA](ig-csha_x-road_6_ha_installation_guide.md)
+5. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
+
 
 # 2. Installation
 
@@ -78,7 +89,8 @@ The document is intended for readers with a good knowledge of Linux server manag
 The central server software assumes an existing installation of the Ubuntu 14.04 operating system, on an x86-64bit platform.
 To provide management services, a security server is installed alongside the central server.
 The central server’s software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
-Note: If the central server is a part of a cluster for achieving high availability, the database cluster must be installed and configured before the central server itself can be installed. Please refer to the Central Server High Availability Installation Guide [IG-CSHA] for details.
+Note: If the central server is a part of a cluster for achieving high availability, the database cluster must be installed and configured before the central server itself can be installed. Please refer to the Central Server High Availability Installation Guide [IG-CSHA](#Ref_IG-CSHA) for details.
+
 
 ## 2.2 Reference Data
 
@@ -100,6 +112,7 @@ Caution: Data necessary for the functioning of the operating system is not inclu
 | 1.9 | <by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field> | Information about the user interface TLS certificate |
 | 1.10 | <by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field> | Information about the services TLS certificate |
 
+
 ## 2.3 Requirements to the Central Server
 
 Minimum recommended hardware parameters:
@@ -113,10 +126,12 @@ Requirements for software and settings:
 - the necessary connections are allowed in the firewall (reference data: 1.4; 1.5; 1.6),
 - if the central server has a private IP address, a corresponding NAT record must be created in the firewall (reference data: 1.8).
 
+
 ## 2.4 Preparing OS
 
-- Add a system user (reference data: 1.3) whom all roles in the user interface are granted to. Add the new user with the command: `sudo adduser username`. User roles are discussed in detail in the X-Road Security Server User Guide [UG-SS].
+- Add a system user (reference data: 1.3) whom all roles in the user interface are granted to. Add the new user with the command: `sudo adduser username`. User roles are discussed in detail in the X-Road Security Server User Guide [UG-SS](#Ref_UG-SS).
 - Set the operating system locale. Add the following line to the file /etc/environment. `LC_ALL=en_US.UTF-8`
+
 
 ## 2.5 Installation
 
@@ -150,21 +165,56 @@ The certificate owner’s Distinguished Name must be entered in the format:
 All IP addresses and domain names in use must be entered as alternative names in the format:
 `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
 
+
 ## 2.6 Installing the Support for Hardware Tokens
 
 To configure support for hardware security tokens (smartcard, USB token, Hardware Security Module), act as follows.
 
-1.  Install the hardware token support module using the following command: `sudo apt-get install xroad-addon-hwtokens`
-2.  Install and configure a PKCS#11 driver for the hardware token according to the manufacturer's instructions.
-3.  Add the path to the PKCS#11 driver to the file /etc/xroad/devices.ini (as described in the example given in the file).
+1.  Install the hardware token support module using the following command:
+
+        sudo apt-get install xroad-addon-hwtokens
+
+2.  Install and configure a PKCS\#11 driver for the hardware token according to the manufacturer's instructions.
+
+3.  Add the path to the PKCS\#11 driver to the file `/etc/xroad/devices.ini` (as described in the example given in the file).
+
 4.  After installing and configuring the driver, the xroad-signer service must be restarted:
-`sudo service xroad-signer restart`
+
+        sudo service xroad-signer restart
+
+If you are running a high availability (HA) hardware token setup (such as a cluster with replicated tokens) then you may need to constrain the token identifier format such that the token replicas can be seen as the same token. The token identifier format can be changed in `/etc/xroad/devices.ini` via the `token_id_format` property (default value: `{moduleType}{slotIndex}{serialNumber}{label}`). Removing certain parts of the identifier will allow the HA setup to work correctly when one of the tokens goes down and is replaced by a replica. For example, if the token replicas are reported to be on different slots the `{slotIndex}` part should be removed from the identifier format.
+
+Depending on the hardware token there may be a need for more additional configuration. All possible configurable parameters in the `/etc/xroad/devices.ini` are described in the next table.
+
+Parameter   | Type    | Default Value | Explanation
+----------- | ------- |-------------- | ---------------------------------------
+*enabled*     | BOOLEAN | *true* | Indicates whether this device is enabled.
+*library*     | STRING  |      | The path to the pkcs#11 library of the device driver.
+*library_cant_create_os_threads* | BOOLEAN | *false* | Indicates whether application threads, which are executing calls to the pkcs#11 library, may not use native operating system calls to spawn new threads (in other words, the library’s code may not create its own threads). 
+*os_locking_ok* | BOOLEAN | *false* | Indicates whether the pkcs#11 library may use the native operation system threading model for locking.
+*sign_verify_pin* | BOOLEAN | *false* | Indicates whether the PIN should be entered per signing operation.
+*token_id_format* | STRING | *{moduleType}{slotIndex}{serialNumber}{label}* | Specifies the identifier format used to uniquely identify a token. In certain high availability setups may need be constrained to support replicated tokens (eg. by removing the slot index part which may be diffirent for the token replicas).
+*sign_mechanism*  | STRING | *CKM_RSA_PKCS* | Specifies the signing mechanism. Supported values: *CKM_RSA_PKCS*, *CKM_RSA_PKCS_PSS*.
+*pub_key_attribute_encrypt*  | BOOLEAN | *true* | Indicates whether public key can be used for encryption.
+*pub_key_attribute_verify* | BOOLEAN | *true* | Indicates whether public key can be used for verification.
+*pub_key_attribute_wrap* | BOOLEAN | | Indicates whether public key can be used for wrapping other keys.
+*pub_key_attribute_allowed_mechanisms* | STRING LIST | | Specifies public key allowed mechanisms. Supported values: *CKM_RSA_PKCS*, *CKM_SHA256_RSA_PKCS*, *CKM_SHA384_RSA_PKCS*, *CKM_SHA512_RSA_PKCS*, and *CKM_RSA_PKCS_PSS*, *CKM_SHA256_RSA_PKCS_PSS*, *CKM_SHA384_RSA_PKCS_PSS*, *CKM_SHA512_RSA_PKCS_PSS*.
+*priv_key_attribute_sensitive* | BOOLEAN | *true* | Indicates whether private key is sensitive.
+*priv_key_attribute_decrypt* | BOOLEAN | *true* | Indicates whether private key can be used for encryption.
+*priv_key_attribute_sign* | BOOLEAN | *true* | Indicates whether private key can be used for signing.
+*priv_key_attribute_unwrap* | BOOLEAN | | Indicates whether private key can be used for unwrapping wrapped keys.
+*priv_key_attribute_allowed_mechanisms* | STRING LIST | | Specifies private key allowed mechanisms. Supported values: *CKM_RSA_PKCS*, *CKM_SHA256_RSA_PKCS*, *CKM_SHA384_RSA_PKCS*, *CKM_SHA512_RSA_PKCS*, and *CKM_RSA_PKCS_PSS*, *CKM_SHA256_RSA_PKCS_PSS*, *CKM_SHA384_RSA_PKCS_PSS*, *CKM_SHA512_RSA_PKCS_PSS*.
+
+**Note 1:** Only parameter *library* is mandatory, all the others are optional.  
+**Note 2:** The item separator of the type STRING LIST is ",".
+
 
 ## 2.7 Installing the Support for Environmental Monitoring
 
 The optional configuration for environmental monitoring parameters is installed by package xroad-centralserver-monitoring. This package also includes the components that validate the updated xml monitoring configuration. The package is included in the central server installation by default.
 
-The central monitoring client may be configured as specified in the [UG-CS].
+The central monitoring client may be configured as specified in the [UG-CS](#Ref_UG-CS).
+
 
 # 3 Initial Configuration
 
@@ -174,12 +224,13 @@ Note: The information in empty cells will be entered at the latest during the in
 
 Attention: Data necessary for the functioning of the operating system is not included.
 
-| **Ref**              |                                                  | **Explanation**                                    |
-|----------------------|--------------------------------------------------|----------------------------------------------------|
-| 2.1 |  | The X-Road instance identifier |
-| 2.2 |  | The external DNS name or IP address of the central server |
-| 2.3 |  | The softtoken PIN |
-| 2.4 |  | Codes and descriptions of the member classes used in the X-Road instance |
+| **Ref** |        | **Explanation**                                           |
+|---------|--------|-----------------------------------------------------------|
+| 2.1     |        | The X-Road instance identifier                            |
+| 2.2     |        | The external DNS name or IP address of the central server |
+| 2.3     |        | The softtoken PIN                                         |
+| 2.4     |        | Codes and descriptions of the member classes used in the X-Road instance |
+
 
 ## 3.2 Initializing the Central Server
 
@@ -189,27 +240,29 @@ The central server user interface can be accessed at https://CENTRALSERVER:4000/
 2. Set the central server public DNS hostname or public IP address (reference data: 2.2).
 3. Set the PIN of the software token (reference data: 2.3). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN is lost.
 
+
 ## 3.3 Configuring the Central Server and the Management Services' Security Server
 
 Upon the first configuration of the central server and the management services' security server, the following actions must be carried out.
 
 Actions 7 and 8 must be performed in the management services' security server.
 
-1. Generate the internal and external configuration signing keys. Refer to [UG-CS] section „Generating a Configuration Signing Key“.
-2. Configure the member classes. Refer to [UG-CS] section „Managing the Member Classes“. (reference data: 2.4).
+1. Generate the internal and external configuration signing keys. Refer to [UG-CS](#Ref_UG-CS) section „Generating a Configuration Signing Key“.
+2. Configure the member classes. Refer to [UG-CS](#Ref_UG-CS) section „Managing the Member Classes“. (reference data: 2.4).
 3. Configure the management service provider:
-add the X-Road member who will be responsible for management services - [UG-CS] section „Adding a Member“;
-add the subsystem that will provide the management services to the X-Road member - [UG-CS] section “Adding a Subsystem to an X-Road Member”;
-appoint the subsystem as the management service provider - [UG-CS] section “Appointing the Management Service Provider”.
-4. Configure the certification services. Refer to [UG-CS] section „Managing the Approved Certification Services“.
-5. Configure the timestamping services. Refer to [UG-CS] section „Managing the Approved Timestamping Services“.
-6. Verify that the global configuration generation succeeds (no global error messages should be displayed in the user interface at this point) and download the internal configuration anchor - [UG-CS] section “Downloading the Configuration Anchor”. The anchor is needed to set up the management services' security server.
-7. Install and configure the management services' security server as described in [IG-SS].
-8. Register the management services' security server in the central server. Refer to [UG-SS] section „Security Server Registration“.
-9. Complete the registration of the management services' security server - [UG-CS] section “Registering a Member's Security Server”.
-10. Register the management service provider as a client of the management services' security server - [UG-CS] section “Registering the Management Service Provider as a Security Server Client”.
-11. Add the management service provider as a client to the management services' security server. Refer to [UG-SS] section „Adding a Security Server Client”. (The client should appear in “Registered” state, as the association between the client and the security server was already registered in the central server in the previous step). If necessary, configure the signing keys and certificates for the client - [UG-SS] section „Configuring a Signing Key and Certificate for a Security Server Client”
-12. Configure the management services. Refer to [UG-CS] section „Configuring the Management Services in The Management Services’ Security Server”.
+add the X-Road member who will be responsible for management services - [UG-CS](#Ref_UG-CS) section „Adding a Member“;
+add the subsystem that will provide the management services to the X-Road member - [UG-CS](#Ref_UG-CS) section “Adding a Subsystem to an X-Road Member”;
+appoint the subsystem as the management service provider - [UG-CS](#Ref_UG-CS) section “Appointing the Management Service Provider”.
+4. Configure the certification services. Refer to [UG-CS](#Ref_UG-CS) section „Managing the Approved Certification Services“.
+5. Configure the timestamping services. Refer to [UG-CS](#Ref_UG-CS) section „Managing the Approved Timestamping Services“.
+6. Verify that the global configuration generation succeeds (no global error messages should be displayed in the user interface at this point) and download the internal configuration anchor - [UG-CS](#Ref_UG-CS) section “Downloading the Configuration Anchor”. The anchor is needed to set up the management services' security server.
+7. Install and configure the management services' security server as described in [IG-SS](#Ref_IG-SS).
+8. Register the management services' security server in the central server. Refer to [UG-SS](#Ref_UG-SS) section „Security Server Registration“.
+9. Complete the registration of the management services' security server - [UG-CS](#Ref_UG-CS) section “Registering a Member's Security Server”.
+10. Register the management service provider as a client of the management services' security server - [UG-CS](#Ref_UG-CS) section “Registering the Management Service Provider as a Security Server Client”.
+11. Add the management service provider as a client to the management services' security server. Refer to [UG-SS](#Ref_UG-SS) section „Adding a Security Server Client”. (The client should appear in “Registered” state, as the association between the client and the security server was already registered in the central server in the previous step). If necessary, configure the signing keys and certificates for the client - [UG-SS](#Ref_UG-SS) section „Configuring a Signing Key and Certificate for a Security Server Client”
+12. Configure the management services. Refer to [UG-CS](#Ref_UG-CS) section „Configuring the Management Services in The Management Services’ Security Server”.
+
 
 # 4 Additional configuration
 
@@ -257,6 +310,7 @@ server {
 
 In the earlier X-Road 6.7.x versions this value was added through the user interface. If this value is not in the database the central server will display error message "Global configuration generation failing since xxx".
 
+
 # 5 Installation Error Handling
 
 ## 5.1 Cannot Set LC_ALL to Default Locale
@@ -280,6 +334,7 @@ Set the operating system locale. Add following line to /etc/environment file.
 
 After updating the system’s locale settings, it is recommended to restart the operating system.
 
+
 ## 5.2 PostgreSQL Is Not UTF8 Compatible
 
 If the central server installation is aborted, with the error message
@@ -295,6 +350,7 @@ To complete the interrupted installation, run the command:
 
 `sudo apt-get -f install`
 
+
 ## 5.3 Could Not Create Default Cluster
 
 If the following error message is displayed during PostgreSQL installation
@@ -309,6 +365,7 @@ Use the following command to create the PostgreSQL data cluster:
 The interrupted installation can be finished using
 
 `sudo apt-get -f install`
+
 
 ## 5.4 Is Postgres Running on Port 5432?
 

@@ -22,8 +22,7 @@
  */
 package ee.ria.xroad.commonui;
 
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -34,7 +33,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Filter that helps the session to time out in case automatic polling

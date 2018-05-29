@@ -22,9 +22,9 @@
  */
 package ee.ria.xroad.common.message;
 
-import javax.xml.soap.SOAPMessage;
-
 import ee.ria.xroad.common.util.MimeTypes;
+
+import javax.xml.soap.SOAPMessage;
 
 /**
  * Describes a Soap message that is received from the client or service.

@@ -22,15 +22,15 @@
  */
 package ee.ria.xroad.common.message;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-
-import org.apache.commons.io.IOUtils;
-
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.MimeTypes;
+
+import org.apache.commons.io.IOUtils;
+
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 
 /**
  * Utility class providing helper functionality for SOAP messages.

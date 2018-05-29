@@ -23,12 +23,10 @@
 package ee.ria.xroad.common.signature;
 
 import lombok.RequiredArgsConstructor;
-
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverContext;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 

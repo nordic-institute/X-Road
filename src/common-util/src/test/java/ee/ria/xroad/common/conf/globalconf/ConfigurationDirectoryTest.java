@@ -22,18 +22,18 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.util.ExpectedCodedException;
+
+import org.junit.Rule;
+import org.junit.Test;
+
+import java.nio.file.Paths;
+
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-
-import java.nio.file.Paths;
-
-import org.junit.Rule;
-import org.junit.Test;
-
-import ee.ria.xroad.common.util.ExpectedCodedException;
 
 /**
  * Tests to verify configuration directories are read correctly.
@@ -45,131 +45,135 @@ public class ConfigurationDirectoryTest {
 
     /**
      * Test to ensure a correct configuration directory is read properly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
     public void readDirectoryV2() throws Exception {
-        ConfigurationDirectoryV2 dir = new ConfigurationDirectoryV2(
-                "src/test/resources/globalconf_good_v2");
+        ConfigurationDirectoryV2 dir = new ConfigurationDirectoryV2("src/test/resources/globalconf_good_v2");
 
         assertEquals("EE", dir.getInstanceIdentifier());
 
         PrivateParametersV2 p = dir.getPrivate("foo");
+
         assertNotNull(p);
         assertEquals("foo", p.getInstanceIdentifier());
 
         SharedParametersV2 s = dir.getShared("foo");
+
         assertNotNull(s);
         assertEquals("foo", s.getInstanceIdentifier());
+
         dir.getShared("foo"); // intentional
 
         assertNull(dir.getPrivate("bar"));
         assertNotNull(dir.getShared("bar"));
-
         assertNull(dir.getShared("xxx"));
     }
 
     /**
      * Test to ensure an empty configuration directory is read properly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
     public void readEmptyDirectoryV2() throws Exception {
-        ConfigurationDirectoryV2 dir = new ConfigurationDirectoryV2(
-                "src/test/resources/globalconf_empty");
+        ConfigurationDirectoryV2 dir = new ConfigurationDirectoryV2("src/test/resources/globalconf_empty");
+
         assertNull(dir.getPrivate("foo"));
         assertNull(dir.getShared("foo"));
     }
 
     /**
      * Test to ensure that reading of a malformed configuration fails.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
     public void readMalformedDirectoryV2() throws Exception {
         thrown.expectError(X_MALFORMED_GLOBALCONF);
 
-        ConfigurationDirectoryV2 dir = new ConfigurationDirectoryV2(
-                "src/test/resources/globalconf_malformed");
+        ConfigurationDirectoryV2 dir = new ConfigurationDirectoryV2("src/test/resources/globalconf_malformed");
+
         assertNull(dir.getPrivate("foo"));
         assertNull(dir.getShared("foo"));
     }
 
     /**
      * Test to ensure that reading of an outdated configuration fails.
-     * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void readExpiredDirectoryV2() throws Exception {
+    public void readExpiredDirectoryV2() {
         thrown.expectError(X_OUTDATED_GLOBALCONF);
 
-        ConfigurationDirectoryV2.verifyUpToDate(
-                Paths.get("src/test/resources/globalconf_expired/foo/"
-                        + ConfigurationDirectoryV2.PRIVATE_PARAMETERS_XML));
+        ConfigurationDirectoryV2.verifyUpToDate(Paths.get("src/test/resources/globalconf_expired/foo/"
+                + ConfigurationDirectoryV2.PRIVATE_PARAMETERS_XML));
     }
 
     /**
      * Test to ensure a correct configuration directory is read properly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
     public void readDirectoryV1() throws Exception {
-        ConfigurationDirectoryV1 dir = new ConfigurationDirectoryV1(
-            "src/test/resources/globalconf_good_v1");
+        ConfigurationDirectoryV1 dir = new ConfigurationDirectoryV1("src/test/resources/globalconf_good_v1");
 
         assertEquals("EE", dir.getInstanceIdentifier());
 
         PrivateParametersV1 p = dir.getPrivate("foo");
+
         assertNotNull(p);
         assertEquals("foo", p.getInstanceIdentifier());
 
         SharedParametersV1 s = dir.getShared("foo");
+
         assertNotNull(s);
         assertEquals("foo", s.getInstanceIdentifier());
+
         dir.getShared("foo"); // intentional
 
         assertNull(dir.getPrivate("bar"));
         assertNotNull(dir.getShared("bar"));
-
         assertNull(dir.getShared("xxx"));
     }
 
     /**
      * Test to ensure an empty configuration directory is read properly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
     public void readEmptyDirectoryV1() throws Exception {
-        ConfigurationDirectoryV1 dir = new ConfigurationDirectoryV1(
-            "src/test/resources/globalconf_empty");
+        ConfigurationDirectoryV1 dir = new ConfigurationDirectoryV1("src/test/resources/globalconf_empty");
+
         assertNull(dir.getPrivate("foo"));
         assertNull(dir.getShared("foo"));
     }
 
     /**
      * Test to ensure that reading of a malformed configuration fails.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
     public void readMalformedDirectoryV1() throws Exception {
         thrown.expectError(X_MALFORMED_GLOBALCONF);
 
-        ConfigurationDirectoryV1 dir = new ConfigurationDirectoryV1(
-            "src/test/resources/globalconf_malformed");
+        ConfigurationDirectoryV1 dir = new ConfigurationDirectoryV1("src/test/resources/globalconf_malformed");
+
         assertNull(dir.getPrivate("foo"));
         assertNull(dir.getShared("foo"));
     }
 
     /**
      * Test to ensure that reading of an outdated configuration fails.
-     * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void readExpiredDirectoryV1() throws Exception {
+    public void readExpiredDirectoryV1() {
         thrown.expectError(X_OUTDATED_GLOBALCONF);
 
-        ConfigurationDirectoryV1.verifyUpToDate(
-            Paths.get("src/test/resources/globalconf_expired/foo/"
+        ConfigurationDirectoryV1.verifyUpToDate(Paths.get("src/test/resources/globalconf_expired/foo/"
                 + ConfigurationDirectoryV1.PRIVATE_PARAMETERS_XML));
     }
 }

@@ -23,10 +23,23 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.conf.AbstractXmlConf;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v1.*;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v1.ApprovedCAType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v1.ApprovedTSAType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v1.CaInfoType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v1.CentralServiceType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v1.GlobalGroupType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v1.GlobalSettingsType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v1.IdentifierDecoderType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v1.MemberType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v1.ObjectFactory;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v1.OcspInfoType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v1.SecurityServerType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v1.SharedParametersType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v1.SubsystemType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -34,10 +47,17 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 
 import javax.xml.bind.JAXBElement;
+
 import java.io.IOException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;

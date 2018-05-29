@@ -23,18 +23,17 @@
 
 package ee.ria.xroad.opmonitordaemon;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import com.google.gson.Gson;
-
-import org.hibernate.Query;
-
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.JsonUtils;
+
+import com.google.gson.Gson;
+import org.hibernate.Query;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static ee.ria.xroad.opmonitordaemon.OpMonitorDaemonDatabaseCtx.doInTransaction;
 import static ee.ria.xroad.opmonitordaemon.OperationalDataRecordManager.storeRecords;

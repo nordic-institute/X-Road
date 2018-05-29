@@ -22,14 +22,6 @@
  */
 package ee.ria.xroad.proxymonitor.util;
 
-import java.math.BigDecimal;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.GregorianCalendar;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-
 import ee.ria.xroad.monitor.common.dto.HistogramDto;
 import ee.ria.xroad.monitor.common.dto.MetricDto;
 import ee.ria.xroad.monitor.common.dto.MetricSetDto;
@@ -39,6 +31,14 @@ import ee.ria.xroad.proxymonitor.message.MetricSetType;
 import ee.ria.xroad.proxymonitor.message.MetricType;
 import ee.ria.xroad.proxymonitor.message.NumericMetricType;
 import ee.ria.xroad.proxymonitor.message.StringMetricType;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+
+import java.math.BigDecimal;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.GregorianCalendar;
 
 /**
  * Created by hyoty on 25.9.2015.

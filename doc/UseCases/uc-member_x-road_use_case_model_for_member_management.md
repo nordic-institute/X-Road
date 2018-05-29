@@ -6,8 +6,8 @@
 # X-Road: Use Case Model for Member Management
 **Analysis**
 
-Version: 1.5
-23.02.2017
+Version: 1.7  
+06.03.2018
 <!--  63 pages -->
 Doc. ID: UC-MEMBER
 
@@ -29,6 +29,7 @@ Doc. ID: UC-MEMBER
  16.12.2015 | 1.3     | [UC MEMBER\_56](#2311-uc-member_56-add-a-subsystem-to-an-x-road-member) and [UC MEMBER\_57](#2332-uc-member_57-register-the-management-service-provider-as-a-security-server-client) added. Only subsystems (and not members) can be added and registered as security server clients. [UC MEMBER\_32](#2330-uc-member_32-view-the-configuration-for-management-services) and [UC MEMBER\_28](#2326-uc-member_28-handle-an-authentication-certificate-registration-request) updated. Minor corrections done.  | Riin Saarmäe
  24.11.2016 | 1.4     | XTE-297: Internal Servers tab is displayed to security server owner | Meril Vaht
  23.02.2017 | 1.6     | Converted to Github flavoured Markdown, added license text, adjusted tables and identification for better output in PDF | Toomas Mölder 
+ 06.03.2018 | 1.7     | Moved terms to term doc, added term doc reference and link, added internal MD-doc links | Tatu Repo
 
 ## Table of Contents
 
@@ -135,37 +136,31 @@ The use cases including a human actor (the *level* of the use case is *user task
 
 ### 1.2 Terms and Abbreviations
 
-The definitions for general X-Road terms can be found at <[Terms of X-Road](../terms_x-road_docs.md)>.
-
-This section defines the terms that are not defined in the aforementioned document or that have contextual meaning specific to this document in addition to the general definition.
-
--   **Internal TLS certificates** are used for setting up the TLS connection between the security server and the client information systems.
-
--   **System configuration** consists of data stored in the database and in the various configuration files held in the file system of an X-Road component.
-
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 6. Central Server Installation Guide. Document ID: IG-CS.
+1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 6. Central Server Installation Guide. Document ID: [IG-CS](../Manuals/ig-cs_x-road_6_central_server_installation_guide.md).
 
-2.  <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] X-Road 6. Security Server Installation Guide. Document ID: IG-SS.
+2.  <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] X-Road 6. Security Server Installation Guide. Document ID: [IG-SS](../Manuals/ig-ss_x-road_v6_security_server_installation_guide.md).
 
-3.  <a id="Ref_PR-MSERV" class="anchor"></a>\[PR-MSERV\] X-Road: Protocol for Management Services. Document ID: PR-MSERV.
+3.  <a id="Ref_PR-MSERV" class="anchor"></a>\[PR-MSERV\] X-Road: Protocol for Management Services. Document ID: [PR-MSERV](../Protocols/pr-mserv_x-road_protocol_for_management_services.md).
 
 4.  <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road: Audit Log Events. Document ID: SPEC-AL.
 
-5.  <a id="Ref_UC-GCONF" class="anchor"></a>\[UC-GCONF\] X-Road: Use Case Model for Global Configuration Distribution. Document ID: UC-GCONF.
+5.  <a id="Ref_UC-GCONF" class="anchor"></a>\[UC-GCONF\] X-Road: Use Case Model for Global Configuration Distribution. Document ID: [UC-GCONF](uc-gconf_x-road_use_case_model_for_global_configuration_distribution_1.4_Y-883-8.md).
 
-6.  <a id="Ref_UC-MESS" class="anchor"></a>\[UC-MESS\] X-Road: Use Case Model for Member Communication. Document ID: UC-MESS.
+6.  <a id="Ref_UC-MESS" class="anchor"></a>\[UC-MESS\] X-Road: Use Case Model for Member Communication. Document ID: [UC-MESS](uc-mess_x-road_member_communication_use_case_model.md).
 
-7.  <a id="Ref_UC-SERVICE" class="anchor"></a>\[UC-SERVICE\] X-Road: Use Case Model for Service Management. Document ID: UC-SERVICE.
+7.  <a id="Ref_UC-SERVICE" class="anchor"></a>\[UC-SERVICE\] X-Road: Use Case Model for Service Management. Document ID: [UC-SERVICE](uc-service_x-road_use_case_model_for_service_management_1.6_Y-883-3.md).
 
-8.  <a id="Ref_UC-SS" class="anchor"></a>\[UC-SS\] X-Road: Use Case Model for Security Server Management. Document ID: UC-SS.
+8.  <a id="Ref_UC-SS" class="anchor"></a>\[UC-SS\] X-Road: Use Case Model for Security Server Management. Document ID: [UC-SS](uc-ss_x-road_use_case_model_for_security_server_management_1.4_Y-883-4.md).
 
-9.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 6. Security Server User Guide. Document ID: UG-SS.
+9.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 6. Security Server User Guide. Document ID: [UG-SS](../Manuals/ug-ss_x-road_6_security_server_user_guide.md).
 
 10. <a id="Ref_X509" class="anchor"></a>\[X509\] Internet X.509 Public Key Infrastructure Certificate and Certificate Revocation List (CRL) Profile, Internet Engineering Task Force, 2008.
 
+11. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 ## 2 Use Case Model
 

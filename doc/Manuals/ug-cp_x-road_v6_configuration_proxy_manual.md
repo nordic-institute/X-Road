@@ -4,7 +4,7 @@
 
 # X-Road: Configuration Proxy Manual
 
-Version: 2.1  
+Version: 2.3  
 Doc. ID: UG-CP
 
 ## Version History
@@ -18,7 +18,9 @@ Doc. ID: UG-CP
 | 30.06.2015 | 1.4     | Minor corrections done                 |              |
 | 09.07.2015 | 1.5     | Repository address updated             |              |
 | 20.09.2015 | 2.0     | Editorial changes made                 |              |
-| 07.06.2017 | 2.1     | System parameter *signature-algorithm-id* replaced with *signature-digest-algorithm-id* | Kristo Heero |
+| 07.06.2017 | 2.1     | System parameter *signature-algorithm-id* replaced with *signature-digest-algorithm-id* | Cybernetica AS |
+| 05.03.2018 | 2.2     | Added references, terms and abbreviations reference, document link | Tatu Repo |
+| 10.04.2018 | 2.3     | Updated chapter "[Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)" with configurable parameters described in the configuration file 'devices.ini' | Cybernetica AS |
 
 ## Table of Contents
 
@@ -26,7 +28,9 @@ Doc. ID: UG-CP
 
 * [1 Introduction](#1-introduction)
     * [1.1 Target Audience](#11-target-audience)
-    * [1.2 X-Road Configuration Proxy](#12-x-road-configuration-proxy)
+    * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+    * [1.3 References](#13-references)
+    * [1.4 X-Road Configuration Proxy](#14-x-road-configuration-proxy)
 * [2 Installation](#2-installation)
     * [2.1 Supported Platforms](#21-supported-platforms)
     * [2.2 Reference Data](#22-reference-data)
@@ -50,6 +54,7 @@ Doc. ID: UG-CP
 
 <!-- vim-markdown-toc -->
 
+
 ## 1 Introduction
 
 ### 1.1 Target Audience
@@ -58,13 +63,22 @@ The intended audience of this Manual are X-Road system administrators responsibl
 
 The document is intended for readers with a moderate knowledge of Linux server management, computer networks, and the X-Road working principles.
 
-### 1.2 X-Road Configuration Proxy
+### 1.2 Terms and abbreviations
+
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
+
+### 1.3 References
+
+1. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md). 
+
+### 1.4 X-Road Configuration Proxy
 
 The configuration proxy acts as an intermediary between X-Road servers in the matters of global configuration exchange.
 
 The goal of the configuration proxy is to download an X-Road global configuration from a provided configuration source and further distribute it in a secure way. Optionally, the downloaded global configuration may be modified to suit the requirements of the configuration proxy owner.
 
 The configuration proxy can be configured to mediate several global configurations (from multiple configuration sources).
+
 
 ## 2 Installation
 
@@ -73,6 +87,7 @@ The configuration proxy can be configured to mediate several global configuratio
 The configuration proxy runs on the *Ubuntu Server 14.04 Long-Term Support (LTS)* operating system on a 64-bit platform. The configuration proxy's software is distributed as .deb packages through the official X-Road repository at [http://x-road.eu](http://x-road.eu/).
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
+
 
 ### 2.2 Reference Data
 
@@ -88,6 +103,7 @@ The software can be installed both on physical and virtualized hardware (of the 
 | 1.3  | TCP 80                                   | Global configuration distribution.<br>Ports for inbound connections (from the external network to the configuration proxy). |
 | 1.4  | TCP 80                                   | Global configuration download.<br>Ports for outbound connections (from the configuration proxy to the external network). |
 | 1.5  |                                          | Configuration proxy’s public IP address, NAT address. |
+
 
 ### 2.3 Requirements for the Configuration Proxy
 
@@ -105,12 +121,14 @@ Requirements to software and settings:
 * if the configuration proxy is separated from other networks by a firewall and/or NAT, the necessary connections to and from the security server must be allowed (reference data: 1.3; 1.4). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) is outside the scope of this guide;
 * if the configuration proxy has a private IP address, a corresponding NAT record must be created in the firewall (reference data: 1.5).
 
+
 ### 2.4 Preparing OS
 
 Set operating system locale. Add following line to file */etc/environment*:  
 ```bash
 LC_ALL=en_US.UTF-8
 ```
+
 
 ### 2.5 Installation
 
@@ -133,6 +151,7 @@ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EB9B1D8886F44E2A
 sudo apt-get update
 sudo apt-get install xroad-confproxy
 ```
+
 
 ### 2.6 Post-Installation Checks
 
@@ -165,27 +184,54 @@ confproxy-del-signing-key
 confproxy-generate-anchor
 ```
 
+
 ### 2.7 Installing the Support for Hardware Tokens
 
-Installation of hardware token vendorspecific library and configuration of tokens is not in scope of this documentation. Vendorspecific support for PKCS#11 API must be present before proceeding.
+To configure support for hardware security tokens (smartcard, USB token, Hardware Security Module), act as follows.
 
-If you intend to use hardware tokens with the system (smartcard, USB token, Hardware Security Module), the hardware token support module must be installed. Use the following command:
+1.  Install the hardware token support module using the following command:
 
-```bash
-sudo apt-get install xroad-addon-hwtokens
-```
+        sudo apt-get install xroad-addon-hwtokens
 
-Vendorspecific library name is configured in */etc/xroad/devices.ini* file.
+2.  Install and configure a PKCS\#11 driver for the hardware token according to the manufacturer's instructions.
 
-After installation and configuring library, the xroad-signer service must be restarted:
+3.  Add the path to the PKCS\#11 driver to the file `/etc/xroad/devices.ini` (as described in the example given in the file).
 
-```bash
-sudo service xroad-signer restart
-```
+4.  After installing and configuring the driver, the `xroad-signer` service must be restarted:
+
+        sudo service xroad-signer restart
+
+If you are running a high availability (HA) hardware token setup (such as a cluster with replicated tokens) then you may need to constrain the token identifier format such that the token replicas can be seen as the same token. The token identifier format can be changed in `/etc/xroad/devices.ini` via the `token_id_format` property (default value: `{moduleType}{slotIndex}{serialNumber}{label}`). Removing certain parts of the identifier will allow the HA setup to work correctly when one of the tokens goes down and is replaced by a replica. For example, if the token replicas are reported to be on different slots the `{slotIndex}` part should be removed from the identifier format.
+
+Depending on the hardware token there may be a need for more additional configuration. All possible configurable parameters in the `/etc/xroad/devices.ini` are described in the next table.
+
+Parameter   | Type    | Default Value | Explanation
+----------- | ------- |-------------- | ---------------------------------------
+*enabled*     | BOOLEAN | *true* | Indicates whether this device is enabled.
+*library*     | STRING  |      | The path to the pkcs#11 library of the device driver.
+*library_cant_create_os_threads* | BOOLEAN | *false* | Indicates whether application threads, which are executing calls to the pkcs#11 library, may not use native operating system calls to spawn new threads (in other words, the library’s code may not create its own threads). 
+*os_locking_ok* | BOOLEAN | *false* | Indicates whether the pkcs#11 library may use the native operation system threading model for locking.
+*sign_verify_pin* | BOOLEAN | *false* | Indicates whether the PIN should be entered per signing operation.
+*token_id_format* | STRING | *{moduleType}{slotIndex}{serialNumber}{label}* | Specifies the identifier format used to uniquely identify a token. In certain high availability setups may need be constrained to support replicated tokens (eg. by removing the slot index part which may be diffirent for the token replicas).
+*sign_mechanism*  | STRING | *CKM_RSA_PKCS* | Specifies the signing mechanism. Supported values: *CKM_RSA_PKCS*, *CKM_RSA_PKCS_PSS*.
+*pub_key_attribute_encrypt*  | BOOLEAN | *true* | Indicates whether public key can be used for encryption.
+*pub_key_attribute_verify* | BOOLEAN | *true* | Indicates whether public key can be used for verification.
+*pub_key_attribute_wrap* | BOOLEAN | | Indicates whether public key can be used for wrapping other keys.
+*pub_key_attribute_allowed_mechanisms* | STRING LIST | | Specifies public key allowed mechanisms. Supported values: *CKM_RSA_PKCS*, *CKM_SHA256_RSA_PKCS*, *CKM_SHA384_RSA_PKCS*, *CKM_SHA512_RSA_PKCS*, and *CKM_RSA_PKCS_PSS*, *CKM_SHA256_RSA_PKCS_PSS*, *CKM_SHA384_RSA_PKCS_PSS*, *CKM_SHA512_RSA_PKCS_PSS*.
+*priv_key_attribute_sensitive* | BOOLEAN | *true* | Indicates whether private key is sensitive.
+*priv_key_attribute_decrypt* | BOOLEAN | *true* | Indicates whether private key can be used for encryption.
+*priv_key_attribute_sign* | BOOLEAN | *true* | Indicates whether private key can be used for signing.
+*priv_key_attribute_unwrap* | BOOLEAN | | Indicates whether private key can be used for unwrapping wrapped keys.
+*priv_key_attribute_allowed_mechanisms* | STRING LIST | | Specifies private key allowed mechanisms. Supported values: *CKM_RSA_PKCS*, *CKM_SHA256_RSA_PKCS*, *CKM_SHA384_RSA_PKCS*, *CKM_SHA512_RSA_PKCS*, and *CKM_RSA_PKCS_PSS*, *CKM_SHA256_RSA_PKCS_PSS*, *CKM_SHA384_RSA_PKCS_PSS*, *CKM_SHA512_RSA_PKCS_PSS*.
+
+**Note 1:** Only parameter *library* is mandatory, all the others are optional.  
+**Note 2:** The item separator of the type STRING LIST is ",".
+
 
 ## 3 Configuration
 
 To start using the configuration proxy, a proxy instance configuration needs to be created. Several proxy instances can be configured to mediate multiple global configurations.
+
 
 ### 3.1 Prerequisites
 
@@ -215,9 +261,11 @@ signer-console list-tokens
 
 Note, that the identifier of a software token is always „0”.
 
+
 #### 3.1.2 User Access Privileges
 
 The administrator must execute configuration scripts as the 'xroad' user.
+
 
 ### 3.2 General Configuration
 
@@ -241,6 +289,7 @@ The configuration of this parameter is necessary for generating a correctly form
 | download-script        | /usr/share/xroad/scripts/download_instance_configuration.sh | Absolute path to the location of the script that initializes the global configuration download procedure. |
 
 The configuration proxy is periodically started by a cron job. It reads the properties described above, from the configuration file before executing each proxy instance configured in 'configuration-path', generating new global configuration directories using algorithms as defined by 'signature-digest-algorithm-id' and 'hash-algorithm-uri'. The generated directories are subsequently placed in 'generated-conf-path' for distribution.
+
 
 #### 3.2.1 Configuration Structure of the Instances
 
@@ -268,6 +317,7 @@ The following example file tree shows configured proxy instances named PROXY1 an
 
 The configuration of proxy instances is described in [3.4](#34-proxy-instance-configuration).
 
+
 ### 3.3 Proxy Instance Reference Data
 
 **ATTENTION:** The names in the angle brackets&lt;&gt; are chosen by the X-Road configuration proxy administrator.
@@ -277,6 +327,7 @@ The configuration of proxy instances is described in [3.4](#34-proxy-instance-co
 | 2.1 |  &lt;PROXY_NAME&gt;        | Name of the proxy instance being configured |
 | 2.2 |  &lt;SECURITY_TOKEN_ID&gt; | ID of a security token (as defined by prerequisites [3.1](#31-prerequisites)) |
 | 2.3 |  &lt;ANCHOR_FILENAME&gt;   | Filename of the generated anchor .xml file that the configuration proxy clients will need to use for downloading the global configuration |
+
 
 ### 3.4 Proxy Instance Configuration
 
@@ -387,6 +438,7 @@ mkdir test_download
 ```
 If the proxy instance has been configured correctly, the 'test_download' directory should contain the downloaded global configuration files.
 
+
 ### 3.5 Additional Configuration
 
 #### 3.5.1 Changing the Validity Interval
@@ -402,6 +454,7 @@ validity-interval-seconds=600
 ```
 
 Notice that when the configuration proxy instance is started, it deletes all the previously generated global configuration directories that are older than the currently configured validity interval for that instance.
+
 
 #### 3.5.2 Deleting the Signing Keys
 
@@ -422,6 +475,7 @@ Deleted self-signed certificate 'cert_QWERTY123.pem'
 ```
 
 Attempts to delete the active signing key will be unsuccessful.
+
 
 #### 3.5.3 Changing the Active Signing Key
 

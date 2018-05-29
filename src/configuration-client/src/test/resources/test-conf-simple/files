@@ -1,4 +1,3 @@
 src/test/resources/test-conf-simple/EE/private-params.xml
 src/test/resources/test-conf-simple/EE/shared-params.xml
 src/test/resources/test-conf-simple/EE/foo.xml
-bar.xml

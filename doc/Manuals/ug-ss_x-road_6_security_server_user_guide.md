@@ -6,8 +6,8 @@
 
 **X-ROAD 6**
 
-Version: 2.17  
-15.06.2017
+Version: 2.20  
+05.03.2018  
 Doc. ID: UG-SS
 
 ---
@@ -53,6 +53,7 @@ Doc. ID: UG-SS
  15.06.2017 | 2.17    | Added [Chapter 17](#18-federation) on federation | Olli Lindgren
  25.09.2017 | 2.18    | Added chapter [16 Environmental Monitoring](#16-environmental-monitoring) | Tomi Tolvanen
  17.10.2017 | 2.19    | Added section [16.3 Limiting environmental monitoring remote data set](#163-limiting-environmental-monitoring-remote-data-set)| Joni Laurila
+ 05.03.2018 | 2.20    | Added terms and abbreviations reference, document links, moved concepts to terms and abbreviations. | Tatu Repo 
  
 ## Table of Contents
 
@@ -61,7 +62,7 @@ Doc. ID: UG-SS
 - [License](#license)
 - [1 Introduction](#1-introduction)
   * [1.1 The X-Road Security Server](#11-the-x-road-security-server)
-  * [1.2 X-Road Concepts](#12-x-road-concepts)
+  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
   * [1.3 References](#13-references)
 - [2 User Management](#2-user-management)
   * [2.1 User Roles](#21-user-roles)
@@ -188,59 +189,9 @@ To increase the availability of the entire system, the service user's and servic
 
 The security server also depends on a central server, which provides the global configuration.
 
+### 1.2 Terms and abbreviations
 
-### 1.2 X-Road Concepts
-
--   **Global configuration** consists of XML files, which are regularly downloaded by security servers from the X-Road central server. The global configuration includes, among other data, the following:
-
-    -   the addresses and public keys of trust anchors (certification service CAs and timestamping services);
-
-    -   the public keys of intermediate CAs;
-
-    -   the addresses and public keys of OCSP services (if not already available through the certificates' *Authority Information Access* extension*);*
-
-    -   information about X-Road members and their subsystems;
-
-    -   the addresses of the members' security servers registered in X-Road;
-
-    -   information about the security servers' authentication certificates registered in X-Road;
-
-    -   information about the security servers' clients registered in X-Road;
-
-    -   information about global access rights groups;
-
-    -   X-Road system parameters.
-
--   **Member class** groups X-Road members with similar properties under a common unit. E.g., state agencies are grouped under the member class “GOV”, private organizations are grouped under the member class “COM”, etc.
-
--   **Member code**, associated uniquely with a certain X-Road member, is a unique character combination within its particular member class. The member code remains unchanged during the entire lifetime of the member. For example, the member code for organizations and state agencies in Estonia is the Business Registry code.
-
--   **Security server client** is a subsystem of an X-Road member, whose association with a security server is registered in the X-Road governing authority and that uses the security server for using and/or providing X-Road services.
-
--   **Security server owner** is an X-Road member legally responsible for a particular security server. The security server owner is displayed in the list of security server clients ("Configuration" -&gt; "Security Server Clients") in bold font style.
-
--   **Subsystem** represents a part of an X-Road member's information system. X-Road members must declare parts of its information system as subsystems to use or provide X-Road services.
-
-    Subsystems are autonomous in terms of providing and using X-Road services.
-
-    -   The access rights of an X-Road members’ subsystems are independent – access rights given to one subsystem do not affect the access rights of the members’ other subsystems.
-
-    -   Services provided by a subsystem are independent of the services provided by the members’ other subsystems.
-
-    To sign the messages sent by a subsystem when using or providing X-Road services, the signing certificate of the member that manages the subsystem is used. An X-Road member can associate several different subsystems with one security server, and one subsystem can be associated with several security servers.
-
--   **X-Road certificate** is issued by a certification service provider that has been approved in the X-Road governing authority. An X-Road certificate is either:
-
-    -   a **signing certificate**, which is issued to X-Road members and which the security servers use to digitally sign the mediated data or
-
-    -   an **authentication certificate**, which is issued to security servers and which is used to establish the secure communications channel between security servers.
-
--   **X-Road instance** identifier helps to distinguish between different X-Road instances. Each instance is assigned an identifying code. E.g. the code for the Estonian development instance is “ee-dev” and the code for production instance is “EE”.
-
--   **X-Road member** is a legal (or physical) person who has joined the X-Road and uses the functionality provided by the X-Road in the capability of service provider and/or user.
-
--   **X-Road messages** are service requests and responses described according to the X-Road Message Protocol (see \[[PR-MESS](#Ref_PR-MESS)\]), that are exchanged between the information systems using or providing services and the security servers.
-
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
@@ -258,17 +209,17 @@ The security server also depends on a central server, which provides the global 
 5.  <a id="Ref_JSON" class="anchor"></a>\[JSON\] Introducing JSON,  
     <http://json.org/>
 
-6.  <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Message Protocol v4.0. Document ID: PR-MESS
+6.  <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Message Protocol v4.0. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md)
 
 7.  <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] Cybernetica AS. X-Road: Audit log events. Document ID: SPEC-AL
 
-8.  <a id="Ref_PR-OPMON" class="anchor"></a>\[PR-OPMON\] Cybernetica AS. X-Road: Operational Monitoring Protocol. Document ID: PR-OPMON
+8.  <a id="Ref_PR-OPMON" class="anchor"></a>\[PR-OPMON\] Cybernetica AS. X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../OperationalMonitoring/Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md)
 
-9.  <a id="Ref_PR-OPMONJMX" class="anchor"></a>\[PR-OPMONJMX\] Cybernetica AS. X-Road: Operational Monitoring JMX Protocol. Document ID: PR-OPMONJMX
+9.  <a id="Ref_PR-OPMONJMX" class="anchor"></a>\[PR-OPMONJMX\] Cybernetica AS. X-Road: Operational Monitoring JMX Protocol. Document ID: [PR-OPMONJMX](../OperationalMonitoring/Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md)
 
-10. <a id="Ref_UG-OPMONSYSPAR" class="anchor"></a>\[UG-OPMONSYSPAR\] Cybernetica AS. X-Road: Operational Monitoring System Parameters. Document ID: PR-OPMONSYSPAR
+10. <a id="Ref_UG-OPMONSYSPAR" class="anchor"></a>\[UG-OPMONSYSPAR\] Cybernetica AS. X-Road: Operational Monitoring System Parameters. Document ID: [PR-OPMONSYSPAR](../OperationalMonitoring/Manuals/ug-opmonsyspar_x-road_operational_monitoring_system_parameters_Y-1099-1.md)
 
-11. <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] Cybernetica AS. X-Road: Security Server Installation Guide. Document ID: IG-SS
+11. <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] Cybernetica AS. X-Road: Security Server Installation Guide. Document ID: [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md)
 
 12. <a id="Ref_JMX" class="anchor"></a>\[JMX\] Monitoring and Management Using JMX Technology,  
     <http://docs.oracle.com/javase/8/docs/technotes/guides/management/agent.html>
@@ -282,15 +233,13 @@ The security server also depends on a central server, which provides the global 
 15. <a id="Ref_ZABBIX-API" class="anchor"></a>\[ZABBIX-API\] Zabbix API,  
     <https://www.zabbix.com/documentation/3.0/manual/api>
 
-16. <a id="Ref_ARC-ENVMON" class="anchor"></a>\[ARC-ENVMON\] X-Road: Environmental Monitoring Architecture. Document ID: ARC-ENVMON.  
-    <https://github.com/vrk-kpa/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-architecture.md>
+16. <a id="Ref_ARC-ENVMON" class="anchor"></a>\[ARC-ENVMON\] X-Road: Environmental Monitoring Architecture. Document ID: [ARC-ENVMON](../EnvironmentalMonitoring/Monitoring-architecture.md).
 
-17. <a id="Ref_PR-ENVMONMES" class="anchor"></a>\[PR-ENVMONMES\] X-Road: Environmental Monitoring Messages. Document ID: PR-ENVMONMES.  
-    <https://github.com/vrk-kpa/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-messages.md>
+17. <a id="Ref_PR-ENVMONMES" class="anchor"></a>\[PR-ENVMONMES\] X-Road: Environmental Monitoring Messages. Document ID: [PR-ENVMONMES](../EnvironmentalMonitoring/Monitoring-messages.md).
 
-18. <a id="Ref_MONITORING_XSD" class="anchor"></a>\[MONITORING_XSD\] X-Road XML schema for monitoring extension.  
-    <https://github.com/vrk-kpa/X-Road/blob/develop/src/addons/proxymonitor/common/src/main/resources/monitoring.xsd>
+18. <a id="Ref_MONITORING_XSD" class="anchor"></a>\[MONITORING_XSD\] X-Road XML schema for monitoring extension. [monitoring.xsd](../../src/addons/proxymonitor/common/src/main/resources/monitoring.xsd).
 
+19. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 ## 2 User Management
 

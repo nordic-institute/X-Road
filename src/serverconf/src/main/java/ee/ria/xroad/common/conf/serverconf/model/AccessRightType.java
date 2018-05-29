@@ -22,11 +22,12 @@
  */
 package ee.ria.xroad.common.conf.serverconf.model;
 
-import java.util.Date;
-
 import ee.ria.xroad.common.identifier.XRoadId;
+
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.Date;
 
 /**
  * Access right.

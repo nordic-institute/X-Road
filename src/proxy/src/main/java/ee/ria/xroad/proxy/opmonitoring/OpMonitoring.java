@@ -22,15 +22,14 @@
  */
 package ee.ria.xroad.proxy.opmonitoring;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-
-import lombok.extern.slf4j.Slf4j;
-
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Contains method for storing operational monitoring data.

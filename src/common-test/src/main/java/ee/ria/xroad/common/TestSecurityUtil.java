@@ -22,9 +22,9 @@
  */
 package ee.ria.xroad.common;
 
-import java.security.Security;
-
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
+import java.security.Security;
 
 /**
  * Initializes test security environment.

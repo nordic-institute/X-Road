@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.signer.protocol.dto;
 
+import lombok.Value;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-
-import lombok.Value;
 
 /**
  * Token info DTO.

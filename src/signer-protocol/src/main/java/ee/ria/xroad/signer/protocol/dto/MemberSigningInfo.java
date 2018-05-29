@@ -22,10 +22,10 @@
  */
 package ee.ria.xroad.signer.protocol.dto;
 
-import java.io.Serializable;
-
 import lombok.ToString;
 import lombok.Value;
+
+import java.io.Serializable;
 
 /**
  * Member signing info DTO.

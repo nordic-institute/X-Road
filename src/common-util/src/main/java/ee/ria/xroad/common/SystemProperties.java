@@ -1100,7 +1100,7 @@ public final class SystemProperties {
      * @return protocols.
      */
     public static String[] getProxyClientTLSProtocols() {
-        return System.getProperty(PROXY_CLIENT_TLS_PROTOCOLS, "TLSv1.2,TLSv1.1").split(",");
+        return System.getProperty(PROXY_CLIENT_TLS_PROTOCOLS, "TLSv1.2").split(",");
     }
 
     private static final String DEFAULT_CLIENT_SSL_CIPHER_SUITES = "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,"
@@ -1110,11 +1110,7 @@ public final class SystemProperties {
             + "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,"
             + "TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,"
             + "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,"
-            + "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,"
-            + "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,"
-            + "TLS_DHE_RSA_WITH_AES_128_CBC_SHA,"
-            + "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,"
-            + "TLS_DHE_RSA_WITH_AES_256_CBC_SHA";
+            + "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384";
 
     /**
      * Get proxy client's TLS cipher suites.

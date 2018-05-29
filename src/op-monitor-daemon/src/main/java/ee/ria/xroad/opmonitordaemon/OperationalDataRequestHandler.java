@@ -36,11 +36,13 @@ import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.opmonitordaemon.message.GetSecurityServerOperationalDataResponseType;
 import ee.ria.xroad.opmonitordaemon.message.GetSecurityServerOperationalDataType;
 import ee.ria.xroad.opmonitordaemon.message.SearchCriteriaType;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Marshaller;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
@@ -48,7 +50,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.opmonitordaemon.OperationalDataOutputSpecFields.OUTPUT_FIELDS;
 
 /**

@@ -22,6 +22,12 @@
  */
 package ee.ria.xroad.common.util;
 
+import ee.ria.xroad.common.SystemProperties;
+
+import com.sun.management.UnixOperatingSystemMXBean;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -32,13 +38,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.io.FileUtils;
-
-import com.sun.management.UnixOperatingSystemMXBean;
-
-import ee.ria.xroad.common.SystemProperties;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Contains methods for gathering and retrieving system metrics information.

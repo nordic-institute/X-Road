@@ -24,10 +24,12 @@ package ee.ria.xroad.proxyui;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
+
 import lombok.extern.slf4j.Slf4j;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
+
 import java.net.Socket;
 import java.security.Principal;
 import java.security.PrivateKey;

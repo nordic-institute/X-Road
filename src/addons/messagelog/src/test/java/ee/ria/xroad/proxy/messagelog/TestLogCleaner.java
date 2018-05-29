@@ -22,10 +22,10 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import org.hibernate.Session;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-import org.hibernate.Session;
 
 class TestLogCleaner extends LogCleaner {
 

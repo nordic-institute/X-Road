@@ -22,26 +22,6 @@
  */
 package ee.ria.xroad.confproxy.util;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.Date;
-
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.input.TeeInputStream;
-
-import org.eclipse.jetty.util.MultiPartWriter;
-
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-
 import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationPartMetadata;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -55,9 +35,37 @@ import ee.ria.xroad.signer.protocol.message.GetSignMechanismResponse;
 import ee.ria.xroad.signer.protocol.message.Sign;
 import ee.ria.xroad.signer.protocol.message.SignResponse;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.input.TeeInputStream;
+import org.eclipse.jetty.util.MultiPartWriter;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.Date;
+
 import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.MimeUtils.*;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_IDENTIFIER;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_LOCATION;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODING;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_EXPIRE_DATE;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGORITHM_ID;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_SIG_ALGO_ID;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_VERIFICATION_CERT_HASH;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_VERSION;
+import static ee.ria.xroad.common.util.MimeUtils.mpMixedContentType;
+import static ee.ria.xroad.common.util.MimeUtils.mpRelatedContentType;
+import static ee.ria.xroad.common.util.MimeUtils.randomBoundary;
 
 /**
  * Utility class that encapsulates the process of signing the downloaded

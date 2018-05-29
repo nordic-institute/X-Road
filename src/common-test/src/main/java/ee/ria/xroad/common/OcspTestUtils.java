@@ -22,9 +22,7 @@
  */
 package ee.ria.xroad.common;
 
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
-import java.util.Date;
+import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.ocsp.BasicOCSPRespBuilder;
@@ -35,7 +33,9 @@ import org.bouncycastle.cert.ocsp.OCSPRespBuilder;
 import org.bouncycastle.cert.ocsp.RespID;
 import org.bouncycastle.operator.ContentSigner;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+import java.util.Date;
 
 /**
  * Contains utility methods for creating test OCSP responses.

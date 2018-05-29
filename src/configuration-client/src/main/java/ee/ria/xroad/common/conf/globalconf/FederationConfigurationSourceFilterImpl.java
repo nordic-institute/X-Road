@@ -23,11 +23,18 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.SystemProperties;
+
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
-import static ee.ria.xroad.common.SystemProperties.AllowedFederationMode.*;
+import static ee.ria.xroad.common.SystemProperties.AllowedFederationMode.ALL;
+import static ee.ria.xroad.common.SystemProperties.AllowedFederationMode.CUSTOM;
+import static ee.ria.xroad.common.SystemProperties.AllowedFederationMode.NONE;
 
 /** Implementation of the {@link FederationConfigurationSourceFilter}.
  * Looks at {@link SystemProperties#getConfigurationClientAllowedFederations()} (a comma-separated list of allowed

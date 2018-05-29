@@ -22,17 +22,17 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import org.apache.commons.lang.builder.HashCodeBuilder;
-
 import ee.ria.xroad.common.conf.AbstractXmlConf;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
+
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Configuration anchor specifies the configuration source where a security

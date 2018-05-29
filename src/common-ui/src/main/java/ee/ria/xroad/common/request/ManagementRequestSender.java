@@ -22,16 +22,6 @@
  */
 package ee.ria.xroad.common.request;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.net.URI;
-
-import javax.xml.soap.SOAPException;
-
-import lombok.extern.slf4j.Slf4j;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
@@ -44,6 +34,16 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.util.HttpSender;
+
+import lombok.extern.slf4j.Slf4j;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import javax.xml.soap.SOAPException;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.net.URI;
 
 import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;

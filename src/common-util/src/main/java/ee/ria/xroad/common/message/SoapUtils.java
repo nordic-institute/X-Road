@@ -22,15 +22,11 @@
  */
 package ee.ria.xroad.common.message;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.util.CryptoUtils;
+
+import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.namespace.QName;
@@ -42,13 +38,20 @@ import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang3.ArrayUtils;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.util.CryptoUtils;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_HEADERS;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_BODY;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML;
 import static ee.ria.xroad.common.util.MimeTypes.XOP_XML;
 import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;

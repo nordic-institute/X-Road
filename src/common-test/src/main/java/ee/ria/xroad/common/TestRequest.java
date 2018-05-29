@@ -22,12 +22,13 @@
  */
 package ee.ria.xroad.common;
 
-import java.util.List;
-
 import ee.ria.xroad.common.Request.RequestTag;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
+
 import lombok.Getter;
+
+import java.util.List;
 
 /**
  * Encapsulates test request data.

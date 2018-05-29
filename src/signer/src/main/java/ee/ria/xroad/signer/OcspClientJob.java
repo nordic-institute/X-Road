@@ -23,8 +23,10 @@
 package ee.ria.xroad.signer;
 
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
+
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.FiniteDuration;
+
 import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.signer.certmanager.OcspClientWorker.GLOBAL_CONF_INVALIDATED;

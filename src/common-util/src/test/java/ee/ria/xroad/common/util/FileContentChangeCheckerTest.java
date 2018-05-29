@@ -22,15 +22,15 @@
  */
 package ee.ria.xroad.common.util;
 
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import java.io.File;
+
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
-
-import java.io.File;
-
-import org.junit.Test;
-import org.mockito.Mockito;
 
 /**
  * Unit test for FileContentChangeChecker.

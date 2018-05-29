@@ -2,8 +2,8 @@
 
 **Technical Specification**
 
-Version: 1.0
-02.02.2018
+Version: 1.1  
+02.03.2018
 <!-- 3 pages -->
 Doc. ID: ARC-TEC
 
@@ -14,19 +14,21 @@ Doc. ID: ARC-TEC
  Date       | Version | Description                                                 | Author
  ---------- | ------- | ----------------------------------------------------------- | --------------------
  02.02.2018 | 1.0     | Initial version                                             | Antti Luoma
- 
+ 02.03.2018 | 1.1     | Added uniform terms and conditions reference                | Tatu Repo
 
 ## Table of Contents
 
 <!-- toc -->
 
 - [License](#license)
-- [References](#references)
-- [1 Overview matrix of the X-Road technology](#1-overview-matrix-of-the-x-road-technology)
-- [2 Central server technologies](#2-central-server-technologies)
-- [3 Configuration proxy technologies](#3-configuration-proxy-technologies)
-- [4 Security server technologies](#4-security-server-technologies)
-- [5 Operational monitoring daemon technologies](#5-operational-monitoring-daemon-technologies)
+- [1 Introduction](#1-introduction)
+  * [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
+  * [1.2 References](#12-references)
+- [2 Overview matrix of the X-Road technology](#2-overview-matrix-of-the-x-road-technology)
+- [3 Central server technologies](#3-central-server-technologies)
+- [4 Configuration proxy technologies](#4-configuration-proxy-technologies)
+- [5 Security server technologies](#5-security-server-technologies)
+- [6 Operational monitoring daemon technologies](#6-operational-monitoring-daemon-technologies)
 
 <!-- tocstop -->
 
@@ -34,13 +36,24 @@ Doc. ID: ARC-TEC
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
 
-## References
+## 1 Introduction
+
+This document describes the general technology composition of X-Road components. To better illustrate the role of main technologies in X-Road, the information is collected in to several technology matrices highlighting the technology relationships between components.   
+
+## 1.1 Terms and abbreviations
+
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
+
+
+## 1.2 References
 
 1. <a name="ARC-CP"></a>**ARC-CP** -- X-Road: Configuration Proxy Architecture. Document ID: [ARC-CP](../Architecture/arc-cp_x-road_configuration_proxy_architecture.md).  
 2. <a name="ARC-CS"></a>**ARC-CS** -- X-Road: Central Server Architecture. Document ID: [ARC-CS](../Architecture/arc-cs_x-road_central_server_architecture.md).  
 3. <a name="ARC-SS"></a>**ARC-SS** -- X-Road: Security Server Architecture. Document ID: [ARC-SS](../Architecture/arc-ss_x-road_security_server_architecture.md).
 4. <a name="ARC-OPMOND"></a>**ARC-OPMOND** -- X-Road: Operational Monitoring Daemon Architecture. Document ID: [ARC-OPMOND](../OperationalMonitoring/Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).
 5. <a name="ARC-G"></a>**ARC-G** --  X-Road Architecture. Document ID: [ARC-G](../Architecture/arc-g_x-road_arhitecture.md).   
+1. <a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
+
 
 ## 1 Overview matrix of the X-Road technology
 

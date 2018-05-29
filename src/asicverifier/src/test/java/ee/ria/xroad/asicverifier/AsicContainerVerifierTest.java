@@ -22,9 +22,12 @@
  */
 package ee.ria.xroad.asicverifier;
 
-import java.security.cert.X509Certificate;
-import java.util.Arrays;
-import java.util.Collection;
+import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.asic.AsicContainerVerifier;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.BeforeClass;
@@ -35,14 +38,14 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import ee.ria.xroad.common.ExpectedCodedException;
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.asic.AsicContainerVerifier;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
+import java.util.Collection;
 
-import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.ErrorCodes.X_HASHCHAIN_UNUSED_INPUTS;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_REF;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 
 /**
  * Tests to verify correct ASiC container verifier behavior.

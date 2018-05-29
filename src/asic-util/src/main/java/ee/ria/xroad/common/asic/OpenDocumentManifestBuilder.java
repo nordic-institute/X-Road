@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.common.asic;
 
-import java.util.ArrayList;
-import java.util.List;
+import ee.ria.xroad.common.util.MimeTypes;
 
 import lombok.Data;
 
-import ee.ria.xroad.common.util.MimeTypes;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Builds a manifest XML (OpenDocument package manifest) file with the specified entries.

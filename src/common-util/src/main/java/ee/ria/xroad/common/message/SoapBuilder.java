@@ -22,12 +22,9 @@
  */
 package ee.ria.xroad.common.message;
 
-import javax.xml.bind.Marshaller;
-import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPBody;
-import javax.xml.soap.SOAPEnvelope;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPMessage;
+import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.MimeUtils;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -37,15 +34,22 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.util.MimeTypes;
-import ee.ria.xroad.common.util.MimeUtils;
+import javax.xml.bind.Marshaller;
+import javax.xml.namespace.QName;
+import javax.xml.soap.SOAPBody;
+import javax.xml.soap.SOAPEnvelope;
+import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPMessage;
 
 import static ee.ria.xroad.common.identifier.IdentifierXmlNodeParser.NS_IDENTIFIERS;
 import static ee.ria.xroad.common.identifier.IdentifierXmlNodeParser.PREFIX_IDENTIFIERS;
 import static ee.ria.xroad.common.message.SoapHeader.NS_XROAD;
 import static ee.ria.xroad.common.message.SoapHeader.PREFIX_XROAD;
-import static ee.ria.xroad.common.message.SoapUtils.*;
+import static ee.ria.xroad.common.message.SoapUtils.RPC_ATTR;
+import static ee.ria.xroad.common.message.SoapUtils.RPC_ENCODING;
+import static ee.ria.xroad.common.message.SoapUtils.getServiceName;
+import static ee.ria.xroad.common.message.SoapUtils.isRpcMessage;
+import static ee.ria.xroad.common.message.SoapUtils.validateServiceName;
 
 /**
  * Builds SOAP messages from the provided header.

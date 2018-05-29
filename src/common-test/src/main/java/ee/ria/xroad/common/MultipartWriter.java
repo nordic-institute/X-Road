@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.common;
 
-import java.io.IOException;
-import java.io.PipedOutputStream;
-
 import org.eclipse.jetty.util.MultiPartOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.PipedOutputStream;
 
 /**
  * Base class for multipart test request writers.

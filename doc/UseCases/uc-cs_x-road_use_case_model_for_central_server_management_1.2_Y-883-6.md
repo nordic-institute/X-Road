@@ -5,8 +5,8 @@
 # X-Road: Use Case Model for Central Server Management
 **Analysis**
 
-Version: 1.2
-29.08.2017
+Version: 1.5  
+06.03.2018
 <!-- 38 pages -->
 Doc. ID: UC-CS
 ------------------------------------------------------
@@ -21,7 +21,9 @@ Date       | Version | Description                                              
 21.09.2015 |  1.0    |   Editorial changes made                                                                                                                  |   Imbi Nõgisto
 08.11.2015 |  1.1    |   Renamed *Scope* element to *System*. Renamed *User* to *CS administrator*. Updated use cases CS\_07 and CS\_08. Minor corrections done. |   Riin Saarmäe
 13.12.2015 |  1.2    |   Restore clears the shared memory (UC CS\_08)                                                                                            |   Riin Saarmäe
-29.08.2017 |  1.2    |  Changed documentation type from docx to md file | Lasse Matikainen
+29.08.2017 |  1.3    |  Changed documentation type from docx to md file | Lasse Matikainen
+19.02.2018 |  1.4    |   Updated the negative case extension for backing up the central server | Tatu Repo
+06.03.2018 |  1.5    |   Added term doc reference and link, added reference links | Tatu Repo
 
 ## Table of Contents
 
@@ -87,31 +89,32 @@ system and has the access rights required to carry out the use case.
 
 ### 1.1 Terms and Abbreviations
 
-The definitions for general X-Road terms can be found at
-<https://confluence.ria.ee/display/XROADDOCS/Terms%2C+definitions+and+abbrevations>.
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.2 References
 
 1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\]
-    X-Road 6. Central Server Installation Guide. Document ID: IG-CS.
+    X-Road 6. Central Server Installation Guide. Document ID: [IG-CS](../Manuals/ig-cs_x-road_6_central_server_installation_guide.md).
 
 2.  <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road:
     Audit Log Events. Document ID: SPEC-AL.
 
 3.  <a id="Ref_UC-GCONF" class="anchor"></a>\[UC-GCONF\] X-Road: Use Case Model for
-    Global Configuration Distribution. Document ID: UC-GCONF.
+    Global Configuration Distribution. Document ID: [UC-GCONF](uc-gconf_x-road_use_case_model_for_global_configuration_distribution_1.4_Y-883-8.md).
 
 4.  <a id="Ref_UC-FED" class="anchor"></a>\[UC-FED\] X-Road: Use Case Model for
-    Federation. Document ID: UC-FED.
+    Federation. Document ID: [UC-FED](uc-fed_x-road_use_case_model_for_federation_1.1_Y-883-7.md).
 
 5.  <a id="Ref_UC-MEMBER" class="anchor"></a>\[UC-MEMBER\] X-Road: Use Case Model for
-    Member Management. Document ID: UC-MEMBER.
+    Member Management. Document ID: [UC-MEMBER](uc-member_x-road_use_case_model_for_member_management.md).
 
 6.  <a id="Ref_UC-SERVICE" class="anchor"></a>\[UC-SERVICE\] X-Road: Use Case Model for
-    Service Management. Document ID: UC-SERVICE.
+    Service Management. Document ID: [UC-SERVICE](uc-service_x-road_use_case_model_for_service_management_1.6_Y-883-3.md).
 
 7.  <a id="Ref_UC-TRUST" class="anchor"></a>\[UC-TRUST\] X-Road: Use Case Model for
-    Trust Service Management. Document ID: UC-TRUST.
+    Trust Service Management. Document ID: [UC-TRUST](uc-trust_x-road_use_case_model_for_trust_service_management_1.1.1_Y-883-9.md).
+
+8.  <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 ## 2 Use Case Model
 
@@ -432,9 +435,10 @@ configuration.
 **Extensions**:
 
 - 3a. Backing up the central server configuration failed.
-    - 3a.1. System displays the error message “Error making configuration backup, script exited with status code 'X'” (where “X” is the exit code of the backup script) and the output of the backup script.
-    - 3a.2. System logs the event “Back up configuration failed” to the audit log.
-    - 3a.3. Use case terminates.
+    - 3a.1  Backup script produces an error code that prompts the error handling to remove any incomplete backup archives
+    - 3a.2. System displays the error message “Error making configuration backup, script exited with status code 'X'” (where “X” is the exit code of the backup script) and the output of the backup script.
+    - 3a.3. System logs the event “Back up configuration failed” to the audit log.
+    - 3a.4. Use case terminates.
 
 **Related information**:
 

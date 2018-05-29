@@ -22,34 +22,6 @@
  */
 package ee.ria.xroad.signer.console;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.cert.X509Certificate;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import akka.actor.ActorSystem;
-
-import asg.cliche.CLIException;
-import asg.cliche.Command;
-import asg.cliche.InputConverter;
-import asg.cliche.Param;
-import asg.cliche.Shell;
-import asg.cliche.ShellFactory;
-
-import com.typesafe.config.ConfigFactory;
-
-import org.apache.commons.cli.BasicParser;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.Options;
-import org.apache.commons.lang.StringUtils;
-
 import ee.ria.xroad.common.AuditLogger;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
@@ -64,15 +36,98 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.MemberSigningInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.message.*;
+import ee.ria.xroad.signer.protocol.message.ActivateCert;
+import ee.ria.xroad.signer.protocol.message.ActivateToken;
+import ee.ria.xroad.signer.protocol.message.DeleteCert;
+import ee.ria.xroad.signer.protocol.message.DeleteCertRequest;
+import ee.ria.xroad.signer.protocol.message.DeleteKey;
+import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
+import ee.ria.xroad.signer.protocol.message.GenerateCertRequestResponse;
+import ee.ria.xroad.signer.protocol.message.GenerateKey;
+import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCert;
+import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCertResponse;
+import ee.ria.xroad.signer.protocol.message.GetAuthKey;
+import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHash;
+import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHashResponse;
+import ee.ria.xroad.signer.protocol.message.GetMemberCerts;
+import ee.ria.xroad.signer.protocol.message.GetMemberCertsResponse;
+import ee.ria.xroad.signer.protocol.message.GetMemberSigningInfo;
+import ee.ria.xroad.signer.protocol.message.GetSignMechanism;
+import ee.ria.xroad.signer.protocol.message.GetSignMechanismResponse;
+import ee.ria.xroad.signer.protocol.message.GetTokenBatchSigningEnabled;
+import ee.ria.xroad.signer.protocol.message.ImportCert;
+import ee.ria.xroad.signer.protocol.message.ImportCertResponse;
+import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
+import ee.ria.xroad.signer.protocol.message.ListTokens;
+import ee.ria.xroad.signer.protocol.message.SetKeyFriendlyName;
+import ee.ria.xroad.signer.protocol.message.SetTokenFriendlyName;
+import ee.ria.xroad.signer.protocol.message.Sign;
+import ee.ria.xroad.signer.protocol.message.SignResponse;
+
+import akka.actor.ActorSystem;
+import asg.cliche.CLIException;
+import asg.cliche.Command;
+import asg.cliche.InputConverter;
+import asg.cliche.Param;
+import asg.cliche.Shell;
+import asg.cliche.ShellFactory;
+import com.typesafe.config.ConfigFactory;
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.lang.StringUtils;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import static ee.ria.xroad.common.AuditLogger.XROAD_USER;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
-import static ee.ria.xroad.common.util.CryptoUtils.*;
-import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.*;
-import static ee.ria.xroad.signer.console.Utils.*;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.ACTIVATE_THE_CERTIFICATE_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.CERT_FILE_NAME_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.CERT_ID_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.CERT_REQUEST_ID_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.CLIENT_IDENTIFIER_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.CSR_FORMAT_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.DEACTIVATE_THE_CERTIFICATE_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.DELETE_THE_CERT_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.DELETE_THE_CERT_REQUEST_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.DELETE_THE_KEY_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.GENERATE_A_CERT_REQUEST_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.GENERATE_A_KEY_ON_THE_TOKEN_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.IMPORT_A_CERTIFICATE_FROM_THE_FILE;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.INITIALIZE_THE_SOFTWARE_TOKEN_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.KEY_FRIENDLY_NAME_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.KEY_ID_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.KEY_LABEL_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.KEY_USAGE_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.LOGOUT_FROM_THE_TOKEN_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.LOG_INTO_THE_TOKEN;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.SET_A_FRIENDLY_NAME_TO_THE_KEY_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.SET_A_FRIENDLY_NAME_TO_THE_TOKEN_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.SUBJECT_NAME_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.TOKEN_FRIENDLY_NAME_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.TOKEN_ID_PARAM;
+import static ee.ria.xroad.signer.console.Utils.base64ToFile;
+import static ee.ria.xroad.signer.console.Utils.bytesToFile;
+import static ee.ria.xroad.signer.console.Utils.createClientId;
+import static ee.ria.xroad.signer.console.Utils.fileToBytes;
+import static ee.ria.xroad.signer.console.Utils.printCertInfo;
+import static ee.ria.xroad.signer.console.Utils.printKeyInfo;
+import static ee.ria.xroad.signer.console.Utils.printTokenInfo;
 
 /**
  * Signer command line interface.

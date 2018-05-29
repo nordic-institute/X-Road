@@ -23,12 +23,14 @@
 package ee.ria.xroad.proxy.util;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
+
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
+
 import java.net.Socket;
 import java.security.Principal;
 import java.security.PrivateKey;

@@ -22,18 +22,6 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.LogRecord;
-
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.pattern.Patterns;
-import akka.util.Timeout;
-import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.Await;
-
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
@@ -45,7 +33,22 @@ import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.JobManager;
 
-import static ee.ria.xroad.common.ErrorCodes.*;
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import akka.pattern.Patterns;
+import akka.util.Timeout;
+import lombok.extern.slf4j.Slf4j;
+import scala.concurrent.Await;
+
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.LogRecord;
+
+import static ee.ria.xroad.common.ErrorCodes.X_LOGGING_FAILED_X;
+import static ee.ria.xroad.common.ErrorCodes.X_TIMESTAMPING_FAILED_X;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 
 /**
  * Contains methods for saving entries to the message log.
@@ -157,7 +160,7 @@ public final class MessageLog {
 
         Timeout timeout = new Timeout(ASK_TIMEOUT, TimeUnit.SECONDS);
         Object result = Await.result(Patterns.ask(logManager, message, timeout), timeout.duration());
-        
+
         if (result instanceof Exception) {
             throw (Exception) result;
         } else {

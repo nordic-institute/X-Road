@@ -22,9 +22,12 @@
  */
 package ee.ria.xroad.common.util;
 
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.xml.security.c14n.Canonicalizer;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -40,12 +43,9 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import lombok.extern.slf4j.Slf4j;
-import org.apache.xml.security.c14n.Canonicalizer;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.util.Optional;
 
 /**
  * Contains various XML-related utility methods.
@@ -74,10 +74,17 @@ public final class XmlUtils {
      * @throws Exception if an error occurs
      */
     public static Document parseDocument(InputStream documentXml, boolean namespaceAware) throws Exception {
-        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-        documentBuilderFactory.setNamespaceAware(namespaceAware);
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
-        return documentBuilderFactory.newDocumentBuilder().parse(documentXml);
+        dbf.setNamespaceAware(namespaceAware);
+        dbf.setIgnoringComments(true);
+
+        dbf.setValidating(false);
+        dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+        dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+
+        return dbf.newDocumentBuilder().parse(documentXml);
     }
 
     /**

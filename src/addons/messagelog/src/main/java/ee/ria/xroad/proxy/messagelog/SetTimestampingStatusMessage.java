@@ -22,11 +22,10 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import org.joda.time.DateTime;
-
 import akka.dispatch.ControlMessage;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.joda.time.DateTime;
 
 @Data
 @RequiredArgsConstructor

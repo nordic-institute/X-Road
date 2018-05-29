@@ -22,26 +22,26 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import akka.actor.Props;
-import akka.actor.SupervisorStrategy;
-
-import iaik.pkcs.pkcs11.Module;
-import iaik.pkcs.pkcs11.Slot;
-import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
-import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import ee.ria.xroad.signer.tokenmanager.token.HardwareToken;
 import ee.ria.xroad.signer.tokenmanager.token.HardwareTokenType;
 import ee.ria.xroad.signer.tokenmanager.token.TokenType;
 import ee.ria.xroad.signer.util.SignerUtil;
+
+import akka.actor.Props;
+import akka.actor.SupervisorStrategy;
+import iaik.pkcs.pkcs11.DefaultInitializeArgs;
+import iaik.pkcs.pkcs11.InitializeArgs;
+import iaik.pkcs.pkcs11.Module;
+import iaik.pkcs.pkcs11.Slot;
+import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
+import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.moduleGetInstance;
 
@@ -72,13 +72,23 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
 
         try {
             pkcs11Module = moduleGetInstance(module.getPkcs11LibraryPath());
-            pkcs11Module.initialize(null);
+
+            pkcs11Module.initialize(getInitializeArgs(module.getLibraryCantCreateOsThreads(), module.getOsLockingOk()));
         } catch (Throwable t) {
-            // Note that we catch all serious errors here since we do not
-            // want Signer to crash if the module could not be loaded for
-            // some reason.
+            // Note that we catch all serious errors here since we do not want Signer to crash if the module could
+            // not be loaded for some reason.
             throw new RuntimeException(t);
         }
+    }
+
+    private static InitializeArgs getInitializeArgs(Boolean libraryCantCreateOsThreads, Boolean osLockingOk) {
+        if (libraryCantCreateOsThreads == null && osLockingOk == null) {
+            return null;
+        }
+
+        return new DefaultInitializeArgs(null,
+                libraryCantCreateOsThreads == null ? false : libraryCantCreateOsThreads,
+                osLockingOk == null ? false : osLockingOk);
     }
 
     @Override
@@ -131,7 +141,7 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
         iaik.pkcs.pkcs11.Token pkcs11Token = slot.getToken();
         iaik.pkcs.pkcs11.TokenInfo tokenInfo = pkcs11Token.getTokenInfo();
 
-        TokenType token = new HardwareTokenType(
+        return new HardwareTokenType(
                 module.getType(),
                 module.getTokenIdFormat(),
                 pkcs11Token,
@@ -145,8 +155,6 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
                 module.getPrivKeyAttributes(),
                 module.getPubKeyAttributes()
         );
-
-        return token;
     }
 
     @Override

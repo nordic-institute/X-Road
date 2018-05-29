@@ -22,14 +22,6 @@
  */
  package ee.ria.xroad.common.certificateprofile.impl;
 
-import java.security.cert.X509Certificate;
-
-import javax.security.auth.x500.X500Principal;
-
-import org.apache.commons.lang.StringUtils;
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x500.style.BCStyle;
-
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
@@ -38,7 +30,15 @@ import ee.ria.xroad.common.certificateprofile.DnFieldValue;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CertUtils;
+
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang.StringUtils;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.style.BCStyle;
+
+import javax.security.auth.x500.X500Principal;
+
+import java.security.cert.X509Certificate;
 
 /**
  * Certificate profile for SK ESTEID.

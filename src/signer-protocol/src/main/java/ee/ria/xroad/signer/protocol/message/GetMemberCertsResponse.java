@@ -22,12 +22,13 @@
  */
 package ee.ria.xroad.signer.protocol.message;
 
-import java.io.Serializable;
-import java.util.List;
-
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+
 import lombok.ToString;
 import lombok.Value;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * Signer API message.

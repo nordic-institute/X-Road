@@ -22,22 +22,22 @@
  */
  package ee.ria.xroad.common.certificateprofile.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.security.cert.X509Certificate;
-
-import javax.security.auth.x500.X500Principal;
-
-import org.bouncycastle.util.Arrays;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.DnFieldValue;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+
+import org.bouncycastle.util.Arrays;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import javax.security.auth.x500.X500Principal;
+
+import java.security.cert.X509Certificate;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the default implementation of CertificateProfileInfoProvider.

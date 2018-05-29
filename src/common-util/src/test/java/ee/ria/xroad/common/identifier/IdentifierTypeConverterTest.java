@@ -22,22 +22,37 @@
  */
 package ee.ria.xroad.common.identifier;
 
-import java.io.FileInputStream;
-
-import javax.xml.parsers.DocumentBuilderFactory;
+import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.identifier.IdentifierTypeConverter.GenericXRoadIdAdapter;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
-import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.ExpectedCodedException;
-import ee.ria.xroad.common.identifier.IdentifierTypeConverter.GenericXRoadIdAdapter;
+import javax.xml.parsers.DocumentBuilderFactory;
 
-import static ee.ria.xroad.common.identifier.IdentifierTypeConverter.*;
-import static ee.ria.xroad.common.identifier.XRoadObjectType.*;
-import static org.junit.Assert.*;
+import java.io.FileInputStream;
+
+import static ee.ria.xroad.common.identifier.IdentifierTypeConverter.parseCentralServiceId;
+import static ee.ria.xroad.common.identifier.IdentifierTypeConverter.parseClientId;
+import static ee.ria.xroad.common.identifier.IdentifierTypeConverter.parseGlobalGroupId;
+import static ee.ria.xroad.common.identifier.IdentifierTypeConverter.parseLocalGroupId;
+import static ee.ria.xroad.common.identifier.IdentifierTypeConverter.parseSecurityCategoryId;
+import static ee.ria.xroad.common.identifier.IdentifierTypeConverter.parseSecurityServerId;
+import static ee.ria.xroad.common.identifier.IdentifierTypeConverter.parseServiceId;
+import static ee.ria.xroad.common.identifier.XRoadObjectType.CENTRALSERVICE;
+import static ee.ria.xroad.common.identifier.XRoadObjectType.GLOBALGROUP;
+import static ee.ria.xroad.common.identifier.XRoadObjectType.LOCALGROUP;
+import static ee.ria.xroad.common.identifier.XRoadObjectType.MEMBER;
+import static ee.ria.xroad.common.identifier.XRoadObjectType.SECURITYCATEGORY;
+import static ee.ria.xroad.common.identifier.XRoadObjectType.SERVER;
+import static ee.ria.xroad.common.identifier.XRoadObjectType.SERVICE;
+import static ee.ria.xroad.common.identifier.XRoadObjectType.SUBSYSTEM;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests to verify X-Road identifier converter behavior.

@@ -22,12 +22,13 @@
  */
 package ee.ria.xroad.monitor.test;
 
+import ee.ria.xroad.monitor.common.SystemMetricsRequest;
+import ee.ria.xroad.monitor.common.SystemMetricsResponse;
+
 import akka.actor.ActorSelection;
 import akka.actor.UntypedActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import ee.ria.xroad.monitor.common.SystemMetricsRequest;
-import ee.ria.xroad.monitor.common.SystemMetricsResponse;
 
 /**
  * Test caller for monitoring service

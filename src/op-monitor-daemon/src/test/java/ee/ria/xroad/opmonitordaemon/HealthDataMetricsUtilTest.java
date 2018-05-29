@@ -22,14 +22,16 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import org.junit.Test;
-
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import org.junit.Test;
+
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getLastRequestTimestampGaugeName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestCounterName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestDurationName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestSoapSizeName;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
-import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.*;
 
 /**
  * Tests against the utility methods in HealthDataMetricsUtil.

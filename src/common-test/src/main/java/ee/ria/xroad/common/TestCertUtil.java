@@ -22,16 +22,16 @@
  */
 package ee.ria.xroad.common;
 
+import ee.ria.xroad.common.util.CryptoUtils;
+
+import org.apache.commons.io.IOUtils;
+
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-
-import org.apache.commons.io.IOUtils;
-
-import ee.ria.xroad.common.util.CryptoUtils;
 
 /**
  * Contains various certificate related utility methods for using in test cases,

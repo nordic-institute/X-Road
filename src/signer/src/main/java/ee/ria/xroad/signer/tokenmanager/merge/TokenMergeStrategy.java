@@ -24,6 +24,7 @@ package ee.ria.xroad.signer.tokenmanager.merge;
 
 import ee.ria.xroad.signer.model.Cert;
 import ee.ria.xroad.signer.model.Token;
+
 import lombok.Value;
 
 import java.util.List;

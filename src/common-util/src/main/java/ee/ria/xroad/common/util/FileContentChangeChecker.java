@@ -22,13 +22,13 @@
  */
 package ee.ria.xroad.common.util;
 
-import static ee.ria.xroad.common.util.CryptoUtils.MD5_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.hexDigest;
-import static org.apache.commons.io.IOUtils.toByteArray;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+
+import static ee.ria.xroad.common.util.CryptoUtils.MD5_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.hexDigest;
+import static org.apache.commons.io.IOUtils.toByteArray;
 
 /**
  * A checksum based file modification checker.

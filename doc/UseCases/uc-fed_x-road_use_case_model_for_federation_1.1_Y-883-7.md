@@ -6,8 +6,8 @@
 # X-Road: Use Case Model for Federation
 **Analysis**
 
-Version: 1.2
-29.08.2017
+Version: 1.3  
+06.03.2018
 <!-- 15 pages -->
 Doc. ID: UC-FED
 
@@ -22,7 +22,7 @@ Doc. ID: UC-FED
 20.09.2015  | 1.0     |  Editorial changes made                                         | Imbi Nõgisto
 08.11.2015  | 1.1     |  Renamed *Scope* element to *System*. *Native* (X-Road instance) renamed to *local*. Minor corrections done. |   Riin Saarmäe
 29.08.2017  | 1.2     |  Changed documentation type from docx to md file |   Lasse Matikainen
-
+06.03.2018  | 1.3     |  Moved terms to term doc, added term doc reference and link, added internal MD-doc links | Tatu Repo
 
 ## Table of Contents
 
@@ -69,108 +69,23 @@ the access rights required to carry out the use case.
 
 ### 1.2 Terms and Abbreviations
 
-The definitions for general X-Road terms can be found at
-<https://confluence.ria.ee/display/XROADDOCS/Terms%2C+definitions+and+abbrevations>.
-
-This section defines the terms that are not defined in the
-aforementioned document or that have contextual meaning specific to this
-document in addition to the general definition.
-
--   **Central server** is the primary configuration source in an X-Road
-    system. Central server always manages an internal configuration
-    source (i.e. configuration source distributing the internal
-    configuration) and in addition, an external configuration source
-    (i.e. configuration source distributing the external configuration)
-    in case the X-Road system is federation-capable.
-
--   **Configuration anchor** is a set of information that can be used by
-    configuration clients to access a configuration source and to verify
-    the downloaded configuration. The configuration anchor is
-    distributed to the configuration clients as either a separate XML
-    file in case the anchor points to a local configuration source or as
-    a part of private parameters in case the anchor points to the
-    configuration source managed by a federation partner.
-
--   **Configuration client** is an entity that uses configuration
-    anchor(s) for downloading configuration from configuration
-    source(s). In an X-Roads system, security server and configuration
-    proxy act as configuration clients.
-
--   **Configuration part (file)** is an XML file containing system
-    parameters.
-
--   **Configuration provider** is an entity responsible for maintaining
-    and distributing configuration. Configuration provider manages one
-    or two configuration sources through which configuration is made
-    available for configuration clients. In an X-Roads system, central
-    server and configuration proxy act as configuration providers.
-
--   **Configuration proxy** may optionally be used to mediate
-    configuration originating from the central server to the
-    configuration clients. Configuration proxy manages a single
-    configuration source that is used to distribute configuration
-    downloaded from another configuration source. The configuration
-    mediated by the proxy may either be internal or external
-    configuration, depending on the proxy's purpose.
-
--   **Configuration source** is a component (HTTP server) managed by a
-    configuration provider. The configuration distributed by the source
-    can either be internal configuration or external configuration. The
-    information needed to access and download configuration from a
-    source is contained in the configuration anchor.
-
--   **External configuration** is distributed by a configuration source
-    and only contains the shared parameters configuration part.
-
--   **Internal configuration** is distributed by a configuration source
-    and is composed of the following configuration parts: private
-    parameters; shared parameters, and; optionally, other configuration
-    parts that are specific to an X-Road instance – optional parameters.
-
--   **Private parameters** is a configuration part that holds system
-    parameters that are only used by security servers that are part of
-    the local X-Road system (i.e. the same X-Road system as the central
-    server the configuration part originates from). In case of federated
-    X-Road systems, the private parameters contain configuration anchors
-    pointing to configuration sources distributing external
-    configuration of federation partners.
-
--   **Security server** is a configuration client that uses a root
-    configuration anchor to download internal configuration from its
-    local configuration source. Subsequently, in case of federated
-    X-Road systems, the security server uses configuration anchors
-    contained in the private parameters part of the downloaded internal
-    configuration to download the external configuration of X-Road
-    systems federated with the local system.
-
--   **Shared parameters** is a configuration part that holds system
-    parameters that are used both by the security servers of the local
-    X-Road system and by the security servers belonging to X-Road
-    systems federated with the local system.
-
--   **System configuration** consists of data stored in the database,
-    and in the various configuration files held in the file system of an
-    X-Road component.
-
--   **Trusted anchor** is a configuration anchor that points to the
-    external configuration source of a federation partner and has been
-    uploaded to the central server during the federation process.
-    Trusted anchors are distributed to the configuration clients of the
-    local X-Road system as a part of private parameters.
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
 1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 6. Central Server
-    Installation Guide. Document ID: IG-CS.
+    Installation Guide. Document ID: [IG-CS](../Manuals/ig-cs_x-road_6_central_server_installation_guide.md).
 
 2.  <a id="Ref_PR-GCONF" class="anchor"></a>\[PR-GCONF\] X-Road: Protocol for
-    Downloading Configuration. Document ID: PR-GCONF.
+    Downloading Configuration. Document ID: [PR-GCONF](../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).
 
 3.  <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road: Audit Log Events.
     Document ID: SPEC-AL.
 
 4.  <a id="Ref_UC-GCONF" class="anchor"></a>\[UC-GCONF\] X-Road: Use Case Model for
-    Global Configuration Distribution. Document ID: UC-GCONF.
+    Global Configuration Distribution. Document ID: [UC-GCONF](uc-gconf_x-road_use_case_model_for_global_configuration_distribution_1.4_Y-883-8.md).
+    
+5.  <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 ## 2 Overview
 

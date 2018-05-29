@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.common;
 
+import org.apache.commons.io.IOUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PipedOutputStream;
-
-import org.apache.commons.io.IOUtils;
 
 /**
  * Writes custom attachment test request content.

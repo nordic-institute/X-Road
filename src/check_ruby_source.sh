@@ -15,15 +15,15 @@ if [ $? != 0 ]; then
   warn "JRuby is not installed"
 fi
 
-if ! echo "$jruby_version" | egrep -q  ^jruby\ 1\.7; then
-  warn "JRuby version 'jruby-1.7.x' is supported, but used is: \n\t$jruby_version"
+# Install/upgrade Rubocop if necessary
+rubocop_version=$(rubocop -v)
+if [ -n "$rubocop_version" ] && [ "$rubocop_version" != "0.52.1" ]; then
+  echo "Uninstall old rubocop $rubocop_version"
+  jgem uninstall rubocop --silent || warn "Failed to uninstall Ruby gem 'rubocop'."
 fi
-
-# Install Rubocop if not present
-rubocop -v
-if [ $? != 0 ]; then
-  # XXX: rubocop-0.32.1 seems to contain fatal bug, 0.32.0 is proven to be working here.
-  jgem install rubocop -v 0.32.0 || warn "Failed to install Ruby gem 'rubocop'."
+if [ "$rubocop_version" != "0.52.1" ]; then
+  echo "Installing rubocop"
+  jgem install rubocop -v 0.52.1 || warn "Failed to install Ruby gem 'rubocop'."
 fi
 
 if [ "$#" -eq 0 ]; then

@@ -22,12 +22,12 @@
  */
  package ee.ria.xroad.common.conf.globalconf;
 
-import java.lang.reflect.Constructor;
+import ee.ria.xroad.common.SystemProperties;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import ee.ria.xroad.common.SystemProperties;
-import lombok.extern.slf4j.Slf4j;
+import java.lang.reflect.Constructor;
 
 @Slf4j
 class GlobalConfProviderFactory {

@@ -23,6 +23,7 @@
 package ee.ria.xroad.common.message;
 
 import ee.ria.xroad.common.util.MimeTypes;
+
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;

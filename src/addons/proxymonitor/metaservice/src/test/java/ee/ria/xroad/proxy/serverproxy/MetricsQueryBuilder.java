@@ -24,10 +24,12 @@
 package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.message.SoapBuilder;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import javax.xml.soap.SOAPBody;
+
 import java.util.List;
 
 /**

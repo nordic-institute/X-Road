@@ -26,12 +26,19 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
 import static ee.ria.xroad.common.util.healthcheck.HealthCheckResult.OK;
 import static ee.ria.xroad.common.util.healthcheck.HealthCheckResult.failure;
-import static ee.ria.xroad.common.util.healthcheck.HealthChecks.*;
+import static ee.ria.xroad.common.util.healthcheck.HealthChecks.cacheResultFor;
+import static ee.ria.xroad.common.util.healthcheck.HealthChecks.checkAuthKeyOcspStatus;
+import static ee.ria.xroad.common.util.healthcheck.HealthChecks.checkServerConfDatabaseStatus;
 
 /**
  * A {@link HealthCheckProvider} that does a bunch of health tests and gives an error if any of them fail

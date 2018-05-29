@@ -22,20 +22,18 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import java.util.SortedMap;
-import java.util.regex.Pattern;
+import ee.ria.xroad.common.identifier.ServiceId;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import ee.ria.xroad.common.identifier.ServiceId;
+import java.util.SortedMap;
+import java.util.regex.Pattern;
 
 /**
  * Helper utilities for preparing and processing health data metrics.

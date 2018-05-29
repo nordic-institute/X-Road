@@ -17,10 +17,10 @@
     password: "{{ xroad_ui_user_password }}"
     createhome: "yes"
 
-- include: ubuntu.yml
+- import_tasks: ubuntu.yml
   when: ansible_os_family == "Debian"
 
-- include: rhel.yml
+- import_tasks: rhel.yml
   when: ansible_os_family == "RedHat"
 
 - name: clean xroad logs at boot

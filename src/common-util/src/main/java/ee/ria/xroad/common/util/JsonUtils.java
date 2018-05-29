@@ -22,15 +22,22 @@
  */
 package ee.ria.xroad.common.util;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Type;
-
-import com.google.gson.*;
-
-import ee.ria.xroad.common.identifier.ClientId;
 
 /**
  * This class contains various json related utility methods.

@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import java.util.concurrent.TimeUnit;
-
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Reservoir;
 import com.codahale.metrics.SlidingTimeWindowReservoir;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * A counter metric that uses the sliding time window reservoir internally to

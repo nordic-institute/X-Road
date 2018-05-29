@@ -22,8 +22,10 @@
  */
 package ee.ria.xroad.monitor;
 
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.monitor.common.SystemMetricNames;
+import ee.ria.xroad.signer.protocol.SignerClient;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
@@ -35,13 +37,11 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
 import lombok.extern.slf4j.Slf4j;
-
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.SystemPropertiesLoader;
-import ee.ria.xroad.monitor.common.SystemMetricNames;
-import ee.ria.xroad.signer.protocol.SignerClient;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
+
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_ENV_MONITOR;
 

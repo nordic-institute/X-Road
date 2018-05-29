@@ -6,8 +6,8 @@
 # X-Road: Configuration Proxy Architecture
 **Technical Specification**
 
-Version: 1.4
- 19.01.2018
+Version: 1.5  
+02.03.2018
 <!-- 1 pages -->
  Doc. ID: ARC-CP
 
@@ -25,6 +25,7 @@ Version: 1.4
  21.10.2015 | 1.2     | SSCD and passwordstore related information added                | Ilja Kromonov
  24.02.2017 | 1.3     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
  19.01.2018 | 1.4     | Matrix of technologies moved to ARC-TEC-file and chapters reordered | Antti Luoma 
+ 02.03.2018 | 1.5     | Moved terms and abbreviations to terms document                 | Tatu Repo
 
 ## Table of Contents
 
@@ -71,21 +72,22 @@ The configuration proxy can be configured to mediate several global configuratio
 
 ### 1.2 Terms and Abbreviations
 
--   **Configuration proxy instance** – a process within the configuration proxy that deals with distributing the global configuration files of a specific X-Road instance.
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 
 ### 1.3 References
 
-1. <a id="Ref_ARC-G" class="anchor"></a>\[ARC-G\] Cybernetica AS. X-Road Architecture.
+1. <a id="Ref_ARC-G" class="anchor"></a>\[ARC-G\] Cybernetica AS. X-Road Architecture. Document ID: [ARC-G](arc-g_x-road_arhitecture.md).
 
-2. <a id="Ref_PR-GCONF" class="anchor"></a>\[PR-GCONF\] Cybernetica AS. X-Road: Protocol for Downloading Configuration.
+2. <a id="Ref_PR-GCONF" class="anchor"></a>\[PR-GCONF\] Cybernetica AS. X-Road: Protocol for Downloading Configuration. Document ID: [PR-GCONF](../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).
 
 3. <a id="Ref_PKCS11" class="anchor"></a>\[PKCS11\] Cryptographic Token Interface Standard. RSA Laboratories, PKCS\#11.
 
-4. <a id="Ref_UG-CP" class="anchor"></a>\[UG-CP\] Cybernetica AS. X-Road v6 Configuration Proxy Manual.
+4. <a id="Ref_UG-CP" class="anchor"></a>\[UG-CP\] Cybernetica AS. X-Road v6 Configuration Proxy Manual. Document ID: [UG-CP](../Manuals/ug-cp_x-road_v6_configuration_proxy_manual.md).
 
-5. <a id="Ref_ARC-TEC" class="anchor"></a>\[ARC-TEC\] X-Road technologies.
+5. <a id="Ref_ARC-TEC" class="anchor"></a>\[ARC-TEC\] X-Road technologies. Document ID: [ARC-TEC](arc-tec_x-road_technologies.md).
 
+6. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 ## 2 Component View
 

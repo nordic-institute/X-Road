@@ -22,6 +22,11 @@
  */
 package ee.ria.xroad.proxy.antidos;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.util.SystemMetrics;
+
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.util.Deque;
 import java.util.HashMap;
@@ -30,10 +35,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
-
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.util.SystemMetrics;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Manages the incoming connections and prevents system resource exhaustion.

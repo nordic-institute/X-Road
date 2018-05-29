@@ -1,18 +1,41 @@
 # X-Road: Autologin User Guide
 
-Version: 1.0  
+Version: 1.1  
 Doc. ID: UG-AUTOLOGIN
 
 
 | Date        | Version     | Description                                                                                             
 |-------------|-------------|---------------------------------------------------------------------------------------------------------
-| 23.8.2017   | 1.0         | Initial version             
+| 23.08.2017  | 1.0         | Initial version             
+| 06.03.2018  | 1.1         | Added chapter and section structure, terms and refs sections and term doc reference and link, toc                   
 
-# Autologin
+## Table of Contents
 
-An utility which automatically enters the PIN code after `xroad-signer` has started.
+<!-- toc -->
 
-## Usage
+- [1 Introduction](#1-introduction)
+    + [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
+    + [1.2 References](#12-references)
+- [2 Overview](#2-overview)
+    + [2.1 Usage](#21-usage)
+    + [2.2 Implementation details](#22-implementation-details)
+    
+<!-- tocstop -->
+
+## 1 Introduction
+
+This document describes the Autologin utility which automatically enters the PIN code after `xroad-signer` has started.
+
+### 1.1 Terms and abbreviations
+
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
+
+### 1.2 References
+
+1. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../../terms_x-road_docs.md).
+
+## 2 Overview
+### 2.1 Usage
 
 1. Install the package
   * Ubuntu: apt install xroad-autologin
@@ -36,7 +59,7 @@ An utility which automatically enters the PIN code after `xroad-signer` has star
   exit 0
   ```
 
-## Implementation details
+### 2.2 Implementation details
 
 * Creates a new service `xroad-autologin`
 * Service is started after `xroad-signer` has started
