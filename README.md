@@ -1,5 +1,5 @@
 
-![X-Road logo](xroad_logo_small.png)
+![X-Road logo](xroad_logo_small.png) ![European Regional Development Fund](https://github.com/e-gov/RIHA-Frontend/raw/master/logo/EU/EU.png "European Regional Development Fund - DO NOT REMOVE THIS IMAGE BEFORE 01.11.2022")
 
 ## About the repository
 
