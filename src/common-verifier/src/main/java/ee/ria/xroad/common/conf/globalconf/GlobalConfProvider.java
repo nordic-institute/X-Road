@@ -165,6 +165,11 @@ public interface GlobalConfProvider extends ConfProvider {
     List<X509Certificate> getAllCaCerts();
 
     /**
+     * @return all CA certificates for a given instance
+     */
+    List<X509Certificate> getAllCaCerts(String instanceIdentifier);
+
+    /**
      * @param instanceIdentifier the instance identifier
      * @param subject the subject certificate
      * @return the top CA and any intermediate CA certificates for a
