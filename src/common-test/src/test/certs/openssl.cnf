@@ -77,3 +77,9 @@ authorityKeyIdentifier  = keyid:always,issuer
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid,issuer
 keyUsage = digitalSignature, nonRepudiation
+
+[ auth ]
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, dataEncipherment, keyAgreement
+extendedKeyUsage = clientAuth, serverAuth
+

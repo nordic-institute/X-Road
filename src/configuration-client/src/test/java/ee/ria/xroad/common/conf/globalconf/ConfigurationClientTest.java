@@ -128,6 +128,7 @@ public class ConfigurationClientTest {
 
     private static ConfigurationAnchorV2 getConfigurationAnchor(final String fileName) {
         return new ConfigurationAnchorV2((String) null) {
+
             @Override
             public boolean hasChanged() {
                 return false;
@@ -136,8 +137,9 @@ public class ConfigurationClientTest {
             @Override
             public List<ConfigurationLocation> getLocations() {
                 try {
-                    return Arrays.asList(new ConfigurationLocation(
-                            this, fileName, Arrays.asList(TestCertUtil.getConsumer().cert.getEncoded())));
+                    return Arrays.asList(new ConfigurationLocation(this,
+                            fileName, Arrays.asList(
+                                    TestCertUtil.getConsumer().certChain[0].getEncoded())));
                 } catch (CertificateEncodingException e) {
                     throw new RuntimeException(e);
                 }

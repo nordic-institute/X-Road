@@ -75,7 +75,7 @@ public class TestKeyConf extends EmptyKeyConf {
     @Override
     public AuthKey getAuthKey() {
         PKCS12 consumer = TestCertUtil.getConsumer();
-        return new AuthKey(CertChain.create("EE", consumer.cert, null),
+        return new AuthKey(CertChain.create("EE", consumer.certChain[0], null),
                 consumer.key);
     }
 
@@ -118,7 +118,7 @@ public class TestKeyConf extends EmptyKeyConf {
     }
 
     private X509Certificate getOcspSignerCert() throws Exception {
-        return TestCertUtil.getOcspSigner().cert;
+        return TestCertUtil.getOcspSigner().certChain[0];
     }
 
     private PrivateKey getOcspRequestKey() throws Exception {

@@ -1,7 +1,10 @@
 # Change Log
 
-## 6.19.0 - XXX
-- TBD
+## 6.19.0 - TBD
+- PVAYLADEV-1107/XRJD #214: Security Server: Fixed SSL handshake does not include internal certificate's certificate chain.
+- PVAYLADEV-1139: Documentation: Updated build and development environment instructions.
+- PVAYLADEV-785: Security Server: Fixed malformed global configuration can cause a NPE in the admin UI.
+- PVAYLADEV-1137/XRJD #228: Security server: List approved certificate authorities.
 
 ## 6.18.0 - 2018-05-14
 - XTE-314 / Backlog #221: Central Server: Bugfix: Write globalconf files atomic way.

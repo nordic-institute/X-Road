@@ -76,9 +76,9 @@ public class TestServerConf extends EmptyServerConf {
     }
 
     @Override
-    public InternalSSLKey getSSLKey() throws Exception {
-        PKCS12 consumer = TestCertUtil.getConsumer();
-        return new InternalSSLKey(consumer.key, consumer.cert);
+    public InternalSSLKey getSSLKey() {
+        PKCS12 internal = TestCertUtil.getInternalKey();
+        return new InternalSSLKey(internal.key, internal.certChain);
     }
 
     @Override

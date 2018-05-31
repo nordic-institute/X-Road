@@ -69,7 +69,7 @@ public class SslToServiceWrongISCert extends SslMessageTestCase {
             @Override
             public List<X509Certificate> getIsCerts(ClientId client)
                     throws Exception {
-                return singletonList(TestCertUtil.getProducer().cert);
+                return singletonList(TestCertUtil.getProducer().certChain[0]);
             }
         });
     }

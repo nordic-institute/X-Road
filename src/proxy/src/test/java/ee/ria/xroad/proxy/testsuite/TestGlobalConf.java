@@ -81,7 +81,7 @@ public class TestGlobalConf extends EmptyGlobalConf {
     @Override
     public List<X509Certificate> getOcspResponderCertificates() {
         try {
-            return Arrays.asList(TestCertUtil.getOcspSigner().cert);
+            return Arrays.asList(TestCertUtil.getOcspSigner().certChain[0]);
         } catch (Exception e) {
             return Collections.emptyList();
         }

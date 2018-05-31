@@ -58,7 +58,7 @@ public class ConfigurationParserTest {
         List<ConfigurationFile> files =
                 parse("src/test/resources/test-conf-simple",
                         getConfigurationSource(
-                                TestCertUtil.getConsumer().cert,
+                                TestCertUtil.getConsumer().certChain[0],
                                 "EE", "http://foo.bar.baz"));
         assertFiles(files, "/private-params.xml", "/shared-params.xml",
                 "/foo.xml");
@@ -74,7 +74,7 @@ public class ConfigurationParserTest {
 
         parse("src/test/resources/test-conf-malformed",
                 getConfigurationSource(
-                        TestCertUtil.getConsumer().cert,
+                        TestCertUtil.getConsumer().certChain[0],
                         "EE", "http://foo.bar.baz"));
     }
 
@@ -88,7 +88,7 @@ public class ConfigurationParserTest {
 
         parse("src/test/resources/test-conf-missing-date",
                 getConfigurationSource(
-                        TestCertUtil.getConsumer().cert,
+                        TestCertUtil.getConsumer().certChain[0],
                         "EE", "http://foo.bar.baz"));
     }
 
@@ -102,7 +102,7 @@ public class ConfigurationParserTest {
 
         parse("src/test/resources/test-conf-simple",
                 getConfigurationSource(
-                        TestCertUtil.getProducer().cert,
+                        TestCertUtil.getProducer().certChain[0],
                         "EE", "http://foo.bar.baz"));
     }
 
@@ -116,7 +116,7 @@ public class ConfigurationParserTest {
 
         parse("src/test/resources/test-conf-missing-signature",
                 getConfigurationSource(
-                        TestCertUtil.getConsumer().cert,
+                        TestCertUtil.getConsumer().certChain[0],
                         "EE", "http://foo.bar.baz"));
     }
 

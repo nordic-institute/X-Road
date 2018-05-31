@@ -8,10 +8,10 @@
       <span class="box-title"><%= t 'anchor.title' %></span>
 
       <% if can?(:upload_anchor) %>
-      <button id="anchor_upload"><%= t 'common.upload' %></button>
+        <button id="anchor_upload"><%= t 'common.upload' %></button>
       <% end %>
       <% if can?(:download_anchor) %>
-      <button id="anchor_download"><%= t 'common.download' %></button>
+        <button id="anchor_download"><%= t 'common.download' %></button>
       <% end %>
     </div>
 
@@ -32,17 +32,30 @@
       <span class="box-title"><%= t '.tsps' %></span>
 
       <% if can?(:add_tsp) %>
-      <button id="tsp_add"><%= t 'common.add' %></button>
+        <button id="tsp_add"><%= t 'common.add' %></button>
       <% end %>
       <% if can?(:delete_tsp) %>
-      <button id="tsp_delete"><%= t 'common.delete' %></button>
+        <button id="tsp_delete"><%= t 'common.delete' %></button>
       <% end %>
     </div>
 
     <table id="tsps" class="bordered">
       <thead>
-        <th><%= t '.tsp_name' %></th>
-        <th><%= t '.tsp_url' %></th>
+      <th><%= t '.tsp_name' %></th>
+      <th><%= t '.tsp_url' %></th>
+      </thead>
+    </table>
+  </div>
+
+  <div class="box">
+    <div class="box-heading">
+      <span class="box-title"><%= t '.certificate_authorities' %></span>
+    </div>
+    <table id="cas" class="bordered">
+      <thead>
+      <th><%= t '.ca_name' %></th>
+      <th><%= t '.ocsp_response' %></th>
+      <th><%= t '.expires' %></th>
       </thead>
     </table>
   </div>
@@ -53,16 +66,16 @@
 
       <button id="cert_details"><%= t 'shared.cert_details_dialog.cert_details' %></button>
       <% if can?(:export_internal_ssl_cert) %>
-      <button id="export_internal_ssl_cert"><%= t 'common.export' %></button>
+        <button id="export_internal_ssl_cert"><%= t 'common.export' %></button>
       <% end %>
       <% if can?(:import_internal_ssl_cert) %>
-      <button id="import_internal_ssl_cert"><%= t 'common.import' %></button>
+        <button id="import_internal_ssl_cert"><%= t 'common.import' %></button>
       <% end %>
       <% if can?(:generate_internal_ssl_csr) %>
-      <button id="generate_ssl_csr"><%= t '.internal_ssl_generate_csr' %></button>
+        <button id="generate_ssl_csr"><%= t '.internal_ssl_generate_csr' %></button>
       <% end %>
       <% if can?(:generate_internal_ssl) %>
-      <button id="generate_internal_ssl"><%= t '.internal_ssl_generate_key' %></button>
+        <button id="generate_internal_ssl"><%= t '.internal_ssl_generate_key' %></button>
       <% end %>
     </div>
 

@@ -44,4 +44,5 @@ public class SslNormalMessage extends SslMessageTestCase {
             throws Exception {
         // Normal response, nothing more to check here.
     }
+
 }
