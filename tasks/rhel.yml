@@ -1,0 +1,18 @@
+---
+- name: xroad-util repo
+  template:
+    src: "xroad-util.repo.j2"
+    dest: "/etc/yum.repos.d/xroad-util.repo"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: install xroad-autologin
+  yum:
+      name: xroad-autologin
+      state: latest
+      update_cache: yes
+
+- name: enable xroad-autologin service
+  service: name=xroad-autologin enabled=yes
+

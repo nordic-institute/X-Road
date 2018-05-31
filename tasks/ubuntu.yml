@@ -1,0 +1,12 @@
+---
+- name: xroad-util apt repository
+  apt_repository:
+      repo: "deb https://s3-eu-west-1.amazonaws.com/xroad-release/xroad-util/debian stable main"
+
+- name: install autologin
+  apt:
+    name: "{{ item }}"
+    force: yes
+    state: latest
+  with_items:
+    - xroad-autologin

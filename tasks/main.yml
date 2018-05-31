@@ -1,0 +1,16 @@
+---
+- name: autologin configuration
+  template:
+    src: "xroad-autologin.j2"
+    dest: "/etc/xroad/autologin"
+    owner: root
+    group: xroad
+    mode: 0640
+    force: no
+
+- include: ubuntu.yml
+  when: ansible_os_family == "Debian"
+
+- include: rhel.yml
+  when: ansible_os_family == "RedHat"
+
