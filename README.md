@@ -1,5 +1,5 @@
 
-![X-Road logo](xroad_logo_small.png) ![European Regional Development Fund](https://github.com/e-gov/RIHA-Frontend/raw/master/logo/EU/EU.png "European Regional Development Fund - DO NOT REMOVE THIS IMAGE BEFORE 01.11.2022")
+![X-Road logo](xroad_logo_small.png) ![European Regional Development Fund](eu_logo.png "European Regional Development Fund - DO NOT REMOVE THIS IMAGE BEFORE 01.11.2022")
 
 ## About the repository
 
@@ -7,7 +7,7 @@ This repository contains information about the X-Road, source codes, its develop
 
 ## X-Road source code
 
-[Source code](https://github.com/ria-ee/X-Road/tree/develop/src) of X-Road is open for all and it is licenced under MIT licence. 
+[Source code](https://github.com/nordic-institute/X-Road/tree/develop/src) of X-Road is open for all and it is licenced under MIT licence.
 
 ## Introduction to X-Road
 
@@ -27,27 +27,24 @@ X-Road Data Exchange Layer is a standardised, cohesive, collaborative, interoper
 * Standardised data security and privacy protection
 * Easy implementation, data access via interfaces – after connecting all included services are available
 
-See [Data Exchange Layer X-Road](https://www.ria.ee/en/x-road.html) for more information about X-Road.
+See [Data Exchange Layer X-Road](https://www.niis.org/data-exchange-layer-x-road/) for more information about X-Road.
 
 ## Development of X-Road
 
-**Backlog**
-
-X-Road development backlog is in Github: [X-Road development backlog](https://github.com/vrk-kpa/xroad-joint-development/issues)
-
-* Backlog is a list of technical 'features' that are or will be developed to X-Road core technology.
-
-**Roadmap**
-
-Future developments are coordinated by [X-Road Joint Development Roadmap](https://github.com/vrk-kpa/xroad-joint-development/blob/master/ROADMAP.md)
-
-* X-Road Steering Group committee coordinates roadmap items.
+X-Road development model and all the related documentation is published and
+maintained in the [X-Road Development](https://github.com/nordic-institute/X-Road-development/)
+GitHub repository.
 
 **How to contribute?**
 
-Submit a pull request to [X-Road source code Github repository](https://github.com/ria-ee/X-Road) or raise an issue to [X-Road Joint Development Github repository ](https://github.com/vrk-kpa/xroad-joint-development/issues)
+Submit a pull request to [X-Road source code Github repository](https://github.com/nordic-institute/X-Road)
+or an enhancement request to the [X-Road Service Desk](https://jira.niis.org/servicedesk/customer/portal/1).
+[Sign up](https://jira.niis.org/secure/Signup!default.jspa) for an account and
+get access to the [X-Road Service Desk](https://jira.niis.org/servicedesk/customer/portal/1) and
+[X-Road Backlog](https://jira.niis.org/projects/XRDDEV/).
 
-* X-Road Working Group committee review all proposals and decides what enhancements will be included to future X-Road versions.
+More information about contributions can be found in the [X-Road Development](https://github.com/nordic-institute/X-Road-development#how-to-contribute)
+repository.
 
 ## X-Road installation
 
@@ -65,30 +62,41 @@ X-Road central servers, configuration proxies and security servers can be automa
 
 ## Further information about X-Road
 
-**More information about X-tee and Palveluväylä**
+**More information about X-Road implementations**
 
-Estonia - [X-tee (in Estonian)](https://www.ria.ee/ee/x-tee.html)
+Estonia - [X-tee](https://www.ria.ee/en/x-road.html)
 
-Finland - [Palveluväylä (in Finnish)](https://esuomi.fi/palveluntarjoajille/palveluvayla/)
+Finland - [Suomi.fi-palveluväylä (in Finnish)](https://esuomi.fi/palveluntarjoajille/palveluvayla/)
 
 **Contact information**
 
-Estonia - [X-tee contacts](https://www.ria.ee)
+Estonia - [X-tee contacts](https://www.ria.ee/en/contact.html)
 
-Finland - [Palveluväylä contacts](https://esuomi.fi/yhteystiedot/)
+Finland - [Suomi.fi-palveluväylä contacts](https://esuomi.fi/contact-information/?lang=en)
 
 ## Support disclaimer
 
-Current repository is collaboration platform between Finnish and Estonian government for joint development of X-Road. Cooperation is organized by the [Nordic Institute for Interoperability Solutions (NIIS)](https://www.niis.org/).
+The following activities, among others, are undertaken by the
+[Nordic Institute for Interoperability Solutions (NIIS)](https://www.niis.org/)
+with regard to the X-Road core:
 
-Support for members (existing or potential) X-tee (support provided by [RIA](https://www.ria.ee)) and Palveluväylä (support provided by [VRK](https://www.vrk.fi)).
+* management, development, verification, and audit of the source code
+* administration of documentation
+* administration of business and technical requirements
+* conducting development
+* developing and implementing principles of licensing and distribution
+* providing second-line support for the NIIS members
+* international cooperation.
 
-Consultational services for deploing independent X-Road instances should be obtained from enterprises with such services. Known organizations are:
+Support for member organizations of X-tee and Suomi.fi-palveluväylä is provided
+by [RIA](https://www.ria.ee) (X-tee) and [VRK](https://www.vrk.fi) (Suomi.fi-palveluväylä).
+
+Consultation services for deploying independent X-Road instances should be obtained from enterprises with such services. Known organizations are:
 
 * [Aktors OÜ](http://www.aktors.ee)
 * [Cybercom Finland Oy](http://www.cybercom.fi)
 * [Cybernetica AS](https://cyber.ee)
 * [Gofore Oyj](https://www.gofore.com)
 * [Roksnet Solutions OÜ](https://roksnet.com)
- 
+
 No support for X-Road deployment is provided here.
