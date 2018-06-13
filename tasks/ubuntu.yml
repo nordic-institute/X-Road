@@ -1,8 +1,0 @@
----
-- name: install autologin
-  apt:
-    name: "{{ item }}"
-    force: yes
-    state: latest
-  with_items:
-    - xroad-autologin

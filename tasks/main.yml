@@ -8,9 +8,8 @@
     mode: 0640
     force: no
 
-- include: ubuntu.yml
-  when: ansible_os_family == "Debian"
+- name: install autologin
+  package: name=xroad-autologin state=latest
 
-- include: rhel.yml
-  when: ansible_os_family == "RedHat"
-
+- name: enable autologin service
+  service: name=xroad-autologin enabled=yes
