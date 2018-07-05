@@ -13,7 +13,7 @@ vagrant ssh
 ```
 One-time setup:
 ```
-git clone https://github.com/ria-ee/X-Road.git
+git clone https://github.com/nordic-institute/X-Road.git
 cd X-Road/src
 ./prepare_buildhost.sh
 ./update_ruby_dependencies.sh
