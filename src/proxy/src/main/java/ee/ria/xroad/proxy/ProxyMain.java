@@ -374,27 +374,6 @@ public final class ProxyMain {
     }
 
     private static void readProxyVersion() {
-        try {
-            String cmd;
-
-            if (Files.exists(Paths.get("/etc/redhat-release"))) {
-                cmd = "rpm -q --queryformat '%{VERSION}-%{RELEASE}' xroad-proxy";
-            } else {
-                cmd = "dpkg-query -f '${Version}' -W xroad-proxy";
-            }
-
-            Process p = Runtime.getRuntime().exec(cmd);
-            p.waitFor();
-            version = IOUtils.toString(p.getInputStream()).replace("'", "");
-
-            if (StringUtils.isBlank(version)) {
-                version = "unknown";
-
-                log.warn("Unable to read proxy version: {}", IOUtils.toString(p.getErrorStream()));
-            }
-        } catch (Exception ex) {
-            version = "unknown";
-            log.warn("Unable to read proxy version", ex);
-        }
+        version = "unknown";
     }
 }
