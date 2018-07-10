@@ -44,6 +44,7 @@ import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
+import ee.ria.xroad.proxy.util.VersionUtil;
 import ee.ria.xroad.signer.protocol.SignerClient;
 
 import akka.actor.ActorSelection;
@@ -52,6 +53,7 @@ import akka.pattern.Patterns;
 import akka.util.Timeout;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
@@ -99,17 +101,11 @@ public final class ProxyMain {
 
     private static ActorSystem actorSystem;
 
+    @Getter
     private static String version;
     private static ServiceLoader<AddOn> addOns = ServiceLoader.load(AddOn.class);
 
     private ProxyMain() {
-    }
-
-    /**
-     * @return proxy version
-     */
-    public static String getVersion() {
-        return version;
     }
 
     /**
@@ -162,13 +158,11 @@ public final class ProxyMain {
 
     private static void startup() throws Exception {
         log.trace("startup()");
-
         actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy")
                 .withFallback(ConfigFactory.load())
                 .withValue("akka.remote.netty.tcp.port",
                         ConfigValueFactory.fromAnyRef(PortNumbers.PROXY_ACTORSYSTEM_PORT)));
-        readProxyVersion();
-
+        version = VersionUtil.parseVersion(VersionUtil.readProxyVersion());
         log.info("Starting proxy ({})...", getVersion());
     }
 
@@ -367,30 +361,5 @@ public final class ProxyMain {
         }
         return statuses;
 
-    }
-
-    private static void readProxyVersion() {
-        try {
-            String cmd;
-
-            if (Files.exists(Paths.get("/etc/redhat-release"))) {
-                cmd = "rpm -q --queryformat '%{VERSION}-%{RELEASE}' xroad-proxy";
-            } else {
-                cmd = "dpkg-query -f '${Version}' -W xroad-proxy";
-            }
-
-            Process p = Runtime.getRuntime().exec(cmd);
-            p.waitFor();
-            version = IOUtils.toString(p.getInputStream()).replace("'", "");
-
-            if (StringUtils.isBlank(version)) {
-                version = "unknown";
-
-                log.warn("Unable to read proxy version: {}", IOUtils.toString(p.getErrorStream()));
-            }
-        } catch (Exception ex) {
-            version = "unknown";
-            log.warn("Unable to read proxy version", ex);
-        }
     }
 }
