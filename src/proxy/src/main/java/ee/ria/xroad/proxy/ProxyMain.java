@@ -381,14 +381,16 @@ public final class ProxyMain {
                 cmd = "dpkg-query -f '${Version}' -W xroad-proxy";
             }
             Process p = Runtime.getRuntime().exec(cmd);
-            if (p.waitFor() == 0) {
+            int status = p.waitFor();
+            if (status == 0) {
                 result = IOUtils.toString(p.getInputStream(), Charset.defaultCharset());
             } else {
+                log.warn(String.format("Unable to read proxy version, process exit status=%d", status));
                 result = "unknown";
             }
         } catch (Exception ex) {
-            result = "unknown";
             log.warn("Unable to read proxy version", ex);
+            result = "unknown";
         }
         return result;
     }
