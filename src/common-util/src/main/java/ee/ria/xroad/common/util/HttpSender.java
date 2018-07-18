@@ -112,9 +112,11 @@ public class HttpSender extends AbstractHttpSender {
 
         addAdditionalHeaders();
 
-        log.debug("Log request headers");
-        for (Header header: request.getAllHeaders()) {
-            log.debug(String.format("%s : %s", header.getName(), header.getValue()));
+        if (log.isTraceEnabled()) {
+            log.trace("Log request headers");
+            for (Header header : request.getAllHeaders()) {
+                log.trace(String.format("%s : %s", header.getName(), header.getValue()));
+            }
         }
 
         try {
