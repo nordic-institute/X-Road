@@ -52,9 +52,9 @@ import akka.pattern.Patterns;
 import akka.util.Timeout;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 
@@ -64,6 +64,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalTime;
@@ -103,17 +104,11 @@ public final class ProxyMain {
 
     private static ActorSystem actorSystem;
 
+    @Getter
     private static String version;
     private static ServiceLoader<AddOn> addOns = ServiceLoader.load(AddOn.class);
 
     private ProxyMain() {
-    }
-
-    /**
-     * @return proxy version
-     */
-    public static String getVersion() {
-        return version;
     }
 
     /**
@@ -166,13 +161,11 @@ public final class ProxyMain {
 
     private static void startup() throws Exception {
         log.trace("startup()");
-
         actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy")
                 .withFallback(ConfigFactory.load())
                 .withValue("akka.remote.netty.tcp.port",
                         ConfigValueFactory.fromAnyRef(PortNumbers.PROXY_ACTORSYSTEM_PORT)));
-        readProxyVersion();
-
+        version = readProxyVersion();
         log.info("Starting proxy ({})...", getVersion());
     }
 
@@ -373,28 +366,32 @@ public final class ProxyMain {
 
     }
 
-    private static void readProxyVersion() {
+    /**
+     * Read installed proxy version information from package
+     * @return version string e.g. 6.17.0-1 or 6.19.0-0.20180709122743git861f417, or "unknown" in case it cannot be
+     * retrieved
+     */
+    public static String readProxyVersion() {
+        String result;
         try {
             String cmd;
-
             if (Files.exists(Paths.get("/etc/redhat-release"))) {
                 cmd = "rpm -q --queryformat '%{VERSION}-%{RELEASE}' xroad-proxy";
             } else {
                 cmd = "dpkg-query -f '${Version}' -W xroad-proxy";
             }
-
             Process p = Runtime.getRuntime().exec(cmd);
-            p.waitFor();
-            version = IOUtils.toString(p.getInputStream()).replace("'", "");
-
-            if (StringUtils.isBlank(version)) {
-                version = "unknown";
-
-                log.warn("Unable to read proxy version: {}", IOUtils.toString(p.getErrorStream()));
+            int status = p.waitFor();
+            if (status == 0) {
+                result = IOUtils.toString(p.getInputStream(), Charset.defaultCharset());
+            } else {
+                log.warn(String.format("Unable to read proxy version, process exit status=%d", status));
+                result = "unknown";
             }
         } catch (Exception ex) {
-            version = "unknown";
             log.warn("Unable to read proxy version", ex);
+            result = "unknown";
         }
+        return result;
     }
 }
