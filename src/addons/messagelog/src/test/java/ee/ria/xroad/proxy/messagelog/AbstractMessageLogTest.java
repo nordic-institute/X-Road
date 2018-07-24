@@ -38,7 +38,6 @@ import akka.actor.UntypedActor;
 import akka.testkit.TestActorRef;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
-import com.typesafe.config.ConfigValueFactory;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.Await;
@@ -82,6 +81,7 @@ abstract class AbstractMessageLogTest {
     public static class DeadLetterActor extends UntypedActor {
 
         private AbstractMessageLogTest test;
+
         DeadLetterActor(AbstractMessageLogTest test) {
             this.test = test;
         }
@@ -97,12 +97,11 @@ abstract class AbstractMessageLogTest {
 
     protected void testSetUp(boolean timestampImmediately) throws Exception {
         jobManager = new JobManager();
-        jobManager.start();
-
         clearDeadLetters();
 
-        actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy")
-                .withValue("akka.remote.netty.tcp.port", ConfigValueFactory.fromAnyRef(0)));
+        actorSystem = ActorSystem.create("Proxy", ConfigFactory.load()
+                .getConfig("proxy")
+                .withoutPath("akka.actor.provider"));
 
         actorSystem.eventStream().subscribe(actorSystem.actorOf(Props.create(DeadLetterActor.class, this)),
                 DeadLetter.class);
@@ -143,6 +142,7 @@ abstract class AbstractMessageLogTest {
 
     /**
      * Sends time stamping status message to LogManager
+     *
      * @param status status message
      */
     private void signalTimestampingStatus(SetTimestampingStatusMessage.Status status) {
@@ -158,8 +158,7 @@ abstract class AbstractMessageLogTest {
     }
 
     void startTimestamping() {
-        actorSystem.actorSelection(component(LogManager.TASK_QUEUE_NAME)).tell(TaskQueue.START_TIMESTAMPING,
-                ActorRef.noSender());
+        logManager.getTaskQueueRef().tell(TaskQueue.START_TIMESTAMPING, ActorRef.noSender());
     }
 
     void startArchiving() {
