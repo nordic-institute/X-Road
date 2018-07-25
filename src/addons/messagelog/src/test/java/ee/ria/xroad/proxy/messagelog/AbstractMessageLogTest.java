@@ -38,6 +38,7 @@ import akka.actor.UntypedActor;
 import akka.testkit.TestActorRef;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
+import com.typesafe.config.ConfigValueFactory;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.Await;
@@ -101,7 +102,7 @@ abstract class AbstractMessageLogTest {
 
         actorSystem = ActorSystem.create("Proxy", ConfigFactory.load()
                 .getConfig("proxy")
-                .withoutPath("akka.actor.provider"));
+                .withValue("akka.actor.provider", ConfigValueFactory.fromAnyRef("local"))); //remoting is not needed
 
         actorSystem.eventStream().subscribe(actorSystem.actorOf(Props.create(DeadLetterActor.class, this)),
                 DeadLetter.class);
@@ -158,17 +159,15 @@ abstract class AbstractMessageLogTest {
     }
 
     void startTimestamping() {
-        logManager.getTaskQueueRef().tell(TaskQueue.START_TIMESTAMPING, ActorRef.noSender());
+        logManager.taskQueueRef.tell(TaskQueue.START_TIMESTAMPING, ActorRef.noSender());
     }
 
     void startArchiving() {
-        actorSystem.actorSelection(component(LogManager.ARCHIVER_NAME)).tell(LogArchiver.START_ARCHIVING,
-                ActorRef.noSender());
+        logManager.logArchiver.tell(LogArchiver.START_ARCHIVING, ActorRef.noSender());
     }
 
     void startCleaning() {
-        actorSystem.actorSelection(component(LogManager.CLEANER_NAME)).tell(LogCleaner.START_CLEANING,
-                ActorRef.noSender());
+        logManager.logCleaner.tell(LogCleaner.START_CLEANING, ActorRef.noSender());
     }
 
     void awaitTermination() throws Exception {
