@@ -93,13 +93,13 @@ public class OcspClientWorker extends AbstractSignerActor {
 
     private GlobalConfChangeChecker changeChecker;
 
-    private CertificationServiceDiagnostics diagnostics;
+    private CertificationServiceDiagnostics certServDiagnostics;
 
     @Override
     public void preStart() throws Exception {
         super.preStart();
         changeChecker = new GlobalConfChangeChecker();
-        diagnostics = new CertificationServiceDiagnostics();
+        certServDiagnostics = new CertificationServiceDiagnostics();
     }
 
     @Override
@@ -120,7 +120,7 @@ public class OcspClientWorker extends AbstractSignerActor {
     }
 
     void handleDiagnostics() {
-        getSender().tell(diagnostics, getSelf());
+        getSender().tell(certServDiagnostics, getSelf());
     }
 
     void handleReload() {
@@ -355,7 +355,7 @@ public class OcspClientWorker extends AbstractSignerActor {
 
         CertificationServiceStatus serviceStatus;
 
-        Map<String, CertificationServiceStatus> serviceStatusMap = diagnostics.getCertificationServiceStatusMap();
+        Map<String, CertificationServiceStatus> serviceStatusMap = certServDiagnostics.getCertificationServiceStatusMap();
 
         if (!serviceStatusMap.containsKey(subjectName)) {
             serviceStatus = new CertificationServiceStatus(subjectName);
@@ -462,12 +462,12 @@ public class OcspClientWorker extends AbstractSignerActor {
                 final String key = caCertificate.getSubjectDN().toString();
 
                 // add certification service if it does not exist
-                if (!diagnostics.getCertificationServiceStatusMap().containsKey(key)) {
+                if (!certServDiagnostics.getCertificationServiceStatusMap().containsKey(key)) {
                     CertificationServiceStatus newServiceStatus = new CertificationServiceStatus(key);
-                    diagnostics.getCertificationServiceStatusMap().put(key, newServiceStatus);
+                    certServDiagnostics.getCertificationServiceStatusMap().put(key, newServiceStatus);
                 }
 
-                CertificationServiceStatus serviceStatus = diagnostics.getCertificationServiceStatusMap().get(key);
+                CertificationServiceStatus serviceStatus = certServDiagnostics.getCertificationServiceStatusMap().get(key);
                 // add ocsp responder if it does not exist
                 GlobalConf.getOcspResponderAddressesForCaCertificate(caCertificate).stream()
                         .filter(responderURI -> !serviceStatus.getOcspResponderStatusMap().containsKey(responderURI))
