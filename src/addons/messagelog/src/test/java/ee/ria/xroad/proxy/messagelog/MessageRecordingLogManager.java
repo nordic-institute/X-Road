@@ -41,9 +41,10 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 @Slf4j
 public class MessageRecordingLogManager extends LogManager {
-    MessageRecordingLogManager() throws Exception {
-        super(new JobManager());
+    MessageRecordingLogManager(JobManager jobManager) throws Exception {
+        super(jobManager);
     }
+
     @Getter
     private static List messages = Collections.synchronizedList(new ArrayList<Object>());
 
@@ -60,21 +61,22 @@ public class MessageRecordingLogManager extends LogManager {
     @Override
     public void onReceive(Object message) throws Exception {
         log.info("onReceive {}", message);
-        try {
-            if (message instanceof String && GET_INSTANCE_MESSAGE.equals(message)) {
-                // send "this" back to caller
-                getSender().tell(this, getSelf());
-            } else {
-                continueWhenFirstMessageHasArrivedLatch.countDown();
-                log.debug("(2) first message latch = " + continueWhenFirstMessageHasArrivedLatch.getCount());
-                continueWhenFirstMessageHasArrivedLatch.await();
+        if (message instanceof String && GET_INSTANCE_MESSAGE.equals(message)) {
+            // send "this" back to caller
+            getSender().tell(this, getSelf());
+        } else {
+            continueWhenFirstMessageHasArrivedLatch.countDown();
+            log.debug("(2) first message latch = " + continueWhenFirstMessageHasArrivedLatch.getCount());
+            continueWhenFirstMessageHasArrivedLatch.await();
+            try {
                 messageProcessingStoppedLock.lock();
                 messages.add(message);
                 getSender().tell("done", getSelf());
+            } finally {
+                messageProcessingStoppedLock.unlock();
             }
-        } finally {
-            messageProcessingStoppedLock.unlock();
         }
+
     }
 
     public void stopProcessingMessages() {
@@ -87,6 +89,7 @@ public class MessageRecordingLogManager extends LogManager {
 
     /**
      * Continue when first actual message (not GET_INSTANCE) has arrived in onReceive
+     *
      * @throws InterruptedException
      */
     public void waitForFirstMessageToArrive() throws InterruptedException {

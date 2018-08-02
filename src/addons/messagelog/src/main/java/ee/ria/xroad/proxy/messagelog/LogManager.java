@@ -47,7 +47,6 @@ import akka.actor.Props;
 import akka.actor.UntypedActor;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.quartz.JobDataMap;
@@ -92,50 +91,51 @@ public class LogManager extends AbstractLogManager {
     // Date at which a time-stamping first failed.
     private DateTime timestampFailed;
 
-    private ActorRef timestamper;
+    private final ActorRef timestamper;
+
+    // package private for testing
+    final ActorRef taskQueueRef;
+    final ActorRef logArchiver;
+    final ActorRef logCleaner;
 
     LogManager(JobManager jobManager) throws Exception {
         super(jobManager);
 
-        createTaskQueue();
-
-        createTimestamper();
-
-        createArchiver(jobManager);
-        createCleaner(jobManager);
+        taskQueueRef = createTaskQueue();
+        timestamper  = createTimestamper();
+        logArchiver  = createArchiver(jobManager);
+        logCleaner   = createCleaner(jobManager);
     }
 
-    @Getter
-    private ActorRef taskQueueRef;
-
-    private void createTaskQueue() {
-        taskQueueRef = getContext().actorOf(getTaskQueueImpl(), TASK_QUEUE_NAME);
+    private ActorRef createTaskQueue() {
+        return getContext().actorOf(getTaskQueueImpl(), TASK_QUEUE_NAME);
     }
 
-    private void createTimestamper() {
-        timestamper = getContext().actorOf(getTimestamperImpl(), TIMESTAMPER_NAME);
-
+    private ActorRef createTimestamper() {
+        ActorRef ref = getContext().actorOf(getTimestamperImpl(), TIMESTAMPER_NAME);
         getContext().actorOf(Props.create(TimestamperJob.class, getTimestamperJobInitialDelay()));
+        return ref;
     }
 
     /**
      * Can be overwritten in test classes if we want to make sure that timestamping does not start prematurely.
+     *
      * @return timestamper job initial delay.
      */
     protected FiniteDuration getTimestamperJobInitialDelay() {
         return Duration.create(1, TimeUnit.SECONDS);
     }
 
-    private void createArchiver(JobManager jobManager) {
-        getContext().actorOf(getArchiverImpl(), ARCHIVER_NAME);
-
+    private ActorRef createArchiver(JobManager jobManager) {
+        ActorRef ref = getContext().actorOf(getArchiverImpl(), ARCHIVER_NAME);
         registerCronJob(jobManager, ARCHIVER_NAME, START_ARCHIVING, getArchiveInterval());
+        return ref;
     }
 
-    private void createCleaner(JobManager jobManager) {
-        getContext().actorOf(getCleanerImpl(), CLEANER_NAME);
-
+    private ActorRef createCleaner(JobManager jobManager) {
+        ActorRef ref = getContext().actorOf(getCleanerImpl(), CLEANER_NAME);
         registerCronJob(jobManager, CLEANER_NAME, START_CLEANING, getCleanInterval());
+        return ref;
     }
 
     // ------------------------------------------------------------------------
@@ -228,7 +228,7 @@ public class LogManager extends AbstractLogManager {
 
             log.error("Timestamping failed", e);
 
-            for (String tspUrl: ServerConf.getTspUrl()) {
+            for (String tspUrl : ServerConf.getTspUrl()) {
                 statusMap.put(tspUrl, new DiagnosticsStatus(DiagnosticsUtils.getErrorCode(e), LocalTime.now(), tspUrl));
             }
 
@@ -246,7 +246,7 @@ public class LogManager extends AbstractLogManager {
     }
 
     private static MessageRecord createMessageRecord(SoapMessageImpl message, SignatureData signature,
-            boolean clientSide) throws Exception {
+                                                     boolean clientSide) throws Exception {
         log.trace("createMessageRecord()");
 
         String loggedMessage = new SoapMessageBodyManipulator().getLoggableMessageText(message, clientSide);
