@@ -55,7 +55,7 @@ public class OcspClientJob extends OcspRetrievalJob {
     private int prevDelay = 0;
 
     //flag for indicating backoff retry state
-    private boolean failed = false;
+    private boolean isFailed = false;
 
     OcspClientJob() {
         super(OCSP_CLIENT, OcspClientWorker.EXECUTE);
@@ -77,7 +77,7 @@ public class OcspClientJob extends OcspRetrievalJob {
         nextDelay = currentDelay + prevDelay;
 
 
-        if (failed && nextDelay < OcspClientWorker.getNextOcspFetchIntervalSeconds()) {
+        if (isFailed && nextDelay < OcspClientWorker.getNextOcspFetchIntervalSeconds()) {
             prevDelay = currentDelay;
             currentDelay = nextDelay;
             log.info("Next OCSP refresh retry scheduled in {} seconds", nextDelay);
@@ -106,16 +106,16 @@ public class OcspClientJob extends OcspRetrievalJob {
         } else if (SUCCESS.equals(incoming)) {
             log.debug("received message OcspClientJob.SUCCESS");
             log.info("OCSP-response refresh cycle successfully completed, continuing with normal scheduling");
-            failed = false;
+            isFailed = false;
             currentDelay = 0;
         } else if (FAILED.equals(incoming)) {
             log.debug("received message OcspClientJob.FAILED");
-            if (!failed) {
+            if (!isFailed) {
                 log.info("OCSP-response refresh cycle failed, switching to retry backoff schedule");
                 // move into recover-from-failed state
                 // cancel next send and start fibonacci-recovering
                 cancelNextSend();
-                failed = true;
+                isFailed = true;
                 scheduleNextSend(getNextDelay());
             } else {
                 // no need to touch scheduling, we have already
@@ -131,7 +131,7 @@ public class OcspClientJob extends OcspRetrievalJob {
             // invalid at that time -> reschedule
             cancelNextSend();
             scheduleNextSend(getNextDelayForInvalidGlobalConf());
-            failed = false;
+            isFailed = false;
             currentDelay = 0;
 
         } else {
