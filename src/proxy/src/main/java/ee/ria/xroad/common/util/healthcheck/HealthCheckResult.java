@@ -30,7 +30,7 @@ import lombok.Value;
 @Value
 public class HealthCheckResult {
 
-    private final boolean ok;
+    private final boolean isOk;
     private final String errorMessage;
 
     /**
