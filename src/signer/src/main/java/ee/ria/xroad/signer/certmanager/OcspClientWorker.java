@@ -305,7 +305,7 @@ public class OcspClientWorker extends AbstractSignerActor {
 
                 if (response != null) {
                     reportOcspDiagnostics(issuer, responderURI, DiagnosticsErrorCodes.RETURN_SUCCESS, LocalTime.now(),
-                        LocalTime.now().plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval()));
+                            LocalTime.now().plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval()));
 
                     break;
                 }
@@ -319,14 +319,14 @@ public class OcspClientWorker extends AbstractSignerActor {
                 log.error("Unable to connect to responder at " + responderURI, e);
 
                 reportOcspDiagnostics(issuer, responderURI, DiagnosticsErrorCodes.ERROR_CODE_OCSP_CONNECTION_ERROR,
-                    LocalTime.now(),
-                    LocalTime.now().plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval()));
+                        LocalTime.now(),
+                        LocalTime.now().plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval()));
             } catch (Exception e) {
                 log.error("Unable to fetch response from responder at " + responderURI, e);
 
                 reportOcspDiagnostics(issuer, responderURI, DiagnosticsErrorCodes.ERROR_CODE_OCSP_FAILED,
-                    LocalTime.now(),
-                    LocalTime.now().plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval()));
+                        LocalTime.now(),
+                        LocalTime.now().plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval()));
             }
         }
         try {
@@ -355,7 +355,8 @@ public class OcspClientWorker extends AbstractSignerActor {
 
         CertificationServiceStatus serviceStatus;
 
-        Map<String, CertificationServiceStatus> serviceStatusMap = certServDiagnostics.getCertificationServiceStatusMap();
+        Map<String, CertificationServiceStatus> serviceStatusMap =
+                certServDiagnostics.getCertificationServiceStatusMap();
 
         if (!serviceStatusMap.containsKey(subjectName)) {
             serviceStatus = new CertificationServiceStatus(subjectName);
@@ -467,7 +468,8 @@ public class OcspClientWorker extends AbstractSignerActor {
                     certServDiagnostics.getCertificationServiceStatusMap().put(key, newServiceStatus);
                 }
 
-                CertificationServiceStatus serviceStatus = certServDiagnostics.getCertificationServiceStatusMap().get(key);
+                CertificationServiceStatus serviceStatus =
+                        certServDiagnostics.getCertificationServiceStatusMap().get(key);
                 // add ocsp responder if it does not exist
                 GlobalConf.getOcspResponderAddressesForCaCertificate(caCertificate).stream()
                         .filter(responderURI -> !serviceStatus.getOcspResponderStatusMap().containsKey(responderURI))

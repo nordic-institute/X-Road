@@ -196,9 +196,9 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
         deviceType.setSlotId(token.getLabel());
 
         token.getKeys().stream().filter(TokenConf::hasCertsOrCertRequests)
-            .forEach(key -> {
-                deviceType.getKey().add(from(key));
-            });
+                .forEach(key -> {
+                    deviceType.getKey().add(from(key));
+                });
 
         deviceType.setSignMechanismName(token.getSignMechanismName());
 
@@ -311,7 +311,7 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
             return type.getId();
         } else {
             try {
-                 return calculateCertHexHash(type.getContents());
+                return calculateCertHexHash(type.getContents());
             } catch (Exception e) {
                 log.error("Failed to calculate certificate hash for {}",
                          type, e);

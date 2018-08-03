@@ -324,13 +324,13 @@ public final class SignerUtil {
      */
     public static OneForOneStrategy createPKCS11ExceptionEscalatingStrategy() {
         return new OneForOneStrategy(-1, Duration.Inf(),
-            throwable -> {
-                if (throwable instanceof PKCS11Exception) {
-                    return SupervisorStrategy.escalate();
-                } else {
-                    return SupervisorStrategy.resume();
+                throwable -> {
+                    if (throwable instanceof PKCS11Exception) {
+                        return SupervisorStrategy.escalate();
+                    } else {
+                        return SupervisorStrategy.resume();
+                    }
                 }
-            }
         );
     }
 

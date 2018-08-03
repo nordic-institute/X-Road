@@ -67,7 +67,7 @@ import static java.util.Collections.unmodifiableList;
 @Slf4j
 public final class TokenManager {
 
-   private static volatile List<Token> currentTokens = new ArrayList<>();
+    private static volatile List<Token> currentTokens = new ArrayList<>();
 
     private static boolean initialized;
 
