@@ -32,11 +32,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import javax.wsdl.BindingOperation;
@@ -350,12 +348,7 @@ public final class WSDLParser {
             ctx.init(new KeyManager[]{new ClientSslKeyManager()}, trustAllCerts, new SecureRandom());
 
             conn.setSSLSocketFactory(ctx.getSocketFactory());
-            conn.setHostnameVerifier(new HostnameVerifier() {
-                @Override
-                public boolean verify(String hostname, SSLSession session) {
-                    return true;
-                }
-            });
+            conn.setHostnameVerifier(HostnameVerifiers.ACCEPT_ALL);
         }
     }
 }

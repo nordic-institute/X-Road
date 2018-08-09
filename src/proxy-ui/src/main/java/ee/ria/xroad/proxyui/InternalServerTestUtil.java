@@ -32,12 +32,10 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509TrustManager;
@@ -88,12 +86,7 @@ public final class InternalServerTestUtil {
             (new URL(url).openConnection());
 
         con.setSSLSocketFactory(ctx.getSocketFactory());
-        con.setHostnameVerifier(new HostnameVerifier() {
-                @Override
-                public boolean verify(String hostname, SSLSession session) {
-                    return true;
-                }
-            });
+        con.setHostnameVerifier(HostnameVerifiers.ACCEPT_ALL);
 
         con.connect();
     }
