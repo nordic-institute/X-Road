@@ -35,8 +35,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
-import static java.lang.System.out;
-
 /**
  * ASiC container verifier utility program.
  */
@@ -62,7 +60,7 @@ public final class AsicVerifierMain {
     private static void loadConf(String confPath) {
         System.setProperty(SystemProperties.CONFIGURATION_PATH, confPath);
 
-        out.println("Loading configuration from " + confPath + "...");
+        System.out.println("Loading configuration from " + confPath + "...");
         try {
             GlobalConf.reload();
             verifyConfPathCorrectness();
@@ -81,7 +79,7 @@ public final class AsicVerifierMain {
     }
 
     private static void verifyAsic(String fileName) {
-        out.println("Verifying ASiC container \"" + fileName + "\" ...");
+        System.out.println("Verifying ASiC container \"" + fileName + "\" ...");
 
         try {
             AsicContainerVerifier verifier = new AsicContainerVerifier(fileName);
@@ -96,15 +94,15 @@ public final class AsicVerifierMain {
     @SuppressWarnings("resource") //
     private static void onVerificationSucceeded(
             AsicContainerVerifier verifier) throws IOException {
-        out.println(AsicUtils.buildSuccessOutput(verifier));
+        System.out.println(AsicUtils.buildSuccessOutput(verifier));
 
-        out.print("\nWould you like to extract the signed files? (y/n) ");
+        System.out.print("\nWould you like to extract the signed files? (y/n) ");
 
         if ("y".equalsIgnoreCase(new Scanner(System.in).nextLine())) {
             AsicContainer asic = verifier.getAsic();
             writeToFile(AsicContainerEntries.ENTRY_MESSAGE, asic.getMessage());
 
-            out.println("Files successfully extracted.");
+            System.out.println("Files successfully extracted.");
         }
     }
 
@@ -117,11 +115,11 @@ public final class AsicVerifierMain {
             file.write(contents.getBytes(StandardCharsets.UTF_8));
         }
 
-        out.println("Created file " + fileName);
+        System.out.println("Created file " + fileName);
     }
 
     private static void showUsage() {
-        out.println("Usage: AsicVerifier "
+        System.out.println("Usage: AsicVerifier "
                 + "<configuration path> <asic container>");
     }
 }
