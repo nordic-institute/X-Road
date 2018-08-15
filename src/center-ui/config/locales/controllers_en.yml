@@ -32,7 +32,7 @@ en:
       set_locale: "set application locale"
 
   init:
-    not_authorized: "Fatal system error - contact system administrator"
+    not_authorized: "Not authorized - contact system administrator"
     already_initialized: "Central Server already initialized"
     mismatching_pins: "Software token pins do not match"
     init_params:
