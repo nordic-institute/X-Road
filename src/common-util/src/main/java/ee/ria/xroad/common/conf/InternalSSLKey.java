@@ -51,7 +51,7 @@ public final class InternalSSLKey {
     public static final String KEY_FILE_NAME = "ssl/internal.p12";
     public static final String KEY_ALIAS = "internal";
     @Getter
-    private static final char[] KEY_PASSWORD = "internal".toCharArray();
+    private static final char[] KEY_PASSWORD = KEY_ALIAS.toCharArray();
 
     private final PrivateKey key;
     private final X509Certificate[] certChain;
