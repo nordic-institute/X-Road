@@ -170,10 +170,12 @@ public final class ConfigurationClientMain {
 
             @Override
             void persistContent(byte[] content, Path destination, ConfigurationFile file) throws Exception {
+                // empty cause we don't want to persist files to disk
             }
 
             @Override
             void updateExpirationDate(Path destination, ConfigurationFile file) throws Exception {
+                // empty cause we don't want to persist files to disk
             }
         };
 
