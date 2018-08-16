@@ -237,6 +237,7 @@ public final class ConfigurationClientMain {
         return new DownloadedFiles(SystemProperties.getConfigurationPath()) {
             @Override
             void delete(Path path) {
+                // old configuration files aren't removed when running as non daemon
             }
         };
     }
