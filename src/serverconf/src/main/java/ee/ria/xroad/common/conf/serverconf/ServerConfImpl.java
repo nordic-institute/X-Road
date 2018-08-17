@@ -282,6 +282,11 @@ public class ServerConfImpl implements ServerConfProvider {
             return false;
         }
 
+        return checkAccessRights(clientType, session, client, service);
+    }
+
+    private boolean checkAccessRights(ClientType clientType, Session session, ClientId client, ServiceId service) {
+
         for (AccessRightType accessRight : clientType.getAcl()) {
             if (!StringUtils.equals(service.getServiceCode(),
                     accessRight.getServiceCode())) {
@@ -290,20 +295,15 @@ public class ServerConfImpl implements ServerConfProvider {
 
             XRoadId subjectId = accessRight.getSubjectId();
 
-            if (subjectId instanceof GlobalGroupId) {
-                if (GlobalConf.isSubjectInGlobalGroup(client,
-                        (GlobalGroupId) subjectId)) {
-                    return true;
-                }
-            } else if (subjectId instanceof LocalGroupId) {
-                if (isMemberInLocalGroup(session, client,
-                        (LocalGroupId) subjectId, service)) {
-                    return true;
-                }
-            } else if (subjectId instanceof ClientId) {
-                if (client.equals(subjectId)) {
-                    return true;
-                }
+            if (subjectId instanceof GlobalGroupId &&
+                GlobalConf.isSubjectInGlobalGroup(client, (GlobalGroupId) subjectId)) {
+                return true;
+            } else if (subjectId instanceof LocalGroupId &&
+                isMemberInLocalGroup(session, client, (LocalGroupId) subjectId, service)) {
+                return true;
+            } else if (subjectId instanceof ClientId &&
+                client.equals(subjectId)) {
+                return true;
             }
         }
 
