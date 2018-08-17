@@ -38,6 +38,8 @@ import java.util.List;
  */
 public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
 
+    private static final String CLIENT_SUBSYSTEM_CODE = "clientSubsystemCode";
+
     /**
      * Returns the service object for the given service identifier or null
      * if the service cannot be found.
@@ -82,14 +84,14 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
         qb.append(" and c.identifier.memberCode = :clientCode");
         qb.append(" and c.identifier.subsystemCode "
                 + nullOrName(serviceProvider.getSubsystemCode(),
-                        "clientSubsystemCode"));
+                CLIENT_SUBSYSTEM_CODE));
 
         Query q = session.createQuery(qb.toString());
 
         q.setString("clientInstance", serviceProvider.getXRoadInstance());
         q.setString("clientClass", serviceProvider.getMemberClass());
         q.setString("clientCode", serviceProvider.getMemberCode());
-        setString(q, "clientSubsystemCode", serviceProvider.getSubsystemCode());
+        setString(q, CLIENT_SUBSYSTEM_CODE, serviceProvider.getSubsystemCode());
 
         List<ServiceId> services = new ArrayList<>();
         for (ServiceType service : findMany(q)) {
@@ -115,7 +117,7 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
         qb.append(" and c.identifier.memberCode = :clientCode");
         qb.append(" and c.identifier.subsystemCode "
                 + nullOrName(id.getClientId().getSubsystemCode(),
-                        "clientSubsystemCode"));
+                CLIENT_SUBSYSTEM_CODE));
 
         Query q = session.createQuery(qb.toString());
 
@@ -125,7 +127,7 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
         q.setString("clientInstance", id.getClientId().getXRoadInstance());
         q.setString("clientClass", id.getClientId().getMemberClass());
         q.setString("clientCode", id.getClientId().getMemberCode());
-        setString(q, "clientSubsystemCode",
+        setString(q, CLIENT_SUBSYSTEM_CODE,
                 id.getClientId().getSubsystemCode());
 
         return findOne(q);
