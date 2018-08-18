@@ -22,6 +22,7 @@
  */
 package ee.ria.xroad.signer;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 
 import lombok.extern.slf4j.Slf4j;
@@ -48,11 +49,8 @@ public class OcspClientJob extends OcspRetrievalJob {
     private static final FiniteDuration INITIAL_DELAY =
             FiniteDuration.create(5, TimeUnit.SECONDS);
 
-    private static final int BASIC_DELAY = 10;
     private static final int RECOVER_FROM_INVALID_GLOBALCONF_DELAY = 60;
-    private int nextDelay = 0;
-    private int currentDelay = 0;
-    private int prevDelay = 0;
+    private static final int RETRY_DELAY = SystemProperties.getOcspResponseRetryDelay();
 
     //flag for indicating backoff retry state
     private boolean failed = false;
@@ -68,20 +66,9 @@ public class OcspClientJob extends OcspRetrievalJob {
 
     @Override
     protected FiniteDuration getNextDelay() {
-        // Init first round
-        if (currentDelay == 0) {
-            prevDelay = 0;
-            currentDelay = BASIC_DELAY;
-        }
-        // Use fibonacci number series for modeling backoff delay
-        nextDelay = currentDelay + prevDelay;
-
-
-        if (failed && nextDelay < OcspClientWorker.getNextOcspFetchIntervalSeconds()) {
-            prevDelay = currentDelay;
-            currentDelay = nextDelay;
-            log.info("Next OCSP refresh retry scheduled in {} seconds", nextDelay);
-            return FiniteDuration.create(nextDelay, TimeUnit.SECONDS);
+        if (failed && RETRY_DELAY < OcspClientWorker.getNextOcspFetchIntervalSeconds()) {
+            log.info("Next OCSP refresh retry scheduled in {} seconds", RETRY_DELAY);
+            return FiniteDuration.create(RETRY_DELAY, TimeUnit.SECONDS);
         } else {
             log.info("Next OCSP refresh scheduled in {} seconds", OcspClientWorker.getNextOcspFetchIntervalSeconds());
             return FiniteDuration.create(
@@ -107,13 +94,12 @@ public class OcspClientJob extends OcspRetrievalJob {
             log.debug("received message OcspClientJob.SUCCESS");
             log.info("OCSP-response refresh cycle successfully completed, continuing with normal scheduling");
             failed = false;
-            currentDelay = 0;
         } else if (FAILED.equals(incoming)) {
             log.debug("received message OcspClientJob.FAILED");
             if (!failed) {
                 log.info("OCSP-response refresh cycle failed, switching to retry backoff schedule");
                 // move into recover-from-failed state
-                // cancel next send and start fibonacci-recovering
+                // cancel next send and start backoff schedule
                 cancelNextSend();
                 failed = true;
                 scheduleNextSend(getNextDelay());
@@ -132,7 +118,6 @@ public class OcspClientJob extends OcspRetrievalJob {
             cancelNextSend();
             scheduleNextSend(getNextDelayForInvalidGlobalConf());
             failed = false;
-            currentDelay = 0;
 
         } else {
             // received either EXECUTE (VariableIntervalPeriodicJob
