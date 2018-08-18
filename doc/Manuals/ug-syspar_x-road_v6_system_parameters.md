@@ -41,6 +41,7 @@ Doc. ID: UG-SYSPAR
 | 29.01.2018 | 2.29     | Removed proxy parameter client-fastest-connecting-ssl-use-uri-cache. Added proxy parameter client-fastest-connecting-ssl-uri-cache-period. | Ilkka Seppälä |
 | 05.03.2018 | 2.30     | Added reference to terms and abbreviations, modified reference handling, added numbering. | Tatu Repo |
 | 06.04.2018 | 2.31     | Removed TLSv1.1 support (client-side interfaces for incoming request) and TLS SHA-1 ciphers from default ciphers list. | Kristo Heero |
+| 18.08.2018 | 2.32     | Added new parameter *ocsp-retry-delay* | Petteri Kivimäki |
 
 ## Table of Contents
 
@@ -249,6 +250,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 | port                                             | 5556                                       |   |   | TCP port on which the signer process listens. |
 | key-length                                       | 2048                                       |   |   | Key length for generating authentication and signing keys (since version 6.7) |
 | csr-signature-digest-algorithm                   | SHA-256                                    |   |   | Certificate Signing Request signature digest algorithm.<br/>Possible values are<br/>-   SHA-256,<br/>-   SHA-384,<br/>-   SHA-512. |
+| ocsp-retry-delay                                 | 60                                         |   |   | Interval (in seconds) for fetching OCSP responses during a failure of OCSP service. Signer switches to `ocsp-retry-delay` interval after a failure to fetch an OCSP response, and returns back to the normal schedule after receiving a successful OCSP response. |
 
 ### 3.5 Anti-DOS parameters: `[anti-dos]`
 
