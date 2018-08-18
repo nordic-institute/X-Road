@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide
 
-Version: 2.5  
+Version: 2.6  
 Doc. ID: UG-CS
 
 
@@ -30,6 +30,7 @@ Doc. ID: UG-CS
 | 5.9.2016   | 2.3     | Added instructions for configuring OCSP fetch interval. ||
 | 20.01.2017 | 2.4       | Added license text and version history | Sami Kallio |
 | 05.03.2018 | 2.5     | Added terms and abbreviations reference and document links | Tatu Repo |
+| 18.08.2018 | 2.6     | Corrected `ocspFetchInterval` default value (Chapter 16.2) | Petteri Kivimäki |
 
 ## Table of Contents
 <!-- toc -->
@@ -1138,11 +1139,11 @@ With verifyNextUpdate element value “false” the nextUpdate parameter checkin
 
 ## 16.2 OCSP fetch interval
 
-The xroad-signer component has a specific interval how often it downloads new OCSP [RFC-OCSP](#13-references) responses. By default the fetch interval is configured to 3600 seconds. To use something else than the default value a global configuration extension part (see [UC-GCONF](#13-references)) of specific format can be uploaded to central server.
+The xroad-signer component has a specific interval how often it downloads new OCSP [RFC-OCSP](#13-references) responses. By default the fetch interval is configured to 1200 seconds. To use something else than the default value a global configuration extension part (see [UC-GCONF](#13-references)) of specific format can be uploaded to central server.
 
 ```xml
 <xro:conf xmlns:xro="http://x-road.eu/xsd/xroad.xsd">
-    <ocspFetchInterval>3600</ocspFetchInterval>
+    <ocspFetchInterval>1200</ocspFetchInterval>
 </xro:conf>
 ```
 
