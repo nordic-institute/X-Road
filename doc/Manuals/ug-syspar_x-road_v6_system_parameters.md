@@ -250,7 +250,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 | port                                             | 5556                                       |   |   | TCP port on which the signer process listens. |
 | key-length                                       | 2048                                       |   |   | Key length for generating authentication and signing keys (since version 6.7) |
 | csr-signature-digest-algorithm                   | SHA-256                                    |   |   | Certificate Signing Request signature digest algorithm.<br/>Possible values are<br/>-   SHA-256,<br/>-   SHA-384,<br/>-   SHA-512. |
-| ocsp-retry-delay                                 | 60                                         |   |   | Interval (in seconds) for fetching OCSP responses during a failure of OCSP service. Signer switches to `ocsp-retry-delay` interval after a failure to fetch an OCSP response, and returns back to the normal schedule after receiving a successful OCSP response. |
+| ocsp-retry-delay                                 | 60                                         |   |   | OCSP retry delay for signer when fetching OCSP responses fail. After failing to fetch OCSP responses signer waits for the time period defined by "ocsp-retry-delay" before trying again. This is repeated until fetching OCSP responses succeeds. After successfully fetching OCSP responses signer returns to normal OCSP refresh schedule defined by "ocspFetchInterval". If the value of "ocsp-retry-delay" is higher than "ocspFetchInterval", the value of "ocspFetchInterval" is used as OCSP retry delay. |
 
 ### 3.5 Anti-DOS parameters: `[anti-dos]`
 
