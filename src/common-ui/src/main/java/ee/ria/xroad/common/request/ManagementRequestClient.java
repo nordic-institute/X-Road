@@ -122,6 +122,7 @@ public final class ManagementRequestClient implements StartStop {
 
     @Override
     public void join() throws InterruptedException {
+        // Not applicable
     }
 
     // -- Helper methods ------------------------------------------------------
