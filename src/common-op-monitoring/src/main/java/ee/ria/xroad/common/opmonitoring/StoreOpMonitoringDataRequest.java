@@ -42,9 +42,6 @@ public class StoreOpMonitoringDataRequest {
     @SerializedName("records")
     private final List<Map<String, Object>> records = new ArrayList<>();
 
-    public StoreOpMonitoringDataRequest() {
-    }
-
     public void addRecord(Map<String, Object> record) {
         records.add(record);
     }
