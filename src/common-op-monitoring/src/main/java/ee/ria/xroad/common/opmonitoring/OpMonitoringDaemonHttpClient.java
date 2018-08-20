@@ -161,6 +161,7 @@ public final class OpMonitoringDaemonHttpClient {
 
         @Override
         public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+            // As private manager of the client the method gets never called
         }
 
         @Override
