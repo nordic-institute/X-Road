@@ -490,7 +490,6 @@ public class SaxSoapParserImpl implements SoapParser {
      * of element tag. By default returns a NOOP handler for child elements.
      */
     protected abstract static class XmlElementHandler {
-        private static final XmlElementHandler NOOP_HANDLER = new NoOpHandler();
 
         private StringBuilder valueBuffer = new StringBuilder();
 
@@ -504,7 +503,7 @@ public class SaxSoapParserImpl implements SoapParser {
          * @return the handler for the given child element
          */
         protected XmlElementHandler getChildElementHandler(QName element) {
-            return NOOP_HANDLER;
+            return NoOpHandler.INSTANCE;
         }
 
         /**
@@ -568,6 +567,9 @@ public class SaxSoapParserImpl implements SoapParser {
      * Handler that ignores the element in it's entirety.
      */
     private static class NoOpHandler extends XmlElementHandler {
+
+        public static final XmlElementHandler INSTANCE = new NoOpHandler();
+
         @Override
         protected void characters(char[] ch, int start, int length) {
             // ignore character content
@@ -845,8 +847,8 @@ public class SaxSoapParserImpl implements SoapParser {
     /**
      * Handler for the XRoad protocol client header.
      */
-    private static class XRoadClientHeaderHandler
-    extends XRoadIdentifierHeaderHandler {
+    private static class XRoadClientHeaderHandler extends XRoadIdentifierHeaderHandler {
+
         protected static final List<QName> CLIENT_ID_PARTS = Arrays.asList(
                 QNAME_ID_INSTANCE, QNAME_ID_MEMBER_CLASS, QNAME_ID_MEMBER_CODE,
                 QNAME_ID_SUBSYSTEM_CODE);
@@ -876,8 +878,8 @@ public class SaxSoapParserImpl implements SoapParser {
     /**
      * Handler for the XRoad protocol service header.
      */
-    private static class XRoadServiceHeaderHandler
-    extends XRoadIdentifierHeaderHandler {
+    private static class XRoadServiceHeaderHandler extends XRoadIdentifierHeaderHandler {
+
         protected static final List<QName> SERVICE_ID_PARTS = Arrays.asList(
                 QNAME_ID_INSTANCE, QNAME_ID_MEMBER_CLASS, QNAME_ID_MEMBER_CODE,
                 QNAME_ID_SUBSYSTEM_CODE, QNAME_ID_SERVICE_CODE,
@@ -969,8 +971,8 @@ public class SaxSoapParserImpl implements SoapParser {
     /**
      * Handler for the XRoad protocol central service header.
      */
-    private static class XRoadCentralServiceHeaderHandler
-    extends XRoadIdentifierHeaderHandler {
+    private static class XRoadCentralServiceHeaderHandler extends XRoadIdentifierHeaderHandler {
+
         protected static final List<QName> CENTRAL_SERVICE_ID_PARTS =
                 Arrays.asList(QNAME_ID_INSTANCE, QNAME_ID_SERVICE_CODE);
 
@@ -997,8 +999,8 @@ public class SaxSoapParserImpl implements SoapParser {
     /**
      * Handler for the XRoad protocol security server header.
      */
-    private static class XRoadSecurityServerHeaderHandler
-    extends XRoadIdentifierHeaderHandler {
+    private static class XRoadSecurityServerHeaderHandler extends XRoadIdentifierHeaderHandler {
+        
         protected static final List<QName> SECURITY_SERVER_ID_PARTS =
                 Arrays.asList(QNAME_ID_INSTANCE, QNAME_ID_MEMBER_CLASS,
                         QNAME_ID_MEMBER_CODE, QNAME_ID_SERVER_CODE);
