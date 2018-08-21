@@ -87,7 +87,7 @@ public class ProcessLister extends AbstractExecLister<ProcessInfo> {
 
     @Override
     protected Splitter getParsedDataSplitter() {
-        return Splitter.on(CharMatcher.WHITESPACE)
+        return Splitter.on(CharMatcher.whitespace())
                 .trimResults()
                 .omitEmptyStrings()
                 .limit(NUMBER_OF_FIELDS);
