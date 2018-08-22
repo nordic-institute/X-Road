@@ -32,11 +32,7 @@ import org.w3c.dom.NodeList;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
@@ -57,6 +53,16 @@ import java.util.Optional;
 public final class XmlUtils {
 
     private XmlUtils() {
+    }
+
+    /**
+     * Creates a new document object from the given String
+     * @param xml the xml string
+     * @return the created document
+     * @throws Exception if an error occurs
+     */
+    public static Document parseDocument(String xml) throws Exception {
+        return XmlUtils.parseDocument(IOUtils.toInputStream(xml,StandardCharsets.UTF_8));
     }
 
     /**
@@ -100,7 +106,8 @@ public final class XmlUtils {
         Source source = new DOMSource(node);
         StringWriter writer = new StringWriter();
         Result result = new StreamResult(writer);
-        Transformer t = TransformerFactory.newInstance().newTransformer();
+
+        Transformer t = createTransformerFactory().newTransformer();
         t.transform(source, result);
 
         return writer.toString();
@@ -209,7 +216,7 @@ public final class XmlUtils {
      * @throws Exception if any errors occur
      */
     public static String prettyPrintXml(String xml) throws Exception {
-        return prettyPrintXml(XmlUtils.parseDocument(IOUtils.toInputStream(xml,StandardCharsets.UTF_8)));
+        return prettyPrintXml(parseDocument(xml));
     }
 
     /**
@@ -233,15 +240,18 @@ public final class XmlUtils {
         StringWriter stringWriter = new StringWriter();
         StreamResult output = new StreamResult(stringWriter);
 
-        final TransformerFactory factory = TransformerFactory.newInstance();
-        factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-
-        Transformer transformer = factory.newTransformer();
+        Transformer transformer = createTransformerFactory().newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.setOutputProperty(OutputKeys.ENCODING, charset);
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
         transformer.transform(new DOMSource(document), output);
 
         return output.getWriter().toString().trim();
+    }
+
+    private static final TransformerFactory createTransformerFactory() throws TransformerConfigurationException {
+        final TransformerFactory factory = TransformerFactory.newInstance();
+        factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        return factory;
     }
 }

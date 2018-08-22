@@ -25,6 +25,7 @@ package ee.ria.xroad.common;
 import ee.ria.xroad.common.Request.RequestTag;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.util.XmlUtils;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
@@ -34,7 +35,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Tests to verify test requests are created as expected.
@@ -82,7 +84,8 @@ public class RequestTest {
         // Then
         String expectedRequest = FileUtils.readFileToString(new File(
                 "src/test/resources/xroadDoclit2.request"));
-        assertEquals(expectedRequest, xmlFromRequest);
+
+        assertXml(xmlFromRequest, expectedRequest);
     }
 
     /**
@@ -125,7 +128,7 @@ public class RequestTest {
         // Then
         String expectedRequest = FileUtils.readFileToString(new File(
                 "src/test/resources/v5DoclitWithVersion.request"));
-        assertEquals(expectedRequest, xmlFromRequest);
+        assertXml(xmlFromRequest, expectedRequest);
     }
 
     /**
@@ -168,6 +171,15 @@ public class RequestTest {
         // Then
         String expectedRequest = FileUtils.readFileToString(new File(
                 "src/test/resources/v5DoclitWithoutVersion.request"));
-        assertEquals(expectedRequest, xmlFromRequest);
+        assertXml(xmlFromRequest, expectedRequest);
+    }
+
+    private void assertXml(String xml, String expectedXml) {
+        try {
+            assertTrue(XmlUtils.parseDocument(xml).isEqualNode(XmlUtils.parseDocument(expectedXml)));
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail();
+        }
     }
 }
