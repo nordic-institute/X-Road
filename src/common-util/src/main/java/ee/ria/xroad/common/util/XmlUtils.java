@@ -23,6 +23,7 @@
 package ee.ria.xroad.common.util;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.xml.security.c14n.Canonicalizer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -42,9 +43,11 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import javax.xml.XMLConstants;
 
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 /**
@@ -200,6 +203,16 @@ public final class XmlUtils {
     }
 
     /**
+     * Pretty prints the document to string using default charset
+     * @param xml the xml document as string
+     * @return pretty printed document as String
+     * @throws Exception if any errors occur
+     */
+    public static String prettyPrintXml(String xml) throws Exception {
+        return prettyPrintXml(XmlUtils.parseDocument(IOUtils.toInputStream(xml,StandardCharsets.UTF_8)));
+    }
+
+    /**
      * Pretty prints the document to string using default charset.
      * @param document  the document
      * @return printed document in String form
@@ -220,7 +233,10 @@ public final class XmlUtils {
         StringWriter stringWriter = new StringWriter();
         StreamResult output = new StreamResult(stringWriter);
 
-        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+        final TransformerFactory factory = TransformerFactory.newInstance();
+        factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+
+        Transformer transformer = factory.newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.setOutputProperty(OutputKeys.ENCODING, charset);
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
