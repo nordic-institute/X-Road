@@ -7,6 +7,6 @@ Standards-Version: 3.8.3
 
 Package: xroad-jetty9
 Architecture: all
-Depends: ${misc:Depends}, java8-runtime-headless, xroad-common (=${binary:Version})
+Depends: ${misc:Depends}, openjdk-8-jre-headless, xroad-common (=${binary:Version})
 Description: Jetty9 for X-Road purposes
  Jetty9 modified for X-Road usage. Used by web services
