@@ -40,7 +40,6 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -111,7 +110,7 @@ public class FastestConnectionSelectingSSLSocketFactoryConnectionCacheTest {
         cache.put(k, v);
 
         assertEquals(v, cache.getIfPresent(k));
-        ticker.advance(cachePeriod + 1 , TimeUnit.SECONDS);
+        ticker.advance(cachePeriod + 1, TimeUnit.SECONDS);
         assertNull(cache.getIfPresent(k));
     }
 
