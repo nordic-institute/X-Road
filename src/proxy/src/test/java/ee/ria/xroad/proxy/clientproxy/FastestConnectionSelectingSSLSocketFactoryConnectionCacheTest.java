@@ -22,8 +22,12 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.proxy.clientproxy.FastestConnectionSelectingSSLSocketFactory.CacheKey;
 
+import com.google.common.base.Ticker;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.junit.Test;
 
 import java.net.URI;
@@ -31,24 +35,32 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test FastestConnectionSelectingSSLSocketFactory
  */
-public class FastestConnectionSelectingSSLSocketFactoryCacheKeyTest {
+public class FastestConnectionSelectingSSLSocketFactoryConnectionCacheTest {
 
     @Test
-    public void testCacheKey() throws URISyntaxException {
+    public void testCacheKeyEqualsAndHashcode() throws URISyntaxException {
         URI[] a1 = new URI[] {
                 new URI("https://localhost:5500"), new URI("http://10.10.10.10"), new URI("http://1.2.3.4")
         };
+
         final List<URI> tmp = Arrays.asList(a1.clone());
         Collections.rotate(tmp, 1);
         final URI[] a2 = tmp.toArray(new URI[0]);
+
+        assert !Arrays.equals(a1, a2);
+
         URI[] a3 = new URI[] {
                 new URI("https://localhost:80"), new URI("http://10.10.10.10"), new URI("http://1.2.3.4")
         };
@@ -57,17 +69,63 @@ public class FastestConnectionSelectingSSLSocketFactoryCacheKeyTest {
         CacheKey k2 = new CacheKey(a2);
         CacheKey k3 = new CacheKey(a3);
 
-        assertFalse(Arrays.equals(a1, a2));
+        // null
+        assertFalse(k1.equals(null));
+
+        // reflexive
+        assertTrue(k1.equals(k1));
+        assertTrue(k2.equals(k2));
+        assertTrue(k3.equals(k3));
+
+        // symmetric
+        assertTrue(k1.equals(k2) == k2.equals(k1));
+        assertTrue(k1.equals(k3) == k3.equals(k1));
+        assertTrue(k2.equals(k3) == k3.equals(k2));
+
+        // keys with same urls in different order are equal
+        assertEquals(k1, k2);
+        // consistent with equals
         assertEquals(k1.hashCode(), k2.hashCode());
 
-        assertEquals(k2, k2);
-        assertEquals(k1, k1);
-
-        assertEquals(k1, k2);
-        assertEquals(k2, k1);
-
+        // different urls
         assertNotEquals(k1, k3);
-        assertNotEquals(k3, k2);
+        assertNotEquals(k2, k3);
+    }
+
+    /**
+     * Cache implementation sanity check
+     */
+    @Test
+    public void testExpiration() throws URISyntaxException {
+
+        FakeTicker ticker = new FakeTicker();
+        final int cachePeriod = SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod();
+        final Cache<CacheKey, URI> cache = CacheBuilder.newBuilder()
+                .expireAfterWrite(cachePeriod, TimeUnit.SECONDS)
+                .ticker(ticker)
+                .build();
+
+        CacheKey k = new CacheKey(new URI[] {new URI("https://localhost:5500")});
+        URI v = new URI("https://localhost:5500");
+
+        cache.put(k, v);
+
+        assertEquals(v, cache.getIfPresent(k));
+        ticker.advance(cachePeriod + 1 , TimeUnit.SECONDS);
+        assertNull(cache.getIfPresent(k));
+    }
+
+    static class FakeTicker extends Ticker {
+        long ticks = 0;
+
+        @Override
+        public long read() {
+            return ticks;
+        }
+
+        void advance(long t, TimeUnit unit) {
+            ticks += unit.toNanos(t);
+        }
     }
 
 }
