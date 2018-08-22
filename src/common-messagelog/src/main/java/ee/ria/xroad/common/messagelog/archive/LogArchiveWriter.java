@@ -106,9 +106,10 @@ public class LogArchiveWriter implements Closeable {
     /**
      * Write a message log record.
      * @param logRecord the log record
+     * @return true if the a archive file was rotated
      * @throws Exception in case of any errors
      */
-    public void write(LogRecord logRecord) throws Exception {
+    public boolean write(LogRecord logRecord) throws Exception {
         if (logRecord == null) {
             throw new IllegalArgumentException("log record must not be null");
         }
@@ -127,7 +128,9 @@ public class LogArchiveWriter implements Closeable {
 
         if (logArchiveCache.isRotating()) {
             rotate();
+            return true;
         }
+        return false;
     }
 
     @Override
@@ -188,6 +191,10 @@ public class LogArchiveWriter implements Closeable {
     }
 
     private boolean archiveAsicContainers() {
+        if (archiveOut == null) {
+            return false;
+        }
+
         try (InputStream input = logArchiveCache.getArchiveFile();
                 OutputStream output = Channels.newOutputStream(archiveOut)) {
             IOUtils.copy(input, output);
