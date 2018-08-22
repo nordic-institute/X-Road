@@ -214,22 +214,44 @@ public final class ProxyMain {
     private static AdminPort createAdminPort() throws Exception {
         AdminPort adminPort = new AdminPort(PortNumbers.ADMIN_PORT);
 
-        adminPort.addShutdownHook(() -> {
-            log.info("Proxy shutting down...");
+        addShutdownHook(adminPort);
 
-            try {
-                shutdown();
-            } catch (Exception e) {
-                log.error("Error while shutdown", e);
+        addTimestampStatusHandler(adminPort);
+
+        addMaintenanceHandler(adminPort);
+
+        return adminPort;
+    }
+
+    private static void addMaintenanceHandler(AdminPort adminPort) {
+        adminPort.addHandler("/maintenance", new AdminPort.SynchronousCallback() {
+            @Override
+            public void handle(HttpServletRequest request, HttpServletResponse response) {
+
+                String result = "Invalid parameter 'targetState', request ignored";
+                String param = request.getParameter("targetState");
+
+                if (param != null && (param.equalsIgnoreCase("true") || param.equalsIgnoreCase("false"))) {
+                    result = setHealthCheckMaintenanceMode(Boolean.valueOf(param));
+                }
+                try {
+                    response.setCharacterEncoding("UTF8");
+                    response.getWriter().println(result);
+                } catch (IOException e) {
+                    log.error("Unable to write to provided response, delegated request handling failed, response may"
+                            + " be malformed", e);
+                }
             }
         });
+    }
 
-        /**
-         * Diganostics for timestamping.
-         * First check the connection to timestamp server. If OK, check the status of the previous timestamp request.
-         * If the previous request has failed or connection cannot be made, DiagnosticsStatus tells the reason. If
-         * LogManager is unavailable, uses the connection check to produce a more informative status.
-         */
+    /**
+     * Diganostics for timestamping.
+     * First check the connection to timestamp server. If OK, check the status of the previous timestamp request.
+     * If the previous request has failed or connection cannot be made, DiagnosticsStatus tells the reason. If
+     * LogManager is unavailable, uses the connection check to produce a more informative status.
+     */
+    private static void addTimestampStatusHandler(AdminPort adminPort) {
         adminPort.addHandler("/timestampstatus", new AdminPort.SynchronousCallback() {
             @Override
             public void handle(HttpServletRequest request, HttpServletResponse response) {
@@ -284,28 +306,18 @@ public final class ProxyMain {
                 }
             }
         });
+    }
 
-        adminPort.addHandler("/maintenance", new AdminPort.SynchronousCallback() {
-            @Override
-            public void handle(HttpServletRequest request, HttpServletResponse response) {
+    private static void addShutdownHook(AdminPort adminPort) {
+        adminPort.addShutdownHook(() -> {
+            log.info("Proxy shutting down...");
 
-                String result = "Invalid parameter 'targetState', request ignored";
-                String param = request.getParameter("targetState");
-
-                if (param != null && (param.equalsIgnoreCase("true") || param.equalsIgnoreCase("false"))) {
-                    result = setHealthCheckMaintenanceMode(Boolean.valueOf(param));
-                }
-                try {
-                    response.setCharacterEncoding("UTF8");
-                    response.getWriter().println(result);
-                } catch (IOException e) {
-                    log.error("Unable to write to provided response, delegated request handling failed, response may"
-                            + " be malformed", e);
-                }
+            try {
+                shutdown();
+            } catch (Exception e) {
+                log.error("Error while shutdown", e);
             }
         });
-
-        return adminPort;
     }
 
     private static String setHealthCheckMaintenanceMode(boolean targetState) {
