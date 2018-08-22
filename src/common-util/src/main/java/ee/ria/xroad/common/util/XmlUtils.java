@@ -52,6 +52,8 @@ import java.util.Optional;
 @Slf4j
 public final class XmlUtils {
 
+    private static final String ELEMENT_NOT_FOUND_WARNING = "Element not found with getElementXPathNS {}";
+
     private XmlUtils() {
     }
 
@@ -143,7 +145,7 @@ public final class XmlUtils {
 
             return (Element) xpath.evaluate(xpathExpr, parent, XPathConstants.NODE);
         } catch (XPathExpressionException e) {
-            log.warn("Element not found with getElementXPathNS {}", e);
+            log.warn(ELEMENT_NOT_FOUND_WARNING, e);
 
             return null;
         }
@@ -167,7 +169,7 @@ public final class XmlUtils {
 
             return (NodeList) xpath.evaluate(xpathExpr, parent, XPathConstants.NODESET);
         } catch (XPathExpressionException e) {
-            log.warn("Element not found with getElementXPathNS {}", e);
+            log.warn(ELEMENT_NOT_FOUND_WARNING, e);
 
             return null;
         }
@@ -191,7 +193,7 @@ public final class XmlUtils {
 
             return (Element) xpath.evaluate("//*[@Id = '" + id + "']", doc, XPathConstants.NODE);
         } catch (XPathExpressionException e) {
-            log.warn("Element not found with getElementXPathNS {}", e);
+            log.warn(ELEMENT_NOT_FOUND_WARNING, e);
 
             return null;
         }
