@@ -219,8 +219,8 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
         if (!requests.isEmpty() || !responses.isEmpty()) {
             try (ZipOutputStream zos = startZipResponse(filename)) {
-                writeContainers(requests, queryId, nameGen, zos, "request");
-                writeContainers(responses, queryId, nameGen, zos, "response");
+                writeContainers(requests, queryId, nameGen, zos, AsicContainerNameGenerator.TYPE_REQUEST);
+                writeContainers(responses, queryId, nameGen, zos, AsicContainerNameGenerator.TYPE_RESPONSE);
             }
         } else {
             throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_NOT_FOUND, ErrorCodes.X_NOT_FOUND,
@@ -230,12 +230,12 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     private void writeRequestContainers(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen)
             throws Exception {
-        String filename = AsicUtils.escapeString(queryId) + "-request";
+        String filename = AsicUtils.escapeString(queryId) + "-" + AsicContainerNameGenerator.TYPE_REQUEST;
         List<MessageRecord> records = timestampedRecords(clientId, queryId, false);
 
         if (!records.isEmpty()) {
             try (ZipOutputStream zos = startZipResponse(filename)) {
-                writeContainers(records, queryId, nameGen, zos, "request");
+                writeContainers(records, queryId, nameGen, zos, AsicContainerNameGenerator.TYPE_REQUEST);
             }
         } else {
             throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_NOT_FOUND, ErrorCodes.X_NOT_FOUND,
@@ -250,7 +250,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
         if (!records.isEmpty()) {
             try (ZipOutputStream zos = startZipResponse(filename)) {
-                writeContainers(records, queryId, nameGen, zos, "response");
+                writeContainers(records, queryId, nameGen, zos, AsicContainerNameGenerator.TYPE_RESPONSE);
             }
         } else {
             throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_NOT_FOUND, ErrorCodes.X_NOT_FOUND,
@@ -301,7 +301,8 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private void writeAsicContainer(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
             boolean response) throws Exception {
         MessageRecord request = getTimestampedRecord(clientId, queryId, response);
-        String filename = nameGen.getArchiveFilename(queryId, response ? "response" : "request");
+        String filename = nameGen.getArchiveFilename(queryId,
+                response ? AsicContainerNameGenerator.TYPE_RESPONSE : AsicContainerNameGenerator.TYPE_REQUEST);
 
         servletResponse.setContentType(MimeTypes.ASIC_ZIP);
         servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=\"" + filename + "\"");

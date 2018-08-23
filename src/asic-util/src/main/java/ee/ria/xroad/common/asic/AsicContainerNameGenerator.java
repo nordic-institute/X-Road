@@ -34,6 +34,9 @@ import java.util.function.Supplier;
 @RequiredArgsConstructor
 public class AsicContainerNameGenerator {
 
+    public static final String TYPE_RESPONSE = "response";
+    public static final String TYPE_REQUEST = "request";
+
     private static final int MAX_QUERY_LENGTH = 225;
     private final Supplier<String> randomGenerator;
     private final int maxAttempts;
