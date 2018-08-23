@@ -37,6 +37,8 @@ public final class HttpHeaders {
     public static final String CONTENT_TRANSFER_ENCODING =
             "content-transfer-encoding";
 
+    public static final String CONTENT_DISPOSITION = "Content-Disposition";
+
     private HttpHeaders() {
     }
 

@@ -38,6 +38,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.monitoring.MessageInfo;
+import ee.ria.xroad.common.util.HttpHeaders;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.messagelog.LogRecordManager;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
@@ -144,7 +145,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         ConfigurationDirectoryV2 confDir = new ConfigurationDirectoryV2(SystemProperties.getConfigurationPath());
 
         servletResponse.setContentType(MimeTypes.ZIP);
-        servletResponse.setHeader("Content-Disposition", "filename=\"verificationconf.zip\"");
+        servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=\"verificationconf.zip\"");
         try (VerificationConfWriter writer = new VerificationConfWriter(confDir.getInstanceIdentifier(),
                 servletResponse.getOutputStream())) {
             confDir.eachFile(writer);
@@ -303,7 +304,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         String filename = nameGen.getArchiveFilename(queryId, response ? "response" : "request");
 
         servletResponse.setContentType(MimeTypes.ASIC_ZIP);
-        servletResponse.setHeader("Content-Disposition", "filename=\"" + filename + "\"");
+        servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=\"" + filename + "\"");
 
         servletResponse.getOutputStream().write(request.toAsicContainer().getBytes());
     }
@@ -341,7 +342,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     private ZipOutputStream startZipResponse(String filename) throws IOException {
         servletResponse.setContentType(MimeTypes.ZIP);
-        servletResponse.setHeader("Content-Disposition", "filename=\"" + filename + ".zip\"");
+        servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=\"" + filename + ".zip\"");
 
         return new ZipOutputStream(servletResponse.getOutputStream());
     }
