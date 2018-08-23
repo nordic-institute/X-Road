@@ -39,6 +39,8 @@ import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
  */
 public final class ImportCertUtil {
 
+    private static String DUMMY_MEMBER = "dummy";
+
     private ImportCertUtil() {
     }
 
@@ -66,9 +68,9 @@ public final class ImportCertUtil {
         try {
             return GlobalConf.getSubjectName(
                     new SignCertificateProfileInfoParameters(
-                            ClientId.create(instanceIdentifier, "dummy",
-                                    "dummy"),
-                            "dummy"), cert);
+                            ClientId.create(instanceIdentifier, DUMMY_MEMBER,
+                                    DUMMY_MEMBER),
+                            DUMMY_MEMBER), cert);
         } catch (Exception e) {
             throw CodedException.tr(X_CERT_IMPORT_FAILED, e,
                     "cert_import_failed", "%s",
