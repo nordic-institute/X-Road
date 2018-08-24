@@ -122,14 +122,9 @@ class FastestConnectionSelectingSSLSocketFactory
         if (SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod() > 0) {
             log.trace("URI cache enabled, session {}", cachedHostInfo.getSslSession());
             cachedSSLSessionURI = cachedHostInfo.getSelectedAddress();
-            if (cachedHostInfo.getSslSession() != null
-                    && cachedHostInfo.getSslSession().getValue(ID_SELECTED_TARGET_TIMESTAMP) != null) {
+            if (cachedHostInfo.selectedTargetTimestampExists()) {
                 // Check if the stored URI is still valid
-                LocalDateTime timestamp =
-                        (LocalDateTime) cachedHostInfo.getSslSession().getValue(ID_SELECTED_TARGET_TIMESTAMP);
-                LocalDateTime expire = timestamp
-                        .plusSeconds(SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod());
-                if (LocalDateTime.now().isAfter(expire)) {
+                if (cachedHostInfo.hasUriCacheExpired()){
                     log.trace("URI cache expired");
                     cachedSSLSessionURI = null;
                     cachedHostInfo.clearCachedURIForSession();
@@ -312,6 +307,18 @@ class FastestConnectionSelectingSSLSocketFactory
                 sslSession.removeValue(ID_SELECTED_TARGET);
                 sslSession.removeValue(ID_SELECTED_TARGET_TIMESTAMP);
             }
+        }
+
+        public boolean selectedTargetTimestampExists() {
+            return sslSession != null && sslSession.getValue(ID_SELECTED_TARGET_TIMESTAMP) != null;
+        }
+
+        public boolean hasUriCacheExpired() {
+            LocalDateTime timestamp =
+                    (LocalDateTime) sslSession.getValue(ID_SELECTED_TARGET_TIMESTAMP);
+            LocalDateTime expire = timestamp
+                    .plusSeconds(SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod());
+            return LocalDateTime.now().isAfter(expire);
         }
     }
 
