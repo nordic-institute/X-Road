@@ -286,20 +286,19 @@ public final class TokenManager {
         List<KeyInfo> keyInfo = new ArrayList<>();
 
         for (Token token : currentTokens) {
-            if (!token.isActive() || !token.isAvailable()) {
+            if (token.isInActive()) {
                 // Ignore inactive (not usable) tokens
                 continue;
             }
 
             for (Key key : token.getKeys()) {
-                if (!key.isAvailable()
-                        || key.getUsage() == KeyUsageInfo.AUTHENTICATION) {
+                if (!key.isValidForSigning()) {
                     // Ignore authentication keys
                     continue;
                 }
 
                 for (Cert cert : key.getCerts()) {
-                    if (!cert.isActive() || cert.getMemberId() == null) {
+                    if (cert.isInvalid()) {
                         // Ignore inactive and invalid certificates
                         continue;
                     }
