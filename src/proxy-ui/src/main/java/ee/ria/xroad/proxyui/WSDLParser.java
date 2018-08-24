@@ -336,6 +336,7 @@ public final class WSDLParser {
                     @Override
                     public void checkClientTrusted(
                             X509Certificate[] certs, String authType) {
+                        // never called as used by client
                     }
                     @Override
                     public void checkServerTrusted(
