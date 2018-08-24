@@ -55,8 +55,7 @@ import java.util.List;
  */
 public final class InternalServerTestUtil {
 
-    private static final Logger LOG =
-        LoggerFactory.getLogger(InternalServerTestUtil.class);
+    private static final Logger LOG = LoggerFactory.getLogger(InternalServerTestUtil.class);
 
     private InternalServerTestUtil() {
     }
@@ -73,17 +72,15 @@ public final class InternalServerTestUtil {
 
         List<X509Certificate> trustedX509Certs = new ArrayList<>();
         for (CertificateType trustedCert : trustedCerts) {
-            trustedX509Certs.add(
-                CryptoUtils.readCertificate(trustedCert.getData()));
+            trustedX509Certs.add(CryptoUtils.readCertificate(trustedCert.getData()));
         }
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
         ctx.init(createServiceKeyManager(),
-            new TrustManager[] {new ServiceTrustManager(trustedX509Certs)},
-            new SecureRandom());
+                new TrustManager[] {new ServiceTrustManager(trustedX509Certs)},
+                new SecureRandom());
 
-        HttpsURLConnection con = (HttpsURLConnection)
-            (new URL(url).openConnection());
+        HttpsURLConnection con = (HttpsURLConnection)(new URL(url).openConnection());
 
         con.setSSLSocketFactory(ctx.getSocketFactory());
         con.setHostnameVerifier(HostnameVerifiers.ACCEPT_ALL);

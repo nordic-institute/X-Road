@@ -39,7 +39,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
  */
 public final class ImportCertUtil {
 
-    private static String DUMMY_MEMBER = "dummy";
+    private static final String DUMMY_MEMBER = "dummy";
 
     private ImportCertUtil() {
     }

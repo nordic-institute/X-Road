@@ -89,8 +89,7 @@ public final class WSDLParser {
     private static final QName SOAP12_BINDING =
             new QName(SOAP12_NAMESPACE, "binding");
 
-    private static final String TRANSPORT =
-        "http://schemas.xmlsoap.org/soap/http";
+    private static final String TRANSPORT = "http://schemas.xmlsoap.org/soap/http";
 
     private static final String VERSION = "version";
 
@@ -155,12 +154,12 @@ public final class WSDLParser {
                         : (List<BindingOperation>)
                             port.getBinding().getBindingOperations()) {
                     String title = getChildValue("title",
-                        operation.getOperation().getDocumentationElement());
+                            operation.getOperation().getDocumentationElement());
 
                     String version = getVersion(operation);
 
                     result.put(operation.getName() + version, new ServiceInfo(
-                        operation.getName(), title, url, version));
+                            operation.getName(), title, url, version));
                 }
             }
         }

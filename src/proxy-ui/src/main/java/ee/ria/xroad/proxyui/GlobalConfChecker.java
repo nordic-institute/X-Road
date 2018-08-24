@@ -135,14 +135,14 @@ public class GlobalConfChecker implements Job {
         log.debug("Updating auth cert statuses");
 
         SignerProxy.getTokens().stream().flatMap(t -> t.getKeyInfo().stream())
-            .filter(k -> KeyUsageInfo.AUTHENTICATION.equals(k.getUsage()))
-            .flatMap(k -> k.getCerts().stream()).forEach(certInfo -> {
-                try {
-                    updateCertStatus(securityServerId, certInfo);
-                } catch (Exception e) {
-                    throw translateException(e);
-                }
-            });
+                .filter(k -> KeyUsageInfo.AUTHENTICATION.equals(k.getUsage()))
+                .flatMap(k -> k.getCerts().stream()).forEach(certInfo -> {
+                    try {
+                        updateCertStatus(securityServerId, certInfo);
+                    } catch (Exception e) {
+                        throw translateException(e);
+                    }
+                });
     }
 
     private void updateCertStatus(SecurityServerId securityServerId,
