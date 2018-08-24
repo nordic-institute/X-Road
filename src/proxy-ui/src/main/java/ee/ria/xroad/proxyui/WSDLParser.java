@@ -322,6 +322,7 @@ public final class WSDLParser {
 
         @Override
         public void close() {
+            // no-op
         }
 
         private void configureHttps(HttpsURLConnection conn)
