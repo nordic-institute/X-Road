@@ -47,6 +47,7 @@ public final class TestCertUtil {
     private static final String CERT_PATH = "/";
 
     private static final String CERT_ERROR_MSG = "Unable to get certificate for name \"%1$s\" from keystore";
+    private static final String CERT_ERROR_WITH_PASSWD_MSG = CERT_ERROR_MSG + " using password \"%2$s\"";
 
     /** Lazily initialized cached instances of the certs. */
     private static volatile X509Certificate caCert;
@@ -237,7 +238,7 @@ public final class TestCertUtil {
                     password.toCharArray());
             if (key == null) {
                 throw new RuntimeException(
-                        String.format(CERT_ERROR_MSG + " using password \"%2$s\"", orgName, password));
+                        String.format(CERT_ERROR_WITH_PASSWD_MSG, orgName, password));
             }
 
             return key;
