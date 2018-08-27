@@ -864,7 +864,8 @@ public final class SystemProperties {
      * @return whether configuration of trusted anchors is enabled in the central server UI, 'true' by default.
      */
     public static boolean getCenterTrustedAnchorsAllowed() {
-        return "true".equalsIgnoreCase(System.getProperty(CENTER_TRUSTED_ANCHORS_ALLOWED, DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED));
+        return "true".equalsIgnoreCase(System.getProperty(CENTER_TRUSTED_ANCHORS_ALLOWED,
+                DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED));
     }
 
     /**

@@ -30,16 +30,21 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.*;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import javax.xml.XMLConstants;
 
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -64,7 +69,7 @@ public final class XmlUtils {
      * @throws Exception if an error occurs
      */
     public static Document parseDocument(String xml) throws Exception {
-        return XmlUtils.parseDocument(IOUtils.toInputStream(xml,StandardCharsets.UTF_8));
+        return XmlUtils.parseDocument(IOUtils.toInputStream(xml, StandardCharsets.UTF_8));
     }
 
     /**
@@ -251,7 +256,7 @@ public final class XmlUtils {
         return output.getWriter().toString().trim();
     }
 
-    private static final TransformerFactory createTransformerFactory() throws TransformerConfigurationException {
+    private static TransformerFactory createTransformerFactory() throws TransformerConfigurationException {
         final TransformerFactory factory = TransformerFactory.newInstance();
         factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         return factory;

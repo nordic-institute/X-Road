@@ -124,7 +124,7 @@ class FastestConnectionSelectingSSLSocketFactory
             cachedSSLSessionURI = cachedHostInfo.getSelectedAddress();
             if (cachedHostInfo.selectedTargetTimestampExists()) {
                 // Check if the stored URI is still valid
-                if (cachedHostInfo.hasUriCacheExpired()){
+                if (cachedHostInfo.hasUriCacheExpired()) {
                     log.trace("URI cache expired");
                     cachedSSLSessionURI = null;
                     cachedHostInfo.clearCachedURIForSession();

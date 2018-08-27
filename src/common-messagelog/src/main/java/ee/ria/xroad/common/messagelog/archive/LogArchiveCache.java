@@ -199,8 +199,8 @@ class LogArchiveCache implements Closeable {
 
         String archiveFilename =
                 nameGenerator.getArchiveFilename(record.getQueryId(),
-                        record.isResponse() ? AsicContainerNameGenerator.TYPE_RESPONSE :
-                                AsicContainerNameGenerator.TYPE_REQUEST);
+                        record.isResponse() ? AsicContainerNameGenerator.TYPE_RESPONSE
+                                : AsicContainerNameGenerator.TYPE_REQUEST);
 
         linkingInfoBuilder.addNextFile(archiveFilename, containerBytes);
         archiveFileNames.add(archiveFilename);

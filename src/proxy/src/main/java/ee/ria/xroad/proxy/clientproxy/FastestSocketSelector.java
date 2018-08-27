@@ -106,7 +106,7 @@ class FastestSocketSelector {
             Iterator<SelectionKey> it = selector.selectedKeys().iterator();
             while (it.hasNext()) {
                 SelectionKey key = it.next();
-                if(isConnected(key)) {
+                if (isConnected(key)) {
                     return key;
                 }
                 it.remove();
