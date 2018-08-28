@@ -24,6 +24,7 @@ package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.messagelog.FindByQueryId;
 import ee.ria.xroad.common.messagelog.LogMessage;
+import ee.ria.xroad.common.util.JobManager;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
@@ -54,23 +55,26 @@ import static org.junit.Assert.assertTrue;
 public class LogManagerTest {
 
     private static ActorSystem system;
+    private static JobManager jobManager;
 
     @BeforeClass
-    public static void setup() {
+    public static void setup() throws Exception {
         system = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy")
                 .withValue("akka.remote.netty.tcp.port", ConfigValueFactory.fromAnyRef(0)));
+        jobManager = new JobManager();
     }
 
     @AfterClass
-    public static void teardown() {
+    public static void teardown() throws Exception {
+        jobManager.stop();
         JavaTestKit.shutdownActorSystem(system);
         system = null;
     }
 
     @Test
     public void testControlMessageOvertakesOthers() throws Exception {
-        new JavaTestKit(system) { {
-            final Props props = Props.create(MessageRecordingLogManager.class)
+        new JavaTestKit(system) {{
+            final Props props = Props.create(MessageRecordingLogManager.class, jobManager)
                     .withDispatcher("akka.control-aware-dispatcher");
             final ActorRef subject = system.actorOf(props);
 
@@ -112,7 +116,7 @@ public class LogManagerTest {
             logManager.resumeProcessingMessages();
 
             // wait for all processed
-            for (Future f: replies) {
+            for (Future f : replies) {
                 Await.ready(f, timeoutDuration);
             }
 
@@ -125,8 +129,7 @@ public class LogManagerTest {
 
             assertTrue("message should have been SetTimestampingStatusMessage, was "
                     + messages.get(1), messages.get(1) instanceof SetTimestampingStatusMessage);
-        }
-        };
+        }};
     }
 
     private String dumpMailbox(List<Object> messages) {

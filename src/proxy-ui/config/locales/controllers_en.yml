@@ -32,7 +32,7 @@ en:
     error_code_logmanager_unavailable: "Unable to obtain message log timestamping status"
 
   init:
-    not_authorized: "Fatal system error - contact system administrator"
+    not_authorized: "Not authorized - contact system administrator"
     already_initialized: "Security Server already initialized"
     mismatching_pins: "Software token pins do not match"
     unregistered_member: "The person/organisation '%{member_class} : %{member_code}' is not registered as X-Road member"

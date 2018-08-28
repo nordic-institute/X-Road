@@ -379,8 +379,8 @@ public class MessageLogTest extends AbstractMessageLogTest {
         // we do manual time-stamping
         System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, "false");
         System.setProperty(MessageLogProperties.ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD, "1800");
-        System.setProperty(MessageLogProperties.ARCHIVE_INTERVAL, "0 0 0/12 1/1 * ? *");
-        System.setProperty(MessageLogProperties.CLEAN_INTERVAL, "0 0 0/12 1/1 * ? *");
+        System.setProperty(MessageLogProperties.ARCHIVE_INTERVAL, "0 0 0 1 1 ? 2099");
+        System.setProperty(MessageLogProperties.CLEAN_INTERVAL, "0 0 0 1 1 ? 2099");
 
         System.setProperty(MessageLogProperties.ARCHIVE_PATH, "build/");
 

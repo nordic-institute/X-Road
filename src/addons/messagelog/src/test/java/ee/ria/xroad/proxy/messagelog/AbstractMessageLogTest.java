@@ -82,6 +82,7 @@ abstract class AbstractMessageLogTest {
     public static class DeadLetterActor extends UntypedActor {
 
         private AbstractMessageLogTest test;
+
         DeadLetterActor(AbstractMessageLogTest test) {
             this.test = test;
         }
@@ -97,12 +98,11 @@ abstract class AbstractMessageLogTest {
 
     protected void testSetUp(boolean timestampImmediately) throws Exception {
         jobManager = new JobManager();
-        jobManager.start();
-
         clearDeadLetters();
 
-        actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy")
-                .withValue("akka.remote.netty.tcp.port", ConfigValueFactory.fromAnyRef(0)));
+        actorSystem = ActorSystem.create("Proxy", ConfigFactory.load()
+                .getConfig("proxy")
+                .withValue("akka.actor.provider", ConfigValueFactory.fromAnyRef("local"))); //remoting is not needed
 
         actorSystem.eventStream().subscribe(actorSystem.actorOf(Props.create(DeadLetterActor.class, this)),
                 DeadLetter.class);
@@ -143,6 +143,7 @@ abstract class AbstractMessageLogTest {
 
     /**
      * Sends time stamping status message to LogManager
+     *
      * @param status status message
      */
     private void signalTimestampingStatus(SetTimestampingStatusMessage.Status status) {
@@ -158,18 +159,15 @@ abstract class AbstractMessageLogTest {
     }
 
     void startTimestamping() {
-        actorSystem.actorSelection(component(LogManager.TASK_QUEUE_NAME)).tell(TaskQueue.START_TIMESTAMPING,
-                ActorRef.noSender());
+        logManager.taskQueueRef.tell(TaskQueue.START_TIMESTAMPING, ActorRef.noSender());
     }
 
     void startArchiving() {
-        actorSystem.actorSelection(component(LogManager.ARCHIVER_NAME)).tell(LogArchiver.START_ARCHIVING,
-                ActorRef.noSender());
+        logManager.logArchiver.tell(LogArchiver.START_ARCHIVING, ActorRef.noSender());
     }
 
     void startCleaning() {
-        actorSystem.actorSelection(component(LogManager.CLEANER_NAME)).tell(LogCleaner.START_CLEANING,
-                ActorRef.noSender());
+        logManager.logCleaner.tell(LogCleaner.START_CLEANING, ActorRef.noSender());
     }
 
     void awaitTermination() throws Exception {
