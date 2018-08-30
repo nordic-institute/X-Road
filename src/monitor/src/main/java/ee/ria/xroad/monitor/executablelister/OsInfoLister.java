@@ -56,7 +56,7 @@ public class OsInfoLister extends AbstractExecLister<String> {
 
     @Override
     protected Splitter getParsedDataSplitter() {
-        return Splitter.on(CharMatcher.NONE);
+        return Splitter.on(CharMatcher.none());
     }
 
     @Override

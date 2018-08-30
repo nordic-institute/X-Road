@@ -21,7 +21,7 @@ repositories {
 // In this section you declare the dependencies for your production and test code
 dependencies {
 
-    compile group: 'com.google.guava', name: 'guava', version: '18.0'
+    compile group: 'com.google.guava', name: 'guava', version: '26.0-jre'
 
     // The production code uses the SLF4J logging API at compile time
     compile 'org.slf4j:slf4j-api:1.7.12'

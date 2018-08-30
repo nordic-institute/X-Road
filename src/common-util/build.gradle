@@ -44,7 +44,7 @@ dependencies {
 
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
     compile 'com.google.code.gson:gson:2.7'
-    compile 'com.google.guava:guava:19.0'
+    compile 'com.google.guava:guava:26.0-jre'
 
     testCompile 'org.powermock:powermock-module-junit4:1.6.5'
     testCompile 'org.powermock:powermock-api-mockito:1.6.5'

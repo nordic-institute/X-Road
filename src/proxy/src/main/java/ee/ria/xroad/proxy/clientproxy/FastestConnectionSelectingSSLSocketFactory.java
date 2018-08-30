@@ -27,16 +27,16 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.proxy.clientproxy.FastestSocketSelector.SocketInfo;
 
-import lombok.Getter;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.SSLSocket;
 
 import java.io.IOException;
@@ -45,9 +45,8 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.URI;
 import java.nio.channels.UnresolvedAddressException;
-import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Enumeration;
+import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
@@ -70,32 +69,29 @@ class FastestConnectionSelectingSSLSocketFactory
     /**
      * The identifier of target addresses for the HttpContext attributes map.
      */
-    public static final String ID_TARGETS =
-            "ee.ria.xroad.serverproxy.targets";
+    public static final String ID_TARGETS = "ee.ria.xroad.serverproxy.targets";
     /**
      * The timeout when connecting to previously selected "fastest" provider
      */
     public static final int CACHED_TIMEOUT = 5000;
 
-    /**
-     * The identifier for the selected target address stored in the created SSL
-     * session that is later used to determine the previously existing session.
-     */
-    private static final String ID_SELECTED_TARGET =
-            "ee.ria.xroad.serverproxy.selectedtarget";
 
-    private static final String ID_SELECTED_TARGET_TIMESTAMP =
-            "ee.ria.xroad.serverproxy.selectedtargettimestamp";
+    public static final int CACHE_MAXIMUM_SIZE = 10000;
 
     private final javax.net.ssl.SSLSocketFactory socketfactory;
 
-    private final SSLContext sslContext;
+    private final Cache<CacheKey, URI> selectedHosts;
+    private final boolean cachingEnabled;
 
     FastestConnectionSelectingSSLSocketFactory(SSLContext sslContext,
-            String[] supportedCipherSuites) {
-        super(sslContext, null, supportedCipherSuites, null);
-        this.sslContext = sslContext;
+                                               String[] supportedCipherSuites) {
+        super(sslContext, null, supportedCipherSuites, (HostnameVerifier) null);
         this.socketfactory = sslContext.getSocketFactory();
+        this.selectedHosts = CacheBuilder.newBuilder()
+                .expireAfterWrite(SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod(), TimeUnit.SECONDS)
+                .maximumSize(CACHE_MAXIMUM_SIZE)
+                .build();
+        this.cachingEnabled = SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod() > 0;
     }
 
     @Override
@@ -106,51 +102,43 @@ class FastestConnectionSelectingSSLSocketFactory
 
     @Override
     public Socket connectSocket(int timeout, Socket socket, HttpHost host,
-            InetSocketAddress remoteAddress, InetSocketAddress localAddress,
-            HttpContext context) throws IOException {
+                                InetSocketAddress remoteAddress, InetSocketAddress localAddress,
+                                HttpContext context) throws IOException {
         // Read target addresses from the context.
-        URI[] addressesFromContext = getAddressesFromContext(context);
-        log.trace("addresses from context {} current thread id {}", addressesFromContext,
-                Thread.currentThread().getId());
+        final URI[] addressesFromContext = getAddressesFromContext(context);
+        final boolean useCache = (addressesFromContext.length > 1) && cachingEnabled;
+
         URI[] addresses = addressesFromContext;
-        URI cachedSSLSessionURI = null;
 
-        // Read from SSL session cache
-        CachedSSLSessionHostInformation cachedHostInfo = getCachedSSLSessionHostURI(addresses);
+        CacheKey cacheKey = null;
+        URI cachedURI = null;
 
-        // If URI cache is enabled, check if we find the fastest provider address there
-        if (SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod() > 0) {
-            log.trace("URI cache enabled, session {}", cachedHostInfo.getSslSession());
-            cachedSSLSessionURI = cachedHostInfo.getSelectedAddress();
-            if (cachedHostInfo.selectedTargetTimestampExists()) {
-                // Check if the stored URI is still valid
-                if (cachedHostInfo.hasUriCacheExpired()) {
-                    log.trace("URI cache expired");
-                    cachedSSLSessionURI = null;
-                    cachedHostInfo.clearCachedURIForSession();
-                }
-                if (cachedSSLSessionURI != null) {
-                    // Success, use the cached URI
-                    log.trace("Use cached URI {}", cachedSSLSessionURI);
-                    addresses = new URI[] {cachedSSLSessionURI};
-                }
+        if (log.isTraceEnabled()) {
+            log.trace("addresses from context {} current thread id {}", addressesFromContext,
+                    Thread.currentThread().getId());
+        }
+
+        /*
+        If URI cache is enabled, check for a previously selected host, avoiding the selection process.
+        */
+        if (useCache) {
+            cacheKey = new CacheKey(addresses);
+            cachedURI = selectedHosts.getIfPresent(cacheKey);
+            if (cachedURI != null) {
+                log.trace("Use cached URI {}", cachedURI);
+                addresses = new URI[] {cachedURI};
             }
         }
 
         // Select the fastest address if more than one address is provided.
-        SocketInfo selectedSocket = connect(addresses, context, cachedSSLSessionURI == null ? timeout : CACHED_TIMEOUT);
+        SocketInfo selectedSocket = connect(addresses, context, cachedURI == null ? timeout : CACHED_TIMEOUT);
         if (selectedSocket == null) {
-            if (cachedSSLSessionURI != null) {
-                // could not connect to cached host, try all others.
-                // .. and make sure the previous "fastest" host does not come up as "fastest" anymore
-                log.trace("Could not connect to {}, clearing the URI cache", (Object)addresses);
-                cachedSSLSessionURI = null;
-                cachedHostInfo.clearCachedURIForSession();
-
-                log.trace("Continue connecting to all providers {}", (Object)addressesFromContext);
-                selectedSocket = connect(
-                    //swap the failed address to the last
-                    swap(addressesFromContext, 0, addressesFromContext.length - 1), context, timeout);
+            if (cachedURI != null) {
+                log.trace("Could not connect to {}, removing from cache", cachedURI);
+                selectedHosts.invalidate(cacheKey);
+                cachedURI = null;
+                log.trace("Continue connecting to all providers {}", (Object) addressesFromContext);
+                selectedSocket = connect(addressesFromContext, context, timeout);
                 if (selectedSocket == null) {
                     throw couldNotConnectException(addresses);
                 }
@@ -168,25 +156,16 @@ class FastestConnectionSelectingSSLSocketFactory
         SSLSocket sslSocket = wrapToSSLSocket(selectedSocket.getSocket());
         prepareAndVerify(sslSocket, selectedSocket.getUri(), context);
 
-        // Store the fastest provider URI to SSL cache
-        if (SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod() > 0 && cachedSSLSessionURI == null) {
-            log.trace("Store the fastest provider URI to SSL cache {}", selectedSocket.getUri());
-            sslSocket.getSession().putValue(ID_SELECTED_TARGET, selectedSocket.getUri());
-            sslSocket.getSession().putValue(ID_SELECTED_TARGET_TIMESTAMP, LocalDateTime.now());
+        if (useCache && cachedURI == null) {
+            log.trace("Store the fastest provider URI to cache {}", selectedSocket.getUri());
+            selectedHosts.put(cacheKey, selectedSocket.getUri());
         }
 
         return sslSocket;
     }
 
-    private static <T> T[] swap(final T[] array, final int first, final int second) {
-        final T tmp = array[first];
-        array[first] = array[second];
-        array[second] = tmp;
-        return array;
-    }
-
     private static void updateOpMonitoringData(HttpContext context,
-            SocketInfo socketInfo) {
+                                               SocketInfo socketInfo) {
         try {
             OpMonitoringData opMonitoringData = (OpMonitoringData) context
                     .getAttribute(OpMonitoringData.class.getName());
@@ -221,13 +200,13 @@ class FastestConnectionSelectingSSLSocketFactory
     }
 
     private void prepareAndVerify(SSLSocket sslSocket, URI selectedAddress,
-            HttpContext context) throws IOException {
+                                  HttpContext context) throws IOException {
         prepareSocket(sslSocket);
         verify(context, sslSocket.getSession(), selectedAddress);
     }
 
     private SocketInfo connect(URI[] addresses, HttpContext context,
-            int timeout) throws IOException {
+                               int timeout) throws IOException {
         log.trace("Connecting to hosts {} with timeout {}", Arrays.toString(addresses), timeout);
         if (addresses.length == 1) { // only one host, no need to select fastest
             return connect(addresses[0], context, timeout);
@@ -261,89 +240,15 @@ class FastestConnectionSelectingSSLSocketFactory
             return (SSLSocket) sslSocket;
         }
 
-        throw new CodedException(X_INTERNAL_ERROR,
-                "Failed to create SSL socket");
-    }
-
-    private CachedSSLSessionHostInformation getCachedSSLSessionHostURI(URI[] addresses) {
-        SSLSessionContext sessionCtx = sslContext.getClientSessionContext();
-        Enumeration<byte[]> ids = sessionCtx.getIds();
-        while (ids.hasMoreElements()) {
-            byte[] id = ids.nextElement();
-            SSLSession session = sessionCtx.getSession(id);
-            if (session != null) {
-                for (URI address : addresses) {
-                    if (isSessionHost(session, address)) {
-                        log.trace("Found cached session for {}", address);
-                        return new CachedSSLSessionHostInformation(address, session);
-                    }
-                }
-            }
-        }
-        return CachedSSLSessionHostInformation.NONE;
-    }
-
-    /**
-     * Simple value object for holding URI - SSLSession pairs
-     */
-    @Getter
-    private static class CachedSSLSessionHostInformation {
-        static final CachedSSLSessionHostInformation NONE = new CachedSSLSessionHostInformation();
-        private final URI selectedAddress;
-        private final SSLSession sslSession;
-
-        CachedSSLSessionHostInformation(URI selectedAddress, SSLSession sslSession) {
-            this.selectedAddress = selectedAddress;
-            this.sslSession = sslSession;
-        }
-
-        CachedSSLSessionHostInformation() {
-            this.selectedAddress = null;
-            this.sslSession = null;
-        }
-
-        void clearCachedURIForSession() {
-            if (sslSession != null) {
-                sslSession.removeValue(ID_SELECTED_TARGET);
-                sslSession.removeValue(ID_SELECTED_TARGET_TIMESTAMP);
-            }
-        }
-
-        public boolean selectedTargetTimestampExists() {
-            return sslSession != null && sslSession.getValue(ID_SELECTED_TARGET_TIMESTAMP) != null;
-        }
-
-        public boolean hasUriCacheExpired() {
-            LocalDateTime timestamp =
-                    (LocalDateTime) sslSession.getValue(ID_SELECTED_TARGET_TIMESTAMP);
-            LocalDateTime expire = timestamp
-                    .plusSeconds(SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod());
-            return LocalDateTime.now().isAfter(expire);
-        }
+        throw new CodedException(X_INTERNAL_ERROR, "Failed to create SSL socket");
     }
 
     private static URI[] getAddressesFromContext(HttpContext context) {
         Object targets = context.getAttribute(ID_TARGETS);
-        if (targets == null || !(targets instanceof URI[])
-                || ((URI[]) targets).length == 0) {
-            throw new CodedException(X_INTERNAL_ERROR,
-                    "Target hosts not specified in http context");
+        if (targets instanceof URI[] && ((URI[]) targets).length > 0) {
+            return (URI[]) targets;
         }
-
-        return (URI[]) targets;
-    }
-
-    private static boolean isSessionHost(SSLSession session, URI host) {
-        try {
-            URI sslHost = (URI) session.getValue(ID_SELECTED_TARGET);
-            return sslHost != null && sslHost.equals(host);
-        } catch (Exception e) {
-            log.error("Error checking if host {} is in session ({}).", host,
-                    session);
-            log.error("Exception :{}", e);
-        }
-
-        return false;
+        throw new CodedException(X_INTERNAL_ERROR, "Target hosts not specified in http context");
     }
 
     private static InetSocketAddress toAddress(URI uri) {
@@ -351,10 +256,37 @@ class FastestConnectionSelectingSSLSocketFactory
     }
 
     private static CodedException couldNotConnectException(URI[] addresses) {
-        log.error("Could not connect to any target host ({})",
-                Arrays.toString(addresses));
-        return new CodedException(X_NETWORK_ERROR, String.format(
-                "Could not connect to any target host (%s)",
-                Arrays.toString(addresses)));
+        log.error("Could not connect to any target host ({})", Arrays.toString(addresses));
+        return new CodedException(X_NETWORK_ERROR,
+                String.format("Could not connect to any target host (%s)", Arrays.toString(addresses)));
     }
+
+    static final class CacheKey {
+        private final URI[] addresses;
+        private final int hash;
+
+        CacheKey(URI[] addresses) {
+            // address lists are small, using an sorted arraylist as a key
+            // will have a lower overhead than using a hashset or treeset
+            final URI[] tmp = addresses.clone();
+            Arrays.sort(tmp);
+            this.addresses = tmp;
+            this.hash = Arrays.hashCode(this.addresses);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof CacheKey)) return false;
+            final CacheKey key = (CacheKey) o;
+            if (hash != key.hash) return false;
+            return Arrays.equals(addresses, key.addresses);
+        }
+
+        @Override
+        public int hashCode() {
+            return hash;
+        }
+    }
+
 }

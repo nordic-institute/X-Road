@@ -109,8 +109,9 @@ public class LogArchiver extends UntypedActor {
 
             try (LogArchiveWriter archiveWriter = createLogArchiveWriter(session)) {
                 while (!records.isEmpty()) {
-                    archive(archiveWriter, records);
-                    runTransferCommand(getArchiveTransferCommand());
+                    if (archive(archiveWriter, records)) {
+                        runTransferCommand(getArchiveTransferCommand());
+                    }
                     recordsArchived += records.size();
 
                     //flush changes (records marked as archived) and free memory
@@ -129,6 +130,8 @@ public class LogArchiver extends UntypedActor {
                 }
             } catch (Exception e) {
                 throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
+            }  finally {
+                runTransferCommand(getArchiveTransferCommand());
             }
 
             log.info("Archived {} log records in {} ms", recordsArchived,
@@ -138,11 +141,15 @@ public class LogArchiver extends UntypedActor {
         });
     }
 
-    private void archive(LogArchiveWriter archiveWriter,
+    private boolean archive(LogArchiveWriter archiveWriter,
             List<LogRecord> records) throws Exception {
+
+        boolean producedArchiveFile = false;
         for (LogRecord record : records) {
-            archiveWriter.write(record);
+            producedArchiveFile |= archiveWriter.write(record);
         }
+
+        return producedArchiveFile;
     }
 
     private LogArchiveWriter createLogArchiveWriter(Session session) {
