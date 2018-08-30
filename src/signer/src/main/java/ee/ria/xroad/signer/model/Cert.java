@@ -142,4 +142,11 @@ public class Cert {
             throw translateException(e);
         }
     }
+
+    /**
+     * @return true if cert is either not active or member id is missing
+     */
+    public boolean isInvalid() {
+        return !isActive() || getMemberId() == null;
+    }
 }

@@ -118,7 +118,6 @@ public class OcspClientJob extends OcspRetrievalJob {
             cancelNextSend();
             scheduleNextSend(getNextDelayForInvalidGlobalConf());
             failed = false;
-
         } else {
             // received either EXECUTE (VariableIntervalPeriodicJob
             // executes, and schedules next EXECUTE) or something else

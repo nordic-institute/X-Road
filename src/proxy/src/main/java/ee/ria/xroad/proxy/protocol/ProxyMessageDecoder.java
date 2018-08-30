@@ -266,11 +266,7 @@ public class ProxyMessageDecoder {
                     // $FALL-THROUGH$ perhaps there is a hash chain result.
                 case HASH_CHAIN_RESULT:
                     if (HASH_CHAIN_RESULT.equalsIgnoreCase(bd.getMimeType())) {
-                        try {
-                            handleHashChainResult(is);
-                        } catch (Exception e) {
-                            throw translateException(e);
-                        }
+                        handleHashChainResult(is);
 
                         nextPart = NextPart.HASH_CHAIN;
                         break;
@@ -278,22 +274,14 @@ public class ProxyMessageDecoder {
                     // $FALL-THROUGH$ perhaps there is a hash chain.
                 case HASH_CHAIN:
                     if (HASH_CHAIN.equalsIgnoreCase(bd.getMimeType())) {
-                        try {
-                            handleHashChain(is);
-                        } catch (Exception e) {
-                            throw translateException(e);
-                        }
+                        handleHashChain(is);
 
                         nextPart = NextPart.SIGNATURE;
                         break;
                     }
                     // $FALL-THROUGH$ Otherwise it was signature after all. Fall through the case.
                 case SIGNATURE:
-                    try {
-                        handleSignature(bd, is);
-                    } catch (Exception e) {
-                        throw translateException(e);
-                    }
+                    handleSignature(bd, is);
 
                     // We are not expecting anything more.
                     nextPart = NextPart.NONE;
@@ -415,56 +403,68 @@ public class ProxyMessageDecoder {
         attachmentParser.parse(is);
     }
 
-    private void handleHashChainResult(InputStream is) throws Exception {
-        LOG.trace("handleHashChainResult()");
+    private void handleHashChainResult(InputStream is) throws CodedException {
+        try {
+            LOG.trace("handleHashChainResult()");
 
-        String hashChainResult = IOUtils.toString(is, UTF_8);
-        LOG.trace("HashChainResult: {}", hashChainResult);
+            String hashChainResult = IOUtils.toString(is, UTF_8);
+            LOG.trace("HashChainResult: {}", hashChainResult);
 
-        signature = new SignatureData(null, hashChainResult, null);
+            signature = new SignatureData(null, hashChainResult, null);
+        } catch (Exception e) {
+            throw translateException(e);
+        }
     }
 
-    private void handleHashChain(InputStream is) throws Exception {
-        LOG.trace("handleHashChain()");
+    private void handleHashChain(InputStream is) throws CodedException {
+        try {
+            LOG.trace("handleHashChain()");
 
-        String hashChain = IOUtils.toString(is, UTF_8);
-        LOG.trace("HashChain: {}", hashChain);
+            String hashChain = IOUtils.toString(is, UTF_8);
+            LOG.trace("HashChain: {}", hashChain);
 
-        signature = new SignatureData(null, signature.getHashChainResult(),
-                hashChain);
+            signature = new SignatureData(null, signature.getHashChainResult(),
+                    hashChain);
+        } catch (Exception e) {
+            throw translateException(e);
+        }
     }
 
     private void handleSignature(BodyDescriptor bd, InputStream is)
-            throws Exception {
-        LOG.trace("Looking for signature, got '{}'", bd.getMimeType());
+            throws CodedException {
+        try {
+            LOG.trace("Looking for signature, got '{}'", bd.getMimeType());
 
-        switch (bd.getMimeType() == null
-                ? "" : bd.getMimeType().toLowerCase()) {
-            case SIGNATURE_BDOC:
-                // We got signature, just as expected.
-                signature = new SignatureData(IOUtils.toString(is, UTF_8),
-                        signature.getHashChainResult(), signature.getHashChain());
-                callback.signature(signature);
-                break;
-            case TEXT_XML:
-                LOG.debug("Got fault instead of signature");
-                // It seems that signing failed and the other
-                // party sent SOAP fault instead of signature.
+            switch (bd.getMimeType() == null
+                    ? "" : bd.getMimeType().toLowerCase()) {
+                case SIGNATURE_BDOC:
+                    // We got signature, just as expected.
+                    signature = new SignatureData(IOUtils.toString(is, UTF_8),
+                            signature.getHashChainResult(), signature.getHashChain());
+                    callback.signature(signature);
+                    break;
+                case TEXT_XML:
+                    LOG.debug("Got fault instead of signature");
+                    // It seems that signing failed and the other
+                    // party sent SOAP fault instead of signature.
 
-                // Parse the fault message.
-                Soap soap = new SaxSoapParserImpl().parse(bd.getMimeType(), is);
-                if (soap instanceof SoapFault) {
-                    callback.fault((SoapFault) soap);
-                    return; // The nextPart will be set to NONE
-                }
-                // $FALL-THROUGH$ If not fault message, fall through to invalid message case.
-            default:
-                // Um, not what we expected.
-                // The error reporting must use exceptions, otherwise
-                // the parsing is not interrupted.
-                throw new CodedException(X_INVALID_CONTENT_TYPE,
-                        "Received invalid content type instead of signature: %s",
-                        bd.getMimeType());
+                    // Parse the fault message.
+                    Soap soap = new SaxSoapParserImpl().parse(bd.getMimeType(), is);
+                    if (soap instanceof SoapFault) {
+                        callback.fault((SoapFault) soap);
+                        return; // The nextPart will be set to NONE
+                    }
+                    // $FALL-THROUGH$ If not fault message, fall through to invalid message case.
+                default:
+                    // Um, not what we expected.
+                    // The error reporting must use exceptions, otherwise
+                    // the parsing is not interrupted.
+                    throw new CodedException(X_INVALID_CONTENT_TYPE,
+                            "Received invalid content type instead of signature: %s",
+                            bd.getMimeType());
+            }
+        } catch (Exception e) {
+            throw translateException(e);
         }
     }
 

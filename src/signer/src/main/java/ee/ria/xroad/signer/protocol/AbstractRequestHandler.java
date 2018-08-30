@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
- package ee.ria.xroad.signer.protocol;
+package ee.ria.xroad.signer.protocol;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.message.SuccessResponse;

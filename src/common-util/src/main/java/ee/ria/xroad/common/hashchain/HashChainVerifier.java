@@ -71,6 +71,8 @@ public final class HashChainVerifier {
     /** For accessing JAXB functionality. Shared between all the verifiers. */
     private static JAXBContext jaxbCtx;
 
+    private static final String INVALID_HASH_STEP_URI_MSG = "Invalid hash step URI: %s";
+
     private InputStream hashChainResultXml;
     private HashChainReferenceResolver referenceResolver;
     private Map<String, DigestValue> inputs;
@@ -320,7 +322,7 @@ public final class HashChainVerifier {
         int hashIndex = uri.indexOf('#');
 
         if (hashIndex < 0) {
-            throw new CodedException(X_MALFORMED_HASH_CHAIN, "Invalid hash step URI: %s", uri);
+            throw new CodedException(X_MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG, uri);
         }
 
         String baseUri = uri.substring(0, hashIndex);
@@ -328,7 +330,7 @@ public final class HashChainVerifier {
 
         if (fragment.isEmpty()) {
             // Hash step must be indicated by a fragment in a hash chain.
-            throw new CodedException(X_MALFORMED_HASH_CHAIN, "Invalid hash step URI: %s", uri);
+            throw new CodedException(X_MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG, uri);
         }
 
         HashChainType hashChain;
@@ -347,7 +349,7 @@ public final class HashChainVerifier {
         }
 
         // No hash step with given fragment ID found.
-        throw new CodedException(X_MALFORMED_HASH_CHAIN, "Invalid hash step URI: %s", uri);
+        throw new CodedException(X_MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG, uri);
     }
 
     private HashChainType getHashChain(String uri) throws Exception {

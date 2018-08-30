@@ -1,6 +1,6 @@
 /**
  * The MIT License
- * Copyright (c) 2016 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,29 +20,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.opmonitoring;
+package ee.ria.xroad.proxyui;
 
-import com.google.gson.annotations.SerializedName;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSession;
 
 /**
- * Store operational monitoring data request.
+ * Static class for pre-defined HostnameVerifiers
  */
-@Setter
-@Getter
-@ToString
-public class StoreOpMonitoringDataRequest {
+public final class HostnameVerifiers {
 
-    @SerializedName("records")
-    private final List<Map<String, Object>> records = new ArrayList<>();
+    public static final HostnameVerifier ACCEPT_ALL = new HostnameVerifier() {
+        @Override
+        public boolean verify(String hostname, SSLSession session) {
+            return true;
+        }
+    };
 
-    public void addRecord(Map<String, Object> record) {
-        records.add(record);
-    }
+    private HostnameVerifiers() { }
 }

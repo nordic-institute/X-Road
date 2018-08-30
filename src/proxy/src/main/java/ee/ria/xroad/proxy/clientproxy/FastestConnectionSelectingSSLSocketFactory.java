@@ -109,6 +109,7 @@ class FastestConnectionSelectingSSLSocketFactory
         final boolean useCache = (addressesFromContext.length > 1) && cachingEnabled;
 
         URI[] addresses = addressesFromContext;
+
         CacheKey cacheKey = null;
         URI cachedURI = null;
 

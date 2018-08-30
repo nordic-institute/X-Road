@@ -68,6 +68,7 @@ public class LogArchiver extends UntypedActor {
 
     private static final int MAX_RECORDS_IN_ARCHIVE = 10;
     private static final int MAX_RECORDS_IN_PATCHS = 360;
+    private static final String PROPERTY_NAME_ARCHIVED = "archived";
 
     public static final String START_ARCHIVING = "doArchive";
 
@@ -219,7 +220,7 @@ public class LogArchiver extends UntypedActor {
     protected List<TimestampRecord> getNonArchivedTimestampRecords(
             Session session, int maxRecordsToGet, long maxTimestampId) {
         Criteria criteria = session.createCriteria(TimestampRecord.class);
-        criteria.add(Restrictions.eq("archived", false));
+        criteria.add(Restrictions.eq(PROPERTY_NAME_ARCHIVED, false));
         criteria.add(Restrictions.le("id", maxTimestampId));
         criteria.setMaxResults(maxRecordsToGet);
         criteria.addOrder(Order.asc("id"));
@@ -230,7 +231,7 @@ public class LogArchiver extends UntypedActor {
     protected Long getMaxTimestampId(Session session) {
         return (Long) session
                 .createCriteria(TimestampRecord.class)
-                .add(Restrictions.eq("archived", false))
+                .add(Restrictions.eq(PROPERTY_NAME_ARCHIVED, false))
                 .setProjection(Projections.max("id"))
                 .uniqueResult();
     }
@@ -240,7 +241,7 @@ public class LogArchiver extends UntypedActor {
             Long timestampRecordNumber, int maxRecordsToGet) {
         return session
                 .createCriteria(MessageRecord.class)
-                .add(Restrictions.eq("archived", false))
+                .add(Restrictions.eq(PROPERTY_NAME_ARCHIVED, false))
                 .add(Restrictions.eq("timestampRecord.id",
                         timestampRecordNumber))
                 .setMaxResults(maxRecordsToGet)
@@ -251,7 +252,7 @@ public class LogArchiver extends UntypedActor {
             Long timestampRecordNumber) {
         Long result = (Long) session
                 .createCriteria(MessageRecord.class)
-                .add(Restrictions.eq("archived", false))
+                .add(Restrictions.eq(PROPERTY_NAME_ARCHIVED, false))
                 .add(Restrictions.eq("timestampRecord.id",
                         timestampRecordNumber))
                 .setProjection(Projections.rowCount())

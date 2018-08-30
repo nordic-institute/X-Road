@@ -51,4 +51,7 @@ public final class KeyInfo implements Serializable {
 
     private final String signMechanismName;
 
+    public boolean isForSigning() {
+        return usage == KeyUsageInfo.SIGNING;
+    }
 }

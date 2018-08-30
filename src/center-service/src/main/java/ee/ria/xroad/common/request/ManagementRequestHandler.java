@@ -59,6 +59,8 @@ import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 @Slf4j
 public final class ManagementRequestHandler {
 
+    private static final String DUMMY_CLIENT_ID = "dummy";
+
     private ManagementRequestHandler() {
     }
 
@@ -116,10 +118,10 @@ public final class ManagementRequestHandler {
             new SignCertificateProfileInfoParameters(
                 ClientId.create(
                     GlobalConf.getInstanceIdentifier(),
-                    "dummy",
-                    "dummy"
+                        DUMMY_CLIENT_ID,
+                        DUMMY_CLIENT_ID
                 ),
-                "dummy"
+                    DUMMY_CLIENT_ID
             ),
             ownerCert
         );

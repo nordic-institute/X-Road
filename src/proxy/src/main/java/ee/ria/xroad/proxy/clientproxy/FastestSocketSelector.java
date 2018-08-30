@@ -106,26 +106,30 @@ class FastestSocketSelector {
             Iterator<SelectionKey> it = selector.selectedKeys().iterator();
             while (it.hasNext()) {
                 SelectionKey key = it.next();
-                if (key.isValid() && key.isConnectable()) {
-                    SocketChannel channel = (SocketChannel) key.channel();
-                    try {
-                        if (channel.finishConnect()) {
-                            return key;
-                        }
-                    } catch (Exception e) {
-                        key.cancel();
-                        closeQuietly(channel);
-
-                        log.trace("Error connecting socket channel: {}",
-                                e);
-                    }
+                if (isConnected(key)) {
+                    return key;
                 }
-
                 it.remove();
             }
         }
 
         return null;
+    }
+
+    private boolean isConnected(SelectionKey key) {
+        if (key.isValid() && key.isConnectable()) {
+            SocketChannel channel = (SocketChannel) key.channel();
+            try {
+                return channel.finishConnect();
+            } catch (Exception e) {
+                key.cancel();
+                closeQuietly(channel);
+
+                log.trace("Error connecting socket channel: {}",
+                        e);
+            }
+        }
+        return false;
     }
 
     private SocketInfo initConnections(Selector selector) throws IOException {

@@ -57,14 +57,14 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
     @Override
     public SupervisorStrategy supervisorStrategy() {
         return new OneForOneStrategy(-1, Duration.Inf(),
-            throwable -> {
-                if (throwable instanceof PKCS11Exception) {
-                    // PKCS11Exceptions should make the module reinitialized
-                    return SupervisorStrategy.restart();
-                } else {
-                    return SupervisorStrategy.resume();
+                throwable -> {
+                    if (throwable instanceof PKCS11Exception) {
+                        // PKCS11Exceptions should make the module reinitialized
+                        return SupervisorStrategy.restart();
+                    } else {
+                        return SupervisorStrategy.resume();
+                    }
                 }
-            }
         );
     }
 

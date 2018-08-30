@@ -50,6 +50,7 @@ public class SessionTimeoutFilter implements Filter {
 
     @Override
     public void init(FilterConfig config) throws ServletException {
+        // nothing to init
     }
 
     @Override
@@ -110,5 +111,6 @@ public class SessionTimeoutFilter implements Filter {
 
     @Override
     public void destroy() {
+        // no resources to destroy
     }
 }

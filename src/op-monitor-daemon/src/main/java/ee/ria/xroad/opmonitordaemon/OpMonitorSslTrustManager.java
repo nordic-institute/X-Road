@@ -74,6 +74,7 @@ class OpMonitorSslTrustManager implements X509TrustManager {
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType)
             throws CertificateException {
+        // Never called cause used as server side trust manager only
     }
 
     @Override

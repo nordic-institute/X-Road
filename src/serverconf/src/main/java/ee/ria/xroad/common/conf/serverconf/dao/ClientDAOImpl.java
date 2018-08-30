@@ -39,6 +39,8 @@ import static java.util.Collections.emptyList;
  */
 public class ClientDAOImpl extends AbstractDAOImpl<ClientType> {
 
+    private static final String IDENTIFIER_CRITERIA = "identifier";
+
     /**
      * Returns true, if client with specified identifier exists.
      * @param session the session
@@ -56,7 +58,7 @@ public class ClientDAOImpl extends AbstractDAOImpl<ClientType> {
         }
 
         Criteria criteria = session.createCriteria(ClientType.class);
-        criteria.createCriteria("identifier").add(ex);
+        criteria.createCriteria(IDENTIFIER_CRITERIA).add(ex);
         return criteria.list().size() > 0;
     }
 
@@ -68,7 +70,7 @@ public class ClientDAOImpl extends AbstractDAOImpl<ClientType> {
      */
     public ClientType getClient(Session session, ClientId id) {
         Criteria criteria = session.createCriteria(ClientType.class);
-        criteria.createCriteria("identifier").add(Example.create(id));
+        criteria.createCriteria(IDENTIFIER_CRITERIA).add(Example.create(id));
         return findOne(criteria);
     }
 
@@ -80,7 +82,7 @@ public class ClientDAOImpl extends AbstractDAOImpl<ClientType> {
      */
     public List<CertificateType> getIsCerts(Session session, ClientId id) {
         Criteria criteria = session.createCriteria(ClientType.class);
-        criteria.createCriteria("identifier").add(Example.create(id));
+        criteria.createCriteria(IDENTIFIER_CRITERIA).add(Example.create(id));
 
         ClientType client = findOne(criteria);
         if (client != null) {

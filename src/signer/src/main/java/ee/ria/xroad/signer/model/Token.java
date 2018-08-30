@@ -136,7 +136,15 @@ public final class Token {
                 && ObjectUtils.equals(token.getSlotIndex(), slotIndex);
     }
 
+    /**
+     * @return true if token is either not active or not available
+     */
+    public boolean isInActive() {
+        return !isActive() || !isAvailable();
+    }
+
     private List<KeyInfo> getKeysAsDTOs() {
         return keys.stream().map(k -> k.toDTO()).collect(Collectors.toList());
     }
+
 }

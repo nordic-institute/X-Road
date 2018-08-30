@@ -91,15 +91,17 @@ public class OcspClientWorker extends AbstractSignerActor {
     private static final String VERIFY_OCSP_NEXTUPDATE = "verifyOcspNextUpdate";
     private static final String OCSP_FETCH_INTERVAL = "ocspFetchInterval";
 
+    private static final String OCSP_CLIENT_JOB_PATH = "/user/" + OCSP_CLIENT_JOB;
+
     private GlobalConfChangeChecker changeChecker;
 
-    private CertificationServiceDiagnostics diagnostics;
+    private CertificationServiceDiagnostics certServDiagnostics;
 
     @Override
     public void preStart() throws Exception {
         super.preStart();
         changeChecker = new GlobalConfChangeChecker();
-        diagnostics = new CertificationServiceDiagnostics();
+        certServDiagnostics = new CertificationServiceDiagnostics();
     }
 
     @Override
@@ -120,7 +122,7 @@ public class OcspClientWorker extends AbstractSignerActor {
     }
 
     void handleDiagnostics() {
-        getSender().tell(diagnostics, getSelf());
+        getSender().tell(certServDiagnostics, getSelf());
     }
 
     void handleReload() {
@@ -164,21 +166,21 @@ public class OcspClientWorker extends AbstractSignerActor {
             log.info("Launching a new OCSP-response refresh due to change in OcspFetchInterval");
             log.debug("sending cancel");
 
-            getContext().actorSelection("/user/" + OCSP_CLIENT_JOB).tell(OcspClientJob.CANCEL, ActorRef.noSender());
+            getContext().actorSelection(OCSP_CLIENT_JOB_PATH).tell(OcspClientJob.CANCEL, ActorRef.noSender());
 
             log.debug("sending execute");
 
-            getContext().actorSelection("/user/" + OCSP_CLIENT_JOB).tell(OcspClientWorker.EXECUTE, ActorRef.noSender());
+            getContext().actorSelection(OCSP_CLIENT_JOB_PATH).tell(OcspClientWorker.EXECUTE, ActorRef.noSender());
         } else if (sendReschedule) {
             log.info("Rescheduling a new OCSP-response refresh due to "
                     + "change in global configuration's additional parameters");
             log.debug("sending cancel");
 
-            getContext().actorSelection("/user/" + OCSP_CLIENT_JOB).tell(OcspClientJob.CANCEL, ActorRef.noSender());
+            getContext().actorSelection(OCSP_CLIENT_JOB_PATH).tell(OcspClientJob.CANCEL, ActorRef.noSender());
 
             log.debug("sending reschedule");
 
-            getContext().actorSelection("/user/" + OCSP_CLIENT_JOB).tell(OcspClientJob.RESCHEDULE, ActorRef.noSender());
+            getContext().actorSelection(OCSP_CLIENT_JOB_PATH).tell(OcspClientJob.RESCHEDULE, ActorRef.noSender());
         } else {
             log.debug("No global configuration extension changes detected");
         }
@@ -305,7 +307,7 @@ public class OcspClientWorker extends AbstractSignerActor {
 
                 if (response != null) {
                     reportOcspDiagnostics(issuer, responderURI, DiagnosticsErrorCodes.RETURN_SUCCESS, LocalTime.now(),
-                        LocalTime.now().plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval()));
+                            LocalTime.now().plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval()));
 
                     break;
                 }
@@ -319,14 +321,14 @@ public class OcspClientWorker extends AbstractSignerActor {
                 log.error("Unable to connect to responder at " + responderURI, e);
 
                 reportOcspDiagnostics(issuer, responderURI, DiagnosticsErrorCodes.ERROR_CODE_OCSP_CONNECTION_ERROR,
-                    LocalTime.now(),
-                    LocalTime.now().plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval()));
+                        LocalTime.now(),
+                        LocalTime.now().plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval()));
             } catch (Exception e) {
                 log.error("Unable to fetch response from responder at " + responderURI, e);
 
                 reportOcspDiagnostics(issuer, responderURI, DiagnosticsErrorCodes.ERROR_CODE_OCSP_FAILED,
-                    LocalTime.now(),
-                    LocalTime.now().plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval()));
+                        LocalTime.now(),
+                        LocalTime.now().plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval()));
             }
         }
         try {
@@ -355,7 +357,8 @@ public class OcspClientWorker extends AbstractSignerActor {
 
         CertificationServiceStatus serviceStatus;
 
-        Map<String, CertificationServiceStatus> serviceStatusMap = diagnostics.getCertificationServiceStatusMap();
+        Map<String, CertificationServiceStatus> serviceStatusMap =
+                certServDiagnostics.getCertificationServiceStatusMap();
 
         if (!serviceStatusMap.containsKey(subjectName)) {
             serviceStatus = new CertificationServiceStatus(subjectName);
@@ -462,12 +465,13 @@ public class OcspClientWorker extends AbstractSignerActor {
                 final String key = caCertificate.getSubjectDN().toString();
 
                 // add certification service if it does not exist
-                if (!diagnostics.getCertificationServiceStatusMap().containsKey(key)) {
+                if (!certServDiagnostics.getCertificationServiceStatusMap().containsKey(key)) {
                     CertificationServiceStatus newServiceStatus = new CertificationServiceStatus(key);
-                    diagnostics.getCertificationServiceStatusMap().put(key, newServiceStatus);
+                    certServDiagnostics.getCertificationServiceStatusMap().put(key, newServiceStatus);
                 }
 
-                CertificationServiceStatus serviceStatus = diagnostics.getCertificationServiceStatusMap().get(key);
+                CertificationServiceStatus serviceStatus =
+                        certServDiagnostics.getCertificationServiceStatusMap().get(key);
                 // add ocsp responder if it does not exist
                 GlobalConf.getOcspResponderAddressesForCaCertificate(caCertificate).stream()
                         .filter(responderURI -> !serviceStatus.getOcspResponderStatusMap().containsKey(responderURI))
