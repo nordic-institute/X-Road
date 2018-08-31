@@ -235,6 +235,8 @@ public final class SystemProperties {
 
     private static final String DEFAULT_CLIENTPROXY_HTTPCLIENT_SO_LINGER = "-1";
 
+    public static final String DEFAULT_OCSP_RESPONDER_CLIENT_READ_TIMEOUT = "30000";
+
     private static final String DEFAULT_CLIENTPROXY_POOL_IDLE_MONITOR_INTERVAL = "30000";
 
     private static final String DEFAULT_CLIENTPROXY_POOL_IDLE_MONITOR_IDLE_TIME = "60000";
@@ -262,6 +264,8 @@ public final class SystemProperties {
     private static final String DEFAULT_PROXY_HEALTH_CHECK_INTERFACE = "0.0.0.0";
 
     private static final String DEFAULT_PROXY_HEALTH_CHECK_PORT = "0";
+
+    public static final String DEFAULT_SIGNER_ENFORCE_TOKEN_PIN_POLICY = "false";
 
     private static final String OCSP_VERIFIER_CACHE_PERIOD =
             PREFIX + "proxy.ocsp-verifier-cache-period";
@@ -856,7 +860,8 @@ public final class SystemProperties {
      * @return the OCSP Responder Client read timeout in milliseconds, '30000' by default.
      */
     public static int getOcspResponderClientReadTimeout() {
-        return Integer.parseInt(System.getProperty(OCSP_RESPONDER_CLIENT_READ_TIMEOUT, "30000"));
+        return Integer.parseInt(System.getProperty(OCSP_RESPONDER_CLIENT_READ_TIMEOUT,
+                DEFAULT_OCSP_RESPONDER_CLIENT_READ_TIMEOUT));
     }
 
     /**
@@ -1148,7 +1153,8 @@ public final class SystemProperties {
      * @return true if PIN policy should be enforced.
      */
     public static boolean shouldEnforceTokenPinPolicy() {
-        return Boolean.valueOf(System.getProperty(SIGNER_ENFORCE_TOKEN_PIN_POLICY, "false"));
+        return Boolean.valueOf(System.getProperty(SIGNER_ENFORCE_TOKEN_PIN_POLICY,
+                DEFAULT_SIGNER_ENFORCE_TOKEN_PIN_POLICY));
     }
 
     /**

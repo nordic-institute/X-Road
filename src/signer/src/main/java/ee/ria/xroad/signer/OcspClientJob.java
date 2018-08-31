@@ -53,7 +53,7 @@ public class OcspClientJob extends OcspRetrievalJob {
     private static final int RETRY_DELAY = SystemProperties.getOcspResponseRetryDelay();
 
     //flag for indicating backoff retry state
-    private boolean failed = false;
+    private boolean retryMode = false;
 
     OcspClientJob() {
         super(OCSP_CLIENT, OcspClientWorker.EXECUTE);
@@ -66,7 +66,7 @@ public class OcspClientJob extends OcspRetrievalJob {
 
     @Override
     protected FiniteDuration getNextDelay() {
-        if (failed && RETRY_DELAY < OcspClientWorker.getNextOcspFetchIntervalSeconds()) {
+        if (retryMode && RETRY_DELAY < OcspClientWorker.getNextOcspFetchIntervalSeconds()) {
             log.info("Next OCSP refresh retry scheduled in {} seconds", RETRY_DELAY);
             return FiniteDuration.create(RETRY_DELAY, TimeUnit.SECONDS);
         } else {
@@ -93,15 +93,15 @@ public class OcspClientJob extends OcspRetrievalJob {
         } else if (SUCCESS.equals(incoming)) {
             log.debug("received message OcspClientJob.SUCCESS");
             log.info("OCSP-response refresh cycle successfully completed, continuing with normal scheduling");
-            failed = false;
+            retryMode = false;
         } else if (FAILED.equals(incoming)) {
             log.debug("received message OcspClientJob.FAILED");
-            if (!failed) {
+            if (!retryMode) {
                 log.info("OCSP-response refresh cycle failed, switching to retry backoff schedule");
                 // move into recover-from-failed state
                 // cancel next send and start backoff schedule
                 cancelNextSend();
-                failed = true;
+                retryMode = true;
                 scheduleNextSend(getNextDelay());
             } else {
                 // no need to touch scheduling, we have already
@@ -117,7 +117,7 @@ public class OcspClientJob extends OcspRetrievalJob {
             // invalid at that time -> reschedule
             cancelNextSend();
             scheduleNextSend(getNextDelayForInvalidGlobalConf());
-            failed = false;
+            retryMode = false;
         } else {
             // received either EXECUTE (VariableIntervalPeriodicJob
             // executes, and schedules next EXECUTE) or something else

@@ -23,19 +23,13 @@
 package ee.ria.xroad.proxyui;
 
 import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLSession;
 
 /**
  * Static class for pre-defined HostnameVerifiers
  */
 public final class HostnameVerifiers {
 
-    public static final HostnameVerifier ACCEPT_ALL = new HostnameVerifier() {
-        @Override
-        public boolean verify(String hostname, SSLSession session) {
-            return true;
-        }
-    };
+    public static final HostnameVerifier ACCEPT_ALL = (hostname, session) -> true;
 
     private HostnameVerifiers() { }
 }
