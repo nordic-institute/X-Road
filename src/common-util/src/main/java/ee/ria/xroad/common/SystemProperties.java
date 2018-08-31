@@ -267,6 +267,8 @@ public final class SystemProperties {
 
     public static final String DEFAULT_SIGNER_ENFORCE_TOKEN_PIN_POLICY = "false";
 
+    public static final String DEFAULT_ALLOW_GET_WSDL_REQUEST = "false";
+
     private static final String OCSP_VERIFIER_CACHE_PERIOD =
             PREFIX + "proxy.ocsp-verifier-cache-period";
 
@@ -1348,7 +1350,7 @@ public final class SystemProperties {
      * @return whether GET request can be used for getWsdl metaservice, 'false' by default.
      */
     public static boolean isAllowGetWsdlRequest() {
-        return "true".equalsIgnoreCase(System.getProperty(ALLOW_GET_WSDL_REQUEST, "false"));
+        return "true".equalsIgnoreCase(System.getProperty(ALLOW_GET_WSDL_REQUEST, DEFAULT_ALLOW_GET_WSDL_REQUEST));
     }
 
     private static void checkVersionValidity(int version, int current, String defaultVersion) {
