@@ -27,6 +27,7 @@ import javax.net.ssl.HostnameVerifier;
 /**
  * Static class for pre-defined HostnameVerifiers
  */
+@SuppressWarnings("squid:S3510")
 public final class HostnameVerifiers {
 
     public static final HostnameVerifier ACCEPT_ALL = (hostname, session) -> true;

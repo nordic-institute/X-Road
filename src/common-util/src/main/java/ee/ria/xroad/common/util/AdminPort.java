@@ -157,8 +157,7 @@ public class AdminPort implements StartStop {
             } catch (Exception e) {
                 LOG.error("Handler got error", e);
                 response.setStatus(SC_INTERNAL_SERVER_ERROR);
-                response.getWriter().append(e.toString());
-                response.getWriter().flush();
+                response.getOutputStream().write(e.toString().getBytes());
             } finally {
                 baseRequest.setHandled(true);
             }
