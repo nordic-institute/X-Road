@@ -22,7 +22,6 @@
  */
 package ee.ria.xroad.common.util;
 
-import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -36,7 +35,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -158,10 +156,8 @@ public class AdminPort implements StartStop {
                 }
             } catch (Exception e) {
                 LOG.error("Handler got error", e);
-
                 response.setStatus(SC_INTERNAL_SERVER_ERROR);
-                IOUtils.copy(new StringReader(e.toString()),
-                        response.getOutputStream());
+                response.getOutputStream().write(e.toString().getBytes());
             } finally {
                 baseRequest.setHandled(true);
             }
