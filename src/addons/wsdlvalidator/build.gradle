@@ -1,17 +1,27 @@
 plugins {
+    id 'com.github.johnrengelman.shadow' version '2.0.4'
     id 'java'
+    id 'application'
 }
-
-// Apply the java plugin to add support for Java
-apply plugin: 'java'
+mainClassName = 'ee.ria.xroad.wsdlvalidator.WSDLValidator'
 
 repositories {
     mavenLocal()
     jcenter()
 }
 
-// In this section you declare the dependencies for your production and test code
 dependencies {
-    compile "org.apache.cxf:cxf-tools-validator:3.0.1"
+    compile "org.apache.cxf:cxf-tools-validator:3.2.6"
 }
 
+shadowJar {
+    classifier = ''
+    append 'META-INF/LICENSE'
+    append 'META-INF/LICENSE.txt'
+    append 'META-INF/NOTICE'
+    append 'META-INF/NOTICE.txt'
+    append 'META-INF/cxf/bus-extensions.txt'
+}
+
+build.dependsOn shadowJar
+buildall.dependsOn shadowJar

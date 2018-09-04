@@ -25,6 +25,7 @@ Addon for wsdl validation
 
 %install
 cp -a %{src}/addon/wsdlvalidator/usr %{buildroot}
+mkdir -p %{buildroot}/usr/share/xroad/wsdlvalidator/jlib/
 cp %{src}/../../addons/wsdlvalidator/build/libs/wsdlvalidator-1.0.jar %{buildroot}/usr/share/xroad/wsdlvalidator/jlib/
 
 %clean
@@ -33,7 +34,6 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root,-)
 /usr/share/xroad/wsdlvalidator
-%attr(755,root,root) /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator
 %attr(750,root,xroad) /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh
 
 %post
