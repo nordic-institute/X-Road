@@ -31,20 +31,21 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.FileContentChangeChecker;
 import ee.ria.xroad.signer.protocol.SignerClient;
-import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.MemberSigningInfo;
 import ee.ria.xroad.signer.protocol.message.GetAuthKey;
 import ee.ria.xroad.signer.protocol.message.GetMemberSigningInfo;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
@@ -60,9 +61,21 @@ class CachingKeyConfImpl extends KeyConfImpl {
 
     private final FileContentChangeChecker keyConfChangeChecker;
 
-    private final Map<ClientId, CachedSigningInfoImpl> signingInfoCache = new HashMap<>();
+    private static final Cache<ClientId, SigningInfo> SIGNING_INFO_CACHE;
+    static {
+        SIGNING_INFO_CACHE = CacheBuilder.newBuilder()
+                .expireAfterWrite(CACHE_PERIOD_SECONDS, TimeUnit.SECONDS)
+                .build();
+    }
 
-    private CachedAuthKeyInfoImpl authKeyInfo;
+    private static final Integer AUTH_CACHE_SINGLETON_KEY = Integer.valueOf(1);
+    private static final Cache<Integer, AuthKeyInfo> AUTH_KEY_CACHE;
+    static {
+        AUTH_KEY_CACHE = CacheBuilder.newBuilder()
+                .maximumSize(1)
+                .expireAfterWrite(CACHE_PERIOD_SECONDS, TimeUnit.SECONDS)
+                .build();
+    }
 
     CachingKeyConfImpl() throws Exception {
         keyConfChangeChecker = getKeyConfChangeChecker();
@@ -74,33 +87,55 @@ class CachingKeyConfImpl extends KeyConfImpl {
 
     @Override
     public SigningCtx getSigningCtx(ClientId clientId) {
-        CachedSigningInfoImpl signingInfo = signingInfoCache.get(clientId);
-
         try {
-            if (hasExpired(signingInfo) || keyConfHasChanged()) {
-                signingInfo = getSigningInfo(clientId);
+            if (keyConfHasChanged()) {
+                invalidateCaches();
             }
-
-            signingInfoCache.put(clientId, signingInfo);
-
+            SigningInfo signingInfo = SIGNING_INFO_CACHE.get(clientId, () -> getSigningInfo(clientId));
+            if (!signingInfo.verifyValidity(new Date())) {
+                SIGNING_INFO_CACHE.invalidate(clientId);
+                signingInfo = SIGNING_INFO_CACHE.get(clientId, () -> getSigningInfo(clientId));
+            }
             return signingInfo.getSigningCtx();
-        } catch (Exception e) {
+
+        } catch (ExecutionException e) {
             throw new CodedException(X_CANNOT_CREATE_SIGNATURE, "Failed to get signing info for member '%s': %s",
                     clientId, e);
         }
     }
 
+    /**
+     * Invalidates both auth key and signing info caches
+     */
+    private void invalidateCaches() {
+        AUTH_KEY_CACHE.invalidateAll();
+        SIGNING_INFO_CACHE.invalidateAll();
+    }
+
     @Override
     public AuthKey getAuthKey() {
         try {
-            if (hasExpired(authKeyInfo) || keyConfHasChanged()) {
-                authKeyInfo = getAuthKeyInfo();
+            if (keyConfHasChanged()) {
+                invalidateCaches();
             }
-
-            return authKeyInfo.getAuthKey();
+            log.debug("reading from cache");
+            AuthKeyInfo info = AUTH_KEY_CACHE.get(AUTH_CACHE_SINGLETON_KEY,
+                    () -> getAuthKeyInfo());
+            log.debug("got info from cache");
+            if (!info.verifyValidity(new Date())) {
+                log.debug("invalid, refreshing");
+                // we likely got an old auth key from cache, and refresh should fix this
+                AUTH_KEY_CACHE.invalidateAll();
+                log.debug("invalidated cache, reading from cache again");
+                info = AUTH_KEY_CACHE.get(AUTH_CACHE_SINGLETON_KEY,
+                        () -> getAuthKeyInfo());
+            } else {
+                log.debug("valid");
+            }
+            log.debug("returning key from cache");
+            return info.getAuthKey();
         } catch (Exception e) {
             log.error("Failed to get authentication key", e);
-
             return new AuthKey(null, null);
         }
     }
@@ -119,12 +154,13 @@ class CachingKeyConfImpl extends KeyConfImpl {
         }
     }
 
-    protected CachedAuthKeyInfoImpl getAuthKeyInfo() throws Exception {
+    protected AuthKeyInfo getAuthKeyInfo() throws Exception {
+        log.debug("getAuthKeyInfo");
         SecurityServerId serverId = ServerConf.getIdentifier();
 
         log.debug("Retrieving authentication info for security server '{}'", serverId);
 
-        AuthKeyInfo keyInfo = SignerClient.execute(new GetAuthKey(serverId));
+        ee.ria.xroad.signer.protocol.dto.AuthKeyInfo keyInfo = SignerClient.execute(new GetAuthKey(serverId));
 
         CertChain certChain = getAuthCertChain(serverId.getXRoadInstance(), keyInfo.getCert().getCertificateBytes());
 
@@ -133,10 +169,10 @@ class CachingKeyConfImpl extends KeyConfImpl {
 
         PrivateKey key = loadAuthPrivateKey(keyInfo);
 
-        return new CachedAuthKeyInfoImpl(key, certChain, ocspResponses);
+        return new AuthKeyInfo(key, certChain, ocspResponses);
     }
 
-    private static CachedSigningInfoImpl getSigningInfo(ClientId clientId) throws Exception {
+    private static SigningInfo getSigningInfo(ClientId clientId) throws Exception {
         log.debug("Retrieving signing info for member '{}'", clientId);
 
         MemberSigningInfo signingInfo = SignerClient.execute(new GetMemberSigningInfo(clientId));
@@ -144,15 +180,7 @@ class CachingKeyConfImpl extends KeyConfImpl {
         X509Certificate cert = readCertificate(signingInfo.getCert().getCertificateBytes());
         OCSPResp ocsp = new OCSPResp(signingInfo.getCert().getOcspBytes());
 
-        return new CachedSigningInfoImpl(signingInfo.getKeyId(), signingInfo.getSignMechanismName(), clientId, cert,
+        return new SigningInfo(signingInfo.getKeyId(), signingInfo.getSignMechanismName(), clientId, cert,
                 ocsp);
-    }
-
-    private static boolean hasExpired(AbstractCachedInfo cachedInfo) {
-        log.trace("CachingKeyConfImpl.hasExpired cachedInfo={}", cachedInfo);
-
-        return cachedInfo == null
-                || cachedInfo.getCreatedAt().plusSeconds(CACHE_PERIOD_SECONDS).isBeforeNow()
-                || !cachedInfo.verifyValidity(new Date());
     }
 }

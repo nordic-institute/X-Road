@@ -22,46 +22,13 @@
  */
 package ee.ria.xroad.proxy.conf;
 
-import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.cert.CertChainVerifier;
-import ee.ria.xroad.common.conf.globalconf.AuthKey;
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-
-import java.security.PrivateKey;
 import java.util.Date;
-import java.util.List;
 
-@Slf4j
-@Getter
-@RequiredArgsConstructor
-class CachedAuthKeyInfoImpl extends AbstractCachedInfo {
+/**
+ * Data which may or may not be valid at a given date
+ */
+abstract class AbstractDateValidatableInfo {
 
-    private final PrivateKey pkey;
-    private final CertChain certChain;
-    private final List<OCSPResp> ocspResponses;
-
-    AuthKey getAuthKey() {
-        return new AuthKey(certChain, pkey);
-    }
-
-    @Override
-    boolean verifyValidity(Date atDate) {
-        try {
-            log.trace("CachedAuthKeyInfoImpl.verifyValidity date: {}", atDate);
-
-            CertChainVerifier verifier = new CertChainVerifier(certChain);
-            verifier.verify(ocspResponses, atDate);
-
-            return true;
-        } catch (Exception e) {
-            log.warn("Cached authentication info failed verification: {}", e);
-
-            return false;
-        }
-    }
+    abstract boolean verifyValidity(Date atDate);
 
 }

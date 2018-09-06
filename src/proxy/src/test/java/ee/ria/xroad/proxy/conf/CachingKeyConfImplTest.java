@@ -25,13 +25,14 @@ package ee.ria.xroad.proxy.conf;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.util.FileContentChangeChecker;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -42,13 +43,13 @@ import static org.junit.Assert.assertEquals;
 /**
  * Test to verify that CachingKeyConf works as expected when it comes to threading
  */
+@Slf4j
 public class CachingKeyConfImplTest {
     @Test(timeout = 5000)
     public void testConcurrentReads() throws Exception {
         // set up 5 threads that concurrently try to refresh cached key
         // make sure just 1 thread actually fetched the key
         ExecutorService executorService = Executors.newFixedThreadPool(5);
-        CountDownLatch allThreadsAreWaitingForKey = new CountDownLatch(5);
         AtomicInteger callsToGetAuthKeyInfo = new AtomicInteger(0);
         CachingKeyConfImpl testCachingKeyConf = new CachingKeyConfImpl() {
             @Override
@@ -66,27 +67,40 @@ public class CachingKeyConfImplTest {
             }
 
             @Override
-            protected CachedAuthKeyInfoImpl getAuthKeyInfo() throws Exception {
+            protected AuthKeyInfo getAuthKeyInfo() throws Exception {
                 callsToGetAuthKeyInfo.incrementAndGet();
-                allThreadsAreWaitingForKey.countDown();
-                return new CachedAuthKeyInfoImpl(null, null, null);
+                log.debug("simulating a slow read");
+                Thread.currentThread().sleep(2000);
+                return new AuthKeyInfo(null, null, null) {
+                    @Override
+                    boolean verifyValidity(Date atDate) {
+                        // always valid; TODO also test other cases (this and filecontentChanged)
+                        return true;
+                    }
+                };
             }
         };
 
-        Callable<AuthKey> callableTask = () -> {
-            return testCachingKeyConf.getAuthKey();
+        Callable<AuthKey> readKeyFromCache = () -> {
+            try {
+                log.debug("calling get auth key");
+                AuthKey key = testCachingKeyConf.getAuthKey();
+                log.debug("got key {}", key);
+                return key;
+            } catch (Throwable t) {
+                log.debug("got error", t);
+                throw t;
+            }
         };
 
         List<Callable<AuthKey>> fiveCallables = Arrays.asList(new Callable[]{
-                callableTask, callableTask, callableTask, callableTask, callableTask});
+                readKeyFromCache, readKeyFromCache, readKeyFromCache, readKeyFromCache, readKeyFromCache});
         List<Future<AuthKey>> results = executorService.invokeAll(fiveCallables);
-
-        allThreadsAreWaitingForKey.await();
 
         for (Future<AuthKey> result: results) {
             result.get();
         }
-        // should have read the key just once
+        // should have read the key from the source (getAuthKeyInfo) just once
         assertEquals(1, callsToGetAuthKeyInfo.get());
     }
 
