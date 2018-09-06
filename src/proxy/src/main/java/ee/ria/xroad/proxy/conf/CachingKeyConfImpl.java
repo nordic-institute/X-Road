@@ -65,7 +65,11 @@ class CachingKeyConfImpl extends KeyConfImpl {
     private CachedAuthKeyInfoImpl authKeyInfo;
 
     CachingKeyConfImpl() throws Exception {
-        keyConfChangeChecker = new FileContentChangeChecker(SystemProperties.getKeyConfFile());
+        keyConfChangeChecker = getKeyConfChangeChecker();
+    }
+
+    protected FileContentChangeChecker getKeyConfChangeChecker() throws Exception {
+        return new FileContentChangeChecker(SystemProperties.getKeyConfFile());
     }
 
     @Override
@@ -115,7 +119,7 @@ class CachingKeyConfImpl extends KeyConfImpl {
         }
     }
 
-    private CachedAuthKeyInfoImpl getAuthKeyInfo() throws Exception {
+    protected CachedAuthKeyInfoImpl getAuthKeyInfo() throws Exception {
         SecurityServerId serverId = ServerConf.getIdentifier();
 
         log.debug("Retrieving authentication info for security server '{}'", serverId);
