@@ -44,6 +44,7 @@ import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
+import ee.ria.xroad.proxy.util.GlobalConfUpdater;
 import ee.ria.xroad.signer.protocol.SignerClient;
 
 import akka.actor.ActorSelection;
@@ -107,6 +108,8 @@ public final class ProxyMain {
     @Getter
     private static String version;
     private static ServiceLoader<AddOn> addOns = ServiceLoader.load(AddOn.class);
+
+    private static final int GLOBAL_CONF_UPDATE_REPEAT_INTERVAL = 60;
 
     private ProxyMain() {
     }
@@ -199,6 +202,7 @@ public final class ProxyMain {
         if (SystemProperties.isHealthCheckEnabled()) {
             SERVICES.add(new HealthCheckPort());
         }
+        jobManager.registerRepeatingJob(GlobalConfUpdater.class, GLOBAL_CONF_UPDATE_REPEAT_INTERVAL);
     }
 
     private static void loadConfigurations() {
