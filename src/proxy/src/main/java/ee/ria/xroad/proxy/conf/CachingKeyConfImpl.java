@@ -89,7 +89,7 @@ class CachingKeyConfImpl extends KeyConfImpl {
     public SigningCtx getSigningCtx(ClientId clientId) {
         try {
             if (keyConfHasChanged()) {
-                invalidateCaches();
+                CachingKeyConfImpl.invalidateCaches();
             }
             SigningInfo signingInfo = SIGNING_INFO_CACHE.get(clientId, () -> getSigningInfo(clientId));
             if (!signingInfo.verifyValidity(new Date())) {
@@ -107,21 +107,24 @@ class CachingKeyConfImpl extends KeyConfImpl {
     /**
      * Invalidates both auth key and signing info caches
      */
-    private void invalidateCaches() {
+    protected static void invalidateCaches() {
         AUTH_KEY_CACHE.invalidateAll();
         SIGNING_INFO_CACHE.invalidateAll();
     }
 
+
+
     @Override
     public AuthKey getAuthKey() {
         try {
+            log.debug("getAuthKey, " + this);
             if (keyConfHasChanged()) {
-                invalidateCaches();
+                CachingKeyConfImpl.invalidateCaches();
             }
             log.debug("reading from cache");
             AuthKeyInfo info = AUTH_KEY_CACHE.get(AUTH_CACHE_SINGLETON_KEY,
                     () -> getAuthKeyInfo());
-            log.debug("got info from cache");
+            log.debug("got info from cache:" + info);
             if (!info.verifyValidity(new Date())) {
                 log.debug("invalid, refreshing");
                 // we likely got an old auth key from cache, and refresh should fix this
