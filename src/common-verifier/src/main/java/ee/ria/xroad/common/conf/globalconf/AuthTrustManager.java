@@ -58,9 +58,13 @@ public class AuthTrustManager implements X509TrustManager {
         log.trace("Received {} server certificates {}", chain.length, chain);
 
         if (!GlobalConf.isSecurityServerAuthCert(chain[0])) {
-            log.error("The server's authentication certificate is not trusted");
-            throw new CertificateException(
-                "The server's authentication certificate is not trusted");
+            // It may be that global configuration is not up-to-date
+            // Reload the global conf from disk and try again
+            GlobalConf.reloadIfChanged();
+            if (!GlobalConf.isSecurityServerAuthCert(chain[0])) {
+                log.error("The server's authentication certificate is not trusted");
+                throw new CertificateException("The server's authentication certificate is not trusted");
+            }
         }
     }
 
