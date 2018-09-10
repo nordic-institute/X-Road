@@ -175,7 +175,7 @@ class CachingKeyConfImpl extends KeyConfImpl {
         return new AuthKeyInfo(key, certChain, ocspResponses);
     }
 
-    private static SigningInfo getSigningInfo(ClientId clientId) throws Exception {
+    protected SigningInfo getSigningInfo(ClientId clientId) throws Exception {
         log.debug("Retrieving signing info for member '{}'", clientId);
 
         MemberSigningInfo signingInfo = SignerClient.execute(new GetMemberSigningInfo(clientId));

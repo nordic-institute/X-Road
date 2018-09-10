@@ -42,7 +42,7 @@ import java.util.Date;
 @Slf4j
 @Getter
 @RequiredArgsConstructor
-final class SigningInfo extends AbstractDateValidatableInfo {
+class SigningInfo extends AbstractDateValidatableInfo {
 
     private final String keyId;
     private final String signMechanismName;
