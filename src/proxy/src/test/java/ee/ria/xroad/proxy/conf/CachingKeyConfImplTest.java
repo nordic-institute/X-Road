@@ -141,7 +141,7 @@ public class CachingKeyConfImplTest {
         // next thread 2 checks and causes extra hit, ... -> five extra hits
         // - some combination between those two
         doConcurrentAuthKeyReads(callsToGetAuthKeyInfo,
-                CHANGED_KEY_CONF, VALID_AUTH_KEY, VALID_SIGNING_INFO, 5,NO_LOOPING, 500);
+                CHANGED_KEY_CONF, VALID_AUTH_KEY, VALID_SIGNING_INFO, 5, NO_LOOPING, 500);
         int expectedMinimumCacheHits = expectedCacheHits + 1;
         int expectedMaximumCacheHits = expectedCacheHits + 5;
         log.debug("total cache hits: {}", callsToGetAuthKeyInfo.get());
@@ -163,14 +163,14 @@ public class CachingKeyConfImplTest {
         // first read keys from cache with 5 threads,
         // should cause 1 initial read and 1 cache refresh
         doConcurrentAuthKeyReads(callsToGetAuthKeyInfo,
-                UNCHANGED_KEY_CONF, keyValidity, VALID_SIGNING_INFO, 5, NO_LOOPING,NO_DELAY);
+                UNCHANGED_KEY_CONF, keyValidity, VALID_SIGNING_INFO, 5, NO_LOOPING, NO_DELAY);
         expectedCacheHits = expectedCacheHits + 1;
         assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
 
         // next read one key, but this time key is not valid -> one more hit
         keyValidity.setValue(false);
         doConcurrentAuthKeyReads(callsToGetAuthKeyInfo,
-                UNCHANGED_KEY_CONF, keyValidity, VALID_SIGNING_INFO, 1,NO_LOOPING, NO_DELAY);
+                UNCHANGED_KEY_CONF, keyValidity, VALID_SIGNING_INFO, 1, NO_LOOPING, NO_DELAY);
         expectedCacheHits = expectedCacheHits + 1;
         assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
 
@@ -181,7 +181,7 @@ public class CachingKeyConfImplTest {
         // next thread 2 checks and causes extra hit, ... -> five extra hits
         // - some combination between those two
         doConcurrentAuthKeyReads(callsToGetAuthKeyInfo,
-                UNCHANGED_KEY_CONF,  keyValidity, VALID_SIGNING_INFO, 5,NO_LOOPING, 500);
+                UNCHANGED_KEY_CONF,  keyValidity, VALID_SIGNING_INFO, 5, NO_LOOPING, 500);
         int expectedMinimumCacheHits = expectedCacheHits + 1;
         int expectedMaximumCacheHits = expectedCacheHits + 5;
         log.debug("total cache hits: {}", callsToGetAuthKeyInfo.get());
@@ -296,7 +296,7 @@ public class CachingKeyConfImplTest {
 
         List<Callable<Object>> callables = new ArrayList<>();
         for (int i = 0; i < threads; i++) {
-            for (int j=0; j < loops; j++) {
+            for (int j = 0; j < loops; j++) {
                 callables.add(readKeyFromCache);
             }
         }
@@ -385,12 +385,12 @@ public class CachingKeyConfImplTest {
     private class ToggleableBooleanSupplier implements BooleanSupplier {
         private boolean value;
 
-        public ToggleableBooleanSupplier(boolean value) {
+        ToggleableBooleanSupplier(boolean value) {
             this.value = value;
         }
 
-        public void setValue(boolean value) {
-            this.value = value;
+        public void setValue(boolean booleanValue) {
+            this.value = booleanValue;
         }
 
         @Override
