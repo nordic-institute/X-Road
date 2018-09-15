@@ -1,6 +1,7 @@
 /**
  * The MIT License
- * Copyright (c) 2016 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA), Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -113,22 +114,22 @@ public class HealthDataMetricsUtilTest {
     public void testConvertNonAsciiServiceId() {
         OperationalDataRecord rec = new OperationalDataRecord();
         rec.setServiceXRoadInstance("EE");
-        rec.setServiceMemberClass("BÖÖ");
+        rec.setServiceMemberClass("B????");
         rec.setServiceMemberCode("testmember");
         rec.setServiceSubsystemCode("testservice_provider");
-        rec.setServiceCode("[\"Með_suð_í_eyrum\"]");
+        rec.setServiceCode("[\"Me??_su??_??_eyrum\"]");
         rec.setServiceVersion("v012");
 
         ServiceId serviceId = HealthDataMetricsUtil.getServiceId(rec);
-        String expectedServiceId = "EE/BÖÖ/testmember"
-                + "/testservice_provider/[\"Með_suð_í_eyrum\"]/v012";
+        String expectedServiceId = "EE/B????/testmember"
+                + "/testservice_provider/[\"Me??_su??_??_eyrum\"]/v012";
         assertEquals(expectedServiceId, serviceId.toShortString());
 
         String lastSuccessfulRequestTsKey = getLastRequestTimestampGaugeName(
                 serviceId, true);
         assertEquals(lastSuccessfulRequestTsKey,
-                "lastSuccessfulRequestTimestamp(EE/BÖÖ/testmember"
-                        + "/testservice_provider/&#91;&quot;Með_suð_í_"
+                "lastSuccessfulRequestTimestamp(EE/B????/testmember"
+                        + "/testservice_provider/&#91;&quot;Me??_su??_??_"
                         + "eyrum&quot;&#93;/v012)");
 
         String regex = HealthDataMetricsUtil.formatMetricMatchRegexp(
@@ -143,18 +144,18 @@ public class HealthDataMetricsUtilTest {
         rec.setServiceMemberClass("foo.bar");
         rec.setServiceMemberCode("testmember");
         rec.setServiceSubsystemCode("testservice_provider");
-        rec.setServiceCode("Закрой.за.мной.дверь.я.ухожу");
+        rec.setServiceCode("????????????.????.????????.??????????.??.??????????");
 
         ServiceId serviceId = HealthDataMetricsUtil.getServiceId(rec);
         String expectedServiceId = "EE/foo.bar/testmember"
-                + "/testservice_provider/Закрой.за.мной.дверь.я.ухожу";
+                + "/testservice_provider/????????????.????.????????.??????????.??.??????????";
         assertEquals(expectedServiceId, serviceId.toShortString());
 
         String requestDurationKey = getRequestDurationName(serviceId);
         assertEquals(requestDurationKey,
                 "requestDuration(EE/foo&#46;bar/testmember"
                         + "/testservice_provider"
-                        + "/Закрой&#46;за&#46;мной&#46;дверь&#46;я&#46;ухожу)");
+                        + "/????????????&#46;????&#46;????????&#46;??????????&#46;??&#46;??????????)");
 
         String regex = HealthDataMetricsUtil.formatMetricMatchRegexp(
                 requestDurationKey);

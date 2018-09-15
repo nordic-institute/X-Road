@@ -1,6 +1,7 @@
 /**
  * The MIT License
- * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA), Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -173,10 +174,10 @@ public class FederationConfigurationSourceFilterImplTest {
 
     @Test
     public void shouldWorkWithSomeSpecialCharacters() {
-        buildAndSetFilter("ää-ÖÖÖ", "èé-ãâ");
+        buildAndSetFilter("????-??????", "????-????");
         FederationConfigurationSourceFilter filter = new FederationConfigurationSourceFilterImpl(DEFAULT_OWN_INSTANCE);
-        assertThat(filter.shouldDownloadConfigurationFor("ÄÄ-ööö"), is(true));
-        assertThat(filter.shouldDownloadConfigurationFor("ÈÉ-ÃÂ"), is(true));
+        assertThat(filter.shouldDownloadConfigurationFor("????-??????"), is(true));
+        assertThat(filter.shouldDownloadConfigurationFor("????-????"), is(true));
         assertThat(filter.shouldDownloadConfigurationFor("dev-fi"), is(false));
         assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE), is(true));
     }
