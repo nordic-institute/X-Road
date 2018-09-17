@@ -41,3 +41,10 @@ test {
 
 check.dependsOn checkRubySource
 build.dependsOn copyDeps
+
+sonarqube {
+    properties {
+        properties["sonar.sources"] += [file('app'), file('lib'), file('public')]
+        property "sonar.ruby.rubocop.reportPath", file('build/rubocop-result.json')
+    }
+}
