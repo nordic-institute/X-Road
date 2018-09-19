@@ -117,25 +117,17 @@ class CachingKeyConfImpl extends KeyConfImpl {
     @Override
     public AuthKey getAuthKey() {
         try {
-            log.debug("getAuthKey, " + this);
             if (keyConfHasChanged()) {
                 CachingKeyConfImpl.invalidateCaches();
             }
-            log.debug("reading from cache");
             AuthKeyInfo info = AUTH_KEY_CACHE.get(AUTH_CACHE_SINGLETON_KEY,
                     () -> getAuthKeyInfo());
-            log.debug("got info from cache:" + info);
             if (!info.verifyValidity(new Date())) {
-                log.debug("invalid, refreshing");
                 // we likely got an old auth key from cache, and refresh should fix this
                 AUTH_KEY_CACHE.invalidateAll();
-                log.debug("invalidated cache, reading from cache again");
                 info = AUTH_KEY_CACHE.get(AUTH_CACHE_SINGLETON_KEY,
                         () -> getAuthKeyInfo());
-            } else {
-                log.debug("valid");
             }
-            log.debug("returning key from cache");
             return info.getAuthKey();
         } catch (Exception e) {
             log.error("Failed to get authentication key", e);
