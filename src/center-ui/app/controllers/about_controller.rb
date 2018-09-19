@@ -21,11 +21,13 @@
 # THE SOFTWARE.
 #
 
-class AboutController < ApplicationController
-  before_filter :verify_get
+java_import Java::ee.ria.xroad.common.util.JarUtils
 
-  def index
-    @version = %x[dpkg-query -f '${Version}' -W xroad-center 2>&1].strip
-    @version = t('about.unknown') unless $?.exitstatus == 0
-  end
+class AboutController < ApplicationController
+
+    before_filter :verify_get
+
+    def index
+        @version = JarUtils.readJarManifestProperty(JarUtils::COMMON_UTIL_JAR_PATH, JarUtils::IMPLEMENTATION_VERSION)
+    end
 end
