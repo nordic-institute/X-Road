@@ -149,7 +149,7 @@ final class Helper {
     }
 
     static Document createDocument() throws Exception {
-        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory documentBuilderFactory = XmlUtils.createDocumentBuilderFactory();
         documentBuilderFactory.setNamespaceAware(true);
 
         Document document = documentBuilderFactory.newDocumentBuilder().newDocument();

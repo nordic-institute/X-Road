@@ -24,6 +24,7 @@ package ee.ria.xroad.common.hashchain;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.SchemaValidator;
+import ee.ria.xroad.common.util.XmlUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -289,7 +290,7 @@ public final class HashChainVerifier {
         JAXBElement<TransformsType> transformsElement = new ObjectFactory().createTransforms(transforms);
 
         // Create the Document
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory dbf = XmlUtils.createDocumentBuilderFactory();
         DocumentBuilder db = dbf.newDocumentBuilder();
         Document document = db.newDocument();
 

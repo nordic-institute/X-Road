@@ -33,6 +33,7 @@ import ee.ria.xroad.common.message.SoapMessageEncoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.util.XmlUtils;
 import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxymonitor.ProxyMonitor;
@@ -170,7 +171,7 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
      * @throws Exception
      */
     private Document parse(ProxyMessage proxyRequestMessage) throws Exception {
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory dbf = XmlUtils.createDocumentBuilderFactory();
         dbf.setNamespaceAware(true);
         DocumentBuilder db = dbf.newDocumentBuilder();
         byte[] bytes = proxyRequestMessage.getSoap().getBytes();

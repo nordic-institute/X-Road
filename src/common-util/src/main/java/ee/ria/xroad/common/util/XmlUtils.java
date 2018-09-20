@@ -33,6 +33,7 @@ import org.w3c.dom.NodeList;
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -254,6 +255,25 @@ public final class XmlUtils {
         transformer.transform(new DOMSource(document), output);
 
         return output.getWriter().toString().trim();
+    }
+
+    /**
+     * Creates DocumentBuilderFactory and sets the features of the factory
+     * @return
+     */
+    public static DocumentBuilderFactory createDocumentBuilderFactory() {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        try {
+            dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        } catch (ParserConfigurationException e) {
+            log.warn("XMLConstants.FEATURE_SECURE_PROCESSING not supported");
+        }
+        try {
+            dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+        } catch (ParserConfigurationException e) {
+            log.warn("disallow-doctype-decl not supported");
+        }
+        return dbf;
     }
 
     private static TransformerFactory createTransformerFactory() throws TransformerConfigurationException {
