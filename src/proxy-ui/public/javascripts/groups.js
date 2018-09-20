@@ -15,7 +15,7 @@
             if (oSettings.sTableId == "group_members") {
                 var row = oSettings.aoData[iDataIndex].nTr;
 
-                return show_existing_members || !$(row).hasClass("unselectable");
+                return !$(row).hasClass("unselectable");
             }
 
             return true;
@@ -525,8 +525,8 @@
         $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
         $("button span:contains('OK')").parent().attr("data-name", "ok");
     }
-    
-    
+
+
     $(document).ready(function() {
         initGroupsTable();
         initGroupMembersTable();
