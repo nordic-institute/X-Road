@@ -61,9 +61,11 @@ import java.util.Optional;
 @Slf4j
 public final class XmlUtils {
 
-    public static final String FEATURE_EXTERNAL_GENERAL_ENTITIES = "http://xml.org/sax/features/external-general-entities";
+    public static final String FEATURE_EXTERNAL_GENERAL_ENTITIES =
+            "http://xml.org/sax/features/external-general-entities";
     public static final String FEATURE_DISALLOW_DOCTYPE = "http://apache.org/xml/features/disallow-doctype-decl";
-    public static final String FEATURE_EXTERNAL_PARAMETER_ENTITIES = "http://xml.org/sax/features/external-parameter-entities";
+    public static final String FEATURE_EXTERNAL_PARAMETER_ENTITIES =
+            "http://xml.org/sax/features/external-parameter-entities";
 
     private static final String ELEMENT_NOT_FOUND_WARNING = "Element not found with getElementXPathNS {}";
 
@@ -284,8 +286,7 @@ public final class XmlUtils {
         }
         try {
             dbf.setFeature(FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
-        }
-        catch (ParserConfigurationException e) {
+        } catch (ParserConfigurationException e) {
             log.warn("external-parameter-entities not supported");
         }
         return dbf;
