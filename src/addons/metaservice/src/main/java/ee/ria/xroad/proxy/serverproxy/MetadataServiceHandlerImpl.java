@@ -40,6 +40,7 @@ import ee.ria.xroad.common.metadata.MethodListType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.XmlUtils;
 import ee.ria.xroad.proxy.common.WsdlRequestData;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 
@@ -59,7 +60,6 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.ext.DefaultHandler2;
 import org.xml.sax.ext.LexicalHandler;
-import org.xml.sax.helpers.XMLReaderFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.XMLConstants;
@@ -281,12 +281,12 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
             final JAXBElement<MethodListType> methodList) throws Exception {
         SoapMessageImpl responseMessage = SoapUtils.toResponse(requestMessage,
                 new SOAPCallback() {
-            @Override
-            public void call(SOAPMessage soap) throws Exception {
-                soap.getSOAPBody().removeContents();
-                marshal(methodList, soap.getSOAPBody());
-            }
-        });
+                @Override
+                public void call(SOAPMessage soap) throws Exception {
+                    soap.getSOAPBody().removeContents();
+                    marshal(methodList, soap.getSOAPBody());
+                }
+            });
 
         return responseMessage;
     }
@@ -338,7 +338,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
             OverwriteAttributeFilter filter = getModifyWsdlFilter();
             filter.setContentHandler(serializer);
 
-            XMLReader xmlreader = XMLReaderFactory.createXMLReader();
+            XMLReader xmlreader = XmlUtils.createXmlReader();
             xmlreader.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
             xmlreader.setProperty("http://xml.org/sax/properties/lexical-handler",
                     new CommentsHandler(serializer));

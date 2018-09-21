@@ -29,6 +29,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderFactory;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
@@ -91,7 +94,7 @@ public final class XmlUtils {
      * @throws Exception if an error occurs
      */
     public static Document parseDocument(InputStream documentXml, boolean namespaceAware) throws Exception {
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory dbf = createDocumentBuilderFactory();
 
         dbf.setNamespaceAware(namespaceAware);
         dbf.setIgnoringComments(true);
@@ -274,6 +277,18 @@ public final class XmlUtils {
             log.warn("disallow-doctype-decl not supported");
         }
         return dbf;
+    }
+
+    /**
+     * Creates XMLReader and sets the features of the reader
+     * @return
+     * @throws SAXException
+     */
+    public static XMLReader createXmlReader() throws SAXException {
+        XMLReader reader = XMLReaderFactory.createXMLReader();
+        reader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+        reader.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        return reader;
     }
 
     private static TransformerFactory createTransformerFactory() throws TransformerConfigurationException {

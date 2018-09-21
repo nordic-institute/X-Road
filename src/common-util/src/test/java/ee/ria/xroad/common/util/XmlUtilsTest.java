@@ -22,13 +22,19 @@
  */
 package ee.ria.xroad.common.util;
 
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderAdapter;
+import org.xml.sax.helpers.XMLReaderFactory;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -36,6 +42,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 
 import static org.junit.Assert.assertNotEquals;
@@ -48,27 +55,26 @@ public class XmlUtilsTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    @Test
-    public void createDocumentBuilderFactory() throws
-            IOException, ParserConfigurationException, SAXException {
+    String testString = "vulnerability";
+
+    File file;
+
+    @Before
+    public void setUp() throws IOException {
         // Create temp file used as local resource
-        String testString = "vulnerability";
-        File file = folder.newFile("XXE-injection-test.txt");
+        file = folder.newFile("XXE-injection-test.txt");
         PrintWriter pw = new PrintWriter(file);
         pw.write(testString);
         pw.close();
+    }
 
-        // XML with XXE injection accessing the local resource
-        String xxe = String.format("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>"
-                        + "<!DOCTYPE test ["
-                        + "<!ELEMENT test ANY >"
-                        + "<!ENTITY xxe SYSTEM \"file:///%s\" >]><test>&xxe;</test>",
-                        file.getAbsolutePath());
-
+    @Test
+    public void createDocumentBuilderFactory() throws
+            IOException, ParserConfigurationException, SAXException {
         DocumentBuilderFactory dbf = XmlUtils.createDocumentBuilderFactory();
         try {
             // Secure parsing throws SAXParseException to prevent injection (depends on DocumentBuilderFactory impl)
-            Document document = dbf.newDocumentBuilder().parse(new ByteArrayInputStream(xxe.getBytes()));
+            Document document = dbf.newDocumentBuilder().parse(getXXEFileInjectionDocument());
 
             // If no exception then verify at least that the injection didn't work or else vulnerability was detected
             NodeList nodeList = document.getElementsByTagName("test");
@@ -76,5 +82,33 @@ public class XmlUtilsTest {
         } catch (SAXParseException e) {
             // Parsing was secure
         }
+    }
+
+    @Test(expected = SAXParseException.class)
+    public void createXmlParser() throws SAXException, IOException {
+        XMLReader reader = XMLReaderFactory.createXMLReader();
+        reader.setContentHandler(new XMLReaderAdapter());
+
+        // Testing source document with insecure reader
+        try {
+            reader.parse(new InputSource(getXXEFileInjectionDocument()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assert.fail(e.getMessage());
+        }
+
+        // Testing secure reader
+        reader = XmlUtils.createXmlReader();
+        reader.setContentHandler(new XMLReaderAdapter());
+        // Parsing should throw SAXParseException if reader is secure
+        reader.parse(new InputSource(getXXEFileInjectionDocument()));
+    }
+
+    private InputStream getXXEFileInjectionDocument() {
+        return new ByteArrayInputStream(String.format("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>"
+                        + "<!DOCTYPE test ["
+                        + "<!ELEMENT test ANY >"
+                        + "<!ENTITY xxe SYSTEM \"file:///%s\" >]><test>&xxe;</test>",
+                file.getAbsolutePath()).getBytes());
     }
 }
