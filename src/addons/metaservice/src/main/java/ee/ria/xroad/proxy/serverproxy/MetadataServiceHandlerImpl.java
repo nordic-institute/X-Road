@@ -62,6 +62,7 @@ import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -113,7 +114,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
     private static SAXTransformerFactory createSaxTransformerFactory() {
         try {
             SAXTransformerFactory factory = (SAXTransformerFactory) TransformerFactory.newInstance();
-            factory.setFeature("http://javax.xml.XMLConstants/feature/secure-processing", true);
+            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             return factory;
         } catch (TransformerConfigurationException e) {
             throw new RuntimeException("unable to create SAX transformer factory", e);
