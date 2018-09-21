@@ -100,9 +100,6 @@ public final class XmlUtils {
         dbf.setIgnoringComments(true);
 
         dbf.setValidating(false);
-        dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-        dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
-        dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
 
         return dbf.newDocumentBuilder().parse(documentXml);
     }
@@ -275,6 +272,17 @@ public final class XmlUtils {
             dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         } catch (ParserConfigurationException e) {
             log.warn("disallow-doctype-decl not supported");
+        }
+        try {
+            dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        } catch (ParserConfigurationException e) {
+            log.warn("external-general-entities not supported");
+        }
+        try {
+            dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+        }
+        catch (ParserConfigurationException e) {
+            log.warn("external-parameter-entities not supported");
         }
         return dbf;
     }
