@@ -61,6 +61,10 @@ import java.util.Optional;
 @Slf4j
 public final class XmlUtils {
 
+    public static final String FEATURE_EXTERNAL_GENERAL_ENTITIES = "http://xml.org/sax/features/external-general-entities";
+    public static final String FEATURE_DISALLOW_DOCTYPE = "http://apache.org/xml/features/disallow-doctype-decl";
+    public static final String FEATURE_EXTERNAL_PARAMETER_ENTITIES = "http://xml.org/sax/features/external-parameter-entities";
+
     private static final String ELEMENT_NOT_FOUND_WARNING = "Element not found with getElementXPathNS {}";
 
     private XmlUtils() {
@@ -269,17 +273,17 @@ public final class XmlUtils {
             log.warn("XMLConstants.FEATURE_SECURE_PROCESSING not supported");
         }
         try {
-            dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            dbf.setFeature(FEATURE_DISALLOW_DOCTYPE, true);
         } catch (ParserConfigurationException e) {
             log.warn("disallow-doctype-decl not supported");
         }
         try {
-            dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            dbf.setFeature(FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
         } catch (ParserConfigurationException e) {
             log.warn("external-general-entities not supported");
         }
         try {
-            dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            dbf.setFeature(FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
         }
         catch (ParserConfigurationException e) {
             log.warn("external-parameter-entities not supported");
@@ -294,8 +298,8 @@ public final class XmlUtils {
      */
     public static XMLReader createXmlReader() throws SAXException {
         XMLReader reader = XMLReaderFactory.createXMLReader();
-        reader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-        reader.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        reader.setFeature(FEATURE_DISALLOW_DOCTYPE, true);
+        reader.setFeature(FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
         return reader;
     }
 
