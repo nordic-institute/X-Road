@@ -144,8 +144,7 @@ public class TaskQueue extends UntypedActor {
         int timestampTasksSize = timestampTasks.size();
 
         log.info("Start time-stamping {} message records", timestampTasksSize);
-
-
+        
         if (timestampTasksSize / (double) MessageLogProperties.getTimestampRecordsLimit()
                 >= TIMESTAMPED_RECORDS_RATIO_THRESHOLD) {
             log.warn("Number of time-stamped records is over {} % of 'timestamp-records-limit' value",
