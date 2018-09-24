@@ -31,12 +31,13 @@ import java.io.InputStream;
 @FunctionalInterface
 public interface FileConsumer {
 
-  /**
-   * Applies to files belonging to the configuration directory.
-   * @param metadata the metadata of the file
-   * @param contents the contents of the file
-   * @throws Exception if an error occurs
-   */
-  void consume(ConfigurationPartMetadata metadata, InputStream contents)
-      throws Exception;
+    /**
+     * Applies to files belonging to the configuration directory.
+     *
+     * @param metadata the metadata of the file
+     * @param contents the contents of the file
+     * @throws Exception if an error occurs
+     */
+    void consume(ConfigurationPartMetadata metadata, InputStream contents)
+            throws Exception;
 }

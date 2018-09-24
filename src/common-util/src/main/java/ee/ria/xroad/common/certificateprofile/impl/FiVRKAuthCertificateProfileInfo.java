@@ -58,8 +58,7 @@ public class FiVRKAuthCertificateProfileInfo
                 // Server code
                 new DnFieldDescriptionImpl("CN", "Server DNS name (CN)",
                     ""
-                ).setReadOnly(false)
-            }
+                ).setReadOnly(false) }
         );
     }
 }

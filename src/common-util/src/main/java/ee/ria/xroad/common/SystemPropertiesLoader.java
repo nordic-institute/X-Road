@@ -362,7 +362,7 @@ public class SystemPropertiesLoader {
 
     private void loadSection(String sectionName, SubnodeConfiguration sec) {
         sec.getKeys().forEachRemaining(key ->
-            setProperty(prefix + sectionName + "." + key, sec.getString(key)));
+                setProperty(prefix + sectionName + "." + key, sec.getString(key)));
     }
 
     protected void setProperty(String key, String value) {

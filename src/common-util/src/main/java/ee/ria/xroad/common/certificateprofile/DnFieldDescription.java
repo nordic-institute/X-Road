@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
- package ee.ria.xroad.common.certificateprofile;
+package ee.ria.xroad.common.certificateprofile;
 
 /**
  * DistinguishedName field description for user interfaces.

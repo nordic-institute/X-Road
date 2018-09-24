@@ -162,7 +162,7 @@ final class IdentifierTypeConverter {
     // -- Identifier-specific adapter classes ---------------------------------
 
     static class ClientIdAdapter
-        extends XmlAdapter<XRoadClientIdentifierType, ClientId> {
+            extends XmlAdapter<XRoadClientIdentifierType, ClientId> {
 
         @Override
         public XRoadClientIdentifierType marshal(ClientId v)
@@ -178,7 +178,7 @@ final class IdentifierTypeConverter {
     }
 
     static class ServiceIdAdapter
-        extends XmlAdapter<XRoadServiceIdentifierType, ServiceId> {
+            extends XmlAdapter<XRoadServiceIdentifierType, ServiceId> {
 
         @Override
         public XRoadServiceIdentifierType marshal(ServiceId v)
@@ -205,7 +205,7 @@ final class IdentifierTypeConverter {
     }
 
     static class SecurityCategoryIdAdapter
-        extends XmlAdapter<
+            extends XmlAdapter<
             XRoadSecurityCategoryIdentifierType, SecurityCategoryId> {
 
         @Override
@@ -222,7 +222,7 @@ final class IdentifierTypeConverter {
     }
 
     static class CentralServiceIdAdapter
-        extends XmlAdapter<
+            extends XmlAdapter<
             XRoadCentralServiceIdentifierType, CentralServiceId> {
 
         @Override
@@ -239,7 +239,7 @@ final class IdentifierTypeConverter {
     }
 
     static class SecurityServerIdAdapter
-        extends XmlAdapter<
+            extends XmlAdapter<
             XRoadSecurityServerIdentifierType, SecurityServerId> {
 
         @Override
@@ -256,7 +256,7 @@ final class IdentifierTypeConverter {
     }
 
     static class GlobalGroupIdAdapter
-        extends XmlAdapter<XRoadGlobalGroupIdentifierType, GlobalGroupId> {
+            extends XmlAdapter<XRoadGlobalGroupIdentifierType, GlobalGroupId> {
 
         @Override
         public XRoadGlobalGroupIdentifierType marshal(GlobalGroupId v)
@@ -272,7 +272,7 @@ final class IdentifierTypeConverter {
     }
 
     static class LocalGroupIdAdapter
-        extends XmlAdapter<XRoadLocalGroupIdentifierType, LocalGroupId> {
+            extends XmlAdapter<XRoadLocalGroupIdentifierType, LocalGroupId> {
 
         @Override
         public XRoadLocalGroupIdentifierType marshal(LocalGroupId v)
@@ -288,7 +288,7 @@ final class IdentifierTypeConverter {
     }
 
     static class GenericXRoadIdAdapter
-        extends XmlAdapter<XRoadIdentifierType, XRoadId> {
+            extends XmlAdapter<XRoadIdentifierType, XRoadId> {
 
         @Override
         public XRoadIdentifierType marshal(XRoadId v) throws Exception {

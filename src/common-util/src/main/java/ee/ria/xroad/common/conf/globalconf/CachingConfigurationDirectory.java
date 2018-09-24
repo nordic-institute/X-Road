@@ -32,111 +32,116 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CachingConfigurationDirectory extends ConfigurationDirectoryV2 {
 
-  public static final String INSTANCE_IDENTIFIER = "instanceIdentifier";
-  public static final String PRIVATE_PARAMS = "privateParams";
-  public static final String SHARED_PARAMS = "sharedParams";
-  public static final String VERIFY_UP_TO_DATE = "verifyUpToDate";
-  public static final String RELOAD_CONF_DIR = "reload";
+    public static final String INSTANCE_IDENTIFIER = "instanceIdentifier";
+    public static final String PRIVATE_PARAMS = "privateParams";
+    public static final String SHARED_PARAMS = "sharedParams";
+    public static final String VERIFY_UP_TO_DATE = "verifyUpToDate";
+    public static final String RELOAD_CONF_DIR = "reload";
 
-  private final int expireSeconds;
-  private final TimeBasedObjectCache cache;
+    private final int expireSeconds;
+    private final TimeBasedObjectCache cache;
 
-  /**
-   * Constructs new caching directory from the given path.
-   * @param directoryPath the path to the directory.
-   * @throws Exception if loading configuration fails
-   */
-  public CachingConfigurationDirectory(String directoryPath) throws Exception {
-    super(directoryPath, false);
-    expireSeconds = SystemProperties.getConfigurationClientUpdateIntervalSeconds();
-    cache = new TimeBasedObjectCache(expireSeconds);
-    reload();
-  }
-
-  /**
-   * Constructs new caching directory from the given path.
-   * @param directoryPath the path to the directory.
-   * @param reloadIfChanged if true, automatic reload and detection of
-   * parameters is performed.
-   * @throws Exception if loading configuration fails
-   */
-  public CachingConfigurationDirectory(String directoryPath,
-                                boolean reloadIfChanged) throws Exception {
-    super(directoryPath, reloadIfChanged);
-    expireSeconds = SystemProperties.getConfigurationClientUpdateIntervalSeconds();
-    cache = new TimeBasedObjectCache(expireSeconds);
-    reload();
-  }
-
-  /**
-   *
-   */
-  @Override
-  public synchronized String getInstanceIdentifier() {
-    if (!cache.isValid(INSTANCE_IDENTIFIER)) {
-      cache.setValue(INSTANCE_IDENTIFIER, super.getInstanceIdentifier());
+    /**
+     * Constructs new caching directory from the given path.
+     *
+     * @param directoryPath the path to the directory.
+     * @throws Exception if loading configuration fails
+     */
+    public CachingConfigurationDirectory(String directoryPath) throws Exception {
+        super(directoryPath, false);
+        expireSeconds = SystemProperties.getConfigurationClientUpdateIntervalSeconds();
+        cache = new TimeBasedObjectCache(expireSeconds);
+        reload();
     }
-    return (String) cache.getValue(INSTANCE_IDENTIFIER);
-  }
 
-  /**
-   * Returns private parameters for a given instance identifier.
-   * @param instanceId the instance identifier
-   * @return private parameters or null, if no private parameters exist for
-   * given instance identifier
-   * @throws Exception if an error occurs while reading parameters
-   */
-  @Override
-  public synchronized PrivateParametersV2 getPrivate(String instanceId)
-      throws Exception {
-    final String key = String.format("%s-%s", PRIVATE_PARAMS, instanceId);
-    if (!cache.isValid(key)) {
-      cache.setValue(key, super.getPrivate(instanceId));
+    /**
+     * Constructs new caching directory from the given path.
+     *
+     * @param directoryPath   the path to the directory.
+     * @param reloadIfChanged if true, automatic reload and detection of
+     *                        parameters is performed.
+     * @throws Exception if loading configuration fails
+     */
+    public CachingConfigurationDirectory(String directoryPath,
+                                         boolean reloadIfChanged) throws Exception {
+        super(directoryPath, reloadIfChanged);
+        expireSeconds = SystemProperties.getConfigurationClientUpdateIntervalSeconds();
+        cache = new TimeBasedObjectCache(expireSeconds);
+        reload();
     }
-    return (PrivateParametersV2) cache.getValue(key);
-  }
 
-  /**
-   * Returns shared parameters for a given instance identifier.
-   * @param instanceId the instance identifier
-   * @return shared parameters or null, if no shared parameters exist for
-   * given instance identifier
-   * @throws Exception if an error occurs while reading parameters
-   */
-  @Override
-  public synchronized SharedParametersV2 getShared(String instanceId)
-      throws Exception {
-    final String key = String.format("%s-%s", SHARED_PARAMS, instanceId);
-    if (!cache.isValid(key)) {
-      cache.setValue(key, super.getShared(instanceId));
+    /**
+     *
+     */
+    @Override
+    public synchronized String getInstanceIdentifier() {
+        if (!cache.isValid(INSTANCE_IDENTIFIER)) {
+            cache.setValue(INSTANCE_IDENTIFIER, super.getInstanceIdentifier());
+        }
+        return (String) cache.getValue(INSTANCE_IDENTIFIER);
     }
-    return (SharedParametersV2) cache.getValue(key);
-  }
 
-  /**
-   * Throws exception with error code ErrorCodes.X_OUTDATED_GLOBALCONF if any of the
-   * configuration files is too old.
-   */
-  @Override
-  public synchronized void verifyUpToDate() throws Exception {
-    if (!cache.isValid(VERIFY_UP_TO_DATE)) {
-      super.verifyUpToDate();
-      cache.setValue(VERIFY_UP_TO_DATE, 1);
+    /**
+     * Returns private parameters for a given instance identifier.
+     *
+     * @param instanceId the instance identifier
+     * @return private parameters or null, if no private parameters exist for
+     * given instance identifier
+     * @throws Exception if an error occurs while reading parameters
+     */
+    @Override
+    public synchronized PrivateParametersV2 getPrivate(String instanceId)
+            throws Exception {
+        final String key = String.format("%s-%s", PRIVATE_PARAMS, instanceId);
+        if (!cache.isValid(key)) {
+            cache.setValue(key, super.getPrivate(instanceId));
+        }
+        return (PrivateParametersV2) cache.getValue(key);
     }
-  }
 
-  /**
-   * Reloads the configuration directory. Only files that are new or have
-   * changed, are actually loaded.
-   * @throws Exception if an error occurs during reload
-   */
-  @Override
-  public synchronized void reload() throws Exception {
-    // cache validity indicates whether reloading should be done at this time
-    // cache value is meaningless in this case
-    if (cache != null && !cache.isValid(RELOAD_CONF_DIR)) {
-      cache.setValue(RELOAD_CONF_DIR, 1);
-      super.reload();
+    /**
+     * Returns shared parameters for a given instance identifier.
+     *
+     * @param instanceId the instance identifier
+     * @return shared parameters or null, if no shared parameters exist for
+     * given instance identifier
+     * @throws Exception if an error occurs while reading parameters
+     */
+    @Override
+    public synchronized SharedParametersV2 getShared(String instanceId)
+            throws Exception {
+        final String key = String.format("%s-%s", SHARED_PARAMS, instanceId);
+        if (!cache.isValid(key)) {
+            cache.setValue(key, super.getShared(instanceId));
+        }
+        return (SharedParametersV2) cache.getValue(key);
     }
-  }
+
+    /**
+     * Throws exception with error code ErrorCodes.X_OUTDATED_GLOBALCONF if any of the
+     * configuration files is too old.
+     */
+    @Override
+    public synchronized void verifyUpToDate() throws Exception {
+        if (!cache.isValid(VERIFY_UP_TO_DATE)) {
+            super.verifyUpToDate();
+            cache.setValue(VERIFY_UP_TO_DATE, 1);
+        }
+    }
+
+    /**
+     * Reloads the configuration directory. Only files that are new or have
+     * changed, are actually loaded.
+     *
+     * @throws Exception if an error occurs during reload
+     */
+    @Override
+    public synchronized void reload() throws Exception {
+        // cache validity indicates whether reloading should be done at this time
+        // cache value is meaningless in this case
+        if (cache != null && !cache.isValid(RELOAD_CONF_DIR)) {
+            cache.setValue(RELOAD_CONF_DIR, 1);
+            super.reload();
+        }
+    }
 }
