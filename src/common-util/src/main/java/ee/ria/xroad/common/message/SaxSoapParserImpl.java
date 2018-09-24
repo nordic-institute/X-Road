@@ -29,8 +29,8 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.util.MimeUtils;
-
 import ee.ria.xroad.common.util.XmlUtils;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
