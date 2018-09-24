@@ -1,0 +1,13 @@
+#!/usr/bin/make -f
+%:
+	dh  $@
+
+override_dh_builddeb:
+	dh_builddeb -- -Zgzip -z1
+
+override_dh_strip_nondeterminism:
+	dh_strip_nondeterminism --exclude=.jar --exclude=.war
+
+override_dh_strip:
+	dh_strip --no-automatic-dbgsym
+	

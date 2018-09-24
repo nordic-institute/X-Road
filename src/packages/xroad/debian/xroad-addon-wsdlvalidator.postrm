@@ -1,4 +1,0 @@
-#!/bin/bash
-crudini --del /etc/xroad/conf.d/local.ini proxy-ui wsdl-validator-command
-invoke-rc.d xroad-jetty restart
-exit 0
