@@ -33,13 +33,13 @@ import java.util.Map;
  */
 public class CertificationServiceStatus implements Serializable {
 
-  private final String name;
+    private final String name;
 
-  @Getter
-  private Map<String, OcspResponderStatus> ocspResponderStatusMap;
+    @Getter
+    private Map<String, OcspResponderStatus> ocspResponderStatusMap;
 
-  public CertificationServiceStatus(String name) {
-    this.name = name;
-    ocspResponderStatusMap = new HashMap<>();
-  }
+    public CertificationServiceStatus(String name) {
+        this.name = name;
+        ocspResponderStatusMap = new HashMap<>();
+    }
 }

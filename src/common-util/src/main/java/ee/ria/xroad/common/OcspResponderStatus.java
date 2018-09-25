@@ -32,8 +32,8 @@ import java.time.LocalTime;
  */
 @Value
 public class OcspResponderStatus implements Serializable {
-  private int status;
-  private String url;
-  private LocalTime prevUpdate;
-  private LocalTime nextUpdate;
+    private int status;
+    private String url;
+    private LocalTime prevUpdate;
+    private LocalTime nextUpdate;
 }

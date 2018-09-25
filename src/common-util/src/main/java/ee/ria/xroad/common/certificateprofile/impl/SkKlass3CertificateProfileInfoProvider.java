@@ -59,8 +59,8 @@ public class SkKlass3CertificateProfileInfoProvider implements CertificateProfil
             super(new DnFieldDescription[] {
                     new DnFieldDescriptionImpl("SN", "Serial Number (SN)", params.getServerId().getMemberCode())
                             .setReadOnly(true),
-                    new DnFieldDescriptionImpl("CN", "Common Name (CN)", params.getMemberName()).setReadOnly(true)
-                }
+                    new DnFieldDescriptionImpl("CN", "Common Name (CN)",
+                            params.getMemberName()).setReadOnly(true) }
             );
         }
     }
@@ -99,8 +99,7 @@ public class SkKlass3CertificateProfileInfoProvider implements CertificateProfil
                     ).setReadOnly(true),
                     new DnFieldDescriptionImpl("CN", "Common Name (CN)",
                         params.getMemberName()
-                    ).setReadOnly(true)
-                }
+                    ).setReadOnly(true) }
             );
 
             instanceIdentifier = params.getClientId().getXRoadInstance();

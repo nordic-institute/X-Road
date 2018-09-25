@@ -46,8 +46,7 @@ public class EjbcaAuthCertificateProfileInfo
                 // Server code
                 new DnFieldDescriptionImpl("CN", "Server Code (CN)",
                     params.getServerId().getServerCode()
-                ).setReadOnly(true)
-            }
+                ).setReadOnly(true) }
         );
     }
 }

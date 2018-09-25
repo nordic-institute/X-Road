@@ -214,7 +214,7 @@ public class SoapParserImpl implements SoapParser {
                     return !(t instanceof AccessorException
                             && t.getCause() instanceof CodedException);
                 case ValidationEvent.FATAL_ERROR:
-                   return false;
+                    return false;
                 default:
                     return true;
             }
