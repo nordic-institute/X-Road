@@ -60,7 +60,7 @@ public class OverwriteAttributeFilter extends XMLFilterImpl {
     }
 
     /**
-     * Create filter which replaces soap:address??element's location attribute
+     * Create filter which replaces soap:address element's location attribute
      * @param newValue
      */
     public static OverwriteAttributeFilter createOverwriteSoapAddressFilter(String newValue) {

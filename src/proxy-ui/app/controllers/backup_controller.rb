@@ -22,6 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
+require 'base64'
 
 java_import Java::ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx
 java_import Java::ee.ria.xroad.common.identifier.SecurityServerId
