@@ -1,7 +1,7 @@
 Source: xroad
 Section: X-Road
 Priority: extra
-Maintainer: Cybernetica AS <xroad-support@cyber.ee>
+Maintainer: NIIS <info@niis.org>
 Build-Depends: debhelper (>= 7)
 Standards-Version: 3.8.3
 
