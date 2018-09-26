@@ -401,7 +401,7 @@ public class MergeOntoFileTokenStrategyTest {
         final Token fileToken = new Token("fileToken", "fileId", CryptoUtils.CKM_RSA_PKCS_NAME);
         final Key fileKey = new Key(fileToken, fileId);
 
-        final String fileFriendlyName = "d??gsdasd";
+        final String fileFriendlyName = "d§gsdasd";
         fileKey.setFriendlyName(fileFriendlyName);
 
         final boolean fileAvailable = false;

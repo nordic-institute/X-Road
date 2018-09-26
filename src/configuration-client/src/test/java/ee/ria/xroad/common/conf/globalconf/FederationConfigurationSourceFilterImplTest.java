@@ -175,10 +175,10 @@ public class FederationConfigurationSourceFilterImplTest {
 
     @Test
     public void shouldWorkWithSomeSpecialCharacters() {
-        buildAndSetFilter("????-??????", "????-????");
+        buildAndSetFilter("ää-ÖÖÖ", "èé-ãâ");
         FederationConfigurationSourceFilter filter = new FederationConfigurationSourceFilterImpl(DEFAULT_OWN_INSTANCE);
-        assertThat(filter.shouldDownloadConfigurationFor("????-??????"), is(true));
-        assertThat(filter.shouldDownloadConfigurationFor("????-????"), is(true));
+        assertThat(filter.shouldDownloadConfigurationFor("ÄÄ-ööö"), is(true));
+        assertThat(filter.shouldDownloadConfigurationFor("ÈÉ-ÃÂ"), is(true));
         assertThat(filter.shouldDownloadConfigurationFor("dev-fi"), is(false));
         assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE), is(true));
     }
