@@ -35,10 +35,10 @@ import java.util.Map;
  */
 public class CertificationServiceDiagnostics implements Serializable {
 
-  @Getter
-  private Map<String, CertificationServiceStatus> certificationServiceStatusMap;
+    @Getter
+    private Map<String, CertificationServiceStatus> certificationServiceStatusMap;
 
-  public CertificationServiceDiagnostics() {
-    certificationServiceStatusMap = new HashMap<>();
-  }
+    public CertificationServiceDiagnostics() {
+        certificationServiceStatusMap = new HashMap<>();
+    }
 }

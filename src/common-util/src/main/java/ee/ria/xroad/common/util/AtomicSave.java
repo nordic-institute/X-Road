@@ -111,7 +111,7 @@ public final class AtomicSave {
     public static void execute(String fileName, String tmpPrefix, final byte[] data, CopyOption... options)
             throws Exception {
         execute(fileName, tmpPrefix, out -> out.write(data), options);
-   }
+    }
 
     /**
      * Atomically moves one file from source path to target. Works between filesystems.

@@ -66,8 +66,7 @@ public class FiVRKSignCertificateProfileInfo
                 // Member code
                 new DnFieldDescriptionImpl("CN", "Member code",
                         params.getClientId().getMemberCode()
-                ).setReadOnly(true)
-            }
+                ).setReadOnly(true) }
         );
         this.params = params;
     }

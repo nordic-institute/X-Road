@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
- package ee.ria.xroad.common.certificateprofile.impl;
+package ee.ria.xroad.common.certificateprofile.impl;
 
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
@@ -59,8 +59,7 @@ public class EjbcaSignCertificateProfileInfo
                 // Member code
                 new DnFieldDescriptionImpl("CN", "Member Code (CN)",
                     params.getClientId().getMemberCode()
-                ).setReadOnly(true)
-            }
+                ).setReadOnly(true) }
         );
 
         this.params = params;

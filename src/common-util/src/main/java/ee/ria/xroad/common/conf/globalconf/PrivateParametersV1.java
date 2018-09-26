@@ -38,26 +38,26 @@ import java.util.stream.Collectors;
  */
 public class PrivateParametersV1 extends AbstractXmlConf<PrivateParametersType> {
 
-  PrivateParametersV1() {
-    super(ObjectFactory.class, PrivateParametersSchemaValidatorV1.class);
-  }
+    PrivateParametersV1() {
+        super(ObjectFactory.class, PrivateParametersSchemaValidatorV1.class);
+    }
 
-  String getInstanceIdentifier() {
-    return confType.getInstanceIdentifier();
-  }
+    String getInstanceIdentifier() {
+        return confType.getInstanceIdentifier();
+    }
 
-  List<ConfigurationSource> getConfigurationSource() {
-    return confType.getConfigurationAnchor().stream()
-        .map(ConfigurationAnchorV1::new)
-        .collect(Collectors.toList());
-  }
+    List<ConfigurationSource> getConfigurationSource() {
+        return confType.getConfigurationAnchor().stream()
+                .map(ConfigurationAnchorV1::new)
+                .collect(Collectors.toList());
+    }
 
-  BigInteger getTimeStampingIntervalSeconds() {
-    return confType.getTimeStampingIntervalSeconds();
-  }
+    BigInteger getTimeStampingIntervalSeconds() {
+        return confType.getTimeStampingIntervalSeconds();
+    }
 
-  ManagementServiceType getManagementService() {
-    return confType.getManagementService();
-  }
+    ManagementServiceType getManagementService() {
+        return confType.getManagementService();
+    }
 }
 

@@ -112,3 +112,10 @@ task licenseFormatAddsCheck(type:nl.javadude.gradle.plugins.license.License) {
 
 licenseFormat.dependsOn licenseFormatAdds
 licenseTest.dependsOn licenseFormatAddsCheck
+
+sonarqube {
+    properties {
+        properties["sonar.sources"] += [file('app'), file('lib'), file('public')]
+        property "sonar.ruby.rubocop.reportPath", file('build/rubocop-result.json')
+    }
+}

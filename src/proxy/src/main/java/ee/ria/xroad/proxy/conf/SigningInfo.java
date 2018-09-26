@@ -44,7 +44,7 @@ import java.util.Date;
 @Slf4j
 @Getter
 @RequiredArgsConstructor
-final class CachedSigningInfoImpl extends AbstractCachedInfo {
+class SigningInfo extends AbstractDateValidatableInfo {
 
     private final String keyId;
     private final String signMechanismName;
@@ -57,7 +57,7 @@ final class CachedSigningInfoImpl extends AbstractCachedInfo {
     @Override
     boolean verifyValidity(Date atDate) {
         try {
-            log.trace("CachedSigningInfoImpl.verifyValidity date: {}", atDate);
+            log.trace("SigningInfo.verifyValidity date: {}", atDate);
 
             verifyCert(atDate);
             verifyOcsp(atDate, clientId.getXRoadInstance());
