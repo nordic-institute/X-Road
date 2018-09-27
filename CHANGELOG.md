@@ -358,4 +358,5 @@
   - OS temp directory and X-Road software can now reside on different file systems
 
 ---
-Backlog/XRJD references: see https://github.com/vrk-kpa/xroad-joint-development
+XRDDEV references: see https://jira.niis.org/projects/XRDDEV/
+(Backlog/XRJD references: see https://github.com/vrk-kpa/xroad-joint-development/issues)
