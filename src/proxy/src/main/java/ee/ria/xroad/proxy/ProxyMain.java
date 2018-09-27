@@ -56,7 +56,6 @@ import akka.pattern.Patterns;
 import akka.util.Timeout;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
@@ -104,8 +103,6 @@ public final class ProxyMain {
 
     private static ActorSystem actorSystem;
 
-    @Getter
-    private static String version;
     private static ServiceLoader<AddOn> addOns = ServiceLoader.load(AddOn.class);
 
     private static final int GLOBAL_CONF_UPDATE_REPEAT_INTERVAL = 60;
@@ -167,8 +164,7 @@ public final class ProxyMain {
                 .withFallback(ConfigFactory.load())
                 .withValue("akka.remote.netty.tcp.port",
                         ConfigValueFactory.fromAnyRef(PortNumbers.PROXY_ACTORSYSTEM_PORT)));
-        version = readProxyVersion();
-        log.info("Starting proxy ({})...", getVersion());
+        log.info("Starting proxy ({})...", readProxyVersion());
     }
 
     private static void shutdown() throws Exception {
@@ -382,9 +378,8 @@ public final class ProxyMain {
     }
 
     /**
-     * Read installed proxy version information from package
-     * @return version string e.g. 6.17.0-1 or 6.19.0-0.20180709122743git861f417, or "unknown" in case it cannot be
-     * retrieved
+     * Return X-Road software version
+     * @return version string e.g. 6.19.0
      */
     public static String readProxyVersion() {
         return Version.XROAD_VERSION;

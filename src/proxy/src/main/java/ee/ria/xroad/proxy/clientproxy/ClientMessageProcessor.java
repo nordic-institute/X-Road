@@ -292,7 +292,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
             httpSender.setSocketTimeout(SystemProperties.getClientProxyHttpClientTimeout());
 
             httpSender.addHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId());
-            httpSender.addHeader(HEADER_PROXY_VERSION, ProxyMain.getVersion());
+            httpSender.addHeader(HEADER_PROXY_VERSION, ProxyMain.readProxyVersion());
 
             // Preserve the original content type in the "x-original-content-type"
             // HTTP header, which will be used to send the request to the
