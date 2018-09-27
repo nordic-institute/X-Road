@@ -328,10 +328,12 @@ public class ClientProxy implements StartStop {
 
         @Override
         public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+            // Trusts all cause ClientMessageProcessor#verifyClientAuthentication checks if the client certificate
         }
 
         @Override
         public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+            // Never called cause TrustManager is used by ServerConnector
         }
 
         @Override

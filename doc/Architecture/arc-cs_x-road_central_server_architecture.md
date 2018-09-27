@@ -264,7 +264,7 @@ Optionally, an SSCD can be connected with the central server if global configura
 
 This section describes the deployment of the central server in a cluster, for achieving high availability.
 
-In the context of the central server, high availability means there exist two or more independent installations of the central server, the databases of which have been configured to form a cluster and are replicated asynchronously. The central servers (or *nodes*) share and instance identifier but have different IP addresses / hostnames, use different keys for signing the configuration, and generally do not depend on the other nodes of the cluster being available for serving users.
+In the context of the central server, high availability means there exist two or more independent installations of the central server, the databases of which have been configured to form a cluster and are replicated asynchronously. The central servers (or *nodes*) share an instance identifier but have different IP addresses / hostnames, use different keys for signing the configuration, and generally do not depend on the other nodes of the cluster being available for serving users.
 
 Asynchronous replication of the databases has been implemented using the BDR extension of the PostgreSQL database\[[7](#Ref_7)\].
 

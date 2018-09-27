@@ -79,6 +79,11 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
+    public List<X509Certificate> getAllCaCerts(String instanceIdentifier) {
+        return Collections.emptyList();
+    }
+
+    @Override
     public boolean isOcspResponderCert(X509Certificate ca,
             X509Certificate ocspCert) {
         return true;
@@ -118,10 +123,12 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public void save() throws Exception {
+        // Empty configuration is not saved
     }
 
     @Override
     public void save(OutputStream out) throws Exception {
+        // Empty configuration is not saved
     }
 
     @Override
@@ -158,6 +165,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public void load(String fileName) throws Exception {
+        // Empty configuration cannot be loaded
     }
 
     @Override

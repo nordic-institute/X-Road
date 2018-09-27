@@ -372,6 +372,11 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
+    public List<X509Certificate> getAllCaCerts(String instanceIdentifier) {
+        return new ArrayList<>(getSharedParameters(instanceIdentifier).getSubjectsAndCaCerts().values());
+    }
+
+    @Override
     public CertChain getCertChain(String instanceIdentifier,
             X509Certificate subject) throws Exception {
         if (subject == null) {

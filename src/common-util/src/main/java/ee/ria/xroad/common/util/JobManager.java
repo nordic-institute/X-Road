@@ -71,6 +71,7 @@ public class JobManager implements StartStop {
 
     @Override
     public void join() throws InterruptedException {
+        // not applicable
     }
 
     /**

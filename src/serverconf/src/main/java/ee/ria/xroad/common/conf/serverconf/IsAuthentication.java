@@ -77,7 +77,7 @@ public enum IsAuthentication {
                                 + " TLS certificate", client);
             }
 
-            if (auth.getCert().equals(ServerConf.getSSLKey().getCert())) {
+            if (auth.getCert().equals(ServerConf.getSSLKey().getCertChain()[0])) {
                 // do not check certificates for local TLS connections
                 return;
             }

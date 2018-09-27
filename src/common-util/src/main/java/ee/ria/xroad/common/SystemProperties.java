@@ -219,6 +219,8 @@ public final class SystemProperties {
 
     private static final String PROXY_ACTORSYSTEM_PORT = PREFIX + "proxy.actorsystem-port";
 
+    private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = "false";
+
     private static final String DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
 
     private static final String DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER = "-1";
@@ -233,6 +235,8 @@ public final class SystemProperties {
 
     private static final String DEFAULT_CLIENTPROXY_HTTPCLIENT_SO_LINGER = "-1";
 
+    public static final String DEFAULT_OCSP_RESPONDER_CLIENT_READ_TIMEOUT = "30000";
+
     private static final String DEFAULT_CLIENTPROXY_POOL_IDLE_MONITOR_INTERVAL = "30000";
 
     private static final String DEFAULT_CLIENTPROXY_POOL_IDLE_MONITOR_IDLE_TIME = "60000";
@@ -242,6 +246,8 @@ public final class SystemProperties {
     private static final String DEFAULT_CLIENTPROXY_POOL_TOTAL_MAX_CONNECTIONS = "10000";
 
     private static final String DEFAULT_CLIENTPROXY_POOL_DEFAULT_MAX_CONN_PER_ROUTE = "2500";
+
+    private static final String DEFAULT_CLIENTPROXY_TIMEOUT = "30000";
 
     private static final String DEFAULT_CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE = "true";
 
@@ -258,6 +264,10 @@ public final class SystemProperties {
     private static final String DEFAULT_PROXY_HEALTH_CHECK_INTERFACE = "0.0.0.0";
 
     private static final String DEFAULT_PROXY_HEALTH_CHECK_PORT = "0";
+
+    public static final String DEFAULT_SIGNER_ENFORCE_TOKEN_PIN_POLICY = "false";
+
+    public static final String DEFAULT_ALLOW_GET_WSDL_REQUEST = "false";
 
     private static final String OCSP_VERIFIER_CACHE_PERIOD =
             PREFIX + "proxy.ocsp-verifier-cache-period";
@@ -298,11 +308,18 @@ public final class SystemProperties {
     public static final int MIN_SIGNER_KEY_LENGTH = 2048;
     public static final int DEFAULT_SIGNER_KEY_LENGTH = MIN_SIGNER_KEY_LENGTH;
 
+    public static final String DEFAULT_SIGNER_CLIENT_TIMEOUT = "60000";
+
     public static final String SIGNER_CSR_SIGNATURE_DIGEST_ALGORITHM =
             PREFIX + "signer.csr-signature-digest-algorithm";
 
     public static final String OCSP_RESPONSE_RETRIEVAL_ACTIVE =
             PREFIX + "signer.ocsp-response-retrieval-active";
+
+    public static final String SIGNER_OCSP_RETRY_DELAY =
+            PREFIX + "signer.ocsp-retry-delay";
+
+    private static final String DEFAULT_SIGNER_OCSP_RETRY_DELAY = "60";
 
     // AntiDos ----------------------------------------------------------------
 
@@ -714,7 +731,7 @@ public final class SystemProperties {
      * @return the client proxy connect timeout in milliseconds, '30000' by default.
      */
     public static int getClientProxyTimeout() {
-        return Integer.parseInt(System.getProperty(PROXY_CLIENT_TIMEOUT, "30000"));
+        return Integer.parseInt(System.getProperty(PROXY_CLIENT_TIMEOUT, DEFAULT_CLIENTPROXY_TIMEOUT));
     }
 
     /**
@@ -756,7 +773,7 @@ public final class SystemProperties {
      * @return the signer connection timeout in milliseconds, '60000' by default.
      */
     public static int getSignerClientTimeout() {
-        return Integer.parseInt(System.getProperty(SIGNER_CLIENT_TIMEOUT, "60000"));
+        return Integer.parseInt(System.getProperty(SIGNER_CLIENT_TIMEOUT, DEFAULT_SIGNER_CLIENT_TIMEOUT));
     }
 
     /**
@@ -780,6 +797,15 @@ public final class SystemProperties {
      */
     public static boolean isOcspResponseRetrievalActive() {
         return "true".equalsIgnoreCase(System.getProperty(OCSP_RESPONSE_RETRIEVAL_ACTIVE, "true"));
+    }
+
+    /**
+     * @return the OCSP-response retry delay in seconds that should be set for signer, 60 by default
+     *
+     */
+    public static int getOcspResponseRetryDelay() {
+        return Integer.parseInt(System.getProperty(SIGNER_OCSP_RETRY_DELAY,
+                DEFAULT_SIGNER_OCSP_RETRY_DELAY));
     }
 
     /**
@@ -836,7 +862,8 @@ public final class SystemProperties {
      * @return the OCSP Responder Client read timeout in milliseconds, '30000' by default.
      */
     public static int getOcspResponderClientReadTimeout() {
-        return Integer.parseInt(System.getProperty(OCSP_RESPONDER_CLIENT_READ_TIMEOUT, "30000"));
+        return Integer.parseInt(System.getProperty(OCSP_RESPONDER_CLIENT_READ_TIMEOUT,
+                DEFAULT_OCSP_RESPONDER_CLIENT_READ_TIMEOUT));
     }
 
     /**
@@ -858,7 +885,8 @@ public final class SystemProperties {
      * @return whether configuration of trusted anchors is enabled in the central server UI, 'true' by default.
      */
     public static boolean getCenterTrustedAnchorsAllowed() {
-        return "true".equalsIgnoreCase(System.getProperty(CENTER_TRUSTED_ANCHORS_ALLOWED, "false"));
+        return "true".equalsIgnoreCase(System.getProperty(CENTER_TRUSTED_ANCHORS_ALLOWED,
+                DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED));
     }
 
     /**
@@ -1127,7 +1155,8 @@ public final class SystemProperties {
      * @return true if PIN policy should be enforced.
      */
     public static boolean shouldEnforceTokenPinPolicy() {
-        return Boolean.valueOf(System.getProperty(SIGNER_ENFORCE_TOKEN_PIN_POLICY, "false"));
+        return Boolean.valueOf(System.getProperty(SIGNER_ENFORCE_TOKEN_PIN_POLICY,
+                DEFAULT_SIGNER_ENFORCE_TOKEN_PIN_POLICY));
     }
 
     /**
@@ -1321,7 +1350,7 @@ public final class SystemProperties {
      * @return whether GET request can be used for getWsdl metaservice, 'false' by default.
      */
     public static boolean isAllowGetWsdlRequest() {
-        return "true".equalsIgnoreCase(System.getProperty(ALLOW_GET_WSDL_REQUEST, "false"));
+        return "true".equalsIgnoreCase(System.getProperty(ALLOW_GET_WSDL_REQUEST, DEFAULT_ALLOW_GET_WSDL_REQUEST));
     }
 
     private static void checkVersionValidity(int version, int current, String defaultVersion) {

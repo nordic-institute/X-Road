@@ -96,6 +96,13 @@ public final class Key {
                 token.getSignMechanismName());
     }
 
+    /**
+     * @return true if the key is available and its usage info is signing
+     */
+    public boolean isValidForSigning() {
+        return isAvailable() && getUsage() == KeyUsageInfo.SIGNING;
+    }
+
     private List<CertificateInfo> getCertsAsDTOs() {
         return certs.stream().map(c -> c.toDTO()).collect(Collectors.toList());
     }
@@ -103,4 +110,5 @@ public final class Key {
     private List<CertRequestInfo> getCertRequestsAsDTOs() {
         return certRequests.stream().map(c -> c.toDTO()).collect(Collectors.toList());
     }
+
 }

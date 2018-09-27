@@ -32,6 +32,8 @@ import org.apache.commons.io.IOUtils;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -79,10 +81,20 @@ public class LogArchiveCacheTest {
     private static final long LOG_TIME_REQUEST_LARGE_EARLIEST = 1428664660610L;
     private static final long LOG_TIME_RESPONSE_NORMAL = 1428664927050L;
 
-    private LogArchiveCache cache = createCache(getMockRandomGenerator());
+    private LogArchiveCache cache;
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
+
+    @Before
+    public void setup() {
+        cache = createCache(getMockRandomGenerator());
+    }
+
+    @After
+    public void tearDown() throws IOException {
+        cache.close();
+    }
 
     /**
      * Test to ensure one entry of normal size can be added successfully.

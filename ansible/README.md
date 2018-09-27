@@ -52,12 +52,11 @@ While it is possible to define different variants for different security servers
 
 Playbook `xroad_init.yml` uses package repositories for X-Road installations.
 The default repository configurations are:
-* for DEB-packages `http://www.nic.funet.fi/pub/csc/x-road/client/ubuntu-prod-current`
-* for RHEL-packages `http://www.nic.funet.fi/pub/csc/x-road/client/rhel7-prod-current`.
 
-The used repository can be configured in `vars_files/remote_repo.yml`. The file contains repository and key variables for both RHEL-
-and DEB-packages. Note that RHEL-packages are only likely to be available from Finnish or custom repositories.
+* for DEB-packages `deb https://artifactory.niis.org/xroad-release-deb trusty-current main`
+* for RHEL-packages `https://artifactory.niis.org/xroad-release-rpm/rhel/7/currrent`.
 
+The used repository can be configured in `vars_files/remote_repo.yml`. The file contains repository and key variables for both RHEL- and DEB-packages.
 
 #### Additional variables
 

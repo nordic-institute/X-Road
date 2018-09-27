@@ -32,11 +32,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import javax.wsdl.BindingOperation;
@@ -91,8 +89,7 @@ public final class WSDLParser {
     private static final QName SOAP12_BINDING =
             new QName(SOAP12_NAMESPACE, "binding");
 
-    private static final String TRANSPORT =
-        "http://schemas.xmlsoap.org/soap/http";
+    private static final String TRANSPORT = "http://schemas.xmlsoap.org/soap/http";
 
     private static final String VERSION = "version";
 
@@ -157,12 +154,12 @@ public final class WSDLParser {
                         : (List<BindingOperation>)
                             port.getBinding().getBindingOperations()) {
                     String title = getChildValue("title",
-                        operation.getOperation().getDocumentationElement());
+                            operation.getOperation().getDocumentationElement());
 
                     String version = getVersion(operation);
 
                     result.put(operation.getName() + version, new ServiceInfo(
-                        operation.getName(), title, url, version));
+                            operation.getName(), title, url, version));
                 }
             }
         }
@@ -324,6 +321,7 @@ public final class WSDLParser {
 
         @Override
         public void close() {
+            // no-op
         }
 
         private void configureHttps(HttpsURLConnection conn)
@@ -337,6 +335,7 @@ public final class WSDLParser {
                     @Override
                     public void checkClientTrusted(
                             X509Certificate[] certs, String authType) {
+                        // never called as used by client
                     }
                     @Override
                     public void checkServerTrusted(
@@ -350,12 +349,7 @@ public final class WSDLParser {
             ctx.init(new KeyManager[]{new ClientSslKeyManager()}, trustAllCerts, new SecureRandom());
 
             conn.setSSLSocketFactory(ctx.getSocketFactory());
-            conn.setHostnameVerifier(new HostnameVerifier() {
-                @Override
-                public boolean verify(String hostname, SSLSession session) {
-                    return true;
-                }
-            });
+            conn.setHostnameVerifier(HostnameVerifiers.ACCEPT_ALL);
         }
     }
 }

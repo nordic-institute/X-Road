@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.PrivateKey;
+import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 
 /**
@@ -45,20 +46,24 @@ public final class TestCertUtil {
     /** Hard coded path to all the certificates. */
     private static final String CERT_PATH = "/";
 
+    private static final String CERT_ERROR_MSG = "Unable to get certificate for name \"%1$s\" from keystore";
+    private static final String CERT_ERROR_WITH_PASSWD_MSG = CERT_ERROR_MSG + " using password \"%2$s\"";
+
     /** Lazily initialized cached instances of the certs. */
-    private static X509Certificate caCert;
-    private static X509Certificate tspCert;
-    private static PKCS12 producer;
-    private static PKCS12 consumer;
-    private static PKCS12 ca2TestOrg;
-    private static PKCS12 ocspSigner;
+    private static volatile X509Certificate caCert;
+    private static volatile X509Certificate tspCert;
+    private static volatile PKCS12 producer;
+    private static volatile PKCS12 consumer;
+    private static volatile PKCS12 ca2TestOrg;
+    private static volatile PKCS12 ocspSigner;
+    private static volatile PKCS12 internal;
 
     private TestCertUtil() {
     }
 
     /** Tiny container to keep the certificate and private key together. */
     public static class PKCS12 {
-        public X509Certificate cert;
+        public X509Certificate[] certChain;
         public PrivateKey key;
     }
 
@@ -69,7 +74,7 @@ public final class TestCertUtil {
      */
     public static X509Certificate getCaCert() {
         if (caCert == null) {
-            caCert = loadPKCS12("root-ca.p12", "1", "test").cert;
+            caCert = loadPKCS12("root-ca.p12", "1", "test").certChain[0];
         }
 
         return caCert;
@@ -131,6 +136,16 @@ public final class TestCertUtil {
     }
 
     /**
+     * @return internal keystore from test resources
+     */
+    public static PKCS12 getInternalKey() {
+        if (internal == null) {
+            internal = TestCertUtil.loadPKCS12("internal.p12", "1", "test");
+        }
+        return internal;
+    }
+
+    /**
      * @param fileName name of the certificate file
      * @return a certificate from the certificate chain test
      * (certs under "cert-chain" subdirectory).
@@ -179,11 +194,31 @@ public final class TestCertUtil {
             X509Certificate cert =
                     (X509Certificate) keyStore.getCertificate(orgName);
             if (cert == null) {
-                throw new RuntimeException("Unable to get certificate for "
-                        + "name \"" + orgName + "\" from keystore");
+                throw new RuntimeException(String.format(CERT_ERROR_MSG, orgName));
             }
 
             return cert;
+        } catch (KeyStoreException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Loads a certificate with the specified org name from a keystore.
+     * @param keyStore keystore from which to load the certificate
+     * @param orgName name of the certificate org
+     * @return X509Certificate
+     */
+    public static X509Certificate[] getCertChain(KeyStore keyStore, String orgName) {
+        try {
+            final Certificate[] chain = keyStore.getCertificateChain(orgName);
+            if (chain == null || chain.length == 0) {
+                throw new RuntimeException(String.format(CERT_ERROR_MSG, orgName));
+            }
+
+            X509Certificate[] tmp = new X509Certificate[chain.length];
+            System.arraycopy(chain, 0, tmp, 0, chain.length);
+            return tmp;
         } catch (KeyStoreException e) {
             throw new RuntimeException(e);
         }
@@ -202,9 +237,8 @@ public final class TestCertUtil {
             PrivateKey key = (PrivateKey) keyStore.getKey(orgName,
                     password.toCharArray());
             if (key == null) {
-                throw new RuntimeException("Unable to get key for "
-                        + "name \"" + orgName + "\" using password \""
-                        + password + "\" from keystore");
+                throw new RuntimeException(
+                        String.format(CERT_ERROR_WITH_PASSWD_MSG, orgName, password));
             }
 
             return key;
@@ -266,7 +300,7 @@ public final class TestCertUtil {
             String password) {
         KeyStore orgKeyStore = loadPKCS12KeyStore(CERT_PATH + file, password);
         PKCS12 pkcs12 = new PKCS12();
-        pkcs12.cert = getCert(orgKeyStore, orgName);
+        pkcs12.certChain = getCertChain(orgKeyStore, orgName);
         pkcs12.key = getKey(orgKeyStore, password, orgName);
         return pkcs12;
     }

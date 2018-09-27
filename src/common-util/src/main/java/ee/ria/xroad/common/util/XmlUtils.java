@@ -23,18 +23,21 @@
 package ee.ria.xroad.common.util;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.xml.security.c14n.Canonicalizer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -45,6 +48,7 @@ import javax.xml.xpath.XPathFactory;
 
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 /**
@@ -53,7 +57,19 @@ import java.util.Optional;
 @Slf4j
 public final class XmlUtils {
 
+    private static final String ELEMENT_NOT_FOUND_WARNING = "Element not found with getElementXPathNS {}";
+
     private XmlUtils() {
+    }
+
+    /**
+     * Creates a new document object from the given String
+     * @param xml the xml string
+     * @return the created document
+     * @throws Exception if an error occurs
+     */
+    public static Document parseDocument(String xml) throws Exception {
+        return XmlUtils.parseDocument(IOUtils.toInputStream(xml, StandardCharsets.UTF_8));
     }
 
     /**
@@ -97,7 +113,8 @@ public final class XmlUtils {
         Source source = new DOMSource(node);
         StringWriter writer = new StringWriter();
         Result result = new StreamResult(writer);
-        Transformer t = TransformerFactory.newInstance().newTransformer();
+
+        Transformer t = createTransformerFactory().newTransformer();
         t.transform(source, result);
 
         return writer.toString();
@@ -133,7 +150,7 @@ public final class XmlUtils {
 
             return (Element) xpath.evaluate(xpathExpr, parent, XPathConstants.NODE);
         } catch (XPathExpressionException e) {
-            log.warn("Element not found with getElementXPathNS {}", e);
+            log.warn(ELEMENT_NOT_FOUND_WARNING, e);
 
             return null;
         }
@@ -157,7 +174,7 @@ public final class XmlUtils {
 
             return (NodeList) xpath.evaluate(xpathExpr, parent, XPathConstants.NODESET);
         } catch (XPathExpressionException e) {
-            log.warn("Element not found with getElementXPathNS {}", e);
+            log.warn(ELEMENT_NOT_FOUND_WARNING, e);
 
             return null;
         }
@@ -181,7 +198,7 @@ public final class XmlUtils {
 
             return (Element) xpath.evaluate("//*[@Id = '" + id + "']", doc, XPathConstants.NODE);
         } catch (XPathExpressionException e) {
-            log.warn("Element not found with getElementXPathNS {}", e);
+            log.warn(ELEMENT_NOT_FOUND_WARNING, e);
 
             return null;
         }
@@ -197,6 +214,16 @@ public final class XmlUtils {
      */
     public static byte[] canonicalize(String algorithmUri, Node node) throws Exception {
         return Canonicalizer.getInstance(algorithmUri).canonicalizeSubtree(node);
+    }
+
+    /**
+     * Pretty prints the document to string using default charset
+     * @param xml the xml document as string
+     * @return pretty printed document as String
+     * @throws Exception if any errors occur
+     */
+    public static String prettyPrintXml(String xml) throws Exception {
+        return prettyPrintXml(parseDocument(xml));
     }
 
     /**
@@ -220,12 +247,18 @@ public final class XmlUtils {
         StringWriter stringWriter = new StringWriter();
         StreamResult output = new StreamResult(stringWriter);
 
-        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+        Transformer transformer = createTransformerFactory().newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.setOutputProperty(OutputKeys.ENCODING, charset);
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
         transformer.transform(new DOMSource(document), output);
 
         return output.getWriter().toString().trim();
+    }
+
+    private static TransformerFactory createTransformerFactory() throws TransformerConfigurationException {
+        final TransformerFactory factory = TransformerFactory.newInstance();
+        factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        return factory;
     }
 }

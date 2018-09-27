@@ -37,8 +37,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
@@ -72,43 +70,40 @@ public class LogArchiveWriter implements Closeable {
     private final LinkingInfoBuilder linkingInfoBuilder;
     private final LogArchiveCache logArchiveCache;
 
-    protected final Charset charset =
-            Charset.forName(StandardCharsets.UTF_8.name());
-
-    protected WritableByteChannel archiveOut;
-
+    private WritableByteChannel archiveOut;
     private Path archiveTmp;
-    private Path lastHashStepTmp;
-
     /**
      * Creates new LogArchiveWriter
-     * @param outputPath directory where the log archive is created.
+     *
+     * @param outputPath  directory where the log archive is created.
      * @param workingPath directory where the temporary files are stored
      * @param archiveBase interface to archive database.
      */
     public LogArchiveWriter(Path outputPath, Path workingPath,
-            LogArchiveBase archiveBase) {
+                            LogArchiveBase archiveBase) {
         this.outputPath = outputPath;
         this.archiveBase = archiveBase;
 
         this.linkingInfoBuilder = new LinkingInfoBuilder(
-            MessageLogProperties.getHashAlg(),
-            archiveBase
+                MessageLogProperties.getHashAlg(),
+                archiveBase
         );
 
         this.logArchiveCache = new LogArchiveCache(
-            LogArchiveWriter::generateRandom,
-            linkingInfoBuilder,
-            workingPath
+                LogArchiveWriter::generateRandom,
+                linkingInfoBuilder,
+                workingPath
         );
     }
 
     /**
      * Write a message log record.
+     *
      * @param logRecord the log record
+     * @return true if the a archive file was rotated
      * @throws Exception in case of any errors
      */
-    public void write(LogRecord logRecord) throws Exception {
+    public boolean write(LogRecord logRecord) throws Exception {
         if (logRecord == null) {
             throw new IllegalArgumentException("log record must not be null");
         }
@@ -127,7 +122,9 @@ public class LogArchiveWriter implements Closeable {
 
         if (logArchiveCache.isRotating()) {
             rotate();
+            return true;
         }
+        return false;
     }
 
     @Override
@@ -137,33 +134,23 @@ public class LogArchiveWriter implements Closeable {
         try {
             if (archiveAsicContainers()) {
                 closeOutputs();
-
                 saveArchive();
-
-                logArchiveCache.close();
             }
         } finally {
+            logArchiveCache.close();
             clearTempArchive();
         }
     }
 
     private void clearTempArchive() {
-        if (archiveTmp == null) {
-            return;
+        if (archiveTmp != null) {
+            deleteQuietly(archiveTmp.toFile());
         }
-
-        // Without it, temp file remains on the disk even after closing.
-        deleteQuietly(archiveTmp.toFile());
-        deleteQuietly(lastHashStepTmp.toFile());
-
         archiveTmp = null;
-        lastHashStepTmp = null;
     }
 
     protected WritableByteChannel createArchiveOutput() throws Exception {
         archiveTmp = createTempFile(outputPath, "mlogtmp", null);
-        lastHashStepTmp = createTempFile(outputPath, "lasthashsteptmp", null);
-
         return createOutputToTempFile(archiveTmp);
     }
 
@@ -182,14 +169,17 @@ public class LogArchiveWriter implements Closeable {
         archiveOut = null;
 
         saveArchive();
-
         archiveTmp = null;
-        lastHashStepTmp = null;
+
     }
 
     private boolean archiveAsicContainers() {
+        if (archiveOut == null) {
+            return false;
+        }
+
         try (InputStream input = logArchiveCache.getArchiveFile();
-                OutputStream output = Channels.newOutputStream(archiveOut)) {
+             OutputStream output = Channels.newOutputStream(archiveOut)) {
             IOUtils.copy(input, output);
         } catch (IOException e) {
             log.error("Failed to archive ASiC containers due to IO error", e);
@@ -239,10 +229,10 @@ public class LogArchiveWriter implements Closeable {
             throws IOException {
         try {
             archiveBase.markArchiveCreated(
-                new DigestEntry(
-                    linkingInfoBuilder.getCreatedArchiveLastDigest(),
-                    archiveFilename
-                )
+                    new DigestEntry(
+                            linkingInfoBuilder.getCreatedArchiveLastDigest(),
+                            archiveFilename
+                    )
             );
         } catch (Exception e) {
             throw new IOException(e);
@@ -257,7 +247,7 @@ public class LogArchiveWriter implements Closeable {
             if (++attempts > MAX_RANDOM_GEN_ATTEMPTS) {
                 throw new RuntimeException(
                         "Could not generate unique random in "
-                        + MAX_RANDOM_GEN_ATTEMPTS + " attempts");
+                                + MAX_RANDOM_GEN_ATTEMPTS + " attempts");
             }
 
             random = randomAlphanumeric(RANDOM_LENGTH);

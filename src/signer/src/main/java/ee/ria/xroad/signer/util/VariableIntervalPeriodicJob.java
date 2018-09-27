@@ -68,9 +68,9 @@ public abstract class VariableIntervalPeriodicJob extends UntypedActor {
     }
 
     protected void scheduleNextSend(FiniteDuration delay) {
-            log.debug("next '{}' message in {} seconds", message, delay.toSeconds());
-            nextSend = getContext().system().scheduler().scheduleOnce(delay,
-                this::sendMessage, getContext().dispatcher());
+        log.debug("next '{}' message in {} seconds", message, delay.toSeconds());
+        nextSend = getContext().system().scheduler().scheduleOnce(delay,
+            this::sendMessage, getContext().dispatcher());
     }
 
     protected void sendMessage() {

@@ -51,6 +51,7 @@ import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransactio
 public final class LogRecordManager {
 
     private static final int DEFAULT_BATCH_SIZE = 50;
+    private static final String GET_BY_QUERY_ID_LOG_FORMAT = "getByQueryId({}, {}, {})";
     private static int configuredBatchSize = 0;
 
     private static final String UPDATE_LOG_RECORD_STATEMENT = "UPDATE logrecord SET timestamprecord = ?, "
@@ -73,7 +74,7 @@ public final class LogRecordManager {
      * @throws Exception if an error occurs while communicating with database.
      */
     static LogRecord getByQueryId(String queryId, Date startTime, Date endTime) throws Exception {
-        log.trace("getByQueryId({}, {}, {})", queryId, startTime, endTime);
+        log.trace(GET_BY_QUERY_ID_LOG_FORMAT, queryId, startTime, endTime);
 
         return doInTransaction(session -> getMessageRecord(session, queryId, startTime, endTime));
     }
@@ -88,7 +89,7 @@ public final class LogRecordManager {
      */
     public static MessageRecord getByQueryIdUnique(String queryId, ClientId clientId, boolean isResponse)
             throws Exception {
-        log.trace("getByQueryId({}, {}, {})", queryId, clientId, isResponse);
+        log.trace(GET_BY_QUERY_ID_LOG_FORMAT, queryId, clientId, isResponse);
 
         return doInTransaction(session -> getMessageRecord(session, queryId, clientId, isResponse));
     }
@@ -103,7 +104,7 @@ public final class LogRecordManager {
      */
     public static List<MessageRecord> getByQueryId(String queryId, ClientId clientId, boolean isResponse)
             throws Exception {
-        log.trace("getByQueryId({}, {}, {})", queryId, clientId, isResponse);
+        log.trace(GET_BY_QUERY_ID_LOG_FORMAT, queryId, clientId, isResponse);
 
         return doInTransaction(session -> getMessageRecords(session, queryId, clientId, isResponse));
     }

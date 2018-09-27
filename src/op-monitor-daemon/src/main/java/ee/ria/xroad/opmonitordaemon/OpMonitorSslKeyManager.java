@@ -65,7 +65,7 @@ class OpMonitorSslKeyManager extends X509ExtendedKeyManager {
     @Override
     public X509Certificate[] getCertificateChain(String alias) {
         if (sslKey != null) {
-            return new X509Certificate[] {sslKey.getCert()};
+            return sslKey.getCertChain();
         } else {
             return new X509Certificate[] {};
         }

@@ -100,7 +100,7 @@ public class DummySslServerProxy extends Server implements StartStop {
 
         @Override
         public X509Certificate[] getCertificateChain(String alias) {
-            return new X509Certificate[] {TestCertUtil.getProducer().cert};
+            return new X509Certificate[] {TestCertUtil.getProducer().certChain[0]};
         }
 
         @Override

@@ -23,6 +23,7 @@
 package ee.ria.xroad.common.util;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -110,6 +111,13 @@ public class HttpSender extends AbstractHttpSender {
         this.request = request;
 
         addAdditionalHeaders();
+
+        if (log.isTraceEnabled()) {
+            log.trace("Log request headers");
+            for (Header header : request.getAllHeaders()) {
+                log.trace(String.format("%s : %s", header.getName(), header.getValue()));
+            }
+        }
 
         try {
             HttpResponse response = client.execute(request, context);

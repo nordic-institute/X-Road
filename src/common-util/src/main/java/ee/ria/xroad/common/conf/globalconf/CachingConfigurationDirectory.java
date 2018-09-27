@@ -36,7 +36,7 @@ public class CachingConfigurationDirectory extends ConfigurationDirectoryV2 {
   public static final String PRIVATE_PARAMS = "privateParams";
   public static final String SHARED_PARAMS = "sharedParams";
   public static final String VERIFY_UP_TO_DATE = "verifyUpToDate";
-  public static final String RELOAD = "reload";
+  public static final String RELOAD_CONF_DIR = "reload";
 
   private final int expireSeconds;
   private final TimeBasedObjectCache cache;
@@ -134,8 +134,8 @@ public class CachingConfigurationDirectory extends ConfigurationDirectoryV2 {
   public synchronized void reload() throws Exception {
     // cache validity indicates whether reloading should be done at this time
     // cache value is meaningless in this case
-    if (cache != null && !cache.isValid(RELOAD)) {
-      cache.setValue(RELOAD, 1);
+    if (cache != null && !cache.isValid(RELOAD_CONF_DIR)) {
+      cache.setValue(RELOAD_CONF_DIR, 1);
       super.reload();
     }
   }

@@ -91,8 +91,6 @@ public class ConfigurationDirectoryTest {
      */
     @Test
     public void readMalformedDirectoryV2() throws Exception {
-        thrown.expectError(X_MALFORMED_GLOBALCONF);
-
         ConfigurationDirectoryV2 dir = new ConfigurationDirectoryV2("src/test/resources/globalconf_malformed");
 
         assertNull(dir.getPrivate("foo"));

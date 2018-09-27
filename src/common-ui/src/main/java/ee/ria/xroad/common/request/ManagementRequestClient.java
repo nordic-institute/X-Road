@@ -122,6 +122,7 @@ public final class ManagementRequestClient implements StartStop {
 
     @Override
     public void join() throws InterruptedException {
+        // Not applicable
     }
 
     // -- Helper methods ------------------------------------------------------
@@ -132,6 +133,7 @@ public final class ManagementRequestClient implements StartStop {
         TrustManager tm = new X509TrustManager() {
             @Override
             public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+                // As manager of the client the method gets never called
             }
 
             @Override
@@ -172,10 +174,11 @@ public final class ManagementRequestClient implements StartStop {
         TrustManager tm = new X509TrustManager() {
             @Override
             public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+                // never called as this is trustmanager of a client
             }
             @Override
             public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-
+                // localhost called so server is trusted
             }
             @Override
             public X509Certificate[] getAcceptedIssuers() {
@@ -200,10 +203,9 @@ public final class ManagementRequestClient implements StartStop {
             @Override
             public X509Certificate[] getCertificateChain(String alias) {
                 try {
-                    return new X509Certificate[] {InternalSSLKey.load().getCert()};
+                    return InternalSSLKey.load().getCertChain();
                 } catch (Exception e) {
                     log.error("Failed to load internal TLS key", e);
-
                     return new X509Certificate[] {};
                 }
             }

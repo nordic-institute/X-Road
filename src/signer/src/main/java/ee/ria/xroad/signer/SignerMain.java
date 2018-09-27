@@ -155,7 +155,7 @@ public final class SignerMain {
                 CertificationServiceDiagnostics diagnostics = null;
                 try {
                     Object value = SignerUtil.ask(
-                        actorSystem.actorSelection("/user/" + OCSP_CLIENT), OcspClientWorker.DIAGNOSTICS);
+                            actorSystem.actorSelection("/user/" + OCSP_CLIENT), OcspClientWorker.DIAGNOSTICS);
                     diagnostics = (CertificationServiceDiagnostics) value;
                     if (diagnostics != null) {
                         diagnosticsDefault = diagnostics;

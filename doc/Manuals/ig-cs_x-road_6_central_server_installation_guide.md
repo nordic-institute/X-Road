@@ -4,8 +4,8 @@ Version: 2.7
 Doc. ID: IG-CS
 
 
-| Date       | Version | Description                      | Author             |
-|------------|--------------------------------------------|--------------------|
+| Date       | Version | Description                      | Author                |
+|------------|---------|----------------------------------|-----------------------|
 | 01.12.2014 | 1.0     | Initial version                                         ||
 | 19.01.2015 | 1.1     | License information added                               ||
 | 02.02.2015 | 1.2     | References fixed                                        ||

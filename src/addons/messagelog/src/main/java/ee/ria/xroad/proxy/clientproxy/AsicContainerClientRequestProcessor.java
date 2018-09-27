@@ -38,6 +38,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.monitoring.MessageInfo;
+import ee.ria.xroad.common.util.HttpHeaders;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.messagelog.LogRecordManager;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
@@ -144,7 +145,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         ConfigurationDirectoryV2 confDir = new ConfigurationDirectoryV2(SystemProperties.getConfigurationPath());
 
         servletResponse.setContentType(MimeTypes.ZIP);
-        servletResponse.setHeader("Content-Disposition", "filename=\"verificationconf.zip\"");
+        servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=\"verificationconf.zip\"");
         try (VerificationConfWriter writer = new VerificationConfWriter(confDir.getInstanceIdentifier(),
                 servletResponse.getOutputStream())) {
             confDir.eachFile(writer);
@@ -218,8 +219,8 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
         if (!requests.isEmpty() || !responses.isEmpty()) {
             try (ZipOutputStream zos = startZipResponse(filename)) {
-                writeContainers(requests, queryId, nameGen, zos, "request");
-                writeContainers(responses, queryId, nameGen, zos, "response");
+                writeContainers(requests, queryId, nameGen, zos, AsicContainerNameGenerator.TYPE_REQUEST);
+                writeContainers(responses, queryId, nameGen, zos, AsicContainerNameGenerator.TYPE_RESPONSE);
             }
         } else {
             throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_NOT_FOUND, ErrorCodes.X_NOT_FOUND,
@@ -229,12 +230,12 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     private void writeRequestContainers(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen)
             throws Exception {
-        String filename = AsicUtils.escapeString(queryId) + "-request";
+        String filename = AsicUtils.escapeString(queryId) + "-" + AsicContainerNameGenerator.TYPE_REQUEST;
         List<MessageRecord> records = timestampedRecords(clientId, queryId, false);
 
         if (!records.isEmpty()) {
             try (ZipOutputStream zos = startZipResponse(filename)) {
-                writeContainers(records, queryId, nameGen, zos, "request");
+                writeContainers(records, queryId, nameGen, zos, AsicContainerNameGenerator.TYPE_REQUEST);
             }
         } else {
             throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_NOT_FOUND, ErrorCodes.X_NOT_FOUND,
@@ -249,7 +250,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
         if (!records.isEmpty()) {
             try (ZipOutputStream zos = startZipResponse(filename)) {
-                writeContainers(records, queryId, nameGen, zos, "response");
+                writeContainers(records, queryId, nameGen, zos, AsicContainerNameGenerator.TYPE_RESPONSE);
             }
         } else {
             throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_NOT_FOUND, ErrorCodes.X_NOT_FOUND,
@@ -300,10 +301,11 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private void writeAsicContainer(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
             boolean response) throws Exception {
         MessageRecord request = getTimestampedRecord(clientId, queryId, response);
-        String filename = nameGen.getArchiveFilename(queryId, response ? "response" : "request");
+        String filename = nameGen.getArchiveFilename(queryId,
+                response ? AsicContainerNameGenerator.TYPE_RESPONSE : AsicContainerNameGenerator.TYPE_REQUEST);
 
         servletResponse.setContentType(MimeTypes.ASIC_ZIP);
-        servletResponse.setHeader("Content-Disposition", "filename=\"" + filename + "\"");
+        servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=\"" + filename + "\"");
 
         servletResponse.getOutputStream().write(request.toAsicContainer().getBytes());
     }
@@ -341,7 +343,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     private ZipOutputStream startZipResponse(String filename) throws IOException {
         servletResponse.setContentType(MimeTypes.ZIP);
-        servletResponse.setHeader("Content-Disposition", "filename=\"" + filename + ".zip\"");
+        servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=\"" + filename + ".zip\"");
 
         return new ZipOutputStream(servletResponse.getOutputStream());
     }

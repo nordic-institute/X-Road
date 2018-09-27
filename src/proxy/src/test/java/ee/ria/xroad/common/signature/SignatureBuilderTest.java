@@ -77,10 +77,10 @@ public class SignatureBuilderTest {
      */
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        subjectCert = TestCertUtil.getConsumer().cert;
+        subjectCert = TestCertUtil.getConsumer().certChain[0];
         subjectKey = TestCertUtil.getConsumer().key;
         issuerCert = TestCertUtil.getCaCert();
-        signerCert = TestCertUtil.getOcspSigner().cert;
+        signerCert = TestCertUtil.getOcspSigner().certChain[0];
         signerKey = TestCertUtil.getOcspSigner().key;
     }
 
