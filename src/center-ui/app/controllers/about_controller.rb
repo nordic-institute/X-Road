@@ -23,11 +23,13 @@
 # THE SOFTWARE.
 #
 
-class AboutController < ApplicationController
-  before_filter :verify_get
+java_import Java::ee.ria.xroad.common.Version
 
-  def index
-    @version = %x[dpkg-query -f '${Version}' -W xroad-center 2>&1].strip
-    @version = t('about.unknown') unless $?.exitstatus == 0
-  end
+class AboutController < ApplicationController
+
+    before_filter :verify_get
+
+    def index
+        @version = Version::XROAD_VERSION
+    end
 end

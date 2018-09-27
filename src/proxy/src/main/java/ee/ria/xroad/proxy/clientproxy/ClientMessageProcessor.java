@@ -26,6 +26,7 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
@@ -50,7 +51,6 @@ import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
-import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
@@ -292,7 +292,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
             httpSender.setSocketTimeout(SystemProperties.getClientProxyHttpClientTimeout());
 
             httpSender.addHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId());
-            httpSender.addHeader(HEADER_PROXY_VERSION, ProxyMain.getVersion());
+            httpSender.addHeader(HEADER_PROXY_VERSION, Version.XROAD_VERSION);
 
             // Preserve the original content type in the "x-original-content-type"
             // HTTP header, which will be used to send the request to the
