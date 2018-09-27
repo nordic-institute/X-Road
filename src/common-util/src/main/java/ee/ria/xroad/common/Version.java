@@ -20,29 +20,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.util;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.jar.JarInputStream;
+package ee.ria.xroad.common;
 
 /**
- * Utils for extracting information from jar files
+ * X-Road's version number is set here
  */
-public final class JarUtils {
+public final class Version {
 
-    private JarUtils() {
-    }
+    public static final String XROAD_VERSION = "6.19.0";
 
-    public static final String COMMON_UTIL_JAR_PATH = "/usr/share/xroad/jlib/common-util-1.0.jar";
-    public static final String IMPLEMENTATION_VERSION = "Implementation-Version";
-
-    /**
-     * Read property from jar file's manifest
-     */
-    public static String readJarManifestProperty(String jarFileName, String propertyName) throws IOException {
-        try (JarInputStream jarInputStream = new JarInputStream(new FileInputStream(jarFileName))) {
-            return jarInputStream.getManifest().getMainAttributes().getValue(propertyName);
-        }
+    private Version() {
     }
 }

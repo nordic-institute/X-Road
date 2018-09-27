@@ -29,12 +29,12 @@ import ee.ria.xroad.common.DiagnosticsUtils;
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.signature.BatchSigner;
 import ee.ria.xroad.common.util.AdminPort;
-import ee.ria.xroad.common.util.JarUtils;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.StartStop;
@@ -53,7 +53,6 @@ import akka.pattern.Patterns;
 import akka.util.Timeout;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
@@ -101,8 +100,6 @@ public final class ProxyMain {
 
     private static ActorSystem actorSystem;
 
-    @Getter
-    private static String version;
     private static ServiceLoader<AddOn> addOns = ServiceLoader.load(AddOn.class);
 
     private ProxyMain() {
@@ -162,8 +159,7 @@ public final class ProxyMain {
                 .withFallback(ConfigFactory.load())
                 .withValue("akka.remote.netty.tcp.port",
                         ConfigValueFactory.fromAnyRef(PortNumbers.PROXY_ACTORSYSTEM_PORT)));
-        version = readProxyVersion();
-        log.info("Starting proxy ({})...", getVersion());
+        log.info("Starting proxy ({})...", Version.XROAD_VERSION);
     }
 
     private static void shutdown() throws Exception {
@@ -373,18 +369,5 @@ public final class ProxyMain {
         }
         return statuses;
 
-    }
-
-    /**
-     * Read proxy version information from jar manifest
-     * @return version string e.g. 6.19.0
-     */
-    public static String readProxyVersion() {
-        try {
-            return JarUtils.readJarManifestProperty(JarUtils.COMMON_UTIL_JAR_PATH, JarUtils.IMPLEMENTATION_VERSION);
-        } catch (Exception e) {
-            log.error(String.format("Error reading version information from %s", JarUtils.COMMON_UTIL_JAR_PATH), e);
-            return "unknown";
-        }
     }
 }

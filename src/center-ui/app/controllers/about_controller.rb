@@ -21,13 +21,13 @@
 # THE SOFTWARE.
 #
 
-java_import Java::ee.ria.xroad.common.util.JarUtils
+java_import Java::ee.ria.xroad.common.Version
 
 class AboutController < ApplicationController
 
     before_filter :verify_get
 
     def index
-        @version = JarUtils.readJarManifestProperty(JarUtils::COMMON_UTIL_JAR_PATH, JarUtils::IMPLEMENTATION_VERSION)
+        @version = Version::XROAD_VERSION
     end
 end

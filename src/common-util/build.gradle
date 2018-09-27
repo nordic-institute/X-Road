@@ -55,12 +55,6 @@ dependencies {
     xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
 }
 
-jar {
-    manifest {
-        attributes 'Implementation-Version': XROAD_VERSION
-    }
-}
-
 test {
     jvmArgs '-Djava.library.path=../lib'
 }

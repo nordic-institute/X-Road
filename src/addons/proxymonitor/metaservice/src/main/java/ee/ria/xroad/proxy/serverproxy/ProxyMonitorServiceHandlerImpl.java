@@ -24,6 +24,7 @@ package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.conf.monitoringconf.MonitoringConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -33,7 +34,6 @@ import ee.ria.xroad.common.message.SoapMessageEncoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
-import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxymonitor.ProxyMonitor;
 import ee.ria.xroad.proxymonitor.message.GetSecurityServerMetricsResponse;
@@ -133,7 +133,7 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
 
         final StringMetricType version = new StringMetricType();
         version.setName("proxyVersion");
-        version.setValue(ProxyMain.getVersion());
+        version.setValue(Version.XROAD_VERSION);
         root.getMetrics().add(version);
 
         if (client != null) {
