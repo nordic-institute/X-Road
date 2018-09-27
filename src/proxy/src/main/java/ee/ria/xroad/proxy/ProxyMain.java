@@ -31,6 +31,7 @@ import ee.ria.xroad.common.DiagnosticsUtils;
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
@@ -83,8 +84,6 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
  */
 @Slf4j
 public final class ProxyMain {
-
-    private static final String XROAD_VERSION = "6.19.0";
 
     static {
         SystemPropertiesLoader.create()
@@ -388,6 +387,6 @@ public final class ProxyMain {
      * retrieved
      */
     public static String readProxyVersion() {
-        return XROAD_VERSION;
+        return Version.XROAD_VERSION;
     }
 }
