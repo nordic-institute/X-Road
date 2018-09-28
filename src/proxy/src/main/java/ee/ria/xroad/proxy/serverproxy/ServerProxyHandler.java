@@ -133,7 +133,7 @@ class ServerProxyHandler extends HandlerBase {
 
     private static void logProxyVersion(HttpServletRequest request) {
         String thatVersion = getVersion(request.getHeader(MimeUtils.HEADER_PROXY_VERSION));
-        String thisVersion = getVersion(ProxyMain.getVersion());
+        String thisVersion = getVersion(ProxyMain.readProxyVersion());
 
         log.info("Received request from {} (security server version: {})", request.getRemoteAddr(), thatVersion);
 

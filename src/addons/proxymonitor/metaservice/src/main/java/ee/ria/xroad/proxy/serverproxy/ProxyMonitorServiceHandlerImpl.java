@@ -135,7 +135,7 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
 
         final StringMetricType version = new StringMetricType();
         version.setName("proxyVersion");
-        version.setValue(ProxyMain.getVersion());
+        version.setValue(ProxyMain.readProxyVersion());
         root.getMetrics().add(version);
 
         if (client != null) {

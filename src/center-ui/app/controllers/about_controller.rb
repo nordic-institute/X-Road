@@ -22,12 +22,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
+java_import Java::ee.ria.xroad.common.Version
 
 class AboutController < ApplicationController
+
   before_filter :verify_get
 
   def index
-    @version = %x[dpkg-query -f '${Version}' -W xroad-center 2>&1].strip
-    @version = t('about.unknown') unless $?.exitstatus == 0
+      @version = Version::XROAD_VERSION
   end
 end
