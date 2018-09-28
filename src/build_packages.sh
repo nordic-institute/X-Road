@@ -17,5 +17,5 @@ if command -v docker &>/dev/null; then
 else
     echo "Docker not installed, building only .deb packages for this distribution"
     cd $XROAD/packages
-    build-deb.sh $(lsb_release -sc)
+    ./build-deb.sh $(lsb_release -sc)
 fi
