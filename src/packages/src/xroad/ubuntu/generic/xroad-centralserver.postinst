@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# disable confclient start
+echo manual > /etc/init/xroad-confclient.override
+service xroad-confclient stop
+
+exit 0

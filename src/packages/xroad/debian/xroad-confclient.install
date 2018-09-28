@@ -1,5 +1,0 @@
-confclient/etc/*  etc/
-../default-configuration/confclient-logback.xml etc/xroad/conf.d
-../default-configuration/confclient-logback-service.xml etc/xroad/conf.d
-../../configuration-client/build/libs/configuration-client-1.0.jar usr/share/xroad/jlib/
-

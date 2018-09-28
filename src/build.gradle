@@ -239,26 +239,7 @@ configure(subprojects.findAll({ it.name.contains('center-common') or it.name.con
 }
 
 task clean(type: Delete) {
-   delete "${rootDir}/packages/xroad-jetty9/jetty9/"
-   delete "${rootDir}/packages/xroad/center/usr/share/xroad/scripts/restore_db.sh"
-   delete "${rootDir}/packages/xroad/debian/xroad-signer.xroad-signer.upstart"
-   delete "${rootDir}/packages/xroad/debian/xroad-monitor.xroad-monitor.upstart"
-   delete "${rootDir}/packages/xroad/debian/xroad-opmonitor.xroad-opmonitor.upstart"
-   delete "${rootDir}/packages/xroad/debian/xroad-confclient.xroad-confclient.upstart"
-   delete "${rootDir}/packages/xroad/debian/xroad-proxy.xroad-proxy.upstart"
-   delete "${rootDir}/packages/xroad/proxy/usr/share/xroad/scripts/restore_db.sh"
-   delete "${rootDir}/packages/xroad/redhat/BUILD"
-   delete "${rootDir}/packages/xroad/redhat/BUILDROOT"
-   delete "${rootDir}/packages/xroad/redhat/RPMS"
-   delete "${rootDir}/packages/xroad-jetty9/redhat/BUILD"
-   delete "${rootDir}/packages/xroad-jetty9/redhat/BUILDROOT"
-   delete "${rootDir}/packages/xroad-jetty9/redhat/RPMS"
-
-   doLast {
-        ant.delete {
-            fileset(dir: file("${rootDir}/packages"), includes: "*.deb, *.changes")
-        }
-   }
+   delete "${rootDir}/packages/build"
 }
 
 task wrapper(type: Wrapper) {
