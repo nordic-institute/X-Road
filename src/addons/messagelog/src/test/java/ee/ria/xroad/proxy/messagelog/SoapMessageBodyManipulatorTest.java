@@ -29,6 +29,7 @@ import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.XmlUtils;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -213,7 +214,7 @@ public class SoapMessageBodyManipulatorTest {
     }
 
     private Document parseXml(String xml) throws ParserConfigurationException, IOException, SAXException {
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory dbf = XmlUtils.createDocumentBuilderFactory();
         dbf.setNamespaceAware(true);
         return dbf.newDocumentBuilder().parse(
                 new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));

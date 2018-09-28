@@ -27,6 +27,7 @@ package ee.ria.xroad.common.identifier;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.identifier.IdentifierTypeConverter.GenericXRoadIdAdapter;
+import ee.ria.xroad.common.util.XmlUtils;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -264,7 +265,7 @@ public class IdentifierTypeConverterTest {
     }
 
     private static Node fileToNode(String fileName) throws Exception {
-        DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory f = XmlUtils.createDocumentBuilderFactory();
         f.setNamespaceAware(true);
 
         Document doc = f.newDocumentBuilder().parse(
