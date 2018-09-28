@@ -27,7 +27,7 @@ package ee.ria.xroad.common;
  */
 public final class Version {
 
-    public static final String XROAD_VERSION = "6.19.0";
+    public static final String XROAD_VERSION = "6.20.0";
 
     private Version() {
     }
