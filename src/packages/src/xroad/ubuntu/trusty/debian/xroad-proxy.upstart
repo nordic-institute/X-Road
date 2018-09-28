@@ -1,9 +1,7 @@
-
 description "X-Road proxy backend"
 
 start on runlevel [2345]
 stop on runlevel [!2345]
-
 
 respawn
 respawn limit 10 5
@@ -18,5 +16,9 @@ pre-start script
     chown xroad:xroad /etc/xroad
 end script
 
-exec /usr/share/xroad/bin/xroad-proxy
+script
+  set -x
+  . /etc/xroad/services/proxy.conf
+  exec authbind ${JAVA_HOME}/bin/java ${PROXY_PARAMS} ${XROAD_PARAMS} -cp ${CP}${ADDON_CP} ${ADDON_PARAMS} ee.ria.xroad.proxy.ProxyMain
+end script
 
