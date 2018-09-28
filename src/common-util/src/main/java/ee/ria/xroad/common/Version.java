@@ -31,5 +31,5 @@ public final class Version {
     private Version() {
     }
 
-    public static final String XROAD_VERSION = "6.19.0";
+    public static final String XROAD_VERSION = "6.20.0";
 }
