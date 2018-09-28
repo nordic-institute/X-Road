@@ -52,6 +52,17 @@ public class Signer {
 
     }
 
+    /** Adds new part to be signed.
+     * @param name name of the file in the BDOC container.
+     * @param hashMethod identifier of the algorithm used to calculate the hash
+     * @param data the data.
+     * @param message the message
+     */
+    public void addPart(String name, String hashMethod, byte[] data, byte[] message) {
+        builder.addPart(new MessagePart(name, hashMethod, data, message));
+
+    }
+
     /**
      * Adds the message part to be signed.
      * @param hashMethod identifier of the algorithm used to calculate the hash

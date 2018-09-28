@@ -120,7 +120,7 @@ class SignatureCtx {
         // If only one single hash (message), then no hash chain
         if (requests.size() == 1 && firstRequest.isSingleMessage()) {
             return builder.createDataToBeSigned(MESSAGE, createResourceResolver(
-                    firstRequest.getParts().get(0).getSoap()), signatureAlgorithmUri);
+                    firstRequest.getParts().get(0).getMessage()), signatureAlgorithmUri);
         }
 
         buildHashChain();

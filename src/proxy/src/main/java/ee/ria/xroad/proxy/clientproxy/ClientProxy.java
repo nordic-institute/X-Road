@@ -287,6 +287,7 @@ public class ClientProxy implements StartStop {
 
         log.trace("Loading default client handler");
 
+        handlers.add(new ClientRestMessageHandler(client));
         handlers.add(new ClientMessageHandler(client)); // default handler
 
         return handlers;

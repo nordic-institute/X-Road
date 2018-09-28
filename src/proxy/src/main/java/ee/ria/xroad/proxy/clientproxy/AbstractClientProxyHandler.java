@@ -71,7 +71,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
     @Override
     public void handle(String target, Request baseRequest,
             HttpServletRequest request, HttpServletResponse response)
-                    throws IOException, ServletException {
+            throws IOException, ServletException {
         if (baseRequest.isHandled()) {
             // If some handler already processed the request, we do nothing.
             return;
@@ -81,17 +81,16 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         OpMonitoringData opMonitoringData = storeOpMonitoringData
                 ? new OpMonitoringData(CLIENT, getEpochMillisecond()) : null;
 
-        long start = PerformanceLogger.log(log, "Received request from "
-                + request.getRemoteAddr());
-        log.info("Received request from {}", request.getRemoteAddr());
-
         MessageProcessorBase processor = null;
+        long start = System.currentTimeMillis();
 
         try {
-            processor = createRequestProcessor(target, request, response,
-                    opMonitoringData);
+            processor = createRequestProcessor(target, request, response, opMonitoringData);
 
             if (processor != null) {
+                PerformanceLogger.log(log, "Received request from " + request.getRemoteAddr());
+                log.info("Received request from {}", request.getRemoteAddr());
+
                 handled = true;
                 start = logPerformanceBegin(request);
                 processor.process();
@@ -162,9 +161,9 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         updateOpMonitoringSucceeded(opMonitoringData);
 
         MonitorAgent.success(
-            processor.createRequestMessageInfo(),
-            new Date(start),
-            new Date()
+                processor.createRequestMessageInfo(),
+                new Date(start),
+                new Date()
         );
     }
 
@@ -191,8 +190,8 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
     protected void failure(HttpServletResponse response,
             CodedExceptionWithHttpStatus e) throws IOException {
         MonitorAgent.failure(null,
-            e.withPrefix(SERVER_CLIENTPROXY_X).getFaultCode(),
-            e.getFaultString()
+                e.withPrefix(SERVER_CLIENTPROXY_X).getFaultCode(),
+                e.getFaultString()
         );
 
         sendPlainTextErrorResponse(response, e.getStatus(), e.getFaultString());
@@ -217,8 +216,8 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
                 (X509Certificate[]) request.getAttribute(
                         "javax.servlet.request.X509Certificate");
         return new IsAuthenticationData(
-            certs != null && certs.length != 0 ? certs[0] : null,
-            !"https".equals(request.getScheme()) // if not HTTPS, it's plaintext
+                certs != null && certs.length != 0 ? certs[0] : null,
+                !"https".equals(request.getScheme()) // if not HTTPS, it's plaintext
         );
     }
 

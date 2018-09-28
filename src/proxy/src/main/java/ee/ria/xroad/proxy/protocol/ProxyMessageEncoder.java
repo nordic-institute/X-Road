@@ -24,9 +24,11 @@
  */
 package ee.ria.xroad.proxy.protocol;
 
+import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MultipartEncoder;
@@ -37,9 +39,11 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.io.output.CountingOutputStream;
+import org.apache.http.Header;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.DigestCalculator;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -74,7 +78,8 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
 
     /**
      * Creates the encoder instance.
-     * @param out Writer that will receive the encoded message.
+     *
+     * @param out        Writer that will receive the encoded message.
      * @param hashAlgoId hash algorithm id used when hashing parts
      * @throws IllegalArgumentException if hashAlgoId is null
      */
@@ -94,6 +99,28 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
 
         mpEncoder = new MultipartEncoder(out, topBoundary);
     }
+
+    /**
+     * Creates the encoder instance.
+     *
+     * @param out        Writer that will receive the encoded message.
+     * @param hashAlgoId hash algorithm id used when hashing parts
+     * @throws IllegalArgumentException if hashAlgoId is null
+     */
+    public ProxyMessageEncoder(OutputStream out, String hashAlgoId, String topBoundary)
+            throws IllegalArgumentException {
+        this.hashAlgoId = hashAlgoId;
+
+        if (hashAlgoId == null) {
+            throw new IllegalArgumentException(
+                    "Hash algorithm id cannot be null");
+        }
+
+        this.topBoundary = topBoundary;
+        attachmentBoundary = "xatt" + randomBoundary();
+        mpEncoder = new MultipartEncoder(out, topBoundary);
+    }
+
 
     /**
      * @return content type for the encoded message
@@ -134,6 +161,83 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
         }
 
         signature(signature.getSignatureXml());
+    }
+
+    /**
+     * Encode rest request
+     */
+    public void restRequest(RestRequest request) {
+        try {
+            final byte[] message = request.toByteArray();
+            signer.addPart(MessageFileNames.MESSAGE,
+                    hashAlgoId,
+                    request.getHash(),
+                    message);
+
+            mpEncoder.startPart("application/x-road-rest-request");
+            mpEncoder.write(message);
+
+        } catch (Exception ex) {
+            throw translateException(ex);
+        }
+    }
+
+    /**
+     * Encode rest message body
+     *
+     * @param content
+     * @throws Exception
+     */
+    @Override
+    public void restBody(InputStream content) throws Exception {
+        DigestCalculator calc = createDigestCalculator(hashAlgoId);
+        TeeInputStream proxyIs = new TeeInputStream(content, calc.getOutputStream(), true);
+
+        mpEncoder.startPart("application/x-road-rest-body");
+        mpEncoder.write(proxyIs);
+
+        signer.addPart(MessageFileNames.attachment(++attachmentNo), hashAlgoId, calc.getDigest());
+    }
+
+    /**
+     * Much rest-y, wow
+     *
+     * @param responseCode
+     * @param reason
+     * @param headers
+     */
+    public void restResponse(byte[] requestHash, int responseCode, String reason, Header[] headers) {
+        try {
+            ByteArrayOutputStream bof = new ByteArrayOutputStream();
+            writeString(bof, String.valueOf(responseCode));
+            bof.write(CRLF);
+            writeString(bof, reason);
+            bof.write(CRLF);
+
+            writeString(bof, "X-Road-Request-Hash:");
+            writeString(bof, CryptoUtils.encodeBase64(requestHash));
+            bof.write(CRLF);
+
+            for (Header h : headers) {
+                if (RestRequest.SKIPPED_HEADERS.contains(h.getName().toLowerCase())) continue;
+                writeString(bof, h.getName());
+                writeString(bof, ":");
+                writeString(bof, h.getValue());
+                bof.write(CRLF);
+            }
+
+            final byte[] message = bof.toByteArray();
+            signer.addPart(MessageFileNames.MESSAGE,
+                    hashAlgoId,
+                    CryptoUtils.calculateDigest(hashAlgoId, message),
+                    message);
+
+            mpEncoder.startPart("application/x-road-rest-response");
+            mpEncoder.write(message);
+
+        } catch (Exception ex) {
+            throw translateException(ex);
+        }
     }
 
     @Override
@@ -186,6 +290,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
 
     /**
      * Write the SOAP fault XML string to the output stream.
+     *
      * @param faultXml SOAP fault XML string
      * @throws Exception in case of any errors
      */
@@ -209,8 +314,8 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     }
 
     /**
-     * Signs all the parts.
-     * Call after adding SOAP message and attachments.
+     * Signs all the parts. Call after adding SOAP message and attachments.
+     *
      * @param securityCtx signing context to use when signing the parts
      * @throws Exception in case of any errors
      */
@@ -221,8 +326,8 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     }
 
     /**
-     * Writes the signature to stream.
-     * Call after sing().
+     * Writes the signature to stream. Call after sing().
+     *
      * @throws Exception in case of any errors
      */
     public void writeSignature() throws Exception {
@@ -244,6 +349,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
 
     /**
      * Closes the writer and flushes streams.
+     *
      * @throws IOException if an I/O error occurred
      */
     public void close() throws IOException {
@@ -280,4 +386,11 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     public int getAttachmentCount() {
         return attachmentNo;
     }
+
+    private static void writeString(OutputStream os, String s) throws IOException {
+        os.write(s.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static final byte[] CRLF = "\r\n".getBytes(StandardCharsets.UTF_8);
+    private static final byte[] SPACE = " ".getBytes(StandardCharsets.UTF_8);
 }

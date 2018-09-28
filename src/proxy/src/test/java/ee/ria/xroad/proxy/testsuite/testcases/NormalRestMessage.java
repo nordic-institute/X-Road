@@ -22,50 +22,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.signature;
+package ee.ria.xroad.proxy.testsuite.testcases;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.proxy.testsuite.Message;
+import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
-import lombok.Data;
-
-import java.io.Serializable;
-
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
- * Encapsulates part of the input that will be added to the signature.
+ * The simplest case -- normal message and normal response.
+ * Result: client receives message.
  */
-@Data
-public final class MessagePart implements Serializable {
-
-    /** Holds the name of the part. */
-    private final String name;
-
-     /** The identifier of the algorithm used to calculate the hash. */
-    private final String hashAlgoId;
-
-    /** The data in data. */
-    private final byte[] data;
-
-    /** Optionally holds the message if this is a message part */
-    private final byte[] message;
+public class NormalRestMessage extends MessageTestCase {
 
     /**
-     * @return the raw data
+     * Constructs the test case.
      */
-    public byte[] getData() {
-        return data;
-    }
-
-    /**
-     * @return the hash algorithm URI
-     * @throws Exception if the algorithm is unknown
-     */
-    public String getHashAlgorithmURI() throws Exception {
-        return CryptoUtils.getDigestAlgorithmURI(hashAlgoId);
+    public NormalRestMessage() {
+        requestFileName = "getstate.query";
+        responseFile = "getstate.answer";
+        httpMethod = "POST";
+        requestHeaders.put("X-Test", "Test");
     }
 
     @Override
-    public String toString() {
-        return name + " (" + hashAlgoId + ")";
+    protected URI getClientUri() throws URISyntaxException {
+        return new URI(
+                "http",
+                null,
+                "localhost",
+                SystemProperties.getClientProxyHttpPort(),
+                "/rest/v0/EE/BUSINESS/consumer/sub/EE/BUSINESS/producer/sub/getState/foo",
+                "bar=zyggy&blah=foo",
+                null);
+    }
+
+    @Override
+    protected void validateNormalResponse(Message receivedResponse)
+            throws Exception {
+        // Normal response, nothing more to check here.
     }
 }

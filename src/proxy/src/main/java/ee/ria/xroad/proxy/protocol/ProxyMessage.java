@@ -25,6 +25,8 @@
 package ee.ria.xroad.proxy.protocol;
 
 import ee.ria.xroad.common.message.MultipartSoapMessageEncoder;
+import ee.ria.xroad.common.message.RestRequest;
+import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageEncoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -35,6 +37,7 @@ import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.MultipartEncoder;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import java.io.ByteArrayInputStream;
@@ -71,6 +74,8 @@ public class ProxyMessage implements ProxyMessageConsumer {
     protected SoapMessageEncoder encoder;
 
     private boolean hasBeenConsumed;
+    private RestRequest restMessage;
+    private RestResponse restResponse;
 
     /**
      * Constructs new proxy message with the original message content type.
@@ -86,6 +91,13 @@ public class ProxyMessage implements ProxyMessageConsumer {
      */
     public SoapMessageImpl getSoap() {
         return soapMessage;
+    }
+
+    public RestRequest getRest() {
+        return restMessage;
+    }
+    public RestResponse getRestResponse() {
+        return restResponse;
     }
 
     /**
@@ -185,6 +197,24 @@ public class ProxyMessage implements ProxyMessageConsumer {
     }
 
     @Override
+    public void rest(RestRequest message) throws Exception {
+        log.trace("Rest request");
+        this.restMessage = message;
+    }
+
+    @Override
+    public void rest(RestResponse message) throws Exception {
+        log.trace("Rest response");
+        this.restResponse = message;
+    }
+
+    @Override
+    public void restBody(InputStream content) throws Exception {
+        attachmentCache = new CachingStream();
+        IOUtils.copy(content, attachmentCache);
+    }
+
+    @Override
     public void attachment(String contentType, InputStream content, Map<String, String> additionalHeaders)
             throws Exception {
         log.trace("Attachment: {}", contentType);
@@ -220,5 +250,17 @@ public class ProxyMessage implements ProxyMessageConsumer {
     private boolean isMimeEncodedSoap() {
         return MimeTypes.MULTIPART_RELATED.equalsIgnoreCase(MimeUtils.getBaseContentType(originalContentType))
                 && !hasAttachments();
+    }
+
+    /**
+     * get rest body
+     * @return
+     */
+    public InputStream getRestBody() {
+        if (attachmentCache != null) {
+            hasBeenConsumed = true;
+            return attachmentCache.getCachedContents();
+        }
+        return null;
     }
 }
