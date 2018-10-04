@@ -59,6 +59,7 @@ import java.util.Map;
 @Slf4j
 public class ProxyMessage implements ProxyMessageConsumer {
 
+    public static final int REST_BODY_LIMIT = 8192; //store up to limit bytes into memory
     private final List<OCSPResp> ocspResponses = new ArrayList<>();
 
     private final String originalContentType;
@@ -76,6 +77,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
     private boolean hasBeenConsumed;
     private RestRequest restMessage;
     private RestResponse restResponse;
+    private ByteArrayInputStream restBody;
 
     /**
      * Constructs new proxy message with the original message content type.
@@ -210,8 +212,18 @@ public class ProxyMessage implements ProxyMessageConsumer {
 
     @Override
     public void restBody(InputStream content) throws Exception {
-        attachmentCache = new CachingStream();
-        IOUtils.copy(content, attachmentCache);
+        final byte[] buffer = new byte[REST_BODY_LIMIT];
+        final int bytes = IOUtils.read(content, buffer);
+        if (bytes > 0) {
+            if (bytes == buffer.length) {
+                //could test for the case that there actually are more bytes to read
+                attachmentCache = new CachingStream();
+                attachmentCache.write(buffer, 0, bytes);
+                IOUtils.copyLarge(content, attachmentCache, buffer);
+            } else {
+                restBody = new ByteArrayInputStream(buffer, 0, bytes);
+            }
+        }
     }
 
     @Override
@@ -257,6 +269,10 @@ public class ProxyMessage implements ProxyMessageConsumer {
      * @return
      */
     public InputStream getRestBody() {
+        if (restBody != null) {
+            hasBeenConsumed = true;
+            return restBody;
+        }
         if (attachmentCache != null) {
             hasBeenConsumed = true;
             return attachmentCache.getCachedContents();
