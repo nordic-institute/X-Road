@@ -181,7 +181,7 @@ public class ClientProxy implements StartStop {
         ctx.init(new KeyManager[] {AuthKeyManager.getInstance()}, new TrustManager[] {new AuthTrustManager()},
                 new SecureRandom());
 
-        return new FastestConnectionSelectingSSLSocketFactory(ctx, CryptoUtils.getINCLUDED_CIPHER_SUITES());
+        return new FastestConnectionSelectingSSLSocketFactory(ctx, SystemProperties.getXroadTLSCipherSuites());
     }
 
     private void createConnectors() throws Exception {
@@ -214,7 +214,7 @@ public class ClientProxy implements StartStop {
 
         SslContextFactory cf = new SslContextFactory(false);
         // Note: Don't use restricted chiper suites
-        // (CryptoUtils.INCLUDED_CIPHER_SUITES) between client IS and
+        // (SystemProperties.getXroadTLSCipherSuites()) between client IS and
         // client proxy.
         cf.setWantClientAuth(true);
         cf.setSessionCachingEnabled(true);

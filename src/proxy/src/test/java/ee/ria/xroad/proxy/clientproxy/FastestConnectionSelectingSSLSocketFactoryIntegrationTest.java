@@ -44,9 +44,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
+import javax.net.ssl.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -155,7 +153,7 @@ final class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
                 new SecureRandom());
 
         return new FastestConnectionSelectingSSLSocketFactory(ctx,
-                        CryptoUtils.getINCLUDED_CIPHER_SUITES());
+                        SystemProperties.getXroadTLSCipherSuites());
     }
 
     private static void logFH() {

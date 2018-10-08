@@ -25,7 +25,6 @@
 package ee.ria.xroad.common.util;
 
 import com.google.common.base.Splitter;
-import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
@@ -100,10 +99,6 @@ public final class CryptoUtils {
 
     /** SSL protocol name. */
     public static final String SSL_PROTOCOL = "TLSv1.2";
-
-    /** The list of cipher suites used with TLS. */
-    @Getter
-    private static final String[] INCLUDED_CIPHER_SUITES = {"TLS_DHE_RSA_WITH_AES_256_CBC_SHA256"};
 
     /** Global default digest method identifier and URL. */
     public static final String DEFAULT_DIGEST_ALGORITHM_ID = CryptoUtils.SHA512_ID;
