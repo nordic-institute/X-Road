@@ -410,7 +410,7 @@ TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,
 TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
 TLS_DHE_RSA_WITH_AES_256_GCM_SHA384
 
-<a id="Ref_note1"></a>[2] Default value for proxy.xroad-tls-ciphers.
+<a id="Ref_note2"></a>[2] Default value for proxy.xroad-tls-ciphers.
 >TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,
 TLS_DHE_RSA_WITH_AES_256_CBC_SHA256
 
