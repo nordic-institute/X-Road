@@ -135,7 +135,7 @@ public class DummySslServerProxy extends Server implements StartStop {
         @Override
         public void checkServerTrusted(X509Certificate[] chain, String authType)
                 throws CertificateException {
-       }
+        }
 
         @Override
         public X509Certificate[] getAcceptedIssuers() {

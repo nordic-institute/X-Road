@@ -52,13 +52,11 @@ public class SoapFaultInMultipartResponse extends MessageTestCase {
     @Override
     protected void validateFaultResponse(Message receivedResponse) throws Exception {
 
-            if (!receivedResponse.getSoap().getXml()
-                    .contains("<error>Unable to create payload, try increasing the size</error>")) {
-                throw new Exception(
-                        "The Soap fault in the multipart message was not returned");
-            }
-
-
+        if (!receivedResponse.getSoap().getXml()
+                .contains("<error>Unable to create payload, try increasing the size</error>")) {
+            throw new Exception(
+                    "The Soap fault in the multipart message was not returned");
+        }
 
     }
 }

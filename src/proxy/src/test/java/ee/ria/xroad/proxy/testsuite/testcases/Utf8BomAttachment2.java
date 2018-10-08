@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
- package ee.ria.xroad.proxy.testsuite.testcases;
+package ee.ria.xroad.proxy.testsuite.testcases;
 
 import ee.ria.xroad.common.message.RequestHash;
 import ee.ria.xroad.common.message.SoapMessageImpl;
