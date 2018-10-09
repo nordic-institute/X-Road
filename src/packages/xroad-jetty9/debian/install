@@ -1,3 +1,0 @@
-jetty9 usr/share/xroad/
-etc/* etc/
-../../common-util/build/libs/common-util-1.0.jar usr/share/xroad/jlib/

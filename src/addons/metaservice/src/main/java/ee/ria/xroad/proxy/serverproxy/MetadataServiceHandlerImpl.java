@@ -1,6 +1,8 @@
 /**
  * The MIT License
- * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,6 +42,7 @@ import ee.ria.xroad.common.metadata.MethodListType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.XmlUtils;
 import ee.ria.xroad.proxy.common.WsdlRequestData;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 
@@ -59,9 +62,9 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.ext.DefaultHandler2;
 import org.xml.sax.ext.LexicalHandler;
-import org.xml.sax.helpers.XMLReaderFactory;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -113,7 +116,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
     private static SAXTransformerFactory createSaxTransformerFactory() {
         try {
             SAXTransformerFactory factory = (SAXTransformerFactory) TransformerFactory.newInstance();
-            factory.setFeature("http://javax.xml.XMLConstants/feature/secure-processing", true);
+            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             return factory;
         } catch (TransformerConfigurationException e) {
             throw new RuntimeException("unable to create SAX transformer factory", e);
@@ -280,12 +283,12 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
             final JAXBElement<MethodListType> methodList) throws Exception {
         SoapMessageImpl responseMessage = SoapUtils.toResponse(requestMessage,
                 new SOAPCallback() {
-            @Override
-            public void call(SOAPMessage soap) throws Exception {
-                soap.getSOAPBody().removeContents();
-                marshal(methodList, soap.getSOAPBody());
-            }
-        });
+                @Override
+                public void call(SOAPMessage soap) throws Exception {
+                    soap.getSOAPBody().removeContents();
+                    marshal(methodList, soap.getSOAPBody());
+                }
+            });
 
         return responseMessage;
     }
@@ -337,7 +340,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
             OverwriteAttributeFilter filter = getModifyWsdlFilter();
             filter.setContentHandler(serializer);
 
-            XMLReader xmlreader = XMLReaderFactory.createXMLReader();
+            XMLReader xmlreader = XmlUtils.createXmlReader();
             xmlreader.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
             xmlreader.setProperty("http://xml.org/sax/properties/lexical-handler",
                     new CommentsHandler(serializer));

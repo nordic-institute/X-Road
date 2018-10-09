@@ -3,7 +3,7 @@
   become: yes
   copy: src={{item}} dest=/xroad/ force=no
   with_fileglob:
-    - ../src/packages/xroad-*deb
+    - ../src/packages/build/ubuntu14.04/xroad-*deb
 
 - name: Ensure dpkg-dev
   become: yes

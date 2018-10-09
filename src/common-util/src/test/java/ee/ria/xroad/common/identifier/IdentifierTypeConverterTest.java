@@ -1,6 +1,8 @@
 /**
  * The MIT License
- * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +27,7 @@ package ee.ria.xroad.common.identifier;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.identifier.IdentifierTypeConverter.GenericXRoadIdAdapter;
+import ee.ria.xroad.common.util.XmlUtils;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -262,7 +265,7 @@ public class IdentifierTypeConverterTest {
     }
 
     private static Node fileToNode(String fileName) throws Exception {
-        DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory f = XmlUtils.createDocumentBuilderFactory();
         f.setNamespaceAware(true);
 
         Document doc = f.newDocumentBuilder().parse(

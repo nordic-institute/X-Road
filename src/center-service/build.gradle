@@ -19,7 +19,13 @@ clean {
 task copyCommon(type: Copy) {
     into "vendor/engines/common-ui"
     from "../common-ui"
-    exclude '**/build/**'
+    include "Gemfile"
+    include "Rakefile"
+    include "common-ui.gemspec"
+    include "config/"
+    include "lib/**"
+    include "app/**"
+    include "public/**"
 }
 
 task copyCenterCommon {
@@ -27,6 +33,13 @@ task copyCenterCommon {
         copy {
             into "vendor/engines/center-common"
             from "../center-common"
+            include "Gemfile"
+            include "Rakefile"
+            include "center-common.gemspec"
+            include "config/"
+            include "lib/**"
+            include "app/**"
+            include "db/**"
         }
 
         copy {
