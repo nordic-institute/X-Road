@@ -25,12 +25,10 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.logging.RequestLogImplFixLogback1052;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.StartStop;
-import ee.ria.xroad.proxy.conf.AuthKeyManager;
+import ee.ria.xroad.proxy.Proxy;
 import ee.ria.xroad.proxy.serverproxy.IdleConnectionMonitorThread;
 
 import ch.qos.logback.access.jetty.RequestLogImpl;
@@ -79,7 +77,7 @@ import static ee.ria.xroad.proxy.clientproxy.HandlerLoader.loadHandler;
  * Client proxy that handles requests of service clients.
  */
 @Slf4j
-public class ClientProxy implements StartStop {
+public class ClientProxy extends Proxy {
 
     private static final int ACCEPTOR_COUNT = Runtime.getRuntime().availableProcessors();
 
@@ -176,12 +174,8 @@ public class ClientProxy implements StartStop {
         return poolingManager;
     }
 
-    private static SSLConnectionSocketFactory createSSLSocketFactory() throws Exception {
-        SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[] {AuthKeyManager.getInstance()}, new TrustManager[] {new AuthTrustManager()},
-                new SecureRandom());
-
-        return new FastestConnectionSelectingSSLSocketFactory(ctx, SystemProperties.getXroadTLSCipherSuites());
+    private SSLConnectionSocketFactory createSSLSocketFactory() throws Exception {
+        return new FastestConnectionSelectingSSLSocketFactory(createSSLContext(), getAcceptedCipherSuites());
     }
 
     private void createConnectors() throws Exception {

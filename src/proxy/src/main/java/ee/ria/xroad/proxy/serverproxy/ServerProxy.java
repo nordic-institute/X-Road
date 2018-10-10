@@ -25,17 +25,14 @@
 package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.logging.RequestLogImplFixLogback1052;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonHttpClient;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
-import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.StartStop;
 import ee.ria.xroad.common.util.TimeUtils;
+import ee.ria.xroad.proxy.Proxy;
 import ee.ria.xroad.proxy.antidos.AntiDosConnector;
-import ee.ria.xroad.proxy.conf.AuthKeyManager;
 
 import ch.qos.logback.access.jetty.RequestLogImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -48,21 +45,16 @@ import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.SecureRandom;
 
 /**
  * Server proxy that handles requests of client proxies.
  */
 @Slf4j
-public class ServerProxy implements StartStop {
+public class ServerProxy extends Proxy {
 
     private static final int ACCEPTOR_COUNT = 2 * Runtime.getRuntime().availableProcessors();
 
@@ -146,7 +138,7 @@ public class ServerProxy implements StartStop {
         int port = SystemProperties.getServerProxyListenPort();
 
         ServerConnector connector = SystemProperties.isSslEnabled()
-                ? createClientProxySslConnector(server) : createClientProxyConnector(server);
+                ? createClientProxySslConnector() : createClientProxyConnector();
 
         connector.setName(CLIENT_PROXY_CONNECTOR_NAME);
         connector.setPort(port);
@@ -218,23 +210,19 @@ public class ServerProxy implements StartStop {
         connMonitor.closeNow();
     }
 
-    private static ServerConnector createClientProxyConnector(Server server) {
+    private ServerConnector createClientProxyConnector() {
         return SystemProperties.isAntiDosEnabled()
                 ? new AntiDosConnector(server, ACCEPTOR_COUNT) : new ServerConnector(server, ACCEPTOR_COUNT, -1);
     }
 
-    private static ServerConnector createClientProxySslConnector(Server server) throws Exception {
+    private ServerConnector createClientProxySslConnector() throws Exception {
         SslContextFactory cf = new SslContextFactory(false);
         cf.setNeedClientAuth(true);
-        cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
+        cf.setIncludeCipherSuites(getAcceptedCipherSuites());
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
 
-        SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[]{AuthKeyManager.getInstance()}, new TrustManager[]{new AuthTrustManager()},
-                new SecureRandom());
-
-        cf.setSslContext(ctx);
+        cf.setSslContext(createSSLContext());
 
         return SystemProperties.isAntiDosEnabled()
                 ? new AntiDosConnector(server, ACCEPTOR_COUNT, cf)
