@@ -22,41 +22,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.testsuite.testcases;
+package ee.ria.xroad.proxy.util;
 
-import ee.ria.xroad.proxy.testsuite.Message;
-import ee.ria.xroad.proxy.testsuite.MessageTestCase;
+import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.proxy.conf.AuthKeyManager;
+
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 
 /**
- * Request message with MTOM content, should receive the specific Fault message as a response and not a generic one.
+ * Utility class to create SSLContexts
  */
-public class SoapFaultInMultipartResponse extends MessageTestCase {
+public final class SSLContextUtil {
+
+    private SSLContextUtil() { }
 
     /**
-     * Constructs the test case.
+     * Creates SSLContext used in between security servers
+     * @return
      */
-    public SoapFaultInMultipartResponse() {
-        requestContentType = "Multipart/Related; "
-                + "start-info=\"application/soap+xml\"; "
-                + "type=\"application/xop+xml\"; "
-                + "boundary=\"jetty771207119h3h10dty\"";
-        requestFileName = "soapfault-mtom.query";
-
-        responseContentType = "Multipart/Related; "
-                + "start-info=\"application/soap+xml\"; "
-                + "type=\"application/xop+xml\"; "
-                + "boundary=\"jetty771207119h3h10dty\";charset=UTF-8";
-        responseFile = "soapfault-mtom.answer";
-    }
-
-    @Override
-    protected void validateFaultResponse(Message receivedResponse) throws Exception {
-
-        if (!receivedResponse.getSoap().getXml()
-                .contains("<error>Unable to create payload, try increasing the size</error>")) {
-            throw new Exception(
-                    "The Soap fault in the multipart message was not returned");
-        }
-
+    public static SSLContext createXroadSSLContext() throws KeyManagementException, NoSuchAlgorithmException {
+        SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
+        ctx.init(new KeyManager[] {AuthKeyManager.getInstance()}, new TrustManager[] {new AuthTrustManager()},
+                new SecureRandom());
+        return ctx;
     }
 }

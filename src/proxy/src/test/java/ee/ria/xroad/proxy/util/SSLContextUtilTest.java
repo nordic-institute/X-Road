@@ -22,41 +22,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.testsuite.testcases;
+package ee.ria.xroad.proxy.util;
 
-import ee.ria.xroad.proxy.testsuite.Message;
-import ee.ria.xroad.proxy.testsuite.MessageTestCase;
+import ee.ria.xroad.common.SystemProperties;
+
+import org.junit.Test;
+
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasItems;
 
 /**
- * Request message with MTOM content, should receive the specific Fault message as a response and not a generic one.
+ * Test for SSLContextUtil
  */
-public class SoapFaultInMultipartResponse extends MessageTestCase {
+public class SSLContextUtilTest {
 
     /**
-     * Constructs the test case.
+     * Test that created SSLContext supports X-Road accepted cipher suites
      */
-    public SoapFaultInMultipartResponse() {
-        requestContentType = "Multipart/Related; "
-                + "start-info=\"application/soap+xml\"; "
-                + "type=\"application/xop+xml\"; "
-                + "boundary=\"jetty771207119h3h10dty\"";
-        requestFileName = "soapfault-mtom.query";
-
-        responseContentType = "Multipart/Related; "
-                + "start-info=\"application/soap+xml\"; "
-                + "type=\"application/xop+xml\"; "
-                + "boundary=\"jetty771207119h3h10dty\";charset=UTF-8";
-        responseFile = "soapfault-mtom.answer";
-    }
-
-    @Override
-    protected void validateFaultResponse(Message receivedResponse) throws Exception {
-
-        if (!receivedResponse.getSoap().getXml()
-                .contains("<error>Unable to create payload, try increasing the size</error>")) {
-            throw new Exception(
-                    "The Soap fault in the multipart message was not returned");
-        }
-
+    @Test
+    public void xroadAcceptedCipherSuites() throws NoSuchAlgorithmException, KeyManagementException {
+        String[] supported = SSLContextUtil.createXroadSSLContext().createSSLEngine().getSupportedCipherSuites();
+        String[] accepted = SystemProperties.getXroadTLSCipherSuites();
+        assertThat(Arrays.asList(supported), hasItems(accepted));
     }
 }

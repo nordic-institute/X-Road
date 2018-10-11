@@ -155,7 +155,7 @@ final class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
                 new SecureRandom());
 
         return new FastestConnectionSelectingSSLSocketFactory(ctx,
-                        CryptoUtils.getINCLUDED_CIPHER_SUITES());
+                        SystemProperties.getXroadTLSCipherSuites());
     }
 
     private static void logFH() {
