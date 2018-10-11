@@ -34,6 +34,7 @@ import ee.ria.xroad.proxy.conf.AuthKeyManager;
 import ee.ria.xroad.proxy.serverproxy.IdleConnectionMonitorThread;
 
 import ch.qos.logback.access.jetty.RequestLogImpl;
+import ee.ria.xroad.proxy.util.SSLContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.config.RequestConfig;
@@ -177,11 +178,8 @@ public class ClientProxy implements StartStop {
     }
 
     private static SSLConnectionSocketFactory createSSLSocketFactory() throws Exception {
-        SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[] {AuthKeyManager.getInstance()}, new TrustManager[] {new AuthTrustManager()},
-                new SecureRandom());
-
-        return new FastestConnectionSelectingSSLSocketFactory(ctx, SystemProperties.getXroadTLSCipherSuites());
+        return new FastestConnectionSelectingSSLSocketFactory(SSLContextUtil.createXroadSSLContext(),
+                SystemProperties.getXroadTLSCipherSuites());
     }
 
     private void createConnectors() throws Exception {

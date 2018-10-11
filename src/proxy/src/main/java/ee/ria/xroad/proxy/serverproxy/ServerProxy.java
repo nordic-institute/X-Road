@@ -38,6 +38,7 @@ import ee.ria.xroad.proxy.antidos.AntiDosConnector;
 import ee.ria.xroad.proxy.conf.AuthKeyManager;
 
 import ch.qos.logback.access.jetty.RequestLogImpl;
+import ee.ria.xroad.proxy.util.SSLContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -229,12 +230,7 @@ public class ServerProxy implements StartStop {
         cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
-
-        SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[]{AuthKeyManager.getInstance()}, new TrustManager[]{new AuthTrustManager()},
-                new SecureRandom());
-
-        cf.setSslContext(ctx);
+        cf.setSslContext(SSLContextUtil.createXroadSSLContext());
 
         return SystemProperties.isAntiDosEnabled()
                 ? new AntiDosConnector(server, ACCEPTOR_COUNT, cf)
