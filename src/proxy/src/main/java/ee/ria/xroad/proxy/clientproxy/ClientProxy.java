@@ -25,16 +25,14 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.logging.RequestLogImplFixLogback1052;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.StartStop;
-import ee.ria.xroad.proxy.conf.AuthKeyManager;
 import ee.ria.xroad.proxy.serverproxy.IdleConnectionMonitorThread;
+import ee.ria.xroad.proxy.util.SSLContextUtil;
 
 import ch.qos.logback.access.jetty.RequestLogImpl;
-import ee.ria.xroad.proxy.util.SSLContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.config.RequestConfig;
