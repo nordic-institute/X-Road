@@ -38,14 +38,6 @@ Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Description: X-Road base components
  X-Road base components and utilities
 
-Package: xroad-common
-Architecture: amd64
-Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-confclient (=${binary:Version}), xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version})
-Replaces: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
-Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
-Description: X-Road shared components
- This is a meta-package of X-Road shared components and utilities
-
 Package: xroad-confclient
 Architecture: amd64
 Depends: ${misc:Depends}, xroad-base (=${binary:Version})
