@@ -24,6 +24,8 @@
  */
 package ee.ria.xroad.proxy;
 
+import ee.ria.xroad.proxy.serverproxy.ServerProxy;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -37,9 +39,9 @@ import static org.junit.Assert.assertThat;
 /**
  * Junit tests for X-Road proxies
  */
-public class ProxyTest {
+public class XroadProxyTest {
 
-    Proxy proxy;
+    XroadProxy proxy;
 
     /**
      * Tests that creating SSL Context doesn't throw
@@ -63,22 +65,8 @@ public class ProxyTest {
     }
 
     @Before
-    public void init() {
-        proxy = new Proxy() {
-            @Override
-            public void start() throws Exception {
-                // noop
-            }
-
-            @Override
-            public void stop() throws Exception {
-                // noop
-            }
-
-            @Override
-            public void join() throws InterruptedException {
-                // noop
-            }
-        };
+    public void init() throws Exception {
+        System.setProperty("xroad.proxy.jetty-serverproxy-configuration-file", "src/test/serverproxy.xml");
+        proxy = new ServerProxy();
     }
 }
