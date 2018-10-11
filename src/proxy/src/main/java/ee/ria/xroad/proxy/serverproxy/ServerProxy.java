@@ -25,34 +25,44 @@
 package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.logging.RequestLogImplFixLogback1052;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonHttpClient;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.StartStop;
 import ee.ria.xroad.common.util.TimeUtils;
-import ee.ria.xroad.proxy.XroadProxy;
 import ee.ria.xroad.proxy.antidos.AntiDosConnector;
+import ee.ria.xroad.proxy.conf.AuthKeyManager;
 
 import ch.qos.logback.access.jetty.RequestLogImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.xml.XmlConfiguration;
 
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collection;
+import java.security.SecureRandom;
 
 /**
  * Server proxy that handles requests of client proxies.
  */
 @Slf4j
-public class ServerProxy extends XroadProxy {
+public class ServerProxy implements StartStop {
 
     private static final int ACCEPTOR_COUNT = 2 * Runtime.getRuntime().availableProcessors();
 
@@ -60,15 +70,21 @@ public class ServerProxy extends XroadProxy {
 
     private static final int IDLE_MONITOR_INTERVAL = 100;
 
+    // SSL session timeout in seconds
+    private static final int SSL_SESSION_TIMEOUT = 600;
+
     private static final int CONNECTOR_SO_LINGER_MILLIS = SystemProperties.getServerProxyConnectorSoLinger() * 1000;
 
     private static final String CLIENT_PROXY_CONNECTOR_NAME = "ClientProxyConnector";
 
+    private Server server = new Server();
+
+    private CloseableHttpClient client;
+    private IdleConnectionMonitorThread connMonitor;
+
     private String listenAddress;
 
     private CloseableHttpClient opMonitorClient;
-
-    private HttpClientCreator creator;
 
     /**
      * Constructs and configures a new server proxy.
@@ -85,50 +101,52 @@ public class ServerProxy extends XroadProxy {
      */
     public ServerProxy(String listenAddress) throws Exception {
         this.listenAddress = listenAddress;
-        opMonitorClient = createOpMonitorClient();
+
+        configureServer();
+
+        createClient();
+        createOpMonitorClient();
+        createConnectors();
+        createHandlers();
     }
 
-    /**
-     * Close idle connections.
-     */
-    public void closeIdleConnections() {
-        getConnectionMonitor().closeNow();
+    private void configureServer() throws Exception {
+        log.trace("configureServer()");
+
+        Path file = Paths.get(SystemProperties.getJettyServerProxyConfFile());
+
+        log.debug("Configuring server from {}", file);
+
+        try (InputStream in = Files.newInputStream(file)) {
+            new XmlConfiguration(in).configure(server);
+        }
     }
 
-    @Override
-    public void stop() throws Exception {
-        log.trace("stop()");
-        opMonitorClient.close();
-        super.stop();
-    }
-
-    @Override
-    protected IdleConnectionMonitorThread createConnectionMonitor() throws Exception {
-        IdleConnectionMonitorThread monitor = new IdleConnectionMonitorThread(getCreator().getConnectionManager());
-        monitor.setIntervalMilliseconds(IDLE_MONITOR_INTERVAL);
-        monitor.setConnectionIdleTimeMilliseconds(IDLE_MONITOR_TIMEOUT);
-        return monitor;
-    }
-
-    @Override
-    protected Path getJettyServerConfFilePath() {
-        return Paths.get(SystemProperties.getJettyServerProxyConfFile());
-    }
-
-    @Override
-    protected CloseableHttpClient createClient() throws Exception {
+    private void createClient() throws Exception {
         log.trace("createClient()");
-        return getCreator().getHttpClient();
+
+        HttpClientCreator creator = new HttpClientCreator();
+
+        connMonitor = new IdleConnectionMonitorThread(creator.getConnectionManager());
+        connMonitor.setIntervalMilliseconds(IDLE_MONITOR_INTERVAL);
+        connMonitor.setConnectionIdleTimeMilliseconds(IDLE_MONITOR_TIMEOUT);
+
+        client = creator.getHttpClient();
     }
 
-    @Override
-    protected Collection<ServerConnector> createConnectors() throws Exception {
+    private void createOpMonitorClient() throws Exception {
+        opMonitorClient = OpMonitoringDaemonHttpClient.createHttpClient(ServerConf.getSSLKey(),
+                TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorServiceConnectionTimeoutSeconds()),
+                TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorServiceSocketTimeoutSeconds()));
+    }
+
+    private void createConnectors() throws Exception {
         log.trace("createConnectors()");
 
         int port = SystemProperties.getServerProxyListenPort();
 
         ServerConnector connector = SystemProperties.isSslEnabled()
-                ? createClientProxySslConnector() : createClientProxyConnector();
+                ? createClientProxySslConnector(server) : createClientProxyConnector(server);
 
         connector.setName(CLIENT_PROXY_CONNECTOR_NAME);
         connector.setPort(port);
@@ -141,13 +159,12 @@ public class ServerProxy extends XroadProxy {
                 .filter(cf -> cf instanceof HttpConnectionFactory)
                 .forEach(httpCf -> ((HttpConnectionFactory) httpCf).getHttpConfiguration().setSendServerVersion(false));
 
-        log.info("ClientProxy {} created ({}:{})", connector.getClass().getSimpleName(), listenAddress, port);
+        server.addConnector(connector);
 
-        return Arrays.asList(connector);
+        log.info("ClientProxy {} created ({}:{})", connector.getClass().getSimpleName(), listenAddress, port);
     }
 
-    @Override
-    protected AbstractHandler createHandlers() {
+    private void createHandlers() {
         log.trace("createHandlers()");
 
         RequestLogHandler logHandler = new RequestLogHandler();
@@ -156,46 +173,72 @@ public class ServerProxy extends XroadProxy {
         reqLog.setQuiet(true);
         logHandler.setRequestLog(reqLog);
 
-        ServerProxyHandler proxyHandler = new ServerProxyHandler(getClient(), opMonitorClient);
+        ServerProxyHandler proxyHandler = new ServerProxyHandler(client, opMonitorClient);
 
         HandlerCollection handler = new HandlerCollection();
         handler.addHandler(logHandler);
         handler.addHandler(proxyHandler);
 
-        return handler;
+        server.setHandler(handler);
     }
 
-    private HttpClientCreator getCreator() {
-        if (creator == null) {
-            creator = new HttpClientCreator();
+    @Override
+    public void start() throws Exception {
+        log.trace("start()");
+
+        server.start();
+        connMonitor.start();
+    }
+
+    @Override
+    public void join() throws InterruptedException {
+        log.trace("join()");
+
+        if (server.getThreadPool() != null) {
+            server.join();
         }
-        return creator;
     }
 
-    private CloseableHttpClient createOpMonitorClient() throws Exception {
-        return OpMonitoringDaemonHttpClient.createHttpClient(ServerConf.getSSLKey(),
-                TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorServiceConnectionTimeoutSeconds()),
-                TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorServiceSocketTimeoutSeconds()));
+    @Override
+    public void stop() throws Exception {
+        log.trace("stop()");
+
+        connMonitor.shutdown();
+        client.close();
+        opMonitorClient.close();
+        server.stop();
+
+        HibernateUtil.closeSessionFactories();
     }
 
-    private ServerConnector createClientProxyConnector() {
+    /**
+     * Close idle connections.
+     */
+    public void closeIdleConnections() {
+        connMonitor.closeNow();
+    }
+
+    private static ServerConnector createClientProxyConnector(Server server) {
         return SystemProperties.isAntiDosEnabled()
-                ? new AntiDosConnector(getServer(), ACCEPTOR_COUNT)
-                : new ServerConnector(getServer(), ACCEPTOR_COUNT, -1);
+                ? new AntiDosConnector(server, ACCEPTOR_COUNT) : new ServerConnector(server, ACCEPTOR_COUNT, -1);
     }
 
-    private ServerConnector createClientProxySslConnector() throws Exception {
+    private static ServerConnector createClientProxySslConnector(Server server) throws Exception {
         SslContextFactory cf = new SslContextFactory(false);
         cf.setNeedClientAuth(true);
-        cf.setIncludeCipherSuites(getAcceptedCipherSuites());
+        cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
 
-        cf.setSslContext(createSSLContext());
+        SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
+        ctx.init(new KeyManager[]{AuthKeyManager.getInstance()}, new TrustManager[]{new AuthTrustManager()},
+                new SecureRandom());
+
+        cf.setSslContext(ctx);
 
         return SystemProperties.isAntiDosEnabled()
-                ? new AntiDosConnector(getServer(), ACCEPTOR_COUNT, cf)
-                : new ServerConnector(getServer(), ACCEPTOR_COUNT, -1, cf);
+                ? new AntiDosConnector(server, ACCEPTOR_COUNT, cf)
+                : new ServerConnector(server, ACCEPTOR_COUNT, -1, cf);
     }
 
 }

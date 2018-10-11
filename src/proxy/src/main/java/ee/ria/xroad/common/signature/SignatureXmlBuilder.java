@@ -306,7 +306,7 @@ final class SignatureXmlBuilder {
             mimeType.setTextContent(MimeTypes.HASH_CHAIN_RESULT);
         } else {
             mimeType.setTextContent(MimeTypes.TEXT_XML);
-        }
+       }
     }
 
     private void createCertDigestAndIssuerSerial(X509Certificate cert, Element certElement) throws Exception {

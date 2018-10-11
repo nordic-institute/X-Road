@@ -25,9 +25,12 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
+import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.logging.RequestLogImplFixLogback1052;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.proxy.XroadProxy;
+import ee.ria.xroad.common.util.StartStop;
+import ee.ria.xroad.proxy.conf.AuthKeyManager;
 import ee.ria.xroad.proxy.serverproxy.IdleConnectionMonitorThread;
 
 import ch.qos.logback.access.jetty.RequestLogImpl;
@@ -47,25 +50,26 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.xml.XmlConfiguration;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import static ee.ria.xroad.proxy.clientproxy.HandlerLoader.loadHandler;
@@ -75,9 +79,12 @@ import static ee.ria.xroad.proxy.clientproxy.HandlerLoader.loadHandler;
  * Client proxy that handles requests of service clients.
  */
 @Slf4j
-public class ClientProxy extends XroadProxy {
+public class ClientProxy implements StartStop {
 
     private static final int ACCEPTOR_COUNT = Runtime.getRuntime().availableProcessors();
+
+    // SSL session timeout
+    private static final int SSL_SESSION_TIMEOUT = 600;
 
     private static final int CONNECTOR_SO_LINGER_MILLIS = SystemProperties.getClientProxyConnectorSoLinger() * 1000;
 
@@ -86,35 +93,36 @@ public class ClientProxy extends XroadProxy {
     private static final String CLIENT_HTTP_CONNECTOR_NAME = "ClientConnector";
     private static final String CLIENT_HTTPS_CONNECTOR_NAME = "ClientSSLConnector";
 
-    private HttpClientConnectionManager connectionManager;
+    private Server server = new Server();
+
+    private CloseableHttpClient client;
+    private IdleConnectionMonitorThread connectionMonitor;
 
     /**
      * Constructs and configures a new client proxy.
      * @throws Exception in case of any errors
      */
     public ClientProxy() throws Exception {
-        connectionManager = getClientConnectionManager();
+        configureServer();
+
+        createClient();
+        createConnectors();
+        createHandlers();
     }
 
-    @Override
-    protected IdleConnectionMonitorThread createConnectionMonitor() {
-        IdleConnectionMonitorThread monitor = null;
-        if (SystemProperties.isClientUseIdleConnectionMonitor()) {
-            monitor = new IdleConnectionMonitorThread(connectionManager);
-            monitor.setIntervalMilliseconds(SystemProperties.getClientProxyIdleConnectionMonitorInterval());
-            monitor.setConnectionIdleTimeMilliseconds(
-                    SystemProperties.getClientProxyIdleConnectionMonitorIdleTime());
+    private void configureServer() throws Exception {
+        log.trace("configureServer()");
+
+        Path file = Paths.get(SystemProperties.getJettyClientProxyConfFile());
+
+        log.debug("Configuring server from {}", file);
+
+        try (InputStream in = Files.newInputStream(file)) {
+            new XmlConfiguration(in).configure(server);
         }
-        return monitor;
     }
 
-    @Override
-    protected Path getJettyServerConfFilePath() {
-        return Paths.get(SystemProperties.getJettyClientProxyConfFile());
-    }
-
-    @Override
-    protected CloseableHttpClient createClient() throws Exception {
+    private void createClient() throws Exception {
         log.trace("createClient()");
 
         int timeout = SystemProperties.getClientProxyTimeout();
@@ -126,44 +134,22 @@ public class ClientProxy extends XroadProxy {
 
         HttpClientBuilder cb = HttpClients.custom();
 
+        HttpClientConnectionManager connectionManager = getClientConnectionManager();
         cb.setConnectionManager(connectionManager);
+
+        if (SystemProperties.isClientUseIdleConnectionMonitor()) {
+            connectionMonitor = new IdleConnectionMonitorThread(connectionManager);
+            connectionMonitor.setIntervalMilliseconds(SystemProperties.getClientProxyIdleConnectionMonitorInterval());
+            connectionMonitor.setConnectionIdleTimeMilliseconds(
+                    SystemProperties.getClientProxyIdleConnectionMonitorIdleTime());
+        }
+
         cb.setDefaultRequestConfig(rb.build());
 
         // Disable request retry
         cb.setRetryHandler(new DefaultHttpRequestRetryHandler(0, false));
 
-        return cb.build();
-    }
-
-    @Override
-    protected Collection<ServerConnector> createConnectors() throws Exception {
-        log.trace("createConnectors()");
-
-        return Arrays.asList(
-                createClientHttpConnector(SystemProperties.getConnectorHost(),
-                        SystemProperties.getClientProxyHttpPort()),
-                createClientHttpsConnector(SystemProperties.getConnectorHost(),
-                        SystemProperties.getClientProxyHttpsPort()));
-    }
-
-    @Override
-    protected AbstractHandler createHandlers() {
-        log.trace("createHandlers()");
-
-        RequestLogImpl reqLog = new RequestLogImplFixLogback1052();
-        reqLog.setResource("/logback-access-clientproxy.xml");
-        reqLog.setQuiet(true);
-
-        RequestLogHandler logHandler = new RequestLogHandler();
-        logHandler.setRequestLog(reqLog);
-
-        HandlerCollection handlers = new HandlerCollection();
-
-        handlers.addHandler(logHandler);
-
-        getClientHandlers().forEach(handlers::addHandler);
-
-        return handlers;
+        client = cb.build();
     }
 
     private HttpClientConnectionManager getClientConnectionManager() throws Exception {
@@ -190,14 +176,25 @@ public class ClientProxy extends XroadProxy {
         return poolingManager;
     }
 
-    private SSLConnectionSocketFactory createSSLSocketFactory() throws Exception {
-        return new FastestConnectionSelectingSSLSocketFactory(createSSLContext(), getAcceptedCipherSuites());
+    private static SSLConnectionSocketFactory createSSLSocketFactory() throws Exception {
+        SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
+        ctx.init(new KeyManager[] {AuthKeyManager.getInstance()}, new TrustManager[] {new AuthTrustManager()},
+                new SecureRandom());
+
+        return new FastestConnectionSelectingSSLSocketFactory(ctx, SystemProperties.getXroadTLSCipherSuites());
     }
 
-    private ServerConnector createClientHttpConnector(String hostname, int port) {
+    private void createConnectors() throws Exception {
+        log.trace("createConnectors()");
+
+        createClientHttpConnector(SystemProperties.getConnectorHost(), SystemProperties.getClientProxyHttpPort());
+        createClientHttpsConnector(SystemProperties.getConnectorHost(), SystemProperties.getClientProxyHttpsPort());
+    }
+
+    private void createClientHttpConnector(String hostname, int port) {
         log.trace("createClientHttpConnector({}, {})", hostname, port);
 
-        ServerConnector connector = new ServerConnector(getServer(), ACCEPTOR_COUNT, -1);
+        ServerConnector connector = new ServerConnector(server, ACCEPTOR_COUNT, -1);
 
         connector.setName(CLIENT_HTTP_CONNECTOR_NAME);
         connector.setHost(hostname);
@@ -207,12 +204,12 @@ public class ClientProxy extends XroadProxy {
         connector.setIdleTimeout(SystemProperties.getClientProxyConnectorMaxIdleTime());
 
         disableSendServerVersion(connector);
+        server.addConnector(connector);
 
         log.info("Client HTTP connector created ({}:{})", hostname, port);
-        return connector;
     }
 
-    private ServerConnector createClientHttpsConnector(String hostname, int port) throws Exception {
+    private void createClientHttpsConnector(String hostname, int port) throws Exception {
         log.trace("createClientHttpsConnector({}, {})", hostname, port);
 
         SslContextFactory cf = new SslContextFactory(false);
@@ -231,7 +228,7 @@ public class ClientProxy extends XroadProxy {
 
         cf.setSslContext(ctx);
 
-        ServerConnector connector = new ServerConnector(getServer(), ACCEPTOR_COUNT, -1, cf);
+        ServerConnector connector = new ServerConnector(server, ACCEPTOR_COUNT, -1, cf);
 
         connector.setName(CLIENT_HTTPS_CONNECTOR_NAME);
         connector.setHost(hostname);
@@ -241,9 +238,9 @@ public class ClientProxy extends XroadProxy {
         connector.setIdleTimeout(SystemProperties.getClientProxyConnectorMaxIdleTime());
 
         disableSendServerVersion(connector);
+        server.addConnector(connector);
 
         log.info("Client HTTPS connector created ({}:{})", hostname, port);
-        return connector;
     }
 
     private void disableSendServerVersion(ServerConnector connector) {
@@ -251,6 +248,25 @@ public class ClientProxy extends XroadProxy {
                 .filter(cf -> cf instanceof HttpConnectionFactory)
                 .forEach(httpCf -> ((HttpConnectionFactory) httpCf)
                         .getHttpConfiguration().setSendServerVersion(false));
+    }
+
+    private void createHandlers() throws Exception {
+        log.trace("createHandlers()");
+
+        RequestLogImpl reqLog = new RequestLogImplFixLogback1052();
+        reqLog.setResource("/logback-access-clientproxy.xml");
+        reqLog.setQuiet(true);
+
+        RequestLogHandler logHandler = new RequestLogHandler();
+        logHandler.setRequestLog(reqLog);
+
+        HandlerCollection handlers = new HandlerCollection();
+
+        handlers.addHandler(logHandler);
+
+        getClientHandlers().forEach(handlers::addHandler);
+
+        server.setHandler(handlers);
     }
 
     private List<Handler> getClientHandlers() {
@@ -262,7 +278,7 @@ public class ClientProxy extends XroadProxy {
                 try {
                     log.trace("Loading client handler {}", handlerClassName);
 
-                    handlers.add(loadHandler(handlerClassName, getClient()));
+                    handlers.add(loadHandler(handlerClassName, client));
                 } catch (Exception e) {
                     throw new RuntimeException("Failed to load client handler: " + handlerClassName, e);
                 }
@@ -271,9 +287,43 @@ public class ClientProxy extends XroadProxy {
 
         log.trace("Loading default client handler");
 
-        handlers.add(new ClientMessageHandler(getClient())); // default handler
+        handlers.add(new ClientMessageHandler(client)); // default handler
 
         return handlers;
+    }
+
+    @Override
+    public void start() throws Exception {
+        log.trace("start()");
+
+        server.start();
+
+        if (connectionMonitor != null) {
+            connectionMonitor.start();
+        }
+    }
+
+    @Override
+    public void join() throws InterruptedException {
+        log.trace("join()");
+
+        if (server.getThreadPool() != null) {
+            server.join();
+        }
+    }
+
+    @Override
+    public void stop() throws Exception {
+        log.trace("stop()");
+
+        if (connectionMonitor != null) {
+            connectionMonitor.shutdown();
+        }
+
+        client.close();
+        server.stop();
+
+        HibernateUtil.closeSessionFactories();
     }
 
     private static class ClientSslTrustManager implements X509TrustManager {
