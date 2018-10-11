@@ -9,7 +9,7 @@ Release:            %{rel}%{?snapshot}%{?dist}
 Summary:            X-Road Monitoring
 Group:              Applications/Internet
 License:            MIT
-Requires:           systemd, xroad-common = %version-%release
+Requires:           systemd, xroad-base = %version-%release, xroad-nginx = %version-%release, xroad-confclient = %version-%release, xroad-signer = %version-%release
 Requires(post):     systemd
 Requires(preun):    systemd
 Requires(postun):   systemd
