@@ -43,28 +43,27 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
  */
 public class SslAuthTrustManagerError extends IsolatedSslMessageTestCase {
 
-  /**
-   * Constructs the test case.
-   */
-  public SslAuthTrustManagerError() {
-    requestFileName = "getstate.query";
-    responseFile = "getstate.answer";
-  }
+    /**
+    * Constructs the test case.
+    */
+    public SslAuthTrustManagerError() {
+        requestFileName = "getstate.query";
+        responseFile = "getstate.answer";
+    }
 
-  @Override
-  protected void startUp() throws Exception {
-    ServerConf.reload(new TestServerConf());
-    GlobalConf.reload(new TestGlobalConf() {
-      @Override
-      public SecurityServerId getServerId(X509Certificate cert) {
-        return null;
-      }
-    });
-  }
+    @Override
+    protected void startUp() throws Exception {
+        ServerConf.reload(new TestServerConf());
+        GlobalConf.reload(new TestGlobalConf() {
+            @Override
+            public SecurityServerId getServerId(X509Certificate cert) {
+                return null;
+            }
+        });
+    }
 
-  @Override
-  protected void validateFaultResponse(Message receivedResponse)
-      throws Exception {
-    assertErrorCodeStartsWith(SERVER_CLIENTPROXY_X, X_SSL_AUTH_FAILED);
-  }
+    @Override
+    protected void validateFaultResponse(Message receivedResponse) throws Exception {
+        assertErrorCodeStartsWith(SERVER_CLIENTPROXY_X, X_SSL_AUTH_FAILED);
+    }
 }

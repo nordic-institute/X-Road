@@ -28,7 +28,6 @@ Optional utility that automatically enters the software token pin code on xroad-
 mkdir -p %{buildroot}/usr/share/xroad/autologin
 mkdir -p %{buildroot}%{_unitdir}
 cp -a %{src}/common/* %{buildroot}/usr/share/xroad/autologin
-cp -a %{src}/redhat/*.sh %{buildroot}/usr/share/xroad/autologin
 cp -a %{src}/redhat/%{name}.service %{buildroot}%{_unitdir}
 
 %clean

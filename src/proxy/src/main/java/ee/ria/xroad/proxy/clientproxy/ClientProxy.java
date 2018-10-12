@@ -25,13 +25,12 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.logging.RequestLogImplFixLogback1052;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.StartStop;
-import ee.ria.xroad.proxy.conf.AuthKeyManager;
 import ee.ria.xroad.proxy.serverproxy.IdleConnectionMonitorThread;
+import ee.ria.xroad.proxy.util.SSLContextUtil;
 
 import ch.qos.logback.access.jetty.RequestLogImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -177,11 +176,8 @@ public class ClientProxy implements StartStop {
     }
 
     private static SSLConnectionSocketFactory createSSLSocketFactory() throws Exception {
-        SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[] {AuthKeyManager.getInstance()}, new TrustManager[] {new AuthTrustManager()},
-                new SecureRandom());
-
-        return new FastestConnectionSelectingSSLSocketFactory(ctx, CryptoUtils.getINCLUDED_CIPHER_SUITES());
+        return new FastestConnectionSelectingSSLSocketFactory(SSLContextUtil.createXroadSSLContext(),
+                SystemProperties.getXroadTLSCipherSuites());
     }
 
     private void createConnectors() throws Exception {
@@ -214,7 +210,7 @@ public class ClientProxy implements StartStop {
 
         SslContextFactory cf = new SslContextFactory(false);
         // Note: Don't use restricted chiper suites
-        // (CryptoUtils.INCLUDED_CIPHER_SUITES) between client IS and
+        // (SystemProperties.getXroadTLSCipherSuites()) between client IS and
         // client proxy.
         cf.setWantClientAuth(true);
         cf.setSessionCachingEnabled(true);

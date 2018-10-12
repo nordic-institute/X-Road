@@ -17,13 +17,13 @@ fi
 
 # Install/upgrade Rubocop if necessary
 rubocop_version=$(rubocop -v)
-if [ -n "$rubocop_version" ] && [ "$rubocop_version" != "0.52.1" ]; then
+if [ -n "$rubocop_version" ] && [ "$rubocop_version" != "0.59.0" ]; then
   echo "Uninstall old rubocop $rubocop_version"
   jgem uninstall rubocop --silent || warn "Failed to uninstall Ruby gem 'rubocop'."
 fi
-if [ "$rubocop_version" != "0.52.1" ]; then
+if [ "$rubocop_version" != "0.59.0" ]; then
   echo "Installing rubocop"
-  jgem install rubocop -v 0.52.1 || warn "Failed to install Ruby gem 'rubocop'."
+  jgem install rubocop -v 0.59.0 || warn "Failed to install Ruby gem 'rubocop'."
 fi
 
 if [ "$#" -eq 0 ]; then
@@ -32,14 +32,14 @@ fi
 
 SUBPROJECT_DIR=$1
 BUILD_DIR=$SUBPROJECT_DIR/build
-REPORT_FILE=$BUILD_DIR/rubocop_report.txt
+REPORT_FILE=$BUILD_DIR/rubocop-result.json
 
 # Create build dir if it does not yet exist.
 mkdir -p $BUILD_DIR
 
 echo "Source inspection report will be generated into '$REPORT_FILE'"
 
-rubocop --fail-level error $SUBPROJECT_DIR/app/ $SUBPROJECT_DIR/lib/ >$REPORT_FILE
+rubocop --format json --fail-level error $SUBPROJECT_DIR/app/ $SUBPROJECT_DIR/lib/ >$REPORT_FILE
 
 if [ $? != 0 ]; then
   echo "There were Ruby syntax errors in subproject '$SUBPROJECT_DIR'." >&2

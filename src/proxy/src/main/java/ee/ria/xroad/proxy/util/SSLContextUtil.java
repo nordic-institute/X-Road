@@ -22,48 +22,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.testsuite.testcases;
+package ee.ria.xroad.proxy.util;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.proxy.testsuite.Message;
-import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
-import ee.ria.xroad.proxy.testsuite.TestGlobalConf;
+import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.proxy.conf.AuthKeyManager;
 
-import java.util.Arrays;
-import java.util.Collection;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
 
-import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 
 /**
- * Tests that correct error occurs when none of the hosts can be connected to.
+ * Utility class to create SSLContexts
  */
-public class SslSelectFastestProxyNoConnections extends SslMessageTestCase {
+public final class SSLContextUtil {
+
+    private SSLContextUtil() { }
 
     /**
-     * Constructs the test case.
+     * Creates SSLContext used in between security servers
+     * @return
      */
-    public SslSelectFastestProxyNoConnections() {
-        requestFileName = "getstate.query";
-        responseFile = "getstate.answer";
-    }
-
-    @Override
-    protected void startUp() throws Exception {
-        super.startUp();
-
-        GlobalConf.reload(new TestGlobalConf() {
-            @Override
-            public Collection<String> getProviderAddress(ClientId provider) {
-                return Arrays.asList("foo.invalid", "bar.invalid", "baz.invalid");
-            }
-        });
-    }
-
-    @Override
-    protected void validateFaultResponse(Message receivedResponse)
-            throws Exception {
-        assertErrorCodeStartsWith(SERVER_CLIENTPROXY_X, X_NETWORK_ERROR);
+    public static SSLContext createXroadSSLContext() throws KeyManagementException, NoSuchAlgorithmException {
+        SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
+        ctx.init(new KeyManager[] {AuthKeyManager.getInstance()}, new TrustManager[] {new AuthTrustManager()},
+                new SecureRandom());
+        return ctx;
     }
 }

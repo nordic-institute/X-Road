@@ -161,11 +161,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
             OpMonitoringData opMonitoringData) {
         updateOpMonitoringSucceeded(opMonitoringData);
 
-        MonitorAgent.success(
-            processor.createRequestMessageInfo(),
-            new Date(start),
-            new Date()
-        );
+        MonitorAgent.success(processor.createRequestMessageInfo(), new Date(start), new Date());
     }
 
     protected void failure(MessageProcessorBase processor,
@@ -190,10 +186,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
 
     protected void failure(HttpServletResponse response,
             CodedExceptionWithHttpStatus e) throws IOException {
-        MonitorAgent.failure(null,
-            e.withPrefix(SERVER_CLIENTPROXY_X).getFaultCode(),
-            e.getFaultString()
-        );
+        MonitorAgent.failure(null, e.withPrefix(SERVER_CLIENTPROXY_X).getFaultCode(), e.getFaultString());
 
         sendPlainTextErrorResponse(response, e.getStatus(), e.getFaultString());
     }

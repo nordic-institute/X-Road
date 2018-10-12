@@ -78,6 +78,7 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.Writer;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -160,7 +161,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
     /** Holds the response from server proxy. */
     private ProxyMessage response;
 
-    //** Holds operational monitoring data. */
+    /** Holds operational monitoring data. */
     private volatile OpMonitoringData opMonitoringData;
 
     private static final ExecutorService SOAP_HANDLER_EXECUTOR =
@@ -304,9 +305,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
             try {
                 opMonitoringData.setRequestOutTs(getEpochMillisecond());
-
-                httpSender.doPost(addresses[0], reqIns, CHUNKED_LENGTH, outputContentType);
-
+                httpSender.doPost(getServiceAddress(addresses), reqIns, CHUNKED_LENGTH, outputContentType);
                 opMonitoringData.setResponseInTs(getEpochMillisecond());
             } catch (Exception e) {
                 // Failed to connect to server proxy
@@ -319,6 +318,24 @@ class ClientMessageProcessor extends MessageProcessorBase {
             if (reqIns != null) {
                 reqIns.close();
             }
+        }
+    }
+
+    private static URI getServiceAddress(URI[] addresses) {
+        if (addresses.length == 1 || !isSslEnabled()) {
+            return addresses[0];
+        }
+        //postpone actual name resolution to the fastest connection selector
+        return DUMMY_SERVICE_ADDRESS;
+    }
+
+    private static final URI DUMMY_SERVICE_ADDRESS;
+    static {
+        try {
+            DUMMY_SERVICE_ADDRESS = new URI("https", null, "localhost", getServerProxyPort(), "/", null, null);
+        } catch (URISyntaxException e) {
+            //can not happen
+            throw new IllegalStateException("Unexpected", e);
         }
     }
 

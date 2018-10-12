@@ -42,6 +42,7 @@ Doc. ID: UG-SYSPAR
 | 05.03.2018 | 2.30     | Added reference to terms and abbreviations, modified reference handling, added numbering. | Tatu Repo |
 | 06.04.2018 | 2.31     | Removed TLSv1.1 support (client-side interfaces for incoming request) and TLS SHA-1 ciphers from default ciphers list. | Kristo Heero |
 | 18.08.2018 | 2.32     | Added new parameter *ocsp-retry-delay* | Petteri Kivimäki |
+| 08.10.2018 | 2.33     | Added new parameter *xroad-tls-ciphers* | Henri Haapakanni |
 
 ## Table of Contents
 
@@ -209,6 +210,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 | jetty-ocsp-responder-configuration-file          | /etc/xroad/jetty/ocsp-responder.xml        |   |   | Absolute filename of the Jetty configuration file for the OCSP responder of the service provider's security server. For more information about configuring Jetty server, see https://wiki.eclipse.org/Jetty/Reference/jetty.xml\_usage. |
 | ssl-enabled                                      | true                                       |   |   | If true, TLS is used for connections between the service client's and service provider's security servers. |
 | client-tls-ciphers                               | See [1](#Ref_note1)                                  |   |   | TLS ciphers (comma-separated list) enabled on the client-side interfaces (for both incoming and outgoing requests). (since version 6.7) |
+| xroad-tls-ciphers                                | See [2](#Ref_note2)                                  |   |   | TLS ciphers (comma-separated list in preferred order) accepted on requests between security servers  |
 | client-tls-protocols                             | TLSv1.2                            |   |   | TLS protocols (comma-separated list) enabled on the client-side interfaces (for both incoming and outgoing requests). For backward compatibility TLSv1.1 is still supported on the client-side interfaces for outgoing requests (since version 6.7) |
 | server-connector-max-idle-time                   | 0                                          | 120000 |   | The maximum time (in milliseconds) that connections from a service consuming security server to a service providing security server are allowed to be idle before the provider security server starts closing them. Value of 0 means that an infinite idle time is allowed. A non-zero value should allow some time for a pooled connection to be idle, if  pooled connections are to be supported.|
 | server-connector-so-linger                       | -1                                         |   |   | The SO_LINGER time (in seconds) at the service providing security server end for connections between security servers.<br>A value larger than 0 means that upon closing a connection, the system will allow SO_LINGER seconds for the transmission and acknowledgement of all data written to the peer, at which point the socket is closed gracefully. Upon reaching the linger timeout, the socket is closed forcefully, with a TCP RST. Enabling the option with a timeout of zero does a forceful close immediately.<br>Value of -1 disables the forceful close.|
@@ -288,7 +290,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 | hash-algo-id                                     | SHA-512                                    |   |   | The algorithm identifier used for hashing in the message log.<br/>Possible values are<br/>-   SHA-224,<br/>-   SHA-256,<br/>-   SHA-384,<br/>-   SHA-512. |
 | keep-records-for                                 | 30                                         |   |   | Number of days to keep time-stamped and archived records in the database of the security server. If a time-stamped and archived message record is older than this value, the record is deleted from the database. |
 | timestamp-immediately                            | false                                      |   |   | If true, the time-stamp is created synchronously for each request message. This is a security policy requirement to guarantee the time-stamp at the time of logging the message. |
-| timestamp-records-limit                          | 10000                                      |   |   |Maximum number of message records to time-stamp in one batch. |
+| timestamp-records-limit                          | 10000                                      |   |   | Maximum number of message records to time-stamp in one batch. If the number of message records in a single batch exceeds 70 % of `timestamp-records-limit` value, a warning is logged in `proxy.log`. |
 | timestamper-client-connect-timeout               | 20000                                      |   |   | The timestamper client connect timeout in milliseconds. A timeout of zero is interpreted as an infinite timeout. |
 | timestamper-client-read-timeout                  | 60000                                      |   |   | The timestamper client read timeout in milliseconds. A timeout of zero is interpreted as an infinite timeout. |
 | archive-transaction-batch                        | 10000                                      |   |   | Size of transaction batch for archiving messagelog. This size is not exact because it will always make sure that last archived batch includes timestamp also (this might mean that it will go over transaction size).
@@ -407,6 +409,10 @@ TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
 TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,
 TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
 TLS_DHE_RSA_WITH_AES_256_GCM_SHA384
+
+<a id="Ref_note2"></a>[2] Default value for proxy.xroad-tls-ciphers.
+>TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,
+TLS_DHE_RSA_WITH_AES_256_CBC_SHA256
 
 > (see [*https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider*](https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider) for possible values)
 >
