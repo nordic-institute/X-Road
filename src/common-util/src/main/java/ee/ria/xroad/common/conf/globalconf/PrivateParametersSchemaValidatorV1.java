@@ -1,6 +1,8 @@
 /**
  * The MIT License
- * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,27 +37,29 @@ import java.io.StringReader;
  * Schema validator of private parameters.
  */
 public class PrivateParametersSchemaValidatorV1 extends SchemaValidator {
-  private static Schema schema;
+    private static Schema schema;
 
-  static {
-    schema = createSchema("globalconf/internal-conf.xsd");
-  }
+    static {
+        schema = createSchema("globalconf/internal-conf.xsd");
+    }
 
-  /**
-   * Validates the input XML as string against the schema.
-   * @param xml the input XML as string
-   * @throws Exception if validation fails
-   */
-  public static void validate(String xml) throws Exception {
-    validate(new StreamSource(new StringReader(xml)));
-  }
+    /**
+     * Validates the input XML as string against the schema.
+     *
+     * @param xml the input XML as string
+     * @throws Exception if validation fails
+     */
+    public static void validate(String xml) throws Exception {
+        validate(new StreamSource(new StringReader(xml)));
+    }
 
-  /**
-   * Validates the input source against the schema.
-   * @param source the input source
-   * @throws Exception if validation fails
-   */
-  public static void validate(Source source) throws Exception {
-    validate(schema, source, ErrorCodes.X_MALFORMED_GLOBALCONF);
-  }
+    /**
+     * Validates the input source against the schema.
+     *
+     * @param source the input source
+     * @throws Exception if validation fails
+     */
+    public static void validate(Source source) throws Exception {
+        validate(schema, source, ErrorCodes.X_MALFORMED_GLOBALCONF);
+    }
 }

@@ -29,7 +29,6 @@
     baseurl: "{{ rhel_repo_baseurl }}"
     gpgcheck: "{{ rhel_repo_gpgcheck }}"
     gpgkey: "{{ rhel_repo_gpgkey }}"
-    gpgcakey: "{{ rhel_repo_gpgcakey }}"
     repo_gpgcheck: "{{ rhel_repo_gpgcheck }}"
     state: present
     enabled: yes

@@ -1,0 +1,3 @@
+../../../../src/xroad/common/addon/wsdlvalidator/usr/* usr/
+../../../../../addons/wsdlvalidator/build/libs/wsdlvalidator-1.0.jar usr/share/xroad/wsdlvalidator/jlib
+

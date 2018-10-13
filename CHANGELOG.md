@@ -1,10 +1,22 @@
 # Change Log
 
-## 6.19.0 - TBD
-- PVAYLADEV-1107/XRJD #214: Security Server: Fixed SSL handshake does not include internal certificate's certificate chain.
-- PVAYLADEV-1139: Documentation: Updated build and development environment instructions.
-- PVAYLADEV-785: Security Server: Fixed malformed global configuration can cause a NPE in the admin UI.
+## 6.20.0 - XXXX-XX-XX
+- TBD
+
+## 6.19.0 - 2018-09-27
+- PVAYLADEV-1107/XRJD #214: Security Server: Fix SSL handshake does not include internal certificate's certificate chain.
+- PVAYLADEV-1139: Documentation: Update build and development environment instructions.
+- PVAYLADEV-785: Security Server: Fix malformed global configuration can cause a NPE in the admin UI.
 - PVAYLADEV-1137/XRJD #228: Security server: List approved certificate authorities.
+- XRDDEV-36: Fixed Messagelog tests randomly failing
+- XRDDEV-39: Fix subsystem registration request failing on CIS hardened RHEL security server
+- XRDDEV-53: Fix access right error message in webview
+- XRDDEV-51: Security Server refresh OCSP responses recovery algorithm during OCSP responder service breaks was changed from Fibonacci based schedule to fixed schedule.
+- XRDDEV-79: Fix X-Road package dependencies on Ubuntu 14 so that OpenJDK 8 is always installed
+- XRDDEV-28: Fix performance problem in FastestConnectionSelectingSSLSocketFactory when connecting to a clustered X-Road server.
+- XRDDEV-85: Fix failure in message log archiving.
+- XRDDEV-61: Fix last hash step tmp files written in the filesystem
+- XRDDEV-74: Fix blocker and critical level issues reported by SonarQube static analysis
 
 ## 6.18.0 - 2018-05-14
 - XTE-314 / Backlog #221: Central Server: Bugfix: Write globalconf files atomic way.
@@ -349,4 +361,5 @@
   - OS temp directory and X-Road software can now reside on different file systems
 
 ---
-Backlog/XRJD references: see https://github.com/vrk-kpa/xroad-joint-development
+XRDDEV references: see https://jira.niis.org/projects/XRDDEV/
+(Backlog/XRJD references: see https://github.com/vrk-kpa/xroad-joint-development/issues)

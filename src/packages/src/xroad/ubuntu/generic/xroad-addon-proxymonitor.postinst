@@ -1,0 +1,5 @@
+#!/bin/sh
+
+service xroad-proxy restart 
+exit 0
+

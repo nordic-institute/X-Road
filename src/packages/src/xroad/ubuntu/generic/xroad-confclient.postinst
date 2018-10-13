@@ -1,0 +1,9 @@
+#!/bin/bash
+set -e
+umask 007
+
+if [ "$1" = configure ]; then
+    chmod 0440 /etc/xroad/backup.d/??_xroad-confclient
+fi
+
+#DEBHELPER#

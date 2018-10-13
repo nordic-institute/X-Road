@@ -1,6 +1,8 @@
 /**
  * The MIT License
- * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -151,6 +153,9 @@ public final class SystemProperties {
     /** Property name of the ClientProxy HTTPS connector and ServerProxy HTTP client supported TLS cipher suites */
     private static final String PROXY_CLIENT_TLS_CIPHERS =
             PREFIX + "proxy.client-tls-ciphers";
+
+    /** Property name of the ClientProxy HTTPS client and ServerProxy HTTPS connector supported TLS cipher suites */
+    private static final String PROXY_XROAD_TLS_CIPHERS = PREFIX + "proxy.xroad-tls-ciphers";
 
     private static final String SIGNER_ENFORCE_TOKEN_PIN_POLICY =
             PREFIX + "signer.enforce-token-pin-policy";
@@ -1141,12 +1146,24 @@ public final class SystemProperties {
             + "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384";
 
     /**
-     * Get proxy client's TLS cipher suites.
+     * Get proxy client's accepted TLS cipher suites (between is and ss).
      *
      * @return cipher suites.
      */
     public static String[] getProxyClientTLSCipherSuites() {
         return System.getProperty(PROXY_CLIENT_TLS_CIPHERS, DEFAULT_CLIENT_SSL_CIPHER_SUITES).split(",");
+    }
+
+    private static final String DEFAULT_XROAD_SSL_CIPHER_SUITES = "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,"
+            + "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256";
+
+    /**
+     * Get X-Road accepted TLS cipher suites (between ss and ss).
+     *
+     * @return cipher suites.
+     */
+    public static String[] getXroadTLSCipherSuites() {
+        return System.getProperty(PROXY_XROAD_TLS_CIPHERS, DEFAULT_XROAD_SSL_CIPHER_SUITES).split(",");
     }
 
     /**

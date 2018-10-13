@@ -103,7 +103,7 @@ var XROAD_SECURITYSERVER_EDIT = function() {
 
         refreshClients(params);
         refreshAuthCerts(params);
-        refreshManagementRequests(params);
+        refreshManagementRequests();
     }
 
     // FUTURE (RM #2770): probably usable when security categories implemented

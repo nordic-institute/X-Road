@@ -1,5 +1,0 @@
-#!/bin/sh
-
-invoke-rc.d xroad-signer restart
-
-exit 0

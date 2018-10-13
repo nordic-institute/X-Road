@@ -1,6 +1,8 @@
 /**
  * The MIT License
- * Copyright (c) 2016 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +24,7 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.StartStop;
@@ -129,7 +132,7 @@ final class OpMonitorDaemon implements StartStop {
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
         cf.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);
-        cf.setIncludeCipherSuites(CryptoUtils.getINCLUDED_CIPHER_SUITES());
+        cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
         ctx.init(new KeyManager[] {new OpMonitorSslKeyManager()}, new TrustManager[] {new OpMonitorSslTrustManager()},

@@ -1,6 +1,8 @@
 /**
  * The MIT License
- * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,6 +51,7 @@ import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransactio
 public class TaskQueue extends UntypedActor {
 
     static final String START_TIMESTAMPING = "StartTimestamping";
+    static final double TIMESTAMPED_RECORDS_RATIO_THRESHOLD = 0.7;
 
     @Override
     public void onReceive(Object message) throws Exception {
@@ -140,7 +143,15 @@ public class TaskQueue extends UntypedActor {
             return;
         }
 
-        log.info("Start time-stamping {} message records", timestampTasks.size());
+        int timestampTasksSize = timestampTasks.size();
+
+        log.info("Start time-stamping {} message records", timestampTasksSize);
+        
+        if (timestampTasksSize / (double) MessageLogProperties.getTimestampRecordsLimit()
+                >= TIMESTAMPED_RECORDS_RATIO_THRESHOLD) {
+            log.warn("Number of time-stamped records is over {} % of 'timestamp-records-limit' value",
+                    TIMESTAMPED_RECORDS_RATIO_THRESHOLD * 100);
+        }
 
         sendToTimestamper(createTimestampTask(timestampTasks));
     }

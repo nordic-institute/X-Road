@@ -39,8 +39,20 @@ jar.enabled = false
 build.dependsOn shadowJar
 buildall.dependsOn shadowJar
 
+task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+}
+
+task licenseTestJava(type:nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+    check = true
+}
+
 licenseFormatMain.enabled = false
 licenseMain.enabled = false
+
+licenseFormat.dependsOn licenseFormatJava
+licenseTest.dependsOn licenseTestJava
 
 task runProxyMain(type: JavaExec) {
     jvmArgs '-Dxroad.proxy.sslEnabled=false',

@@ -1,6 +1,8 @@
 /**
  * The MIT License
- * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +31,7 @@ import ee.ria.xroad.common.DiagnosticsUtils;
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
@@ -44,6 +47,7 @@ import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
+import ee.ria.xroad.proxy.util.GlobalConfUpdater;
 import ee.ria.xroad.signer.protocol.SignerClient;
 
 import akka.actor.ActorSelection;
@@ -52,9 +56,7 @@ import akka.pattern.Patterns;
 import akka.util.Timeout;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 
@@ -64,9 +66,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -104,9 +103,9 @@ public final class ProxyMain {
 
     private static ActorSystem actorSystem;
 
-    @Getter
-    private static String version;
     private static ServiceLoader<AddOn> addOns = ServiceLoader.load(AddOn.class);
+
+    private static final int GLOBAL_CONF_UPDATE_REPEAT_INTERVAL = 60;
 
     private ProxyMain() {
     }
@@ -165,8 +164,7 @@ public final class ProxyMain {
                 .withFallback(ConfigFactory.load())
                 .withValue("akka.remote.netty.tcp.port",
                         ConfigValueFactory.fromAnyRef(PortNumbers.PROXY_ACTORSYSTEM_PORT)));
-        version = readProxyVersion();
-        log.info("Starting proxy ({})...", getVersion());
+        log.info("Starting proxy ({})...", readProxyVersion());
     }
 
     private static void shutdown() throws Exception {
@@ -199,6 +197,7 @@ public final class ProxyMain {
         if (SystemProperties.isHealthCheckEnabled()) {
             SERVICES.add(new HealthCheckPort());
         }
+        jobManager.registerRepeatingJob(GlobalConfUpdater.class, GLOBAL_CONF_UPDATE_REPEAT_INTERVAL);
     }
 
     private static void loadConfigurations() {
@@ -379,31 +378,10 @@ public final class ProxyMain {
     }
 
     /**
-     * Read installed proxy version information from package
-     * @return version string e.g. 6.17.0-1 or 6.19.0-0.20180709122743git861f417, or "unknown" in case it cannot be
-     * retrieved
+     * Return X-Road software version
+     * @return version string e.g. 6.19.0
      */
     public static String readProxyVersion() {
-        String result;
-        try {
-            String cmd;
-            if (Files.exists(Paths.get("/etc/redhat-release"))) {
-                cmd = "rpm -q --queryformat '%{VERSION}-%{RELEASE}' xroad-proxy";
-            } else {
-                cmd = "dpkg-query -f '${Version}' -W xroad-proxy";
-            }
-            Process p = Runtime.getRuntime().exec(cmd);
-            int status = p.waitFor();
-            if (status == 0) {
-                result = IOUtils.toString(p.getInputStream(), Charset.defaultCharset());
-            } else {
-                log.warn(String.format("Unable to read proxy version, process exit status=%d", status));
-                result = "unknown";
-            }
-        } catch (Exception ex) {
-            log.warn("Unable to read proxy version", ex);
-            result = "unknown";
-        }
-        return result;
+        return Version.XROAD_VERSION;
     }
 }

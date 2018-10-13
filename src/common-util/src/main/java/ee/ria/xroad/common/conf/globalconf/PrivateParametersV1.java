@@ -1,6 +1,8 @@
 /**
  * The MIT License
- * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,26 +38,26 @@ import java.util.stream.Collectors;
  */
 public class PrivateParametersV1 extends AbstractXmlConf<PrivateParametersType> {
 
-  PrivateParametersV1() {
-    super(ObjectFactory.class, PrivateParametersSchemaValidatorV1.class);
-  }
+    PrivateParametersV1() {
+        super(ObjectFactory.class, PrivateParametersSchemaValidatorV1.class);
+    }
 
-  String getInstanceIdentifier() {
-    return confType.getInstanceIdentifier();
-  }
+    String getInstanceIdentifier() {
+        return confType.getInstanceIdentifier();
+    }
 
-  List<ConfigurationSource> getConfigurationSource() {
-    return confType.getConfigurationAnchor().stream()
-        .map(ConfigurationAnchorV1::new)
-        .collect(Collectors.toList());
-  }
+    List<ConfigurationSource> getConfigurationSource() {
+        return confType.getConfigurationAnchor().stream()
+                .map(ConfigurationAnchorV1::new)
+                .collect(Collectors.toList());
+    }
 
-  BigInteger getTimeStampingIntervalSeconds() {
-    return confType.getTimeStampingIntervalSeconds();
-  }
+    BigInteger getTimeStampingIntervalSeconds() {
+        return confType.getTimeStampingIntervalSeconds();
+    }
 
-  ManagementServiceType getManagementService() {
-    return confType.getManagementService();
-  }
+    ManagementServiceType getManagementService() {
+        return confType.getManagementService();
+    }
 }
 

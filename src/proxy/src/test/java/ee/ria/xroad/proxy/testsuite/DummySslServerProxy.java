@@ -1,6 +1,8 @@
 /**
  * The MIT License
- * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +25,7 @@
 package ee.ria.xroad.proxy.testsuite;
 
 import ee.ria.xroad.common.PortNumbers;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.StartStop;
@@ -57,7 +60,7 @@ public class DummySslServerProxy extends Server implements StartStop {
         SslContextFactory cf = new SslContextFactory(false);
         cf.setNeedClientAuth(true);
 
-        cf.setIncludeCipherSuites(CryptoUtils.getINCLUDED_CIPHER_SUITES());
+        cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
         ctx.init(new KeyManager[] {new DummyAuthKeyManager()},
@@ -132,7 +135,7 @@ public class DummySslServerProxy extends Server implements StartStop {
         @Override
         public void checkServerTrusted(X509Certificate[] chain, String authType)
                 throws CertificateException {
-       }
+        }
 
         @Override
         public X509Certificate[] getAcceptedIssuers() {
