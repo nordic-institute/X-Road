@@ -1,6 +1,6 @@
 # X-Road: Central Server Installation Guide
 
-Version: 2.7  
+Version: 2.8  
 Doc. ID: IG-CS
 
 
@@ -23,7 +23,8 @@ Doc. ID: IG-CS
 | 25.08.2017 | 2.5     | Update installation instructions concerning the support for environmental monitoring  | Ilkka Seppälä |
 | 05.03.2018 | 2.6     | Added terms and abbreviations reference, links to references and actual documents | Tatu Repo | 
 | 10.04.2018 | 2.7     | Updated chapter "[Installing the Support for Hardware Tokens](#26-installing-the-support-for-hardware-tokens)" with configurable parameters described in the configuration file 'devices.ini' | Cybernetica AS |
-
+| 14.10.2018 | 2.8    | Update package repository address | Petteri Kivimäki |
+ 
 ## Table of Contents
 
 <!-- toc -->
@@ -101,8 +102,8 @@ Caution: Data necessary for the functioning of the operating system is not inclu
 | **Ref**              |                                                  | **Explanation**                                    |
 |----------------------|--------------------------------------------------|----------------------------------------------------|
 | 1.0 | Ubuntu 14.04, 64-bit, 2 GB RAM, 3 GB free disk space | Minimum requirements |
-| 1.1 | http://x-road.eu/packages | X-Road package repository |
-| 1.2 | http://x-road.eu/packages/xroad_repo.gpg | The repository key |
+| 1.1 | https://artifactory.niis.org/xroad-release-deb | X-Road package repository |
+| 1.2 | https://artifactory.niis.org/api/gpg/key/public | The repository key |
 | 1.3 |  | Account name in the user interface |
 | 1.4 | TCP 4001 service for authentication certificate registration<br>TCP 80 distribution of the global configuration | Ports for inbound connections (from the external network to the central server) |
 | 1.5 | TCP 80 software updates | Ports for outbound connections (from the central server to the external network) |
@@ -135,22 +136,20 @@ Requirements for software and settings:
 
 ## 2.5 Installation
 
-Add the addresses of the X-Road package repository (reference data: 1.1), and the nginx and opendjdk repositories to the file /etc/apt/sources.list.d/xroad.list
+Add the X-Road package repository (reference data: 1.1), and the nginx and opendjdk repositories:
 
-`deb http://x-road.eu/packages trusty main`<br>
-`deb http://ppa.launchpad.net/nginx/stable/ubuntu trusty main`<br>
-`deb http://ppa.launchpad.net/openjdk-r/ppa/ubuntu trusty main`
+        sudo apt-add-repository -y ppa:openjdk-r/ppa
+        sudo apt-add-repository -y ppa:nginx/stable
+        sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb trusty-current main"
+        
+Add the X-Road repository’s signing key to the list of trusted keys (reference data: 1.2):
 
-Add the signing keys of the X-Road and external repositories to the list of trusted keys (reference data: 1.2):
-
-`curl http://x-road.eu/packages/xroad_repo.gpg | sudo apt-key add –`<br>
-`sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \ 00A6F0A3C300EE8C`<br>
-`sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \ EB9B1D8886F44E2A`
+        curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
 
 Issue the following commands to install the central server packages:
 
-`sudo apt-get update`<br>
-`sudo apt-get install xroad-centralserver`
+        sudo apt-get update
+        sudo apt-get install xroad-centralserver
 
 Upon the first installation of the central server software, the system asks for the following information.
 
