@@ -6,8 +6,8 @@
 # X-Road: Service Metadata Protocol
 **Technical Specification**
 
-Version: 2.5  
-06.03.2018  
+Version: 2.6  
+15.10.2018  
 Doc. ID: PR-META  
 
 ---
@@ -26,7 +26,8 @@ Doc. ID: PR-META
  02.01.2018 | 2.2     | Update getWsdl metaservice description                          | Ilkka Seppälä
  04.01.2018 | 2.3     | Updated descriptions and subsystem requirements for meta-services | Tatu Repo
  30.01.2018 | 2.4     | Updated metaservices wsdl                                       | Jarkko Hyöty
- 06.03.2018 | 2.5     | Added terms section, terms doc reference and link                              | Tatu Repo
+ 06.03.2018 | 2.5     | Added terms section, terms doc reference and link               | Tatu Repo
+ 15.10.2018 | 2.6     | Update Annex B                                                  | Petteri Kivimäki
 
 ## Table of Contents
 
@@ -287,9 +288,9 @@ when retrieved through the meta-service.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<wsdl:definitions targetNamespace="http://metadata.x-road.eu/"
+<wsdl:definitions targetNamespace="http://x-road.eu/xsd/xroad.xsd"
     xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
-    xmlns:meta="http://metadata.x-road.eu/"
+    xmlns:meta="http://x-road.eu/xsd/xroad.xsd"
     xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
     xmlns:id="http://x-road.eu/xsd/identifiers"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
