@@ -42,8 +42,9 @@ Doc. ID: PR-META
 - [4 Retrieving List of Services](#4-retrieving-list-of-services)
 - [5 Retrieving the WSDL of a Service](#5-retrieving-the-wsdl-of-a-service)
 - [Annex A XML Schema for Messages](#annex-a-xml-schema-for-messages)
-- [Annex B listMethods and allowedMethods WSDL](#annex-b-listmethods-and-allowedmethods-wsdl)
+- [Annex B listMethods and allowedMethods WSDL](#annex-b-listmethods-allowedmethods-and-getwsdl-wsdl)
 - [Annex C Example Messages](#annex-c-example-messages)
+
 <!-- tocstop -->
 
 ## License
