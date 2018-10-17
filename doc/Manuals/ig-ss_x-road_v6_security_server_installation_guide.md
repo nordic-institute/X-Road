@@ -101,7 +101,6 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 The security server runs on the following platforms:
 
 * Ubuntu Server 14.04 Long-Term Support (LTS) operating system on a 64-bit platform. The security server software is distributed as .deb packages through the official X-Road repository at https://artifactory.niis.org/xroad-release-deb/
-* Red Hat Enterprise Linux 7 (RHEL7) operating system on a 64-bit platform. The security server software is distributed as .rpm packages through the official X-Road repository at https://artifactory.niis.org/xroad-release-rpm/
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
