@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.12  
+Version: 2.13  
 Doc. ID: IG-SS
 
 ---
@@ -37,7 +37,8 @@ Doc. ID: IG-SS
  15.09.2017 | 2.10    | Added package with configuration specific to Estonia xroad-securityserver-ee | Cybernetica AS
  05.03.2018 | 2.11    | Added terms and abbreviations reference and document links | Tatu Repo
  10.04.2018 | 2.12    | Updated chapter "[Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)" with configurable parameters described in the configuration file 'devices.ini' | Cybernetica AS
-
+ 14.10.2018 | 2.13    | Update package repository address | Petteri Kivimäki
+ 
 ## Table of Contents
 
 <!-- toc -->
@@ -97,7 +98,9 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 2.1 Supported Platforms
 
-The security server runs on the *Ubuntu Server 14.04 Long-Term Support (LTS)* operating system on a 64-bit platform. The security server software is distributed as .deb packages through the official X-Road repository at http://x-road.eu/packages/
+The security server runs on the following platforms:
+
+* Ubuntu Server 14.04 Long-Term Support (LTS) operating system on a 64-bit platform. The security server software is distributed as .deb packages through the official X-Road repository at https://artifactory.niis.org/xroad-release-deb/
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
@@ -112,8 +115,8 @@ The software can be installed both on physical and virtualized hardware (of the 
  **Ref** |                                        | **Explanation**
  ------ | --------------------------------------- | ----------------------------------------------------------
  1.0    | Ubuntu 14.04, 64-bit<br>3 GB RAM, 3 GB free disk space | Minimum requirements
- 1.1    | http://x-road.eu/packages               | X-Road package repository
- 1.2    | http://x-road.eu/packages/xroad_repo.gpg | The repository key
+ 1.1    | https://artifactory.niis.org/xroad-release-deb               | X-Road package repository
+ 1.2    | https://artifactory.niis.org/api/gpg/key/public | The repository key
  1.3    |                                         | Account name in the user interface
  1.4    | TCP 5500                                | Port for inbound connections (from the external network to the security server)<br> Message exchange between security servers
  &nbsp; | TCP 5577                                | Port for inbound connections (from the external network to the security server)<br> Querying of OCSP responses between security servers
@@ -172,21 +175,19 @@ Requirements to software and settings:
 
 ### 2.5 Installation
 
-To install the X-Road security server software, follow these steps.
+To install the X-Road security server software on *Ubuntu 14.04 LTS* operating system, follow these steps.
 
-1.  Add to `/etc/apt/sources.list.d/xroad.list` the address of X-Road package repository (**reference data: 1.1**) and the nginx repository:
+1.  Add X-Road package repository (**reference data: 1.1**), openjdk repository and nginx repository:
 
-        deb http://x-road.eu/packages trusty main
-        deb http://ppa.launchpad.net/nginx/stable/ubuntu trusty main
-        deb http://ppa.launchpad.net/openjdk-r/ppa/ubuntu trusty main
+        sudo apt-add-repository -y ppa:openjdk-r/ppa
+        sudo apt-add-repository -y ppa:nginx/stable
+        sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb trusty-current main"
 
 2.  Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 
-        curl http://x-road.eu/packages/xroad_repo.gpg | sudo apt-key add -
-        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 00A6F0A3C300EE8C
-        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EB9B1D8886F44E2A
+        curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
 
-3.  Issue the following commands to install the security server packages (use package xroad-securityserver-ee to include configuration specific to Estonia):
+3.  Issue the following commands to install the security server packages (use package xroad-securityserver-ee to include configuration specific to Estonia; use package xroad-securityserver-fi to include configuration specific to Finland):
 
         sudo apt-get update
         sudo apt-get install xroad-securityserver
@@ -303,8 +304,8 @@ The security server code and the software token’s PIN will be determined durin
 
  Ref  |                                                   | Explanation
  ---- | ------------------------------------------------- | --------------------------------------------------
- 2.1  | <http://x-road.eu/packages/>&lt;anchor file&gt;<br> ee-dev - development environment<br> ee-test - test environment<br> EE - production environment | Global configuration anchor file
- 2.2  | GOV - government<br> COM - commercial             | Member class of the security server's owner
+ 2.1  | &lt;global configuration anchor file&gt; or &lt;URL&gt; | Global configuration anchor file
+ 2.2  | E.g.<br>GOV - government<br> COM - commercial     | Member class of the security server's owner
  2.3  | &lt;security server owner register code&gt;       | Member code of the security server's owner
  2.4  | &lt;choose security server identificator name&gt; | Security server's code
  2.5  | &lt;choose PIN for software token&gt;             | Software token’s PIN
