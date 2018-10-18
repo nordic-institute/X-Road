@@ -1,0 +1,17 @@
+[Unit]
+Description=Test OCSP
+After=network.target
+
+[Service]
+PermissionsStartOnly=true
+ExecStartPre=/bin/mkdir -p -m0755 /var/run/xroad
+ExecStartPre=/bin/chown xroad:xroad /var/run/xroad
+User=ocsp
+Group=ca
+ExecStart=/usr/bin/openssl ocsp -index /home/ca/CA/index.txt -url http://localhost:8889 -rsigner /home/ca/CA/certs/ocsp.cert.pem -rkey /home/ca/CA/private/ocsp.key.pem -CA /home/ca/CA/certs/ca.cert.pem -text -out /var/log/ocsp.log
+Restart=on-failure
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target
+

@@ -1,9 +1,6 @@
 #!/bin/bash
-
 set -e
-
 . /usr/share/debconf/confmodule
-
 
 #add groups
 groups="xroad-security-officer xroad-registration-officer xroad-service-administrator xroad-system-administrator xroad-securityserver-observer"
@@ -17,32 +14,44 @@ db_user=serverconf
 db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
 db_properties=/etc/xroad/db.properties
 
-
 die () {
     echo >&2 "$@"
     exit 1
 }
 
-
-chmod 0440 /etc/sudoers.d/xroad-proxy
-
-chown xroad:xroad /etc/xroad/backup.d/??_xroad-proxy
-chmod 0440 /etc/xroad/backup.d/??_xroad-proxy
+#parameters:
+#1 file_path
+#2 old_section
+#3 old_key
+#4 new_section
+#5 new_key
+function migrate_conf_value {
+    MIGRATION_VALUE="$(crudini --get "$1" "$2" "$3" 2>/dev/null || true)"
+    if [ "${MIGRATION_VALUE}" ];
+        then
+            crudini --set "$1" "$4" "$5" "${MIGRATION_VALUE}"
+            echo Configuration migration: "$2"."$3" "->" "$4"."$5"
+            crudini --del "$1" "$2" "$3"
+    fi
+}
 
 case "$1" in
  configure)
+  chmod 0440 /etc/sudoers.d/xroad-proxy
+  chown xroad:xroad /etc/xroad/backup.d/??_xroad-proxy
+  chmod 0440 /etc/xroad/backup.d/??_xroad-proxy
 
-  test -d /var/spool/xroad && test -w /var/spool/xroad || mkdir /var/spool/xroad ; chown xroad:xroad /var/spool/xroad
-  test -d /var/cache/xroad && test -w /var/cache/xroad || mkdir /var/cache/xroad ; chown xroad:xroad /var/cache/xroad
-  test -d /etc/xroad/globalconf && test -w /etc/xroad/globalconf || mkdir /etc/xroad/globalconf ; chown xroad:xroad  /etc/xroad/globalconf
+  mkdir -p /var/spool/xroad; chown xroad:xroad /var/spool/xroad
+  mkdir -p /var/cache/xroad; chown xroad:xroad /var/cache/xroad
+  mkdir -p /etc/xroad/globalconf; chown xroad:xroad  /etc/xroad/globalconf
   chown -h xroad:xroad /etc/xroad/conf.d/jetty-logback-context-name.xml
 
-  test -f /etc/authbind/byport/80 && test -f /etc/authbind/byport/443 || touch /etc/authbind/byport/80; touch /etc/authbind/byport/443; chown xroad /etc/authbind/byport/80; chown xroad /etc/authbind/byport/443; chmod 500 /etc/authbind/byport/80; chmod 500 /etc/authbind/byport/443
+  if [ -d /etc/authbind/byport ]; then
+    test -f /etc/authbind/byport/80 && test -f /etc/authbind/byport/443 || touch /etc/authbind/byport/80; touch /etc/authbind/byport/443; chown xroad /etc/authbind/byport/80; chown xroad /etc/authbind/byport/443; chmod 500 /etc/authbind/byport/80; chmod 500 /etc/authbind/byport/443
+  fi
 
   test -e /etc/nginx/sites-enabled/clientproxy && rm /etc/nginx/sites-enabled/clientproxy
   test -e /etc/nginx/sites-enabled/clientproxy-ssl && rm /etc/nginx/sites-enabled/clientproxy-ssl
-
-
 
   #is database connection configured?
   if  [[ -f ${db_properties}  && `crudini --get ${db_properties} '' serverconf.hibernate.connection.url` != "" ]]
@@ -131,6 +140,21 @@ case "$1" in
       adduser $AUSER $groupname
   done
 
+  #migrating possible local configuration for modified configuration values (for version 6.17.0)
+  migrate_conf_value /etc/xroad/conf.d/local.ini proxy ocsp-cache-path signer ocsp-cache-path
+  migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy signer enforce-token-pin-policy
+
+  db_stop
+
+  service rsyslog restart || true
+
+  #workaround for buggy nginx installation
+  /usr/sbin/nginx -s stop || true
+  service nginx restart || true
+
+  service xroad-confclient restart || true
+  service xroad-jetty restart || true
+  service xroad-signer restart || true
  ;;
 
  abort-upgrade|abort-remove|abort-deconfigure)
@@ -141,38 +165,6 @@ case "$1" in
     exit 1
  ;;
 esac
-
-#parameters:
-#1 file_path
-#2 old_section
-#3 old_key
-#4 new_section
-#5 new_key
-function migrate_conf_value {
-    MIGRATION_VALUE="$(crudini --get "$1" "$2" "$3" 2>/dev/null || true)"
-    if [ "${MIGRATION_VALUE}" ];
-        then
-            crudini --set "$1" "$4" "$5" "${MIGRATION_VALUE}"
-            echo Configuration migration: "$2"."$3" "->" "$4"."$5"
-            crudini --del "$1" "$2" "$3"
-    fi
-}
-
-#migrating possible local configuration for modified configuration values (for version 6.17.0)
-migrate_conf_value /etc/xroad/conf.d/local.ini proxy ocsp-cache-path signer ocsp-cache-path
-migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy signer enforce-token-pin-policy
-
-db_stop
-
-service rsyslog restart || true
-
-#workaround for buggy nginx installation
-/usr/sbin/nginx -s stop || true
-service nginx restart || true
-
-service xroad-confclient restart || true
-service xroad-jetty restart || true
-service xroad-signer restart || true
 
 #DEBHELPER#
 exit 0
