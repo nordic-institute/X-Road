@@ -58,12 +58,15 @@ public class SslClientCipherSuiteSetupError extends SslMessageTestCase {
      */
     @Override
     public void execute() throws Exception {
-        // Set not accepted cipher in use
-        System.setProperty(propertyName, getNotAcceptedCipher(origCipherSuites));
-        // execute test
-        super.execute();
-        // Restore cipher suite setup for rest of the tests
-        System.setProperty(propertyName, String.join(",", origCipherSuites));
+        try {
+            // Set not accepted cipher in use
+            System.setProperty(propertyName, getNotAcceptedCipher(origCipherSuites));
+            // execute test
+            super.execute();
+        } finally {
+            // Restore cipher suite setup for rest of the tests
+            System.setProperty(propertyName, String.join(",", origCipherSuites));
+        }
     }
 
     /**
