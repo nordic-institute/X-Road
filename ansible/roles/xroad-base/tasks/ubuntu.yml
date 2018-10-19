@@ -19,16 +19,29 @@
     - apt-utils
     - net-tools
 
-- name: install apt repo key
+- name: install trusty apt repo key
   apt_key:
-    url: "{{ubuntu_apt_key}}"
+    url: "{{ubuntu_14_apt_key}}"
     state: present
-  when: package_source == "remote"
+  when: package_source == "remote" and ubuntu_releasever == "trusty"
 
-- name: xroad apt repository
-  apt_repository:
-    repo: "{{ubuntu_apt_repo}}"
+- name: install bionic apt repo key
+  apt_key:
+    url: "{{ubuntu_18_apt_key}}"
     state: present
+  when: package_source == "remote" and ubuntu_releasever == "bionic"
+
+- name: xroad trusty apt repository
+  apt_repository:
+    repo: "{{ubuntu_14_apt_repo}}"
+    state: present
+  when: ubuntu_releasever == "trusty"
+
+- name: xroad bionic apt repository
+  apt_repository:
+    repo: "{{ubuntu_18_apt_repo}}"
+    state: present
+  when: ubuntu_releasever == "bionic"
 
 # ppa doesn't work with debian, only ubuntu
 - name: openjdk and nginx repositories
