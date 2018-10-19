@@ -8,6 +8,12 @@
   apt:
     update_cache: yes
 
+- name: ensure that acl utilities is installed
+  # see https://docs.ansible.com/ansible/become.html#becoming-an-unprivileged-user
+  package:
+      name: acl
+      state: present
+
 - name: install packages
   apt:
     name: "{{ item }}"
