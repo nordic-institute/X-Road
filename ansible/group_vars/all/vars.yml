@@ -1,4 +1,4 @@
 ---
 #controls lxd versions, if changed, check epel version and repo urls
 centos_releasever: 7
-ubuntu_releasever: trusty
+ubuntu_releasever: bionic

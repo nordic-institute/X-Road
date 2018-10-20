@@ -33,7 +33,7 @@
 
 - name: copy root user directories
   copy:
-    src: files/{{ item }}
+    src: common-files/{{ item }}
     dest: /
     group: "root"
     owner: "root"
@@ -41,9 +41,29 @@
     - "etc"
     - "usr"
 
+- name: copy root user directories for trusty
+  copy:
+    src: trusty-files/{{ item }}
+    dest: /
+    group: "root"
+    owner: "root"
+  with_items:
+    - "etc"
+  when: ubuntu_releasever == "trusty"
+
+- name: copy root user directories for bionic
+  copy:
+    src: bionic-files/{{ item }}
+    dest: /
+    group: "root"
+    owner: "root"
+  with_items:
+    - "lib"
+  when: ubuntu_releasever == "bionic"
+
 - name: copy ca group directories
   copy:
-    src: files/{{ item }}
+    src: common-files/{{ item }}
     dest: /home
     group: "ca"
     owner: "ca"
@@ -121,8 +141,10 @@
   service:
     name: ocsp
     state: restarted
+    enabled: yes
 
 - name: restart tsa
   service:
     name: tsa
     state: restarted
+    enabled: yes

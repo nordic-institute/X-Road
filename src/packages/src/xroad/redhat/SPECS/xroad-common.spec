@@ -10,12 +10,11 @@ Release:    %{rel}%{?snapshot}%{?dist}
 Summary:    X-Road shared components
 Group:      Applications/Internet
 License:    MIT
-Requires:   xroad-base = %version-%release, xroad-nginx = %version-%release, xroad-confclient = %version-%release, xroad-signer = %version-%release
 
 %define src %{_topdir}/..
 
 %description
-Meta-package for X-Road shared components and utilities
+Obsolete meta-package for X-Road shared components and utilities. To be removed in future versions.
 
 %prep
 

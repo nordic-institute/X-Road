@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 function builddeb {
     local root="$1"
     local dist="$2"
