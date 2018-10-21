@@ -168,6 +168,8 @@ To install the X-Road security server software on *RHEL7* operating system, foll
         sudo yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
         sudo yum-config-manager --add-repo ...
 
+    The following packages are fetched from EPEL: `crudini`, `rlwrap` ja `nginx`.
+
 2.  Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 
         sudo rpm --import https://artifactory.niis.org/api/gpg/key/public
