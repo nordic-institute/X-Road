@@ -163,10 +163,10 @@ Requirements to software and settings:
 
 To install the X-Road security server software on *RHEL7* operating system, follow these steps.
 
-1.  Add X-Road package repository (**reference data: 1.1**) and Extra Packages for Enterprise Linux (EPEL):
+1.  Add X-Road package repository (**reference data: 1.1**) and Extra Packages for Enterprise Linux (EPEL) repository:
 
         sudo yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-        sudo yum-config-manager --add-repo ...
+        sudo yum-config-manager --add-repo https://artifactory.niis.org/xroad-release-rpm/rhel/7/current
 
     The following packages are fetched from EPEL: `crudini`, `rlwrap` ja `nginx`.
 
