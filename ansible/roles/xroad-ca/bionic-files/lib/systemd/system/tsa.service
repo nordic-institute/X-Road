@@ -4,8 +4,6 @@ After=network.target
 
 [Service]
 PermissionsStartOnly=true
-ExecStartPre=/bin/mkdir -p -m0755 /var/run/xroad
-ExecStartPre=/bin/chown xroad:xroad /var/run/xroad
 User=ocsp
 Group=ca
 ExecStart=/usr/bin/python /home/ca/TSA/tsa_server.py
