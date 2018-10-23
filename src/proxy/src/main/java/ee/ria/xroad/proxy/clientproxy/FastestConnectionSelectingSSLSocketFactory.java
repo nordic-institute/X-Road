@@ -27,6 +27,7 @@ package ee.ria.xroad.proxy.clientproxy;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.proxy.clientproxy.FastestSocketSelector.SocketInfo;
 
 import com.google.common.cache.Cache;
@@ -167,6 +168,7 @@ class FastestConnectionSelectingSSLSocketFactory
 
     @Override
     protected void prepareSocket(final SSLSocket socket) throws IOException {
+        socket.setEnabledProtocols(new String[]{CryptoUtils.SSL_PROTOCOL});
         socket.setEnabledCipherSuites(SystemProperties.getXroadTLSCipherSuites());
     }
 
