@@ -176,8 +176,8 @@ public class ClientProxy implements StartStop {
     }
 
     private static SSLConnectionSocketFactory createSSLSocketFactory() throws Exception {
-        return new FastestConnectionSelectingSSLSocketFactory(SSLContextUtil.createXroadSSLContext(),
-                SystemProperties.getXroadTLSCipherSuites());
+        return new FastestConnectionSelectingSSLSocketFactory(SSLContextUtil.createXroadSSLContext()
+        );
     }
 
     private void createConnectors() throws Exception {

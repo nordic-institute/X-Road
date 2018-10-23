@@ -30,6 +30,7 @@ import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.logging.RequestLogImplFixLogback1052;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonHttpClient;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.StartStop;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.antidos.AntiDosConnector;
@@ -219,6 +220,7 @@ public class ServerProxy implements StartStop {
     private static ServerConnector createClientProxySslConnector(Server server) throws Exception {
         SslContextFactory cf = new SslContextFactory(false);
         cf.setNeedClientAuth(true);
+        cf.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);
         cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
