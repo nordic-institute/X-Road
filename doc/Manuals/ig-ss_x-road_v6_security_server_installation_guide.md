@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.13  
+Version: 2.14  
 Doc. ID: IG-SS
 
 ---
@@ -38,7 +38,8 @@ Doc. ID: IG-SS
  05.03.2018 | 2.11    | Added terms and abbreviations reference and document links | Tatu Repo
  10.04.2018 | 2.12    | Updated chapter "[Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)" with configurable parameters described in the configuration file 'devices.ini' | Cybernetica AS
  14.10.2018 | 2.13    | Update package repository address | Petteri Kivimäki
- 
+ 23.10.2018 | 2.14    | Add RHEL7 as supported platform, update section 2.2 Reference data | Petteri Kivimäki
+  
 ## Table of Contents
 
 <!-- toc -->
@@ -101,6 +102,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 The security server runs on the following platforms:
 
 * Ubuntu Server 14.04 Long-Term Support (LTS) operating system on a 64-bit platform. The security server software is distributed as .deb packages through the official X-Road repository at https://artifactory.niis.org/xroad-release-deb/
+* Red Hat Enterprise Linux 7 (RHEL7) operating system. See [IG-SS-RHEL7](ig-ss_x-road_v6_security_server_installation_guide_for_rhel7.md) for more information.
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
@@ -122,6 +124,7 @@ The software can be installed both on physical and virtualized hardware (of the 
  &nbsp; | TCP 5577                                | Port for inbound connections (from the external network to the security server)<br> Querying of OCSP responses between security servers
  &nbsp; | TCP 2080                                | Port for inbound connections (from the external network to the security server)<br> Message exchange between security server and operational data monitoring daemon (by default on localhost)
  &nbsp; | TCP 9011                                | Port for inbound connections (from the external network to the security server)<br> Operational data monitoring daemon JMX listening port
+ &nbsp; | TCP 9999                                | Port for inbound connections (from the external network to the security server)<br> Environmental monitoring daemon JMX listening port
  1.5  | TCP 5500                                  | Ports for outbound connections (from the security server to the external network)<br> Message exchange between security servers
  &nbsp; | TCP 5577                                | Ports for outbound connections (from the security server to the external network)<br> Querying of OCSP responses between security servers
  &nbsp; | TCP 4001                                | Ports for outbound connections (from the security server to the external network)<br> Communication with the central server
@@ -134,7 +137,6 @@ The software can be installed both on physical and virtualized hardware (of the 
  1.9  |                                           | Security server public IP address, NAT address
  1.10 | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the user interface TLS certificate
  1.11 | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the services TLS certificate
- 1.12 | TCP 2552                                  | Port for communications between `xroad-proxy` and `xroad-monitoring` processes
 
 
 ### 2.3 Requirements for the Security Server

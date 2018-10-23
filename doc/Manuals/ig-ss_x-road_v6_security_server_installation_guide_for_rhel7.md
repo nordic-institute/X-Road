@@ -76,6 +76,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 The security server runs on the following platforms:
 
 * Red Hat Enterprise Linux 7 (RHEL7) operating system on a 64-bit platform. The security server software is distributed as .rpm packages through the official X-Road repository at https://artifactory.niis.org/xroad-release-rpm/
+* Ubuntu Server 14.04 Long-Term Support (LTS) operating system. See [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md) for more information.
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
@@ -97,6 +98,7 @@ The software can be installed both on physical and virtualized hardware (of the 
  &nbsp; | TCP 5577                                | Port for inbound connections (from the external network to the security server)<br> Querying of OCSP responses between security servers
  &nbsp; | TCP 2080                                | Port for inbound connections (from the external network to the security server)<br> Message exchange between security server and operational data monitoring daemon (by default on localhost)
  &nbsp; | TCP 9011                                | Port for inbound connections (from the external network to the security server)<br> Operational data monitoring daemon JMX listening port
+  &nbsp; | TCP 9999                                | Port for inbound connections (from the external network to the security server)<br> Environmental monitoring daemon JMX listening port
  1.5  | TCP 5500                                  | Ports for outbound connections (from the security server to the external network)<br> Message exchange between security servers
  &nbsp; | TCP 5577                                | Ports for outbound connections (from the security server to the external network)<br> Querying of OCSP responses between security servers
  &nbsp; | TCP 4001                                | Ports for outbound connections (from the security server to the external network)<br> Communication with the central server
@@ -107,9 +109,6 @@ The software can be installed both on physical and virtualized hardware (of the 
  &nbsp; | TCP 8443                                | Information system access points (in the local network)<br> Connections from information systems
  1.8  |                                           | Security server internal IP address(es) and hostname(s)
  1.9  |                                           | Security server public IP address, NAT address
- 1.10 | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the user interface TLS certificate
- 1.11 | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the services TLS certificate
- 1.12 | TCP 2552                                  | Port for communications between `xroad-proxy` and `xroad-monitoring` processes
 
 
 ### 2.3 Requirements for the Security Server
