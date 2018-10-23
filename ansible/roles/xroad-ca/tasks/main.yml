@@ -7,6 +7,12 @@
     msg: "This playbook only supports Ubuntu"
   when: ansible_os_family != "Debian"
 
+- name: ensure that acl utilities is installed
+  # see https://docs.ansible.com/ansible/become.html#becoming-an-unprivileged-user
+  package:
+      name: acl
+      state: present
+
 - name: nginx-light
   apt: name=nginx-light state=present
 
@@ -49,7 +55,7 @@
     owner: "root"
   with_items:
     - "etc"
-  when: ubuntu_releasever == "trusty"
+  when: ansible_distribution_release == 'trusty'
 
 - name: copy root user directories for bionic
   copy:
@@ -59,7 +65,7 @@
     owner: "root"
   with_items:
     - "lib"
-  when: ubuntu_releasever == "bionic"
+  when: ansible_distribution_release == 'bionic'
 
 - name: copy ca group directories
   copy:
