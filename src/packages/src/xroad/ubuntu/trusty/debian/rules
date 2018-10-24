@@ -25,3 +25,5 @@ override_dh_strip_nondeterminism:
 override_dh_compress:
 	dh_compress --exclude=examples
 
+override_dh_strip:
+	dh_strip --no-ddebs
