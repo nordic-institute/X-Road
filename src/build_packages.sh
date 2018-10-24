@@ -10,7 +10,7 @@ if command -v docker &>/dev/null; then
     docker build -q -t xroad-rpm $XROAD/packages/docker/rpm
 
     docker run --rm -v $XROAD/..:/workspace -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -u $(id -u):$(id -g) -e HOME=/workspace/src/packages xroad-deb-bionic /workspace/src/packages/build-deb.sh bionic
-    docker run --rm -v $XROAD/..:/workspace -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -u $(id -u):$(id -g) -e HOME=/workspace/src/packages xroad-deb-bionic /workspace/src/packages/build-deb.sh trusty
+    docker run --rm -v $XROAD/..:/workspace -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -u $(id -u):$(id -g) -e HOME=/workspace/src/packages xroad-deb-trusty /workspace/src/packages/build-deb.sh trusty
     docker run --rm -v $XROAD/..:/workspace -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -u $(id -u):$(id -g) -e HOME=/workspace/src/packages xroad-rpm /workspace/src/packages/build-rpm.sh
 else
     echo "Docker not installed, building only .deb packages for this distribution"
