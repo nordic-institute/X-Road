@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.32  
+Version: 2.34  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -43,6 +43,7 @@ Doc. ID: UG-SYSPAR
 | 06.04.2018 | 2.31     | Removed TLSv1.1 support (client-side interfaces for incoming request) and TLS SHA-1 ciphers from default ciphers list. | Kristo Heero |
 | 18.08.2018 | 2.32     | Added new parameter *ocsp-retry-delay* | Petteri Kivimäki |
 | 08.10.2018 | 2.33     | Added new parameter *xroad-tls-ciphers* | Henri Haapakanni |
+| 25.10.2018 | 2.34     | Update note regarding supported cipher suites on RHEL 7 | Petteri Kivimäki |
 
 ## Table of Contents
 
@@ -416,4 +417,4 @@ TLS_DHE_RSA_WITH_AES_256_CBC_SHA256
 
 > (see [*https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider*](https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider) for possible values)
 >
-> Note. OpenJDK 8 on RHEL 7 does not support ECDHE key agreement protocol, only DHE cipher suites are supported.
+> Note. OpenJDK 8 on RHEL 7 supports ECDHE key agreement protocol starting from RHEL 7.3. In RHEL 7 versions prior to RHEL 7.3 only DHE cipher suites are supported.
