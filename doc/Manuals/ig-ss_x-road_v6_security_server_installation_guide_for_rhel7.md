@@ -173,15 +173,19 @@ To install the X-Road security server software on *RHEL7* operating system, foll
 
         sudo rpm --import https://artifactory.niis.org/api/gpg/key/public
 
-3.  Issue the following commands to install the security server packages (use package xroad-securityserver-ee to include configuration specific to Estonia; use package xroad-securityserver-fi to include configuration specific to Finland):
+3.  Issue the following command to install the security server packages (use package xroad-securityserver-ee to include configuration specific to Estonia; use package xroad-securityserver-fi to include configuration specific to Finland):
 
         sudo yum install xroad-securityserver
 
 4. Add system user (**reference data: 1.3**) whom all roles in the user interface are granted to. Add a new user with the command
    
-        xroad-add-admin-user <username>
+        sudo xroad-add-admin-user <username>
    
    User roles are discussed in detail in X-Road Security Server User Guide \[[UG-SS](#Ref_UG-SS)\].
+
+5. Once the installation is completed, start the security server
+
+        sudo systemctl start xroad-proxy
 
 
 ### 2.6 Post-Installation Checks
