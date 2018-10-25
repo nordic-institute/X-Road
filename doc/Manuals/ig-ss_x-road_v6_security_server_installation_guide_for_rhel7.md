@@ -16,7 +16,7 @@ Doc. ID: IG-SS-RHEL7
 
  Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
- 21.10.2018 | 1.0     | Initial version                                                 | Petteri Kivimäki
+ 25.10.2018 | 1.0     | Initial version                                                 | Petteri Kivimäki
  
 ## Table of Contents
 
@@ -75,7 +75,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 The security server runs on the following platforms:
 
-* Red Hat Enterprise Linux 7 (RHEL7) operating system on a 64-bit platform. The security server software is distributed as .rpm packages through the official X-Road repository at https://artifactory.niis.org/xroad-release-rpm/
+* Red Hat Enterprise Linux 7.3 (RHEL7) or newer operating system on a 64-bit platform. The security server software is distributed as .rpm packages through the official X-Road repository at https://artifactory.niis.org/xroad-release-rpm/
 * Ubuntu Server 14.04 Long-Term Support (LTS) operating system. See [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md) for more information.
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
@@ -90,7 +90,7 @@ The software can be installed both on physical and virtualized hardware (of the 
 
  **Ref** |                                        | **Explanation**
  ------ | --------------------------------------- | ----------------------------------------------------------
- 1.0    | RHEL7, 64-bit<br>2 CPU, 4 GB RAM, 10 GB free disk space | Minimum requirements
+ 1.0    | RHEL7 (v7.3 or newer), 64-bit<br>2 CPU, 4 GB RAM, 10 GB free disk space | Minimum requirements
  1.1    | https://artifactory.niis.org/xroad-release-rpm               | X-Road package repository
  1.2    | https://artifactory.niis.org/api/gpg/key/public | The repository key
  1.3    |                                         | Account name in the user interface
@@ -131,7 +131,7 @@ Minimum recommended hardware parameters:
 
 Requirements to software and settings:
 
--   an installed and configured RHEL7 x86-64 operating system;
+-   an installed and configured RHEL7 (v7.3 or newer) x86-64 operating system;
 
 -   if the security server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the security server are allowed (**reference data: 1.4; 1.5; 1.6; 1.7**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
 

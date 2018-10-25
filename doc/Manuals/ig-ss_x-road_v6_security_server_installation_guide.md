@@ -38,7 +38,7 @@ Doc. ID: IG-SS
  05.03.2018 | 2.11    | Added terms and abbreviations reference and document links | Tatu Repo
  10.04.2018 | 2.12    | Updated chapter "[Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)" with configurable parameters described in the configuration file 'devices.ini' | Cybernetica AS
  14.10.2018 | 2.13    | Update package repository address | Petteri Kivimäki
- 23.10.2018 | 2.14    | Add RHEL7 as supported platform, update section 2.2 Reference data | Petteri Kivimäki
+ 25.10.2018 | 2.14    | Add RHEL7 as supported platform, update section 2.2 Reference data | Petteri Kivimäki
   
 ## Table of Contents
 
@@ -102,7 +102,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 The security server runs on the following platforms:
 
 * Ubuntu Server 14.04 Long-Term Support (LTS) operating system on a 64-bit platform. The security server software is distributed as .deb packages through the official X-Road repository at https://artifactory.niis.org/xroad-release-deb/
-* Red Hat Enterprise Linux 7 (RHEL7) operating system. See [IG-SS-RHEL7](ig-ss_x-road_v6_security_server_installation_guide_for_rhel7.md) for more information.
+* Red Hat Enterprise Linux 7.3 (RHEL7) or newer operating system. See [IG-SS-RHEL7](ig-ss_x-road_v6_security_server_installation_guide_for_rhel7.md) for more information.
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
