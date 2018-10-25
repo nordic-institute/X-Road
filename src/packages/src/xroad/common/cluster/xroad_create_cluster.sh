@@ -366,10 +366,8 @@ _install_postgres() {
   output "\n$node: Installing PostgreSQL 9.4 with BDR support"
   ssh $SSH_OPTIONS root@$this_node <<EOF
 $REMOTE_SCRIPT_PREFIX
-echo "deb http://packages.2ndquadrant.com/bdr/apt/ trusty-2ndquadrant main" > /etc/apt/sources.list.d/bdr.list
-echo "deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main" >> /etc/apt/sources.list.d/bdr.list
-wget --quiet -O - http://packages.2ndquadrant.com/bdr/apt/AA7A6805.asc | apt-key add -
-wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+echo "deb https://apt.2ndquadrant.com/ $(lsb_release -cs)-2ndquadrant main" > /etc/apt/sources.list.d/bdr.list
+wget --quiet -O - https://apt.2ndquadrant.com/site/keys/9904CD4BD6BAF0C3.asc | apt-key add -
 apt-get update
 $APT_GET_INSTALL postgresql-bdr-9.4-bdr-plugin
 EOF
