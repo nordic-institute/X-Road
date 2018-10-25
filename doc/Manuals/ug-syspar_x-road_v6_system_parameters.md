@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.34  
+Version: 2.35  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -43,7 +43,8 @@ Doc. ID: UG-SYSPAR
 | 06.04.2018 | 2.31     | Removed TLSv1.1 support (client-side interfaces for incoming request) and TLS SHA-1 ciphers from default ciphers list. | Kristo Heero |
 | 18.08.2018 | 2.32     | Added new parameter *ocsp-retry-delay* | Petteri Kivimäki |
 | 08.10.2018 | 2.33     | Added new parameter *xroad-tls-ciphers* | Henri Haapakanni |
-| 25.10.2018 | 2.34     | Update note regarding supported cipher suites on RHEL 7 | Petteri Kivimäki |
+| 18.10.2018 | 2.34     | Default value of the parameter *signer.client-timeout* set to 60000 | Petteri Kivimäki |
+| 25.10.2018 | 2.35     | Update note regarding supported cipher suites on RHEL 7 | Petteri Kivimäki |
 
 ## Table of Contents
 
@@ -247,7 +248,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 |--------------------------------------------------|--------------------------------------------|----------------------|----------------------|-----------------|
 | ocsp-cache-path                                  | /var/cache/xroad                           |   |   | Absolute path to the directory where the cached OCSP responses are stored. |
 | enforce-token-pin-policy                         | false                                      | true |   | Controls enforcing the token pin policy. When set to true, software token pin is required to be at least 10 ASCII characters from at least tree character classes (lowercase letters, uppercase letters, digits, special characters). (since version 6.7.7) |
-| client-timeout                                   | 15000                                      |   |   | Signing timeout in milliseconds. |
+| client-timeout                                   | 60000                                      |   |   | Signing timeout in milliseconds. |
 | device-configuration-file                        | /etc/xroad/signer/devices.ini              |   |   | Absolute filename of the configuration file of the signature creation devices. |
 | key-configuration-file                           | /etc/xroad/signer/keyconf.xml              |   |   | Absolute filename of the configuration file containing signature and authentication keys and certificates. |
 | port                                             | 5556                                       |   |   | TCP port on which the signer process listens. |

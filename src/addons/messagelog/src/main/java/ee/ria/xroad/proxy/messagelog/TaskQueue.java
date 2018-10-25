@@ -86,6 +86,13 @@ public class TaskQueue extends UntypedActor {
         } finally {
             if (succeeded) {
                 indicateSuccess();
+                // If time-stamped records count equals to time-stamp records limit, there are probably
+                // still records to be time-stamped. Init another another time-stamping round to prevent
+                // messagelog records to begin to bloat.
+                if (message.getMessageRecords().length == MessageLogProperties.getTimestampRecordsLimit()) {
+                    log.info("Time-stamped records count equaled to time-stamp records limit");
+                    handleStartTimestamping();
+                }
             } else {
                 indicateFailure();
             }
@@ -146,7 +153,7 @@ public class TaskQueue extends UntypedActor {
         int timestampTasksSize = timestampTasks.size();
 
         log.info("Start time-stamping {} message records", timestampTasksSize);
-        
+
         if (timestampTasksSize / (double) MessageLogProperties.getTimestampRecordsLimit()
                 >= TIMESTAMPED_RECORDS_RATIO_THRESHOLD) {
             log.warn("Number of time-stamped records is over {} % of 'timestamp-records-limit' value",

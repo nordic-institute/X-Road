@@ -169,6 +169,33 @@ public class MessageLogTest extends AbstractMessageLogTest {
     }
 
     /**
+     * Test for system property timestamp-records-limit
+     */
+    @Test
+    public void testTimestampRecordsLimit() throws Exception {
+        log.trace("testTimestampRecordsLimit()");
+        int orig = MessageLogProperties.getTimestampRecordsLimit();
+        try {
+            System.setProperty(MessageLogProperties.TIMESTAMP_RECORDS_LIMIT, "2");
+            log(createMessage(), createSignature());
+            log(createMessage(), createSignature());
+            log(createMessage(), createSignature());
+            log(createMessage(), createSignature());
+            log(createMessage(), createSignature());
+            assertTaskQueueSize(5);
+
+            startTimestamping();
+
+            TimestampSucceeded timestamp = waitForTimestampSuccessful();
+            assertTrue(TestTaskQueue.waitForTimestampSaved());
+
+            assertEquals(2, timestamp.getMessageRecords().length);
+        } finally {
+            System.setProperty(MessageLogProperties.TIMESTAMP_RECORDS_LIMIT, String.valueOf(orig));
+        }
+    }
+
+    /**
      * Timestamps message immediately. No messages are expected to be in the task queue.
      * @throws Exception in case of any unexpected errors
      */

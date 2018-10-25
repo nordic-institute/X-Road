@@ -27,6 +27,7 @@ package ee.ria.xroad.proxy.clientproxy;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.proxy.clientproxy.FastestSocketSelector.SocketInfo;
 
 import com.google.common.cache.Cache;
@@ -85,9 +86,8 @@ class FastestConnectionSelectingSSLSocketFactory
     private final Cache<CacheKey, URI> selectedHosts;
     private final boolean cachingEnabled;
 
-    FastestConnectionSelectingSSLSocketFactory(SSLContext sslContext,
-                                               String[] supportedCipherSuites) {
-        super(sslContext, null, supportedCipherSuites, (HostnameVerifier) null);
+    FastestConnectionSelectingSSLSocketFactory(SSLContext sslContext) {
+        super(sslContext, null, SystemProperties.getXroadTLSCipherSuites(), (HostnameVerifier) null);
         this.socketfactory = sslContext.getSocketFactory();
         this.selectedHosts = CacheBuilder.newBuilder()
                 .expireAfterWrite(SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod(), TimeUnit.SECONDS)
@@ -164,6 +164,12 @@ class FastestConnectionSelectingSSLSocketFactory
         }
 
         return sslSocket;
+    }
+
+    @Override
+    protected void prepareSocket(final SSLSocket socket) throws IOException {
+        socket.setEnabledProtocols(new String[]{CryptoUtils.SSL_PROTOCOL});
+        socket.setEnabledCipherSuites(SystemProperties.getXroadTLSCipherSuites());
     }
 
     private static void updateOpMonitoringData(HttpContext context,
