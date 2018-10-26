@@ -44,7 +44,7 @@ Doc. ID: UG-SYSPAR
 | 18.08.2018 | 2.32     | Added new parameter *ocsp-retry-delay* | Petteri Kivimäki |
 | 08.10.2018 | 2.33     | Added new parameter *xroad-tls-ciphers* | Henri Haapakanni |
 | 18.10.2018 | 2.34     | Default value of the parameter *signer.client-timeout* set to 60000 | Petteri Kivimäki |
-| 26.08.2018 | 2.35     | Added new parameter *module-manager-update-interval* | Petteri Kivimäki |
+| 26.10.2018 | 2.35     | Added new parameter *module-manager-update-interval* | Petteri Kivimäki |
 
 ## Table of Contents
 
