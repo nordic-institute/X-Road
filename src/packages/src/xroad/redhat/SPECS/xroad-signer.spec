@@ -135,8 +135,6 @@ fi
 # remove default-signature-algorithm
 crudini --del ${local_ini} common default-signature-algorithm 2>/dev/null || :
 
-#enable xroad services by default
-echo 'enable xroad-*.service' > %{_presetdir}/90-xroad.preset
 %systemd_post xroad-signer.service
 
 %preun
