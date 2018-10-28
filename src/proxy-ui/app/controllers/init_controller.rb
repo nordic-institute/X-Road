@@ -42,14 +42,12 @@ class InitController < ApplicationController
   skip_before_filter :check_conf, :read_server_id, :read_owner_name
 
   def index
+    authorize!(:init_config)
+
     if request.xhr?
       # come back without ajax
       render_redirect(root_path, "common.initialization_required")
       return
-    end
-
-    if cannot?(:init_config)
-      raise t('init.not_authorized')
     end
 
     if initialized?
