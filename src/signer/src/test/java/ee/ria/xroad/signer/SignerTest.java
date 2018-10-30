@@ -37,15 +37,24 @@ public class SignerTest {
 
     @Test
     public void testModuleManagerUpdateIntervalProperty() {
+        // Get default value
+        int defaultValue = Integer.parseInt(SystemProperties.DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL);
+
         // Test for default value
-        assertEquals(SystemProperties.SIGNER_MODULE_MANAGER_UPDATE_INTERVAL + " should be 60", 60,
+        assertEquals(SystemProperties.SIGNER_MODULE_MANAGER_UPDATE_INTERVAL + " should be "
+                        + SystemProperties.DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL,
+                defaultValue,
                 SystemProperties.getModuleManagerUpdateInterval());
 
-        // Set value to 300
-        System.setProperty(SystemProperties.SIGNER_MODULE_MANAGER_UPDATE_INTERVAL, "300");
+        // Increase default value by one
+        int newValue = defaultValue + 1;
+
+        // Set value to default + 1
+        System.setProperty(SystemProperties.SIGNER_MODULE_MANAGER_UPDATE_INTERVAL, Integer.toString(newValue));
 
         // Test for the new value
-        assertEquals(SystemProperties.SIGNER_MODULE_MANAGER_UPDATE_INTERVAL + " should be 300", 300,
+        assertEquals(SystemProperties.SIGNER_MODULE_MANAGER_UPDATE_INTERVAL + " should be " + newValue,
+                newValue,
                 SystemProperties.getModuleManagerUpdateInterval());
     }
 }

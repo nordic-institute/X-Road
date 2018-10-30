@@ -329,7 +329,7 @@ public final class SystemProperties {
     public static final String SIGNER_MODULE_MANAGER_UPDATE_INTERVAL =
             PREFIX + "signer.module-manager-update-interval";
 
-    private static final String DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL = "60";
+    public static final String DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL = "60";
 
     // AntiDos ----------------------------------------------------------------
 
