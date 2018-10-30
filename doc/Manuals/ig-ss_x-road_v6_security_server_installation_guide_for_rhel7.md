@@ -125,9 +125,7 @@ Minimum recommended hardware parameters:
 
 -   10 GB free disk space (OS partition), 20-40 GB free disk space (`/var` partition);
 
--   a 100 Mbps network interface card;
-
--   if necessary, interfaces for the use of hardware tokens.
+-   a 100 Mbps network interface card.
 
 Requirements to software and settings:
 
@@ -143,6 +141,10 @@ Requirements to software and settings:
 -   Set the operating system locale. Add following line to the `/etc/environment` file.
 
         LC_ALL=en_US.UTF-8
+
+-   Install `yum-utils`, a collection of utilities that integrate with yum to extend its native features.
+
+        sudo yum install yum-utils
 
 -   If `/tmp` directory is mounted using `noexec` switch, the admin UI does not start, because it uses `/tmp` directory. 
     Check is `/tmp` directory mounted using `noexec` switch:
