@@ -272,28 +272,16 @@ If the configuration is successfully downloaded, the system asks for the followi
 
 ### 4.1 UI Does Not Respond or Returns an Error Message
 
--    Check is IPv6 enabled. Open `/etc/sysctl.conf` file using your favourite text editor and check is the value of the below properties set to `0`:
+-    Open `/etc/xroad/nginx/default-xroad.conf` file using your favourite text editor.
 
-         # disable IPv6
-         net.ipv6.conf.all.disable_ipv6 = 0
-         net.ipv6.conf.default.disable_ipv6 = 0
-         net.ipv6.conf.lo.disable_ipv6 = 0
+     Change the following line:
 
-     If yes, set the value of the properties to `1`:
-
-         # disable IPv6
-         net.ipv6.conf.all.disable_ipv6 = 1
-         net.ipv6.conf.default.disable_ipv6 = 1
-         net.ipv6.conf.lo.disable_ipv6 = 1
+         proxy pass http://localhost:8083
      
-     Save the changes and make them effective running the command:
+     to
      
-         sysctl -p
-         
-     Open Nginx's default configuration (`/etc/nginx/nginx.conf`) and remove or comment out line #40:
+         proxy pass http://127.0.0.1:8083
      
-         # listen        [::}:80 default_server;
-         
      Save the changes and restart Nginx:
-     
+    
          systemctl restart nginx
