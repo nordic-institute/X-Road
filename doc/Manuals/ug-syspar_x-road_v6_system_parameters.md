@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.35  
+Version: 2.36  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -45,6 +45,7 @@ Doc. ID: UG-SYSPAR
 | 08.10.2018 | 2.33     | Added new parameter *xroad-tls-ciphers* | Henri Haapakanni |
 | 18.10.2018 | 2.34     | Default value of the parameter *signer.client-timeout* set to 60000 | Petteri Kivimäki |
 | 25.10.2018 | 2.35     | Update note regarding supported cipher suites on RHEL 7 | Petteri Kivimäki |
+| 26.10.2018 | 2.36     | Added new parameter *module-manager-update-interval* | Petteri Kivimäki |
 
 ## Table of Contents
 
@@ -255,6 +256,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 | key-length                                       | 2048                                       |   |   | Key length for generating authentication and signing keys (since version 6.7) |
 | csr-signature-digest-algorithm                   | SHA-256                                    |   |   | Certificate Signing Request signature digest algorithm.<br/>Possible values are<br/>-   SHA-256,<br/>-   SHA-384,<br/>-   SHA-512. |
 | ocsp-retry-delay                                 | 60                                         |   |   | OCSP retry delay for signer when fetching OCSP responses fail. After failing to fetch OCSP responses signer waits for the time period defined by "ocsp-retry-delay" before trying again. This is repeated until fetching OCSP responses succeeds. After successfully fetching OCSP responses signer returns to normal OCSP refresh schedule defined by "ocspFetchInterval". If the value of "ocsp-retry-delay" is higher than "ocspFetchInterval", the value of "ocspFetchInterval" is used as OCSP retry delay. |
+| module-manager-update-interval                   | 60                                         |   |   | HSM module manager update interval in seconds. |          
 
 ### 3.5 Anti-DOS parameters: `[anti-dos]`
 
