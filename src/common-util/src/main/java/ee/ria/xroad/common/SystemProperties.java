@@ -326,6 +326,11 @@ public final class SystemProperties {
 
     private static final String DEFAULT_SIGNER_OCSP_RETRY_DELAY = "60";
 
+    public static final String SIGNER_MODULE_MANAGER_UPDATE_INTERVAL =
+            PREFIX + "signer.module-manager-update-interval";
+
+    public static final String DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL = "60";
+
     // AntiDos ----------------------------------------------------------------
 
     /** Property name of the AntiDos on/off switch */
@@ -811,6 +816,15 @@ public final class SystemProperties {
     public static int getOcspResponseRetryDelay() {
         return Integer.parseInt(System.getProperty(SIGNER_OCSP_RETRY_DELAY,
                 DEFAULT_SIGNER_OCSP_RETRY_DELAY));
+    }
+
+    /**
+     * @return the module manager update interval in seconds that should be set for signer, 60 by default
+     *
+     */
+    public static int getModuleManagerUpdateInterval() {
+        return Integer.parseInt(System.getProperty(SIGNER_MODULE_MANAGER_UPDATE_INTERVAL,
+                DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL));
     }
 
     /**
