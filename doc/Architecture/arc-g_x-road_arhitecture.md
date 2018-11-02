@@ -69,6 +69,7 @@ Doc. ID: ARC-G
   * [3.14 Operational Monitoring JMX](#314-operational-monitoring-jmx)
   * [3.15 Environmental Monitoring Protocol](#315-environmental-monitoring-protocol)
   * [3.16 Environmental Monitoring JMX](#316-environmental-monitoring-jmx)
+  * [3.17 Environmental Monitoring Query](#317-environmental-monitoring-query)
 - [4 Deployment View](#4-deployment-view)
 
 <!-- tocstop -->
