@@ -198,7 +198,16 @@ Should the verification fail, the reason for failure will be presented to the us
     Loading configuration from verificationconf/... 
     Verifying ASiC container "abc12345-request-1ab2c3d4f5.asice" ... 
     Verification failed: Certificate is not issued by approved certification service provider.
+    
+    Would you like to extract the signed files? (y/n) y
+    Created file message.xml
+    Files successfully extracted.
 
+In case of verification failure, the asicverifier tool will optionally extract the signed files to the working directory.
+
+Notice that when `messagelog.soap-body-logging` property is set to `false`, the verification always fails with the error message:
+
+    Verification failed: Signature is not valid
 
 ### 3.2 Verification Configuration
 
