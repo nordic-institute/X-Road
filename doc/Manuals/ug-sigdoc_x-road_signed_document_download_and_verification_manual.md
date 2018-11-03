@@ -143,9 +143,9 @@ The *asic* service responds with the HTTP error code and plain text error messag
 
 Verification of signed documents is done by the asicverifier utility tool. The tool is written in the Java programming language and therefore requires Java 8 Runtime Environment (JRE) to be installed on the user's workstation. On Unix-like operating systems the JRE can be installed using package management software or downloaded from the Oracle website.
 
-The asicverifier utility can be download from URL:
+The asicverifier utility is shipped with security server and it is located in the following directory:
 
-    http://x-road.eu/packages/asicverifier-1.0.jar
+    /usr/share/xroad/jlib/asicverifier-1.0.jar
 
 
 ### 3.1 Usage
