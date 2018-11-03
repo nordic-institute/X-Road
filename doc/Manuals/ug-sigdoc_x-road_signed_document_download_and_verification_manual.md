@@ -60,7 +60,7 @@ This document describes the retrieving and verification process of the signed an
 
 ### 1.1 References
 
-1.	[PR-SIGDOC]	Freudenthal, M. Profile for High-Perfomance Digital Signature. T-4-23, 2015.
+1.	[PR-SIGDOC]	Freudenthal, M. Profile for High-Perfomance Digital Signature. T-4-23, 2015. <https://cyber.ee/research/reports/>
 
 
 ## 2 Signed Document Download Service
