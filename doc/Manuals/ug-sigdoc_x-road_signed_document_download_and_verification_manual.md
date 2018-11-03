@@ -35,14 +35,14 @@ Doc. ID: UG-SIGDOC
 - [1 Introduction](#1-introduction)
   * [1.1 References](#11-references)
 - [2 Signed Document Download Service](#2-signed-document-download-service)
-  * [2.1 Retrieving Signed Documents of the Entire Transaction](#2.1-retrieving-signed-documents-of-the-entire-transaction)
-  * [2.2 Retrieving a Single Signed Document](#2.2-retrieving-a-single-signed-document)
-  * [2.3 Forcing Missing Timestamps To Be Created](#2.3-forcing-missing-timestamps-to-be-created)
-  * [2.4 Authentication](#2.4-authentication)
-  * [2.5 Error Conditions](#2.5-error-conditions)
+  * [2.1 Retrieving Signed Documents of the Entire Transaction](#21-retrieving-signed-documents-of-the-entire-transaction)
+  * [2.2 Retrieving a Single Signed Document](#22-retrieving-a-single-signed-document)
+  * [2.3 Forcing Missing Timestamps To Be Created](#23-forcing-missing-timestamps-to-be-created)
+  * [2.4 Authentication](#24-authentication)
+  * [2.5 Error Conditions](#25-error-conditions)
 - [3 Signed Document Verification Tool](#3-signed-document-verification-tool)
-  * [3.1 Usage](#3.1-usage)
-  * [3.2 Verification Configuration](#3.2-verification-configuration)
+  * [3.1 Usage](#31-usage)
+  * [3.2 Verification Configuration](#32-verification-configuration)
   
 <!-- tocstop -->
 
@@ -69,9 +69,9 @@ The security server offers the asic web service for downloading its signed docum
 
     http://SECURITYSERVER/asic
 
-where `SECURITYSERVER is the actual address of the security server.
+where `SECURITYSERVER` is the actual address of the security server.
 
-Signed documents are available via the service until they are archived and removed from the message log database (by default 30 days). This time period is configurable in the security server (parameter keep-records-for in the configuration file /etc/xroad/conf.d/addons/message-log.ini`).
+Signed documents are available via the service until they are archived and removed from the message log database (by default 30 days). This time period is configurable in the security server (parameter keep-records-for in the configuration file `/etc/xroad/conf.d/addons/message-log.ini`).
 
 
 ### 2.1 Retrieving Signed Documents of the Entire Transaction
@@ -86,7 +86,7 @@ The service requires the identifier of the corresponding message and the X-Road 
 
 Thus, in order to retrieve the signed document for a message with transaction identifier *abc12345* exchanged by security server *sec1.gov* by client *EE/ENT/CLIENT1/SUB*, the request URL is
 
-    http://sec1.gov/asic?&queryId=abc12345	&xRoadInstance=EE&memberClass=ENT&memberCode=CLIENT1&subsystemCode=SUB
+    http://sec1.gov/asic?queryId=abc12345&xRoadInstance=EE&memberClass=ENT&memberCode=CLIENT1&subsystemCode=SUB
 
 If a message with the given identifier was indeed exchanged by the security server and by the specified client, the server would respond with a ZIP archive (content-type `application/zip`, filename `queryId.zip`), which contains signed documents for all requests and responses that match the specified parameters.
 
@@ -113,11 +113,11 @@ If the security server was configured to timestamp messages asynchronously it ma
 
 If this behavior is not desired the following parameter can be used:
 
-* `force – specifies that the timestamping procedure should be executed explicitly in case any of the requested document signatures have no associated timestamps.
+* `force` – specifies that the timestamping procedure should be executed explicitly in case any of the requested document signatures have no associated timestamps.
 
 Thus, in order to retrieve the signed document for a message with transaction identifier *abc12345* exchanged by the security server *sec1.gov* by the client *EE/ENT/CLIENT1/SUB* and force any missing timestamps to be created, the request URL is
 
-    http://sec1.gov/asic?&queryId=abc12345	&xRoadInstance=EE&memberClass=ENT&memberCode=CLIENT1&subsystemCode=SUB&force
+    http://sec1.gov/asic?queryId=abc12345&xRoadInstance=EE&memberClass=ENT&memberCode=CLIENT1&subsystemCode=SUB&force
 
 Should there be no working time-stamping provider available to the security server, the signed document retrieval service will respond with the error message "Failed to get timestamp from any time-stamping providers".
 
