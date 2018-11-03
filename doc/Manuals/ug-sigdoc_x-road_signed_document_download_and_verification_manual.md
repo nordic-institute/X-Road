@@ -25,7 +25,7 @@ Doc. ID: UG-SIGDOC
  25.09.2015 | 1.2     | „Forcing missing timestamps” added  | Ilja Kromonov
  15.02.2016 | 1.3     | Parameter subsystemCode is mandatory also  | Kristo Heero
  02.05.2016 | 1.4     | Signed documents are available by default 30 days.  | Kristo Heero
- 03.11.2018 | 1.5     | Convert from Word to Markdown.  | Petteri Kivimäki
+ 03.11.2018 | 1.5     | Convert from Word to Markdown. Asicverifier supports extracting messages when verification fails | Petteri Kivimäki
 
 ## Table of Contents
 
