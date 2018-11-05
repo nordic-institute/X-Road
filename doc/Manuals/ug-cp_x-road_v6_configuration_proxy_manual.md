@@ -4,7 +4,7 @@
 
 # X-Road: Configuration Proxy Manual
 
-Version: 2.3  
+Version: 2.4  
 Doc. ID: UG-CP
 
 ## Version History
@@ -21,6 +21,7 @@ Doc. ID: UG-CP
 | 07.06.2017 | 2.1     | System parameter *signature-algorithm-id* replaced with *signature-digest-algorithm-id* | Cybernetica AS |
 | 05.03.2018 | 2.2     | Added references, terms and abbreviations reference, document link | Tatu Repo |
 | 10.04.2018 | 2.3     | Updated chapter "[Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)" with configurable parameters described in the configuration file 'devices.ini' | Cybernetica AS |
+| 14.10.2018 | 2.4    | Update package repository address | Petteri Kivimäki |
 
 ## Table of Contents
 
@@ -84,7 +85,7 @@ The configuration proxy can be configured to mediate several global configuratio
 
 ### 2.1 Supported Platforms
 
-The configuration proxy runs on the *Ubuntu Server 14.04 Long-Term Support (LTS)* operating system on a 64-bit platform. The configuration proxy's software is distributed as .deb packages through the official X-Road repository at [http://x-road.eu](http://x-road.eu/).
+The configuration proxy runs on the *Ubuntu Server 14.04 Long-Term Support (LTS)* operating system on a 64-bit platform. The configuration proxy's software is distributed as .deb packages through the official X-Road repository at [https://artifactory.niis.org/xroad-release-deb](https://artifactory.niis.org/xroad-release-deb).
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
@@ -98,8 +99,8 @@ The software can be installed both on physical and virtualized hardware (of the 
 | Ref  |                                          | Explanation                |
 |------|------------------------------------------|----------------------------|
 | 1.0  | Ubuntu 14.04, 64bit<br>2GB RAM, 3GB free disk space | Minimum requirements. |
-| 1.1  | http://x-road.eu/packages                | X-Road package repository.  |
-| 1.2  | http://x-road.eu/packages/xroad_repo.gpg | The repository’s key.       |
+| 1.1  | https://artifactory.niis.org/xroad-release-deb | X-Road package repository.  |
+| 1.2  | https://artifactory.niis.org/api/gpg/key/public | The repository’s key.       |
 | 1.3  | TCP 80                                   | Global configuration distribution.<br>Ports for inbound connections (from the external network to the configuration proxy). |
 | 1.4  | TCP 80                                   | Global configuration download.<br>Ports for outbound connections (from the configuration proxy to the external network). |
 | 1.5  |                                          | Configuration proxy’s public IP address, NAT address. |
@@ -134,24 +135,20 @@ LC_ALL=en_US.UTF-8
 
 To install the X-Road configuration proxy software, follow these steps.
 
-1. Add to */etc/apt/sources.list* the address of X-Road package repository (reference data: 1.1) and the nginx repository:
-```bash  
-deb http://x-road.eu/packages trusty main
-deb http://ppa.launchpad.net/nginx/stable/ubuntu trusty main
-deb http://ppa.launchpad.net/openjdk-r/ppa/ubuntu trusty main
-```
+1. Add the X-Road package repository (reference data: 1.1), and the nginx and opendjdk repositories:
+   
+           sudo apt-add-repository -y ppa:openjdk-r/ppa
+           sudo apt-add-repository -y ppa:nginx/stable
+           sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb trusty-current main"
+           
 2. Add the X-Road repository’s signing key to the list of trusted keys (reference data: 1.2):
-```bash
-curl http://x-road.eu/packages/xroad_repo.gpg | sudo apt-key add -
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 00A6F0A3C300EE8C
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EB9B1D8886F44E2A
-```
-3.  Issue the following commands to install the configuration proxy packages:
-```bash
-sudo apt-get update
-sudo apt-get install xroad-confproxy
-```
 
+            curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+
+3.  Issue the following commands to install the configuration proxy packages:
+
+            sudo apt-get update
+            sudo apt-get install xroad-confproxy
 
 ### 2.6 Post-Installation Checks
 

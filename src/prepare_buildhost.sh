@@ -13,7 +13,7 @@ if [ $REL -lt 16 ]; then
     sudo apt-get update
 fi
 
-sudo apt-get install -y openjdk-8-jdk-headless build-essential git unzip debhelper
+sudo apt-get install -y openjdk-8-jdk-headless build-essential git unzip debhelper devscripts
 sudo update-ca-certificates -f
 
 cd ~

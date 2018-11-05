@@ -154,6 +154,9 @@ public final class SystemProperties {
     private static final String PROXY_CLIENT_TLS_CIPHERS =
             PREFIX + "proxy.client-tls-ciphers";
 
+    /** Property name of the ClientProxy HTTPS client and ServerProxy HTTPS connector supported TLS cipher suites */
+    private static final String PROXY_XROAD_TLS_CIPHERS = PREFIX + "proxy.xroad-tls-ciphers";
+
     private static final String SIGNER_ENFORCE_TOKEN_PIN_POLICY =
             PREFIX + "signer.enforce-token-pin-policy";
 
@@ -322,6 +325,11 @@ public final class SystemProperties {
             PREFIX + "signer.ocsp-retry-delay";
 
     private static final String DEFAULT_SIGNER_OCSP_RETRY_DELAY = "60";
+
+    public static final String SIGNER_MODULE_MANAGER_UPDATE_INTERVAL =
+            PREFIX + "signer.module-manager-update-interval";
+
+    public static final String DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL = "60";
 
     // AntiDos ----------------------------------------------------------------
 
@@ -811,6 +819,15 @@ public final class SystemProperties {
     }
 
     /**
+     * @return the module manager update interval in seconds that should be set for signer, 60 by default
+     *
+     */
+    public static int getModuleManagerUpdateInterval() {
+        return Integer.parseInt(System.getProperty(SIGNER_MODULE_MANAGER_UPDATE_INTERVAL,
+                DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL));
+    }
+
+    /**
      * @return the HTTP port on which the configuration client is listening, '5665' by default.
      */
     public static int getConfigurationClientPort() {
@@ -1143,12 +1160,24 @@ public final class SystemProperties {
             + "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384";
 
     /**
-     * Get proxy client's TLS cipher suites.
+     * Get proxy client's accepted TLS cipher suites (between is and ss).
      *
      * @return cipher suites.
      */
     public static String[] getProxyClientTLSCipherSuites() {
         return System.getProperty(PROXY_CLIENT_TLS_CIPHERS, DEFAULT_CLIENT_SSL_CIPHER_SUITES).split(",");
+    }
+
+    private static final String DEFAULT_XROAD_SSL_CIPHER_SUITES = "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,"
+            + "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256";
+
+    /**
+     * Get X-Road accepted TLS cipher suites (between ss and ss).
+     *
+     * @return cipher suites.
+     */
+    public static String[] getXroadTLSCipherSuites() {
+        return System.getProperty(PROXY_XROAD_TLS_CIPHERS, DEFAULT_XROAD_SSL_CIPHER_SUITES).split(",");
     }
 
     /**

@@ -54,7 +54,7 @@ public class SslSelectFastestProxy extends SslMessageTestCase {
         GlobalConf.reload(new TestGlobalConf() {
             @Override
             public Collection<String> getProviderAddress(ClientId provider) {
-                return Arrays.asList("127.0.0.42", "localhost", "1.0.0.1");
+                return Arrays.asList("127.0.0.42", "localhost", "server.invalid");
             }
         });
     }

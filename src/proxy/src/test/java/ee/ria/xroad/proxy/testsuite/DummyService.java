@@ -24,6 +24,7 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -100,7 +101,7 @@ class DummyService extends Server implements StartStop {
         SslContextFactory cf = new SslContextFactory(false);
         cf.setNeedClientAuth(true);
 
-        cf.setIncludeCipherSuites(CryptoUtils.getINCLUDED_CIPHER_SUITES());
+        cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
         cf.setSessionCachingEnabled(true);
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);

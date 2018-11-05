@@ -71,7 +71,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
     @Override
     public void handle(String target, Request baseRequest,
             HttpServletRequest request, HttpServletResponse response)
-            throws IOException, ServletException {
+                    throws IOException, ServletException {
         if (baseRequest.isHandled()) {
             // If some handler already processed the request, we do nothing.
             return;
@@ -160,11 +160,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
             OpMonitoringData opMonitoringData) {
         updateOpMonitoringSucceeded(opMonitoringData);
 
-        MonitorAgent.success(
-                processor.createRequestMessageInfo(),
-                new Date(start),
-                new Date()
-        );
+        MonitorAgent.success(processor.createRequestMessageInfo(), new Date(start), new Date());
     }
 
     protected void failure(MessageProcessorBase processor,
@@ -189,10 +185,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
 
     protected void failure(HttpServletResponse response,
             CodedExceptionWithHttpStatus e) throws IOException {
-        MonitorAgent.failure(null,
-                e.withPrefix(SERVER_CLIENTPROXY_X).getFaultCode(),
-                e.getFaultString()
-        );
+        MonitorAgent.failure(null, e.withPrefix(SERVER_CLIENTPROXY_X).getFaultCode(), e.getFaultString());
 
         sendPlainTextErrorResponse(response, e.getStatus(), e.getFaultString());
     }

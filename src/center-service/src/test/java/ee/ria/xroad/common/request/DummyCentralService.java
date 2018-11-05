@@ -25,6 +25,7 @@
 package ee.ria.xroad.common.request;
 
 import ee.ria.xroad.common.PortNumbers;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.StartStop;
 
@@ -91,7 +92,7 @@ public class DummyCentralService implements StartStop {
         SslContextFactory cf = new SslContextFactory(false);
         //cf.setNeedClientAuth(true);
 
-        cf.setIncludeCipherSuites(CryptoUtils.getINCLUDED_CIPHER_SUITES());
+        cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
         cf.setSessionCachingEnabled(true);
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
