@@ -53,6 +53,9 @@ public final class SystemProperties {
     /** Current version number of the global configuration **/
     public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 2;
 
+    /** Minimum supported version number of the global configuration **/
+    static final int MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION = 2;
+
     /** Default minimum supported global conf version on central server */
     public static final String DEFAULT_MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION = "2";
 
@@ -1355,11 +1358,16 @@ public final class SystemProperties {
      * @return minimum central server global configuration version or default
      */
     public static int getMinimumCentralServerGlobalConfigurationVersion() {
+        // read the setting
         int version = Integer.parseInt(System.getProperty(MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION,
                 DEFAULT_MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION));
+        // check that it is a valid looking version number
         checkVersionValidity(version, CURRENT_GLOBAL_CONFIGURATION_VERSION,
                 DEFAULT_MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION);
-
+        // ignore the versions that are no longer supported
+        if (version < MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION) {
+            version = MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION;
+        }
         return version;
     }
 
@@ -1368,12 +1376,17 @@ public final class SystemProperties {
      * @return minimum configuration proxy global configuration version or default
      */
     public static int getMinimumConfigurationProxyGlobalConfigurationVersion() {
+        // read the setting
         int version = Integer.parseInt(System.getProperty(
                 MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION,
                 DEFAULT_MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION));
+        // check that it is a valid looking version number
         checkVersionValidity(version, CURRENT_GLOBAL_CONFIGURATION_VERSION,
                 DEFAULT_MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION);
-
+        // ignore the versions that are no longer supported
+        if (version < MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION) {
+            version = MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION;
+        }
         return version;
     }
 
