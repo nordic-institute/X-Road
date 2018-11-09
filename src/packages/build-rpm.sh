@@ -9,8 +9,8 @@ if [[ $1 == "-release" ]] ; then
   CMD="bb"
 else
   RELEASE=0
-  DATE=$(date --utc --date @$(git show -s --format=%ct || date +%s) +'%Y%m%d%H%M%S')
-  HASH=$(git show -s --format=git%h || echo 'local')
+  DATE="$(date --utc --date @$(git show -s --format=%ct || date +%s) +'%Y%m%d%H%M%S')"
+  HASH="$(git show -s --format=git%h --abbrev=7 || echo 'local')"
   SNAPSHOT=.$DATE$HASH
   FILES=${1-'xroad-*.spec'}
   CMD=${2-bb}
