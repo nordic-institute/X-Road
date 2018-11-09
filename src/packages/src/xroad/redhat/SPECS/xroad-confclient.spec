@@ -92,8 +92,6 @@ chmod 0775 /var/lib/xroad
 chown -R xroad:xroad /etc/xroad/services/* /etc/xroad/conf.d/*
 chmod -R o=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
 
-#enable xroad services by default
-echo 'enable xroad-*.service' > %{_presetdir}/90-xroad.preset
 %systemd_post xroad-confclient.service
 
 %preun
@@ -103,4 +101,3 @@ echo 'enable xroad-*.service' > %{_presetdir}/90-xroad.preset
 %systemd_postun_with_restart xroad-confclient.service
 
 %changelog
-
