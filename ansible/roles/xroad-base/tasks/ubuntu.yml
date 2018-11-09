@@ -2,23 +2,21 @@
 - name: Update all packages to the latest version
   apt:
     force: yes
-    upgrade: dist
-
-- name: "update apt cache"
-  apt:
+    upgrade: full
     update_cache: yes
 
 - name: install packages
   apt:
-    name: "{{ item }}"
+    name: "{{ items }}"
     state: present
-  with_items:
-    - git
-    - curl
-    - apt-transport-https
-    - apt-utils
-    - net-tools
-    - acl # see https://docs.ansible.com/ansible/become.html#becoming-an-unprivileged-user
+  vars:
+    items:
+      - acl
+      - git
+      - curl
+      - apt-transport-https
+      - apt-utils
+      - net-tools
 
 - name: install trusty apt repo key
   apt_key:
@@ -44,7 +42,6 @@
     state: present
   when: ansible_distribution_release == "bionic"
 
-# ppa doesn't work with debian, only ubuntu
 - name: openjdk and nginx repositories
   apt_repository:
     repo: "ppa:{{ item }}"

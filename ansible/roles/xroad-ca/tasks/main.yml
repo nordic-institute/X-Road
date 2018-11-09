@@ -1,8 +1,5 @@
-- name: show OS version
-  debug:
-    msg: "OS = {{ ansible_os_family }} "
-
-- name: check that OS = Redhat
+---
+- name: check that OS != Redhat
   fail:
     msg: "This playbook only supports Ubuntu"
   when: ansible_os_family != "Debian"
@@ -10,8 +7,8 @@
 - name: ensure that acl utilities is installed
   # see https://docs.ansible.com/ansible/become.html#becoming-an-unprivileged-user
   package:
-      name: acl
-      state: present
+    name: acl
+    state: present
 
 - name: nginx-light
   apt: name=nginx-light state=present

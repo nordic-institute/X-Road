@@ -1,5 +1,4 @@
 ---
-
 - name: makecache for repo (assume yes) (RHEL)
   command: yum -y makecache
   args:
