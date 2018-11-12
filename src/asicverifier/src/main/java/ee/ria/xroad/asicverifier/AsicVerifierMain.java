@@ -47,6 +47,7 @@ public final class AsicVerifierMain {
 
     /**
      * Main program entry point.
+     *
      * @param args program arguments
      * @throws Exception in case of errors
      */
@@ -83,13 +84,14 @@ public final class AsicVerifierMain {
     private static void verifyAsic(String fileName) {
         System.out.println("Verifying ASiC container \"" + fileName + "\" ...");
 
+        AsicContainerVerifier verifier = null;
         try {
-            AsicContainerVerifier verifier = new AsicContainerVerifier(fileName);
+            verifier = new AsicContainerVerifier(fileName);
             verifier.verify();
 
             onVerificationSucceeded(verifier);
         } catch (Exception e) {
-            onVerificationFailed(e);
+            onVerificationFailed(e, verifier);
         }
     }
 
@@ -98,6 +100,25 @@ public final class AsicVerifierMain {
             AsicContainerVerifier verifier) throws IOException {
         System.out.println(AsicUtils.buildSuccessOutput(verifier));
 
+        extractMessage(verifier);
+    }
+
+    private static void onVerificationFailed(
+            Throwable cause, AsicContainerVerifier verifier) {
+        System.err.println(AsicUtils.buildFailureOutput(cause));
+
+        // Message cannot be extracted if "verifier" is null
+        if (verifier != null) {
+            try {
+                extractMessage(verifier);
+            } catch (Exception e) {
+                System.err.println("Unable to extract message: " + e);
+            }
+        }
+    }
+
+    private static void extractMessage(
+            AsicContainerVerifier verifier) throws IOException {
         System.out.print("\nWould you like to extract the signed files? (y/n) ");
 
         if ("y".equalsIgnoreCase(new Scanner(System.in).nextLine())) {
@@ -106,10 +127,6 @@ public final class AsicVerifierMain {
 
             System.out.println("Files successfully extracted.");
         }
-    }
-
-    private static void onVerificationFailed(Throwable cause) {
-        System.err.println(AsicUtils.buildFailureOutput(cause));
     }
 
     private static void writeToFile(String fileName, String contents) throws IOException {
