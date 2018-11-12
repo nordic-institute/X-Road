@@ -135,7 +135,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 14. <a id="Ref_TSP" class="anchor"></a>\[TSP\] Internet X.509 Public Key Infrastructure Time-Stamp Protocol (TSP). Intenet Engineering Task Force, RFC 3161, 2001.
 
-15. <a id="Ref_UG-SIGDOC" class="anchor"></a>\[UG-SIGDOC\] Cybernetica AS. X-Road: Signed Document Download and Verification Manual. Document ID: [UG-SIGDOC](../Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual_1.4.1_Y-883-21.docx).
+15. <a id="Ref_UG-SIGDOC" class="anchor"></a>\[UG-SIGDOC\] Cybernetica AS. X-Road: Signed Document Download and Verification Manual. Document ID: [UG-SIGDOC](../Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual.md).
 
 16. <a id="Ref_UC-MESS" class="anchor"></a>\[UC-MESS\] Cybernetica AS. X-Road: Member Communication Use Case Model. Document ID: [UC-MESS](../UseCases/uc-mess_x-road_member_communication_use_case_model.md).
 

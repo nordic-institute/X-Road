@@ -81,9 +81,9 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1.  <a id="Ref_BATCH" class="anchor"></a>\[BATCH\] Freudenthal, M. Using Batch Hashing for Signing and Time-Stamping. Cybernetica Research Reports, T-4-20, 2013. <http://cyber.ee/en/research/publications/research-reports/>
+1.  <a id="Ref_BATCH" class="anchor"></a>\[BATCH\] Freudenthal, M. Using Batch Hashing for Signing and Time-Stamping. Cybernetica Research Reports, T-4-20, 2013. <https://cyber.ee/research/reports/>
 
-2.  <a id="Ref_HPDS" class="anchor"></a>\[HPDS\] Freudenthal, M. Profile for High-Perfomance Digital Signature. T-4-23, 2015. <http://cyber.ee/en/research/publications/research-reports/>
+2.  <a id="Ref_HPDS" class="anchor"></a>\[HPDS\] Freudenthal, M. Profile for High-Perfomance Digital Signature. T-4-23, 2015. <https://cyber.ee/research/reports/>
 
 3.  <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Message Protocol v4.0. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md).
 
