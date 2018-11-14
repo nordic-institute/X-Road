@@ -1,15 +1,30 @@
 ---
-- name: setup sync service
-  template:
-      src: "xroad-sync.conf.j2"
-      dest: "/etc/init/xroad-sync.conf"
+- name: setup sync service (trusty)
+  block:
+    - template:
+        src: "xroad-sync.conf.j2"
+        dest: "/etc/init/xroad-sync.conf"
+    - copy:
+        src: "xroad-sync-wait.conf"
+        dest: "/etc/init/xroad-sync-wait.conf"
+    - copy:
+        src: "xroad_slave_sync"
+        dest: /etc/cron.d/xroad_slave_sync
+  when: ansible_distribution_release == "trusty"
 
-- name: setup sync wait helper
-  copy:
-      src: "xroad-sync-wait.conf"
-      dest: "/etc/init/xroad-sync-wait.conf"
-
-- name: setup cron job
-  copy:
-      src: "xroad_slave_sync"
-      dest: /etc/cron.d/xroad_slave_sync
+- name: setup sync service (bionic)
+  block:
+    - template:
+        src: "xroad-sync.service.j2"
+        dest: "/etc/systemd/system/xroad-sync.service"
+    - copy:
+        src: "xroad-sync.timer"
+        dest: "/etc/systemd/system/xroad-sync.timer"
+    - service:
+        name: "{{ item }}"
+        enabled: yes
+        state: started
+      with_items:
+        - xroad-sync.service
+        - xroad-sync.timer
+  when: ansible_distribution_release == "bionic"

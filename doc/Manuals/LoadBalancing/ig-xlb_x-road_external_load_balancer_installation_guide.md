@@ -502,7 +502,7 @@ systemctl enable postgresql-serverconf
 ```bash
 sudo -u postgres pg_createcluster -p 5433 9.3 serverconf
 ```
-In the above command, `9.3` is the postgresql version. Use `pg_lsclusters` to find out what version(s) are available.
+In the above command, `9.3` is the postgresql major version. Use `pg_lsclusters` to find out what version(s) are available.
 
 
 **PostgreSQL configuration location:**
@@ -914,8 +914,15 @@ The steps are in more detail below, but in short, the procedure is:
     following command:
 
     ```bash
+    # PostgreSQL version < 10
     sudo -u postgres psql -p 5433 -c 'select pg_xlog_replay_pause();'
     ```
+
+    ```bash
+    # PostgreSQL version >= 10
+    sudo -u postgres psql -p 5433 -c 'select pg_wal_replay_pause();'
+    ```
+
 2. Disable the configuration synchronization on the slave nodes:
     ```
     sudo -u xroad touch /var/tmp/xroad/sync-disabled
@@ -978,7 +985,12 @@ Repeat this process for each slave node, one by one.
 
 3. Enable database synchronization on the slave:
    ```
+   #PostgreSQL version < 10
    sudo -u postgres psql -p 5433 -c 'select pg_xlog_replay_resume()'
+   ```
+   ```
+   #PostgreSQL version >= 10
+   sudo -u postgres psql -p 5433 -c 'select pg_wal_replay_resume()'
    ```
    Note that the above command assumes that the `serverconf` database is running in port `5433`.
 
@@ -1002,7 +1014,12 @@ Repeat this process for each slave node, one by one.
 
    **Note:** Before proceeding, make sure that the database is up to date. The following should return `t`:
    ```
+   #PostgreSQL < 10
    sudo -u postgres psql -p 5433 -c 'select pg_last_xlog_replay_location() = pg_last_xlog_receive_location()'
+   ```
+   ```
+   #PostgreSQL >= 10
+   sudo -u postgres psql -p 5433 -c 'select pg_last_wal_replay_lsn() = pg_last_wal_receive_lsn()'
    ```
 6. Upgrade the packages on the slave node to the new software version.
 
