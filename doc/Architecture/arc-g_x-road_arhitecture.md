@@ -29,8 +29,9 @@ Doc. ID: ARC-G
  16.12.2015 | 1.3     | Add environmental monitoring                                    | Ilkka Seppälä
  20.12.2016 | 1.4     | Added operational monitoring                                    | Kristo Heero
  20.02.2017 | 1.5     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
- 21.12.2017 | 1.6     | Matrix of technologies moved to arc-x-road_technologies.md and chapters reordered | Antti Luoma 
+ 21.12.2017 | 1.6     | Matrix of technologies moved to arc-x-road_technologies.md and chapters reordered | Antti Luoma
  02.03.2018 | 1.7     | Moved terms and abbreviations into the terms document, added terms reference and document links | Tatu Repo
+ 02.11.2018 | 1.8     | Described environmental monitoring daemon and its interfaces | Ilkka Seppälä
 
 ## Table of Contents
 
@@ -50,6 +51,7 @@ Doc. ID: ARC-G
   * [2.5 Certification Authority](#25-certification-authority)
   * [2.6 Configuration Proxy](#26-configuration-proxy)
   * [2.7 Operational Monitoring Daemon](#27-operational-monitoring-daemon)
+  * [2.8 Environmental Monitoring Daemon](#28-environmental-monitoring-daemon)
 - [3 Protocols and Interfaces](#3-protocols-and-interfaces)
   * [3.1 X-Road Message Protocol](#31-x-road-message-protocol)
   * [3.2 Protocol for Downloading Configuration](#32-protocol-for-downloading-configuration)
@@ -67,6 +69,7 @@ Doc. ID: ARC-G
   * [3.14 Operational Monitoring JMX](#314-operational-monitoring-jmx)
   * [3.15 Environmental Monitoring Protocol](#315-environmental-monitoring-protocol)
   * [3.16 Environmental Monitoring JMX](#316-environmental-monitoring-jmx)
+  * [3.17 Environmental Monitoring Query](#317-environmental-monitoring-query)
 - [4 Deployment View](#4-deployment-view)
 
 <!-- tocstop -->
@@ -232,6 +235,11 @@ The configuration proxy (see \[[ARC-CP](#Ref_ARC-CP)\] for details) implements b
 The main functionality of the operational monitoring daemon (see \[[ARC-OPMOND](#Ref_ARC-OPMOND)\] for details) is to collect and store operational data of the X-Road security server and make it available for external monitoring systems via corresponding interfaces.
 
 
+### 2.8 Environmental Monitoring Daemon
+
+The environmental monitoring daemon (see \[[ARC-ENVMON](#Ref_ARC-ENVMON)\] for details) gathers information about the security server's operating environment and makes it available for external monitoring systems via corresponding interfaces.
+
+
 ## 3 Protocols and Interfaces
 
 
@@ -363,6 +371,11 @@ The environmental monitoring interface responds to queries for monitoring enviro
 ### 3.16 Environmental Monitoring JMX
 
 The environmental monitoring JMX service publishes environmental monitoring data via JMX interface. The environmental monitoring data is collected by environmental monitoring service.
+
+
+### 3.17 Environmental Monitoring Query
+
+The environmental monitoring query interface is used by the X-Road security server to retrieve environmental monitoring data from the environmental monitoring daemon.
 
 
 ## 4 Deployment View
