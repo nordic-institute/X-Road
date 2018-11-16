@@ -141,7 +141,7 @@ The nodes must meet all the requirements listed in the X-Road Central Server Ins
 
 -   Root (sudo) level access to all the nodes to install authorized SSH public key for the root user.
 
--   Key-based SSH access to each node for the root user. This is the default SSH server setting in Ubuntu 14.04. If the servers have a different setting, back up the configuration of the SSH server before starting to configure the cluster.
+-   Key-based SSH access to each node for the root user. This is the default SSH server setting in Ubuntu. If the servers have a different setting, back up the configuration of the SSH server before starting to configure the cluster.
 
 -   Open ports between nodes:
 

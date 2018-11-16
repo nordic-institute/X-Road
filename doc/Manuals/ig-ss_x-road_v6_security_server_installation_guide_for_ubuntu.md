@@ -2,11 +2,11 @@
 | ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
 | -------------------------: |
 
-# Security Server Installation Guide
+# Security Server Installation Guide for Ubuntu
 
 **X-ROAD 6**
 
-Version: 2.14  
+Version: 2.15  
 Doc. ID: IG-SS
 
 ---
@@ -39,6 +39,7 @@ Doc. ID: IG-SS
  10.04.2018 | 2.12    | Updated chapter "[Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)" with configurable parameters described in the configuration file 'devices.ini' | Cybernetica AS
  14.10.2018 | 2.13    | Update package repository address | Petteri Kivimäki
  25.10.2018 | 2.14    | Add RHEL7 as supported platform, update section 2.2 Reference data | Petteri Kivimäki
+ 15.11.2018 | 2.15    | Add Ubuntu 18 installation instructions | Jarkko Hyöty
   
 ## Table of Contents
 
@@ -101,7 +102,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 The security server runs on the following platforms:
 
-* Ubuntu Server 14.04 Long-Term Support (LTS) operating system on a 64-bit platform. The security server software is distributed as .deb packages through the official X-Road repository at https://artifactory.niis.org/xroad-release-deb/
+* Ubuntu Server 14.04 and 18.04 Long-Term Support (LTS) operating system on a 64-bit platform. The security server software is distributed as .deb packages through the official X-Road repository at https://artifactory.niis.org/xroad-release-deb/
 * Red Hat Enterprise Linux 7.3 (RHEL7) or newer operating system. See [IG-SS-RHEL7](ig-ss_x-road_v6_security_server_installation_guide_for_rhel7.md) for more information.
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
@@ -116,7 +117,7 @@ The software can be installed both on physical and virtualized hardware (of the 
 
  **Ref** |                                        | **Explanation**
  ------ | --------------------------------------- | ----------------------------------------------------------
- 1.0    | Ubuntu 14.04, 64-bit<br>3 GB RAM, 3 GB free disk space | Minimum requirements
+ 1.0    | Ubuntu 14.04 or 18.04, 64-bit<br>3 GB RAM, 3 GB free disk space | Minimum requirements
  1.1    | https://artifactory.niis.org/xroad-release-deb               | X-Road package repository
  1.2    | https://artifactory.niis.org/api/gpg/key/public | The repository key
  1.3    |                                         | Account name in the user interface
@@ -143,7 +144,7 @@ The software can be installed both on physical and virtualized hardware (of the 
 
 Minimum recommended hardware parameters:
 
--   the server’s hardware (motherboard, CPU, network interface cards, storage system) must be supported by Ubuntu 14.04 in general;
+-   the server’s hardware (motherboard, CPU, network interface cards, storage system) must be supported by Ubuntu in general;
 
 -   a 64-bit dual-core Intel, AMD or compatible CPU; AES instruction set support is highly recommended;
 
@@ -155,7 +156,7 @@ Minimum recommended hardware parameters:
 
 Requirements to software and settings:
 
--   an installed and configured Ubuntu 14.04 LTS x86-64 operating system;
+-   an installed and configured Ubuntu 14.04 or 18.04 LTS x86-64 operating system;
 
 -   if the security server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the security server are allowed (**reference data: 1.4; 1.5; 1.6; 1.7**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
 
@@ -166,7 +167,7 @@ Requirements to software and settings:
 
 -   Add system user (**reference data: 1.3**) whom all roles in the user interface are granted to. Add a new user with the command
 
-        sudo adduser username
+        sudo adduser <username>
 
     User roles are discussed in detail in X-Road Security Server User Guide \[[UG-SS](#Ref_UG-SS)\].
 
@@ -174,20 +175,27 @@ Requirements to software and settings:
 
         LC_ALL=en_US.UTF-8
 
+-   Ensure that the locale is available
+
+        sudo locale-gen en_US.UTF-8
+
 
 ### 2.5 Installation
 
-To install the X-Road security server software on *Ubuntu 14.04 LTS* operating system, follow these steps.
+To install the X-Road security server software on *Ubuntu* operating system, follow these steps.
 
-1.  Add X-Road package repository (**reference data: 1.1**), openjdk repository and nginx repository:
+1.  Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
+
+        curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+
+2.  Add X-Road package repository (**reference data: 1.1**)
+
+        sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
+
+    *Only Ubuntu 14.04 (trusty)*: Add OpenJDK and nginx repositories
 
         sudo apt-add-repository -y ppa:openjdk-r/ppa
         sudo apt-add-repository -y ppa:nginx/stable
-        sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb trusty-current main"
-
-2.  Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
-
-        curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
 
 3.  Issue the following commands to install the security server packages (use package xroad-securityserver-ee to include configuration specific to Estonia; use package xroad-securityserver-fi to include configuration specific to Finland):
 
@@ -227,15 +235,30 @@ The meta-package `xroad-securityserver` also installs metaservices module `xroad
 
 The installation is successful if system services are started and the user interface is responding.
 
--   Ensure from the command line that X-Road services are in the `start/running` state (example output follows):
+-   Ensure from the command line that X-Road services are in the `running` state (example output follows):
 
+    - Ubuntu 14.04
+        ```
         sudo initctl list | grep "^xroad-"
 
         xroad-jetty start/running, process 19796
         xroad-confclient start/running, process 19563
         xroad-signer start/running, process 19393
-        xroad-opmonitor start/running, process 20669
+        xroad-monitor start/running, process 20669
         xroad-proxy start/running, process 19580
+        ```
+
+    - Ubuntu 18.04
+        ```
+        sudo systemctl list-units "xroad*"
+
+        UNIT                     LOAD   ACTIVE SUB     DESCRIPTION
+        xroad-confclient.service loaded active running X-Road confclient
+        xroad-jetty.service      loaded active running X-Road Jetty server
+        xroad-monitor.service    loaded active running X-Road Monitor
+        xroad-proxy.service      loaded active running X-Road Proxy
+        xroad-signer.service     loaded active running X-Road signer
+        ```
 
 -   Ensure that the security server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display the “502 Bad Gateway” error.
 
@@ -431,6 +454,5 @@ Sometimes, after using `sudo apt-get upgrade` command, some of the packages are 
 
 `apt-get upgrade` command doesn’t install new packages - in this particular case new packages `xroad-monitor` and `xroad-addon-proxymonitor` installation is needed for upgrade of `xroad-securityserver` package.
 
-To be sure that packages are installed correctly please use `sudo apt upgrade` or `sudo apt-get dist-upgrade` commands.
+To be sure that packages are installed correctly please use `sudo apt upgrade` or `sudo apt full-upgrade` commands.
 
-Please note that `xroad-jetty9 package` version can be different from other packages’ versions.
