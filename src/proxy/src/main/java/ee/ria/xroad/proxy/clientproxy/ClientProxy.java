@@ -26,13 +26,11 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.db.HibernateUtil;
-import ee.ria.xroad.common.logging.RequestLogImplFixLogback1052;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.StartStop;
 import ee.ria.xroad.proxy.serverproxy.IdleConnectionMonitorThread;
 import ee.ria.xroad.proxy.util.SSLContextUtil;
 
-import ch.qos.logback.access.jetty.RequestLogImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.config.RequestConfig;
@@ -51,6 +49,7 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.Slf4jRequestLog;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
@@ -249,9 +248,9 @@ public class ClientProxy implements StartStop {
     private void createHandlers() throws Exception {
         log.trace("createHandlers()");
 
-        RequestLogImpl reqLog = new RequestLogImplFixLogback1052();
-        reqLog.setResource("/logback-access-clientproxy.xml");
-        reqLog.setQuiet(true);
+        final Slf4jRequestLog reqLog = new Slf4jRequestLog();
+        reqLog.setLoggerName(getClass().getPackage().getName() + ".RequestLog");
+        reqLog.setExtended(true);
 
         RequestLogHandler logHandler = new RequestLogHandler();
         logHandler.setRequestLog(reqLog);
