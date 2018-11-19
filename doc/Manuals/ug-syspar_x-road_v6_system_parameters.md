@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.36  
+Version: 2.37  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -46,6 +46,7 @@ Doc. ID: UG-SYSPAR
 | 18.10.2018 | 2.34     | Default value of the parameter *signer.client-timeout* set to 60000 | Petteri Kivimäki |
 | 25.10.2018 | 2.35     | Update note regarding supported cipher suites on RHEL 7 | Petteri Kivimäki |
 | 26.10.2018 | 2.36     | Added new parameter *module-manager-update-interval* | Petteri Kivimäki |
+| 08.11.2018 | 2.37     | Improved definition of *minimum-global-configuration-version* on the central server and configuration proxy | Ilkka Seppälä |
 
 ## Table of Contents
 
@@ -344,7 +345,7 @@ For instructions on how to change the parameter values, see section [Changing th
 | generated-conf-dir      | /var/lib/xroad/public                   | Absolute path to the directory where both the private and shared parameter files are created for distribution. |
 | internal-directory      | internalconf                            | Name of the signed internal configuration directory that is distributed to the configuration clients (security servers and/or configuration proxies) of this X-Road instance. |
 | trusted-anchors-allowed | false                                   | True if federation is allowed for this X-Road instance. |
-| minimum-global-configuration-version | 2                          | Minimum supported global configuration version on central server. Change this if old global configuration versions need to be supported. |
+| minimum-global-configuration-version | 2                          | The minimum supported global configuration version on the central server. This parameter is used if the central server needs to generate multiple versions of global configuration. Note that the support for global configuration V1 has been dropped in X-Road 6.20.0 and since that version the minimum value for this parameter is 2. |
 
 #### 4.1.3 Signer parameters: `[signer]`
 
@@ -394,7 +395,7 @@ This chapter describes the system parameters used by the X-Road configuration pr
 | signature-digest-algorithm-id  | SHA-512                                 | ID of the digest algorithm the configuration proxy uses when computing global configuration signatures.<br/>The possible values are<br/>-   SHA-256,<br/>-   SHA-384,<br/>-   SHA-512. |
 | hash-algorithm-uri             | http://www.w3.org/2001/04/xmlenc#sha512 | URI that identifies the algorithm the configuration proxy uses when calculating hash values for the global configuration files.<br/>The possible values are<br/>http://www.w3.org/2001/04/xmlenc#sha256,<br/>http://www.w3.org/2001/04/xmlenc#sha512 |
 | download-script                | /usr/share/xroad/scripts/download\_instance\_configuration.sh | Absolute path to the location of the script that initializes the global configuration download procedure. |
-| minimum-global-configuration-version | 2                                 | Minimum supported global configuration version on configuration proxy. Change this if old global configuration versions need to be supported. |
+| minimum-global-configuration-version | 2                                 | The minimum supported global configuration version on the configuration proxy. This parameter is used if the configuration proxy needs to distribute multiple versions of global configuration. Note that the support for global configuration V1 has been dropped in X-Road 6.20.0 and since that version the minimum value for this parameter is 2. |
 
 ### 5.2 Signer parameters: `[signer]`
 

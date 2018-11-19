@@ -42,8 +42,11 @@ class ConfigurationsGenerator
   def initialize
     Rails.logger.debug("Initialize ConfigurationsGenerator")
 
-    # Check the minimum central server global configuration version
-    @conf_generators = [ConfV1Generator.new(), ConfV2Generator.new()].select { | generator |
+    # The central server can generate multiple versions of global configuration
+    # At the moment it has capability to generate only V2 global conf
+    # New global conf generators can be added to the array
+    # The versions generated can be controlled with the system parameter
+    @conf_generators = [ConfV2Generator.new()].select { | generator |
         generator.getVersion >= SystemProperties::get_minimum_central_server_global_configuration_version}
 
     Rails.logger.debug("Initialization complete")

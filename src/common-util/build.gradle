@@ -91,22 +91,6 @@ task xjc() {
 
     // Generate classes for federateable global external conf
     ant.xjc(
-            destdir: project.ext.schemaTargetDir,
-            package: 'ee.ria.xroad.common.conf.globalconf.sharedparameters.v1',
-            schema: 'src/main/resources/globalconf/external-conf.xsd',
-            binding: 'src/main/resources/identifiers-bindings.xml'
-    )
-
-    // Generate classes for federateable global internal conf
-    ant.xjc(
-            destdir: project.ext.schemaTargetDir,
-            package: 'ee.ria.xroad.common.conf.globalconf.privateparameters.v1',
-            schema: 'src/main/resources/globalconf/internal-conf.xsd',
-            binding: 'src/main/resources/identifiers-bindings.xml'
-    )
-
-    // Generate classes for federateable global external conf
-    ant.xjc(
         destdir: project.ext.schemaTargetDir,
         package: 'ee.ria.xroad.common.conf.globalconf.sharedparameters.v2',
         schema: 'src/main/resources/globalconf/shared-parameters.xsd',

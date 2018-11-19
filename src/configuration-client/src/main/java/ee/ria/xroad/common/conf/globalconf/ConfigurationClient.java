@@ -95,11 +95,7 @@ class ConfigurationClient {
         }
 
         try {
-            if (version != SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
-                configurationAnchor = new ConfigurationAnchorV1(anchorFileName);
-            } else {
-                configurationAnchor = new ConfigurationAnchorV2(anchorFileName);
-            }
+            configurationAnchor = new ConfigurationAnchorV2(anchorFileName);
         } catch (Exception e) {
             String message = String.format("Failed to load configuration anchor from file %s", anchorFileName);
 

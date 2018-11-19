@@ -25,7 +25,6 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -250,26 +249,14 @@ class ConfigurationDownloader {
             throws Exception {
         switch (file.getContentIdentifier()) {
             case ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS:
-                if (version != SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
-                    PrivateParametersV1 privateParameters = new PrivateParametersV1();
-                    privateParameters.load(content);
-                    handlePrivateParameters(privateParameters, file);
-                } else {
-                    PrivateParametersV2 privateParameters = new PrivateParametersV2();
-                    privateParameters.load(content);
-                    handlePrivateParameters(privateParameters, file);
-                }
+                PrivateParametersV2 privateParameters = new PrivateParametersV2();
+                privateParameters.load(content);
+                handlePrivateParameters(privateParameters, file);
                 break;
             case ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS:
-                if (version != SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
-                    SharedParametersV1 sharedParameters = new SharedParametersV1();
-                    sharedParameters.load(content);
-                    handleSharedParameters(sharedParameters, file);
-                } else {
-                    SharedParametersV2 sharedParameters = new SharedParametersV2();
-                    sharedParameters.load(content);
-                    handleSharedParameters(sharedParameters, file);
-                }
+                SharedParametersV2 sharedParameters = new SharedParametersV2();
+                sharedParameters.load(content);
+                handleSharedParameters(sharedParameters, file);
                 break;
             default: // do nothing
                 break;
@@ -280,13 +267,6 @@ class ConfigurationDownloader {
             ConfigurationFile file) throws Exception {
         verifyInstanceIdentifier(privateParameters.getInstanceIdentifier(),
                 file);
-        addAdditionalConfigurationSources(privateParameters);
-    }
-
-    void handlePrivateParameters(PrivateParametersV1 privateParameters,
-                                 ConfigurationFile file) throws Exception {
-        verifyInstanceIdentifier(privateParameters.getInstanceIdentifier(),
-            file);
         addAdditionalConfigurationSources(privateParameters);
     }
 
@@ -308,34 +288,10 @@ class ConfigurationDownloader {
                 sources);
     }
 
-    void addAdditionalConfigurationSources(
-        PrivateParametersV1 privateParameters) {
-        // If there are any additional configuration sources,
-        // we need to download the shared parameters from these
-        // configuration sources.
-        Set<ConfigurationSource> sources = new HashSet<>();
-
-        if (!privateParameters.getConfigurationSource().isEmpty()) {
-            log.trace("Received private parameters with additional "
-                + privateParameters.getConfigurationSource().size()
-                + " configuration sources");
-            sources.addAll(privateParameters.getConfigurationSource());
-        }
-
-        additionalSources.put(privateParameters.getInstanceIdentifier(),
-            sources);
-    }
-
     void handleSharedParameters(SharedParametersV2 sharedParameters,
             ConfigurationFile file) throws Exception {
         verifyInstanceIdentifier(sharedParameters.getInstanceIdentifier(),
                 file);
-    }
-
-    void handleSharedParameters(SharedParametersV1 sharedParameters,
-                                ConfigurationFile file) throws Exception {
-        verifyInstanceIdentifier(sharedParameters.getInstanceIdentifier(),
-            file);
     }
 
     void persistContent(byte[] content, Path destination,

@@ -70,7 +70,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md). 
+1. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 ### 1.4 X-Road Configuration Proxy
 
@@ -136,11 +136,11 @@ LC_ALL=en_US.UTF-8
 To install the X-Road configuration proxy software, follow these steps.
 
 1. Add the X-Road package repository (reference data: 1.1), and the nginx and opendjdk repositories:
-   
+
            sudo apt-add-repository -y ppa:openjdk-r/ppa
            sudo apt-add-repository -y ppa:nginx/stable
            sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb trusty-current main"
-           
+
 2. Add the X-Road repository’s signing key to the list of trusted keys (reference data: 1.2):
 
             curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
@@ -206,7 +206,7 @@ Parameter   | Type    | Default Value | Explanation
 ----------- | ------- |-------------- | ---------------------------------------
 *enabled*     | BOOLEAN | *true* | Indicates whether this device is enabled.
 *library*     | STRING  |      | The path to the pkcs#11 library of the device driver.
-*library_cant_create_os_threads* | BOOLEAN | *false* | Indicates whether application threads, which are executing calls to the pkcs#11 library, may not use native operating system calls to spawn new threads (in other words, the library’s code may not create its own threads). 
+*library_cant_create_os_threads* | BOOLEAN | *false* | Indicates whether application threads, which are executing calls to the pkcs#11 library, may not use native operating system calls to spawn new threads (in other words, the library’s code may not create its own threads).
 *os_locking_ok* | BOOLEAN | *false* | Indicates whether the pkcs#11 library may use the native operation system threading model for locking.
 *sign_verify_pin* | BOOLEAN | *false* | Indicates whether the PIN should be entered per signing operation.
 *token_id_format* | STRING | *{moduleType}{slotIndex}{serialNumber}{label}* | Specifies the identifier format used to uniquely identify a token. In certain high availability setups may need be constrained to support replicated tokens (eg. by removing the slot index part which may be diffirent for the token replicas).
@@ -271,7 +271,8 @@ Modify '/etc/xroad/conf.d/local.ini' to contain the following:
 ```ini
 [configuration-proxy]
 
-; Address of the webserver serving the distributed configuration address=<public or NAT address>
+; Address of the webserver serving the distributed configuration
+; address=<public or NAT address>
 ```
 
 The configuration of this parameter is necessary for generating a correctly formatted configuration anchor file that will need to be uploaded to central servers that should receive configurations mediated by this proxy, this process is described in detail in [3.4](#34-proxy-instance-configuration). There are several more system parameters that can be configured in '/etc/xroad/conf.d/local.ini' under the 'configuration-proxy' section, their descriptions and default values can be seen from the following table:
