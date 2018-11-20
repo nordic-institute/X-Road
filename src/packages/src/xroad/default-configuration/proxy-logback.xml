@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
 
-    <property name="logOutputPath" value="/var/log/xroad" />
+    <property name="logOutputPath" value="/var/log/xroad"/>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${logOutputPath}/proxy.log</file>
@@ -15,9 +15,41 @@
         </encoder>
     </appender>
 
-    <logger name="ee.ria.xroad" level="INFO" />
+    <appender name="clientproxy-access-log" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${logOutputPath}/clientproxy_access.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${logOutputPath}/clientproxy_access.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="serverproxy-access-log" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${logOutputPath}/serverproxy_access.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${logOutputPath}/serverproxy_access.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <logger name="ee.ria.xroad.proxy.clientproxy.RequestLog" level="INFO" additivity="false">
+        <appender-ref ref="clientproxy-access-log"/>
+    </logger>
+
+    <logger name="ee.ria.xroad.proxy.serverproxy.RequestLog" level="INFO" additivity="false">
+        <appender-ref ref="serverproxy-access-log"/>
+    </logger>
+
+    <logger name="ee.ria.xroad" level="INFO"/>
 
     <root level="INFO">
-        <appender-ref ref="FILE" />
+        <appender-ref ref="FILE"/>
     </root>
 </configuration>

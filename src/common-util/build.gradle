@@ -25,7 +25,6 @@ dependencies {
 
     compile "org.eclipse.jetty:jetty-server:$jettyVersion"
 
-    compile 'ch.qos.logback:logback-access:1.2.3'
     compile 'ch.qos.logback:logback-classic:1.2.3'
 
     compile ('org.quartz-scheduler:quartz:2.1.6') {
