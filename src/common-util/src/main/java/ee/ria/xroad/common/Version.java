@@ -23,13 +23,38 @@
  * THE SOFTWARE.
  */
 package ee.ria.xroad.common;
+
+import java.util.ResourceBundle;
+
 /**
  * Stores X-Road software version number
  */
 public final class Version {
 
+    private static ResourceBundle versionProperties = ResourceBundle.getBundle("version");
+
+    public static final String XROAD_VERSION = versionProperties.getString("version");
+
     private Version() {
     }
 
-    public static final String XROAD_VERSION = "6.20.0";
+    /**
+     * @return X-Road version, Git commit date and hash
+     */
+    public static String getFullVersion() {
+        StringBuilder sb = new StringBuilder(XROAD_VERSION);
+
+        String commitDate = versionProperties.getString("gitCommitDate");
+        String commitHash = versionProperties.getString("gitCommitHash");
+
+        if (commitDate != null) {
+            sb.append(".").append(commitDate);
+        }
+
+        if (commitHash != null) {
+            sb.append(".").append(commitHash);
+        }
+
+        return sb.toString();
+    }
 }

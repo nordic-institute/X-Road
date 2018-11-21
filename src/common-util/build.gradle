@@ -1,3 +1,5 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
 project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
 
 configurations {
@@ -176,4 +178,40 @@ licenseTest.dependsOn licenseTestJava
 idea.module {
     excludeDirs -= file(buildDir)
     buildDir.listFiles({ d, f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
+}
+
+
+def gitCommitHash() {
+    def env = System.getenv()
+    def hash = env['GIT_COMMIT']
+    def cmd = "git rev-parse --short HEAD"
+    if (hash == null) {
+        try {
+            def proc = cmd.execute()
+            hash = proc.text.trim()
+        } catch (Exception e) {
+            println("Could not execute git command: " + e.message)
+            hash = null
+        }
+    } else {
+        hash = hash[0..6]
+    }
+    return hash
+}
+
+def gitCommitDate() {
+    def cmd = "git log -1 --date=short --pretty=format:%cd"
+    def date = null
+    try {
+        def proc = cmd.execute()
+        date = proc.text.trim().replaceAll(/-/, '')
+    } catch (Exception e) {
+        println("Could not execute git command: " + e.message)
+        date = null
+    }
+    return date
+}
+
+processResources {
+    filter(ReplaceTokens, tokens: [version: xroadVersion, gitCommitDate: gitCommitDate(), gitCommitHash: gitCommitHash()])
 }
