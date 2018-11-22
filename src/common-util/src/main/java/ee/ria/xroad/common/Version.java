@@ -48,11 +48,14 @@ public final class Version {
         String commitHash = versionProperties.getString("gitCommitHash");
 
         if (commitDate != null) {
-            sb.append(".").append(commitDate);
+            sb.append("-").append(commitDate);
         }
 
         if (commitHash != null) {
-            sb.append(".").append(commitHash);
+            if (commitDate == null) {
+                sb.append("-");
+            }
+            sb.append(commitHash);
         }
 
         return sb.toString();

@@ -26,6 +26,6 @@ java_import Java::ee.ria.xroad.common.Version
 
 class AboutController < ApplicationController
   def index
-      @version = Version::XROAD_VERSION
+      @version = Version::getFullVersion
   end
 end

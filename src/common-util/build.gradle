@@ -188,7 +188,7 @@ def gitCommitHash() {
     if (hash == null) {
         try {
             def proc = cmd.execute()
-            hash = proc.text.trim()
+            hash = "git" + proc.text.trim()
         } catch (Exception e) {
             println("Could not execute git command: " + e.message)
             hash = null
