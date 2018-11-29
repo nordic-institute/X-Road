@@ -213,5 +213,5 @@ def gitCommitDate() {
 }
 
 processResources {
-    filter(ReplaceTokens, tokens: [version: xroadVersion, gitCommitDate: gitCommitDate(), gitCommitHash: gitCommitHash()])
+    filter(ReplaceTokens, tokens: [version: xroadVersion, buildType: xroadBuildType, gitCommitDate: gitCommitDate(), gitCommitHash: gitCommitHash()])
 }

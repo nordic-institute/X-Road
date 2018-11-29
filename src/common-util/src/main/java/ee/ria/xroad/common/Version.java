@@ -3,17 +3,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,40 +24,55 @@
  */
 package ee.ria.xroad.common;
 
-import java.util.ResourceBundle;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 /**
  * Stores X-Road software version number
  */
+@Slf4j
 public final class Version {
 
-    private static ResourceBundle versionProperties = ResourceBundle.getBundle("version");
+    public static String xRoadVersion;
+    public static String xRoadFullVersion;
 
-    public static final String XROAD_VERSION = versionProperties.getString("version");
+    static {
+        try {
+            Properties props = new Properties();
+            InputStream inputStream = Version.class.getResourceAsStream("/version.properties");
+            props.load(inputStream);
 
-    private Version() {
+            xRoadVersion = props.getProperty("version", "");
+            String buildType = props.getProperty("buildType", "");
+            String commitDate = props.getProperty("gitCommitDate", "");
+            String commitHash = props.getProperty("gitCommitHash", "");
+
+            StringBuilder sb = new StringBuilder(xRoadVersion);
+
+            // Is release?
+            sb.append("-").append(buildType);
+
+            if (!commitDate.isEmpty()) {
+                sb.append(".").append(commitDate);
+            }
+
+            if (!commitHash.isEmpty()) {
+                if (commitDate.isEmpty()) {
+                    sb.append(".");
+                }
+                sb.append(commitHash);
+            }
+
+            xRoadFullVersion = sb.toString();
+
+        } catch (IOException e) {
+            log.error("Could not read version.properties", e);
+        }
     }
 
-    /**
-     * @return X-Road version, Git commit date and hash
-     */
-    public static String getFullVersion() {
-        StringBuilder sb = new StringBuilder(XROAD_VERSION);
-
-        String commitDate = versionProperties.getString("gitCommitDate");
-        String commitHash = versionProperties.getString("gitCommitHash");
-
-        if (commitDate != null) {
-            sb.append("-").append(commitDate);
-        }
-
-        if (commitHash != null) {
-            if (commitDate == null) {
-                sb.append("-");
-            }
-            sb.append(commitHash);
-        }
-
-        return sb.toString();
+    private Version() {
     }
 }

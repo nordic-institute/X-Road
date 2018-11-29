@@ -29,6 +29,6 @@ class AboutController < ApplicationController
   before_filter :verify_get
 
   def index
-      @version = Version::getFullVersion
+      @version = Version::xRoadFullVersion
   end
 end
