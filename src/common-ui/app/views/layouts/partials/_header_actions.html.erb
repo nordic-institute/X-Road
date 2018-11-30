@@ -1,22 +1,26 @@
 <div id="server-info"
+     class="xroad-purple-bg"
      data-instance="<%= instance_identifier %>"
      data-server-code="<%= server_code %>"
      data-node-name="<%= node_name %>">
   <h1></h1>
   <h2><%= t 'layouts.application.server_type' %></h2>
 </div>
-<div id="actions">
+<div id="actions" class="xroad-purple-transparent-border">
   <div id="actions-inner">
     <% default_content_for :heading do %>
       <%= heading %>
     <% end %>
+    <div class="force-middle">
+      <img class="mh35" src="/xroad-logo.png">
+    </div>
     <div id="user" class="cf">
       <div class="button-group"></div>
       <ul id="user-nav">
         <li id="user-info">
           <h2>
             <span><%= current_user.name %></span>
-            <i class="fa fa-cog"></i>
+            <i class="fa fa-cog xroad-purple-color"></i>
           </h2>
           <ul id="user-menu">
             <li>
