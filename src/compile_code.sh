@@ -1,13 +1,13 @@
 #!/bin/bash
 source compile_env.sh
 
-RELEASE=0
+RELEASE="SNAPSHOT"
 
 for i in "$@"
 do
 case $i in
     -release)
-    RELEASE=1
+    RELEASE="RELEASE"
     ;;
 esac
 done

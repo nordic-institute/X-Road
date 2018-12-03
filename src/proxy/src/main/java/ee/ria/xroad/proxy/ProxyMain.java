@@ -382,6 +382,6 @@ public final class ProxyMain {
      * @return version string e.g. 6.19.0
      */
     public static String readProxyVersion() {
-        return Version.xRoadVersion;
+        return Version.XROAD_FULL_VERSION;
     }
 }
