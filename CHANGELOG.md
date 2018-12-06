@@ -1,6 +1,7 @@
 # Change Log
 
 ## 6.20.0 - XXXX-XX-XX
+- XTE-427 / XRDDEV-108: Operational monitoring timestamp 'responseOutTs' is taken just before payload byte array is sent out with HTTP response.
 - TBD
 
 ## 6.19.0 - 2018-09-27

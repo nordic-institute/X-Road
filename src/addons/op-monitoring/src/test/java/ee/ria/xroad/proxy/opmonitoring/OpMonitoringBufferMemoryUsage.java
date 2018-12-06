@@ -151,23 +151,20 @@ public final class OpMonitoringBufferMemoryUsage {
         return runtime.totalMemory() - runtime.freeMemory();
     }
 
-    private static Map<Long, OpMonitoringData> createBuffer(int count,
-            int shortStrLen, int longStrLen) {
+    private static Map<Long, OpMonitoringData> createBuffer(int count, int shortStrLen, int longStrLen) {
         Map<Long, OpMonitoringData> buffer = new LinkedHashMap<>();
         OpMonitoringData record;
 
         for (long i = 0; i < count; ++i) {
-            record = new OpMonitoringData(
-                    OpMonitoringData.SecurityServerType.PRODUCER, MILLIS);
+            record = new OpMonitoringData(OpMonitoringData.SecurityServerType.PRODUCER, MILLIS);
             record.setRequestInTs(MILLIS);
             record.setRequestOutTs(MILLIS);
             record.setResponseInTs(MILLIS);
-            record.setResponseOutTs(MILLIS);
+            record.setResponseOutTs(MILLIS, true);
 
             record.setClientId(createClient(shortStrLen, longStrLen));
             record.setServiceId(createService(shortStrLen, longStrLen));
-            record.setRepresentedParty(createRepresentedParty(shortStrLen,
-                    longStrLen));
+            record.setRepresentedParty(createRepresentedParty(shortStrLen, longStrLen));
 
             record.setMessageId(getDummyStr(longStrLen));
             record.setMessageUserId(getDummyStr(longStrLen));

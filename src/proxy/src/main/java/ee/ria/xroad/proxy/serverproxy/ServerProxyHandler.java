@@ -98,12 +98,13 @@ class ServerProxyHandler extends HandlerBase {
             log.error("Request processing error ({})", cex.getFaultDetail(), e);
 
             opMonitoringData.setSoapFault(cex);
+            opMonitoringData.setResponseOutTs(getEpochMillisecond(), false);
 
             failure(response, cex);
         } finally {
             baseRequest.setHandled(true);
 
-            opMonitoringData.setResponseOutTs(getEpochMillisecond());
+            opMonitoringData.setResponseOutTs(getEpochMillisecond(), false);
             OpMonitoring.store(opMonitoringData);
 
             PerformanceLogger.log(log, start, "Request handled");
