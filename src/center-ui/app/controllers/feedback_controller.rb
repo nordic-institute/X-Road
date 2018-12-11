@@ -22,7 +22,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-java_import Java::ee.ria.xroad.common.Version
 
 class FeedbackController < ApplicationController
   def index
