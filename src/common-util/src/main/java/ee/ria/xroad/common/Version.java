@@ -36,6 +36,8 @@ import java.util.Properties;
 @Slf4j
 public final class Version {
 
+    private static final String RELEASE = "RELEASE";
+
     static {
         Properties props = new Properties();
 
@@ -51,9 +53,7 @@ public final class Version {
         String commitDate = props.getProperty("gitCommitDate", "");
         String commitHash = props.getProperty("gitCommitHash", "");
 
-        StringBuilder sb = new StringBuilder(version);
-
-        sb.append("-").append(buildType);
+        StringBuilder sb = new StringBuilder(buildType);
 
         if (!commitDate.isEmpty()) {
             sb.append("-").append(commitDate);
@@ -66,12 +66,17 @@ public final class Version {
             sb.append(commitHash);
         }
 
-        XROAD_VERSION = version;
-        XROAD_FULL_VERSION = sb.toString();
+        if (buildType.equals(RELEASE)) {
+            XROAD_VERSION = version;
+        } else {
+            XROAD_VERSION = String.format("%s-%s", version, sb.toString());
+        }
+
+        BUILD_IDENTIFIER = sb.toString();
     }
 
     public static final String XROAD_VERSION;
-    public static final String XROAD_FULL_VERSION;
+    public static final String BUILD_IDENTIFIER;
 
     private Version() {
     }
