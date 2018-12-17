@@ -37,6 +37,8 @@ import java.util.Properties;
 public final class Version {
 
     private static final String RELEASE = "RELEASE";
+    public static final String XROAD_VERSION;
+    public static final String BUILD_IDENTIFIER;
 
     static {
         Properties props = new Properties();
@@ -66,17 +68,14 @@ public final class Version {
             sb.append(commitHash);
         }
 
+        BUILD_IDENTIFIER = sb.toString();
+
         if (buildType.equals(RELEASE)) {
             XROAD_VERSION = version;
         } else {
-            XROAD_VERSION = String.format("%s-%s", version, sb.toString());
+            XROAD_VERSION = String.format("%s-%s", version, BUILD_IDENTIFIER);
         }
-
-        BUILD_IDENTIFIER = sb.toString();
     }
-
-    public static final String XROAD_VERSION;
-    public static final String BUILD_IDENTIFIER;
 
     private Version() {
     }
