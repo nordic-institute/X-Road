@@ -211,12 +211,17 @@ public class OpMonitoringData {
     }
 
     /**
-     * Sets the "response out" timestamp. In case the field
-     * assignResponseOutTsToResponseInTs is true,
-     * the same value is assigned to the "response in" also.
+     * Sets the "response out" timestamp. In case the field assignResponseOutTsToResponseInTs is
+     * true, the same value is assigned to the "response in" also.
+     *
      * @param timestamp Unix timestamp in milliseconds
+     * @param overwrite if true, old value is overwritten, otherwise old value remains
      */
-    public void setResponseOutTs(long timestamp) {
+    public void setResponseOutTs(long timestamp, boolean overwrite) {
+        if (!overwrite && data.get(RESPONSE_OUT_TIMESTAMP) != null) {
+            return;
+        }
+
         if (assignResponseOutTsToResponseInTs) {
             setResponseInTs(timestamp);
         }
