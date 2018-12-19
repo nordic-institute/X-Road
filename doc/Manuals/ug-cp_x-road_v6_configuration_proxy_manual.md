@@ -160,12 +160,13 @@ To install the X-Road configuration proxy software, follow these steps.
 
 The installation is successful if the 'xroad-signer' service is started, the 'xroad-confproxy' cron job is added, and the configuration proxy management utilities are available from the command line.
 
-* Check from the command line that the 'xroad-signer' service is in the running state (example output follows):
+* Check from the command line that the 'xroad-signer' service is in the running state (example output follows). Notice that it is normal for the xroad-confclient to be in `stopped` state on the configuration proxy since it operates in one-shot mode.
 
   * Ubuntu 14.04
     ```bash
     sudo initctl list | grep "^xroad-"
 
+    xroad-confclient stop/waiting
     xroad-signer start/running, process 19393
     ```
   * Ubuntu 18.04
