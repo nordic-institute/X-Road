@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.37  
+Version: 2.38  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -47,39 +47,43 @@ Doc. ID: UG-SYSPAR
 | 25.10.2018 | 2.35     | Update note regarding supported cipher suites on RHEL 7 | Petteri Kivimäki |
 | 26.10.2018 | 2.36     | Added new parameter *module-manager-update-interval* | Petteri Kivimäki |
 | 08.11.2018 | 2.37     | Improved definition of *minimum-global-configuration-version* on the central server and configuration proxy | Ilkka Seppälä |
+| 19.12.2018 | 2.38     | Fixed the default value of trusted-anchors-allowed | Ilkka Seppälä |
 
 ## Table of Contents
 
 <!-- toc -->
 
   * [License](#license)
-- [1 Introduction](#1-introduction)
-  * [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
-  * [1.2 References](#12-references)
-- [2 Changing the System Parameter Values](#2-changing-the-system-parameter-values)
-  * [2.1 Changing the System Parameter Values in Configuration Files](#21-changing-the-system-parameter-values-in-configuration-files)
-  * [2.2 Changing the System Parameter Values in the Central Server Database](#22-changing-the-system-parameter-values-in-the-central-server-database)
-  * [2.3 Changing the Global Configuration Generation Interval in the Central Server](#23-changing-the-global-configuration-generation-interval-in-the-central-server)
-- [3 Security Server System Parameters](#3-security-server-system-parameters)
-  * [3.1 Common parameters : `[common]`](#31-common-parameters--common)
-  * [3.2 Proxy parameters: `[proxy]`](#32-proxy-parameters-proxy)
-  * [3.3 Proxy User Interface parameters: `[proxy-ui]`](#33-proxy-user-interface-parameters-proxy-ui)
-  * [3.4 Signer parameters: `[signer]`](#34-signer-parameters-signer)
-  * [3.5 Anti-DOS parameters: `[anti-dos]`](#35-anti-dos-parameters-anti-dos)
-  * [3.6 Configuration Client parameters: `[configuration-client]`](#36-configuration-client-parameters-configuration-client)
-  * [3.7 Message log add-on parameters: `[message-log]`](#37-message-log-add-on-parameters-message-log)
-    + [3.7.1 Note on logged X-Road message headers](#371-note-on-logged-x-road-message-headers)
-  * [3.8 Environmental monitoring add-on configuration parameters: `[env-monitor]`](#38-environmental-monitoring-add-on-configuration-parameters-env-monitor)
-- [4 Central Server System Parameters](#4-central-server-system-parameters)
-  * [4.1 System Parameters in the Configuration File](#41-system-parameters-in-the-configuration-file)
-    + [4.1.1 Common parameters: `[common]`](#411-common-parameters-common)
-    + [4.1.2 Center parameters: `[center]`](#412-center-parameters-center)
-    + [4.1.3 Signer parameters: `[signer]`](#413-signer-parameters-signer)
-  * [4.2 System Parameters in the Database](#42-system-parameters-in-the-database)
-  * [4.3 Global Configuration Generation Interval Parameter](#43-global-configuration-generation-interval-parameter)
-- [5 Configuration Proxy System Parameters](#5-configuration-proxy-system-parameters)
-    + [5.1 Configuration proxy module parameters: `[configuration-proxy]`](#51-configuration-proxy-module-parameters-configuration-proxy)
-    + [5.2 Signer parameters: `[signer]`](#52-signer-parameters-signer)
+- [X-Road: System Parameters User Guide](#x-road-system-parameters-user-guide)
+  - [Table of Contents](#table-of-contents)
+  - [License](#license)
+  - [1 Introduction](#1-introduction)
+    - [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
+    - [1.2 References](#12-references)
+  - [2 Changing the System Parameter Values](#2-changing-the-system-parameter-values)
+    - [2.1 Changing the System Parameter Values in Configuration Files](#21-changing-the-system-parameter-values-in-configuration-files)
+    - [2.2 Changing the System Parameter Values in the Central Server Database](#22-changing-the-system-parameter-values-in-the-central-server-database)
+    - [2.3 Changing the Global Configuration Generation Interval in the Central Server](#23-changing-the-global-configuration-generation-interval-in-the-central-server)
+  - [3 Security Server System Parameters](#3-security-server-system-parameters)
+    - [3.1 Common parameters : `[common]`](#31-common-parameters--common)
+    - [3.2 Proxy parameters: `[proxy]`](#32-proxy-parameters-proxy)
+    - [3.3 Proxy User Interface parameters: `[proxy-ui]`](#33-proxy-user-interface-parameters-proxy-ui)
+    - [3.4 Signer parameters: `[signer]`](#34-signer-parameters-signer)
+    - [3.5 Anti-DOS parameters: `[anti-dos]`](#35-anti-dos-parameters-anti-dos)
+    - [3.6 Configuration Client parameters: `[configuration-client]`](#36-configuration-client-parameters-configuration-client)
+    - [3.7 Message log add-on parameters: `[message-log]`](#37-message-log-add-on-parameters-message-log)
+      - [3.7.1 Note on logged X-Road message headers](#371-note-on-logged-x-road-message-headers)
+    - [3.8 Environmental monitoring add-on configuration parameters: `[env-monitor]`](#38-environmental-monitoring-add-on-configuration-parameters-env-monitor)
+  - [4 Central Server System Parameters](#4-central-server-system-parameters)
+    - [4.1 System Parameters in the Configuration File](#41-system-parameters-in-the-configuration-file)
+      - [4.1.1 Common parameters: `[common]`](#411-common-parameters-common)
+      - [4.1.2 Center parameters: `[center]`](#412-center-parameters-center)
+      - [4.1.3 Signer parameters: `[signer]`](#413-signer-parameters-signer)
+    - [4.2 System Parameters in the Database](#42-system-parameters-in-the-database)
+    - [4.3 Global Configuration Generation Interval Parameter](#43-global-configuration-generation-interval-parameter)
+  - [5 Configuration Proxy System Parameters](#5-configuration-proxy-system-parameters)
+    - [5.1 Configuration proxy module parameters: `[configuration-proxy]`](#51-configuration-proxy-module-parameters-configuration-proxy)
+    - [5.2 Signer parameters: `[signer]`](#52-signer-parameters-signer)
 
 <!-- tocstop -->
 
@@ -344,7 +348,7 @@ For instructions on how to change the parameter values, see section [Changing th
 | external-directory      | externalconf                            | Name of the signed external configuration directory that is distributed to the configuration clients (security servers and/or configuration proxies) of this and federated X-Road instances. |
 | generated-conf-dir      | /var/lib/xroad/public                   | Absolute path to the directory where both the private and shared parameter files are created for distribution. |
 | internal-directory      | internalconf                            | Name of the signed internal configuration directory that is distributed to the configuration clients (security servers and/or configuration proxies) of this X-Road instance. |
-| trusted-anchors-allowed | false                                   | True if federation is allowed for this X-Road instance. |
+| trusted-anchors-allowed | true                                    | True if federation is allowed for this X-Road instance. |
 | minimum-global-configuration-version | 2                          | The minimum supported global configuration version on the central server. This parameter is used if the central server needs to generate multiple versions of global configuration. Note that the support for global configuration V1 has been dropped in X-Road 6.20.0 and since that version the minimum value for this parameter is 2. |
 
 #### 4.1.3 Signer parameters: `[signer]`
