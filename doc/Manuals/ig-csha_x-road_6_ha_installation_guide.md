@@ -6,8 +6,8 @@
 # Central Server High Availability Installation Guide
 **X-ROAD 6**
 
-Version: 1.6  
-04.10.2018  
+Version: 1.7  
+19.12.2018  
 Doc. ID: IG-CSHA
 
 ---
@@ -25,28 +25,32 @@ Doc. ID: IG-CSHA
  20.02.2017 | 1.4     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
  05.03.2018 | 1.5     | Added terms and abbreviations references and document links  | Tatu Repo
  03.10.2018 | 1.6     | Added the chapter "Changing Nodes' IP Addresses in HA Cluster"
+ 19.12.2018 | 1.7     | Minor changes related to Ubuntu 18 support
 
 ## Table of Contents
 
 <!-- toc -->
 
-- [License](#license)
-- [1 Introduction](#1-introduction)
-  * [1.1 High Availability for X-Road Central Server](#11-high-availability-for-x-road-central-server)
-  * [1.2 Target Audience](#12-target-audience)
-  * [1.3 Terms and abbreviations](#13-terms-and-abbreviations)
-  * [1.4 References](#14-references)
-- [2 Key Points and Known Limitations for X-Road Central Server HA Deployment](#2-key-points-and-known-limitations-for-x-road-central-server-ha-deployment)
-- [3 Requirements and Workflows for HA Configuration](#3-requirements-and-workflows-for-ha-configuration)
-  * [3.1 Requirements](#31-requirements)
-  * [3.2 Workflow for a New X-Road Instance Setup](#32-workflow-for-a-new-x-road-instance-setup)
-  * [3.3 Workflow for Upgrading an Existing X-Road Central Server to an HA Configuration](#33-workflow-for-upgrading-an-existing-x-road-central-server-to-an-ha-configuration)
-  * [3.4 Workflow for Adding New Nodes to an Existing HA Configuration](#34-workflow-for-adding-new-nodes-to-an-existing-ha-configuration)
-  * [3.5 Post-Configuration Steps](#35-post-configuration-steps)
-- [4 General Installation of HA Support](#4-general-installation-of-ha-support)
-- [5 Changing Nodes' IP Addresses in HA Cluster](#5-changing-nodes-ip-addresses-in-ha-cluster)
-- [6 Monitoring HA State on a Node](#5-monitoring-ha-state-on-a-node)
-- [7 Recovery of the HA cluster](#6-recovery-of-the-ha-cluster)
+- [Central Server High Availability Installation Guide](#central-server-high-availability-installation-guide)
+  - [Version history](#version-history)
+  - [Table of Contents](#table-of-contents)
+  - [License](#license)
+  - [1 Introduction](#1-introduction)
+    - [1.1 High Availability for X-Road Central Server](#11-high-availability-for-x-road-central-server)
+    - [1.2 Target Audience](#12-target-audience)
+    - [1.3 Terms and abbreviations](#13-terms-and-abbreviations)
+    - [1.4 References](#14-references)
+  - [2 Key Points and Known Limitations for X-Road Central Server HA Deployment](#2-key-points-and-known-limitations-for-x-road-central-server-ha-deployment)
+  - [3 Requirements and Workflows for HA Configuration](#3-requirements-and-workflows-for-ha-configuration)
+    - [3.1 Requirements](#31-requirements)
+    - [3.2 Workflow for a New X-Road Instance Setup](#32-workflow-for-a-new-x-road-instance-setup)
+    - [3.3 Workflow for Upgrading an Existing X-Road Central Server to an HA Configuration](#33-workflow-for-upgrading-an-existing-x-road-central-server-to-an-ha-configuration)
+    - [3.4 Workflow for Adding New Nodes to an Existing HA Configuration](#34-workflow-for-adding-new-nodes-to-an-existing-ha-configuration)
+    - [3.5 Post-Configuration Steps](#35-post-configuration-steps)
+  - [4 General Installation of HA Support](#4-general-installation-of-ha-support)
+  - [5 Changing Nodes' IP Addresses in HA Cluster](#5-changing-nodes-ip-addresses-in-ha-cluster)
+  - [6 Monitoring HA State on a Node](#6-monitoring-ha-state-on-a-node)
+  - [7 Recovery of the HA cluster](#7-recovery-of-the-ha-cluster)
 
 <!-- tocstop -->
 

@@ -33,30 +33,34 @@ Doc. ID: IG-CS
 <!-- toc -->
 <!-- vim-markdown-toc GFM -->
 
-* [License](#license)
-* [1. Introduction](#1-introduction)
-  * [1.1 Target Audience](#11-target-audience)
-  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
-  * [1.3 References](#13-references)
-* [2. Installation](#2-installation)
-  * [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
-  * [2.2 Reference Data](#22-reference-data)
-  * [2.3 Requirements to the Central Server](#23-requirements-to-the-central-server)
-  * [2.4 Preparing OS](#24-preparing-os)
-  * [2.5 Installation](#25-installation)
-  * [2.6 Installing the Support for Hardware Tokens](#26-installing-the-support-for-hardware-tokens)
-  * [2.7 Installing the Support for Environmental Monitoring](#27-installing-the-support-for-environmental-monitoring)
-* [3 Initial Configuration](#3-initial-configuration)
-  * [3.1 Reference Data](#31-reference-data)
-  * [3.2 Initializing the Central Server](#32-initializing-the-central-server)
-  * [3.3 Configuring the Central Server and the Management Services' Security Server](#33-configuring-the-central-server-and-the-management-services-security-server)
-* [4 Additional configuration](#4-additional-configuration)
-  * [4.1 Adding support for V1 global configuration](#41-adding-support-for-v1-global-configuration)
-* [5 Installation Error Handling](#5-installation-error-handling)
-  * [5.1 Cannot Set LC_ALL to Default Locale](#51-cannot-set-lc_all-to-default-locale)
-  * [5.2 PostgreSQL Is Not UTF8 Compatible](#52-postgresql-is-not-utf8-compatible)
-  * [5.3 Could Not Create Default Cluster](#53-could-not-create-default-cluster)
-  * [5.4 Is Postgres Running on Port 5432?](#54-is-postgres-running-on-port-5432)
+- [X-Road: Central Server Installation Guide](#x-road-central-server-installation-guide)
+  - [Version history](#version-history)
+  - [Table of Contents](#table-of-contents)
+  - [License](#license)
+  - [1. Introduction](#1-introduction)
+    - [1.1 Target Audience](#11-target-audience)
+    - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+    - [1.3 References](#13-references)
+  - [2. Installation](#2-installation)
+    - [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
+    - [2.2 Reference Data](#22-reference-data)
+    - [2.3 Requirements to the Central Server](#23-requirements-to-the-central-server)
+    - [2.4 Preparing OS](#24-preparing-os)
+    - [2.5 Installation](#25-installation)
+    - [2.6 Installing the Support for Hardware Tokens](#26-installing-the-support-for-hardware-tokens)
+    - [2.7 Installing the Support for Monitoring](#27-installing-the-support-for-monitoring)
+    - [2.8 Post-Installation Checks](#28-post-installation-checks)
+  - [3 Initial Configuration](#3-initial-configuration)
+    - [3.1 Reference Data](#31-reference-data)
+    - [3.2 Initializing the Central Server](#32-initializing-the-central-server)
+    - [3.3 Configuring the Central Server and the Management Services' Security Server](#33-configuring-the-central-server-and-the-management-services-security-server)
+  - [4 Additional configuration](#4-additional-configuration)
+    - [4.1 Global configuration V1 support](#41-global-configuration-v1-support)
+  - [5 Installation Error Handling](#5-installation-error-handling)
+    - [5.1 Cannot Set LC_ALL to Default Locale](#51-cannot-set-lcall-to-default-locale)
+    - [5.2 PostgreSQL Is Not UTF8 Compatible](#52-postgresql-is-not-utf8-compatible)
+    - [5.3 Could Not Create Default Cluster](#53-could-not-create-default-cluster)
+    - [5.4 Is Postgres Running on Port 5432?](#54-is-postgres-running-on-port-5432)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -222,11 +226,37 @@ Parameter   | Type    | Default Value | Explanation
 **Note 1:** Only parameter *library* is mandatory, all the others are optional.  
 **Note 2:** The item separator of the type STRING LIST is ",".
 
-### 2.7 Installing the Support for Environmental Monitoring
+### 2.7 Installing the Support for Monitoring
 
-The optional configuration for environmental monitoring parameters is installed by package xroad-centralserver-monitoring. This package also includes the components that validate the updated xml monitoring configuration. The package is included in the central server installation by default.
+The optional configuration for monitoring parameters is installed by package xroad-centralserver-monitoring. This package also includes the components that validate the updated xml monitoring configuration. The package is included in the central server installation by default.
 
 The central monitoring client may be configured as specified in the [UG-CS](#Ref_UG-CS).
+
+### 2.8 Post-Installation Checks
+
+The installation is successful if the system services are started and the user interface is responding.
+
+-   Ensure from the command line that relevant X-Road services are in the `running` state (example output follows). Notice that it is normal for the xroad-confclient to be in `stopped` state on the central server since it operates in one-shot mode.
+
+    - Ubuntu 14.04
+        ```
+        sudo initctl list | grep "^xroad-"
+
+        xroad-jetty start/running, process 19796
+        xroad-confclient stop/waiting, process 19563
+        xroad-signer start/running, process 19393
+        ```
+
+    - Ubuntu 18.04
+        ```
+        sudo systemctl list-units "xroad*"
+
+        UNIT                     LOAD   ACTIVE SUB     DESCRIPTION
+        xroad-jetty.service      loaded active running X-Road Jetty server
+        xroad-signer.service     loaded active running X-Road signer
+        ```
+
+-   Ensure that the central server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display the “502 Bad Gateway” error.
 
 ## 3 Initial Configuration
 
@@ -277,7 +307,7 @@ appoint the subsystem as the management service provider - [UG-CS](#Ref_UG-CS) s
 
 ## 4 Additional configuration
 
-### 4.1 Adding support for V1 global configuration
+### 4.1 Global configuration V1 support
 
 The support for global configuration version V1 has been removed in X-Road version 6.20. The central server produces only V2 global configuration which is expected by security servers from version 6.8.x and up.
 

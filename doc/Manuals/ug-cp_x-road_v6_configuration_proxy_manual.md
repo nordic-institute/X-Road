@@ -28,31 +28,34 @@ Doc. ID: UG-CP
 
 <!-- vim-markdown-toc GFM -->
 
-* [1 Introduction](#1-introduction)
-  * [1.1 Target Audience](#11-target-audience)
-  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
-  * [1.3 References](#13-references)
-  * [1.4 X-Road Configuration Proxy](#14-x-road-configuration-proxy)
-* [2 Installation](#2-installation)
-  * [2.1 Supported Platforms](#21-supported-platforms)
-  * [2.2 Reference Data](#22-reference-data)
-  * [2.3 Requirements for the Configuration Proxy](#23-requirements-for-the-configuration-proxy)
-  * [2.4 Preparing OS](#24-preparing-os)
-  * [2.5 Installation](#25-installation)
-  * [2.6 Post-Installation Checks](#26-post-installation-checks)
-  * [2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
-* [3 Configuration](#3-configuration)
-  * [3.1 Prerequisites](#31-prerequisites)
-    * [3.1.1 Security Token Activation](#311-security-token-activation)
-    * [3.1.2 User Access Privileges](#312-user-access-privileges)
-  * [3.2 General Configuration](#32-general-configuration)
-    * [3.2.1 Configuration Structure of the Instances](#321-configuration-structure-of-the-instances)
-  * [3.3 Proxy Instance Reference Data](#33-proxy-instance-reference-data)
-  * [3.4 Proxy Instance Configuration](#34-proxy-instance-configuration)
-  * [3.5 Additional Configuration](#35-additional-configuration)
-    * [3.5.1 Changing the Validity Interval](#351-changing-the-validity-interval)
-    * [3.5.2 Deleting the Signing Keys](#352-deleting-the-signing-keys)
-    * [3.5.3 Changing the Active Signing Key](#353-changing-the-active-signing-key)
+- [X-Road: Configuration Proxy Manual](#x-road-configuration-proxy-manual)
+  - [Version History](#version-history)
+  - [Table of Contents](#table-of-contents)
+  - [1 Introduction](#1-introduction)
+    - [1.1 Target Audience](#11-target-audience)
+    - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+    - [1.3 References](#13-references)
+    - [1.4 X-Road Configuration Proxy](#14-x-road-configuration-proxy)
+  - [2 Installation](#2-installation)
+    - [2.1 Supported Platforms](#21-supported-platforms)
+    - [2.2 Reference Data](#22-reference-data)
+    - [2.3 Requirements for the Configuration Proxy](#23-requirements-for-the-configuration-proxy)
+    - [2.4 Preparing OS](#24-preparing-os)
+    - [2.5 Installation](#25-installation)
+    - [2.6 Post-Installation Checks](#26-post-installation-checks)
+    - [2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
+  - [3 Configuration](#3-configuration)
+    - [3.1 Prerequisites](#31-prerequisites)
+      - [3.1.1 Security Token Activation](#311-security-token-activation)
+      - [3.1.2 User Access Privileges](#312-user-access-privileges)
+    - [3.2 General Configuration](#32-general-configuration)
+      - [3.2.1 Configuration Structure of the Instances](#321-configuration-structure-of-the-instances)
+    - [3.3 Proxy Instance Reference Data](#33-proxy-instance-reference-data)
+    - [3.4 Proxy Instance Configuration](#34-proxy-instance-configuration)
+    - [3.5 Additional Configuration](#35-additional-configuration)
+      - [3.5.1 Changing the Validity Interval](#351-changing-the-validity-interval)
+      - [3.5.2 Deleting the Signing Keys](#352-deleting-the-signing-keys)
+      - [3.5.3 Changing the Active Signing Key](#353-changing-the-active-signing-key)
 
 <!-- vim-markdown-toc -->
 
@@ -126,10 +129,10 @@ Requirements to software and settings:
 
 ### 2.4 Preparing OS
 
-Set operating system locale. Add following line to file */etc/environment*:  
-```bash
-LC_ALL=en_US.UTF-8
-```
+- Set the operating system locale.
+
+  Add the following line to the file /etc/environment: `LC_ALL=en_US.UTF-8`  
+  Ensure that the locale is generated: `sudo locale-gen en_US.UTF-8`
 
 ### 2.5 Installation
 
@@ -425,9 +428,9 @@ confproxy-generate-anchor -p <PROXY_NAME> -f <ANCHOR_FILENAME>
 If generation was successful the output should be simply:
 
 ```cmd
-confproxy-generate-anchor -p PROXY -f anchor.xml
+confproxy-generate-anchor -p PROXY -f /home/xroad/anchor.xml
 
-Generated anchor xml to 'anchor.xml'
+Generated anchor xml to '/home/xroad/anchor.xml'
 ```
 
 6) To make sure that the global configuration is being distributed correctly use the '/usr/share/xroad/scripts/download_instance_configuration.sh' script, giving it &lt;ANCHOR_FILENAME&gt; and the path, which should hold the downloaded files, as arguments (example output follows):
