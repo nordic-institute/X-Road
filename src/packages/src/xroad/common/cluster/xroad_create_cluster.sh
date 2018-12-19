@@ -3,20 +3,20 @@
 
 DIR=/etc/xroad/cluster
 LOGDIR=/var/log/xroad
-LOGFILE=$LOGDIR/cluster_`date +%Y-%m-%d_%H:%M:%S`.log
+LOGFILE=$LOGDIR/cluster_$(date +%Y-%m-%d_%H:%M:%S).log
 
 SSHKEYFILE=hacluster.sshkey
 SSH_OPTIONS="-i $SSHKEYFILE -q -o PasswordAuthentication=no"
 
 NODESFILE=nodes
-DUMPFILE=/var/lib/postgresql/9.3_dump.dat
+DUMPFILE=/var/lib/postgresql/centerui_production_dump.dat
 
-APT_GET_INSTALL="apt-get install -y --force-yes"
+APT_GET_INSTALL="DEBIAN_FRONTEND=noninteractive apt-get -qq install --force-yes"
 
 REMOTE_SCRIPT_PREFIX="set -x"
 
 POSTGRES_CONF_FILE="/etc/postgresql/9.4/main/postgresql.conf"
-POSTGRES_LOG_FILE="/var/log/postgresql/postgresql-9.4-main.log"
+OLD_POSTGRES_VERSION=0
 
 # These are the steps for creating a cluster. See the comments of each function
 # for details.
@@ -30,8 +30,8 @@ create_cluster () {
     prepare_environment
     check_existing_xroad_installation
     check_existing_postgres_installation
-    install_and_configure_ntp
     install_helper_tools
+    install_and_configure_ntp
     create_ca_directory
     create_ca
     create_tls_keys
@@ -44,8 +44,8 @@ create_cluster () {
 }
 
 die () {
-  echo -e "ERROR $@\nABORTING" >/dev/tty
-  echo -e "ERROR $@\nABORTING"
+  echo -e "ERROR $*\nABORTING" >/dev/tty
+  echo -e "ERROR $*\nABORTING"
   exit 1
 }
 
@@ -55,7 +55,7 @@ output () {
 }
 
 usage() {
-  if [[ `id -nu` != 'xroad' ]]
+  if [[ $(id -nu) != 'xroad' ]]
   then
     echo -e "\nThis script is intended to be run as xroad user. Try the following command\n"
     echo -e "sudo -i -u xroad $0\n"
@@ -67,12 +67,12 @@ usage() {
 # A less detailed log will be written to the console.
 start_log_file() {
   test -d $DIR -a -w $DIR || die "Cannot write to working directory $DIR"
-  cd $DIR
-  touch $LOGFILE || die "Cannot start logfile $LOGFILE"
+  cd $DIR || die "Cannot use working directory $DIR"
+  touch "$LOGFILE" || die "Cannot start logfile $LOGFILE"
 
   exec 1<&-
   exec 2<&-
-  exec 1<>$LOGFILE
+  exec 1<>"$LOGFILE"
   exec 2>&1
 
   output "\nDetailed logs are saved into $LOGFILE\n"
@@ -126,15 +126,14 @@ wait_for_authorized_keys() {
 test_ssh_connections() {
   while read -u10 node
   do
-    local command="ssh ${SSH_OPTIONS} root@${node} exit"
+    local command="ssh -n ${SSH_OPTIONS} root@${node} exit"
     output "\n$node: Testing SSH connection"
     output "Testing: $command"
-    `$command`
-    if [[ $? -ne 0 ]]
-      then die "\nCannot access root@$node:" \
-          "make sure the key in $SSHKEYFILE.pub has been copied over"
-    else
+    if $command; then
       output "$node: SSH connection is OK"
+    else
+      die "\nCannot access "root@$node":" \
+          "make sure the key in $SSHKEYFILE.pub has been copied over"
     fi
   done 10<$NODESFILE
 }
@@ -147,7 +146,7 @@ prepare_environment() {
   do
     output "\n$node: Ensuring the locale is UTF-8"
     # Create .hushlogin to avoid login-related noise in the log.
-    ssh $SSH_OPTIONS root@$node <<EOF
+    ssh $SSH_OPTIONS "root@$node" <<EOF
 $REMOTE_SCRIPT_PREFIX
 touch /root/.hushlogin
 grep -E "LC_ALL.*UTF-8" "/etc/environment" || echo LC_ALL=en_US.UTF-8 >> /etc/environment
@@ -165,7 +164,7 @@ check_existing_xroad_installation() {
   while read -u10 node
   do
     output "\n$node: Looking for existing X-Road packages"
-    ssh $SSH_OPTIONS root@$node <<EOF
+    ssh $SSH_OPTIONS "root@$node" <<EOF
 $REMOTE_SCRIPT_PREFIX
 dpkg -l | grep xroad | grep -v clusterhelper
 EOF
@@ -178,7 +177,7 @@ EOF
             "Purge all the X-Road and PostgreSQL packages!"
       else
         # Check if the first node is a central server.
-        ssh $SSH_OPTIONS root@$node <<EOF
+        ssh $SSH_OPTIONS "root@$node" <<EOF
 $REMOTE_SCRIPT_PREFIX
 dpkg -l | grep 'xroad-center' | grep -v clusterhelper
 EOF
@@ -202,54 +201,56 @@ EOF
 # If we detect any PostgreSQL clusters or packages on nodes other than the first one, we
 # won't continue. The machines must be cleaned up manually.
 # The conditions for a PostgreSQL installation that will be migrated:
-# * 9.3 packages are found
-# * pg_lsclusters reports an existing, online 9.3 cluster
+# * postgresql_common packages are found
+# * pg_lsclusters reports an existing, online cluster
 # * the centerui user is found
 # The exit status of this function conforms to the general exit status logic of bash.
 _check_existing_database() {
   local this_node=$1
-  output "\n$this_node: Looking for existing PostgreSQL 9.3 packages"
-  ssh $SSH_OPTIONS root@$this_node <<EOF
+  local node_index=$2
+  output "\n$this_node: Looking for existing PostgreSQL packages"
+  ssh $SSH_OPTIONS "root@$this_node" <<EOF
 $REMOTE_SCRIPT_PREFIX
-dpkg -l | cut -d ' ' -f 3 | grep postgresql-9.3
+dpkg -l | cut -d ' ' -f 3 | grep postgresql-common
 EOF
   if [[ $? -eq 0 ]]
   then
     local pg_cluster_info
-    pg_cluster_info=$(ssh $SSH_OPTIONS root@$this_node pg_lsclusters -h)
+    pg_cluster_info=$(ssh -n $SSH_OPTIONS root@$this_node 'pg_lsclusters -h')
     if [[ $? -eq 0 ]]
     then
       # Sample output:
       # 9.3 main 5432 online postgres /var/lib/postgresql/9.3/main /var/log/postgresql/postgresql-9.3-main.log
-      local pg_version=`echo $pg_cluster_info | cut -d ' ' -f 1`
-      local pg_port=`echo $pg_cluster_info | cut -d ' ' -f 3`
-      local pg_status=`echo $pg_cluster_info | cut -d ' ' -f 4`
-      if [[ $pg_version == "9.3" ]] && [[ $pg_port == "5432" ]] && \
-          [[ $pg_status == "online" ]]
+      local pg_version=$(echo $pg_cluster_info | cut -d ' ' -f 1)
+      local pg_port=$(echo $pg_cluster_info | cut -d ' ' -f 3)
+      local pg_status=$(echo $pg_cluster_info | cut -d ' ' -f 4)
+      if [[ $pg_port == "5432" && $pg_status == "online" && $pg_version != "9.4" ]]
       then
-        ssh $SSH_OPTIONS root@$this_node <<EOF
+        ssh $SSH_OPTIONS "root@$this_node" <<EOF
 $REMOTE_SCRIPT_PREFIX
 sudo -i -u postgres -- psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='centerui'" | grep 1
 EOF
         if [[ $? -eq 0 ]]
         then
+          if [[ $node_index -eq 0 ]]; then
+            OLD_POSTGRES_VERSION=$pg_version
+          fi
           return 0 # Success, an existing running database is there.
         fi
       fi # end pg cluster info check
     fi # end pg cluster info available
-  fi # end postgresql 9.3 installed
+  fi # end postgresql installed
   return 1 # Failure, no existing running database was found.
 }
 
 check_existing_postgres_installation() {
   local node_index=0
-
   while read -u10 node
   do
-    _check_existing_database $node
+    _check_existing_database "$node" $node_index
     if [[ $? -eq 0 ]] # an existing database was found
     then
-      if [[ $node_index > 0 ]]
+      if [[ $node_index -gt 0 ]]
       then
         die "$node: Found an existing X-Road Central server database on a node that" \
             "is not the first one in $DIR/$NODESFILE." \
@@ -261,16 +262,16 @@ check_existing_postgres_installation() {
     else # no running database was found
       # If no proper running database was found, all the rest of the PostgreSQL
       # packages should be removed.
-      ssh $SSH_OPTIONS root@$node <<EOF
+      ssh $SSH_OPTIONS "root@$node" <<EOF
 $REMOTE_SCRIPT_PREFIX
-dpkg -l | cut -d ' ' -f 3 | grep postgresql-9.3
+dpkg -l | cut -d ' ' -f 3 | grep -P "postgresql-(\d+)"
 EOF
       if [[ $? -eq 0 ]]
       then
         die "$node: Found PostgreSQL packages installed on the system." \
           "Purge all the X-Road and PostgreSQL packages!"
       else
-        output "$node: No PostgreSQL 9.3 packages were found"
+        output "$node: No PostgreSQL packages were found"
       fi
     fi
     ((node_index++))
@@ -282,20 +283,20 @@ install_and_configure_ntp() {
   while read -u10 node
   do
     output "\n$node: Installing NTP and forcing NTP time update"
-    ssh $SSH_OPTIONS root@$node <<EOF
+    ssh $SSH_OPTIONS "root@$node" <<EOF
 $REMOTE_SCRIPT_PREFIX
 $APT_GET_INSTALL ntp
 service ntp stop
 EOF
     sleep 2
-    ssh $SSH_OPTIONS root@$node -- ntpd -gq
+    ssh $SSH_OPTIONS "root@$node" -- ntpd -gq
     if [[ $? -ne 0 ]]
     then
       die "$node: Cannot update time on"
     else
      output "$node: Time was updated successfully"
     fi
-    ssh $SSH_OPTIONS root@$node service ntp start
+    ssh $SSH_OPTIONS "root@$node" service ntp start
   done 10<$NODESFILE
 }
 
@@ -303,8 +304,9 @@ install_helper_tools() {
   while read -u10 node
   do
     output "\n$node: Installing helper tools"
-    ssh $SSH_OPTIONS root@$node <<EOF
+    ssh $SSH_OPTIONS "root@$node" <<EOF
 $REMOTE_SCRIPT_PREFIX
+apt-get -qq update
 $APT_GET_INSTALL crudini wget netcat
 EOF
     if [[ $? -ne 0 ]]
@@ -334,7 +336,7 @@ create_ca() {
 
   if [[ -f root.key ]]
   then
-    output "\nUsing the existing CA keys"
+    output "\nUsing the existing CA keys"/var/log/xroad/cluster_2018-11-08_07:02:27.log
   else
     output "\nCreating a new CA"
     openssl req -new -x509 -days 7300 -nodes -out root.crt -keyout root.key -subj '/O=HACluster/CN=CA'
@@ -362,16 +364,27 @@ create_tls_keys() {
 
 _install_postgres() {
   local this_node=$1
-
   output "\n$node: Installing PostgreSQL 9.4 with BDR support"
-  ssh $SSH_OPTIONS root@$this_node <<EOF
-$REMOTE_SCRIPT_PREFIX
-echo "deb https://apt.2ndquadrant.com/ $(lsb_release -cs)-2ndquadrant main" > /etc/apt/sources.list.d/bdr.list
-wget --quiet -O - https://apt.2ndquadrant.com/site/keys/9904CD4BD6BAF0C3.asc | apt-key add -
-apt-get update
+  ssh $SSH_OPTIONS "root@$this_node" <<EOF
+export DEBIAN_FRONTEND=noninteractive
+echo "deb https://apt.2ndquadrant.com/ \$(lsb_release -cs)-2ndquadrant main" > /etc/apt/sources.list.d/bdr.list
+wget --quiet -O - https://apt.2ndquadrant.com/site/keys/9904CD4BD6BAF0C3.asc | apt-key add - || exit 1
+apt-get -qq update || exit 1
+$APT_GET_INSTALL postgresql-common || exit 1
+_create_main_cluster=\$(crudini --get /etc/postgresql-common/createcluster.conf '' create_main_cluster)
+crudini --set /etc/postgresql-common/createcluster.conf '' create_main_cluster false
 $APT_GET_INSTALL postgresql-bdr-9.4-bdr-plugin
+RV=\$?
+if [[ -z "\$_create_main_cluster" ]]; then
+  crudini --del /etc/postgresql-common/createcluster.conf '' create_main_cluster
+else
+  crudini --set /etc/postgresql-common/createcluster.conf '' create_main_cluster \$_create_main_cluster
+fi
+test \$RV -eq 0 || exit 1;
+if ! pg_lsclusters -h 9.4 main | grep -q 9.4; then
+  pg_createcluster 9.4 main
+fi
 EOF
-
   if [[ $? -ne 0 ]]
   then
     die "$node: Failed to install PostgreSQL. Check the detailed log"
@@ -381,9 +394,9 @@ EOF
 _copy_tls_keys_and_certs() {
   local this_node=$1
   output "\n$this_node: Copying keys and certificates"
-  ssh $SSH_OPTIONS root@$this_node mkdir -p /etc/postgresql/ssl/
-  scp $SSH_OPTIONS ca/$this_node/* ca/root.crt root@$this_node:/etc/postgresql/ssl/
-  ssh $SSH_OPTIONS root@$this_node  <<EOF
+  ssh $SSH_OPTIONS "root@$this_node" mkdir -p /etc/postgresql/ssl/
+  scp $SSH_OPTIONS "ca/$this_node/"* ca/root.crt "root@$this_node:/etc/postgresql/ssl/"
+  ssh $SSH_OPTIONS "root@$this_node"  <<EOF
 $REMOTE_SCRIPT_PREFIX
 chown postgres.postgres -R "/etc/postgresql/ssl"
 chmod  og-rwx  /etc/postgresql/ssl/*key
@@ -393,7 +406,7 @@ EOF
 _edit_postgres_conf() {
   local this_node=$1
   output "\n$this_node: Editing PostgreSQL configuration for BDR support"
-  ssh $SSH_OPTIONS root@$this_node << EOF
+  ssh $SSH_OPTIONS "root@$this_node" << EOF
 $REMOTE_SCRIPT_PREFIX
 crudini --set $POSTGRES_CONF_FILE '' ssl true
 crudini --set $POSTGRES_CONF_FILE '' listen_addresses \'*\'
@@ -408,7 +421,7 @@ crudini --set $POSTGRES_CONF_FILE '' ssl_cert_file \'/etc/postgresql/ssl/server.
 crudini --set $POSTGRES_CONF_FILE '' ssl_key_file \'/etc/postgresql/ssl/server.key\'
 crudini --set $POSTGRES_CONF_FILE '' ssl_ca_file \'/etc/postgresql/ssl/root.crt\'
 crudini --set $POSTGRES_CONF_FILE '' default_sequenceam \'bdr\'
-service postgresql restart 9.4
+pg_ctlcluster 9.4 main restart
 EOF
 }
 
@@ -418,7 +431,7 @@ install_and_configure_postgres() {
   while read -u10 node
   do
     output "\n$node: Checking if BDR has been configured already"
-    ssh $SSH_OPTIONS root@$node << EOF
+    ssh $SSH_OPTIONS "root@$node" << EOF
 $REMOTE_SCRIPT_PREFIX
 crudini --get $POSTGRES_CONF_FILE "" shared_preload_libraries | grep "bdr"
 EOF
@@ -433,13 +446,13 @@ EOF
     _copy_tls_keys_and_certs $node
 
     output "\n$node: Checking PostgreSQL configuration"
-    if ssh $SSH_OPTIONS root@$node [[ ! -f $POSTGRES_CONF_FILE ]]
+    if ssh $SSH_OPTIONS "root@$node" [[ ! -f $POSTGRES_CONF_FILE ]]
     then
       die "$node: PostgreSQL configuration file was not found at $POSTGRES_CONF_FILE" \
           "after installation"
     fi
 
-    ssh $SSH_OPTIONS root@$node <<EOF
+    ssh $SSH_OPTIONS "root@$node" <<EOF
 $REMOTE_SCRIPT_PREFIX
 crudini --get /etc/postgresql/9.4/main/postgresql.conf "" port | grep "^5432"
 EOF
@@ -452,23 +465,25 @@ EOF
         # Because this is the first node in the list, we'll try to back up the old
         # database in order to restore the data later -- we are migrating an
         # existing central server to an HA setup.
+        # We will create a data-only dump so that it is possible to restore the
+        # data from PostgreSQL 10 to PostgreSQL 9.4
         output "$node: Wrong port configured for postgres. Old X-Road configuration?" \
             "Trying to dump old database to $DUMPFILE"
-        ssh $SSH_OPTIONS root@$node sudo chown postgres:postgres /var/lib/postgresql
-        ssh $SSH_OPTIONS root@$node sudo -i -u postgres \
-            pg_dump -c -F p -f $DUMPFILE centerui_production
-        ssh $SSH_OPTIONS root@$node -- head -2 $DUMPFILE | grep "PostgreSQL database dump"
+        ssh $SSH_OPTIONS "root@$node" sudo chown postgres:postgres /var/lib/postgresql
+        ssh $SSH_OPTIONS "root@$node" sudo -i -u postgres \
+            pg_dump -a -F p --disable-triggers --exclude-table-data public.schema_migrations -f $DUMPFILE centerui_production
+        ssh $SSH_OPTIONS "root@$node" -- head -2 $DUMPFILE | grep "PostgreSQL database dump"
 
         if [[ $? -ne 0 ]]
         then
           die "$node: Failed to dump old database"
         fi
         output "$node: Reconfiguring the old DB to listen on port 5433 and the new DB on 5432"
-        ssh $SSH_OPTIONS root@$node <<EOF
+        ssh $SSH_OPTIONS "root@$node" <<EOF
 service xroad-jetty stop
 crudini --set  /etc/postgresql/9.4/main/postgresql.conf '' port 5432
-crudini --set  /etc/postgresql/9.3/main/postgresql.conf '' port 5433
-service postgresql stop 9.3
+crudini --set  /etc/postgresql/$OLD_POSTGRES_VERSION/main/postgresql.conf '' port 5433
+pg_ctlcluster $OLD_POSTGRES_VERSION main stop
 EOF
 
       else
@@ -491,7 +506,7 @@ test_postgres_running() {
   while read -u10 node
   do
     output "\n$node: Checking if PostgreSQL is actually running"
-    ssh $SSH_OPTIONS root@$node <<EOF
+    ssh $SSH_OPTIONS "root@$node" <<EOF
 $REMOTE_SCRIPT_PREFIX
 sudo -i -u postgres -- psql -tAc "SELECT * FROM pg_roles"
 EOF
@@ -508,7 +523,7 @@ test_node_connectivity() {
     output "\n$node: Testing TCP connectivity"
     while read -u11 peer
     do
-      ssh $SSH_OPTIONS root@$node nc -z -w5 $peer 5432
+      ssh $SSH_OPTIONS "root@$node" nc -z -w5 "$peer" 5432
       if [[ $? -ne 0 ]]
       then
         die "$node: Cannot connect to $peer port 5432"
@@ -523,8 +538,8 @@ configure_bdr_cluster() {
   while read -u10 node
   do
     output "\n$node: Configuring PostgreSQL cluster for HA"
-    scp  $SSH_OPTIONS $NODESFILE root@$node:/etc/postgresql/9.4/main
-    ssh  $SSH_OPTIONS root@$node <<EOF
+    scp  $SSH_OPTIONS "$NODESFILE" ""root@$node":/etc/postgresql/9.4/main"
+    ssh  $SSH_OPTIONS "root@$node" <<EOF
 $REMOTE_SCRIPT_PREFIX
 while read -u20 peer
 do
@@ -532,7 +547,7 @@ do
   grep -q -E "replication.*replicator.*\${peer}" "/etc/postgresql/9.4/main/pg_hba.conf" || echo -e "hostssl\treplication\treplicator\t\${peer}/32\tcert\tclientcert=1" >> /etc/postgresql/9.4/main/pg_hba.conf
   grep -q -E "centerui_production.*replicator.*\${peer}" "/etc/postgresql/9.4/main/pg_hba.conf" || echo -e "hostssl\tcenterui_production\treplicator\t\${peer}/32\tcert\tclientcert=1" >> /etc/postgresql/9.4/main/pg_hba.conf
   done 20</etc/postgresql/9.4/main/$NODESFILE
-service postgresql restart 9.4
+pg_ctlcluster 9.4 main restart
 EOF
   done 10<$NODESFILE
 
@@ -541,7 +556,7 @@ EOF
   while read -u10 node
   do
     output "\n$node: Creating databases and roles"
-    ssh $SSH_OPTIONS root@$node <<EOF
+    ssh $SSH_OPTIONS "root@$node" <<EOF
 $REMOTE_SCRIPT_PREFIX
 sudo -i -u postgres -- psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='centerui'" | grep 1
 EOF
@@ -550,7 +565,7 @@ EOF
       output "$node: The centerui schema is already present"
     else
       output "$node: Creating centerui and other schemas"
-      ssh  $SSH_OPTIONS root@$node <<EOF
+      ssh  $SSH_OPTIONS "root@$node" <<EOF
 $REMOTE_SCRIPT_PREFIX
 sudo -i -u postgres createuser -s --replication replicator
 sudo -i -u  postgres psql <<EOP
@@ -576,7 +591,7 @@ configure_bdr_nodes() {
   do
     output "\n$node: Configuring BDR node, using node ID 'node_$current_node_id'"
 
-    ssh  $SSH_OPTIONS root@$node <<EOF
+    ssh  $SSH_OPTIONS "root@$node" <<EOF
 $REMOTE_SCRIPT_PREFIX
 sudo -i -u postgres -- psql centerui_production -tAc "SELECT  bdr.bdr_get_local_node_name()"  | grep "^node_"
 EOF
@@ -598,7 +613,7 @@ EOF
     then
       # Create the BDR group that other nodes will join later.
       output "\n$node: Creating a BDR group for the cluster"
-      ssh $SSH_OPTIONS root@$node <<EOF
+      ssh $SSH_OPTIONS "root@$node" <<EOF
 $REMOTE_SCRIPT_PREFIX
 sudo -i -u  postgres psql centerui_production <<EOP
 SELECT bdr.bdr_group_create(
@@ -611,10 +626,10 @@ EOF
       local node0=$node
 
       output "\n$node: Creating a view for accessing BDR-related information"
-      ssh  $SSH_OPTIONS root@$node <<EOF
+      ssh  $SSH_OPTIONS "root@$node" <<EOF
 $REMOTE_SCRIPT_PREFIX
 crudini --set $POSTGRES_CONF_FILE '' bdr.skip_ddl_locking true
-service postgresql restart 9.4
+pg_ctlcluster 9.4 main reload
 sleep 5
 sudo -i -u  postgres psql centerui_production <<EOP
 create or replace view xroad_bdr_replication_info as
@@ -628,31 +643,33 @@ grant EXECUTE on FUNCTION get_xroad_bdr_replication_info() to centerui;
 EOP
 EOF
 
-      ssh $SSH_OPTIONS root@$node <<EOF
+      ssh $SSH_OPTIONS "root@$node" <<EOF
 $REMOTE_SCRIPT_PREFIX
 head -2 $DUMPFILE | grep "PostgreSQL database dump"
 EOF
       if [[ $? -eq 0 ]]
       then
         output "$node: Trying to restore OLD configuration database"
-        ssh $SSH_OPTIONS root@$node <<EOF
+        ssh $SSH_OPTIONS "root@$node" <<EOF
 cp $DUMPFILE $DUMPFILE.bak
+dpkg-reconfigure -f noninteractive xroad-center
+sleep 1
 sed -i -e "0,/^SELECT pg_catalog.setval/{s/\(^SELECT pg_catalog.setval\)/select pg_sleep(30);\n\1/}" $DUMPFILE
 sed -i -e "{s/\(^SELECT pg_catalog.setval('\(.*\)', \([0-9]*\).*$\)/-- \1\nselect nextval('\2') from generate_series(1,\3);/}"  $DUMPFILE
-sudo -i -u  postgres  -- sh -c "PGPASSWORD=centerui psql -h 127.0.0.1 -U centerui -e centerui_production < $DUMPFILE"
+sudo -i -u postgres -- psql -e -f $DUMPFILE -d centerui_production
 EOF
       fi
-      ssh $SSH_OPTIONS root@$node <<EOF
-mv $DUMPFILE $DUMPFILE.`date +%Y%m%d%H%M%S`.done
+      ssh $SSH_OPTIONS "root@$node" <<EOF
+mv $DUMPFILE $DUMPFILE.$(date +%Y%m%d%H%M%S).done
 crudini --set $POSTGRES_CONF_FILE '' bdr.skip_ddl_locking false
-service postgresql restart 9.4
+pg_ctlcluster 9.4 main reload
 service xroad-jetty restart
 sleep 5
 EOF
 
     else
       # We are dealing with some other node than the first one. Join the cluster.
-      ssh $SSH_OPTIONS root@$node <<EOF
+      ssh $SSH_OPTIONS "root@$node" <<EOF
 sudo -i -u  postgres psql centerui_production <<EOP
 SELECT bdr.bdr_group_join(
   local_node_name := 'node_$current_node_id',
@@ -672,17 +689,16 @@ check_bdr_status() {
   while read -u10 node
   do
     output "\n$node: BDR node status:"
-    local result=$(ssh $SSH_OPTIONS root@$node sudo -i -u postgres -- "psql -tAc \"SELECT 'Local node: '||bdr.bdr_get_local_node_name();\" centerui_production")
+    local result=$(ssh $SSH_OPTIONS "root@$node" sudo -i -u postgres -- "psql -tAc \"SELECT 'Local node: '||bdr.bdr_get_local_node_name();\" centerui_production")
     output "$result; status of all the nodes as seen from $node:"
-    result=$(ssh $SSH_OPTIONS root@$node sudo -i -u postgres -- "psql -tAc \"SELECT get_xroad_bdr_replication_info();\" centerui_production")
+    result=$(ssh $SSH_OPTIONS "root@$node" sudo -i -u postgres -- "psql -tAc \"SELECT get_xroad_bdr_replication_info();\" centerui_production")
     output "$result"
   done 10<$NODESFILE
 }
 
 create_cluster
 
-output "\nAll the steps have been completed. Date: `date -R`"
+output "\nAll the steps have been completed. Date: $(date -R)"
 output "\nPlease continue with installing/upgrading X-Road center software\n"
-
 
 # vim: ts=2 sw=2 sts=2 et filetype=sh

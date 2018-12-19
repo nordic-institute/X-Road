@@ -1,4 +1,4 @@
-
+---
 - name: Ready all Ubuntu {{ubuntu_releasever}} containers
   with_inventory_hostnames: all:!lxd-servers:!centos-ss
   lxd_container:
@@ -7,9 +7,9 @@
     source:
       type: image
       mode: pull
-      server: https://images.linuxcontainers.org
-      protocol: lxd
-      alias: ubuntu/{{ubuntu_releasever}}/amd64
+      server: https://cloud-images.ubuntu.com/releases
+      protocol: simplestreams
+      alias: "{{ ubuntu_releasever }}"
     profiles: ["default"]
     wait_for_ipv4_addresses: true
     timeout: 600
@@ -33,17 +33,9 @@
   tags:
     - centos-container-init
 
-- name: Check if Python2 is installed in {{ubuntu_releasever}} containers
-  with_inventory_hostnames: all:!lxd-servers:!centos-ss
+- name: Install Python2 in container if necessary
   delegate_to: "{{item}}"
-  raw: dpkg -s python
-  register: python_check_is_installed
-  failed_when: python_check_is_installed.rc not in [0,1]
-  changed_when: false
-
-- name: Install Python2 in container
-  delegate_to: "{{item.item}}"
-  raw: apt-get update && apt-get install -y python
-  when: item.rc == 1
-  with_items:
-    - "{{python_check_is_installed.results}}"
+  raw: >
+    dpkg-query -f '${Status}' -W python python-minimal | grep -q 'ok installed' ||
+    apt-get -qq update && apt-get -qq install python
+  with_inventory_hostnames: all:!lxd-servers:!centos-ss
