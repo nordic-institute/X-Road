@@ -3,21 +3,23 @@ source compile_env.sh
 
 RELEASE="SNAPSHOT"
 
-for i in "$@"
-do
-case $i in
-    -release)
-    RELEASE="RELEASE"
-    ;;
+for i in "$@"; do
+case "$i" in
+    "-release")
+        RELEASE="RELEASE"
+        ;;
+    "sonar"|"-sonar")
+        SONAR=1
+        ;;
 esac
 done
 
-ARGUMENTS="-PxroadBuildType=$RELEASE --stacktrace buildAll runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest"
+ARGUMENTS=("-PxroadBuildType=$RELEASE" --stacktrace buildAll runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest)
 
-if [[ -n $1 ]] && [[ $1 == "sonar" ]]; then
-    ARGUMENTS="$ARGUMENTS dependencyCheckAnalyze sonarqube"
+if [[ -n "$SONAR" ]]; then
+    ARGUMENTS+=(dependencyCheckAnalyze sonarqube)
 fi
 
-./gradlew "$ARGUMENTS"
+./gradlew "${ARGUMENTS[@]}"
 
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
