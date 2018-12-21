@@ -104,8 +104,8 @@ class FastestConnectionSelectingSSLSocketFactory
 
     @Override
     public Socket connectSocket(int timeout, Socket socket, HttpHost host,
-                                InetSocketAddress remoteAddress, InetSocketAddress localAddress,
-                                HttpContext context) throws IOException {
+            InetSocketAddress remoteAddress, InetSocketAddress localAddress,
+            HttpContext context) throws IOException {
         // Read target addresses from the context.
         final URI[] addressesFromContext = getAddressesFromContext(context);
         final boolean useCache = (addressesFromContext.length > 1) && cachingEnabled;
@@ -151,12 +151,16 @@ class FastestConnectionSelectingSSLSocketFactory
 
         log.trace("Connected to {}", selectedSocket.getUri());
 
-        configureSocket(selectedSocket.getSocket());
-
         updateOpMonitoringData(context, selectedSocket);
 
-        SSLSocket sslSocket = wrapToSSLSocket(selectedSocket.getSocket());
+        //XRDDEV-248: use connection timeout as read timeout during SSL handshake
+        final Socket s = selectedSocket.getSocket();
+        s.setSoTimeout(timeout);
+        s.setSoLinger(false, 0);
+        SSLSocket sslSocket = wrapToSSLSocket(s);
         prepareAndVerify(sslSocket, selectedSocket.getUri(), context);
+
+        configureSocket(sslSocket);
 
         if (useCache && cachedURI == null) {
             log.trace("Store the fastest provider URI to cache {}", selectedSocket.getUri());
@@ -168,12 +172,12 @@ class FastestConnectionSelectingSSLSocketFactory
 
     @Override
     protected void prepareSocket(final SSLSocket socket) throws IOException {
-        socket.setEnabledProtocols(new String[]{CryptoUtils.SSL_PROTOCOL});
+        socket.setEnabledProtocols(new String[] {CryptoUtils.SSL_PROTOCOL});
         socket.setEnabledCipherSuites(SystemProperties.getXroadTLSCipherSuites());
     }
 
     private static void updateOpMonitoringData(HttpContext context,
-                                               SocketInfo socketInfo) {
+            SocketInfo socketInfo) {
         try {
             OpMonitoringData opMonitoringData = (OpMonitoringData) context
                     .getAttribute(OpMonitoringData.class.getName());
@@ -205,16 +209,18 @@ class FastestConnectionSelectingSSLSocketFactory
 
         int linger = SystemProperties.getClientProxyHttpClientSoLinger();
         socket.setSoLinger(linger >= 0, linger);
+
+        socket.setKeepAlive(true);
     }
 
     private void prepareAndVerify(SSLSocket sslSocket, URI selectedAddress,
-                                  HttpContext context) throws IOException {
+            HttpContext context) throws IOException {
         prepareSocket(sslSocket);
         verify(context, sslSocket.getSession(), selectedAddress);
     }
 
     private SocketInfo connect(URI[] addresses, HttpContext context,
-                               int timeout) throws IOException {
+            int timeout) throws IOException {
         log.trace("Connecting to hosts {} with timeout {}", Arrays.toString(addresses), timeout);
         if (addresses.length == 1) { // only one host, no need to select fastest
             return connect(addresses[0], context, timeout);

@@ -170,12 +170,26 @@ public final class SystemProperties {
     private static final String SERVERPROXY_CONNECTOR_MAX_IDLE_TIME =
             PREFIX + "proxy.server-connector-max-idle-time";
 
+    /**
+     * Property name of the idle time that connections to the serverproxy connector are initially allowed,
+     * in milliseconds
+     */
+    private static final String SERVERPROXY_CONNECTOR_INITIAL_IDLE_TIME =
+            PREFIX + "proxy.server-connector-initial-idle-time";
+
     /** Property name of the server Connector socket SO_LINGER timer, in seconds, value of -1 means off */
     private static final String SERVERPROXY_CONNECTOR_SO_LINGER =
             PREFIX + "proxy.server-connector-so-linger";
 
     private static final String SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS =
             PREFIX + "proxy.server-support-clients-pooled-connections";
+
+    /**
+     * Property name of the idle time that connections to the clientproxy connector are initially allowed,
+     * in milliseconds
+     */
+    private static final String CLIENTPROXY_CONNECTOR_INITIAL_IDLE_TIME =
+            PREFIX + "proxy.client-connector-initial-idle-time";
 
     /** Property name of the idle time that ClientProxy connections are allowed, in milliseconds */
     private static final String CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME =
@@ -185,8 +199,10 @@ public final class SystemProperties {
     private static final String CLIENTPROXY_CONNECTOR_SO_LINGER =
             PREFIX + "proxy.client-connector-so-linger";
 
-    /** Property name for he connection maximum idle time that should be set for client proxy apache HttpClient,
-     * in milliseconds, value 0 means infinite timeout, -1 means the system default */
+    /**
+     * Property name for he connection maximum idle time that should be set for client proxy apache HttpClient,
+     * in milliseconds, value 0 means infinite timeout, -1 means the system default
+     */
     private static final String CLIENTPROXY_HTTPCLIENT_TIMEOUT =
             PREFIX + "proxy.client-httpclient-timeout";
 
@@ -231,6 +247,8 @@ public final class SystemProperties {
 
     private static final String DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
 
+    private static final String DEFAULT_PROXY_CONNECTOR_INITIAL_IDLE_TIME = "30000";
+
     private static final String DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER = "-1";
 
     private static final String DEFAULT_SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS = "false";
@@ -265,8 +283,10 @@ public final class SystemProperties {
 
     private static final String DEFAULT_CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS = "2000";
 
-    /** The default value of the on/off switch for a group of settings that affect whether or not pooled connections
-     * for the ClientProxy can be actually reused **/
+    /**
+     * The default value of the on/off switch for a group of settings that affect whether or not pooled connections
+     * for the ClientProxy can be actually reused
+     **/
     private static final String DEFAULT_CLIENTPROXY_POOL_REUSE_CONNECTIONS = "false";
 
     private static final String DEFAULT_PROXY_HEALTH_CHECK_INTERFACE = "0.0.0.0";
@@ -348,7 +368,7 @@ public final class SystemProperties {
     public static final String ANTIDOS_MAX_CPU_LOAD =
             PREFIX + "anti-dos.max-cpu-load";
 
-    /** Property name of the minimum number of free file handles*/
+    /** Property name of the minimum number of free file handles */
     public static final String ANTIDOS_MIN_FREE_FILEHANDLES =
             PREFIX + "anti-dos.min-free-file-handles";
 
@@ -424,8 +444,10 @@ public final class SystemProperties {
     public static final String WSDL_VALIDATOR_COMMAND =
             PREFIX + "proxy-ui.wsdl-validator-command";
 
-    /** Property name of the signature digest algorithm ID used for generating authentication certificate
-     *  registration request. */
+    /**
+     * Property name of the signature digest algorithm ID used for generating authentication certificate
+     * registration request.
+     */
     private static final String PROXYUI_AUTH_CERT_REG_SIGNATURE_DIGEST_ALGORITHM_ID =
             PREFIX + "proxy-ui.auth-cert-reg-signature-digest-algorithm-id";
 
@@ -526,8 +548,10 @@ public final class SystemProperties {
     public enum NodeType {
         STANDALONE, MASTER, SLAVE;
 
-        /** Parse an enum (ignoring case) from the given String or return the default {@link #STANDALONE}
-         *  if the argument is not understood.
+        /**
+         * Parse an enum (ignoring case) from the given String or return the default {@link #STANDALONE}
+         * if the argument is not understood.
+         *
          * @param name
          * @return
          */
@@ -814,7 +838,6 @@ public final class SystemProperties {
 
     /**
      * @return the OCSP-response retry delay in seconds that should be set for signer, 60 by default
-     *
      */
     public static int getOcspResponseRetryDelay() {
         return Integer.parseInt(System.getProperty(SIGNER_OCSP_RETRY_DELAY,
@@ -823,7 +846,6 @@ public final class SystemProperties {
 
     /**
      * @return the module manager update interval in seconds that should be set for signer, 60 by default
-     *
      */
     public static int getModuleManagerUpdateInterval() {
         return Integer.parseInt(System.getProperty(SIGNER_MODULE_MANAGER_UPDATE_INTERVAL,
@@ -1194,7 +1216,6 @@ public final class SystemProperties {
     }
 
     /**
-     *
      * @return the update interval in seconds at which server conf in cached, '60' by default
      */
     public static int getServerConfCachePeriod() {
@@ -1202,7 +1223,6 @@ public final class SystemProperties {
     }
 
     /**
-     *
      * @return the interval in seconds at which verifier caches results.
      * Max value is 180 seconds and cannot be exceeded in configuration.
      * Default is 60 s.
@@ -1210,6 +1230,14 @@ public final class SystemProperties {
     public static int getOcspVerifierCachePeriod() {
         int period = Integer.parseInt(System.getProperty(OCSP_VERIFIER_CACHE_PERIOD, "60"));
         return period < OCSP_VERIFIER_CACHE_PERIOD_MAX ? period : OCSP_VERIFIER_CACHE_PERIOD_MAX;
+    }
+
+    /**
+     * @return serverproxy initial idle time (used until the request processing starts)
+     */
+    public static long getServerProxyConnectorInitialIdleTime() {
+        return Integer.parseInt(System.getProperty(SERVERPROXY_CONNECTOR_INITIAL_IDLE_TIME,
+                DEFAULT_PROXY_CONNECTOR_INITIAL_IDLE_TIME));
     }
 
     /**
@@ -1223,7 +1251,6 @@ public final class SystemProperties {
 
     /**
      * @return the so_linger value in seconds that should be set for server proxy connector, 0 by default
-     *
      */
     public static int getServerProxyConnectorSoLinger() {
         return Integer.parseInt(System.getProperty(SERVERPROXY_CONNECTOR_SO_LINGER,
@@ -1253,6 +1280,14 @@ public final class SystemProperties {
     public static int getClientProxyConnectorSoLinger() {
         return Integer.parseInt(System.getProperty(CLIENTPROXY_CONNECTOR_SO_LINGER,
                 DEFAULT_CLIENTPROXY_CONNECTOR_SO_LINGER));
+    }
+
+    /**
+     * @return clientproxy initial idle time (used until the request processing starts)
+     */
+    public static long getClientProxyConnectorInitialIdleTime() {
+        return Integer.parseInt(System.getProperty(CLIENTPROXY_CONNECTOR_INITIAL_IDLE_TIME,
+                DEFAULT_PROXY_CONNECTOR_INITIAL_IDLE_TIME));
     }
 
     /**
@@ -1338,7 +1373,7 @@ public final class SystemProperties {
      * @return the {@link #NODE_TYPE} in a cluster for this Server.
      */
     public static NodeType getServerNodeType() {
-        return  NodeType.fromStringIgnoreCaseOrReturnDefault(System.getProperty(NODE_TYPE));
+        return NodeType.fromStringIgnoreCaseOrReturnDefault(System.getProperty(NODE_TYPE));
     }
 
     public static boolean isHealthCheckEnabled() {
@@ -1372,7 +1407,6 @@ public final class SystemProperties {
     }
 
     /**
-     *
      * @return minimum configuration proxy global configuration version or default
      */
     public static int getMinimumConfigurationProxyGlobalConfigurationVersion() {
