@@ -8,7 +8,9 @@
 </div>
 <div id="actions" class="xroad-purple-transparent-border">
   <div id="actions-inner">
-    <%= heading %>
+    <% default_content_for :heading do %>
+      <%= heading %>
+    <% end %>
     <div class="force-middle">
       <img class="mh35" src="/xroad-logo.png">
     </div>
