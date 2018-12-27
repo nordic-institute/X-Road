@@ -8,7 +8,11 @@
 </div>
 <div id="actions" class="xroad-purple-transparent-border">
   <div id="actions-inner">
-    <%= heading %>
+    <% if content_for?(:heading) %>
+      <%= yield :heading %>
+    <% else %>
+      <%= heading %>
+    <% end %>
     <div class="force-middle">
       <img class="mh35" src="/xroad-logo.png">
     </div>
