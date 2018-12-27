@@ -71,12 +71,6 @@ module BaseHelper
     render :partial => "layouts/partials/heading", :locals => {:text => text}
   end
 
-  def default_content_for(name, &block)
-    name = name.kind_of?(Symbol) ? ":#{name}" : name
-    out = eval("yield #{name}", block.binding)
-    concat(out && !out.empty? ? out : capture(&block))
-  end
-
   def flash_message(type)
     flash.discard(type).join("<br />") if flash[type]
   end
