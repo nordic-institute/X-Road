@@ -62,6 +62,7 @@ class ServerProxyHandler extends HandlerBase {
 
     private final HttpClient client;
     private final HttpClient opMonitorClient;
+    private final long idleTimeout = SystemProperties.getServerProxyConnectorMaxIdleTime();
 
     ServerProxyHandler(HttpClient client, HttpClient opMonitorClient) {
         this.client = client;
@@ -90,6 +91,7 @@ class ServerProxyHandler extends HandlerBase {
 
             logProxyVersion(request);
 
+            baseRequest.getHttpChannel().setIdleTimeout(idleTimeout);
             ServerMessageProcessor processor = createRequestProcessor(request, response, start, opMonitoringData);
             processor.process();
         } catch (Throwable e) { // We want to catch serious errors as well
