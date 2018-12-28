@@ -94,7 +94,7 @@ var XROAD_CENTRAL_SERVICES = function () {
             var deletableServiceCode =
                 oCentralServices.getFocusData().central_service_code;
             var requestParams = {serviceCode: deletableServiceCode};
-            confirmParams = {service: deletableServiceCode};
+            var confirmParams = {service: deletableServiceCode};
 
             confirm("central_services.remove_confirm", confirmParams,
                     function() {

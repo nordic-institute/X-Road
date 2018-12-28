@@ -67,7 +67,7 @@ var XROAD_MEMBERS = function() {
     }
 
     function addMember(dialog) {
-        newMemberToOpen = getNewMemberData();
+        var newMemberToOpen = getNewMemberData();
 
         $.post("members/member_add", newMemberToOpen, function(response) {
             redrawMembersTable();
