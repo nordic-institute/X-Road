@@ -8,7 +8,9 @@
 </div>
 <div id="actions" class="xroad-purple-transparent-border">
   <div id="actions-inner">
-    <% default_content_for :heading do %>
+    <% if content_for?(:heading) %>
+      <%= yield :heading %>
+    <% else %>
       <%= heading %>
     <% end %>
     <div class="force-middle">
