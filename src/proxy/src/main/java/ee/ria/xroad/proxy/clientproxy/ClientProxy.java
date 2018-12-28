@@ -196,7 +196,7 @@ public class ClientProxy implements StartStop {
         connector.setPort(port);
 
         connector.setSoLingerTime(CONNECTOR_SO_LINGER_MILLIS);
-        connector.setIdleTimeout(SystemProperties.getClientProxyConnectorMaxIdleTime());
+        connector.setIdleTimeout(SystemProperties.getClientProxyConnectorInitialIdleTime());
 
         disableSendServerVersion(connector);
         server.addConnector(connector);
@@ -230,7 +230,7 @@ public class ClientProxy implements StartStop {
         connector.setPort(port);
 
         connector.setSoLingerTime(CONNECTOR_SO_LINGER_MILLIS);
-        connector.setIdleTimeout(SystemProperties.getClientProxyConnectorMaxIdleTime());
+        connector.setIdleTimeout(SystemProperties.getClientProxyConnectorInitialIdleTime());
 
         disableSendServerVersion(connector);
         server.addConnector(connector);

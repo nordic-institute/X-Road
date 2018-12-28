@@ -26,6 +26,7 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
@@ -60,9 +61,11 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 @RequiredArgsConstructor
 abstract class AbstractClientProxyHandler extends HandlerBase {
 
+    private static final String START_TIME_ATTRIBUTE = AbstractClientProxyHandler.class.getName() + ".START_TIME";
     protected final HttpClient client;
 
     protected final boolean storeOpMonitoringData;
+    private final long idleTimeout = SystemProperties.getClientProxyConnectorMaxIdleTime();
 
     abstract MessageProcessorBase createRequestProcessor(String target,
             HttpServletRequest request, HttpServletResponse response,
@@ -78,22 +81,16 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
 
         boolean handled = false;
 
-        OpMonitoringData opMonitoringData = storeOpMonitoringData
-                ? new OpMonitoringData(CLIENT, getEpochMillisecond()) : null;
-
-        long start = PerformanceLogger.log(log, "Received request from " + request.getRemoteAddr());
-
-        log.info("Received request from {}", request.getRemoteAddr());
-
+        long start = logPerformanceBegin(request);
+        OpMonitoringData opMonitoringData = storeOpMonitoringData ? new OpMonitoringData(CLIENT, start) : null;
         MessageProcessorBase processor = null;
 
         try {
             processor = createRequestProcessor(target, request, response, opMonitoringData);
 
             if (processor != null) {
+                baseRequest.getHttpChannel().setIdleTimeout(idleTimeout);
                 handled = true;
-
-                start = logPerformanceBegin(request);
                 processor.process();
                 success(processor, start, opMonitoringData);
 
@@ -195,10 +192,15 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
     }
 
     private static long logPerformanceBegin(HttpServletRequest request) {
-        long start = PerformanceLogger.log(log, "Received request from " + request.getRemoteAddr());
-
-        log.info("Received request from {}", request.getRemoteAddr());
-
+        long start;
+        Object obj = request.getAttribute(START_TIME_ATTRIBUTE);
+        if (obj instanceof Long) {
+            start = (Long) obj;
+        } else {
+            start = PerformanceLogger.log(log, "Received request from " + request.getRemoteAddr());
+            log.info("Received request from {}", request.getRemoteAddr());
+            request.setAttribute(START_TIME_ATTRIBUTE, start);
+        }
         return start;
     }
 

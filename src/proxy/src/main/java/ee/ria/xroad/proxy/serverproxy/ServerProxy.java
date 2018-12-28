@@ -146,7 +146,7 @@ public class ServerProxy implements StartStop {
         connector.setHost(listenAddress);
 
         connector.setSoLingerTime(CONNECTOR_SO_LINGER_MILLIS);
-        connector.setIdleTimeout(SystemProperties.getServerProxyConnectorMaxIdleTime());
+        connector.setIdleTimeout(SystemProperties.getServerProxyConnectorInitialIdleTime());
 
         connector.getConnectionFactories().stream()
                 .filter(cf -> cf instanceof HttpConnectionFactory)
