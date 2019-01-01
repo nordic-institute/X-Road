@@ -4,12 +4,12 @@ Document ID: TA-TERMS
 
 ## Version history
 
- Date       | Version | Description                                                     | Author
- ---------- | ------- | --------------------------------------------------------------- | --------------------
- 06.07.2015 | 0.1     | Initial draft                                                   |
- 23.02.2017 | 0.2     | Converted to Github flavoured Markdown, added license text, adjusted tables and identification for better output in PDF. Added explanation of monitoring service | Toomas Mölder 
- 14.11.2017 | 0.3     | All the descriptions in estonian language removed. Couple of new descriptions added | Antti Luoma
- 06.03.2018 | 0.4     | Moved/merged terminology explanations from other X-Road repository MD-documents to this document | Tatu Repo |
+Date       | Version | Description                                                     | Author
+---------- | ------- | --------------------------------------------------------------- | --------------------
+06.07.2015 | 0.1     | Initial draft                                                   |
+23.02.2017 | 0.2     | Converted to Github flavoured Markdown, added license text, adjusted tables and identification for better output in PDF. Added explanation of monitoring service | Toomas Mölder 
+14.11.2017 | 0.3     | All the descriptions in Estonian language removed. Couple of new descriptions added | Antti Luoma
+06.03.2018 | 0.4     | Moved/merged terminology explanations from other X-Road repository MD-documents to this document | Tatu Repo |
 
 ## Table of Contents
 
@@ -20,23 +20,23 @@ Document ID: TA-TERMS
 - [2 Participants of X-Road](#2-participants-of-x-road)
 - [3 Trust services](#3-trust-services)
 - [4 Roles of X-Road member](#4-roles-of-x-road-member)
-  * [4.1 In terms of dataservice](#41-in-terms-of-dataservice)
-  * [4.2 In terms of management of security server](#42-in-terms-of-management-of-security-server)
+* [4.1 In terms of dataservice](#41-in-terms-of-dataservice)
+* [4.2 In terms of management of security server](#42-in-terms-of-management-of-security-server)
 - [5 X-Road interfacing steps](#5-x-road-interfacing-steps)
 - [6 Elements of X-Road technology](#6-elements-of-x-road-technology)
-  * [6.1 Technology in general](#61-technology-in-general)
-  * [6.2 X-Road internal components](#62-x-road-internal-components)
-  * [6.3 X-Road external components](#63-x-road-external-components)
-  * [6.4 Elements of X-Road software](#64-elements-of-x-road-software)
-    + [6.4.1 Service and message](#641-service-and-message)
-    + [6.4.2 Subsystems and access rights](#642-subsystems-and-access-rights)
-  * [6.5 X-Road protocols](#65-x-road-protocols)
-  * [6.6 Logging and security](#66-logging-and-security)
-  * [6.7 Identifiers and codes](#67-identifiers-and-codes)
-  * [6.8 Global configuration concepts](#68-global-configuration-concepts)
+* [6.1 Technology in general](#61-technology-in-general)
+* [6.2 X-Road internal components](#62-x-road-internal-components)
+* [6.3 X-Road external components](#63-x-road-external-components)
+* [6.4 Elements of X-Road software](#64-elements-of-x-road-software)
++ [6.4.1 Service and message](#641-service-and-message)
++ [6.4.2 Subsystems and access rights](#642-subsystems-and-access-rights)
+* [6.5 X-Road protocols](#65-x-road-protocols)
+* [6.6 Logging and security](#66-logging-and-security)
+* [6.7 Identifiers and codes](#67-identifiers-and-codes)
+* [6.8 Global configuration concepts](#68-global-configuration-concepts)
 - [7 Technical terms](#7-technical-terms)
-  * [7.1 Trust and security terminology](#71-trust-and-security-terminology)
-  * [7.2 General software terminology](#72-general-software-terminology)
+* [7.1 Trust and security terminology](#71-trust-and-security-terminology)
+* [7.2 General software terminology](#72-general-software-terminology)
 
 <!-- tocstop -->
 
@@ -46,7 +46,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ## 1 X-Road and X-Road Instance
 
-**External X-Road instance** – an instance that has been federated with the local instance. For example the FI-instance is defined as an external instance in the EE's local point of view.
+**External X-Road instance** – an instance that has been federated with the local instance. For example, the FI-instance is defined as an external instance in the EE's local point of view.
 
 **Local X-Road instance** – a group of members that are registered in a particular instance.
 
@@ -72,7 +72,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ## 3 Trust services
 
-**Approved certification service provider** – Provider of a trust service approved on X-Road, who provides at least following trust services approved on X-Road: service of authentication certificate of security server, service of signature certificate of a member, and sertificate validation service (OCSP).
+**Approved certification service provider** – Provider of a trust service approved on X-Road, who provides at least following trust services approved on X-Road: service of authentication certificate of security server, service of signature certificate of a member, and certificate validation service (OCSP).
 
 **Approved timestamp service provider** – Provider of a trust service approved on X-Road, who provides the timestamp service.
 
@@ -88,7 +88,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 **Signature certificate of a member** – qualified certificate of e-stamp issued by certification service provider approved on X-Road and bound to a member, used for verification of the integrity of mediated messages and association of the member with the message.
 
-**Timestamp** – means data in electronic form which binds other data in electronic form to a particular time establishing evidence that the latter data existed at that time (EU No 910/2014)
+**Timestamp** – means data in electronic form which binds other data in electronic form to a particular time establishing evidence that the latter data existed at that time (EU No 910/2014)
 
 **Timestamping authority** (**TSA**) – is an entity that issues timestamps. Timestamps are used to prove the existence of certain data before a certain point of time without the possibility that the owner can backdate the timestamps.
 
@@ -118,7 +118,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 **Affiliation of membership** – a process ending with becoming a member of X-Road. Becoming a member requires conclusion of affiliation contract and registration of data of the member (name and ID of the member) in X-Road central server. Requirements for affiliation are established by X-Road governing authority with relevant regulation/affiliation conditions
 
-**Dataservice interfacing** – a process, where a member of X-Road creates organizational and technical capacity for offering or using dataservice. Interfacing includes development of the service by the member as well as its setup in security server, conclusion of service usage contracts and granting access rights. In order to use the service, service provider as well as service client shall undergo interfacing.
+**Dataservice interfacing** – a process, where a member of X-Road creates organizational and technical capacity for offering or using dataservice. Interfacing includes development of the service by the member as well as its setup in security server, conclusion of service usage contracts and granting access rights. In order to use the service, service provider, as well as service client, shall undergo interfacing.
 
 **Interaction** – activation procedure of dataservice (single use), bilateral information exchange through dataservice, i.e. request of dataservice by the service client by sending a request, to which the service provider will send a response.
 
@@ -130,7 +130,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ### 6.1 Technology in general
 
-**Core technology** – Component of X-Road software, ensuring integrity and verification value of messages between members. Core technology includes central server, configuration proxy and security server.
+**Core technology** – Component of X-Road software, ensuring integrity and verification value of messages between members. Core technology includes central server, configuration proxy, and security server.
 
 **Service technology** – Component of X-Road software, simplifying or enabling the use of core technology.
 
@@ -141,10 +141,10 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 **Central server** – the component that manages all registrations of a local X-Road instance (security servers, members, subsystems). It is the primary configuration source in an X-Road system. Central server always manages an internal configuration source (i.e. configuration source distributing the internal configuration) and in addition, an external configuration source (i.e. configuration source distributing the external configuration) in case the X-Road system is federation-capable.  
 
 **Configuration proxy** – an intermediary that may optionally be used to mediate configuration originating from the central server to the configuration clients. Configuration proxy manages configuration sources that are used to distribute configuration downloaded from other configuration sources.
-  - **Configuration proxy instance** – a process within the configuration proxy that deals with distributing the global configuration files of a specific X-Road instance.
+- **Configuration proxy instance** – a process within the configuration proxy that deals with distributing the global configuration files of a specific X-Road instance.
 
-**Security server** – standard software solution for using secure data exchange channel of X-Road and ensuring confidentiality, authenticity and integrity of messages/data exchanged on X-Road.
-  
+**Security server** – standard software solution for using secure data exchange channel of X-Road and ensuring confidentiality, authenticity, and integrity of messages/data exchanged on X-Road.
+
 **System configuration** –  consists of data stored in the database, and in the various configuration files held in the file system of an X-Road component.
 
 ### 6.3 X-Road external components
@@ -160,7 +160,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 -   Services provided by a subsystem are independent of the services provided by the members’ other subsystems.
 
 -   To sign the messages sent by a subsystem when using or providing X-Road services, the signing certificate of the member that manages the subsystem is used. An X-Road member can associate several different subsystems with one security server, and one subsystem can be associated with several security servers.
- 
+
 
 ### 6.4 Elements of X-Road software
 
@@ -181,8 +181,8 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 - **Environmental monitoring** – is the monitoring of the X-Road environment: details of the security servers such as operating system, memory, disk space, CPU load, running processes and installed packages, etc.
 
 - **Operational monitoring** – is the monitoring of operational statistics such as which services have been called, how many times, what is the average response time, etc.
-    + **Operational monitoring data** – contains operational data (such as which services have been called, how many times, what was the size of the response, etc.) of the X-Road security server(s).
-    + **Operational monitoring daemon** – collects and shares operational monitoring data of the X-Road security server(s), calculates and shares health data of the X-Road security server(s) that is based on collected operational monitoring data.
++ **Operational monitoring data** – contains operational data (such as which services have been called, how many times, what was the size of the response, etc.) of the X-Road security server(s).
++ **Operational monitoring daemon** – collects and shares operational monitoring data of the X-Road security server(s), calculates and shares health data of the X-Road security server(s) that is based on collected operational monitoring data.
 
 **Service client** – is an X-Road member, subsystem, local access rights group or global access rights group that has access rights to one or more services of a security server client.
 
@@ -232,7 +232,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 **Member code** – identifier, that uniquely identifies an X-Road member within its member class. The member code remains unchanged during the entire lifetime of the member.
 
-**Member identifier** – identifier, that uniquely identifies a member in the X-Road Network. Member identifier consists of X-Road instance identifier, member class and member code.
+**Member identifier** – identifier, that uniquely identifies a member in the X-Road Network. Member identifier consists of X-Road instance identifier, member class, and member code.
 
 **Security server code** – identifier, that uniquely identifies the security server in all of the security servers of the security server owner.
 
@@ -323,9 +323,9 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 **HTTPS** - Hypertext Transfer Protocol Secure
 
 **JMX** - The Java Management Extensions  
-  
+
 **JMXMP** - Java Management Extensions Messaging Protocol
-  
+
 **JSON** - JavaScript Object Notation  
 
 **MBean** - Java Managed Bean  
