@@ -6,8 +6,8 @@
 # Central Server High Availability Installation Guide
 **X-ROAD 6**
 
-Version: 1.5  
-05.03.2018  
+Version: 1.7  
+19.12.2018  
 Doc. ID: IG-CSHA
 
 ---
@@ -24,27 +24,33 @@ Doc. ID: IG-CSHA
  17.12.2015 | 1.3     | Editorial changes made
  20.02.2017 | 1.4     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
  05.03.2018 | 1.5     | Added terms and abbreviations references and document links  | Tatu Repo
+ 03.10.2018 | 1.6     | Added the chapter "Changing Nodes' IP Addresses in HA Cluster"
+ 19.12.2018 | 1.7     | Minor changes related to Ubuntu 18 support
 
 ## Table of Contents
 
 <!-- toc -->
 
-- [License](#license)
-- [1 Introduction](#1-introduction)
-  * [1.1 High Availability for X-Road Central Server](#11-high-availability-for-x-road-central-server)
-  * [1.2 Target Audience](#12-target-audience)
-  * [1.3 Terms and abbreviations](#13-terms-and-abbreviations)
-  * [1.4 References](#14-references)
-- [2 Key Points and Known Limitations for X-Road Central Server HA Deployment](#2-key-points-and-known-limitations-for-x-road-central-server-ha-deployment)
-- [3 Requirements and Workflows for HA Configuration](#3-requirements-and-workflows-for-ha-configuration)
-  * [3.1 Requirements](#31-requirements)
-  * [3.2 Workflow for a New X-Road Instance Setup](#32-workflow-for-a-new-x-road-instance-setup)
-  * [3.3 Workflow for Upgrading an Existing X-Road Central Server to an HA Configuration](#33-workflow-for-upgrading-an-existing-x-road-central-server-to-an-ha-configuration)
-  * [3.4 Workflow for Adding New Nodes to an Existing HA Configuration](#34-workflow-for-adding-new-nodes-to-an-existing-ha-configuration)
-  * [3.5 Post-Configuration Steps](#35-post-configuration-steps)
-- [4 General Installation of HA Support](#4-general-installation-of-ha-support)
-- [5 Monitoring HA State on a Node](#5-monitoring-ha-state-on-a-node)
-- [6 Recovery of the HA cluster](#6-recovery-of-the-ha-cluster)
+- [Central Server High Availability Installation Guide](#central-server-high-availability-installation-guide)
+  - [Version history](#version-history)
+  - [Table of Contents](#table-of-contents)
+  - [License](#license)
+  - [1 Introduction](#1-introduction)
+    - [1.1 High Availability for X-Road Central Server](#11-high-availability-for-x-road-central-server)
+    - [1.2 Target Audience](#12-target-audience)
+    - [1.3 Terms and abbreviations](#13-terms-and-abbreviations)
+    - [1.4 References](#14-references)
+  - [2 Key Points and Known Limitations for X-Road Central Server HA Deployment](#2-key-points-and-known-limitations-for-x-road-central-server-ha-deployment)
+  - [3 Requirements and Workflows for HA Configuration](#3-requirements-and-workflows-for-ha-configuration)
+    - [3.1 Requirements](#31-requirements)
+    - [3.2 Workflow for a New X-Road Instance Setup](#32-workflow-for-a-new-x-road-instance-setup)
+    - [3.3 Workflow for Upgrading an Existing X-Road Central Server to an HA Configuration](#33-workflow-for-upgrading-an-existing-x-road-central-server-to-an-ha-configuration)
+    - [3.4 Workflow for Adding New Nodes to an Existing HA Configuration](#34-workflow-for-adding-new-nodes-to-an-existing-ha-configuration)
+    - [3.5 Post-Configuration Steps](#35-post-configuration-steps)
+  - [4 General Installation of HA Support](#4-general-installation-of-ha-support)
+  - [5 Changing Nodes' IP Addresses in HA Cluster](#5-changing-nodes-ip-addresses-in-ha-cluster)
+  - [6 Monitoring HA State on a Node](#6-monitoring-ha-state-on-a-node)
+  - [7 Recovery of the HA cluster](#7-recovery-of-the-ha-cluster)
 
 <!-- tocstop -->
 
@@ -139,7 +145,7 @@ The nodes must meet all the requirements listed in the X-Road Central Server Ins
 
 -   Root (sudo) level access to all the nodes to install authorized SSH public key for the root user.
 
--   Key-based SSH access to each node for the root user. This is the default SSH server setting in Ubuntu 14.04. If the servers have a different setting, back up the configuration of the SSH server before starting to configure the cluster.
+-   Key-based SSH access to each node for the root user. This is the default SSH server setting in Ubuntu. If the servers have a different setting, back up the configuration of the SSH server before starting to configure the cluster.
 
 -   Open ports between nodes:
 
@@ -243,8 +249,30 @@ If key-based SSH access to the nodes by the root user was disabled before enabli
 
     In addition to the cluster setup script, the package provides tools for monitoring the status of the cluster.
 
+## 5 Changing Nodes' IP Addresses in HA Cluster
 
-## 5 Monitoring HA State on a Node
+The script for changing the IP addresses of the HA cluster nodes behaves similarly to the HA support installation script.
+
+To change the IP addresses of the nodes:
+* Replace the system IP addresses in all cluster nodes.
+* Make sure PostgreSQL is running with bdr-9.4 support.
+* Create new nodes file `/etc/xroad/cluster/nodes.new`, containing `<old-IP> <new-IP>` per each line, e.g:
+
+
+    192.168.56.40 192.168.57.45
+    192.168.56.41 192.168.57.46
+
+* Run the `modify_cluster.sh` script:
+
+
+    sudo -i -u xroad /usr/share/xroad/scripts/modify_cluster.sh
+
+The script will:
+* replace the IP addresses in the `/etc/xroad/cluster/nodes` file;
+* modify the PostgreSQL configuration file;
+* alternate the IP-s in the Postgres-BDR tables.
+
+## 6 Monitoring HA State on a Node
 
 A script for checking cluster health is available on every node with the `xroad-center-clusterhelper` package. To view cluster status run the following command:
 
@@ -287,7 +315,7 @@ Sample output is similar to the following (emphasizing the important values):
 The timestamps of the generated private and shared parameter files on different nodes must be within a reasonable time window. The timestamps of the internal and external anchors must be equal.
 
 
-## 6 Recovery of the HA cluster
+## 7 Recovery of the HA cluster
 
 This section describes the steps that are required to recover from system failure which has resulted in a loss of all cluster nodes.
 
@@ -318,4 +346,3 @@ This section describes the steps that are required to recover from system failur
 8.  For other nodes repeat steps 6. and 7. changing the cluster node identifier.
 
 9.  If configuration keys or central system addresses were modified during recovery – a new configuration anchor file must be distributed to members. See the Central Server User Guide \[[UG-CS](#Ref_UG-CS)\].
-

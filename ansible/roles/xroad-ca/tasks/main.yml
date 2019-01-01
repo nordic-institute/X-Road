@@ -1,11 +1,14 @@
-- name: show OS version
-  debug:
-    msg: "OS = {{ ansible_os_family }} "
-
-- name: check that OS = Redhat
+---
+- name: check that OS != Redhat
   fail:
     msg: "This playbook only supports Ubuntu"
   when: ansible_os_family != "Debian"
+
+- name: ensure that acl utilities is installed
+  # see https://docs.ansible.com/ansible/become.html#becoming-an-unprivileged-user
+  package:
+    name: acl
+    state: present
 
 - name: nginx-light
   apt: name=nginx-light state=present
@@ -33,7 +36,7 @@
 
 - name: copy root user directories
   copy:
-    src: files/{{ item }}
+    src: common-files/{{ item }}
     dest: /
     group: "root"
     owner: "root"
@@ -41,9 +44,29 @@
     - "etc"
     - "usr"
 
+- name: copy root user directories for trusty
+  copy:
+    src: trusty-files/{{ item }}
+    dest: /
+    group: "root"
+    owner: "root"
+  with_items:
+    - "etc"
+  when: ansible_distribution_release == "trusty"
+
+- name: copy root user directories for bionic
+  copy:
+    src: bionic-files/{{ item }}
+    dest: /
+    group: "root"
+    owner: "root"
+  with_items:
+    - "lib"
+  when: ansible_distribution_release == "bionic"
+
 - name: copy ca group directories
   copy:
-    src: files/{{ item }}
+    src: common-files/{{ item }}
     dest: /home
     group: "ca"
     owner: "ca"
@@ -121,8 +144,10 @@
   service:
     name: ocsp
     state: restarted
+    enabled: yes
 
 - name: restart tsa
   service:
     name: tsa
     state: restarted
+    enabled: yes

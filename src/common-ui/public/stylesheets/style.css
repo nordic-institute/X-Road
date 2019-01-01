@@ -214,7 +214,7 @@ table tbody tr:first-of-type {
 }
 
 table tbody tr:hover td {
-	background: rgba(23, 148, 255, 0.5) !important;
+	background: rgba(0, 200, 230, 0.4) !important;
 }
 
 table tbody tr.odd {
@@ -234,7 +234,7 @@ table tbody tr.even td[class^='sorting_'], table tbody tr.even td[class*=' sorti
 }
 
 table tbody tr.row_selected td, table tbody tr.row_selected td[class^='sorting_'], table tbody tr.row_selected td[class*=' sorting_'] {
-	background: rgba(23, 148, 255, 0.5) !important;
+	background: rgba(0, 200, 230, 0.4) !important;
 }
 
 table tbody tr.unavailable {
@@ -863,13 +863,17 @@ p:not(.input) {
 	cursor: pointer !important;
 }
 
+.ui-tabs .ui-tabs-nav li.ui-tabs-last-visible {
+	border: none;
+}
+
 .ui-tabs .ui-tabs-panel, .ui-tabs .ui-tabs-nav ~ div {
 	padding: 1em 0 0 0;
 }
 
 .ui-tabs.search_tabs .ui-tabs-nav {
-	margin: 0 0 -4px 0;
-	border-bottom: none;
+	margin: 0;
+	border-bottom: 0;
 }
 
 .ui-tabs.search_tabs .ui-tabs-panel {
@@ -880,10 +884,6 @@ p:not(.input) {
 
 .ui-tabs.search_tabs .ui-tabs-panel table.details {
 	width: 66%;
-}
-
-.ui-tabs .ui-tabs-nav li.ui-tabs-last-visible {
-	border: none;
 }
 
 .ui-tabs-panel-actions {
@@ -1146,7 +1146,7 @@ pre {
 }
 
 #sidebar ul.menu li a.active {
-	color: #ff412c;
+	color: #00c8e6;
 }
 
 #sidebar ul.menu li:hover {
@@ -1290,10 +1290,6 @@ pre {
 	display: block;
 }
 
-#tabs_wrapper {
-	text-align: center;
-}
-
 .alerts {
 	position: fixed;
 	width: 100%;
@@ -1407,6 +1403,10 @@ pre {
 	width: 100%;
 }
 
+#tabs_wrapper {
+	text-align: center;
+}
+
 .box {
 	padding: 10px;
 	margin: 0 10px 20px 0;
@@ -1462,4 +1462,26 @@ body.wait *, body.wait {
 	cursor: wait !important;
 }
 
+.xroad-purple-color {
+	color: #663cdc !important;
+}
 
+.xroad-purple-transparent-border {
+	border-color: rgba(102, 60, 220, 0.5) !important;
+}
+
+.xroad-purple-bg {
+	background-color: #663cdc !important;
+}
+
+.force-middle {
+	display: inline-block;
+	transform: translate(-50%, -50%);
+	left: 50%;
+	top: 50%;
+	position: absolute;
+}
+
+.mh35 {
+	max-height: 35px;
+}

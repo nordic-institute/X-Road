@@ -11,7 +11,7 @@ var XROAD_CENTERUI_COMMON = function() {
     }
 
     function fillSelectWithEmptyOption(selectId, options) {
-        select = $("#" + selectId);
+        var select = $("#" + selectId);
         select.find('option').remove();
         select.append('<option value=""></option>');
 

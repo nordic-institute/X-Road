@@ -6,13 +6,14 @@
 - name: Install required packages (RHEL)
   become: yes
   yum:
-    name: "{{ item }}"
+    name: "{{ items }}"
     state: present
-  with_items:
-    - curl
-    - createrepo
-    - cronie
-    - tar
+  vars:
+    items:
+      - curl
+      - createrepo
+      - cronie
+      - tar
 
 - name: Create / update local package repository (RHEL)
   become: yes

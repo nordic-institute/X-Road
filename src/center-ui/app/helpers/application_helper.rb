@@ -52,7 +52,11 @@ module ApplicationHelper
     end
 
     result << SubMenu.new(t('menu.help.title'),
-        [ MenuItem.new(t('menu.help.version'), :about) ])
+        [
+            MenuItem.new(t('menu.help.version'), :about),
+          MenuItem.new(t('menu.help.feedback'), :feedback)
+        ]
+    )
 
     return result
   end

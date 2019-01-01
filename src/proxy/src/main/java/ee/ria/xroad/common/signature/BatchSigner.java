@@ -25,6 +25,7 @@
 package ee.ria.xroad.common.signature;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.signer.protocol.SignerClient;
 import ee.ria.xroad.signer.protocol.message.GetTokenBatchSigningEnabled;
 import ee.ria.xroad.signer.protocol.message.Sign;
@@ -73,13 +74,15 @@ import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
 @Slf4j
 public class BatchSigner extends UntypedActor {
 
-    private static final Timeout DEFAULT_TIMEOUT = new Timeout(30000, TimeUnit.MILLISECONDS);
+    private static final int TIMEOUT_MILLIS = SystemProperties.getSignerClientTimeout();
+    private static final Timeout DEFAULT_TIMEOUT = new Timeout(TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
 
     // Holds the actor instance, which sends and receives messages.
     private static ActorRef instance;
 
     /**
      * Initializes the batch signer with the given actor system.
+     *
      * @param actorSystem actor system the batch signer should use
      */
     public static void init(ActorSystem actorSystem) {
@@ -90,6 +93,7 @@ public class BatchSigner extends UntypedActor {
 
     /**
      * Submits the given signing request for batch signing.
+     *
      * @param keyId the signing key
      * @param signatureAlgorithmId ID of the signature algorithm to use
      * @param request the signing request

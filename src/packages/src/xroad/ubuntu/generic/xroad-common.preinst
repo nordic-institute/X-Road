@@ -1,4 +1,0 @@
-if dpkg-divert --list |grep -F "/etc/xroad/nginx/default-xroad.conf"
-then
-   dpkg-divert --package xroad-confproxy --remove --rename /etc/xroad/nginx/default-xroad.conf
-fi

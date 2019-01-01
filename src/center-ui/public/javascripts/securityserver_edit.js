@@ -292,7 +292,7 @@ var XROAD_SECURITYSERVER_EDIT = function() {
     }
 
     function getCheckedSecurityCategories() {
-        checkedSecurityCategories = [];
+        var checkedSecurityCategories = [];
 
         $("#security_categories_edit_table tr").each(function(index){
             var tdCheckbox = $(this).find('td:eq(0) input');

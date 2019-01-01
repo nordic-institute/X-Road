@@ -96,5 +96,6 @@ EOF
 service xroad-opmonitor restart
 service xroad-confclient restart
 
-exit 0
+#DEBHELPER#
 
+exit 0

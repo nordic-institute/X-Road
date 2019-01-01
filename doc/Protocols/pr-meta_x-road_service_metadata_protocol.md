@@ -6,8 +6,8 @@
 # X-Road: Service Metadata Protocol
 **Technical Specification**
 
-Version: 2.5  
-06.03.2018  
+Version: 2.6  
+15.10.2018  
 Doc. ID: PR-META  
 
 ---
@@ -26,7 +26,8 @@ Doc. ID: PR-META
  02.01.2018 | 2.2     | Update getWsdl metaservice description                          | Ilkka Seppälä
  04.01.2018 | 2.3     | Updated descriptions and subsystem requirements for meta-services | Tatu Repo
  30.01.2018 | 2.4     | Updated metaservices wsdl                                       | Jarkko Hyöty
- 06.03.2018 | 2.5     | Added terms section, terms doc reference and link                              | Tatu Repo
+ 06.03.2018 | 2.5     | Added terms section, terms doc reference and link               | Tatu Repo
+ 15.10.2018 | 2.6     | Update Annex B                                                  | Petteri Kivimäki
 
 ## Table of Contents
 
@@ -41,8 +42,9 @@ Doc. ID: PR-META
 - [4 Retrieving List of Services](#4-retrieving-list-of-services)
 - [5 Retrieving the WSDL of a Service](#5-retrieving-the-wsdl-of-a-service)
 - [Annex A XML Schema for Messages](#annex-a-xml-schema-for-messages)
-- [Annex B listMethods and allowedMethods WSDL](#annex-b-listmethods-and-allowedmethods-wsdl)
+- [Annex B listMethods and allowedMethods WSDL](#annex-b-listmethods-allowedmethods-and-getwsdl-wsdl)
 - [Annex C Example Messages](#annex-c-example-messages)
+
 <!-- tocstop -->
 
 ## License
@@ -287,9 +289,8 @@ when retrieved through the meta-service.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<wsdl:definitions targetNamespace="http://metadata.x-road.eu/"
+<wsdl:definitions targetNamespace="http://x-road.eu/xsd/xroad.xsd"
     xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
-    xmlns:meta="http://metadata.x-road.eu/"
     xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
     xmlns:id="http://x-road.eu/xsd/identifiers"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -411,84 +412,84 @@ when retrieved through the meta-service.
     <wsdl:portType name="metaServicesPort">
         <wsdl:operation name="allowedMethods">
             <wsdl:documentation>
-                <meta:title>allowedMethods</meta:title>
+                <xrd:title>allowedMethods</xrd:title>
             </wsdl:documentation>
-            <wsdl:input name="allowedMethods" message="meta:allowedMethods"/>
-            <wsdl:output name="allowedMethodsResponse" message="meta:allowedMethodsResponse"/>
+            <wsdl:input name="allowedMethods" message="xrd:allowedMethods"/>
+            <wsdl:output name="allowedMethodsResponse" message="xrd:allowedMethodsResponse"/>
         </wsdl:operation>
         <wsdl:operation name="listMethods">
             <wsdl:documentation>
-                <meta:title>listMethods</meta:title>
+                <xrd:title>listMethods</xrd:title>
             </wsdl:documentation>
-            <wsdl:input name="listMethods" message="meta:listMethods"/>
-            <wsdl:output name="listMethodsResponse" message="meta:listMethodsResponse"/>
+            <wsdl:input name="listMethods" message="xrd:listMethods"/>
+            <wsdl:output name="listMethodsResponse" message="xrd:listMethodsResponse"/>
         </wsdl:operation>
         <wsdl:operation name="getWsdl">
-            <wsdl:input message="meta:getWsdl" name="getWsdl"/>
-            <wsdl:output message="meta:getWsdlResponse" name="getWsdlResponse"/>
+            <wsdl:input message="xrd:getWsdl" name="getWsdl"/>
+            <wsdl:output message="xrd:getWsdlResponse" name="getWsdlResponse"/>
         </wsdl:operation>
     </wsdl:portType>
 
-    <wsdl:binding name="metaServicesPortSoap11" type="meta:metaServicesPort">
+    <wsdl:binding name="metaServicesPortSoap11" type="xrd:metaServicesPort">
         <soap:binding style="document"
                       transport="http://schemas.xmlsoap.org/soap/http"/>
         <wsdl:operation name="allowedMethods">
             <soap:operation soapAction=""/>
             <wsdl:input name="allowedMethods">
                 <soap:body parts="allowedMethods" use="literal"/>
-                <soap:header message="meta:allowedMethods" part="client" use="literal"/>
-                <soap:header message="meta:allowedMethods" part="service" use="literal"/>
-                <soap:header message="meta:allowedMethods" part="userId" use="literal"/>
-                <soap:header message="meta:allowedMethods" part="id" use="literal"/>
-                <soap:header message="meta:allowedMethods" part="protocolVersion" use="literal"/>
+                <soap:header message="xrd:allowedMethods" part="client" use="literal"/>
+                <soap:header message="xrd:allowedMethods" part="service" use="literal"/>
+                <soap:header message="xrd:allowedMethods" part="userId" use="literal"/>
+                <soap:header message="xrd:allowedMethods" part="id" use="literal"/>
+                <soap:header message="xrd:allowedMethods" part="protocolVersion" use="literal"/>
             </wsdl:input>
             <wsdl:output name="allowedMethodsResponse">
                 <soap:body parts="allowedMethodsResponse" use="literal"/>
-                <soap:header message="meta:allowedMethodsResponse" part="client" use="literal"/>
-                <soap:header message="meta:allowedMethodsResponse" part="service" use="literal"/>
-                <soap:header message="meta:allowedMethodsResponse" part="userId" use="literal"/>
-                <soap:header message="meta:allowedMethodsResponse" part="id" use="literal"/>
-                <soap:header message="meta:allowedMethodsResponse" part="protocolVersion" use="literal"/>
+                <soap:header message="xrd:allowedMethodsResponse" part="client" use="literal"/>
+                <soap:header message="xrd:allowedMethodsResponse" part="service" use="literal"/>
+                <soap:header message="xrd:allowedMethodsResponse" part="userId" use="literal"/>
+                <soap:header message="xrd:allowedMethodsResponse" part="id" use="literal"/>
+                <soap:header message="xrd:allowedMethodsResponse" part="protocolVersion" use="literal"/>
             </wsdl:output>
         </wsdl:operation>
         <wsdl:operation name="listMethods">
             <soap:operation soapAction=""/>
             <wsdl:input name="listMethods">
                 <soap:body parts="listMethods" use="literal"/>
-                <soap:header message="meta:listMethods" part="client" use="literal"/>
-                <soap:header message="meta:listMethods" part="service" use="literal"/>
-                <soap:header message="meta:listMethods" part="userId" use="literal"/>
-                <soap:header message="meta:listMethods" part="id" use="literal"/>
-                <soap:header message="meta:listMethods" part="protocolVersion" use="literal"/>
+                <soap:header message="xrd:listMethods" part="client" use="literal"/>
+                <soap:header message="xrd:listMethods" part="service" use="literal"/>
+                <soap:header message="xrd:listMethods" part="userId" use="literal"/>
+                <soap:header message="xrd:listMethods" part="id" use="literal"/>
+                <soap:header message="xrd:listMethods" part="protocolVersion" use="literal"/>
             </wsdl:input>
             <wsdl:output name="listMethodsResponse">
                 <soap:body parts="listMethodsResponse" use="literal"/>
-                <soap:header message="meta:listMethodsResponse" part="client" use="literal"/>
-                <soap:header message="meta:listMethodsResponse" part="service" use="literal"/>
-                <soap:header message="meta:listMethodsResponse" part="userId" use="literal"/>
-                <soap:header message="meta:listMethodsResponse" part="id" use="literal"/>
-                <soap:header message="meta:listMethodsResponse" part="protocolVersion" use="literal"/>
+                <soap:header message="xrd:listMethodsResponse" part="client" use="literal"/>
+                <soap:header message="xrd:listMethodsResponse" part="service" use="literal"/>
+                <soap:header message="xrd:listMethodsResponse" part="userId" use="literal"/>
+                <soap:header message="xrd:listMethodsResponse" part="id" use="literal"/>
+                <soap:header message="xrd:listMethodsResponse" part="protocolVersion" use="literal"/>
             </wsdl:output>
         </wsdl:operation>
         <wsdl:operation name="getWsdl">
             <soap:operation soapAction=""/>
             <wsdl:input name="getWsdl">
                 <soap:body parts="getWsdl" use="literal"/>
-                <soap:header message="meta:getWsdl" part="client" use="literal"/>
-                <soap:header message="meta:getWsdl" part="service" use="literal"/>
-                <soap:header message="meta:getWsdl" part="userId" use="literal"/>
-                <soap:header message="meta:getWsdl" part="id" use="literal"/>
-                <soap:header message="meta:getWsdl" part="protocolVersion" use="literal"/>
+                <soap:header message="xrd:getWsdl" part="client" use="literal"/>
+                <soap:header message="xrd:getWsdl" part="service" use="literal"/>
+                <soap:header message="xrd:getWsdl" part="userId" use="literal"/>
+                <soap:header message="xrd:getWsdl" part="id" use="literal"/>
+                <soap:header message="xrd:getWsdl" part="protocolVersion" use="literal"/>
             </wsdl:input>
             <wsdl:output name="getWsdlResponse">
                 <mime:multipartRelated>
                     <mime:part>
                         <soap:body parts="getWsdlResponse" use="literal"/>
-                        <soap:header message="meta:getWsdlResponse" part="client" use="literal"/>
-                        <soap:header message="meta:getWsdlResponse" part="service" use="literal"/>
-                        <soap:header message="meta:getWsdlResponse" part="userId" use="literal"/>
-                        <soap:header message="meta:getWsdlResponse" part="id" use="literal"/>
-                        <soap:header message="meta:getWsdlResponse" part="protocolVersion" use="literal"/>
+                        <soap:header message="xrd:getWsdlResponse" part="client" use="literal"/>
+                        <soap:header message="xrd:getWsdlResponse" part="service" use="literal"/>
+                        <soap:header message="xrd:getWsdlResponse" part="userId" use="literal"/>
+                        <soap:header message="xrd:getWsdlResponse" part="id" use="literal"/>
+                        <soap:header message="xrd:getWsdlResponse" part="protocolVersion" use="literal"/>
                     </mime:part>
                     <mime:part>
                         <mime:content part="wsdl" type="text/xml"/>
@@ -500,7 +501,7 @@ when retrieved through the meta-service.
 
     <wsdl:service name="producerPortService">
         <wsdl:port name="metaServicesPortSoap11"
-            binding="meta:metaServicesPortSoap11">
+            binding="xrd:metaServicesPortSoap11">
             <soap:address location="https://SECURITYSERVER/" />
         </wsdl:port>
     </wsdl:service>

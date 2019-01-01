@@ -515,9 +515,10 @@ class ServerMessageProcessor extends MessageProcessorBase {
                 exception = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
             }
 
-            opMonitoringData.setSoapFault(exception);
-
             monitorAgentNotifyFailure(exception);
+
+            opMonitoringData.setSoapFault(exception);
+            opMonitoringData.setResponseOutTs(getEpochMillisecond(), false);
 
             encoder.fault(SoapFault.createFaultXml(exception));
             encoder.close();
@@ -637,9 +638,11 @@ class ServerMessageProcessor extends MessageProcessorBase {
         @Override
         public void soap(SoapMessage message, Map<String, String> headers) throws Exception {
             responseSoap = (SoapMessageImpl) message;
-            encoder.soap(responseSoap, headers);
 
             opMonitoringData.setResponseSoapSize(responseSoap.getBytes().length);
+            opMonitoringData.setResponseOutTs(getEpochMillisecond(), true);
+
+            encoder.soap(responseSoap, headers);
         }
 
         @Override

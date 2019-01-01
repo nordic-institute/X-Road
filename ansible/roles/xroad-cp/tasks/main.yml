@@ -1,20 +1,7 @@
 ---
-- name: Update all packages to the latest version
-  apt:
-    force: yes
-    upgrade: dist
-
-- name: "update apt cache"
-  apt:
-    update_cache: yes
-  when: ansible_os_family == "Debian"
-
 - name: "install configuration proxy"
   apt:
-    name: "{{ item }}"
-    state: present
+    name: xroad-confproxy
+    state: latest
     force: yes
   when: ansible_os_family == "Debian"
-  with_items:
-    - xroad-confproxy
-

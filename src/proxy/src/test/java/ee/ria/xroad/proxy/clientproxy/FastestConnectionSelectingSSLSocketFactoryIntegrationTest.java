@@ -154,8 +154,8 @@ final class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
                 new TrustManager[] {new AuthTrustManager()},
                 new SecureRandom());
 
-        return new FastestConnectionSelectingSSLSocketFactory(ctx,
-                        SystemProperties.getXroadTLSCipherSuites());
+        return new FastestConnectionSelectingSSLSocketFactory(ctx
+        );
     }
 
     private static void logFH() {

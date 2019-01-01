@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 function builddeb {
     local root="$1"
     local dist="$2"
@@ -13,7 +15,7 @@ function builddeb {
     sed -i "s/\${debhelper-version}/$compat/" debian/control
 
     if [[ $release != "-release" ]]; then
-        version=$version."$(date --utc --date @`git show -s --format=%ct` +'%Y%m%d%H%M%S')$(git show -s --format=git%h)"
+        version=$version."$(date --utc --date @`git show -s --format=%ct` +'%Y%m%d%H%M%S')$(git show -s --format=git%h --abbrev=7)"
     else
         export DEB_BUILD_OPTIONS=release
     fi

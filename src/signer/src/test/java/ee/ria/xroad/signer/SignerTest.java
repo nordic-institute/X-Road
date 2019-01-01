@@ -22,15 +22,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.logging;
+package ee.ria.xroad.signer;
 
-import ch.qos.logback.access.jetty.RequestLogImpl;
-import org.eclipse.jetty.util.component.LifeCycle;
+import ee.ria.xroad.common.SystemProperties;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
- * This class is a temporary fix for Logback access logs problem
- * See https://github.com/eclipse/jetty.project/issues/509
- * See https://github.com/qos-ch/logback/pull/269
+ * Class for testing {@link Signer}
  */
-public class RequestLogImplFixLogback1052 extends RequestLogImpl implements LifeCycle {
+public class SignerTest {
+
+    @Test
+    public void testModuleManagerUpdateIntervalProperty() {
+        // Get default value
+        int defaultValue = Integer.parseInt(SystemProperties.DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL);
+
+        // Test for default value
+        assertEquals(SystemProperties.SIGNER_MODULE_MANAGER_UPDATE_INTERVAL + " should be " + defaultValue,
+                defaultValue,
+                SystemProperties.getModuleManagerUpdateInterval());
+
+        // Increase default value by one
+        int newValue = defaultValue + 1;
+
+        // Set value to default + 1
+        System.setProperty(SystemProperties.SIGNER_MODULE_MANAGER_UPDATE_INTERVAL, Integer.toString(newValue));
+
+        // Test for the new value
+        assertEquals(SystemProperties.SIGNER_MODULE_MANAGER_UPDATE_INTERVAL + " should be " + newValue,
+                newValue,
+                SystemProperties.getModuleManagerUpdateInterval());
+    }
 }
