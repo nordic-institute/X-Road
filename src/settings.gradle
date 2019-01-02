@@ -13,6 +13,7 @@ include "common-op-monitoring"
 // Main projects
 include "proxy"
 include "proxy-ui"
+include "proxy-ui-api"
 include "signer"
 include "center-ui"
 include "center-util"
