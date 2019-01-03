@@ -11,10 +11,10 @@ Date:   Fri Dec 21 12:02:15 2018 +0200
 
 # Running
 ```
-./gradlew bootRun --console plain
+../gradlew bootRun --console plain
 ```
 
-browser: `http://localhost:8080`
+browser: `http://localhost:8020`
 
 logins for dummy in-memory authentication: 
 - user/password
@@ -22,28 +22,28 @@ logins for dummy in-memory authentication:
 
 # Api auth examples
 ```
-$ curl --header "Authorization: naive-api-key-1" localhost:8080/test-api/cities
+$ curl --header "Authorization: naive-api-key-1" localhost:8020/test-api/cities
 {"timestamp":"2018-11-27T07:09:03.991+0000","status":500,"error":"Internal Server Error","message":"The API key was not found or not the expected value.","path":"/test-api/adminCities"}
 
-$ curl -X POST -u admin:password localhost:8080/test-api/create-api-key --data '["USER"]' --header "Content-Type: application/json"
+$ curl -X POST -u admin:password localhost:8020/test-api/create-api-key --data '["USER"]' --header "Content-Type: application/json"
 {"key":"naive-api-key-1","roles":["USER"]}
 
-$ curl -X POST -u admin:password localhost:8080/test-api/create-api-key --data '["ADMIN"]' --header "Content-Type: application/json"
+$ curl -X POST -u admin:password localhost:8020/test-api/create-api-key --data '["ADMIN"]' --header "Content-Type: application/json"
 {"key":"naive-api-key-2","roles":["ADMIN"]}
 
-$ curl -X POST -u admin:password localhost:8080/test-api/create-api-key --data '["USER","ADMIN","GUGGU"]' --header "Content-Type: application/json"
+$ curl -X POST -u admin:password localhost:8020/test-api/create-api-key --data '["USER","ADMIN","GUGGU"]' --header "Content-Type: application/json"
 {"key":"naive-api-key-3","roles":["GUGGU","ADMIN","USER"]}
 
-curl --header "Authorization: naive-api-key-1" localhost:8080/test-api/roles
+curl --header "Authorization: naive-api-key-1" localhost:8020/test-api/roles
 ["ROLE_USER"]
 
-curl --header "Authorization: naive-api-key-1" localhost:8080/test-api/cities
+curl --header "Authorization: naive-api-key-1" localhost:8020/test-api/cities
 [{"id":1,"name":"Tampere"},{"id":2,"name":"Ylojarvi"},{"id":3,"name":"Helsinki"},{"id":4,"name":"Vantaa"},{"id":5,"name":"Nurmes"}]
 
-curl --header "Authorization: naive-api-key-3" localhost:8080/test-api/adminCities
+curl --header "Authorization: naive-api-key-3" localhost:8020/test-api/adminCities
 [{"id":999,"name":"Admincity, from a method which requires 'ADMIN' role"},{"id":1,"name":"Tampere"},{"id":2,"name":"Ylojarvi"},{"id":3,"name":"Helsinki"},{"id":4,"name":"Vantaa"},{"id":5,"name":"Nurmes"}]
 
-curl --header "Authorization: naive-api-key-1" localhost:8080/test-api/adminCities
+curl --header "Authorization: naive-api-key-1" localhost:8020/test-api/adminCities
 {"timestamp":"2018-11-27T07:08:22.398+0000","status":403,"error":"Forbidden","message":"Forbidden","path":"/test-api/adminCities"}
 ```
 
@@ -52,7 +52,7 @@ curl --header "Authorization: naive-api-key-1" localhost:8080/test-api/adminCiti
 Start with parameter `proto.pam=true` to activate PAM login:
 
 ```
-./gradlew bootRun --console plain -Pargs=--proto.pam=true
+../gradlew bootRun --console plain -Pargs=--proto.pam=true
 ```
 
 Login using unix user and password. There's some requirements
@@ -106,37 +106,37 @@ Examples:
 
 Login
 ```
-curl -X POST -d "username=admin&password=password" -D - localhost:8080/login
+curl -X POST -d "username=admin&password=password" -D - localhost:8020/login
 HTTP/1.1 200 
 Set-Cookie: XSRF-TOKEN=45eeef1e-3d0a-4dea-9a65-b84f9a505335; Path=/
 Set-Cookie: JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4; Path=/; HttpOnly
 ```
 Using the cookies and CSRF header correctly
 ```
-curl -D - localhost:8080/test-api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=45eeef1e-3d0a-4dea-9a65-b84f9a505335" --header "X-XSRF-TOKEN: 45eeef1e-3d0a-4dea-9a65-b84f9a505335"
+curl -D - localhost:8020/test-api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=45eeef1e-3d0a-4dea-9a65-b84f9a505335" --header "X-XSRF-TOKEN: 45eeef1e-3d0a-4dea-9a65-b84f9a505335"
 HTTP/1.1 200 
 [{"id":999,"name":"Admincity, from a method which requires 'ADMIN' role"},{"id":1,"name":"Tampere"},{"id":2,"name":"Ylojarvi"},{"id":3,"name":"Helsinki"},{"id":4,"name":"Vantaa"},{"id":5,"name":"Nurmes"}]
 ```
 
 Actual CSRF token value does not matter
 ```
-curl -D - localhost:8080/test-api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo" --header "X-XSRF-TOKEN: foo"
+curl -D - localhost:8020/test-api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo" --header "X-XSRF-TOKEN: foo"
 HTTP/1.1 200 
 [{"id":999,"name":"Admincity, from a method which requires 'ADMIN' role"},{"id":1,"name":"Tampere"},{"id":2,"name":"Ylojarvi"},{"id":3,"name":"Helsinki"},{"id":4,"name":"Vantaa"},{"id":5,"name":"Nurmes"}]
 ```
 
 But it needs to exist and match the value from cookie
 ```
-curl -D - localhost:8080/test-api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo" --header "X-XSRF-TOKEN: bar"
+curl -D - localhost:8020/test-api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo" --header "X-XSRF-TOKEN: bar"
 HTTP/1.1 403 
 ```
 
 ```
-curl -D - localhost:8080/test-api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo"
+curl -D - localhost:8020/test-api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo"
 HTTP/1.1 403 
 ```
 
 ```
-curl -D - localhost:8080/test-api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4" --header "X-XSRF-TOKEN: 45eeef1e-3d0a-4dea-9a65-b84f9a505335"
+curl -D - localhost:8020/test-api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4" --header "X-XSRF-TOKEN: 45eeef1e-3d0a-4dea-9a65-b84f9a505335"
 HTTP/1.1 403 
 ```

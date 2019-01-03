@@ -27,13 +27,22 @@ package org.niis.xroad.authproto;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.util.Arrays;
+import java.util.HashSet;
+
 /**
  * main spring boot application
  */
 @SpringBootApplication
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class AuthApplication {
+    /**
+     * start application
+     */
     public static void main(String[] args) {
-        SpringApplication.run(AuthApplication.class, args);
+        // bootRun seems to duplicate parameters in some situations
+        // with our gradle configuration
+        HashSet<String> filtered = new HashSet(Arrays.asList(args));
+        SpringApplication.run(AuthApplication.class, filtered.toArray(new String[]{}));
     }
 }

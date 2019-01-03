@@ -95,7 +95,6 @@ public class MultiAuthWebSecurityConfig {
 
         @Value("${proto.pam}")
         private boolean pam;
-
         @Override
         protected void configure(HttpSecurity http) throws Exception {
 
@@ -194,8 +193,8 @@ public class MultiAuthWebSecurityConfig {
     @Configuration
     @Order(1)
     public static class CreateApiKeyWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
-        @Value("${proto.pam}")
-        private boolean pam;
+//        @Value("${proto.pam}")
+        private boolean pam = true;
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {
