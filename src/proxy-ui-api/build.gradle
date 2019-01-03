@@ -2,9 +2,9 @@ buildscript {
     ext {
         springBootVersion = '2.1.0.RELEASE'
     }
-    repositories {
-        mavenCentral()
-    }
+//    repositories {
+//        mavenCentral()
+//    }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
     }
@@ -14,14 +14,12 @@ plugins {
     id 'net.ltgt.apt' version '0.10'
 }
 
-//apply plugin: 'java'
-//apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 
-repositories {
-    mavenCentral()
-}
+//repositories {
+//    mavenCentral()
+//}
 
 bootRun {
     jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]

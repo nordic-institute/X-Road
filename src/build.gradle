@@ -120,7 +120,7 @@ subprojects {
     }
 
     dependencies {
-        testCompile 'junit:junit:4.11'
+        testCompile 'junit:junit:4.12'
         testCompile 'org.hamcrest:hamcrest-all:1.3'
 
         provided 'org.projectlombok:lombok:1.16.6'
