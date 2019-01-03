@@ -14,8 +14,8 @@ plugins {
     id 'net.ltgt.apt' version '0.10'
 }
 
-apply plugin: 'java'
-apply plugin: 'eclipse'
+//apply plugin: 'java'
+//apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 

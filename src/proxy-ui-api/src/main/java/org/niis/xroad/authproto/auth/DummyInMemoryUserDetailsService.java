@@ -21,6 +21,10 @@ public class DummyInMemoryUserDetailsService {
     @Value("${proto.pam}")
     private boolean pam;
 
+    /**
+     * Test userdetailsservice for non-pam implementation for development purposes
+     * @return
+     */
     @Bean
     public UserDetailsService userDetailsService() {
         Collection<UserDetails> users = new ArrayList<>();
@@ -40,7 +44,7 @@ public class DummyInMemoryUserDetailsService {
             users.add(User.withDefaultPasswordEncoder()
                             .username("admindba")
                             .password("password")
-                            .roles("USER", "ADMIN","DBA")
+                            .roles("USER", "ADMIN", "DBA")
                             .build());
 
             users.add(User.withDefaultPasswordEncoder()

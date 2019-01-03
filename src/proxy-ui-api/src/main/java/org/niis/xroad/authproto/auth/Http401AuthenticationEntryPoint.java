@@ -1,7 +1,7 @@
 package org.niis.xroad.authproto.auth;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
@@ -11,9 +11,15 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
+/**
+ * AuthenticationEntryPoint that returns 401
+ */
 public class Http401AuthenticationEntryPoint implements AuthenticationEntryPoint {
-    private static final Log logger = LogFactory.getLog(Http401AuthenticationEntryPoint.class);
+    Logger logger = LoggerFactory.getLogger(Http401AuthenticationEntryPoint.class);
 
+    /**
+     * @inheritDoc
+     */
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException arg2) throws IOException, ServletException {
         if (logger.isDebugEnabled()) {

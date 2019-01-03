@@ -1,7 +1,6 @@
 package org.niis.xroad.authproto.repository;
 
 import org.niis.xroad.authproto.domain.ApiKey;
-
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;

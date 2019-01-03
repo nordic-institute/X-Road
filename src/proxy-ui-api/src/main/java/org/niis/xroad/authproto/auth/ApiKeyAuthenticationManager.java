@@ -2,7 +2,6 @@ package org.niis.xroad.authproto.auth;
 
 import org.niis.xroad.authproto.domain.ApiKey;
 import org.niis.xroad.authproto.repository.ApiKeyRepository;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

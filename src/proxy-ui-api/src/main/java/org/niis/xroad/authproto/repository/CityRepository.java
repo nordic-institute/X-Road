@@ -1,7 +1,6 @@
 package org.niis.xroad.authproto.repository;
 
 import org.niis.xroad.authproto.domain.City;
-
 import org.springframework.data.repository.CrudRepository;
 
 /**

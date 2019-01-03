@@ -11,7 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,10 +21,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Controller for some demo rest apis
+ */
 @RestController
 @RequestMapping("/test-api")
 public class ResourceController {
 
+    public static final long CITY_ID = 999L;
     Logger logger = LoggerFactory.getLogger(ResourceController.class);
 
     @Autowired
@@ -35,23 +38,12 @@ public class ResourceController {
     private ApiKeyRepository apiKeyRepository;
 
     /**
-     * TODO: this is just for debugging, remove from actual implementation
-     */
-    @RestController
-    public class CsrfController {
-        @RequestMapping("/csrf")
-        public CsrfToken csrf(CsrfToken token) {
-            return token;
-        }
-    }
-
-    /**
      * resource which returns user's roles.
      * for debugging purposes.
      * @return
      */
-    @RequestMapping(value ="/roles")
-    public Set<String> getRoles(){
+    @RequestMapping(value = "/roles")
+    public Set<String> getRoles() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Set<String> roles = authentication.getAuthorities().stream()
                 .map(r -> r.getAuthority()).collect(Collectors.toSet());
@@ -62,9 +54,9 @@ public class ResourceController {
     /**
      * POST resource for testing CSRF
      */
-    @PostMapping(value ="/city")
+    @PostMapping(value = "/city")
     @PreAuthorize("hasAuthority('ROLE_USER') or hasAuthority('ROLE_ADMIN')")
-    public City saveCity(@RequestBody City city){
+    public City saveCity(@RequestBody City city) {
         logger.info("this would save a city {} ", city);
         return city;
     }
@@ -72,9 +64,9 @@ public class ResourceController {
     /**
      * service which requires either ROLE_USER or ROLE_ADMIN
      */
-    @RequestMapping(value ="/cities")
+    @RequestMapping(value = "/cities")
     @PreAuthorize("hasAuthority('ROLE_USER') or hasAuthority('ROLE_ADMIN')")
-    public List<City> getCities(){
+    public List<City> getCities() {
         debugRoles();
         List<City> cities = new ArrayList<>();
         cityRepository.findAll().forEach(cities::add);
@@ -85,12 +77,12 @@ public class ResourceController {
     /**
      * service which requires ROLE_USER
      */
-    @RequestMapping(value ="/userCities")
+    @RequestMapping(value = "/userCities")
     @PreAuthorize("hasAuthority('ROLE_USER')")
-    public List<City> getUserCities(){
+    public List<City> getUserCities() {
         List<City> cities = new ArrayList<>();
         City userCity = new City();
-        userCity.setId(999L);
+        userCity.setId(CITY_ID);
         userCity.setName("Usercity, from a method which requires 'USER' role");
         cities.add(userCity);
         cityRepository.findAll().forEach(cities::add);
@@ -108,13 +100,13 @@ public class ResourceController {
     /**
      * service which requires ROLE_ADMIN
      */
-    @RequestMapping(value ="/adminCities")
+    @RequestMapping(value = "/adminCities")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public List<City> getAdminCities(){
+    public List<City> getAdminCities() {
         debugRoles();
         List<City> cities = new ArrayList<>();
         City adminCity = new City();
-        adminCity.setId(999L);
+        adminCity.setId(CITY_ID);
         adminCity.setName("Admincity, from a method which requires 'ADMIN' role");
         cities.add(adminCity);
         cityRepository.findAll().forEach(cities::add);
@@ -127,8 +119,8 @@ public class ResourceController {
      * GET http://localhost:8080/create-api-key/role1,role2,role3
      * This is probably wrong from the api guidelines viewpoint...?
      */
-    @PostMapping(value ="/create-api-key", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ApiKey createKey(@RequestBody List<String> roles){
+    @PostMapping(value = "/create-api-key", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ApiKey createKey(@RequestBody List<String> roles) {
         if (roles.isEmpty()) throw new NullPointerException();
         ApiKey key = apiKeyRepository.create(roles);
         logger.debug("created api key " + key.getKey());

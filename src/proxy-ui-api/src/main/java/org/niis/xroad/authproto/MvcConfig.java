@@ -4,6 +4,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+/**
+ * MVC configuration for some test / development pages
+ */
 @Configuration
 public class MvcConfig implements WebMvcConfigurer {
 
@@ -20,5 +23,4 @@ public class MvcConfig implements WebMvcConfigurer {
         registry.addViewController("/db/hello").setViewName("db/hello");
         registry.addViewController("/standard/hello").setViewName("standard/hello");
     }
-
 }

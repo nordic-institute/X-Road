@@ -34,7 +34,8 @@ import java.io.IOException;
 
 /**
  * Security configuration follows https://spring.io/guides/gs/securing-web/
- * adapted to multiple security configs: https://docs.spring.io/spring-security/site/docs/current/reference/htmlsingle/#multiple-httpsecurity
+ * adapted to multiple security configs:
+ * https://docs.spring.io/spring-security/site/docs/current/reference/htmlsingle/#multiple-httpsecurity
  *
  * Users are either PAM users (linux username and login, see PamAuthenticationProvider)
  * or dummy in-memory users (user/password etc), depending on if proto.pam property is true.
@@ -205,7 +206,7 @@ public class MultiAuthWebSecurityConfig {
     @Configuration
     @Order(2)
     public static class ApiWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
-        private String PRINCIPAL_REQUEST_HEADER = "Authorization";
+        private static final String PRINCIPAL_REQUEST_HEADER = "Authorization";
 
         @Autowired
         ApiKeyAuthenticationManager apiKeyAuthenticationManager;
