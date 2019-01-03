@@ -78,7 +78,7 @@ public class MultiAuthWebSecurityConfig {
             http
                 .authorizeRequests()
                     .antMatchers("/", "/home").permitAll()
-                    // to access h2 in-memory-db console, go to http://localhost:8080/h2-console/
+                    // to access h2 in-memory-db console, go to http://localhost:8020/h2-console/
                     // and login with username: sa, password: (empty)
                     .antMatchers("/h2-console/**").permitAll()
                     .antMatchers("/error").permitAll()

@@ -115,9 +115,7 @@ public class ResourceController {
     }
 
     /**
-     * create api keys using this service
-     * GET http://localhost:8080/create-api-key/role1,role2,role3
-     * This is probably wrong from the api guidelines viewpoint...?
+     * create api keys
      */
     @PostMapping(value = "/create-api-key", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ApiKey createKey(@RequestBody List<String> roles) {
