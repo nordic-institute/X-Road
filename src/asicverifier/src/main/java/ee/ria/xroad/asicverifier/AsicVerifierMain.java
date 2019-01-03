@@ -26,6 +26,7 @@ package ee.ria.xroad.asicverifier;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.asic.AsicContainerEntries;
 import ee.ria.xroad.common.asic.AsicContainerVerifier;
@@ -52,7 +53,9 @@ public final class AsicVerifierMain {
      * @throws Exception in case of errors
      */
     public static void main(String[] args) throws Exception {
-        if (args.length < 2) {
+        if (args.length == 1 && args[0].equals("version")) {
+            showVersion();
+        } else if (args.length < 2) {
             showUsage();
         } else {
             loadConf(args[0]);
@@ -140,5 +143,9 @@ public final class AsicVerifierMain {
     private static void showUsage() {
         System.out.println("Usage: AsicVerifier "
                 + "<configuration path> <asic container>");
+    }
+
+    private static void showVersion() {
+        System.out.println("Version " + Version.XROAD_VERSION);
     }
 }
