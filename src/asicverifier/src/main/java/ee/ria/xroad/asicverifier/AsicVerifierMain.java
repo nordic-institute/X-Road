@@ -142,7 +142,8 @@ public final class AsicVerifierMain {
 
     private static void showUsage() {
         System.out.println("Usage: AsicVerifier "
-                + "<configuration path> <asic container>");
+                + "<configuration path> <asic container>"
+                + "\nor: java -jar asicverifier.jar version");
     }
 
     private static void showVersion() {
