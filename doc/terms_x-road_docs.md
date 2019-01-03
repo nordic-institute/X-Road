@@ -10,6 +10,7 @@ Document ID: TA-TERMS
  23.02.2017 | 0.2     | Converted to Github flavoured Markdown, added license text, adjusted tables and identification for better output in PDF. Added explanation of monitoring service | Toomas Mölder 
  14.11.2017 | 0.3     | All the descriptions in Estonian language removed. Couple of new descriptions added | Antti Luoma
  06.03.2018 | 0.4     | Moved/merged terminology explanations from other X-Road repository MD-documents to this document | Tatu Repo |
+ 03.01.2019 | 0.5     | Minor changes - typos fixed. | Yamato Kataoka |
 
 ## Table of Contents
 
