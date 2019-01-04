@@ -97,6 +97,7 @@ Consultation services for deploying independent X-Road instances should be obtai
 * [Cybercom Finland Oy](http://www.cybercom.fi)
 * [Cybernetica AS](https://cyber.ee)
 * [Gofore Oyj](https://www.gofore.com)
+* [Planetway Corp.](https://planetway.com/en/)
 * [Roksnet Solutions OÜ](https://roksnet.com)
 
 No support for X-Road deployment is provided here.

@@ -31,6 +31,7 @@ Doc. ID: UG-CS
 | 20.01.2017 | 2.4       | Added license text and version history | Sami Kallio |
 | 05.03.2018 | 2.5     | Added terms and abbreviations reference and document links | Tatu Repo |
 | 18.08.2018 | 2.6     | Corrected `ocspFetchInterval` default value (Chapter 16.2) | Petteri Kivimäki |
+| 15.11.2018 | 2.7     | Minor corrections for Ubuntu 18 | Jarkko Hyöty |
 
 ## Table of Contents
 <!-- toc -->
@@ -1080,7 +1081,7 @@ The default behavior can be changed by editing the rsyslog configuration file
 
 Restart the rsyslog service to apply the changes made to the configuration file
 
-`restart rsyslog`
+`service rsyslog restart`
 
 The audit log is rotated monthly by logrotate. To configure the audit log rotation, edit the logrotate configuration file
 
@@ -1159,7 +1160,7 @@ Most significant central server services are the following:
 | xroad-signer      | The service that manages key settings.      |   `/var/log/xroad/signer.log` |
 | nginx | The Web server that distributes configuration and implements the TLS protocol in the user interface.      |    `/var/log/nginx/` |
 
-System services can be managed using the upstart facility.
+System services can be managed using the upstart (Ubuntu 14.04) or systemd facility.
 To start a service, issue the following command as a root user:
 
 `service <service> start`

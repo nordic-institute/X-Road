@@ -53,6 +53,7 @@ en:
     help:
       title: "Help"
       version: "Version"
+      feedback: "Feedback"
 
   keys:
     action:

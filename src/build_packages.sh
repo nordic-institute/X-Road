@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-XROAD=$(cd "$(dirname "$0")"; pwd)
+export XROAD=$(cd "$(dirname "$0")"; pwd)
 
 ./compile_code.sh "$@"
 

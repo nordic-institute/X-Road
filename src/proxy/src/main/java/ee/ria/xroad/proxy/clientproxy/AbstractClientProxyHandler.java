@@ -26,6 +26,7 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
@@ -60,45 +61,41 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 @RequiredArgsConstructor
 abstract class AbstractClientProxyHandler extends HandlerBase {
 
+    private static final String START_TIME_ATTRIBUTE = AbstractClientProxyHandler.class.getName() + ".START_TIME";
     protected final HttpClient client;
 
     protected final boolean storeOpMonitoringData;
+    private final long idleTimeout = SystemProperties.getClientProxyConnectorMaxIdleTime();
 
     abstract MessageProcessorBase createRequestProcessor(String target,
             HttpServletRequest request, HttpServletResponse response,
             OpMonitoringData opMonitoringData) throws Exception;
 
     @Override
-    public void handle(String target, Request baseRequest,
-            HttpServletRequest request, HttpServletResponse response)
-                    throws IOException, ServletException {
+    public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+            throws IOException, ServletException {
         if (baseRequest.isHandled()) {
             // If some handler already processed the request, we do nothing.
             return;
         }
 
         boolean handled = false;
-        OpMonitoringData opMonitoringData = storeOpMonitoringData
-                ? new OpMonitoringData(CLIENT, getEpochMillisecond()) : null;
 
+        long start = logPerformanceBegin(request);
+        OpMonitoringData opMonitoringData = storeOpMonitoringData ? new OpMonitoringData(CLIENT, start) : null;
         MessageProcessorBase processor = null;
-        long start = System.currentTimeMillis();
 
         try {
             processor = createRequestProcessor(target, request, response, opMonitoringData);
 
             if (processor != null) {
-                PerformanceLogger.log(log, "Received request from " + request.getRemoteAddr());
-                log.info("Received request from {}", request.getRemoteAddr());
-
+                baseRequest.getHttpChannel().setIdleTimeout(idleTimeout);
                 handled = true;
-                start = logPerformanceBegin(request);
                 processor.process();
                 success(processor, start, opMonitoringData);
 
                 if (log.isTraceEnabled()) {
-                    log.info("Request successfully handled ({} ms)",
-                            System.currentTimeMillis() - start);
+                    log.info("Request successfully handled ({} ms)", System.currentTimeMillis() - start);
                 } else {
                     log.info("Request successfully handled");
                 }
@@ -107,47 +104,44 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
             handled = true;
 
             String errorMessage = e instanceof ClientException
-                    ? "Request processing error (" + e.getFaultDetail() + ")"
-                    : "Request processing error";
+                    ? "Request processing error (" + e.getFaultDetail() + ")" : "Request processing error";
 
             log.error(errorMessage, e);
 
             updateOpMonitoringSoapFault(opMonitoringData, e);
 
-            // Exceptions caused by incoming message and exceptions
-            // derived from faults sent by serverproxy already contain
-            // full error code. Thus, we must not attach additional
-            // error code prefixes to them.
+            // Exceptions caused by incoming message and exceptions derived from faults sent by serverproxy already
+            // contain full error code. Thus, we must not attach additional error code prefixes to them.
 
-            failure(processor, response, e);
+            failure(processor, response, e, opMonitoringData);
         } catch (CodedExceptionWithHttpStatus e) {
             handled = true;
 
             // No need to log faultDetail hence not sent to client.
             log.error("Request processing error", e);
 
-            // Respond with HTTP status code and plain text error message
-            // instead of SOAP fault message. No need to update operational
-            // monitoring fields here either.
+            // Respond with HTTP status code and plain text error message instead of SOAP fault message.
+            // No need to update operational monitoring fields here either.
 
-            failure(response, e);
+            failure(response, e, opMonitoringData);
         } catch (Throwable e) { // We want to catch serious errors as well
             handled = true;
 
             // All the other exceptions get prefix Server.ClientProxy...
             CodedException cex = translateWithPrefix(SERVER_CLIENTPROXY_X, e);
 
-            updateOpMonitoringSoapFault(opMonitoringData, cex);
-
             log.error("Request processing error ({})", cex.getFaultDetail(), e);
 
-            failure(processor, response, cex);
+            updateOpMonitoringSoapFault(opMonitoringData, cex);
+
+            failure(processor, response, cex, opMonitoringData);
         } finally {
             baseRequest.setHandled(handled);
 
             if (handled) {
                 if (storeOpMonitoringData) {
-                    opMonitoringData.setResponseOutTs(getEpochMillisecond());
+                    updateOpMonitoringResponseOutTs(opMonitoringData);
+
                     OpMonitoring.store(opMonitoringData);
                 }
 
@@ -156,69 +150,57 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         }
     }
 
-    protected static void success(MessageProcessorBase processor, long start,
-            OpMonitoringData opMonitoringData) {
+    private static void success(MessageProcessorBase processor, long start, OpMonitoringData opMonitoringData) {
         updateOpMonitoringSucceeded(opMonitoringData);
 
         MonitorAgent.success(processor.createRequestMessageInfo(), new Date(start), new Date());
     }
 
-    protected void failure(MessageProcessorBase processor,
-            HttpServletResponse response, CodedException e)
-            throws IOException {
-        MessageInfo info = processor != null
-                ? processor.createRequestMessageInfo()
-                : null;
+    protected void failure(MessageProcessorBase processor, HttpServletResponse response, CodedException e,
+            OpMonitoringData opMonitoringData) throws IOException {
+        MessageInfo info = processor != null ? processor.createRequestMessageInfo() : null;
 
         MonitorAgent.failure(info, e.getFaultCode(), e.getFaultString());
 
-        sendErrorResponse(response, e);
-    }
-
-    @Override
-    protected void failure(HttpServletResponse response, CodedException e)
-            throws IOException {
-        MonitorAgent.failure(null, e.getFaultCode(), e.getFaultString());
+        updateOpMonitoringResponseOutTs(opMonitoringData);
 
         sendErrorResponse(response, e);
     }
 
-    protected void failure(HttpServletResponse response,
-            CodedExceptionWithHttpStatus e) throws IOException {
+    protected void failure(HttpServletResponse response, CodedExceptionWithHttpStatus e,
+            OpMonitoringData opMonitoringData) throws IOException {
         MonitorAgent.failure(null, e.withPrefix(SERVER_CLIENTPROXY_X).getFaultCode(), e.getFaultString());
+
+        updateOpMonitoringResponseOutTs(opMonitoringData);
 
         sendPlainTextErrorResponse(response, e.getStatus(), e.getFaultString());
     }
 
-    protected static boolean isGetRequest(HttpServletRequest request) {
+    static boolean isGetRequest(HttpServletRequest request) {
         return request.getMethod().equalsIgnoreCase("GET");
     }
 
-    protected static boolean isPostRequest(HttpServletRequest request) {
+    static boolean isPostRequest(HttpServletRequest request) {
         return request.getMethod().equalsIgnoreCase("POST");
     }
 
-    protected static final String stripSlash(String str) {
-        return str != null && str.startsWith("/")
-                ? str.substring(1) : str; // Strip '/'
-    }
+    static IsAuthenticationData getIsAuthenticationData(HttpServletRequest request) {
+        X509Certificate[] certs = (X509Certificate[]) request.getAttribute("javax.servlet.request.X509Certificate");
 
-    protected static IsAuthenticationData getIsAuthenticationData(
-            HttpServletRequest request) {
-        X509Certificate[] certs =
-                (X509Certificate[]) request.getAttribute(
-                        "javax.servlet.request.X509Certificate");
-        return new IsAuthenticationData(
-                certs != null && certs.length != 0 ? certs[0] : null,
-                !"https".equals(request.getScheme()) // if not HTTPS, it's plaintext
-        );
+        return new IsAuthenticationData(certs != null && certs.length != 0 ? certs[0] : null,
+                !"https".equals(request.getScheme())); // if not HTTPS, it's plaintext
     }
 
     private static long logPerformanceBegin(HttpServletRequest request) {
-        long start = PerformanceLogger.log(log, "Received request from "
-                + request.getRemoteAddr());
-        log.info("Received request from {}", request.getRemoteAddr());
-
+        long start;
+        Object obj = request.getAttribute(START_TIME_ATTRIBUTE);
+        if (obj instanceof Long) {
+            start = (Long) obj;
+        } else {
+            start = PerformanceLogger.log(log, "Received request from " + request.getRemoteAddr());
+            log.info("Received request from {}", request.getRemoteAddr());
+            request.setAttribute(START_TIME_ATTRIBUTE, start);
+        }
         return start;
     }
 
@@ -226,15 +208,19 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         PerformanceLogger.log(log, start, "Request handled");
     }
 
-    private static void updateOpMonitoringSoapFault(
-            OpMonitoringData opMonitoringData, CodedException e) {
+    private static void updateOpMonitoringResponseOutTs(OpMonitoringData opMonitoringData) {
+        if (opMonitoringData != null) {
+            opMonitoringData.setResponseOutTs(getEpochMillisecond(), false);
+        }
+    }
+
+    private static void updateOpMonitoringSoapFault(OpMonitoringData opMonitoringData, CodedException e) {
         if (opMonitoringData != null) {
             opMonitoringData.setSoapFault(e);
         }
     }
 
-    private static void updateOpMonitoringSucceeded(
-            OpMonitoringData opMonitoringData) {
+    private static void updateOpMonitoringSucceeded(OpMonitoringData opMonitoringData) {
         if (opMonitoringData != null) {
             opMonitoringData.setSucceeded(true);
         }

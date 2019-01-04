@@ -18,6 +18,7 @@ et:
     help:
       title: "Abi"
       version: "Versioon"
+      feedback: "Feedback"
 
   common:
     auth_cert_imported: "Sertifikaat edukalt imporditud"

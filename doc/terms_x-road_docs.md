@@ -8,8 +8,9 @@ Document ID: TA-TERMS
  ---------- | ------- | --------------------------------------------------------------- | --------------------
  06.07.2015 | 0.1     | Initial draft                                                   |
  23.02.2017 | 0.2     | Converted to Github flavoured Markdown, added license text, adjusted tables and identification for better output in PDF. Added explanation of monitoring service | Toomas Mölder 
- 14.11.2017 | 0.3     | All the descriptions in estonian language removed. Couple of new descriptions added | Antti Luoma
+ 14.11.2017 | 0.3     | All the descriptions in Estonian language removed. Couple of new descriptions added | Antti Luoma
  06.03.2018 | 0.4     | Moved/merged terminology explanations from other X-Road repository MD-documents to this document | Tatu Repo |
+ 03.01.2019 | 0.5     | Minor changes - typos fixed. | Yamato Kataoka |
 
 ## Table of Contents
 
@@ -46,7 +47,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ## 1 X-Road and X-Road Instance
 
-**External X-Road instance** – an instance that has been federated with the local instance. For example the FI-instance is defined as an external instance in the EE's local point of view.
+**External X-Road instance** – an instance that has been federated with the local instance. For example, the FI-instance is defined as an external instance in the EE's local point of view.
 
 **Local X-Road instance** – a group of members that are registered in a particular instance.
 
@@ -72,7 +73,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ## 3 Trust services
 
-**Approved certification service provider** – Provider of a trust service approved on X-Road, who provides at least following trust services approved on X-Road: service of authentication certificate of security server, service of signature certificate of a member, and sertificate validation service (OCSP).
+**Approved certification service provider** – Provider of a trust service approved on X-Road, who provides at least following trust services approved on X-Road: service of authentication certificate of security server, service of signature certificate of a member, and certificate validation service (OCSP).
 
 **Approved timestamp service provider** – Provider of a trust service approved on X-Road, who provides the timestamp service.
 
@@ -118,7 +119,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 **Affiliation of membership** – a process ending with becoming a member of X-Road. Becoming a member requires conclusion of affiliation contract and registration of data of the member (name and ID of the member) in X-Road central server. Requirements for affiliation are established by X-Road governing authority with relevant regulation/affiliation conditions
 
-**Dataservice interfacing** – a process, where a member of X-Road creates organizational and technical capacity for offering or using dataservice. Interfacing includes development of the service by the member as well as its setup in security server, conclusion of service usage contracts and granting access rights. In order to use the service, service provider as well as service client shall undergo interfacing.
+**Dataservice interfacing** – a process, where a member of X-Road creates organizational and technical capacity for offering or using dataservice. Interfacing includes development of the service by the member as well as its setup in security server, conclusion of service usage contracts and granting access rights. In order to use the service, service provider, as well as service client, shall undergo interfacing.
 
 **Interaction** – activation procedure of dataservice (single use), bilateral information exchange through dataservice, i.e. request of dataservice by the service client by sending a request, to which the service provider will send a response.
 
@@ -130,7 +131,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ### 6.1 Technology in general
 
-**Core technology** – Component of X-Road software, ensuring integrity and verification value of messages between members. Core technology includes central server, configuration proxy and security server.
+**Core technology** – Component of X-Road software, ensuring integrity and verification value of messages between members. Core technology includes central server, configuration proxy, and security server.
 
 **Service technology** – Component of X-Road software, simplifying or enabling the use of core technology.
 
@@ -232,7 +233,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 **Member code** – identifier, that uniquely identifies an X-Road member within its member class. The member code remains unchanged during the entire lifetime of the member.
 
-**Member identifier** – identifier, that uniquely identifies a member in the X-Road Network. Member identifier consists of X-Road instance identifier, member class and member code.
+**Member identifier** – identifier, that uniquely identifies a member in the X-Road Network. Member identifier consists of X-Road instance identifier, member class, and member code.
 
 **Security server code** – identifier, that uniquely identifies the security server in all of the security servers of the security server owner.
 

@@ -139,5 +139,7 @@ test -f /etc/xroad/conf.d/local.ini || touch /etc/xroad/conf.d/local.ini
 chown -R xroad:xroad /etc/xroad/services/* /etc/xroad/conf.d/*
 chmod -R o=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
 
-%changelog
+#enable xroad services by default
+echo 'enable xroad-*.service' > %{_presetdir}/90-xroad.preset
 
+%changelog

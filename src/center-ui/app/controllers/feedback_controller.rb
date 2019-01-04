@@ -23,34 +23,7 @@
 # THE SOFTWARE.
 #
 
-java_import Java::ee.ria.xroad.common.conf.globalconf.PrivateParametersSchemaValidatorV1
-java_import Java::ee.ria.xroad.common.conf.globalconf.SharedParametersSchemaValidatorV1
-
-# Generates V1 configuration
-class ConfV1Generator < ConfGenerator
-
-  def getVersion
-    return 1
+class FeedbackController < ApplicationController
+  def index
   end
-
-  def isCurrentVersion?
-    return false
-  end
-
-  def generatePrivateParameters
-    PrivateParametersGenerator.new().generate()
-  end
-
-  def validatePrivateParameters(private_parameters_xml)
-    PrivateParametersSchemaValidatorV1.validate(private_parameters_xml)
-  end
-
-  def generateSharedParameters
-    SharedParametersGenerator.new().generate()
-  end
-
-  def validateSharedParameters(shared_parameters_xml)
-    SharedParametersSchemaValidatorV1.validate(shared_parameters_xml)
-  end
-
 end

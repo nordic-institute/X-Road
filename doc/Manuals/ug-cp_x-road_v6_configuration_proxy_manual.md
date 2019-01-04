@@ -4,7 +4,7 @@
 
 # X-Road: Configuration Proxy Manual
 
-Version: 2.4  
+Version: 2.5  
 Doc. ID: UG-CP
 
 ## Version History
@@ -21,37 +21,41 @@ Doc. ID: UG-CP
 | 07.06.2017 | 2.1     | System parameter *signature-algorithm-id* replaced with *signature-digest-algorithm-id* | Cybernetica AS |
 | 05.03.2018 | 2.2     | Added references, terms and abbreviations reference, document link | Tatu Repo |
 | 10.04.2018 | 2.3     | Updated chapter "[Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)" with configurable parameters described in the configuration file 'devices.ini' | Cybernetica AS |
-| 14.10.2018 | 2.4    | Update package repository address | Petteri Kivimäki |
+| 14.10.2018 | 2.4     | Update package repository address | Petteri Kivimäki |
+| 15.11.2018 | 2.5     | Add Ubuntu 18.04 installation instructions | Jarkko Hyöty |
 
 ## Table of Contents
 
 <!-- vim-markdown-toc GFM -->
 
-* [1 Introduction](#1-introduction)
-    * [1.1 Target Audience](#11-target-audience)
-    * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
-    * [1.3 References](#13-references)
-    * [1.4 X-Road Configuration Proxy](#14-x-road-configuration-proxy)
-* [2 Installation](#2-installation)
-    * [2.1 Supported Platforms](#21-supported-platforms)
-    * [2.2 Reference Data](#22-reference-data)
-    * [2.3 Requirements for the Configuration Proxy](#23-requirements-for-the-configuration-proxy)
-    * [2.4 Preparing OS](#24-preparing-os)
-    * [2.5 Installation](#25-installation)
-    * [2.6 Post-Installation Checks](#26-post-installation-checks)
-    * [2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
-* [3 Configuration](#3-configuration)
-    * [3.1 Prerequisites](#31-prerequisites)
-        * [3.1.1 Security Token Activation](#311-security-token-activation)
-        * [3.1.2 User Access Privileges](#312-user-access-privileges)
-    * [3.2 General Configuration](#32-general-configuration)
-        * [3.2.1 Configuration Structure of the Instances](#321-configuration-structure-of-the-instances)
-    * [3.3 Proxy Instance Reference Data](#33-proxy-instance-reference-data)
-    * [3.4 Proxy Instance Configuration](#34-proxy-instance-configuration)
-    * [3.5 Additional Configuration](#35-additional-configuration)
-        * [3.5.1 Changing the Validity Interval](#351-changing-the-validity-interval)
-        * [3.5.2 Deleting the Signing Keys](#352-deleting-the-signing-keys)
-        * [3.5.3 Changing the Active Signing Key](#353-changing-the-active-signing-key)
+- [X-Road: Configuration Proxy Manual](#x-road-configuration-proxy-manual)
+  - [Version History](#version-history)
+  - [Table of Contents](#table-of-contents)
+  - [1 Introduction](#1-introduction)
+    - [1.1 Target Audience](#11-target-audience)
+    - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+    - [1.3 References](#13-references)
+    - [1.4 X-Road Configuration Proxy](#14-x-road-configuration-proxy)
+  - [2 Installation](#2-installation)
+    - [2.1 Supported Platforms](#21-supported-platforms)
+    - [2.2 Reference Data](#22-reference-data)
+    - [2.3 Requirements for the Configuration Proxy](#23-requirements-for-the-configuration-proxy)
+    - [2.4 Preparing OS](#24-preparing-os)
+    - [2.5 Installation](#25-installation)
+    - [2.6 Post-Installation Checks](#26-post-installation-checks)
+    - [2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
+  - [3 Configuration](#3-configuration)
+    - [3.1 Prerequisites](#31-prerequisites)
+      - [3.1.1 Security Token Activation](#311-security-token-activation)
+      - [3.1.2 User Access Privileges](#312-user-access-privileges)
+    - [3.2 General Configuration](#32-general-configuration)
+      - [3.2.1 Configuration Structure of the Instances](#321-configuration-structure-of-the-instances)
+    - [3.3 Proxy Instance Reference Data](#33-proxy-instance-reference-data)
+    - [3.4 Proxy Instance Configuration](#34-proxy-instance-configuration)
+    - [3.5 Additional Configuration](#35-additional-configuration)
+      - [3.5.1 Changing the Validity Interval](#351-changing-the-validity-interval)
+      - [3.5.2 Deleting the Signing Keys](#352-deleting-the-signing-keys)
+      - [3.5.3 Changing the Active Signing Key](#353-changing-the-active-signing-key)
 
 <!-- vim-markdown-toc -->
 
@@ -70,7 +74,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md). 
+1. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 ### 1.4 X-Road Configuration Proxy
 
@@ -85,7 +89,7 @@ The configuration proxy can be configured to mediate several global configuratio
 
 ### 2.1 Supported Platforms
 
-The configuration proxy runs on the *Ubuntu Server 14.04 Long-Term Support (LTS)* operating system on a 64-bit platform. The configuration proxy's software is distributed as .deb packages through the official X-Road repository at [https://artifactory.niis.org/xroad-release-deb](https://artifactory.niis.org/xroad-release-deb).
+The configuration proxy runs on the *Ubuntu Server 14.04 and 18.04 Long-Term Support (LTS)* operating system on a 64-bit platform. The configuration proxy's software is distributed as .deb packages through the official X-Road repository at [https://artifactory.niis.org/xroad-release-deb](https://artifactory.niis.org/xroad-release-deb).
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
@@ -98,7 +102,7 @@ The software can be installed both on physical and virtualized hardware (of the 
 
 | Ref  |                                          | Explanation                |
 |------|------------------------------------------|----------------------------|
-| 1.0  | Ubuntu 14.04, 64bit<br>2GB RAM, 3GB free disk space | Minimum requirements. |
+| 1.0  | Ubuntu 14.04 or 18.04, 64bit<br>2GB RAM, 3GB free disk space | Minimum requirements. |
 | 1.1  | https://artifactory.niis.org/xroad-release-deb | X-Road package repository.  |
 | 1.2  | https://artifactory.niis.org/api/gpg/key/public | The repository’s key.       |
 | 1.3  | TCP 80                                   | Global configuration distribution.<br>Ports for inbound connections (from the external network to the configuration proxy). |
@@ -110,7 +114,7 @@ The software can be installed both on physical and virtualized hardware (of the 
 
 Minimum recommended hardware parameters:
 
-* the server’s hardware (motherboard, CPU, network interface cards, storage system) must be supported by Ubuntu 14.04 in general;
+* the server’s hardware (motherboard, CPU, network interface cards, storage system) must be supported by Ubuntu in general;
 * a 64-bit dual-core Intel, AMD or compatible CPU; AES instruction set support is highly recommended;
 * 2 GB RAM;
 * a 100 Mbps network interface card;
@@ -118,32 +122,34 @@ Minimum recommended hardware parameters:
 
 Requirements to software and settings:
 
-* an installed and configured Ubuntu 14.04 LTS x86-64 operating system;
+* an installed and configured supported version of Ubuntu x86-64 operating system;
 * if the configuration proxy is separated from other networks by a firewall and/or NAT, the necessary connections to and from the security server must be allowed (reference data: 1.3; 1.4). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) is outside the scope of this guide;
 * if the configuration proxy has a private IP address, a corresponding NAT record must be created in the firewall (reference data: 1.5).
 
 
 ### 2.4 Preparing OS
 
-Set operating system locale. Add following line to file */etc/environment*:  
-```bash
-LC_ALL=en_US.UTF-8
-```
+- Set the operating system locale.
 
+  Add the following line to the file /etc/environment: `LC_ALL=en_US.UTF-8`  
+  Ensure that the locale is generated: `sudo locale-gen en_US.UTF-8`
 
 ### 2.5 Installation
 
 To install the X-Road configuration proxy software, follow these steps.
 
-1. Add the X-Road package repository (reference data: 1.1), and the nginx and opendjdk repositories:
-   
-           sudo apt-add-repository -y ppa:openjdk-r/ppa
-           sudo apt-add-repository -y ppa:nginx/stable
-           sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb trusty-current main"
-           
-2. Add the X-Road repository’s signing key to the list of trusted keys (reference data: 1.2):
+1.  Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 
-            curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+        curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+
+2.  Add X-Road package repository (**reference data: 1.1**)
+
+        sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
+
+    *Only Ubuntu 14.04*: Add openjdk and nginx repositories
+
+        sudo apt-add-repository -y ppa:openjdk-r/ppa
+        sudo apt-add-repository -y ppa:nginx/stable
 
 3.  Issue the following commands to install the configuration proxy packages:
 
@@ -154,33 +160,41 @@ To install the X-Road configuration proxy software, follow these steps.
 
 The installation is successful if the 'xroad-signer' service is started, the 'xroad-confproxy' cron job is added, and the configuration proxy management utilities are available from the command line.
 
-* Check from the command line that the 'xroad-signer' service is in the start/running state (example output follows):
+* Check from the command line that the 'xroad-signer' service is in the running state (example output follows). Notice that it is normal for the xroad-confclient to be in `stopped` state on the configuration proxy since it operates in one-shot mode.
 
-```bash
-sudo initctl list | grep "^xroad-"
+  * Ubuntu 14.04
+    ```bash
+    sudo initctl list | grep "^xroad-"
 
-xroad-signer start/running, process 19393
-```
+    xroad-confclient stop/waiting
+    xroad-signer start/running, process 19393
+    ```
+  * Ubuntu 18.04
+    ```bash
+    systemctl list-units "xroad*" 
+
+    UNIT                     LOAD   ACTIVE SUB     DESCRIPTION
+    xroad-signer.service     loaded active running X-Road signer
+    ```
 
 * Check from the command line that the 'xroad-confproxy' cron job is present (example output follows):
 
-```bash
-sudo ls /etc/cron.d/ | grep "^xroad-"
-
-xroad-confproxy
-```
+  ```bash
+  sudo ls /etc/cron.d/ | grep "^xroad-"
+ 
+  xroad-confproxy
+  ```
 
 * Make sure that the following commands are available from the command line:
 
-```bash
-signer-console
-confproxy-view-conf
-confproxy-create-instance
-confproxy-add-signing-key
-confproxy-del-signing-key
-confproxy-generate-anchor
-```
-
+  ```bash
+  signer-console
+  confproxy-view-conf
+  confproxy-create-instance
+  confproxy-add-signing-key
+  confproxy-del-signing-key
+  confproxy-generate-anchor
+  ```
 
 ### 2.7 Installing the Support for Hardware Tokens
 
@@ -206,7 +220,7 @@ Parameter   | Type    | Default Value | Explanation
 ----------- | ------- |-------------- | ---------------------------------------
 *enabled*     | BOOLEAN | *true* | Indicates whether this device is enabled.
 *library*     | STRING  |      | The path to the pkcs#11 library of the device driver.
-*library_cant_create_os_threads* | BOOLEAN | *false* | Indicates whether application threads, which are executing calls to the pkcs#11 library, may not use native operating system calls to spawn new threads (in other words, the library’s code may not create its own threads). 
+*library_cant_create_os_threads* | BOOLEAN | *false* | Indicates whether application threads, which are executing calls to the pkcs#11 library, may not use native operating system calls to spawn new threads (in other words, the library’s code may not create its own threads).
 *os_locking_ok* | BOOLEAN | *false* | Indicates whether the pkcs#11 library may use the native operation system threading model for locking.
 *sign_verify_pin* | BOOLEAN | *false* | Indicates whether the PIN should be entered per signing operation.
 *token_id_format* | STRING | *{moduleType}{slotIndex}{serialNumber}{label}* | Specifies the identifier format used to uniquely identify a token. In certain high availability setups may need be constrained to support replicated tokens (eg. by removing the slot index part which may be diffirent for the token replicas).
@@ -271,7 +285,8 @@ Modify '/etc/xroad/conf.d/local.ini' to contain the following:
 ```ini
 [configuration-proxy]
 
-; Address of the webserver serving the distributed configuration address=<public or NAT address>
+; Address of the webserver serving the distributed configuration
+; address=<public or NAT address>
 ```
 
 The configuration of this parameter is necessary for generating a correctly formatted configuration anchor file that will need to be uploaded to central servers that should receive configurations mediated by this proxy, this process is described in detail in [3.4](#34-proxy-instance-configuration). There are several more system parameters that can be configured in '/etc/xroad/conf.d/local.ini' under the 'configuration-proxy' section, their descriptions and default values can be seen from the following table:
@@ -414,9 +429,9 @@ confproxy-generate-anchor -p <PROXY_NAME> -f <ANCHOR_FILENAME>
 If generation was successful the output should be simply:
 
 ```cmd
-confproxy-generate-anchor -p PROXY -f anchor.xml
+confproxy-generate-anchor -p PROXY -f /home/xroad/anchor.xml
 
-Generated anchor xml to 'anchor.xml'
+Generated anchor xml to '/home/xroad/anchor.xml'
 ```
 
 6) To make sure that the global configuration is being distributed correctly use the '/usr/share/xroad/scripts/download_instance_configuration.sh' script, giving it &lt;ANCHOR_FILENAME&gt; and the path, which should hold the downloaded files, as arguments (example output follows):

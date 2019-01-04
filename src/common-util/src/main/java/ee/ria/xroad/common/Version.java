@@ -23,13 +23,60 @@
  * THE SOFTWARE.
  */
 package ee.ria.xroad.common;
+
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
 /**
  * Stores X-Road software version number
  */
+@Slf4j
 public final class Version {
+
+    private static final String RELEASE = "RELEASE";
+    public static final String XROAD_VERSION;
+    public static final String BUILD_IDENTIFIER;
+
+    static {
+        Properties props = new Properties();
+
+        try (InputStream inputStream = Version.class.getResourceAsStream("/version.properties")) {
+            props.load(inputStream);
+        } catch (IOException e) {
+            log.error("Could not read version.properties", e);
+        }
+
+        String version = props.getProperty("version", "");
+
+        String buildType = props.getProperty("buildType", "");
+        String commitDate = props.getProperty("gitCommitDate", "");
+        String commitHash = props.getProperty("gitCommitHash", "");
+
+        StringBuilder sb = new StringBuilder(buildType);
+
+        if (!commitDate.isEmpty()) {
+            sb.append("-").append(commitDate);
+        }
+
+        if (!commitHash.isEmpty()) {
+            if (commitDate.isEmpty()) {
+                sb.append("-");
+            }
+            sb.append(commitHash);
+        }
+
+        BUILD_IDENTIFIER = sb.toString();
+
+        if (buildType.equals(RELEASE)) {
+            XROAD_VERSION = version;
+        } else {
+            XROAD_VERSION = String.format("%s-%s", version, BUILD_IDENTIFIER);
+        }
+    }
 
     private Version() {
     }
-
-    public static final String XROAD_VERSION = "6.20.0";
 }

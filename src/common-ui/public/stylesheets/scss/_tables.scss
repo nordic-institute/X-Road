@@ -39,7 +39,7 @@ table {
 
             &:hover {
                 td {
-                    background: rgba($base-color-blue, 0.5) !important;
+                    background: rgba($xroad-light-blue, 0.4) !important;
                 }
             }
             &.odd {
@@ -56,7 +56,7 @@ table {
             }
             &.row_selected {
                 td, td[class^='sorting_'], td[class*=' sorting_'] {
-                    background: rgba($base-color-blue, 0.5) !important;
+                    background: rgba($xroad-light-blue, 0.4) !important;
                 }
             }
             &.unavailable {

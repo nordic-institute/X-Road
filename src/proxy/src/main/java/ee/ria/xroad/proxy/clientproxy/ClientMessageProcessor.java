@@ -199,17 +199,16 @@ class ClientMessageProcessor extends MessageProcessorBase {
         Future<?> soapHandler = SOAP_HANDLER_EXECUTOR.submit(this::handleSoap);
 
         try {
-            // Wait for the request SOAP message to be parsed before we can
-            // start sending stuff.
+            // Wait for the request SOAP message to be parsed before we can start sending stuff.
             waitForSoapMessage();
 
             // If the handler thread excepted, do not continue.
             checkError();
 
-            // Verify that the client is registered
+            // Verify that the client is registered.
             verifyClientStatus();
 
-            // Check client authentication mode
+            // Check client authentication mode.
             verifyClientAuthentication();
 
             processRequest();
@@ -222,8 +221,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
                 reqIns.close();
             }
 
-            // Let's interrupt the handler thread so that it won't
-            // block forever waiting for us to do something.
+            // Let's interrupt the handler thread so that it won't block forever waiting for us to do something.
             soapHandler.cancel(true);
 
             throw e;
@@ -472,6 +470,8 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
     private void sendResponse() throws Exception {
         log.trace("sendResponse()");
+
+        opMonitoringData.setResponseOutTs(getEpochMillisecond(), true);
 
         servletResponse.setStatus(HttpServletResponse.SC_OK);
         servletResponse.setCharacterEncoding(MimeUtils.UTF8);

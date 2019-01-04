@@ -62,42 +62,27 @@ class FastestSocketSelector {
 
     SocketInfo select() throws IOException {
         log.trace("select()");
-
         Selector selector = Selector.open();
-
-        SocketInfo selectedSocket = initConnections(selector);
-        if (selectedSocket != null) {
-            return selectedSocket;
-        }
-
-        URI selectedAddress = null;
-        SocketChannel channel = null;
         try {
+            initConnections(selector);
             SelectionKey key = selectFirstConnectedSocketChannel(selector);
             if (key == null) {
                 return null;
             }
-
-            channel = (SocketChannel) key.channel();
-            selectedAddress = (URI) key.attachment();
+            final SocketChannel channel = (SocketChannel) key.channel();
+            key.cancel();
+            channel.configureBlocking(true);
+            return new SocketInfo((URI) key.attachment(), channel.socket());
         } finally {
             try {
-                closeSelector(selector, channel);
+                closeSelector(selector);
             } catch (Exception e) {
                 log.error("Error while closing selector", e);
             }
         }
-
-        if (channel != null) {
-            channel.configureBlocking(true);
-            return new SocketInfo(selectedAddress, channel.socket());
-        }
-
-        return null;
     }
 
-    private SelectionKey selectFirstConnectedSocketChannel(Selector selector)
-            throws IOException {
+    private SelectionKey selectFirstConnectedSocketChannel(Selector selector) throws IOException {
         log.trace("selectFirstConnectedSocketChannel()");
 
         while (!selector.keys().isEmpty()) {
@@ -126,47 +111,47 @@ class FastestSocketSelector {
             } catch (Exception e) {
                 key.cancel();
                 closeQuietly(channel);
-
-                log.trace("Error connecting socket channel: {}",
-                        e);
+                log.trace("Error connecting socket channel: {}", e);
             }
         }
         return false;
     }
 
-    private SocketInfo initConnections(Selector selector) throws IOException {
+    private void initConnections(Selector selector) {
         log.trace("initConnections()");
 
         for (URI target : addresses) {
-            SocketChannel channel = SocketChannel.open();
-            channel.setOption(StandardSocketOptions.TCP_NODELAY, true);
-            channel.configureBlocking(false);
+            final InetSocketAddress address = new InetSocketAddress(target.getHost(), target.getPort());
+            if (address.isUnresolved()) {
+                continue;
+            }
+            SocketChannel channel = null;
+            SelectionKey key = null;
             try {
-                channel.register(selector, SelectionKey.OP_CONNECT, target);
-
-                if (channel.connect(new InetSocketAddress(target.getHost(),
-                        target.getPort()))) { // connected immediately
-                    channel.configureBlocking(true);
-                    return new SocketInfo(target, channel.socket());
+                channel = SocketChannel.open();
+                channel.setOption(StandardSocketOptions.TCP_NODELAY, true);
+                channel.configureBlocking(false);
+                key = channel.register(selector, SelectionKey.OP_CONNECT, target);
+                if (channel.connect(address)) {
+                    // connected immediately
+                    break;
                 }
             } catch (Exception e) {
+                if (key != null) {
+                    key.cancel();
+                }
                 closeQuietly(channel);
                 log.trace("Error connecting to '{}': {}", target, e);
             }
         }
-
-        return null;
     }
 
-    private static void closeSelector(Selector selector,
-            SocketChannel selectedChannel) throws IOException {
+    private static void closeSelector(Selector selector) throws IOException {
         for (SelectionKey key : selector.keys()) {
-            if (selectedChannel == null
-                    || !selectedChannel.equals(key.channel())) {
+            if (key.isValid()) {
                 closeQuietly(key.channel());
             }
         }
-
         selector.close();
     }
 }

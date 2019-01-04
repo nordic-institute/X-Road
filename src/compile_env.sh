@@ -7,10 +7,10 @@ then
 fi
 
 JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
-PATH=$JAVA_HOME/bin:$PATH
+PATH="$JAVA_HOME/bin:$PATH"
 
 export PATH JAVA_HOME XROAD_HOME
 
-source $HOME/.rvm/scripts/rvm
-rvm use jruby-$(cat $XROAD_HOME/.jruby-version)
+source "$HOME"/.rvm/scripts/rvm
+rvm use jruby-$(cat "$XROAD_HOME"/.jruby-version)
 

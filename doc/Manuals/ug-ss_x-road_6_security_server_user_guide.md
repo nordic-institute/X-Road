@@ -6,8 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.22  
-25.05.2018  
+Version: 2.23  
 Doc. ID: UG-SS
 
 ---
@@ -56,108 +55,112 @@ Doc. ID: UG-SS
  05.03.2018 | 2.20    | Added terms and abbreviations reference, document links, moved concepts to terms and abbreviations. | Tatu Repo 
  10.04.2018 | 2.21    | Update internal server certificate documentation. | Jarkko Hyöty
  25.05.2018 | 2.22    | Update system parameters documentation. | Jarkko Hyöty
+ 15.11.2018 | 2.23    | Minor updates for Ubuntu 18.04 | Jarkko Hyöty
+
 ## Table of Contents
 
 <!-- toc -->
+<!-- vim-markdown-toc GFM -->
 
-- [License](#license)
-- [1 Introduction](#1-introduction)
+* [License](#license)
+* [1 Introduction](#1-introduction)
   * [1.1 The X-Road Security Server](#11-the-x-road-security-server)
   * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
   * [1.3 References](#13-references)
-- [2 User Management](#2-user-management)
+* [2 User Management](#2-user-management)
   * [2.1 User Roles](#21-user-roles)
   * [2.2 Managing the Users](#22-managing-the-users)
-- [3 Security Server Registration](#3-security-server-registration)
+* [3 Security Server Registration](#3-security-server-registration)
   * [3.1 Configuring the Signing Key and Certificate for the Security Server Owner](#31-configuring-the-signing-key-and-certificate-for-the-security-server-owner)
-    + [3.1.1 Generating a Signing Key](#311-generating-a-signing-key)
-    + [3.1.2 Generating a Certificate Signing Request for a Signing Key](#312-generating-a-certificate-signing-request-for-a-signing-key)
-    + [3.1.3 Importing a Certificate from the Local File System](#313-importing-a-certificate-from-the-local-file-system)
-    + [3.1.4 Importing a Certificate from a Security Token](#314-importing-a-certificate-from-a-security-token)
+    * [3.1.1 Generating a Signing Key](#311-generating-a-signing-key)
+    * [3.1.2 Generating a Certificate Signing Request for a Signing Key](#312-generating-a-certificate-signing-request-for-a-signing-key)
+    * [3.1.3 Importing a Certificate from the Local File System](#313-importing-a-certificate-from-the-local-file-system)
+    * [3.1.4 Importing a Certificate from a Security Token](#314-importing-a-certificate-from-a-security-token)
   * [3.2 Configuring the Authentication Key and Certificate for the Security Server](#32-configuring-the-authentication-key-and-certificate-for-the-security-server)
-    + [3.2.1 Generating an Authentication Key](#321-generating-an-authentication-key)
-    + [3.2.2 Generating a Certificate Signing Request for an Authentication Key](#322-generating-a-certificate-signing-request-for-an-authentication-key)
-    + [3.2.3 Importing an Authentication Certificate from the Local File System](#323-importing-an-authentication-certificate-from-the-local-file-system)
+    * [3.2.1 Generating an Authentication Key](#321-generating-an-authentication-key)
+    * [3.2.2 Generating a Certificate Signing Request for an Authentication Key](#322-generating-a-certificate-signing-request-for-an-authentication-key)
+    * [3.2.3 Importing an Authentication Certificate from the Local File System](#323-importing-an-authentication-certificate-from-the-local-file-system)
   * [3.3 Registering the Security Server in the X-Road Governing Authority](#33-registering-the-security-server-in-the-x-road-governing-authority)
-    + [3.3.1 Registering an Authentication Certificate](#331-registering-an-authentication-certificate)
-- [4 Security Server Clients](#4-security-server-clients)
+    * [3.3.1 Registering an Authentication Certificate](#331-registering-an-authentication-certificate)
+* [4 Security Server Clients](#4-security-server-clients)
   * [4.1 Security Server Client States](#41-security-server-client-states)
   * [4.2 Adding a Security Server Client](#42-adding-a-security-server-client)
   * [4.3 Configuring a Signing Key and Certificate for a Security Server Client](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client)
   * [4.4 Registering a Security Server Client in the X-Road Governing Authority](#44-registering-a-security-server-client-in-the-x-road-governing-authority)
-    + [4.4.1 Registering a Security Server Client](#441-registering-a-security-server-client)
+    * [4.4.1 Registering a Security Server Client](#441-registering-a-security-server-client)
   * [4.5 Deleting a Client from the Security Server](#45-deleting-a-client-from-the-security-server)
-    + [4.5.1 Unregistering a Client](#451-unregistering-a-client)
-    + [4.5.2 Deleting a Client](#452-deleting-a-client)
-- [5 Security Tokens, Keys, and Certificates](#5-security-tokens-keys-and-certificates)
+    * [4.5.1 Unregistering a Client](#451-unregistering-a-client)
+    * [4.5.2 Deleting a Client](#452-deleting-a-client)
+* [5 Security Tokens, Keys, and Certificates](#5-security-tokens-keys-and-certificates)
   * [5.1 Availability States of Security Tokens, Keys, and Certificates](#51-availability-states-of-security-tokens-keys-and-certificates)
   * [5.2 Registration States of Certificates](#52-registration-states-of-certificates)
-    + [5.2.1 Registration States of the Signing Certificate](#521-registration-states-of-the-signing-certificate)
-    + [5.2.2 Registration States of the Authentication Certificate](#522-registration-states-of-the-authentication-certificate)
+    * [5.2.1 Registration States of the Signing Certificate](#521-registration-states-of-the-signing-certificate)
+    * [5.2.2 Registration States of the Authentication Certificate](#522-registration-states-of-the-authentication-certificate)
   * [5.3 Validity States of Certificates](#53-validity-states-of-certificates)
   * [5.4 Activating and Disabling the Certificates](#54-activating-and-disabling-the-certificates)
   * [5.5 Configuring and Registering an Authentication key and Certificate](#55-configuring-and-registering-an-authentication-key-and-certificate)
   * [5.6 Deleting a Certificate](#56-deleting-a-certificate)
-    + [5.6.1 Unregistering an Authentication Certificate](#561-unregistering-an-authentication-certificate)
-    + [5.6.2 Deleting a Certificate or a certificate Signing Request notice](#562-deleting-a-certificate-or-a-certificate-signing-request-notice)
+    * [5.6.1 Unregistering an Authentication Certificate](#561-unregistering-an-authentication-certificate)
+    * [5.6.2 Deleting a Certificate or a certificate Signing Request notice](#562-deleting-a-certificate-or-a-certificate-signing-request-notice)
   * [5.7 Deleting a Key](#57-deleting-a-key)
-- [6 X-Road Services](#6-x-road-services)
+* [6 X-Road Services](#6-x-road-services)
   * [6.1 Adding a WSDL](#61-adding-a-wsdl)
   * [6.2 Refreshing a WSDL](#62-refreshing-a-wsdl)
   * [6.3 Enabling and Disabling a WSDL](#63-enabling-and-disabling-a-wsdl)
   * [6.4 Changing the Address of a WSDL](#64-changing-the-address-of-a-wsdl)
   * [6.5 Deleting a WSDL](#65-deleting-a-wsdl)
   * [6.6 Changing the Parameters of a Service](#66-changing-the-parameters-of-a-service)
-- [7 Access Rights](#7-access-rights)
+* [7 Access Rights](#7-access-rights)
   * [7.1 Changing the Access Rights of a Service](#71-changing-the-access-rights-of-a-service)
   * [7.2 Adding a Service Client](#72-adding-a-service-client)
   * [7.3 Changing the Access Rights of a Service Client](#73-changing-the-access-rights-of-a-service-client)
-- [8 Local Access Right Groups](#8-local-access-right-groups)
+* [8 Local Access Right Groups](#8-local-access-right-groups)
   * [8.1 Adding a Local Group](#81-adding-a-local-group)
   * [8.2 Displaying and Changing the Members of a Local Group](#82-displaying-and-changing-the-members-of-a-local-group)
   * [8.3 Changing the description of a Local Group](#83-changing-the-description-of-a-local-group)
   * [8.4 Deleting a Local Group](#84-deleting-a-local-group)
-- [9 Communication with the Client Information Systems](#9-communication-with-the-client-information-systems)
-- [10 System Parameters](#10-system-parameters)
+* [9 Communication with the Client Information Systems](#9-communication-with-the-client-information-systems)
+* [10 System Parameters](#10-system-parameters)
   * [10.1 Managing the Configuration Anchor](#101-managing-the-configuration-anchor)
   * [10.2 Managing the Timestamping Services](#102-managing-the-timestamping-services)
   * [10.3 Changing the Internal TLS Key and Certificate](#103-changing-the-internal-tls-key-and-certificate)
   * [10.4 Approved Certificate Authorities](#104-approved-certificate-authorities)
-- [11 Message Log](#11-message-log)
+* [11 Message Log](#11-message-log)
   * [11.1 Changing the Configuration of the Message Log](#111-changing-the-configuration-of-the-message-log)
-    + [11.1.1 Common parameters](#1111-common-parameters)
-    + [11.1.2 Timestamping parameters](#1112-timestamping-parameters)
-    + [11.1.3 Archiving parameters](#1113-archiving-parameters)
+    * [11.1.1 Common parameters](#1111-common-parameters)
+    * [11.1.2 Timestamping parameters](#1112-timestamping-parameters)
+    * [11.1.3 Archiving parameters](#1113-archiving-parameters)
   * [11.2 Transferring the Archive Files from the Security Server](#112-transferring-the-archive-files-from-the-security-server)
   * [11.3 Using a Remote Database](#113-using-a-remote-database)
-- [12 Audit Log](#12-audit-log)
+* [12 Audit Log](#12-audit-log)
   * [12.1 Changing the Configuration of the Audit Log](#121-changing-the-configuration-of-the-audit-log)
   * [12.2 Archiving the Audit Log](#122-archiving-the-audit-log)
-- [13 Back up and Restore](#13-back-up-and-restore)
+* [13 Back up and Restore](#13-back-up-and-restore)
   * [13.1 Back up and Restore in the User Interface](#131-back-up-and-restore-in-the-user-interface)
   * [13.2 Restore from the Command Line](#132-restore-from-the-command-line)
-- [14 Diagnostics](#14-diagnostics)
+* [14 Diagnostics](#14-diagnostics)
   * [14.1 Examine security server services status information](#141-examine-security-server-services-status-information)
-- [15 Operational Monitoring](#15-operational-monitoring)
+* [15 Operational Monitoring](#15-operational-monitoring)
   * [15.1 Operational Monitoring Buffer](#151-operational-monitoring-buffer)
-    + [15.1.1 Stopping the Collecting of Operational Data](#1511-stopping-the-collecting-of-operational-data)
+    * [15.1.1 Stopping the Collecting of Operational Data](#1511-stopping-the-collecting-of-operational-data)
   * [15.2 Operational Monitoring Daemon](#152-operational-monitoring-daemon)
-    + [15.2.1 Configuring the Health Statistics Period](#1521-configuring-the-health-statistics-period)
-    + [15.2.2 Configuring the Parameters Related to Database Cleanup](#1522-configuring-the-parameters-related-to-database-cleanup)
-    + [15.2.3 Configuring the Parameters related to the HTTP Endpoint of the Operational Monitoring Daemon](#1523-configuring-the-parameters-related-to-the-http-endpoint-of-the-operational-monitoring-daemon)
-    + [15.2.4 Installing an External Operational Monitoring Daemon](#1524-installing-an-external-operational-monitoring-daemon)
-    + [15.2.5 Configuring an External Operational Monitoring Daemon and the Corresponding Security Server](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)
-    + [15.2.6 Monitoring Health Data over JMXMP](#1526-monitoring-health-data-over-jmxmp)
-- [16 Environmental Monitoring](#16-environmental-monitoring)
+    * [15.2.1 Configuring the Health Statistics Period](#1521-configuring-the-health-statistics-period)
+    * [15.2.2 Configuring the Parameters Related to Database Cleanup](#1522-configuring-the-parameters-related-to-database-cleanup)
+    * [15.2.3 Configuring the Parameters related to the HTTP Endpoint of the Operational Monitoring Daemon](#1523-configuring-the-parameters-related-to-the-http-endpoint-of-the-operational-monitoring-daemon)
+    * [15.2.4 Installing an External Operational Monitoring Daemon](#1524-installing-an-external-operational-monitoring-daemon)
+    * [15.2.5 Configuring an External Operational Monitoring Daemon and the Corresponding Security Server](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)
+    * [15.2.6 Monitoring Health Data over JMXMP](#1526-monitoring-health-data-over-jmxmp)
+* [16 Environmental Monitoring](#16-environmental-monitoring)
   * [16.1 Usage via SOAP API](#161-usage-via-soap-api)
-  * [16.2 Usage via JMX API](#162-usage-via-jmxapi)
+  * [16.2 Usage via JMX API](#162-usage-via-jmx-api)
   * [16.3 Limiting environmental monitoring remote data set](#163-limiting-environmental-monitoring-remote-data-set)
-- [17 Logs and System Services](#17-logs-and-system-services)
+* [17 Logs and System Services](#17-logs-and-system-services)
   * [17.1 System Services](#171-system-services)
   * [17.2 Logging configuration](#172-logging-configuration)
   * [17.3 Fault Detail UUID](#173-fault-detail-uuid)
-- [18 Federation](#18-federation)
+* [18 Federation](#18-federation)
 
+<!-- vim-markdown-toc -->
 <!-- tocstop -->
 
 ## License
@@ -1353,7 +1356,7 @@ The message log database can be located outside of the security server. The foll
 
 4.  Stop xroad-proxy service for reconfiguration:
 
-        root@security_server:~ # service xroad-proxy stop
+        root@security_server:~# service xroad-proxy stop
 
 5.  Configure the database connection parameters to achieve encrypted connections, in `/etc/xroad/db.properties`:
 
@@ -1364,10 +1367,12 @@ The message log database can be located outside of the security server. The foll
         messagelog.hibernate.connection.username = messagelog_user
         messagelog.hibernate.connection.password = messagelog_password
 
-6.  Populate database schema by reinstalling messagelog addon package (it will start xroad-proxy service also):
+6.  Populate database schema by reinstalling messagelog addon package and start xroad-proxy
 
-        root@security_server:~ # apt-get install --reinstall xroad-addon-messagelog
+    Ubuntu: `apt-get install --reinstall xroad-addon-messagelog`  
+    RHEL: `yum reinstall xroad-addon-messagelog`
 
+    `service xroad-proxy start`
 
 ## 12 Audit Log
 
@@ -1414,7 +1419,7 @@ The default behavior can be changed by editing the *rsyslog* configuration file
 
 Restart the *rsyslog* service to apply the changes made to the configuration file
 
-    restart rsyslog
+    service rsyslog restart
 
 The audit log is rotated monthly by *logrotate*. To configure the audit log rotation, edit the *logrotate* configuration file
 
@@ -1686,7 +1691,7 @@ Environmental monitoring provides SOAP API via X-Road message protocol extension
 Monitoring extension schema is defined in \[[MONITORING_XSD](#Ref_MONITORING_XSD)\].
 
 
-### 16.2 Usage via JMX API    
+### 16.2 Usage via JMX API
 
 Environmental monitoring provides also a standard JMX endpoint which can be accessed with any JMX client (for example Java's jconsole application). See \[[ARC-ENVMON](#Ref_ARC-ENVMON)\] for details. 
 
@@ -1711,7 +1716,7 @@ The most important system services of a security server are as follows.
  `xroad-jetty `     | Application server running the user interface | `/var/log/xroad/jetty/`
  `xroad-proxy`      | Message exchanger                             | `/var/log/xroad/proxy.log`
  `xroad-signer`     | Manager process for key settings              | `/var/log/xroad/signer.log`
- `nginx`            | Web server that exchanges the services of the user interface's application server and the message exchanger | `/var/log/nginx/`           
+ `nginx`            | Web server that exchanges the services of the user interface's application server and the message exchanger | `/var/log/nginx/`
 
 System services are managed through the *upstart* facility.
 

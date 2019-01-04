@@ -211,7 +211,7 @@ function openMemberEditDialog(memberRowData) {
             {"mData" : "used_servers", mRender: util.escape} ];
 
         opts.fnRowCallback = function(nRow, subsystem) {
-            usedServers = subsystem.used_servers;
+            var usedServers = subsystem.used_servers;
 
             if (usedServers.length === 0) {
                 var nameColumn = $(nRow).find("td:eq(0)");
