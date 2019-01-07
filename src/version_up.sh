@@ -13,11 +13,11 @@ function version { echo "$@" | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }'
 function downgrade {
     OFFSET=$4
     TO=`awk "/$2/{print NR-2}" $3`
-    if [ ! -z "$OFFSET" ]; then
+    if [[ ! -z $OFFSET ]]; then
         TO=$(($TO+$OFFSET))
     fi
 
-    if [ -z "$TO" ]; then
+    if [[ -z $TO ]]; then
         echo "Version $2 not found from $3"
         exit 1
     fi
@@ -51,8 +51,8 @@ case "$1" in
 esac
 done
 
-if [ -z "$VERSION" ]; then
-    if [ "$RELEASE" == true ]; then
+if [[ -z $VERSION ]]; then
+    if [[ $RELEASE == true ]]; then
         release_current
         exit 1
     else
@@ -61,14 +61,19 @@ if [ -z "$VERSION" ]; then
     fi
 fi
 
-if [ "$VERSION" == "$CURRENT_VERSION" ]; then
+if [[ ! $VERSION =~ ^[0-9][0-9]?.[0-9][0-9]?.[0-9][0-9]?$ ]]; then
+    echo "Version must be in format x.y.z"
+    exit 1
+fi
+
+if [[ $VERSION == $CURRENT_VERSION ]]; then
     echo "$VERSION is the current version"
     exit 1
 fi
 
 DOWNGRADE=false
 
-if [ "$(version "$CURRENT_VERSION")" -gt "$(version "$VERSION")" ]; then
+if [[ "$(version "$CURRENT_VERSION")" -gt "$(version "$VERSION")" ]]; then
     DOWNGRADE=true
     echo "Downgrading from $CURRENT_VERSION to $VERSION"
 fi
@@ -89,7 +94,7 @@ cp packages/build-rpm.sh packages/build-rpm.sh~
 cp "$DEB_CHANGELOG" "$DEB_CHANGELOG~"
 cp "$DEBJ9_CHANGELOG" "$DEBJ9_CHANGELOG~"
 
-if [ "$DOWNGRADE" == true ]; then
+if [[ $DOWNGRADE == true ]]; then
     downgrade "2" "$VERSION" "../CHANGELOG.md"
     sed -i "s/## $VERSION.*$/## $VERSION - XXXX-XX-XX/" ../CHANGELOG.md
     downgrade "1" "$VERSION" "$DEB_CHANGELOG" "1"
@@ -103,7 +108,7 @@ else
     add_dch_entry "$DEBJ9_CHANGELOG" "$VERSION" "Version bump"
 fi
 
-if [ "$RELEASE" == true ]; then
+if [[ $RELEASE == true ]]; then
     release_current
 fi
 
