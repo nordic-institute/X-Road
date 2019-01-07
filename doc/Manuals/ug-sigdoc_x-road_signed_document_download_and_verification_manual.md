@@ -152,9 +152,9 @@ The asicverifier utility is shipped with security server and it is located in th
 
 The asicverifier utility is run as follows:
 
-    java -jar asicverifier-1.0.jar <configuration path> <signed document>
+    java -jar asicverifier-1.0.jar [--version]  <configuration path> <signed document>
 
-where `<signed document>` is the path to the signed document being verified and `<configuration path>` is the path to the verification configuration for this container (see Section 3.2 ).
+where `<signed document>` is the path to the signed document being verified and `<configuration path>` is the path to the verification configuration for this container (see Section 3.2 ). You can check the version of the asicverifier tool with the `--version` option.
 
 If verification is successful the output will be similar to:
 
