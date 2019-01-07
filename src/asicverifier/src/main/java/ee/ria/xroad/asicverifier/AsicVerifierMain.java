@@ -53,7 +53,7 @@ public final class AsicVerifierMain {
      * @throws Exception in case of errors
      */
     public static void main(String[] args) throws Exception {
-        if (args.length == 1 && args[0].equals("version")) {
+        if (args.length == 1 && args[0].equals("--version")) {
             showVersion();
         } else if (args.length < 2) {
             showUsage();
@@ -141,9 +141,8 @@ public final class AsicVerifierMain {
     }
 
     private static void showUsage() {
-        System.out.println("Usage: AsicVerifier "
-                + "<configuration path> <asic container>"
-                + "\nor: java -jar asicverifier.jar version");
+        System.out.println("Usage: java -jar asicverifier.jar "
+                + "[--version] <configuration path> <asic container>");
     }
 
     private static void showVersion() {
