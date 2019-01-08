@@ -2,7 +2,6 @@
 set -e
 
 RELEASE=false
-VERSION=$1
 DEB_CHANGELOG=packages/src/xroad/ubuntu/generic/changelog
 DEBJ9_CHANGELOG=packages/src/xroad-jetty9/ubuntu/generic/changelog
 CURRENT_VERSION=`awk '{if ($1 == "##") {print $2; exit;}}' ../CHANGELOG.md`
@@ -45,15 +44,17 @@ for i in "$@"; do
 case "$1" in
     "-r"|"--release")
         RELEASE=true
-	    VERSION="$2"
 	    shift
         ;;
 esac
 done
 
+VERSION=$1
+
 if [[ -z $VERSION ]]; then
     if [[ $RELEASE == true ]]; then
         release_current
+        echo "Versions released (changed $CURRENT_VERSION to $CURRENT_VERSION-1)"
         exit 1
     else
         echo "Usage: $0 [--release] <version>"
@@ -110,6 +111,7 @@ fi
 
 if [[ $RELEASE == true ]]; then
     release_current
+    echo "Versions released (changed $VERSION to $VERSION-1)"
 fi
 
 sed -i "s/^xroadVersion.*$/xroadVersion=$VERSION/" gradle.properties
