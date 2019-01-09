@@ -50,12 +50,11 @@ public final class AsicVerifierMain {
      * Main program entry point.
      *
      * @param args program arguments
-     * @throws Exception in case of errors
      */
-    public static void main(String[] args) throws Exception {
-        if (args.length == 1 && args[0].equals("--version")) {
+    public static void main(String[] args) {
+        if (args.length == 1 && "--version".equals(args[0])) {
             showVersion();
-        } else if (args.length < 2) {
+        } else if (args.length != 2) {
             showUsage();
         } else {
             loadConf(args[0]);
@@ -141,11 +140,10 @@ public final class AsicVerifierMain {
     }
 
     private static void showUsage() {
-        System.out.println("Usage: java -jar asicverifier.jar "
-                + "[--version] <configuration path> <asic container>");
+        System.out.println("Usage: java -jar asicverifier.jar ( --version | <configuration path> <asic container> )");
     }
 
     private static void showVersion() {
-        System.out.println("Version " + Version.XROAD_VERSION);
+        System.out.println("AsicVerifier (X-Road) " + Version.XROAD_VERSION);
     }
 }
