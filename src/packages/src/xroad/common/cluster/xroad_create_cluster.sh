@@ -31,7 +31,6 @@ create_cluster () {
     check_existing_xroad_installation
     check_existing_postgres_installation
     install_helper_tools
-    install_and_configure_ntp
     create_ca_directory
     create_ca
     create_tls_keys
@@ -275,28 +274,6 @@ EOF
       fi
     fi
     ((node_index++))
-  done 10<$NODESFILE
-}
-
-# NTP is required for correct functioning of the BDR cluster.
-install_and_configure_ntp() {
-  while read -u10 node
-  do
-    output "\n$node: Installing NTP and forcing NTP time update"
-    ssh $SSH_OPTIONS "root@$node" <<EOF
-$REMOTE_SCRIPT_PREFIX
-$APT_GET_INSTALL ntp
-service ntp stop
-EOF
-    sleep 2
-    ssh $SSH_OPTIONS "root@$node" -- ntpd -gq
-    if [[ $? -ne 0 ]]
-    then
-      die "$node: Cannot update time on"
-    else
-     output "$node: Time was updated successfully"
-    fi
-    ssh $SSH_OPTIONS "root@$node" service ntp start
   done 10<$NODESFILE
 }
 
