@@ -1,20 +1,27 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
-    <changeSet author="is" id="9-wsdlfoo">
 
+    <changeSet author="is" id="7-dropcolumn">
+        <dropColumn tableName="WSDL" columnName="WSDLLOCATION"/>
+    </changeSet>
+
+    <changeSet author="is" id="7-renametable">
+        <renameTable newTableName="SERVICEDESCRIPTION" oldTableName="WSDL"/>
+    </changeSet>
+
+    <changeSet author="is" id="7-addcolumn">
         <sql splitStatements="false">
-<![CDATA[
+            <![CDATA[
 CREATE TYPE servicedescriptiontype AS ENUM ('wsdl', 'openapi3');
 ALTER TABLE servicedescription ADD COLUMN type servicedescriptiontype NOT NULL DEFAULT 'wsdl';
 ]]>
         </sql>
-
         <rollback>
-<![CDATA[
+            <![CDATA[
 ALTER TABLE servicedescription DROP COLUMN type;
 DROP TYPE servicedescriptiontype;
 ]]>
         </rollback>
-
     </changeSet>
+
 </databaseChangeLog>
