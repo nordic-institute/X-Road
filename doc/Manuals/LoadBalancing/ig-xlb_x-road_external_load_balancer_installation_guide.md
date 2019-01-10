@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.5  
+Version: 1.6  
 Doc. ID: IG-XLB
 
 
@@ -12,6 +12,7 @@ Doc. ID: IG-XLB
 | 21.6.2017   | 1.3         | Added chapter 7 on [upgrading the security server cluster](#7-upgrading-a-clustered-x-road-security-server-installation) | Olli Lindgren                |
 | 02.03.2018  | 1.4         | Added uniform terms and conditions reference                                                                             | Tatu Repo                    |
 | 15.11.2018  | 1.5         | Updates for Ubuntu 18.04 support                                                                                         | Jarkko Hyöty                 |
+| 20.12.2018  | 1.6         | Update upgrade instructions                                                                                              | Jarkko Hyöty                 |
 
 ## Table of Contents
 
@@ -1007,18 +1008,6 @@ Repeat this process for each slave node, one by one.
    ```
    Note that the above command assumes that the `serverconf` database is running in port `5433`.
 
-4. Enable the shared configuration synchronization on the slave node:
-   ```
-   sudo rm /var/tmp/xroad/sync-disabled
-   ```
-5. Wait for the master node changes to propagate to the slave node.
-
-   The configuration synchronization can be forced, if necessary.
-
-   ```
-   service xroad-sync start
-   ```
-
    **Note:** Before proceeding, make sure that the database is up to date. The following should return `t`:
    ```
    #PostgreSQL < 10
@@ -1028,9 +1017,20 @@ Repeat this process for each slave node, one by one.
    #PostgreSQL >= 10
    sudo -u postgres psql -p 5433 -c 'select pg_last_wal_replay_lsn() = pg_last_wal_receive_lsn()'
    ```
-6. Upgrade the packages on the slave node to the new software version.
+4. Upgrade the packages on the slave node to the new software version.
 
-7. Start the X-Road services and wait until the slave node is healthy.
+5. Enable the shared configuration synchronization on the slave node:
+   ```
+   sudo rm /var/tmp/xroad/sync-disabled
+   ```
+6. Wait for the master node configuration changes to propagate to the slave node.
+
+   The configuration synchronization can be forced, if necessary.
+
+   ```
+   service xroad-sync start
+   ```
+7. Restart the X-Road services and wait until the slave node is healthy.
 
 8. After the node is healthy, enable the slave node in the load balancer if you manually disabled it. If using the
    maintenance mode, it was cleared on `xroad-proxy` service restart. See

@@ -15,7 +15,7 @@ Requires(preun): systemd
 Requires(postun): systemd
 BuildRequires: systemd
 Requires:  systemd
-Requires:  rlwrap, ntp, crudini
+Requires:  rlwrap, crudini
 Requires:  jre-1.8.0-headless >= 1.8.0.51
 
 %define src %{_topdir}/..

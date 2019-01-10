@@ -11,7 +11,7 @@
 ../../../../../../doc/archive-hashchain-verifier.rb usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/
 ../../../../../../doc/archive-hashchain-verifier.README usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/README
 
-../../../../../asicverifier/build/libs/asicverifier-1.0.jar usr/share/xroad/jlib/
+../../../../../asicverifier/build/libs/asicverifier.jar usr/share/xroad/jlib/
 ../../../../../LICENSE.txt usr/share/doc/xroad-addon-messagelog/
 ../../../../../securityserver-LICENSE.info usr/share/doc/xroad-addon-messagelog/
 ../../../../../../CHANGELOG.md usr/share/doc/xroad-addon-messagelog/
