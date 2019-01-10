@@ -5,7 +5,7 @@
         <sql splitStatements="false">
 <![CDATA[
 CREATE TYPE servicedescriptiontype AS ENUM ('wsdl', 'openapi3');
-ALTER TABLE servicedescription ADD COLUMN type servicedescriptiontype;
+ALTER TABLE servicedescription ADD COLUMN type servicedescriptiontype NOT NULL DEFAULT 'wsdl';
 ]]>
         </sql>
 
