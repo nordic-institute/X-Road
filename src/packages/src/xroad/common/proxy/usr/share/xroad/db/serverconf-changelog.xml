@@ -14,4 +14,5 @@
   <include file="serverconf/6-ownerauthtype.xml" />
   <include file="serverconf/7-wsdltest.xml" />
   <include file="serverconf/8-wsdlrest.xml" />
+  <include file="serverconf/9-wsdlfoo.xml" />
 </databaseChangeLog>
