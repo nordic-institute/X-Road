@@ -2,8 +2,6 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '2.0.1'
 }
 
-apply plugin: 'application'
-
 dependencies {
     compile project(':serverconf')
     compile project(':signer-protocol')
@@ -27,14 +25,19 @@ dependencies {
     testCompile project(':common-verifier').sourceSets.test.output
 }
 
-mainClassName = 'ee.ria.xroad.proxy.ProxyMain'
 
+jar {
+  manifest {
+    attributes('Main-Class':'ee.ria.xroad.proxy.ProxyMain')
+  }
+}
 shadowJar {
     classifier = ''
     append('reference.conf')
     from rootProject.file("LICENSE.txt")
 }
 
+testJar.enabled = true
 jar.enabled = false
 build.dependsOn shadowJar
 buildall.dependsOn shadowJar
