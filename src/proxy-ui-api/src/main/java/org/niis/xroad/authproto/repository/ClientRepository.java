@@ -24,30 +24,55 @@
  */
 package org.niis.xroad.authproto.repository;
 
-import org.niis.xroad.authproto.domain.City;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.MemberInfo;
+import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.identifier.ClientId;
+
+import org.niis.xroad.authproto.DatabaseContextHelper;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
- * read cities from db
+ * Not sure if we are going to have this kind of repositories...
  */
-//public interface CityRepository extends CrudRepository<City, Long> {
-//}
 @Component
-public class CityRepository {
+public class ClientRepository {
+
+    public static final int MEMBER_ID_PARTS = 3;
+
+////    @Autowired
+//    private SessionFactory sessionFactory = null;
+
+    public List<MemberInfo> getAllMembers() {
+        return GlobalConf.getMembers();
+    }
 
     /**
-     * dummy
-     * @return
+     * transactions
+     * test rollback
+     * - correct id encoding (see rest proxy)
+     * @param id
      */
-    public Iterable<City> findAll() {
-        City c1 = new City();
-        c1.setId(1L);
-        c1.setName("Tampere");
-        City c2 = new City();
-        c2.setId(2L);
-        c2.setName("Helsinki");
-        return Arrays.asList(c1, c2);
+    public ClientType getClient(String id) {
+        ClientDAOImpl clientDAO = new ClientDAOImpl();
+        List<String> parts = Arrays.asList(id.split(":"));
+        String instance = parts.get(0);
+        String memberClass = parts.get(1);
+        String memberCode = parts.get(2);
+        String subsystemCode = null;
+        if (parts.size() > MEMBER_ID_PARTS) {
+            subsystemCode = parts.get(MEMBER_ID_PARTS);
+        }
+        ClientId clientId = ClientId.create(instance, memberClass, memberCode, subsystemCode);
+
+        return DatabaseContextHelper.serverConfTransaction(
+                session -> {
+                    return clientDAO.getClient(session, clientId);
+                });
     }
 }
+

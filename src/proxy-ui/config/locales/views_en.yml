@@ -276,7 +276,7 @@ en:
 
   layouts:
     application:
-      title: "Security Server Administration"
+      title: "Security Server Administration (REST UI)"
       server_type: "Security Server"
 
   anchor:

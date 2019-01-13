@@ -24,10 +24,15 @@
  */
 package org.niis.xroad.authproto.controller;
 
+import ee.ria.xroad.common.conf.globalconf.MemberInfo;
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.identifier.ClientId;
+
 import org.niis.xroad.authproto.domain.ApiKey;
 import org.niis.xroad.authproto.domain.City;
 import org.niis.xroad.authproto.repository.ApiKeyRepository;
 import org.niis.xroad.authproto.repository.CityRepository;
+import org.niis.xroad.authproto.repository.ClientRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +40,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -59,7 +65,49 @@ public class ResourceController {
     private CityRepository cityRepository;
 
     @Autowired
+    private ClientRepository clientRepository;
+
+    @Autowired
     private ApiKeyRepository apiKeyRepository;
+
+    /**
+     * Return all members
+     * @return
+     */
+    @RequestMapping(value = "/members")
+    public List<MemberInfo> getMembers() {
+        return clientRepository.getAllMembers();
+    }
+
+    /**
+     * Return one client, id encoded with ":" (like FI:GOV:1234:SUBSYSTEM1)
+     * Breaks since session bound to dao:
+     * could not initialize proxy - no Session; nested
+     * exception is com.fasterxml.jackson.databind.JsonMappingException: failed to lazily initialize
+     * a collection of role: ee.ria.xroad.common.conf.serverconf.model.ClientType.wsdl, could not
+     * initialize proxy - no Session (through reference chain: ee.ria.xroad.common.conf.serverconf
+     * .model.ClientType[\"wsdl\"]
+     * @return
+     */
+    @RequestMapping(value = "/client/{id}")
+    public ClientType getClient(@PathVariable("id") String id) {
+        logger.info("fetching client {} from repository (db)", id);
+        ClientType type = clientRepository.getClient(id);
+        logger.info("clientRepository got result");
+        logger.info("received client {}", type);
+        return type;
+    }
+
+    /**
+     * Return one client, id encoded with ":" (like FI:GOV:1234:SUBSYSTEM1)
+     * @return
+     */
+    @RequestMapping(value = "/client-id/{id}")
+    public ClientId getClientId(@PathVariable("id") String id) {
+        logger.info("fetching client {} from repository (db)", id);
+        ClientType type = clientRepository.getClient(id);
+        return type.getIdentifier();
+    }
 
     /**
      * resource which returns user's roles.

@@ -97,7 +97,7 @@ public class MultiAuthWebSecurityConfig {
         private boolean pam;
         @Override
         protected void configure(HttpSecurity http) throws Exception {
-
+            logger.info("***** configuring security, pam = {}", pam);
             http
                 .authorizeRequests()
                     .antMatchers("/", "/home").permitAll()
@@ -193,15 +193,15 @@ public class MultiAuthWebSecurityConfig {
     @Configuration
     @Order(1)
     public static class CreateApiKeyWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
-//        @Value("${proto.pam}")
-        private boolean pam = true;
+        @Value("${proto.pam}")
+        private boolean pam;
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             http
                 .antMatcher("/test-api/create-api-key/**")
                 .authorizeRequests()
-                    .anyRequest().hasRole("ADMIN")
+                    .anyRequest().hasRole("XROAD-SYSTEM-ADMINISTRATOR")
                     .and()
                 .sessionManagement()
                     .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -217,6 +217,9 @@ public class MultiAuthWebSecurityConfig {
 
         @Override
         protected void configure(AuthenticationManagerBuilder builder) throws Exception {
+//CHECKSTYLE.OFF: TodoComment - need this todo and still want builds to succeed
+            // TODO: remove non-pam authentication
+//CHECKSTYLE.ON: TodoComment
             if (pam) {
                 builder.authenticationProvider(new PamAuthenticationProvider());
             } else {

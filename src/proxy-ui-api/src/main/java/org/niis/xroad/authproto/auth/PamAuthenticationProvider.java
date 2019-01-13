@@ -38,8 +38,11 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * test PAM authentication provider.
@@ -49,6 +52,16 @@ import java.util.Set;
 public class PamAuthenticationProvider implements AuthenticationProvider {
 
     static Logger logger = LoggerFactory.getLogger(PamAuthenticationProvider.class);
+
+    /**
+     * users with these groups are allowed access
+     */
+    private static final Set<String> ALLOWED_GROUP_NAMES = Collections.unmodifiableSet(
+            Stream.of("xroad-security-officer",
+            "xroad-registration-officer",
+            "xroad-service-administrator",
+            "xroad-system-administrator",
+            "xroad-securityserver-observer").collect(Collectors.toSet()));
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -67,14 +80,14 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
             Set<String> groups = user.getGroups();
             logger.info("got groups: {}", groups);
             Set<GrantedAuthority> grants = new HashSet<>();
-            if (groups.contains("xroad-auth-proto-user")) {
-                grants.add(new SimpleGrantedAuthority("ROLE_USER"));
-            }
-            if (groups.contains("xroad-auth-proto-admin")) {
-                grants.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-            }
-            if (grants.isEmpty()) {
+            Set<String> matchingGroups = groups.stream()
+                    .filter(ALLOWED_GROUP_NAMES::contains)
+                    .collect(Collectors.toSet());
+            if (matchingGroups.isEmpty()) {
                 throw new AuthenticationServiceException("user hasn't got any required groups");
+            }
+            for (String groupName: matchingGroups) {
+                grants.add(new SimpleGrantedAuthority("ROLE_" + groupName.toUpperCase()));
             }
             return new UsernamePasswordAuthenticationToken(user.getUserName(), authentication.getCredentials(), grants);
         } catch (PAMException e) {

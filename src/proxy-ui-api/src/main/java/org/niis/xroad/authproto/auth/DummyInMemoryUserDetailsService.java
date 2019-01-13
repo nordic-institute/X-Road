@@ -62,7 +62,10 @@ public class DummyInMemoryUserDetailsService {
             users.add(User.withDefaultPasswordEncoder()
                             .username("admin")
                             .password("password")
-                            .roles("USER", "ADMIN")
+//CHECKSTYLE.OFF: TodoComment - need this todo and still want builds to succeed
+                    // TODO: remove user & admin roles....
+//CHECKSTYLE.ON: TodoComment
+                            .roles("USER", "ADMIN", "XROAD-SYSTEM-ADMINISTRATOR")
                             .build());
 
             users.add(User.withDefaultPasswordEncoder()

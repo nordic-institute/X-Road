@@ -24,25 +24,30 @@
  */
 package org.niis.xroad.authproto;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
+import ee.ria.xroad.common.db.TransactionCallback;
 
-import java.util.Arrays;
-import java.util.HashSet;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
 
 /**
- * main spring boot application.
+ * Helper utility for executing core xroad style transactions
+ * and handling errors
  */
-@SpringBootApplication
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public class AuthApplication {
+public final class DatabaseContextHelper {
+    private DatabaseContextHelper() { }
+
     /**
-     * start application
+     * server config tx
+     * @param t
+     * @param <T>
+     * @return
      */
-    public static void main(String[] args) {
-        // bootRun seems to duplicate parameters in some situations
-        // with our gradle configuration
-        HashSet<String> filtered = new HashSet(Arrays.asList(args));
-        SpringApplication.run(AuthApplication.class, filtered.toArray(new String[]{}));
+    public static <T> T serverConfTransaction(TransactionCallback<T> t) {
+        try {
+            return ServerConfDatabaseCtx.doInTransaction(t);
+        } catch (Exception e) {
+            throw translateException(e);
+        }
     }
+
 }
