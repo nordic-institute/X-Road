@@ -28,9 +28,12 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
+import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.niis.xroad.authproto.DatabaseContextHelper;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -71,8 +74,36 @@ public class ClientRepository {
 
         return DatabaseContextHelper.serverConfTransaction(
                 session -> {
-                    return clientDAO.getClient(session, clientId);
+                    ClientType client = clientDAO.getClient(session, clientId);
+                    ClientType clientDto = copy(client);
+                    return clientDto;
                 });
+    }
+
+    /**
+     * There may be a universal configuration which
+     * tells jackson not to serialize non-initialized items -
+     * may need to research depending on what type of dto
+     * handling we need:
+     * https://stackoverflow.com/questions/21708339/
+     * avoid-jackson-serialization-on-non-fetched-lazy-objects/21760361#21760361
+     * @param client
+     * @return
+     */
+    private ClientType copy(ClientType client) {
+        ClientType copy = new ClientType();
+        BeanUtils.copyProperties(client, copy, "conf");
+        for (WsdlType w: client.getWsdl()) {
+            WsdlType wc = new WsdlType();
+            BeanUtils.copyProperties(w, wc, "client");
+            for (ServiceType s: wc.getService()) {
+                ServiceType sc = new ServiceType();
+                BeanUtils.copyProperties(s, sc, "requiredSecurityCategory");
+                wc.getService().add(sc);
+            }
+            copy.getWsdl().add(wc);
+        }
+        return copy;
     }
 }
 
