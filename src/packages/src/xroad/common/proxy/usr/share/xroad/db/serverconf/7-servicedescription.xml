@@ -3,6 +3,11 @@
 
     <changeSet author="is" id="7-dropcolumn">
         <dropColumn tableName="WSDL" columnName="WSDLLOCATION"/>
+        <rollback>
+<![CDATA[
+ALTER TABLE wsdl ADD COLUMN wsdllocation varchar(255);
+]]>
+        </rollback>
     </changeSet>
 
     <changeSet author="is" id="7-renametable">
@@ -11,13 +16,13 @@
 
     <changeSet author="is" id="7-addcolumn">
         <sql splitStatements="false">
-            <![CDATA[
+<![CDATA[
 CREATE TYPE servicedescriptiontype AS ENUM ('wsdl', 'openapi3');
 ALTER TABLE servicedescription ADD COLUMN type servicedescriptiontype NOT NULL DEFAULT 'wsdl';
 ]]>
         </sql>
         <rollback>
-            <![CDATA[
+<![CDATA[
 ALTER TABLE servicedescription DROP COLUMN type;
 DROP TYPE servicedescriptiontype;
 ]]>
