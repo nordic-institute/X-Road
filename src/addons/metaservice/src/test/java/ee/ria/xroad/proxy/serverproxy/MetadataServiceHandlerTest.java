@@ -638,7 +638,7 @@ public class MetadataServiceHandlerTest {
         wsdl.setUrl(MOCK_SERVER_WSDL_URL);
 
         ServiceType service = new ServiceType();
-        service.setWsdl(wsdl);
+        service.setServiceDescription(wsdl);
         service.setTitle("someTitle");
         service.setServiceCode(serviceId.getServiceCode());
 

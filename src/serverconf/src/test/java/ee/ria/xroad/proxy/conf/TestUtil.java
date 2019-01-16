@@ -188,7 +188,7 @@ public final class TestUtil {
 
                 for (int k = 0; k < NUM_SERVICES; k++) {
                     ServiceType service = new ServiceType();
-                    service.setWsdl(wsdl);
+                    service.setServiceDescription(wsdl);
                     service.setTitle(SERVICE_TITLE + k);
                     service.setServiceCode(service(j, k));
 

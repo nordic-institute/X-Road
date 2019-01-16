@@ -134,10 +134,10 @@ public class DAOImplTest {
                 SERVICE_VERSION);
         ServiceType service = new ServiceDAOImpl().getService(session, id);
         assertNotNull(service);
-        assertNotNull(service.getWsdl());
-        assertNotNull(service.getWsdl().getClient());
+        assertNotNull(service.getServiceDescription());
+        assertNotNull(service.getServiceDescription().getClient());
         assertEquals(id, ServiceId.create(
-                service.getWsdl().getClient().getIdentifier(),
+                service.getServiceDescription().getClient().getIdentifier(),
                 service.getServiceCode(), service.getServiceVersion()));
 
         WsdlType wsdl = new WsdlDAOImpl().getWsdl(session, id);

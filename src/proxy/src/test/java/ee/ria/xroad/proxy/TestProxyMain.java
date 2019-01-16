@@ -137,7 +137,7 @@ public final class TestProxyMain {
 
     private static ServiceType createService(WsdlType wsdl, int j, int k) {
         ServiceType service = new ServiceType();
-        service.setWsdl(wsdl);
+        service.setServiceDescription(wsdl);
 
         service.setTitle(SERVICE_TITLE + k);
         service.setServiceCode(service(j, k));

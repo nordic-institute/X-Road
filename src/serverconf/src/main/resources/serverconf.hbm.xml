@@ -88,7 +88,7 @@
             <generator class="native"/>
         </id>
 
-        <many-to-one name="wsdl" access="field" column="wsdl_id"
+        <many-to-one name="serviceDescription" access="field" column="wsdl_id"
             class="WsdlType" cascade="all"/>
 
         <property name="serviceCode" access="field" not-null="true"/>

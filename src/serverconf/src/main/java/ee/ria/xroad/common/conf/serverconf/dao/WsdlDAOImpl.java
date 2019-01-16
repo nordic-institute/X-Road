@@ -45,7 +45,7 @@ public class WsdlDAOImpl extends AbstractDAOImpl<WsdlType> {
         ServiceType service =
                 new ServiceDAOImpl().getService(session, id);
         if (service != null) {
-            return service.getWsdl();
+            return service.getServiceDescription();
         }
 
         return null;

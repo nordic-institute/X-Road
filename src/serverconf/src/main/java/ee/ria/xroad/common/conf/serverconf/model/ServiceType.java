@@ -44,7 +44,7 @@ public class ServiceType {
 
     private Long id;
 
-    private WsdlType wsdl;
+    private WsdlType serviceDescription;
 
     private String serviceCode;
 

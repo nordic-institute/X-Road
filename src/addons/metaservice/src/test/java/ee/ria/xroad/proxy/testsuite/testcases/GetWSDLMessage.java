@@ -186,7 +186,7 @@ public class GetWSDLMessage extends SslMessageTestCase {
         wsdl.setUrl(MOCK_SERVER_WSDL_URL);
 
         ServiceType service = new ServiceType();
-        service.setWsdl(wsdl);
+        service.setServiceDescription(wsdl);
         service.setTitle("getRandomTitle");
         service.setServiceCode(expectedServiceNameForWSDLQuery);
 
