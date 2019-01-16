@@ -51,4 +51,6 @@ public class ServiceDescriptionType {
     private String disabledNotice;
 
     private Date refreshedDate;
+
+    private DescriptionType type;
 }

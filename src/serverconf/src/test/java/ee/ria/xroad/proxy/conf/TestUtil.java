@@ -28,6 +28,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
@@ -185,6 +186,7 @@ public final class TestUtil {
                 ServiceDescriptionType wsdl = new ServiceDescriptionType();
                 wsdl.setClient(client);
                 wsdl.setUrl(WSDL_URL + j);
+                wsdl.setType(DescriptionType.WSDL);
 
                 for (int k = 0; k < NUM_SERVICES; k++) {
                     ServiceType service = new ServiceType();
