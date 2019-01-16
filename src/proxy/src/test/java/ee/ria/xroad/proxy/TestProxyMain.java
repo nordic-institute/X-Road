@@ -50,7 +50,6 @@ public final class TestProxyMain {
     static final String CLIENT_STATUS = "status";
     static final String CLIENT_CODE = "client";
 
-    static final String WSDL_LOCATION = "wsdllocation";
     static final String WSDL_URL = "wsdlurl";
 
     static final String SERVICE_URL = "serviceUrl";
@@ -128,7 +127,6 @@ public final class TestProxyMain {
         WsdlType wsdl = new WsdlType();
         wsdl.setClient(client);
         wsdl.setUrl(WSDL_URL + j);
-        wsdl.setWsdlLocation(WSDL_LOCATION + j);
 
         for (int k = 0; k < NUM_SERVICES; k++) {
             wsdl.getService().add(createService(wsdl, j, k));

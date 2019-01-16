@@ -72,7 +72,6 @@
             class="ClientType" cascade="all"/>
 
         <property name="url" access="field" not-null="true"/>
-        <property name="wsdlLocation" access="field"/>
         <property name="disabled" access="field" not-null="true"/>
         <property name="disabledNotice" access="field"/>
         <property name="refreshedDate" access="field"/>

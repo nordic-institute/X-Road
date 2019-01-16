@@ -46,8 +46,6 @@ public class WsdlType {
 
     private String url;
 
-    private String wsdlLocation;
-
     private boolean disabled;
 
     private String disabledNotice;
