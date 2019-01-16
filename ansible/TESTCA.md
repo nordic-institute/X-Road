@@ -56,7 +56,7 @@ xroad_ca_tsa_cn: "Customized Test TSA CN"
 2. Create the following users on the target machine
 	- `ca`
 	- `ocsp`
-3. Copy the following directories from the `roles/xroad-ca/files` directory to target machine root
+3. Copy the following directories from the `roles/xroad-ca/[UBUNTU_RELEASE]-files` directory to target machine root
 	- `etc`
 	- `home`
 	- `usr`
