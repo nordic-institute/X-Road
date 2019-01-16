@@ -12,6 +12,7 @@ ALTER TABLE wsdl ADD COLUMN wsdllocation varchar(255);
 
     <changeSet author="is" id="7-renametable">
         <renameTable newTableName="SERVICEDESCRIPTION" oldTableName="WSDL"/>
+        <renameColumn newColumnName="servicedescription_id" oldColumnName="wsdl_id" tableName="service"/>
     </changeSet>
 
     <changeSet author="is" id="7-addcolumn">
