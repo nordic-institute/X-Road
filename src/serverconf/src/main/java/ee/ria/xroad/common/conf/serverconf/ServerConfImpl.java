@@ -37,7 +37,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.db.TransactionCallback;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
@@ -212,13 +212,13 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public String getDisabledNotice(ServiceId service) {
         return tx(session -> {
-            WsdlType wsdlType = getWsdl(session, service);
-            if (wsdlType != null && wsdlType.isDisabled()) {
-                if (wsdlType.getDisabledNotice() == null) {
+            ServiceDescriptionType serviceDescriptionType = getWsdl(session, service);
+            if (serviceDescriptionType != null && serviceDescriptionType.isDisabled()) {
+                if (serviceDescriptionType.getDisabledNotice() == null) {
                     return String.format("Service '%s' is disabled", service);
                 }
 
-                return wsdlType.getDisabledNotice();
+                return serviceDescriptionType.getDisabledNotice();
             }
 
             return null;
@@ -269,7 +269,7 @@ public class ServerConfImpl implements ServerConfProvider {
         return new ServiceDAOImpl().getService(session, s);
     }
 
-    protected WsdlType getWsdl(Session session, ServiceId service) {
+    protected ServiceDescriptionType getWsdl(Session session, ServiceId service) {
         return new WsdlDAOImpl().getWsdl(session, service);
     }
 

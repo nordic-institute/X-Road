@@ -29,7 +29,7 @@ import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 
@@ -123,8 +123,8 @@ public final class TestProxyMain {
         return client;
     }
 
-    private static WsdlType createWsdl(ClientType client, int j) {
-        WsdlType wsdl = new WsdlType();
+    private static ServiceDescriptionType createWsdl(ClientType client, int j) {
+        ServiceDescriptionType wsdl = new ServiceDescriptionType();
         wsdl.setClient(client);
         wsdl.setUrl(WSDL_URL + j);
 
@@ -135,7 +135,7 @@ public final class TestProxyMain {
         return wsdl;
     }
 
-    private static ServiceType createService(WsdlType wsdl, int j, int k) {
+    private static ServiceType createService(ServiceDescriptionType wsdl, int j, int k) {
         ServiceType service = new ServiceType();
         service.setServiceDescription(wsdl);
 

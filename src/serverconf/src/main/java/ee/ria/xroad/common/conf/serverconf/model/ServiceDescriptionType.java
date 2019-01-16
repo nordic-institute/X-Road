@@ -32,11 +32,11 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Wsdl.
+ * Service description such as WSDL or OpenAPI
  */
 @Getter
 @Setter
-public class WsdlType {
+public class ServiceDescriptionType {
 
     private final List<ServiceType> service = new ArrayList<>();
 

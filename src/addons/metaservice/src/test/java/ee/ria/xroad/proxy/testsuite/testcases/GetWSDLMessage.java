@@ -30,7 +30,7 @@ import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.metadata.MetadataRequests;
 import ee.ria.xroad.common.util.AbstractHttpSender;
@@ -181,7 +181,7 @@ public class GetWSDLMessage extends SslMessageTestCase {
 
         client.setIdentifier(expectedProviderQuery);
 
-        WsdlType wsdl = new WsdlType();
+        ServiceDescriptionType wsdl = new ServiceDescriptionType();
         wsdl.setClient(client);
         wsdl.setUrl(MOCK_SERVER_WSDL_URL);
 

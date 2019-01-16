@@ -36,7 +36,7 @@ import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -140,7 +140,7 @@ public class DAOImplTest {
                 service.getServiceDescription().getClient().getIdentifier(),
                 service.getServiceCode(), service.getServiceVersion()));
 
-        WsdlType wsdl = new WsdlDAOImpl().getWsdl(session, id);
+        ServiceDescriptionType wsdl = new WsdlDAOImpl().getWsdl(session, id);
         assertNotNull(wsdl);
         assertNotNull(wsdl.getClient());
         assertEquals(id.getClientId(), wsdl.getClient().getIdentifier());
@@ -193,7 +193,7 @@ public class DAOImplTest {
 
         assertEquals(TestUtil.NUM_WSDLS, client.getWsdl().size());
 
-        WsdlType wsdl = client.getWsdl().get(0);
+        ServiceDescriptionType wsdl = client.getWsdl().get(0);
         Long wsdlId = wsdl.getId();
 
         client.getWsdl().remove(wsdl);
@@ -201,7 +201,7 @@ public class DAOImplTest {
         session.delete(wsdl);
 
         assertEquals(TestUtil.NUM_WSDLS - 1, client.getWsdl().size());
-        assertNull(session.get(WsdlType.class, wsdlId));
+        assertNull(session.get(ServiceDescriptionType.class, wsdlId));
     }
 
     /**

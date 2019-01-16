@@ -33,7 +33,7 @@ import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
-import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
@@ -182,7 +182,7 @@ public final class TestUtil {
             }
 
             for (int j = 0; j < NUM_WSDLS; j++) {
-                WsdlType wsdl = new WsdlType();
+                ServiceDescriptionType wsdl = new ServiceDescriptionType();
                 wsdl.setClient(client);
                 wsdl.setUrl(WSDL_URL + j);
 

@@ -25,7 +25,7 @@
 package ee.ria.xroad.common.conf.serverconf.dao;
 
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.hibernate.Session;
@@ -33,7 +33,7 @@ import org.hibernate.Session;
 /**
  * Wsdl data access object implementation.
  */
-public class WsdlDAOImpl extends AbstractDAOImpl<WsdlType> {
+public class WsdlDAOImpl extends AbstractDAOImpl<ServiceDescriptionType> {
 
     /**
      * Returns the WSDL of the given service identifier.
@@ -41,7 +41,7 @@ public class WsdlDAOImpl extends AbstractDAOImpl<WsdlType> {
      * @param id the service identifier
      * @return the WSDL of the given service identifier
      */
-    public WsdlType getWsdl(Session session, ServiceId id) {
+    public ServiceDescriptionType getWsdl(Session session, ServiceId id) {
         ServiceType service =
                 new ServiceDAOImpl().getService(session, id);
         if (service != null) {
