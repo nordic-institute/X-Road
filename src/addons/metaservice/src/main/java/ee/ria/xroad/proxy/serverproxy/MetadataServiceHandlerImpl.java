@@ -27,7 +27,7 @@ package ee.ria.xroad.proxy.serverproxy;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
-import ee.ria.xroad.common.conf.serverconf.dao.WsdlDAOImpl;
+import ee.ria.xroad.common.conf.serverconf.dao.ServiceDescriptionDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.JaxbUtils;
@@ -273,7 +273,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
 
     private String getWsdlUrl(ServiceId service) throws Exception {
         return ServerConfDatabaseCtx.doInTransaction(session -> {
-            ServiceDescriptionType wsdl = new WsdlDAOImpl().getWsdl(session, service);
+            ServiceDescriptionType wsdl = new ServiceDescriptionDAOImpl().getServiceDescription(session, service);
             return wsdl != null ? wsdl.getUrl() : null;
         });
     }

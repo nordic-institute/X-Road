@@ -31,7 +31,7 @@ import ee.ria.xroad.common.conf.serverconf.dao.CertificateDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServiceDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.WsdlDAOImpl;
+import ee.ria.xroad.common.conf.serverconf.dao.ServiceDescriptionDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
@@ -270,7 +270,7 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     protected ServiceDescriptionType getWsdl(Session session, ServiceId service) {
-        return new WsdlDAOImpl().getWsdl(session, service);
+        return new ServiceDescriptionDAOImpl().getServiceDescription(session, service);
     }
 
     private boolean internalIsQueryAllowed(Session session, ClientId client, ServiceId service) {

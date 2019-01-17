@@ -29,7 +29,7 @@ import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServiceDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.WsdlDAOImpl;
+import ee.ria.xroad.common.conf.serverconf.dao.ServiceDescriptionDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
@@ -140,7 +140,7 @@ public class DAOImplTest {
                 service.getServiceDescription().getClient().getIdentifier(),
                 service.getServiceCode(), service.getServiceVersion()));
 
-        ServiceDescriptionType wsdl = new WsdlDAOImpl().getWsdl(session, id);
+        ServiceDescriptionType wsdl = new ServiceDescriptionDAOImpl().getServiceDescription(session, id);
         assertNotNull(wsdl);
         assertNotNull(wsdl.getClient());
         assertEquals(id.getClientId(), wsdl.getClient().getIdentifier());

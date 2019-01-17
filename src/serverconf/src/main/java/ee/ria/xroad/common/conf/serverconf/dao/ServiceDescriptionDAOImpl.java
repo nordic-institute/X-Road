@@ -31,9 +31,9 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import org.hibernate.Session;
 
 /**
- * Wsdl data access object implementation.
+ * Service description data access object implementation.
  */
-public class WsdlDAOImpl extends AbstractDAOImpl<ServiceDescriptionType> {
+public class ServiceDescriptionDAOImpl extends AbstractDAOImpl<ServiceDescriptionType> {
 
     /**
      * Returns the WSDL of the given service identifier.
@@ -41,7 +41,7 @@ public class WsdlDAOImpl extends AbstractDAOImpl<ServiceDescriptionType> {
      * @param id the service identifier
      * @return the WSDL of the given service identifier
      */
-    public ServiceDescriptionType getWsdl(Session session, ServiceId id) {
+    public ServiceDescriptionType getServiceDescription(Session session, ServiceId id) {
         ServiceType service =
                 new ServiceDAOImpl().getService(session, id);
         if (service != null) {
