@@ -113,6 +113,8 @@ public final class ErrorCodes {
     public static final String X_INCONSISTENT_RESPONSE = "InconsistentResponse";
     public static final String X_MISSING_SOAP = "MissingSoap";
     public static final String X_INVALID_SOAP = "InvalidSoap";
+    public static final String X_MISSING_REST = "MissingRest";
+    public static final String X_INVALID_REST = "InvalidRest";
     public static final String X_ACCESS_DENIED = "AccessDenied";
     public static final String X_SERVICE_DISABLED = "ServiceDisabled";
     public static final String X_SERVICE_FAILED_X = "ServiceFailed";

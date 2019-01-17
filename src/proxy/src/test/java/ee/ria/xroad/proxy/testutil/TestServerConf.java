@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.testsuite;
+package ee.ria.xroad.proxy.testutil;
 
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
@@ -32,7 +32,9 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.proxy.testsuite.EmptyServerConf;
 
+import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -40,41 +42,40 @@ import java.util.Set;
  */
 public class TestServerConf extends EmptyServerConf {
 
+    private int servicePort;
+
+    public TestServerConf(int servicePort) {
+        this.servicePort = servicePort;
+    }
+
     @Override
     public SecurityServerId getIdentifier() {
-        return SecurityServerId.create("EE", "BUSINESS", "consumer",
-                "proxytest");
+        return SecurityServerId.create("EE", "BUSINESS", "consumer", "proxytest");
     }
 
     @Override
     public String getServiceAddress(ServiceId service) {
-        String serviceAddress = currentTestCase().getServiceAddress(service);
-        if (serviceAddress != null) {
-            return serviceAddress;
-        }
-
-        return "127.0.0.1:" + ProxyTestSuite.SERVICE_PORT
-                + ((service != null) ? "/" + service.getServiceCode() : "");
+        return "http://127.0.0.1:" + String.valueOf(servicePort);
     }
 
     @Override
     public boolean serviceExists(ServiceId service) {
-        return currentTestCase().serviceExists(service);
+        return true;
     }
 
     @Override
     public boolean isQueryAllowed(ClientId sender, ServiceId service) {
-        return currentTestCase().isQueryAllowed(sender, service);
+        return true;
     }
 
     @Override
     public String getDisabledNotice(ServiceId service) {
-        return currentTestCase().getDisabledNotice(service);
+        return null;
     }
 
     @Override
     public Set<SecurityCategoryId> getRequiredCategories(ServiceId service) {
-        return currentTestCase().getRequiredCategories(service);
+        return Collections.emptySet();
     }
 
     @Override
@@ -86,9 +87,5 @@ public class TestServerConf extends EmptyServerConf {
     @Override
     public IsAuthentication getIsAuthentication(ClientId client) {
         return IsAuthentication.NOSSL;
-    }
-
-    private static MessageTestCase currentTestCase() {
-        return ProxyTestSuite.currentTestCase;
     }
 }

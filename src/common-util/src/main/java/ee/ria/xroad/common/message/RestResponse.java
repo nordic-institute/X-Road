@@ -50,10 +50,11 @@ public class RestResponse {
      *
      * @param messageBytes
      */
+    @SuppressWarnings("checkstyle:magicnumber")
     public RestResponse(byte[] messageBytes) throws Exception {
         final BufferedReader reader = new BufferedReader(
                 new InputStreamReader(new ByteArrayInputStream(messageBytes), StandardCharsets.UTF_8));
-        responseCode = Integer.parseInt(reader.readLine());
+        responseCode = Integer.parseInt(reader.readLine(), 10);
         reason = reader.readLine();
         headers = reader.lines()
                 .map(RestResponse::split)

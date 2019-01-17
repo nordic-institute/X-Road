@@ -16,6 +16,7 @@ dependencies {
 
     testCompile 'org.powermock:powermock-api-mockito:1.6.5'
     testCompile 'org.powermock:powermock-module-junit4:1.6.5'
+    testCompile 'io.rest-assured:rest-assured:3.3.0'
 
     testCompile 'wsdl4j:wsdl4j:1.6.3'
 
@@ -127,3 +128,20 @@ task runBatchSigner(type: JavaExec) {
     classpath = sourceSets.test.runtimeClasspath
 }
 
+test {
+    useJUnit {
+        excludeCategories 'ee.ria.xroad.proxy.testutil.IntegrationTest'
+    }
+}
+
+task integrationTest(type: Test) {
+    description = 'Runs integration tests.'
+    group = 'verification'
+    shouldRunAfter test
+
+    useJUnit {
+        includeCategories 'ee.ria.xroad.proxy.testutil.IntegrationTest'
+    }
+}
+
+check.dependsOn integrationTest

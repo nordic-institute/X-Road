@@ -31,7 +31,7 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.metadata.MethodListType;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
-import ee.ria.xroad.proxy.testsuite.TestServerConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 import ee.ria.xroad.proxy.util.MetaserviceTestUtil;
 
 import javax.xml.soap.SOAPBody;
@@ -92,7 +92,7 @@ public class ListMethodsMessage extends MessageTestCase {
     protected void startUp() throws Exception {
         super.startUp();
 
-        ServerConf.reload(new TestServerConf() {
+        ServerConf.reload(new TestSuiteServerConf() {
             @Override
             public List<ServiceId> getAllServices(ClientId serviceProvider) {
                 assertThat("Client id does not match expected", serviceProvider, is(expectedClientId));

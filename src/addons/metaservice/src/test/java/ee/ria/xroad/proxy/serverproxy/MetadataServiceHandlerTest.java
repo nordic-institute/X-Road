@@ -43,9 +43,9 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.common.WsdlRequestData;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
-import ee.ria.xroad.proxy.testsuite.TestGlobalConf;
-import ee.ria.xroad.proxy.testsuite.TestKeyConf;
-import ee.ria.xroad.proxy.testsuite.TestServerConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteKeyConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 import ee.ria.xroad.proxy.util.MetaserviceTestUtil;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -180,9 +180,9 @@ public class MetadataServiceHandlerTest {
     @Before
     public void init() throws IOException {
 
-        GlobalConf.reload(new TestGlobalConf());
-        KeyConf.reload(new TestKeyConf());
-        ServerConf.reload(new TestServerConf());
+        GlobalConf.reload(new TestSuiteGlobalConf());
+        KeyConf.reload(new TestSuiteKeyConf());
+        ServerConf.reload(new TestSuiteServerConf());
 
         httpClientMock = mock(HttpClient.class);
         mockRequest = mock(HttpServletRequest.class);
@@ -288,7 +288,7 @@ public class MetadataServiceHandlerTest {
         final ClientId expectedClient = DEFAULT_CLIENT;
         final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, LIST_METHODS);
 
-        ServerConf.reload(new TestServerConf() {
+        ServerConf.reload(new TestSuiteServerConf() {
             @Override
             public List<ServiceId> getAllServices(ClientId serviceProvider) {
                 assertThat("Client id does not match expected", serviceProvider, is(expectedClient));
@@ -346,7 +346,7 @@ public class MetadataServiceHandlerTest {
         final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, ALLOWED_METHODS);
 
 
-        ServerConf.reload(new TestServerConf() {
+        ServerConf.reload(new TestSuiteServerConf() {
 
             @Override
             public List<ServiceId> getAllowedServices(ClientId serviceProvider, ClientId client) {

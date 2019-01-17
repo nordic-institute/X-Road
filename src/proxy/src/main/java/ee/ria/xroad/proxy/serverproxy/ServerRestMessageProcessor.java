@@ -40,6 +40,7 @@ import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.monitoring.MessageInfo.Origin;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
@@ -51,6 +52,7 @@ import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -298,8 +300,8 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                     requestServiceId);
         }
 
-        address += "/" + requestMessage.getRest().getPath();
-        final String query = requestMessage.getRest().getUri().getRawQuery();
+        address += requestMessage.getRest().getServicePath();
+        final String query = requestMessage.getRest().getQuery();
         if (query != null) {
             address += "?" + query;
         }
@@ -336,14 +338,17 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         ctx.setAttribute(ServiceId.class.getName(), requestServiceId);
         final HttpResponse response = httpClient.execute(req, ctx);
         encoder.restResponse(
-                requestMessage.getRest().getHash(),
+                requestMessage.getRest(),
                 response.getStatusLine().getStatusCode(),
                 response.getStatusLine().getReasonPhrase(),
                 response.getAllHeaders());
 
         if (response.getEntity() != null) {
-            encoder.restBody(response.getEntity().getContent());
+            CachingStream cache = new CachingStream();
+            TeeInputStream tee = new TeeInputStream(response.getEntity().getContent(), cache);
+            encoder.restBody(tee);
             EntityUtils.consume(response.getEntity());
+            cache.consume();
         }
     }
 

@@ -31,6 +31,7 @@ import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.MultipartEncoder;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 import ee.ria.xroad.proxy.signedmessage.Signer;
@@ -200,13 +201,9 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     }
 
     /**
-     * Much rest-y, wow
-     *
-     * @param responseCode
-     * @param reason
-     * @param headers
+     * Encode rest response (without body)
      */
-    public void restResponse(byte[] requestHash, int responseCode, String reason, Header[] headers) {
+    public void restResponse(RestRequest request, int responseCode, String reason, Header[] headers) {
         try {
             ByteArrayOutputStream bof = new ByteArrayOutputStream();
             writeString(bof, String.valueOf(responseCode));
@@ -214,8 +211,14 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
             writeString(bof, reason);
             bof.write(CRLF);
 
-            writeString(bof, "X-Road-Request-Hash:");
-            writeString(bof, CryptoUtils.encodeBase64(requestHash));
+            writeString(bof, MimeUtils.HEADER_MESSAGE_ID);
+            bof.write(':');
+            writeString(bof, request.getMessageId());
+            bof.write(CRLF);
+
+            writeString(bof, MimeUtils.HEADER_REQUEST_HASH);
+            bof.write(':');
+            writeString(bof, CryptoUtils.encodeBase64(request.getHash()));
             bof.write(CRLF);
 
             for (Header h : headers) {

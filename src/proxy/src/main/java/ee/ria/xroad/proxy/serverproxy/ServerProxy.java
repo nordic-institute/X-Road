@@ -57,7 +57,7 @@ import java.nio.file.Paths;
 @Slf4j
 public class ServerProxy implements StartStop {
 
-    private static final int ACCEPTOR_COUNT = 2 * Runtime.getRuntime().availableProcessors();
+    private static final int ACCEPTOR_COUNT = Math.max(2, Runtime.getRuntime().availableProcessors() / 2);
 
     private static final int IDLE_MONITOR_TIMEOUT = 50;
 

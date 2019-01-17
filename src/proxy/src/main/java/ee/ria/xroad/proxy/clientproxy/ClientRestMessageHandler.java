@@ -62,7 +62,7 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
             HttpServletRequest request, HttpServletResponse response,
             OpMonitoringData opMonitoringData) throws Exception {
 
-        if (target != null && target.startsWith("/rest/v0/")) {
+        if (target != null && target.startsWith("/r0/")) {
             verifyCanProcess();
             return new ClientRestMessageProcessor(request, response, client,
                     getIsAuthenticationData(request), opMonitoringData);
@@ -86,9 +86,15 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
 
     @Override
     public void sendErrorResponse(HttpServletResponse response, CodedException ex) throws IOException {
-        response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
+        if (ex.getFaultCode().startsWith("Server.")) {
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
+        } else {
+            response.setStatus(HttpStatus.BAD_REQUEST_400);
+        }
         response.setContentType("application/json");
         response.setCharacterEncoding(MimeUtils.UTF8);
+        response.setHeader("X-Road-Error", ex.getFaultCode());
+
         final JsonWriter writer = new JsonWriter(new PrintWriter(response.getOutputStream()));
         writer.beginObject()
                 .name("type").value(ex.getFaultCode())

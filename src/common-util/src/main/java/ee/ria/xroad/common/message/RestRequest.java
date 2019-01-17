@@ -27,6 +27,7 @@ package ee.ria.xroad.common.message;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.MimeUtils;
 
 import lombok.Getter;
 import org.apache.http.Header;
@@ -38,16 +39,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static ee.ria.xroad.common.util.UriUtils.uriSegmentPercentDecode;
 
 /**
  * Rest message
@@ -58,10 +58,13 @@ public class RestRequest {
     private ClientId client;
     private ServiceId requestServiceId;
     private final String verb;
-    private final URI uri;
-    private String path;
+    private String requestPath;
+    private String query;
+    private String servicePath;
     private final List<Header> headers;
     private byte[] hash;
+    private String messageId;
+    private int version;
 
     /**
      * Create RestRequest from a byte array
@@ -73,24 +76,28 @@ public class RestRequest {
                 new InputStreamReader(new ByteArrayInputStream(messageBytes), StandardCharsets.UTF_8));
 
         verb = reader.readLine();
-        uri = new URI(reader.readLine());
+        final URI uri = new URI(reader.readLine());
+        requestPath = uri.getRawPath();
+        query = uri.getRawQuery();
         headers = reader.lines()
                 .map(RestResponse::split)
                 .filter(s -> s.length > 0 && !SKIPPED_HEADERS.contains(s[0].toLowerCase()))
                 .map(s -> new BasicHeader(s[0], s.length > 1 ? s[1] : null))
                 .collect(Collectors.toList());
-        decodeUri();
+
+        decodeIdentifiers();
         hash = CryptoUtils.calculateDigest(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID, messageBytes);
     }
 
     /**
      * Create RestRequest
      */
-    public RestRequest(String verb, String uri, List<Header> headers) throws Exception {
+    public RestRequest(String verb, String path, String query, List<Header> headers) throws Exception {
         this.verb = verb;
         this.headers = headers;
-        this.uri = new URI(uri);
-        decodeUri();
+        this.requestPath = path;
+        this.query = query;
+        decodeIdentifiers();
     }
 
     /**
@@ -118,8 +125,7 @@ public class RestRequest {
         try (ByteArrayOutputStream bof = new ByteArrayOutputStream()) {
             writeString(bof, verb);
             bof.write(CRLF);
-            writeString(bof, uri.getRawPath());
-            final String query = uri.getRawQuery();
+            writeString(bof, requestPath);
             if (query != null) {
                 writeString(bof, "?");
                 writeString(bof, query);
@@ -141,41 +147,54 @@ public class RestRequest {
         }
     }
 
-    @SuppressWarnings("checkstyle:magicnumber")
-    private void decodeUri() {
-        if (uri == null) {
+    @SuppressWarnings({"checkstyle:magicnumber", "checkstyle:innerassignment"})
+    private void decodeIdentifiers() {
+        if (requestPath == null) {
             throw new IllegalArgumentException("Request uri must not be null");
         }
-        final String[] parts = uri.getRawPath().split("/");
-        if (parts.length < 12) {
+
+        for (Header h : headers) {
+            if (MimeUtils.HEADER_CLIENT_ID.equalsIgnoreCase(h.getName()) && h.getValue() != null) {
+                final String[] parts = h.getValue().split("/", 5);
+                if (parts.length != 4) {
+                    throw new IllegalArgumentException("Invalid Client Id");
+                }
+                client = ClientId.create(
+                        uriSegmentPercentDecode(parts[0]),
+                        uriSegmentPercentDecode(parts[1]),
+                        uriSegmentPercentDecode(parts[2]),
+                        uriSegmentPercentDecode(parts[3])
+                );
+            } else if (MimeUtils.HEADER_MESSAGE_ID.equalsIgnoreCase(h.getName())) {
+                this.messageId = h.getValue();
+            }
+            //TBD optional header values
+        }
+
+        final String[] parts = requestPath.split("/", 8);
+        if (parts.length < 7) {
             throw new IllegalArgumentException("Invalid request URI");
         }
 
-        client = ClientId.create(
-                urlDecode(parts[3]),
-                urlDecode(parts[4]),
-                urlDecode(parts[5]),
-                urlDecode(parts[6]));
+        final int digit;
+        if (parts[1].length() == 2 && parts[1].charAt(0) == 'r'
+                && (digit = Character.digit(parts[1].charAt(1), 10)) != -1) {
+            version = digit;
+        } else {
+            throw new IllegalArgumentException("Invalid version");
+        }
 
         requestServiceId = ServiceId.create(
-                urlDecode(parts[7]),
-                urlDecode(parts[8]),
-                urlDecode(parts[9]),
-                urlDecode(parts[10]),
-                urlDecode(parts[11]));
+                uriSegmentPercentDecode(parts[2]),
+                uriSegmentPercentDecode(parts[3]),
+                uriSegmentPercentDecode(parts[4]),
+                uriSegmentPercentDecode(parts[5]),
+                uriSegmentPercentDecode(parts[6]));
 
-        if (parts.length > 12) {
-            path = String.join("/", Arrays.copyOfRange(parts, 12, parts.length));
+        if (parts.length == 8) {
+            servicePath = "/" + parts[7];
         } else {
-            path = "";
-        }
-    }
-
-    private String urlDecode(String part) {
-        try {
-            return URLDecoder.decode(part, StandardCharsets.UTF_8.name());
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalStateException("UTF 8 not supported, should not happen");
+            servicePath = "";
         }
     }
 

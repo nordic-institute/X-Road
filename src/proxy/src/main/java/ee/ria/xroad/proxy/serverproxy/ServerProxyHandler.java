@@ -54,6 +54,8 @@ import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SecurityServerType.PRODUCER;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_MESSAGE_TYPE;
+import static ee.ria.xroad.common.util.MimeUtils.VALUE_MESSAGE_TYPE_REST;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
@@ -116,13 +118,12 @@ class ServerProxyHandler extends HandlerBase {
     private MessageProcessorBase createRequestProcessor(HttpServletRequest request, HttpServletResponse response,
             final long start, OpMonitoringData opMonitoringData) throws Exception {
 
-        if ("REST".equals(request.getHeader("X-Road-Message-Type"))) {
+        if (VALUE_MESSAGE_TYPE_REST.equals(request.getHeader(HEADER_MESSAGE_TYPE))) {
             return new ServerRestMessageProcessor(request, response, client, getClientSslCertChain(request),
                     opMonitorClient, opMonitoringData) {
                 @Override
                 protected void postprocess() throws Exception {
                     super.postprocess();
-
                     MessageInfo messageInfo = createRequestMessageInfo();
                     MonitorAgent.success(messageInfo, new Date(start), new Date());
                 }
@@ -133,7 +134,6 @@ class ServerProxyHandler extends HandlerBase {
                 @Override
                 protected void postprocess() throws Exception {
                     super.postprocess();
-
                     MessageInfo messageInfo = createRequestMessageInfo();
                     MonitorAgent.success(messageInfo, new Date(start), new Date());
                 }

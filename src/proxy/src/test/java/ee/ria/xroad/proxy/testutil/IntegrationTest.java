@@ -22,54 +22,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.serverproxy;
-
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.http.conn.HttpClientConnectionManager;
-
-import java.util.concurrent.TimeUnit;
+package ee.ria.xroad.proxy.testutil;
 
 /**
- * Thread that periodically closes expired and idle connections.
+ * JUnit category for integration tests
  */
-@Slf4j
-@RequiredArgsConstructor(access = AccessLevel.PUBLIC)
-public class IdleConnectionMonitorThread extends Thread {
-
-    private static final int DEFAULT_IDLE_TIMEOUT = 1000;
-    private static final int DEFAULT_MONITORING_INTERVAL = 5000;
-
-    private final HttpClientConnectionManager connectionManager;
-
-    private volatile boolean shutdown;
-
-    @Setter
-    private int intervalMilliseconds = DEFAULT_MONITORING_INTERVAL;
-    @Setter
-    private int connectionIdleTimeMilliseconds = DEFAULT_IDLE_TIMEOUT;
-
-    void closeNow() {
-        connectionManager.closeIdleConnections(connectionIdleTimeMilliseconds, TimeUnit.MILLISECONDS);
-    }
-
-    @Override
-    public void run() {
-        while (!shutdown && !isInterrupted()) {
-            try {
-                sleep(intervalMilliseconds);
-                closeNow();
-            } catch (InterruptedException ex) {
-                //ignored (stopping controlled by shutdown)
-            }
-        }
-    }
-
-    public void shutdown() {
-        shutdown = true;
-        interrupt();
-    }
-
-}
+public interface IntegrationTest { }

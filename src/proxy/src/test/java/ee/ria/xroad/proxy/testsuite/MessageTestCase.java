@@ -317,9 +317,9 @@ public class MessageTestCase {
     }
 
     protected void startUp() throws Exception {
-        KeyConf.reload(new TestKeyConf());
-        ServerConf.reload(new TestServerConf());
-        GlobalConf.reload(new TestGlobalConf());
+        KeyConf.reload(new TestSuiteKeyConf());
+        ServerConf.reload(new TestSuiteServerConf());
+        GlobalConf.reload(new TestSuiteGlobalConf());
     }
 
     protected void closeDown() throws Exception {

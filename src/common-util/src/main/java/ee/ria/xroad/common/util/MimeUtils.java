@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
  */
 public final class MimeUtils {
 
+
     private static final int RANDOM_BOUNDARY_LENGTH = 30;
 
     public static final String HEADER_CONTENT_TYPE = "content-type";
@@ -58,11 +59,17 @@ public final class MimeUtils {
     public static final String HEADER_VERSION = "Version";
     public static final String PARAM_INSTANCE = "instance";
     public static final String HEADER_CONTENT_ID = "content-id";
+    public static final String HEADER_MESSAGE_TYPE = "x-road-message-type";
+    public static final String HEADER_MESSAGE_ID = "x-road-id";
+    public static final String HEADER_CLIENT_ID = "x-road-client";
+    public static final String HEADER_REQUEST_HASH = "x-road-request-hash";
 
     public static final String HASH_CHAIN_CONTENT_TYPE = "application/hash-chain";
     public static final String HASH_CHAIN_RESULT_CONTENT_TYPE = "application/hash-chain-result";
 
     public static final String UTF8 = StandardCharsets.UTF_8.name();
+
+    public static final String VALUE_MESSAGE_TYPE_REST = "REST";
 
     private MimeUtils() {
     }
