@@ -63,7 +63,7 @@ public final class TestUtil {
     static final String CLIENT_STATUS = "status";
     static final String CLIENT_CODE = "client";
 
-    static final String WSDL_URL = "wsdlurl";
+    static final String SERVICEDESCRIPTION_URL = "servicedescriptionurl";
 
     static final String SERVICE_URL = "serviceUrl";
     static final String SERVICE_VERSION = "v1";
@@ -74,7 +74,7 @@ public final class TestUtil {
     static final String SECURITY_CATEGORY = "securityCategory";
 
     static final int NUM_CLIENTS = 5;
-    static final int NUM_WSDLS = 2;
+    static final int NUM_SERVICEDESCRIPTIONS = 2;
     static final int NUM_SERVICES = 4;
     static final int NUM_TSPS = 2;
 
@@ -182,15 +182,15 @@ public final class TestUtil {
                     break;
             }
 
-            for (int j = 0; j < NUM_WSDLS; j++) {
-                ServiceDescriptionType wsdl = new ServiceDescriptionType();
-                wsdl.setClient(client);
-                wsdl.setUrl(WSDL_URL + j);
-                wsdl.setType(DescriptionType.WSDL);
+            for (int j = 0; j < NUM_SERVICEDESCRIPTIONS; j++) {
+                ServiceDescriptionType serviceDescription = new ServiceDescriptionType();
+                serviceDescription.setClient(client);
+                serviceDescription.setUrl(SERVICEDESCRIPTION_URL + j);
+                serviceDescription.setType(DescriptionType.WSDL);
 
                 for (int k = 0; k < NUM_SERVICES; k++) {
                     ServiceType service = new ServiceType();
-                    service.setServiceDescription(wsdl);
+                    service.setServiceDescription(serviceDescription);
                     service.setTitle(SERVICE_TITLE + k);
                     service.setServiceCode(service(j, k));
 
@@ -207,15 +207,15 @@ public final class TestUtil {
 
                     service.setSslAuthentication(k % 2 == 0);
 
-                    wsdl.getService().add(service);
+                    serviceDescription.getService().add(service);
                 }
 
-                if (j == NUM_WSDLS - 1) {
-                    wsdl.setDisabled(true);
-                    wsdl.setDisabledNotice("disabledNotice");
+                if (j == NUM_SERVICEDESCRIPTIONS - 1) {
+                    serviceDescription.setDisabled(true);
+                    serviceDescription.setDisabledNotice("disabledNotice");
                 }
 
-                client.getServiceDescription().add(wsdl);
+                client.getServiceDescription().add(serviceDescription);
             }
 
             String serviceCode = service(1, 1);
@@ -291,8 +291,8 @@ public final class TestUtil {
         return CLIENT_CODE + "-" + idx;
     }
 
-    static String service(int wsdlIdx, int serviceIdx) {
-        return SERVICE_CODE + "-" + wsdlIdx + "-" + serviceIdx;
+    static String service(int serviceDescriptionIdx, int serviceIdx) {
+        return SERVICE_CODE + "-" + serviceDescriptionIdx + "-" + serviceIdx;
     }
 
     static AccessRightType createAccessRight(String serviceCode,

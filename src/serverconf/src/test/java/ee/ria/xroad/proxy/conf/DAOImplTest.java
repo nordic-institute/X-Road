@@ -191,7 +191,7 @@ public class DAOImplTest {
         ClientId id = createTestClientId(client(3));
         ClientType client = getClient(id);
 
-        assertEquals(TestUtil.NUM_WSDLS, client.getServiceDescription().size());
+        assertEquals(TestUtil.NUM_SERVICEDESCRIPTIONS, client.getServiceDescription().size());
 
         ServiceDescriptionType wsdl = client.getServiceDescription().get(0);
         Long wsdlId = wsdl.getId();
@@ -200,7 +200,7 @@ public class DAOImplTest {
         session.saveOrUpdate(client);
         session.delete(wsdl);
 
-        assertEquals(TestUtil.NUM_WSDLS - 1, client.getServiceDescription().size());
+        assertEquals(TestUtil.NUM_SERVICEDESCRIPTIONS - 1, client.getServiceDescription().size());
         assertNull(session.get(ServiceDescriptionType.class, wsdlId));
     }
 
