@@ -192,7 +192,7 @@ public class GetWSDLMessage extends SslMessageTestCase {
 
         wsdl.getService().add(service);
 
-        client.getWsdl().add(wsdl);
+        client.getServiceDescription().add(wsdl);
 
         doInTransaction(session -> {
             session.save(conf);

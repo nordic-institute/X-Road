@@ -644,7 +644,7 @@ public class MetadataServiceHandlerTest {
 
         wsdl.getService().add(service);
 
-        client.getWsdl().add(wsdl);
+        client.getServiceDescription().add(wsdl);
 
         doInTransaction(session -> {
             session.save(conf);

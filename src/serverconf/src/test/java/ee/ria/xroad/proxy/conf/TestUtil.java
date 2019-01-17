@@ -215,7 +215,7 @@ public final class TestUtil {
                     wsdl.setDisabledNotice("disabledNotice");
                 }
 
-                client.getWsdl().add(wsdl);
+                client.getServiceDescription().add(wsdl);
             }
 
             String serviceCode = service(1, 1);

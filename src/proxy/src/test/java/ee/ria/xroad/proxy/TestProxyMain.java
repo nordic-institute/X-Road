@@ -114,7 +114,7 @@ public final class TestProxyMain {
             client.setClientStatus(CLIENT_STATUS + i);
 
             for (int j = 0; j < NUM_WSDLS; j++) {
-                client.getWsdl().add(createWsdl(client, j));
+                client.getServiceDescription().add(createWsdl(client, j));
             }
 
             // add acl ...

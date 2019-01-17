@@ -41,7 +41,7 @@
         <property name="clientStatus" access="field"/>
         <property name="isAuthentication" access="field"/>
 
-        <bag name="wsdl" access="field" cascade="all-delete-orphan"
+        <bag name="serviceDescription" access="field" cascade="all-delete-orphan"
                 inverse="true">
             <key column="client_id"/>
             <one-to-many class="ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType"/>
