@@ -201,7 +201,7 @@ public class ServerConfTest {
     }
 
     /**
-     * Tests getting WSDL disabled notice.
+     * Tests getting service description disabled notice.
      */
     @Test
     public void getDisabledNotice() {

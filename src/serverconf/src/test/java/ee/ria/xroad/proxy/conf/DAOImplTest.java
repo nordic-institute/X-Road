@@ -140,10 +140,10 @@ public class DAOImplTest {
                 service.getServiceDescription().getClient().getIdentifier(),
                 service.getServiceCode(), service.getServiceVersion()));
 
-        ServiceDescriptionType wsdl = new ServiceDescriptionDAOImpl().getServiceDescription(session, id);
-        assertNotNull(wsdl);
-        assertNotNull(wsdl.getClient());
-        assertEquals(id.getClientId(), wsdl.getClient().getIdentifier());
+        ServiceDescriptionType serviceDescription = new ServiceDescriptionDAOImpl().getServiceDescription(session, id);
+        assertNotNull(serviceDescription);
+        assertNotNull(serviceDescription.getClient());
+        assertEquals(id.getClientId(), serviceDescription.getClient().getIdentifier());
     }
 
     /**
@@ -183,25 +183,25 @@ public class DAOImplTest {
     }
 
     /**
-     * Test deleting WSDL.
+     * Test deleting service description.
      * @throws Exception if an error occurs
      */
     @Test
-    public void deleteWsdl() throws Exception {
+    public void deleteServiceDescription() throws Exception {
         ClientId id = createTestClientId(client(3));
         ClientType client = getClient(id);
 
         assertEquals(TestUtil.NUM_SERVICEDESCRIPTIONS, client.getServiceDescription().size());
 
-        ServiceDescriptionType wsdl = client.getServiceDescription().get(0);
-        Long wsdlId = wsdl.getId();
+        ServiceDescriptionType serviceDescription = client.getServiceDescription().get(0);
+        Long serviceDescriptionId = serviceDescription.getId();
 
-        client.getServiceDescription().remove(wsdl);
+        client.getServiceDescription().remove(serviceDescription);
         session.saveOrUpdate(client);
-        session.delete(wsdl);
+        session.delete(serviceDescription);
 
         assertEquals(TestUtil.NUM_SERVICEDESCRIPTIONS - 1, client.getServiceDescription().size());
-        assertNull(session.get(ServiceDescriptionType.class, wsdlId));
+        assertNull(session.get(ServiceDescriptionType.class, serviceDescriptionId));
     }
 
     /**

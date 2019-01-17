@@ -212,7 +212,7 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public String getDisabledNotice(ServiceId service) {
         return tx(session -> {
-            ServiceDescriptionType serviceDescriptionType = getWsdl(session, service);
+            ServiceDescriptionType serviceDescriptionType = getServiceDescription(session, service);
             if (serviceDescriptionType != null && serviceDescriptionType.isDisabled()) {
                 if (serviceDescriptionType.getDisabledNotice() == null) {
                     return String.format("Service '%s' is disabled", service);
@@ -269,7 +269,7 @@ public class ServerConfImpl implements ServerConfProvider {
         return new ServiceDAOImpl().getService(session, s);
     }
 
-    protected ServiceDescriptionType getWsdl(Session session, ServiceId service) {
+    protected ServiceDescriptionType getServiceDescription(Session session, ServiceId service) {
         return new ServiceDescriptionDAOImpl().getServiceDescription(session, service);
     }
 
