@@ -10,6 +10,25 @@ buildscript {
     }
 }
 
+configurations {
+    developmentOnly
+    runtimeClasspath {
+        extendsFrom developmentOnly
+    }
+}
+
+ext.excludeDevToolsSetting = project.hasProperty('activate-devtools-do-not-use-in-production') ? false : true
+
+if (!excludeDevToolsSetting) {
+    ant.input(message: 'Are you sure you want to activate devtools for jar packages?\n'
+        + 'Devtools must not be used in non-development environments', validargs: 'y,n', addproperty: 'confirmation')
+
+    if(ant.confirmation != 'y') {
+        throw new GradleException('Stopped build since devtools should not be activated for non-development\n'
+        + 'environments')
+    }
+}
+
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 
@@ -18,6 +37,11 @@ bootRun {
     if (project.hasProperty('args')) {
         args project.args.split(',')
     }
+}
+
+bootJar {
+    excludeDevtools = excludeDevToolsSetting
+    println 'excludeDevTools in bootJar=' + excludeDevToolsSetting
 }
 
 ext['hibernate.version'] = '4.3.11.Final'
@@ -34,4 +58,5 @@ dependencies {
     implementation('org.kohsuke:libpam4j:1.11')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
 }

@@ -22,32 +22,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.authproto.repository;
+package org.niis.xroad.authproto.auth;
 
-import org.niis.xroad.authproto.domain.City;
-import org.springframework.stereotype.Component;
-
-import java.util.Arrays;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 
 /**
- * read cities from db
+ * Configuration that allows devtools remote hot deploy in development
  */
-//public interface CityRepository extends CrudRepository<City, Long> {
-//}
-@Component
-public class CityRepository {
+@Configuration
+@Profile("development")
+@Order(DevToolsWebSecurityConfig.AFTER_API_CONFIGURATIONS)
+public class DevToolsWebSecurityConfig extends WebSecurityConfigurerAdapter {
+    public static final int AFTER_API_CONFIGURATIONS = 10;
 
-    /**
-     * dummy
-     * @return
-     */
-    public Iterable<City> findAll() {
-        City c1 = new City();
-        c1.setId(1L);
-        c1.setName("Tampere");
-        City c2 = new City();
-        c2.setId(2L);
-        c2.setName("Helsinki3");
-        return Arrays.asList(c1, c2);
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+            .antMatcher("/.~~spring-boot!~/**")
+            .authorizeRequests()
+                .antMatchers("/.~~spring-boot!~/**")
+                .permitAll()
+                .and()
+            .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+            .csrf()
+                .disable();
     }
 }
