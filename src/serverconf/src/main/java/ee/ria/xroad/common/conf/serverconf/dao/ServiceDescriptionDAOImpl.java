@@ -36,10 +36,10 @@ import org.hibernate.Session;
 public class ServiceDescriptionDAOImpl extends AbstractDAOImpl<ServiceDescriptionType> {
 
     /**
-     * Returns the WSDL of the given service identifier.
+     * Returns the service description of the given service identifier.
      * @param session the session
      * @param id the service identifier
-     * @return the WSDL of the given service identifier
+     * @return the service description of the given service identifier
      */
     public ServiceDescriptionType getServiceDescription(Session session, ServiceId id) {
         ServiceType service =
