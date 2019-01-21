@@ -2710,7 +2710,7 @@ Figure 1. Use case diagram for member management
 
 **Preconditions**: -
 
-**Postconditions**: The list of clients of the security server has been displayed to SS administrator.
+**Postconditions**: The list of clients of the security server and their structure (Member s and their Subsystems) has been displayed to SS administrator.
 
 **Trigger**: -
 
@@ -2718,27 +2718,25 @@ Figure 1. Use case diagram for member management
 
 1.  SS administrator selects to view the security server clients.
 
-2.  System displays the list of clients. The following information is displayed for each client.
+2.  System displays the list structure of clients (Members and related Subsystems). The following information is displayed for each client in the view.
 
-    -   The state of the client.
-
-    -   The name of the client. The name of the owner of the security server is emphasized. The security server looks the names of the clients up from the global configuration. In case the X-Road member corresponding to the client is not found in the global configuration (i.e., the organization is not an X-Road member), the string *&lt;Client not found in global configuration&gt;* is displayed instead of the name.
-
-    -   The X-Road identifier of the client.
+    -   The name of the client. A clear structured list defines with the help of icons the hierarchy of the clients. The Name of the client opens a view of the details of the desired client: [2.4.2](#242-uc-member_45-view-the-details-of-a-security-server-client);
+    
+    -   The X-Road identifier of the client ("Member or Subsystem"/"Instance"/"Member Class"/"Server code"/"Client name"
+    
+    -   The status of the client.
+    
+    -   The option to add a Subsystem  (in case a client is a member)
 
     The following user action options are displayed:
+    
+    -   Search for a Client
 
-    -   add a client: [2.4.4](#244-uc-member_47-add-a-client-to-the-security-server);
+    -   Add a client: [2.4.4](#244-uc-member_47-add-a-client-to-the-security-server);
+    
+    -   Add a subsystem (in case a client is a member)
 
-    -   view the details of a client: [2.4.2](#242-uc-member_45-view-the-details-of-a-security-server-client);
-
-    -   view the service clients of a client: see UC SERVICE\_01 \[[UC-SERVICE](#Ref_UC-SERVICE)\];
-
-    -   view the services of a client: see UC SERVICE\_07 \[[UC-SERVICE](#Ref_UC-SERVICE)\];
-
-    -   view the configuration for communicating with the internal servers of a client: [2.4.3](#243-uc-member_46-view-the-internal-server-settings-of-a-security-server-client);
-
-    -   view the local groups of a client: see UC SERVICE\_23 \[[UC-SERVICE](#Ref_UC-SERVICE)\].
+    -   View the details of a client (via Client's name)
 
 **Extensions**: -
 
