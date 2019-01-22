@@ -47,7 +47,7 @@ public class CityRepository {
         c1.setName("Tampere");
         City c2 = new City();
         c2.setId(2L);
-        c2.setName("Helsinki3");
+        c2.setName("Helsinki");
         return Arrays.asList(c1, c2);
     }
 }

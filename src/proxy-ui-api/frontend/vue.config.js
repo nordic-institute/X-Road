@@ -1,6 +1,6 @@
 module.exports = {
   devServer: {
-    proxy: 'http://localhost:8020'
+    proxy: 'http://xroad2-docker-ss6:8020'
   },
 
   pluginOptions: {

@@ -137,7 +137,8 @@ public class ResourceController {
      * service which requires either ROLE_USER or ROLE_ADMIN
      */
     @RequestMapping(value = "/cities")
-    @PreAuthorize("hasAuthority('ROLE_USER') or hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_USER') or hasAuthority('ROLE_ADMIN')" +
+            " or hasAuthority('ROLE_XROAD-SERVICE-ADMINISTRATOR')")
     public List<City> getCities() {
         debugRoles();
         List<City> cities = new ArrayList<>();
