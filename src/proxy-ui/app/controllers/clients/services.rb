@@ -433,7 +433,7 @@ module Clients::Services
       name += " " + t('clients.wsdl_disabled') if servicedescription.disabled
 
       services << {
-        :servicedescription => true,
+        :wsdl => true,
         :wsdl_id => servicedescription.url,
         :service_id => nil,
         :name => name,
@@ -454,7 +454,7 @@ module Clients::Services
         end
 
         services << {
-          :servicedescription => false,
+          :wsdl => false,
           :wsdl_id => servicedescription.url,
           :service_id => get_service_id(service),
           :name => get_service_id(service),
