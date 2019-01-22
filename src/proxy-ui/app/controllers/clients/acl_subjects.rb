@@ -44,8 +44,8 @@ module Clients::AclSubjects
 
     has_services = false
 
-    client.serviceDescription.each do |wsdl|
-      unless wsdl.service.isEmpty
+    client.serviceDescription.each do |servicedescription|
+      unless servicedescription.service.isEmpty
         has_services = true
         break
       end
@@ -310,8 +310,8 @@ module Clients::AclSubjects
   end
 
   def get_service_title(client, service_code)
-    client.serviceDescription.each do |wsdl|
-      wsdl.service.each do |service|
+    client.serviceDescription.each do |servicedescription|
+      servicedescription.service.each do |service|
         return service.title if service.serviceCode == service_code
       end
     end
