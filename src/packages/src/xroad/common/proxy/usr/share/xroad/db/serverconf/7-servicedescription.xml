@@ -19,7 +19,7 @@ ALTER TABLE wsdl ADD COLUMN wsdllocation varchar(255);
         <sql splitStatements="false">
 <![CDATA[
 CREATE TYPE servicedescriptiontype AS ENUM ('WSDL', 'OPENAPI3');
-ALTER TABLE servicedescription ADD COLUMN type servicedescriptiontype NOT NULL DEFAULT 'wsdl';
+ALTER TABLE servicedescription ADD COLUMN type servicedescriptiontype NOT NULL DEFAULT 'WSDL';
 ]]>
         </sql>
         <rollback>
