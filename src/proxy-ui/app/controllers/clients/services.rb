@@ -454,7 +454,7 @@ module Clients::Services
         end
 
         services << {
-          :wsdl => false,
+          :servicedescription => false,
           :wsdl_id => servicedescription.url,
           :service_id => get_service_id(service),
           :name => get_service_id(service),
