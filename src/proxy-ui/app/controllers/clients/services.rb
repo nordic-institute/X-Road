@@ -447,7 +447,7 @@ module Clients::Services
         :disabled_notice => servicedescription.disabledNotice
       }
 
-      wsdl.service.each do |service|
+      servicedescription.service.each do |service|
         categories = []
         service.requiredSecurityCategory.each do |category|
           categories << category.categoryCode
