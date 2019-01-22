@@ -18,7 +18,7 @@ ALTER TABLE wsdl ADD COLUMN wsdllocation varchar(255);
     <changeSet author="is" id="7-addcolumn">
         <sql splitStatements="false">
 <![CDATA[
-CREATE TYPE servicedescriptiontype AS ENUM ('wsdl', 'openapi3');
+CREATE TYPE servicedescriptiontype AS ENUM ('WSDL', 'OPENAPI3');
 ALTER TABLE servicedescription ADD COLUMN type servicedescriptiontype NOT NULL DEFAULT 'wsdl';
 ]]>
         </sql>
