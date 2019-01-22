@@ -89,7 +89,7 @@
             ]
         });
 
-        $("#servicedescription_add").live('click', function() {
+        $("#wsdl_add").live('click', function() {
             $("#wsdl_add_url", dialog).val("");
             $("#wsdl_add_dialog").dialog("option", "title", $(this).html());
             $("#wsdl_add_dialog").dialog("open");
