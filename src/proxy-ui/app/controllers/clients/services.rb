@@ -27,7 +27,7 @@ require "shellwords"
 java_import Java::ee.ria.xroad.common.SystemProperties
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.AccessRightType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServiceType
-java_import Java::ee.ria.xroad.common.conf.serverconf.model.WsdlType
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType
 java_import Java::ee.ria.xroad.common.identifier.SecurityCategoryId
 java_import Java::ee.ria.xroad.proxyui.InternalServerTestUtil
 java_import Java::ee.ria.xroad.proxyui.WSDLParser
@@ -60,7 +60,7 @@ module Clients::Services
 
     client = get_client(params[:client_id])
 
-    wsdl = WsdlType.new
+    wsdl = ServiceDescriptionType.new
     wsdl.url = params[:wsdl_add_url]
     wsdl.disabled = true
     wsdl.disabledNotice = t('clients.default_disabled_service_notice')
@@ -75,7 +75,7 @@ module Clients::Services
 
     parse_and_check_services(wsdl)
 
-    client.wsdl.add(wsdl)
+    client.serviceDescription.add(wsdl)
 
     serverconf_save
 
@@ -108,7 +108,7 @@ module Clients::Services
 
     audit_log_data[:wsdlUrls] = []
 
-    client.wsdl.each do |wsdl|
+    client.serviceDescription.each do |wsdl|
       next unless params[:wsdl_ids].include?(wsdl.url)
 
       wsdl.disabled = params[:enable].nil?
@@ -137,7 +137,7 @@ module Clients::Services
     client = get_client(params[:client_id])
     audit_log_data[:clientIdentifier] = client.identifier
 
-    client.wsdl.each do |wsdl|
+    client.serviceDescription.each do |wsdl|
       if wsdl.url == params[:new_url]
         raise t('clients.wsdl_exists')
       end
@@ -205,7 +205,7 @@ module Clients::Services
     audit_log_data[:wsdlUrls] = []
 
     deleted = []
-    client.wsdl.each do |wsdl|
+    client.serviceDescription.each do |wsdl|
       deleted << wsdl if params[:wsdl_ids].include?(wsdl.url)
     end
 
@@ -247,7 +247,7 @@ module Clients::Services
 
     audit_log_data[:clientIdentifier] = client.identifier
 
-    client.wsdl.each do |wsdl|
+    client.serviceDescription.each do |wsdl|
       next unless wsdl.url == params[:params_wsdl_id]
 
       audit_log_data[:wsdlUrl] = wsdl.url
@@ -325,7 +325,7 @@ module Clients::Services
     client = get_client(params[:client_id])
 
     services = {}
-    client.wsdl.each do |wsdl|
+    client.serviceDescription.each do |wsdl|
       wsdl.service.each do |service|
         services[service.serviceCode] = {
           :service_code => service.serviceCode,
@@ -414,7 +414,7 @@ module Clients::Services
 
   def wsdls_by_urls(client, wsdl_urls)
     wsdls = []
-    client.wsdl.each do |wsdl|
+    client.serviceDescription.each do |wsdl|
       wsdls << wsdl if wsdl_urls.include?(wsdl.url)
     end
 
@@ -428,7 +428,7 @@ module Clients::Services
   def read_services(client)
     services = []
 
-    client.wsdl.each do |wsdl|
+    client.serviceDescription.each do |wsdl|
       name = t('clients.wsdl')
       name += " " + t('clients.wsdl_disabled') if wsdl.disabled
 
@@ -487,7 +487,7 @@ module Clients::Services
   def parse_wsdls(client, wsdls, audit_log_data = nil)
     # construct a list of existing services mapped to their wsdls
     existing_services = {}
-    client.wsdl.each do |wsdl|
+    client.serviceDescription.each do |wsdl|
       wsdl.service.each do |service|
         existing_services[get_service_id(service)] = wsdl.url
       end
@@ -557,7 +557,7 @@ module Clients::Services
   def update_wsdls(client, added_objs, deleted)
     deleted_codes = Set.new
 
-    client.wsdl.each do |wsdl|
+    client.serviceDescription.each do |wsdl|
       services_deleted = []
 
       deleted[wsdl.url].each do |service_id|
@@ -582,7 +582,7 @@ module Clients::Services
         service.title = service_parsed.title
         service.url = service_parsed.url
         service.timeout = DEFAULT_SERVICE_TIMEOUT
-        service.wsdl = wsdl
+        service.serviceDescription = wsdl
 
         wsdl.service.add(service)
       end if added_objs.has_key?(wsdl.url)
@@ -594,7 +594,7 @@ module Clients::Services
   def parse_and_check_services(wsdl)
     existing_services = {}
 
-    wsdl.client.wsdl.each do |other_wsdl|
+    wsdl.client.serviceDescription.each do |other_wsdl|
       if other_wsdl.url == wsdl.url
         raise t('clients.wsdl_exists')
       end
@@ -621,7 +621,7 @@ module Clients::Services
       service.title = parsed_service.title
       service.url = parsed_service.url
       service.timeout = DEFAULT_SERVICE_TIMEOUT
-      service.wsdl = wsdl
+      service.serviceDescription = wsdl
 
       wsdl.service.add(service)
     end
@@ -718,7 +718,7 @@ module Clients::Services
     return if service_codes.empty?
 
     # Exclude services existing with different version.
-    client.wsdl.each do |w|
+    client.serviceDescription.each do |w|
       if w.id != wsdl_id
         service_codes.subtract(get_service_codes(w))
 
