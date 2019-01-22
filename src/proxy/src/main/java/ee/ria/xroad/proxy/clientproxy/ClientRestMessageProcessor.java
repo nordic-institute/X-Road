@@ -255,6 +255,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         } else {
             servletResponse.setStatus(rest.getResponseCode());
         }
+        servletResponse.setHeader("Date", null);
         for (Header h : rest.getHeaders()) {
             servletResponse.addHeader(h.getName(), h.getValue());
         }

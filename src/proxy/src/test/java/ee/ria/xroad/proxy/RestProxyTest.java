@@ -85,6 +85,18 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     }
 
     @Test
+    public void shouldHaveOnlyOneDateHeader() throws IOException {
+        assertEquals(1, given()
+                .baseUri("http://127.0.0.1")
+                .port(proxyClientPort)
+                .header("Content-Type", "application/json")
+                .header("X-Road-Client", "EE/BUSINESS/consumer/sub")
+                .body("{\"value\" : 42}")
+                .post("/r0/EE/BUSINESS/producer/sub/echo")
+                .headers().getValues("Date").size());
+    }
+
+    @Test
     public void shouldAcceptPercentEncodedIdentifiers() throws IOException {
         service.setHandler((target, request, response) -> assertEquals("/path%3B/", request.getRequestURI()));
         given()
