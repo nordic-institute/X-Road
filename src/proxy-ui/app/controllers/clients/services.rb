@@ -48,7 +48,7 @@ module Clients::Services
     render_json(read_services(client))
   end
 
-  def wsdl_add
+  def servicedescription_add
     audit_log("Add WSDL", audit_log_data = {})
 
     authorize!(:add_wsdl)
@@ -82,7 +82,7 @@ module Clients::Services
     render_json(read_services(client))
   end
 
-  def wsdl_disable
+  def servicedescription_disable
     if params[:enable].nil?
       audit_log("Disable WSDL", audit_log_data = {})
     else
@@ -123,7 +123,7 @@ module Clients::Services
     render_json(read_services(client))
   end
 
-  def wsdl_edit
+  def servicedescription_edit
     audit_log("Edit WSDL", audit_log_data = {})
 
     authorize!(:refresh_wsdl)
@@ -143,12 +143,12 @@ module Clients::Services
       end
     end if params[:wsdl_id] != params[:new_url]
 
-    wsdls = wsdls_by_urls(client, [params[:wsdl_id]])
+    wsdls = servicedescriptions_by_urls(client, [params[:wsdl_id]])
     wsdls[0].url = params[:new_url]
     wsdls[0].refreshedDate = Date.new
 
-    added_objs, added, deleted = parse_wsdls(client, wsdls)
-    update_wsdls(client, added_objs, deleted)
+    added_objs, added, deleted = parse_servicedescriptions(client, wsdls)
+    update_servicedescriptions(client, added_objs, deleted)
 
     serverconf_save
 
@@ -162,7 +162,7 @@ module Clients::Services
     render_json(read_services(client))
   end
 
-  def wsdl_refresh
+  def servicedescription_refresh
     audit_log("Refresh WSDL", audit_log_data = {})
 
     authorize!(:refresh_wsdl)
@@ -175,10 +175,10 @@ module Clients::Services
     client = get_client(params[:client_id])
     audit_log_data[:clientIdentifier] = client.identifier
 
-    wsdls = wsdls_by_urls(client, params[:wsdl_ids])
+    wsdls = servicedescriptions_by_urls(client, params[:wsdl_ids])
 
-    added_objs, added, deleted = parse_wsdls(client, wsdls, audit_log_data)
-    update_wsdls(client, added_objs, deleted)
+    added_objs, added, deleted = parse_servicedescriptions(client, wsdls, audit_log_data)
+    update_servicedescriptions(client, added_objs, deleted)
 
     wsdls.each do |wsdl|
       wsdl.refreshedDate = Date.new
@@ -189,7 +189,7 @@ module Clients::Services
     render_json(read_services(client))
   end
 
-  def wsdl_delete
+  def servicedescription_delete
     audit_log("Delete WSDL", audit_log_data = {})
 
     authorize!(:delete_wsdl)
@@ -412,7 +412,7 @@ module Clients::Services
 
   private
 
-  def wsdls_by_urls(client, wsdl_urls)
+  def servicedescriptions_by_urls(client, wsdl_urls)
     wsdls = []
     client.serviceDescription.each do |wsdl|
       wsdls << wsdl if wsdl_urls.include?(wsdl.url)
@@ -484,7 +484,7 @@ module Clients::Services
     return i
   end
 
-  def parse_wsdls(client, wsdls, audit_log_data = nil)
+  def parse_servicedescriptions(client, wsdls, audit_log_data = nil)
     # construct a list of existing services mapped to their wsdls
     existing_services = {}
     client.serviceDescription.each do |wsdl|
@@ -554,7 +554,7 @@ module Clients::Services
     return added_objs, added, deleted
   end
 
-  def update_wsdls(client, added_objs, deleted)
+  def update_servicedescriptions(client, added_objs, deleted)
     deleted_codes = Set.new
 
     client.serviceDescription.each do |wsdl|

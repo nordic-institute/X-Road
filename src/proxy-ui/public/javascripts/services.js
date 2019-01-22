@@ -73,7 +73,7 @@
 
                       params.client_id = $("#details_client_id").val();
 
-                      $.post(action("wsdl_add"), params, function(response) {
+                      $.post(action("servicedescription_add"), params, function(response) {
                           oServices.fnReplaceData(response.data);
                           enableActions();
 
@@ -89,7 +89,7 @@
             ]
         });
 
-        $("#wsdl_add").live('click', function() {
+        $("#servicedescription_add").live('click', function() {
             $("#wsdl_add_url", dialog).val("");
             $("#wsdl_add_dialog").dialog("option", "title", $(this).html());
             $("#wsdl_add_dialog").dialog("open");
@@ -109,7 +109,7 @@
                       params.wsdl_disabled_notice =
                           $("#wsdl_disabled_notice", this).val();
 
-                      $.post(action("wsdl_disable"), params, function(response) {
+                      $.post(action("servicedescription_disable"), params, function(response) {
                           oServices.fnReplaceData(response.data);
                           enableActions();
 
@@ -204,7 +204,7 @@
                           new_url: $("#params_wsdl_url").val()
                       };
 
-                      $.post(action("wsdl_edit"), params, function(response) {
+                      $.post(action("servicedescription_edit"), params, function(response) {
                           oServices.fnReplaceData(response.data);
                           enableActions();
 
@@ -355,14 +355,14 @@
             var params = wsdlParams();
             params.enable = true;
 
-            $.post(action("wsdl_disable"), params, function(response) {
+            $.post(action("servicedescription_disable"), params, function(response) {
                 oServices.fnReplaceData(response.data);
                 enableActions();
             }, "json");
         });
 
         $("#wsdl_refresh").click(function() {
-            $.post(action("wsdl_refresh"), wsdlParams(), function(response) {
+            $.post(action("servicedescription_refresh"), wsdlParams(), function(response) {
                 oServices.fnReplaceData(response.data);
                 enableActions();
             }, "json").fail(showOutput);
@@ -371,7 +371,7 @@
         $("#wsdl_delete").click(function() {
             confirm("clients.client_services_tab.delete_wsdls_confirm", null,
                     function() {
-                $.post(action("wsdl_delete"), wsdlParams(), function(response) {
+                $.post(action("servicedescription_delete"), wsdlParams(), function(response) {
                     oServices.fnReplaceData(response.data);
                     enableActions();
                 }, "json");
