@@ -41,8 +41,10 @@ app.post('/login', function (req, res) {
 
   // Some waiting here to "simulate" real backend and show spinners/progressbars etc. in UI
   setTimeout(function () {
-
     if (loginData.username === 'user') {
+      res.status(200).send("Successfully logged in");
+    }
+    else if (loginData.username === 'admin') {
       res.status(200).send("Successfully logged in");
     }
     else {

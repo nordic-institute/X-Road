@@ -1,30 +1,40 @@
 import axios from 'axios';
-import router from '../../router';
+import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
+import { RootState } from '../types';
 
-export const state = {
+export interface DataState {
+  cities: [];
+  loading: boolean;
+}
+
+export const state: DataState = {
   cities: [],
   loading: false,
 };
 
-export const getters = {
-  cities: state => state.cities,
-  loading: state => state.loading,
+export const getters: GetterTree<DataState, RootState> = {
+  cities(state): [] {
+    return state.cities;
+  },
+  loading(state): boolean {
+    return state.loading;
+  },
 };
 
-export const mutations = {
-  storeCities(state, cities) {
+export const mutations: MutationTree<DataState> = {
+  storeCities(state, cities: []) {
     state.cities = cities;
   },
-  setLoading(state, loading) {
+  setLoading(state, loading: boolean) {
     state.loading = loading;
-  }
+  },
 };
 
-export const actions = {
+export const actions: ActionTree<DataState, RootState> = {
   fetchData({ commit, rootGetters }) {
     if (!rootGetters.isAuthenticated) {
-      console.log('Not authenticated! Cant call get cities!')
-      return;
+      //console.log('Not authenticated! Cant call get cities!');
+      //return;
     }
 
     commit('setLoading', true);
@@ -37,21 +47,21 @@ export const actions = {
       })
       .catch((error) => {
         console.log(error);
-        if (error.response.status === 401) {
-          commit('clearAuthData');
-          router.replace('/');
-        }
         throw error;
       })
       .finally(() => {
         commit('setLoading', false);
       });
   },
+  clearData({ commit, rootGetters }) {
+    commit('storeCities', []);
+  },
 };
 
-export default {
+export const data: Module<DataState, RootState> = {
+  namespaced: false,
   state,
   getters,
   actions,
-  mutations
+  mutations,
 };

@@ -1,66 +1,40 @@
 <template>
-  <div>
+  <v-layout align-center justify-center column fill-height elevation-0 class="full-width">
     <v-toolbar flat color="white">
-      <v-toolbar-title>Cities</v-toolbar-title>
-      <v-divider class="mx-2" inset vertical></v-divider>
+      <v-text-field
+        v-model="search"
+        append-icon="search"
+        label="Search"
+        single-line
+        hide-details
+        class="search-input"
+      ></v-text-field>
       <v-spacer></v-spacer>
-
-      <v-text-field v-model="search" append-icon="search" label="Search" single-line hide-details></v-text-field>
-
-      <v-dialog v-model="dialog" max-width="500px">
-        <v-btn slot="activator" color="primary" dark class="mb-2">New Item</v-btn>
-        <v-card>
-          <v-card-title>
-            <span class="headline">{{ formTitle }}</span>
-          </v-card-title>
-
-          <v-card-text>
-            <v-container grid-list-md>
-              <v-layout wrap>
-                <v-flex xs12 sm6 md4>
-                  <v-text-field v-model="editedItem.name" label="Dessert name"></v-text-field>
-                </v-flex>
-                <v-flex xs12 sm6 md4>
-                  <v-text-field v-model="editedItem.calories" label="Calories"></v-text-field>
-                </v-flex>
-                <v-flex xs12 sm6 md4>
-                  <v-text-field v-model="editedItem.fat" label="Fat (g)"></v-text-field>
-                </v-flex>
-                <v-flex xs12 sm6 md4>
-                  <v-text-field v-model="editedItem.carbs" label="Carbs (g)"></v-text-field>
-                </v-flex>
-                <v-flex xs12 sm6 md4>
-                  <v-text-field v-model="editedItem.protein" label="Protein (g)"></v-text-field>
-                </v-flex>
-              </v-layout>
-            </v-container>
-          </v-card-text>
-
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="blue darken-1" flat @click.native="close">Cancel</v-btn>
-            <v-btn color="blue darken-1" flat @click.native="save">Save</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
+      <v-btn color="primary" @click="addClient" round dark class="mb-2 rounded-button">Add client</v-btn>
     </v-toolbar>
     <v-data-table
       :loading="loading"
       :headers="headers"
       :items="cities"
       :search="search"
-      class="elevation-1"
+      class="elevation-0 data-table"
     >
       <template slot="items" slot-scope="props">
         <td>{{ props.item.name }}</td>
         <td class="text-xs-left">{{ props.item.id }}</td>
-        <td class="justify-center layout px-0">
-          <v-icon small class="mr-2" @click="editItem(props.item)">edit</v-icon>
+        <td class="layout px-0">
+          <v-spacer></v-spacer>
+          <v-btn
+            small
+            outline
+            round
+            color="primary"
+            class="mr-2 text-capitalize table-button"
+            @click="addSubsystem(props.item)"
+          >Add Subsystem</v-btn>
         </td>
       </template>
-      <template slot="no-data">
-        <v-btn color="primary" @click="fetchData">Fetch data</v-btn>
-      </template>
+      <template slot="no-data">No data</template>
       <v-alert
         slot="no-results"
         :value="true"
@@ -68,100 +42,71 @@
         icon="warning"
       >Your search for "{{ search }}" found no results.</v-alert>
     </v-data-table>
-  </div>
+  </v-layout>
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import { mapGetters } from "vuex";
+import Vue from 'vue';
+import { mapGetters } from 'vuex';
 
 export default Vue.extend({
   data: () => ({
-    dialog: false,
-    search: "",
+    search: '',
     headers: [
       {
-        text: "Name",
-        align: "left",
-        value: "name"
+        text: 'Name',
+        align: 'left',
+        value: 'name',
+        class: 'xr-table-header',
       },
-      { text: "ID", align: "left", value: "id" },
-      { text: "", value: "id", sortable: false }
+      { text: 'ID', align: 'left', value: 'id', class: 'xr-table-header' },
+      { text: '', value: 'id', sortable: false, class: 'xr-table-header' },
     ],
     editedIndex: -1,
-    editedItem: {
-      name: "",
-      calories: 0,
-      fat: 0,
-      carbs: 0,
-      protein: 0
-    },
-    defaultItem: {
-      name: "",
-      calories: 0,
-      fat: 0,
-      carbs: 0,
-      protein: 0
-    }
   }),
 
   computed: {
-    ...mapGetters(["cities", "loading"]),
+    ...mapGetters(['cities', 'loading']),
     formTitle(): string {
-      return this.editedIndex === -1 ? "New Item" : "Edit Item";
-    }
-  },
-
-  watch: {
-    dialog(val) {
-      val || this.close();
-    }
-  },
-
-  created() {
-    //this.initialize();
+      return this.editedIndex === -1 ? 'New Item' : 'Edit Item';
+    },
   },
 
   methods: {
-    fetchData(): void {
-      this.$store.dispatch("fetchData").then(
-        response => {
-          this.$bus.$emit("show-success", "Great success!");
-        },
-        error => {
-          this.$bus.$emit("show-error", error.message);
-        }
-      );
+    addClient(): void {
+      console.log('edit');
+      this.$router.push('/client');
     },
 
-    editItem(item): void {
-      this.editedIndex = this.desserts.indexOf(item);
-      this.editedItem = Object.assign({}, item);
-      this.dialog = true;
+    addSubsystem(item: any) {
+      this.$router.push('/subsystem');
     },
-
-    deleteItem(item): void {
-      const index = this.desserts.indexOf(item);
-      confirm("Are you sure you want to delete this item?") &&
-        this.desserts.splice(index, 1);
-    },
-
-    close(): void {
-      this.dialog = false;
-      setTimeout(() => {
-        this.editedItem = Object.assign({}, this.defaultItem);
-        this.editedIndex = -1;
-      }, 300);
-    },
-
-    save(): void {
-      if (this.editedIndex > -1) {
-        Object.assign(this.desserts[this.editedIndex], this.editedItem);
-      } else {
-        this.desserts.push(this.editedItem);
-      }
-      this.close();
-    }
-  }
+  },
 });
 </script>
+
+<style lang="scss">
+.xr-table-header {
+  border-bottom: 1px solid #9c9c9c;
+}
+</style>
+
+<style lang="scss" scoped>
+.search-input {
+  max-width: 300px;
+}
+
+.data-table {
+  width: 100%;
+}
+
+.full-width {
+  width: 100%;
+  max-width: 1280px;
+}
+
+.table-button {
+  height: 24px;
+  border-radius: 6px;
+}
+</style>

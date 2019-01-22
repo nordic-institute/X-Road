@@ -2,11 +2,11 @@
 
 from https://bitbucket.niis.org/projects/X-ROAD/repos/x-road-ui-proto/browse
 ```
-commit b466eec63ac909cc52f0db3ac38c16fd06e859ec (HEAD -> master, origin/master)
-Author: Janne Mattila <janne.mattila@gofore.com>
-Date:   Fri Dec 21 12:02:15 2018 +0200
+commit ef996ba39f1bd55c38e85f31522010e713f27346 (HEAD -> master, origin/master)
+Author: Mikko Riippi <mikko.riippi@gofore.com>
+Date:   Mon Jan 21 15:56:15 2019 +0200
 
-    fix examples
+    Fixed a typo
 ```
 
 # Running
