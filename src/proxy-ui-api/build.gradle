@@ -58,7 +58,15 @@ ext['postgresql.version'] = '42.2.1'
 ext['hikaricp.version'] = '2.3.3'
 ext['quartz.version'] = '2.1.6'
 
-task buildFront(type: NpmTask) {
+node {
+    download = false
+    npmWorkDir = file("frontend")
+    nodeModulesDir = file("frontend/node_modules")
+}
+
+task buildFront(type: NpmTask, dependsOn: 'npmInstall') {
+    inputs.dir("frontend")
+    outputs.dir("frontend/dist")
     args = ['run', 'build']
     execOverrides {
         it.workingDir = 'frontend'
