@@ -36,9 +36,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
  */
 @Configuration
 @Profile("development")
-@Order(DevToolsWebSecurityConfig.AFTER_API_CONFIGURATIONS)
+@Order(DevToolsWebSecurityConfig.AFTER_STATIC_ASSETS)
 public class DevToolsWebSecurityConfig extends WebSecurityConfigurerAdapter {
-    public static final int AFTER_API_CONFIGURATIONS = 10;
+    public static final int AFTER_STATIC_ASSETS = 10;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {

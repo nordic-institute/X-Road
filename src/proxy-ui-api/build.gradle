@@ -4,9 +4,11 @@ buildscript {
     }
     repositories {
         mavenCentral()
+        jcenter()
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath 'com.moowork.gradle:gradle-node-plugin:1.1.0'
     }
 }
 
@@ -31,6 +33,7 @@ if (!excludeDevToolsSetting) {
 
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
+apply plugin: "com.moowork.node"
 
 bootRun {
     jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
@@ -44,10 +47,28 @@ bootJar {
     println 'excludeDevTools in bootJar=' + excludeDevToolsSetting
 }
 
+processResources {
+    from ('frontend/dist/') {
+        into 'public/'
+    }
+}
+
 ext['hibernate.version'] = '4.3.11.Final'
 ext['postgresql.version'] = '42.2.1'
 ext['hikaricp.version'] = '2.3.3'
 ext['quartz.version'] = '2.1.6'
+
+task buildFront(type: NpmTask) {
+    args = ['run', 'build']
+    execOverrides {
+        it.workingDir = 'frontend'
+    }
+}
+
+processResources.dependsOn 'buildFront'
+
+clean.delete << file('frontend/node_modules')
+clean.delete << file('frontend/dist')
 
 dependencies {
     implementation project(':serverconf')

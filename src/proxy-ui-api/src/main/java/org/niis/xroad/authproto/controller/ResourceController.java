@@ -119,7 +119,7 @@ public class ResourceController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Set<String> roles = authentication.getAuthorities().stream()
                 .map(r -> r.getAuthority()).collect(Collectors.toSet());
-        logger.info("roles=" + roles);
+        logger.info("roles =" + roles);
         return roles;
     }
 
@@ -137,8 +137,8 @@ public class ResourceController {
      * service which requires either ROLE_USER or ROLE_ADMIN
      */
     @RequestMapping(value = "/cities")
-    @PreAuthorize("hasAuthority('ROLE_USER') or hasAuthority('ROLE_ADMIN')" +
-            " or hasAuthority('ROLE_XROAD-SERVICE-ADMINISTRATOR')")
+    @PreAuthorize("hasAuthority('ROLE_USER') or hasAuthority('ROLE_ADMIN')"
+            + " or hasAuthority('ROLE_XROAD-SERVICE-ADMINISTRATOR')")
     public List<City> getCities() {
         debugRoles();
         List<City> cities = new ArrayList<>();

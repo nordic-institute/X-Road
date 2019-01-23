@@ -273,6 +273,37 @@ public class MultiAuthWebSecurityConfig {
     }
 
     /**
+     * Static assets should be open to everyone
+     */
+    @Configuration
+    @Order(StaticAssetsWebSecurityConfig.AFTER_API_CONFIGURATIONS)
+    public class StaticAssetsWebSecurityConfig extends WebSecurityConfigurerAdapter {
+        public static final int AFTER_API_CONFIGURATIONS = 3;
+
+        @Override
+        protected void configure(HttpSecurity http) throws Exception {
+            http
+                .requestMatchers()
+                    .antMatchers("/favicon.ico",
+                            "/index.html",
+                            "/img/**",
+                            "/css/**",
+                            "/js/**")
+                    .and()
+                .authorizeRequests()
+                    .anyRequest()
+                    .permitAll()
+                    .and()
+                .sessionManagement()
+                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                    .csrf()
+                    .disable();
+        }
+    }
+
+
+    /**
      * Disable session request cache to prevent extra session creation when api
      * calls fail.
      * This breaks (access restricted thymeleaf page -> auth error -> login -> redirect to restricted page)
