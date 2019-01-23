@@ -32,7 +32,7 @@ Doc. ID: UG-CS
 | 05.03.2018 | 2.5     | Added terms and abbreviations reference and document links | Tatu Repo |
 | 18.08.2018 | 2.6     | Corrected `ocspFetchInterval` default value (Chapter 16.2) | Petteri Kivimäki |
 | 15.11.2018 | 2.7     | Minor corrections for Ubuntu 18 | Jarkko Hyöty |
-| 23.01.2019 | 2.8     | Information about automatic approval of auth cert registration requests added. Updates in Chapters 6 and 7. | Petteri Kivimäki |
+| 23.01.2019 | 2.8     | Information about automatic approval of auth cert registration requests added. Updates in Chapters 6-8. | Petteri Kivimäki |
 
 ## Table of Contents
 <!-- toc -->
