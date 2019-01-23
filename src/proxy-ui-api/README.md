@@ -1,6 +1,6 @@
 # GIT
 
-from https://bitbucket.niis.org/projects/X-ROAD/repos/x-road-ui-proto/browse
+frontend implementation from https://bitbucket.niis.org/projects/X-ROAD/repos/x-road-ui-proto/browse
 ```
 commit ef996ba39f1bd55c38e85f31522010e713f27346 (HEAD -> master, origin/master)
 Author: Mikko Riippi <mikko.riippi@gofore.com>
@@ -8,7 +8,32 @@ Date:   Mon Jan 21 15:56:15 2019 +0200
 
     Fixed a typo
 ```
+# Building
 
+Default build does frontend `npm run build` and packages the built frontend assets from `frontend/dist`
+inside the spring boot jar. You can access the frontend from `http://localhost:8020/index.html`
+
+```
+../gradlew clean build
+```
+
+For faster builds, you can skip frontend build with `skip-frontend-build` parameter.
+In this case the spring boot jar does not contain frontend assets, but can be used with frontend
+that is being served from webpack development server.
+
+```
+../gradlew clean build -Pskip-frontend-build
+```
+
+Parameter `activate-devtools-do-not-use-in-production` can be used to build a jar that contains spring
+devtools, which enable remote hot deployment of code. In this case, jar needs to be started with spring
+profile `development`
+```
+../gradlew clean build -Pactivate-devtools-do-not-use-in-production
+```
+```
+java -jar proxy-ui-api-1.0.jar --spring.profiles.active=development
+```
 # Running
 ```
 ../gradlew bootRun --console plain

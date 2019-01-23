@@ -65,6 +65,9 @@ node {
 }
 
 task buildFront(type: NpmTask, dependsOn: 'npmInstall') {
+    onlyIf {
+        !project.hasProperty('skip-frontend-build')
+    }
     inputs.dir("frontend")
     outputs.dir("frontend/dist")
     args = ['run', 'build']
@@ -72,6 +75,8 @@ task buildFront(type: NpmTask, dependsOn: 'npmInstall') {
         it.workingDir = 'frontend'
     }
 }
+
+npmInstall.onlyIf { !project.hasProperty('skip-frontend-build') }
 
 processResources.dependsOn 'buildFront'
 
