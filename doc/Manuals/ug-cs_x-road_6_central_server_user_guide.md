@@ -781,7 +781,12 @@ To change the security server address, follow these steps.
 
 Access rights: Registration Officer
 
-To register a security server's authentication certificate, the following actions must be taken.
+The actions required to register a security server's authentication certificate depend on whether automatic approval of authentication certificate registration requests is enabled or disabled (_default_).
+
+When automatic approval of authentication certificate registration requests is enabled, the following action must be taken:
+- An authentication certificate registration request must be sent from the security server to the central server by the security server administrator.
+
+Automatic approval of authentication certificate registration requests is disabled by default. In that case, to register a security server's authentication certificate, the following actions must be taken.
 - An authentication certificate registration request must be sent from the security server to the central server by the security server administrator;
 - The complementary authentication certificate registration request must be formalized in the central server by the central server administrator, on the appeal of the security server's owner.
 - The complimentary requests must be approved by the central server administrator.
