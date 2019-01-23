@@ -100,9 +100,9 @@ public class MultiAuthWebSecurityConfig {
             logger.info("***** configuring security, pam = {}", pam);
             http
                 .authorizeRequests()
-                    .antMatchers("/", "/home").permitAll()
                     .antMatchers("/error").permitAll()
-                    .antMatchers("/csrf").permitAll()
+                    .antMatchers("/login").permitAll()
+                    .antMatchers("/logout").fullyAuthenticated()
 //CHECKSTYLE.OFF: TodoComment - need this todo and still want builds to succeed
                     // TODO: must change in actual implementation
 //CHECKSTYLE.ON: TodoComment
@@ -110,7 +110,7 @@ public class MultiAuthWebSecurityConfig {
                     // even allow shutdown - so do not use this for production
                     .antMatchers("/actuator/**").permitAll()
                     .antMatchers("/test-api/**").denyAll()
-                    .anyRequest().authenticated()
+                    .anyRequest().denyAll()
                     .and()
                   .csrf()
                     .ignoringAntMatchers("/login")
@@ -122,11 +122,6 @@ public class MultiAuthWebSecurityConfig {
                     .failureHandler(statusCode401AuthenticationFailureHandler())
                     .permitAll()
                     .and()
-//CHECKSTYLE.OFF: TodoComment - need this todo and still want builds to succeed
-                    // TODO: should disable anonymous access in production
-//CHECKSTYLE.ON: TodoComment
-                .anonymous()
-                    .disable()
                 .logout()
                     .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler())
                     .permitAll();
