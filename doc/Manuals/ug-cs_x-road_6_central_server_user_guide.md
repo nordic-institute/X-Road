@@ -587,7 +587,7 @@ To add a subsystem to an X-Road member, follow these steps.
 
 Access rights: Registration Officer
 
-Registering an X-Road member's security server can be done 
+The actions required to register an X-Road member's security server depend on whether automatic approval of authentication certificate registration requests is enabled or disabled (_default_).
 
 When automatic approval of authentication certificate registration requests is enabled, the following action must be taken:
 - An authentication certificate registration request must be sent from the security server to the central server by the security server administrator.
