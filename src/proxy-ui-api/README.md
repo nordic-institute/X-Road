@@ -20,7 +20,6 @@ inside the spring boot jar. You can access the frontend from `http://localhost:8
 For faster builds, you can skip frontend build with `skip-frontend-build` parameter.
 In this case the spring boot jar does not contain frontend assets, but can be used with frontend
 that is being served from webpack development server.
-
 ```
 ../gradlew clean build -Pskip-frontend-build
 ```

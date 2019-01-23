@@ -101,9 +101,6 @@ public class MultiAuthWebSecurityConfig {
             http
                 .authorizeRequests()
                     .antMatchers("/", "/home").permitAll()
-                    // to access h2 in-memory-db console, go to http://localhost:8020/h2-console/
-                    // and login with username: sa, password: (empty)
-                    .antMatchers("/h2-console/**").permitAll()
                     .antMatchers("/error").permitAll()
                     .antMatchers("/csrf").permitAll()
 //CHECKSTYLE.OFF: TodoComment - need this todo and still want builds to succeed
@@ -112,8 +109,6 @@ public class MultiAuthWebSecurityConfig {
                     // actuator endpoints are open to public, and
                     // even allow shutdown - so do not use this for production
                     .antMatchers("/actuator/**").permitAll()
-                    .antMatchers("/admin/**").hasRole("ADMIN")
-                    .antMatchers("/db/**").access("hasRole('ADMIN') and hasRole('DBA')")
                     .antMatchers("/test-api/**").denyAll()
                     .anyRequest().authenticated()
                     .and()
@@ -121,10 +116,6 @@ public class MultiAuthWebSecurityConfig {
                     .ignoringAntMatchers("/login")
                     .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                     .and()
-//                .headers()
-//                    .frameOptions()
-//                    .disable() // uncomment if you want to make dev h2-console work
-//                    .and()
                 .formLogin()
                     .loginPage("/login")
                     .successHandler(formLoginStatusCodeSuccessHandler())
@@ -134,10 +125,8 @@ public class MultiAuthWebSecurityConfig {
 //CHECKSTYLE.OFF: TodoComment - need this todo and still want builds to succeed
                     // TODO: should disable anonymous access in production
 //CHECKSTYLE.ON: TodoComment
-                    // keeping it here, since we want to show some
-                    // unauthenticated thymeleaf views for debugging purposes
-//                .anonymous()
-//                    .disable()
+                .anonymous()
+                    .disable()
                 .logout()
                     .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler())
                     .permitAll();
@@ -285,6 +274,7 @@ public class MultiAuthWebSecurityConfig {
             http
                 .requestMatchers()
                     .antMatchers("/favicon.ico",
+                            "/",
                             "/index.html",
                             "/img/**",
                             "/css/**",

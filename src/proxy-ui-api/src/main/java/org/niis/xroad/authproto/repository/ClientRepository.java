@@ -47,9 +47,6 @@ public class ClientRepository {
 
     public static final int MEMBER_ID_PARTS = 3;
 
-////    @Autowired
-//    private SessionFactory sessionFactory = null;
-
     public List<MemberInfo> getAllMembers() {
         return GlobalConf.getMembers();
     }
