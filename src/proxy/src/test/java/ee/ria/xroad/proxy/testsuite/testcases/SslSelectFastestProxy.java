@@ -33,16 +33,18 @@ import ee.ria.xroad.proxy.testsuite.TestGlobalConf;
 import java.util.Arrays;
 import java.util.Collection;
 
+import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
+
 /**
- * This actually tests, if the only responsive hostname is selected from the
- * given hostnames.
+ * Tests that correct error occurs when none of the hosts can be connected to.
  */
-public class SslSelectFastestProxy extends SslMessageTestCase {
+public class SslSelectFastestProxyNoConnections extends SslMessageTestCase {
 
     /**
      * Constructs the test case.
      */
-    public SslSelectFastestProxy() {
+    public SslSelectFastestProxyNoConnections() {
         requestFileName = "getstate.query";
         responseFile = "getstate.answer";
     }
@@ -54,14 +56,14 @@ public class SslSelectFastestProxy extends SslMessageTestCase {
         GlobalConf.reload(new TestGlobalConf() {
             @Override
             public Collection<String> getProviderAddress(ClientId provider) {
-                return Arrays.asList("127.0.0.42", "localhost", "server.invalid");
+                return Arrays.asList("foo.invalid.", "bar.invalid.", "baz.invalid.");
             }
         });
     }
 
     @Override
-    protected void validateNormalResponse(Message receivedResponse)
+    protected void validateFaultResponse(Message receivedResponse)
             throws Exception {
-        // Normal response, nothing more to check here.
+        assertErrorCodeStartsWith(SERVER_CLIENTPROXY_X, X_NETWORK_ERROR);
     }
 }
