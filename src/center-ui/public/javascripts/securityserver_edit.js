@@ -103,7 +103,7 @@ var XROAD_SECURITYSERVER_EDIT = function() {
 
         refreshClients(params);
         refreshAuthCerts(params);
-        refreshManagementRequests(params);
+        refreshManagementRequests();
     }
 
     // FUTURE (RM #2770): probably usable when security categories implemented
@@ -292,7 +292,7 @@ var XROAD_SECURITYSERVER_EDIT = function() {
     }
 
     function getCheckedSecurityCategories() {
-        checkedSecurityCategories = [];
+        var checkedSecurityCategories = [];
 
         $("#security_categories_edit_table tr").each(function(index){
             var tdCheckbox = $(this).find('td:eq(0) input');

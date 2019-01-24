@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.32  
+Version: 2.39  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -42,39 +42,49 @@ Doc. ID: UG-SYSPAR
 | 05.03.2018 | 2.30     | Added reference to terms and abbreviations, modified reference handling, added numbering. | Tatu Repo |
 | 06.04.2018 | 2.31     | Removed TLSv1.1 support (client-side interfaces for incoming request) and TLS SHA-1 ciphers from default ciphers list. | Kristo Heero |
 | 18.08.2018 | 2.32     | Added new parameter *ocsp-retry-delay* | Petteri Kivimäki |
+| 08.10.2018 | 2.33     | Added new parameter *xroad-tls-ciphers* | Henri Haapakanni |
+| 18.10.2018 | 2.34     | Default value of the parameter *signer.client-timeout* set to 60000 | Petteri Kivimäki |
+| 25.10.2018 | 2.35     | Update note regarding supported cipher suites on RHEL 7 | Petteri Kivimäki |
+| 26.10.2018 | 2.36     | Added new parameter *module-manager-update-interval* | Petteri Kivimäki |
+| 08.11.2018 | 2.37     | Improved definition of *minimum-global-configuration-version* on the central server and configuration proxy | Ilkka Seppälä |
+| 19.12.2018 | 2.38     | Fixed the default value of trusted-anchors-allowed | Ilkka Seppälä |
+| 21.12.2018 | 2.39     | Add connector initial idle time parameters | Jarkko Hyöty |
 
 ## Table of Contents
 
 <!-- toc -->
 
   * [License](#license)
-- [1 Introduction](#1-introduction)
-  * [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
-  * [1.2 References](#12-references)
-- [2 Changing the System Parameter Values](#2-changing-the-system-parameter-values)
-  * [2.1 Changing the System Parameter Values in Configuration Files](#21-changing-the-system-parameter-values-in-configuration-files)
-  * [2.2 Changing the System Parameter Values in the Central Server Database](#22-changing-the-system-parameter-values-in-the-central-server-database)
-  * [2.3 Changing the Global Configuration Generation Interval in the Central Server](#23-changing-the-global-configuration-generation-interval-in-the-central-server)
-- [3 Security Server System Parameters](#3-security-server-system-parameters)
-  * [3.1 Common parameters : `[common]`](#31-common-parameters--common)
-  * [3.2 Proxy parameters: `[proxy]`](#32-proxy-parameters-proxy)
-  * [3.3 Proxy User Interface parameters: `[proxy-ui]`](#33-proxy-user-interface-parameters-proxy-ui)
-  * [3.4 Signer parameters: `[signer]`](#34-signer-parameters-signer)
-  * [3.5 Anti-DOS parameters: `[anti-dos]`](#35-anti-dos-parameters-anti-dos)
-  * [3.6 Configuration Client parameters: `[configuration-client]`](#36-configuration-client-parameters-configuration-client)
-  * [3.7 Message log add-on parameters: `[message-log]`](#37-message-log-add-on-parameters-message-log)
-    + [3.7.1 Note on logged X-Road message headers](#371-note-on-logged-x-road-message-headers)
-  * [3.8 Environmental monitoring add-on configuration parameters: `[env-monitor]`](#38-environmental-monitoring-add-on-configuration-parameters-env-monitor)
-- [4 Central Server System Parameters](#4-central-server-system-parameters)
-  * [4.1 System Parameters in the Configuration File](#41-system-parameters-in-the-configuration-file)
-    + [4.1.1 Common parameters: `[common]`](#411-common-parameters-common)
-    + [4.1.2 Center parameters: `[center]`](#412-center-parameters-center)
-    + [4.1.3 Signer parameters: `[signer]`](#413-signer-parameters-signer)
-  * [4.2 System Parameters in the Database](#42-system-parameters-in-the-database)
-  * [4.3 Global Configuration Generation Interval Parameter](#43-global-configuration-generation-interval-parameter)
-- [5 Configuration Proxy System Parameters](#5-configuration-proxy-system-parameters)
-    + [5.1 Configuration proxy module parameters: `[configuration-proxy]`](#51-configuration-proxy-module-parameters-configuration-proxy)
-    + [5.2 Signer parameters: `[signer]`](#52-signer-parameters-signer)
+- [X-Road: System Parameters User Guide](#x-road-system-parameters-user-guide)
+  - [Table of Contents](#table-of-contents)
+  - [License](#license)
+  - [1 Introduction](#1-introduction)
+    - [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
+    - [1.2 References](#12-references)
+  - [2 Changing the System Parameter Values](#2-changing-the-system-parameter-values)
+    - [2.1 Changing the System Parameter Values in Configuration Files](#21-changing-the-system-parameter-values-in-configuration-files)
+    - [2.2 Changing the System Parameter Values in the Central Server Database](#22-changing-the-system-parameter-values-in-the-central-server-database)
+    - [2.3 Changing the Global Configuration Generation Interval in the Central Server](#23-changing-the-global-configuration-generation-interval-in-the-central-server)
+  - [3 Security Server System Parameters](#3-security-server-system-parameters)
+    - [3.1 Common parameters : `[common]`](#31-common-parameters--common)
+    - [3.2 Proxy parameters: `[proxy]`](#32-proxy-parameters-proxy)
+    - [3.3 Proxy User Interface parameters: `[proxy-ui]`](#33-proxy-user-interface-parameters-proxy-ui)
+    - [3.4 Signer parameters: `[signer]`](#34-signer-parameters-signer)
+    - [3.5 Anti-DOS parameters: `[anti-dos]`](#35-anti-dos-parameters-anti-dos)
+    - [3.6 Configuration Client parameters: `[configuration-client]`](#36-configuration-client-parameters-configuration-client)
+    - [3.7 Message log add-on parameters: `[message-log]`](#37-message-log-add-on-parameters-message-log)
+      - [3.7.1 Note on logged X-Road message headers](#371-note-on-logged-x-road-message-headers)
+    - [3.8 Environmental monitoring add-on configuration parameters: `[env-monitor]`](#38-environmental-monitoring-add-on-configuration-parameters-env-monitor)
+  - [4 Central Server System Parameters](#4-central-server-system-parameters)
+    - [4.1 System Parameters in the Configuration File](#41-system-parameters-in-the-configuration-file)
+      - [4.1.1 Common parameters: `[common]`](#411-common-parameters-common)
+      - [4.1.2 Center parameters: `[center]`](#412-center-parameters-center)
+      - [4.1.3 Signer parameters: `[signer]`](#413-signer-parameters-signer)
+    - [4.2 System Parameters in the Database](#42-system-parameters-in-the-database)
+    - [4.3 Global Configuration Generation Interval Parameter](#43-global-configuration-generation-interval-parameter)
+  - [5 Configuration Proxy System Parameters](#5-configuration-proxy-system-parameters)
+    - [5.1 Configuration proxy module parameters: `[configuration-proxy]`](#51-configuration-proxy-module-parameters-configuration-proxy)
+    - [5.2 Signer parameters: `[signer]`](#52-signer-parameters-signer)
 
 <!-- tocstop -->
 
@@ -208,11 +218,14 @@ This chapter describes the system parameters used by the components of the X-Roa
 | jetty-serverproxy-configuration-file             | /etc/xroad/jetty/serverproxy.xml           |   |   | Absolute filename of the Jetty configuration file for the service provider's security server. For more information about configuring Jetty server, see https://wiki.eclipse.org/Jetty/Reference/jetty.xml\_usage. |
 | jetty-ocsp-responder-configuration-file          | /etc/xroad/jetty/ocsp-responder.xml        |   |   | Absolute filename of the Jetty configuration file for the OCSP responder of the service provider's security server. For more information about configuring Jetty server, see https://wiki.eclipse.org/Jetty/Reference/jetty.xml\_usage. |
 | ssl-enabled                                      | true                                       |   |   | If true, TLS is used for connections between the service client's and service provider's security servers. |
-| client-tls-ciphers                               | See [1](#Ref_note1)                                  |   |   | TLS ciphers (comma-separated list) enabled on the client-side interfaces (for both incoming and outgoing requests). (since version 6.7) |
-| client-tls-protocols                             | TLSv1.2                            |   |   | TLS protocols (comma-separated list) enabled on the client-side interfaces (for both incoming and outgoing requests). For backward compatibility TLSv1.1 is still supported on the client-side interfaces for outgoing requests (since version 6.7) |
+| client-tls-ciphers                               | See [1](#Ref_note1)                        |   |   | TLS ciphers (comma-separated list) enabled on the client-side interfaces (for both incoming and outgoing requests). (since version 6.7) |
+| xroad-tls-ciphers                                | See [2](#Ref_note2)                        |   |   | TLS ciphers (comma-separated list in preferred order) accepted on requests between security servers, and between operational monitoring daemon and client. (since version 6.20)  |
+| client-tls-protocols                             | TLSv1.2                                    |   |   | TLS protocols (comma-separated list) enabled on the client-side interfaces (for both incoming and outgoing requests). For backward compatibility TLSv1.1 is still supported on the client-side interfaces for outgoing requests (since version 6.7) |
+| server-connector-initial-idle-time               | 30000                                      |   |   | The initial idle time (in milliseconds) that unauthenticated connections are allowed to be idle before the provider security server starts closing them. Value of 0 means that an infinite idle time is allowed. | 
 | server-connector-max-idle-time                   | 0                                          | 120000 |   | The maximum time (in milliseconds) that connections from a service consuming security server to a service providing security server are allowed to be idle before the provider security server starts closing them. Value of 0 means that an infinite idle time is allowed. A non-zero value should allow some time for a pooled connection to be idle, if  pooled connections are to be supported.|
 | server-connector-so-linger                       | -1                                         |   |   | The SO_LINGER time (in seconds) at the service providing security server end for connections between security servers.<br>A value larger than 0 means that upon closing a connection, the system will allow SO_LINGER seconds for the transmission and acknowledgement of all data written to the peer, at which point the socket is closed gracefully. Upon reaching the linger timeout, the socket is closed forcefully, with a TCP RST. Enabling the option with a timeout of zero does a forceful close immediately.<br>Value of -1 disables the forceful close.|
 | server-support-clients-pooled-connections        | false                                      | true |   | Whether this service providing security server supports pooled connections from the service consumer side. If set to *false*, connections are to be closed immediately after each message. This may be a wanted approached for security servers behind load balancers. |
+| client-connector-initial-idle-time               | 30000                                      |   |   | The initial idle time (in milliseconds) that client connections are allowed to be idle before the security server starts closing them. Value of 0 means that an infinite idle time is allowed. |
 | client-connector-max-idle-time                   | 0                                          |   |   | The maximum time (in milliseconds) that connections from a service consumer to the service consumer's security server are allowed to be idle before the security server starts closing them. Value of 0 means that an infinite idle time is allowed.|
 | client-connector-so-linger                       | -1                                         |   |   | The SO_LINGER time (in seconds) at the service consuming security server end for connections between a consumer and a security server.<br>A value larger than 0 means that upon closing a connection, the system will allow SO_LINGER seconds for the transmission and acknowledgement of all data written to the peer, at which point the socket is closed gracefully. Upon reaching the linger timeout, the socket is closed forcefully, with a TCP RST. Enabling the option with a timeout of zero does a forceful close immediately.<br>Value of -1 disables the forceful close.|
 | client-httpclient-timeout                        | 0                                          |   |   | The maximum time (SO_TIMEOUT, in milliseconds) that connections from a service consuming security server to a service providing security server are allowed to wait for a response before the consumer end httpclient gives up. Value of 0 means that an infinite wait time is allowed. This does not affect idle connections.|
@@ -225,7 +238,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 | pool-validate-connections-after-inactivity-of-millis | 2000                                   |   |   | When reusing a pooled connection to a service providing security server, check that the connection (the socket) is not half-closed if it has been idle for at least this many milliseconds. This method cannot detect half-open connections. Value of -1 disables the check. |
 | pool-enable-connection-reuse                     | false                                      | true |   | Allow pooled connections between security servers to be used more than once on the client side. The service provider end of the connections has to have the setting `server-support-clients-pooled-connections=true` for the pooling to work between a provider and consumer security servers.|
 | client-use-fastest-connecting-ssl-socket-autoclose | true                                     |   |   | On TLS connections between security servers, should the underlying TCP-layer connection (socket) be closed on the service consumer end when the TLS layer connection is terminated.|
-| client-fastest-connecting-ssl-uri-cache-period      | 3600                                       |   |   | When a service consumer's security server finds the fastest responding service providing security server, how long the result should be kept in the TLS session cache? 0 to disable. |
+| client-fastest-connecting-ssl-uri-cache-period      | 3600                                    |   |   | When a service consumer's security server finds the fastest responding service providing security server, how long the result should be kept in the TLS session cache? 0 to disable. |
 | health-check-port                                | 0 (disabled)                               |   |   | The TCP port where the health check service listens to requests. Setting the port to 0 disables the health check service completely.|
 | health-check-interface                           | 0.0.0.0                                    |   |   | The network interface where the health check service listens to requests. Default is all available interfaces.|
 | actorsystem-port                                 | 5567                                       |   |   | The (localhost) port where the proxy actorsystem binds to. Used for communicating with xroad-signer and xroad-monitor. |
@@ -235,7 +248,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 
 | **Parameter**                                    | **Vanilla value**                          | **Description** |
 |--------------------------------------------------|--------------------------------------------|-----------------|
-| wsdl-validator-command                           |                                            | The command to validate the given X-Road service WSDL. The command script must:<br/>a) read the WSDL from the URI given as an argument or from standard input (*stdin*) if no arguments are given,<br/>b) return exit code 0 on success,<br/>c) return exit code 0 and write warnings to the standard error (*stderr*), if warnings occurs,<br/>d) return exit code other then 0 and write error messages to the standard error (*stderr*), if errors occurs.<br/>Defaults to no operation. |
+| wsdl-validator-command                           |                                            | The command to validate the given X-Road service WSDL. The command script must:<br/>a) read the WSDL from the URI given as an argument,<br/>b) return exit code 0 on success,<br/>c) return exit code 0 and write warnings to the standard error (*stderr*), if warnings occurs,<br/>d) return exit code other then 0 and write error messages to the standard error (*stderr*), if errors occurs.<br/>Defaults to no operation. |
 | auth-cert-reg-signature-digest-algorithm-id      | SHA-512                                    | Signature digest algorithm used for generating authentication certificate registration request.<br/>Possible values are<br/>-   SHA-256,<br/>-   SHA-384,<br/>-   SHA-512. |
 
 ### 3.4 Signer parameters: `[signer]`
@@ -244,13 +257,14 @@ This chapter describes the system parameters used by the components of the X-Roa
 |--------------------------------------------------|--------------------------------------------|----------------------|----------------------|-----------------|
 | ocsp-cache-path                                  | /var/cache/xroad                           |   |   | Absolute path to the directory where the cached OCSP responses are stored. |
 | enforce-token-pin-policy                         | false                                      | true |   | Controls enforcing the token pin policy. When set to true, software token pin is required to be at least 10 ASCII characters from at least tree character classes (lowercase letters, uppercase letters, digits, special characters). (since version 6.7.7) |
-| client-timeout                                   | 15000                                      |   |   | Signing timeout in milliseconds. |
+| client-timeout                                   | 60000                                      |   |   | Signing timeout in milliseconds. |
 | device-configuration-file                        | /etc/xroad/signer/devices.ini              |   |   | Absolute filename of the configuration file of the signature creation devices. |
 | key-configuration-file                           | /etc/xroad/signer/keyconf.xml              |   |   | Absolute filename of the configuration file containing signature and authentication keys and certificates. |
 | port                                             | 5556                                       |   |   | TCP port on which the signer process listens. |
 | key-length                                       | 2048                                       |   |   | Key length for generating authentication and signing keys (since version 6.7) |
 | csr-signature-digest-algorithm                   | SHA-256                                    |   |   | Certificate Signing Request signature digest algorithm.<br/>Possible values are<br/>-   SHA-256,<br/>-   SHA-384,<br/>-   SHA-512. |
 | ocsp-retry-delay                                 | 60                                         |   |   | OCSP retry delay for signer when fetching OCSP responses fail. After failing to fetch OCSP responses signer waits for the time period defined by "ocsp-retry-delay" before trying again. This is repeated until fetching OCSP responses succeeds. After successfully fetching OCSP responses signer returns to normal OCSP refresh schedule defined by "ocspFetchInterval". If the value of "ocsp-retry-delay" is higher than "ocspFetchInterval", the value of "ocspFetchInterval" is used as OCSP retry delay. |
+| module-manager-update-interval                   | 60                                         |   |   | HSM module manager update interval in seconds. |          
 
 ### 3.5 Anti-DOS parameters: `[anti-dos]`
 
@@ -288,7 +302,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 | hash-algo-id                                     | SHA-512                                    |   |   | The algorithm identifier used for hashing in the message log.<br/>Possible values are<br/>-   SHA-224,<br/>-   SHA-256,<br/>-   SHA-384,<br/>-   SHA-512. |
 | keep-records-for                                 | 30                                         |   |   | Number of days to keep time-stamped and archived records in the database of the security server. If a time-stamped and archived message record is older than this value, the record is deleted from the database. |
 | timestamp-immediately                            | false                                      |   |   | If true, the time-stamp is created synchronously for each request message. This is a security policy requirement to guarantee the time-stamp at the time of logging the message. |
-| timestamp-records-limit                          | 10000                                      |   |   |Maximum number of message records to time-stamp in one batch. |
+| timestamp-records-limit                          | 10000                                      |   |   | Maximum number of message records to time-stamp in one batch. If the number of message records in a single batch exceeds 70 % of `timestamp-records-limit` value, a warning is logged in `proxy.log`. |
 | timestamper-client-connect-timeout               | 20000                                      |   |   | The timestamper client connect timeout in milliseconds. A timeout of zero is interpreted as an infinite timeout. |
 | timestamper-client-read-timeout                  | 60000                                      |   |   | The timestamper client read timeout in milliseconds. A timeout of zero is interpreted as an infinite timeout. |
 | archive-transaction-batch                        | 10000                                      |   |   | Size of transaction batch for archiving messagelog. This size is not exact because it will always make sure that last archived batch includes timestamp also (this might mean that it will go over transaction size).
@@ -337,8 +351,8 @@ For instructions on how to change the parameter values, see section [Changing th
 | external-directory      | externalconf                            | Name of the signed external configuration directory that is distributed to the configuration clients (security servers and/or configuration proxies) of this and federated X-Road instances. |
 | generated-conf-dir      | /var/lib/xroad/public                   | Absolute path to the directory where both the private and shared parameter files are created for distribution. |
 | internal-directory      | internalconf                            | Name of the signed internal configuration directory that is distributed to the configuration clients (security servers and/or configuration proxies) of this X-Road instance. |
-| trusted-anchors-allowed | false                                   | True if federation is allowed for this X-Road instance. |
-| minimum-global-configuration-version | 2                          | Minimum supported global configuration version on central server. Change this if old global configuration versions need to be supported. |
+| trusted-anchors-allowed | true                                    | True if federation is allowed for this X-Road instance. |
+| minimum-global-configuration-version | 2                          | The minimum supported global configuration version on the central server. This parameter is used if the central server needs to generate multiple versions of global configuration. Note that the support for global configuration V1 has been dropped in X-Road 6.20.0 and since that version the minimum value for this parameter is 2. |
 
 #### 4.1.3 Signer parameters: `[signer]`
 
@@ -388,7 +402,7 @@ This chapter describes the system parameters used by the X-Road configuration pr
 | signature-digest-algorithm-id  | SHA-512                                 | ID of the digest algorithm the configuration proxy uses when computing global configuration signatures.<br/>The possible values are<br/>-   SHA-256,<br/>-   SHA-384,<br/>-   SHA-512. |
 | hash-algorithm-uri             | http://www.w3.org/2001/04/xmlenc#sha512 | URI that identifies the algorithm the configuration proxy uses when calculating hash values for the global configuration files.<br/>The possible values are<br/>http://www.w3.org/2001/04/xmlenc#sha256,<br/>http://www.w3.org/2001/04/xmlenc#sha512 |
 | download-script                | /usr/share/xroad/scripts/download\_instance\_configuration.sh | Absolute path to the location of the script that initializes the global configuration download procedure. |
-| minimum-global-configuration-version | 2                                 | Minimum supported global configuration version on configuration proxy. Change this if old global configuration versions need to be supported. |
+| minimum-global-configuration-version | 2                                 | The minimum supported global configuration version on the configuration proxy. This parameter is used if the configuration proxy needs to distribute multiple versions of global configuration. Note that the support for global configuration V1 has been dropped in X-Road 6.20.0 and since that version the minimum value for this parameter is 2. |
 
 ### 5.2 Signer parameters: `[signer]`
 
@@ -408,6 +422,10 @@ TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,
 TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
 TLS_DHE_RSA_WITH_AES_256_GCM_SHA384
 
+<a id="Ref_note2"></a>[2] Default value for proxy.xroad-tls-ciphers.
+>TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,
+TLS_DHE_RSA_WITH_AES_256_CBC_SHA256
+
 > (see [*https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider*](https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider) for possible values)
 >
-> Note. OpenJDK 8 on RHEL 7 does not support ECDHE key agreement protocol, only DHE cipher suites are supported.
+> Note. OpenJDK 8 on RHEL 7 supports ECDHE key agreement protocol starting from RHEL 7.3. In RHEL 7 versions prior to RHEL 7.3 only DHE cipher suites are supported.

@@ -18,6 +18,7 @@ en:
     help:
       title: "Help"
       version: "Version"
+      feedback: "Feedback"
 
   common:
     db_error: "Cannot connect to database server"

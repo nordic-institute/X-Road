@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide
 
-Version: 2.5  
+Version: 2.6  
 Doc. ID: UG-CS
 
 
@@ -30,6 +30,8 @@ Doc. ID: UG-CS
 | 5.9.2016   | 2.3     | Added instructions for configuring OCSP fetch interval. ||
 | 20.01.2017 | 2.4       | Added license text and version history | Sami Kallio |
 | 05.03.2018 | 2.5     | Added terms and abbreviations reference and document links | Tatu Repo |
+| 18.08.2018 | 2.6     | Corrected `ocspFetchInterval` default value (Chapter 16.2) | Petteri Kivimäki |
+| 15.11.2018 | 2.7     | Minor corrections for Ubuntu 18 | Jarkko Hyöty |
 
 ## Table of Contents
 <!-- toc -->
@@ -1079,7 +1081,7 @@ The default behavior can be changed by editing the rsyslog configuration file
 
 Restart the rsyslog service to apply the changes made to the configuration file
 
-`restart rsyslog`
+`service rsyslog restart`
 
 The audit log is rotated monthly by logrotate. To configure the audit log rotation, edit the logrotate configuration file
 
@@ -1138,11 +1140,11 @@ With verifyNextUpdate element value “false” the nextUpdate parameter checkin
 
 ## 16.2 OCSP fetch interval
 
-The xroad-signer component has a specific interval how often it downloads new OCSP [RFC-OCSP](#13-references) responses. By default the fetch interval is configured to 3600 seconds. To use something else than the default value a global configuration extension part (see [UC-GCONF](#13-references)) of specific format can be uploaded to central server.
+The xroad-signer component has a specific interval how often it downloads new OCSP [RFC-OCSP](#13-references) responses. By default the fetch interval is configured to 1200 seconds. To use something else than the default value a global configuration extension part (see [UC-GCONF](#13-references)) of specific format can be uploaded to central server.
 
 ```xml
 <xro:conf xmlns:xro="http://x-road.eu/xsd/xroad.xsd">
-    <ocspFetchInterval>3600</ocspFetchInterval>
+    <ocspFetchInterval>1200</ocspFetchInterval>
 </xro:conf>
 ```
 
@@ -1158,7 +1160,7 @@ Most significant central server services are the following:
 | xroad-signer      | The service that manages key settings.      |   `/var/log/xroad/signer.log` |
 | nginx | The Web server that distributes configuration and implements the TLS protocol in the user interface.      |    `/var/log/nginx/` |
 
-System services can be managed using the upstart facility.
+System services can be managed using the upstart (Ubuntu 14.04) or systemd facility.
 To start a service, issue the following command as a root user:
 
 `service <service> start`

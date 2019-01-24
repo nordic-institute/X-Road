@@ -126,7 +126,7 @@ pre {
             }
 
             a.active {
-                color:$base-color-red;
+                color:$xroad-light-blue;
             }
 
             &:hover {
@@ -446,3 +446,26 @@ body.wait *, body.wait {
     cursor: wait !important;
 }
 
+.xroad-purple-color {
+    color: $xroad-purple !important;
+}
+
+.xroad-purple-transparent-border {
+    border-color: $xroad-purple-transparent !important;
+}
+
+.xroad-purple-bg {
+    background-color: $xroad-purple !important;
+}
+
+.force-middle {
+    display: inline-block;
+    transform: translate(-50%, -50%);
+    left: 50%;
+    top: 50%;
+    position: absolute;
+}
+
+.mh35 {
+    max-height: 35px;
+}

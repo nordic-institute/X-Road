@@ -70,7 +70,7 @@ var XROAD_GROUPS = function() {
     }
 
     function addGroup(dialog) {
-        groupData = getNewGroupData();
+        var groupData = getNewGroupData();
 
         $.post("groups/group_add", groupData, function(response) {
             updateTable();

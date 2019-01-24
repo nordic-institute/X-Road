@@ -1,9 +1,11 @@
 # X-Road: Central Server Installation Guide
 
-Version: 2.7  
+Version: 2.9
 Doc. ID: IG-CS
 
+---
 
+## Version history
 | Date       | Version | Description                      | Author                |
 |------------|---------|----------------------------------|-----------------------|
 | 01.12.2014 | 1.0     | Initial version                                         ||
@@ -23,57 +25,63 @@ Doc. ID: IG-CS
 | 25.08.2017 | 2.5     | Update installation instructions concerning the support for environmental monitoring  | Ilkka Seppälä |
 | 05.03.2018 | 2.6     | Added terms and abbreviations reference, links to references and actual documents | Tatu Repo | 
 | 10.04.2018 | 2.7     | Updated chapter "[Installing the Support for Hardware Tokens](#26-installing-the-support-for-hardware-tokens)" with configurable parameters described in the configuration file 'devices.ini' | Cybernetica AS |
-
+| 14.10.2018 | 2.8     | Update package repository address | Petteri Kivimäki |
+| 15.11.2018 | 2.9     | Add Ubuntu 18.04 installation instructions | Jarkko Hyöty |
+ 
 ## Table of Contents
 
 <!-- toc -->
+<!-- vim-markdown-toc GFM -->
 
-- [License](#license)
-- [1. Introduction](#1-introduction)
-  * [1.1 Target Audience](#11-target-audience)
-  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
-  * [1.3 References](#13-references)
-- [2. Installation](#2-installation)
-  * [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
-  * [2.2 Reference Data](#22-reference-data)
-  * [2.3 Requirements to the Central Server](#23-requirements-to-the-central-server)
-  * [2.4 Preparing OS](#24-preparing-os)
-  * [2.5 Installation](#25-installation)
-  * [2.6 Installing the Support for Hardware Tokens](#26-installing-the-support-for-hardware-tokens)
-  * [2.7 Installing the Support for Environmental Monitoring](#27-installing-the-support-for-environmental-monitoring)
-- [3 Initial Configuration](#3-initial-configuration)
-  * [3.1 Reference Data](#31-reference-data)
-  * [3.2 Initializing the Central Server](#32-initializing-the-central-server)
-  * [3.3 Configuring the Central Server and the Management Services' Security Server](#33-configuring-the-central-server-and-the-management-services-security-server)
-- [4 Additional configuration](#4-additional-configuration)
-  * [4.1 Adding support for V1 global configuration](#41-adding-support-for-v1-global-configuration)
-- [5 Installation Error Handling](#5-installation-error-handling)
-  * [5.1 Cannot Set LC_ALL to Default Locale](#51-cannot-set-lc_all-to-default-locale)
-  * [5.2 PostgreSQL Is Not UTF8 Compatible](#52-postgresql-is-not-utf8-compatible)
-  * [5.3 Could Not Create Default Cluster](#53-could-not-create-default-cluster)
-  * [5.4 Is Postgres Running on Port 5432?](#54-is-postgres-running-on-port-5432)
+- [X-Road: Central Server Installation Guide](#x-road-central-server-installation-guide)
+  - [Version history](#version-history)
+  - [Table of Contents](#table-of-contents)
+  - [License](#license)
+  - [1. Introduction](#1-introduction)
+    - [1.1 Target Audience](#11-target-audience)
+    - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+    - [1.3 References](#13-references)
+  - [2. Installation](#2-installation)
+    - [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
+    - [2.2 Reference Data](#22-reference-data)
+    - [2.3 Requirements to the Central Server](#23-requirements-to-the-central-server)
+    - [2.4 Preparing OS](#24-preparing-os)
+    - [2.5 Installation](#25-installation)
+    - [2.6 Installing the Support for Hardware Tokens](#26-installing-the-support-for-hardware-tokens)
+    - [2.7 Installing the Support for Monitoring](#27-installing-the-support-for-monitoring)
+    - [2.8 Post-Installation Checks](#28-post-installation-checks)
+  - [3 Initial Configuration](#3-initial-configuration)
+    - [3.1 Reference Data](#31-reference-data)
+    - [3.2 Initializing the Central Server](#32-initializing-the-central-server)
+    - [3.3 Configuring the Central Server and the Management Services' Security Server](#33-configuring-the-central-server-and-the-management-services-security-server)
+  - [4 Additional configuration](#4-additional-configuration)
+    - [4.1 Global configuration V1 support](#41-global-configuration-v1-support)
+  - [5 Installation Error Handling](#5-installation-error-handling)
+    - [5.1 Cannot Set LC_ALL to Default Locale](#51-cannot-set-lcall-to-default-locale)
+    - [5.2 PostgreSQL Is Not UTF8 Compatible](#52-postgresql-is-not-utf8-compatible)
+    - [5.3 Could Not Create Default Cluster](#53-could-not-create-default-cluster)
+    - [5.4 Is Postgres Running on Port 5432?](#54-is-postgres-running-on-port-5432)
 
+<!-- vim-markdown-toc -->
 <!-- tocstop -->
-
 
 ## License
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
 
 
-# 1. Introduction
+## 1. Introduction
 
-## 1.1 Target Audience
+### 1.1 Target Audience
 
 The intended audience of this installation guide are the X-Road central server administrators responsible for installing and configuring the X-Road central server software.
 The document is intended for readers with a good knowledge of Linux server management, computer networks, and the X-Road functioning principles.
 
-
-## 1.2 Terms and abbreviations
+### 1.2 Terms and abbreviations
 
 See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
-## 1.3 References
+### 1.3 References
 
 1. <a id="Ref_UG-CS" class="anchor"></a>\[UG-CS\] Cybernetica AS. X-Road 6. Central Server User Guide. Document ID: [UG-CS](ug-cs_x-road_6_central_server_user_guide.md) 
 2. <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] Cybernetica AS. X-Road 6. Security Server Installation Guide. Document ID: [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md)
@@ -81,18 +89,16 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 4. <a id="Ref_IG-CSHA" class="anchor"></a>\[IG-CSHA\] Cybernetica AS. X-Road 6. Central Server High Availability Installation Guide. Document ID: [IG-CSHA](ig-csha_x-road_6_ha_installation_guide.md)
 5. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
+## 2. Installation
 
-# 2. Installation
+### 2.1 Prerequisites to Installation
 
-## 2.1 Prerequisites to Installation
-
-The central server software assumes an existing installation of the Ubuntu 14.04 operating system, on an x86-64bit platform.
+The central server software assumes an existing installation of the Ubuntu operating system, on an x86-64bit platform.
 To provide management services, a security server is installed alongside the central server.
 The central server’s software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 Note: If the central server is a part of a cluster for achieving high availability, the database cluster must be installed and configured before the central server itself can be installed. Please refer to the Central Server High Availability Installation Guide [IG-CSHA](#Ref_IG-CSHA) for details.
 
-
-## 2.2 Reference Data
+### 2.2 Reference Data
 
 Note: The information in empty cells will be determined at the latest during the server’s installation, by the person performing the installation.
 
@@ -100,9 +106,9 @@ Caution: Data necessary for the functioning of the operating system is not inclu
 
 | **Ref**              |                                                  | **Explanation**                                    |
 |----------------------|--------------------------------------------------|----------------------------------------------------|
-| 1.0 | Ubuntu 14.04, 64-bit, 2 GB RAM, 3 GB free disk space | Minimum requirements |
-| 1.1 | http://x-road.eu/packages | X-Road package repository |
-| 1.2 | http://x-road.eu/packages/xroad_repo.gpg | The repository key |
+| 1.0 | Ubuntu 14.04 or 18.04, 64-bit, 2 GB RAM, 3 GB free disk space | Minimum requirements |
+| 1.1 | https://artifactory.niis.org/xroad-release-deb | X-Road package repository |
+| 1.2 | https://artifactory.niis.org/api/gpg/key/public | The repository key |
 | 1.3 |  | Account name in the user interface |
 | 1.4 | TCP 4001 service for authentication certificate registration<br>TCP 80 distribution of the global configuration | Ports for inbound connections (from the external network to the central server) |
 | 1.5 | TCP 80 software updates | Ports for outbound connections (from the central server to the external network) |
@@ -112,61 +118,73 @@ Caution: Data necessary for the functioning of the operating system is not inclu
 | 1.9 | <by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field> | Information about the user interface TLS certificate |
 | 1.10 | <by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field> | Information about the services TLS certificate |
 
-
-## 2.3 Requirements to the Central Server
+### 2.3 Requirements to the Central Server
 
 Minimum recommended hardware parameters:
-- the server hardware (motherboard, CPU, network interface cards, storage system) must be supported by Ubuntu 14.04 in general;
+- the server hardware (motherboard, CPU, network interface cards, storage system) must be supported by Ubuntu in general;
 - a 64-bit dual-core Intel, AMD or compatible CPU;
 - 2 GB RAM;
 - 100 Mbps network interface card.
 
 Requirements for software and settings:
-- an installed and configured Ubuntu 14.04 LTS x86-64 operating system;
+- an installed and configured Ubuntu 14.04 or 18.04 LTS x86-64 operating system;
 - the necessary connections are allowed in the firewall (reference data: 1.4; 1.5; 1.6),
 - if the central server has a private IP address, a corresponding NAT record must be created in the firewall (reference data: 1.8).
 
+### 2.4 Preparing OS
 
-## 2.4 Preparing OS
+- Add a system user (reference data: 1.3) whom all roles in the user interface are granted to. 
 
-- Add a system user (reference data: 1.3) whom all roles in the user interface are granted to. Add the new user with the command: `sudo adduser username`. User roles are discussed in detail in the X-Road Security Server User Guide [UG-SS](#Ref_UG-SS).
-- Set the operating system locale. Add the following line to the file /etc/environment. `LC_ALL=en_US.UTF-8`
+  Add the new user with the command: `sudo adduser username`.  
+  User roles are discussed in detail in the X-Road Security Server User Guide [UG-SS](#Ref_UG-SS).
 
+- Set the operating system locale.
 
-## 2.5 Installation
+  Add the following line to the file /etc/environment: `LC_ALL=en_US.UTF-8`  
+  Ensure that the locale is generated: `sudo locale-gen en_US.UTF-8`
 
-Add the addresses of the X-Road package repository (reference data: 1.1), and the nginx and opendjdk repositories to the file /etc/apt/sources.list.d/xroad.list
+### 2.5 Installation
 
-`deb http://x-road.eu/packages trusty main`<br>
-`deb http://ppa.launchpad.net/nginx/stable/ubuntu trusty main`<br>
-`deb http://ppa.launchpad.net/openjdk-r/ppa/ubuntu trusty main`
+Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
+  ```
+  curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+  ```
 
-Add the signing keys of the X-Road and external repositories to the list of trusted keys (reference data: 1.2):
+Add X-Road package repository (**reference data: 1.1**)
 
-`curl http://x-road.eu/packages/xroad_repo.gpg | sudo apt-key add –`<br>
-`sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \ 00A6F0A3C300EE8C`<br>
-`sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \ EB9B1D8886F44E2A`
+  ```
+  sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
+  ```
+
+  *Ubuntu 14.04 only*: Add openjdk and nginx repositories
+  ```
+  sudo apt-add-repository -y ppa:openjdk-r/ppa
+  sudo apt-add-repository -y ppa:nginx/stable
+  ```
 
 Issue the following commands to install the central server packages:
 
-`sudo apt-get update`<br>
-`sudo apt-get install xroad-centralserver`
+  ```
+  sudo apt-get update
+  sudo apt-get install xroad-centralserver
+  ```
 
 Upon the first installation of the central server software, the system asks for the following information.
 
 - Account name for the user who will be granted the rights to perform all activities in the user interface (reference data: 1.3).
-- The Distinguished Name of the owner of the user interface self-signed TLS certificate (subjectDN) and its alternative names (subjectAltName). The certificate is used for securing connections to the user interface (reference data: 1.7; 1.9). The name and IP addresses detected from the operating system are suggested as default values. The certificate owner’s Distinguished Name must be entered in the format:
-`/CN=server.domain.tld` All IP addresses and domain names in use must be entered as alternative names in the format:
-`IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
+- The Distinguished Name of the owner of the user interface self-signed TLS certificate (subjectDN) and its alternative names (subjectAltName). The certificate is used for securing connections to the user interface (reference data: 1.7; 1.9). The name and IP addresses detected from the operating system are suggested as default values. 
+
+  The certificate owner’s Distinguished Name must be entered in the format: `/CN=server.domain.tld`. 
+  All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
+
 - Identification of the TLS certificate that is used for securing the HTTPS access point used for providing management services (reference data: 1.7; 1.10). The name and IP addresses detected from the operating system are suggested as default values.
-ATTENTION: The central server IP address or DNS name that security servers will use to connect to the server must be added to the certificate owner’s Distinguished Name (subjectDN) or alternative name forms (subjectAltName) list (reference data: 1.8).
-The certificate owner’s Distinguished Name must be entered in the format:
-`/CN=server.domain.tld`
-All IP addresses and domain names in use must be entered as alternative names in the format:
-`IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
 
+  ATTENTION: The central server IP address or DNS name that security servers will use to connect to the server must be added to the certificate owner’s Distinguished Name (subjectDN) or alternative name forms (subjectAltName) list (reference data: 1.8).
 
-## 2.6 Installing the Support for Hardware Tokens
+  The certificate owner’s Distinguished Name must be entered in the format: `/CN=server.domain.tld`
+  All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
+
+### 2.6 Installing the Support for Hardware Tokens
 
 To configure support for hardware security tokens (smartcard, USB token, Hardware Security Module), act as follows.
 
@@ -208,17 +226,41 @@ Parameter   | Type    | Default Value | Explanation
 **Note 1:** Only parameter *library* is mandatory, all the others are optional.  
 **Note 2:** The item separator of the type STRING LIST is ",".
 
+### 2.7 Installing the Support for Monitoring
 
-## 2.7 Installing the Support for Environmental Monitoring
-
-The optional configuration for environmental monitoring parameters is installed by package xroad-centralserver-monitoring. This package also includes the components that validate the updated xml monitoring configuration. The package is included in the central server installation by default.
+The optional configuration for monitoring parameters is installed by package xroad-centralserver-monitoring. This package also includes the components that validate the updated xml monitoring configuration. The package is included in the central server installation by default.
 
 The central monitoring client may be configured as specified in the [UG-CS](#Ref_UG-CS).
 
+### 2.8 Post-Installation Checks
 
-# 3 Initial Configuration
+The installation is successful if the system services are started and the user interface is responding.
 
-## 3.1 Reference Data
+-   Ensure from the command line that relevant X-Road services are in the `running` state (example output follows). Notice that it is normal for the xroad-confclient to be in `stopped` state on the central server since it operates in one-shot mode.
+
+    - Ubuntu 14.04
+        ```
+        sudo initctl list | grep "^xroad-"
+
+        xroad-jetty start/running, process 19796
+        xroad-confclient stop/waiting, process 19563
+        xroad-signer start/running, process 19393
+        ```
+
+    - Ubuntu 18.04
+        ```
+        sudo systemctl list-units "xroad*"
+
+        UNIT                     LOAD   ACTIVE SUB     DESCRIPTION
+        xroad-jetty.service      loaded active running X-Road Jetty server
+        xroad-signer.service     loaded active running X-Road signer
+        ```
+
+-   Ensure that the central server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display the “502 Bad Gateway” error.
+
+## 3 Initial Configuration
+
+### 3.1 Reference Data
 
 Note: The information in empty cells will be entered at the latest during the installation, by the person performing the installation.
 
@@ -232,7 +274,7 @@ Attention: Data necessary for the functioning of the operating system is not inc
 | 2.4     |        | Codes and descriptions of the member classes used in the X-Road instance |
 
 
-## 3.2 Initializing the Central Server
+### 3.2 Initializing the Central Server
 
 The central server user interface can be accessed at https://CENTRALSERVER:4000/ (reference data: 1.7; 1.6)
 
@@ -240,8 +282,7 @@ The central server user interface can be accessed at https://CENTRALSERVER:4000/
 2. Set the central server public DNS hostname or public IP address (reference data: 2.2).
 3. Set the PIN of the software token (reference data: 2.3). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN is lost.
 
-
-## 3.3 Configuring the Central Server and the Management Services' Security Server
+### 3.3 Configuring the Central Server and the Management Services' Security Server
 
 Upon the first configuration of the central server and the management services' security server, the following actions must be carried out.
 
@@ -264,56 +305,15 @@ appoint the subsystem as the management service provider - [UG-CS](#Ref_UG-CS) s
 12. Configure the management services. Refer to [UG-CS](#Ref_UG-CS) section „Configuring the Management Services in The Management Services’ Security Server”.
 
 
-# 4 Additional configuration
+## 4 Additional configuration
 
-## 4.1 Adding support for V1 global configuration
+### 4.1 Global configuration V1 support
 
-By default the central server produces only V2 global configuration which is expected by security servers from version 6.8.x and up. The central server can be configured to additionally produce also V1 global configuration to support version 6.7.x and older security servers with the following steps.
+The support for global configuration version V1 has been removed in X-Road version 6.20. The central server produces only V2 global configuration which is expected by security servers from version 6.8.x and up.
 
-1. Edit settings in `/etc/xroad/conf.d/local.ini` file and add the following configuration.
+## 5 Installation Error Handling
 
-```
-[center]
-minimum-global-configuration-version=1
-```
-
-2. Restart xroad-jetty to take the settings into use.
-
-`sudo service xroad-jetty restart`
-
-3. Configure nginx to distribute V1 global configuration from the default download location by editing `/etc/xroad/nginx/xroad-public.conf` file.
-
-```
-# extract version number from "version" query parameter
-map $args $version {
-        default                         "1";
-        "~(^|&)version=(?P<V>\d+)(&|$)" $V;
-}
-server {
-        listen 80;
-        access_log /var/log/nginx/localhost.access.log;
-        root /var/lib/xroad/public;
-        location ~ ^/(internal|external)conf$ {
-                try_files /V$version$uri =404;
-                expires -1;
-        }
-}
-```
-
-4. Restart nginx after editing the configuration.
-
-`sudo service nginx restart`
-
-5. If you are adding support for V1 global configuration on a clean installed central server you must define a value for identifier_decoder_method_name, otherwise the global configuration generation will fail. For example:
-
-`sudo -u postgres psql -c "update approved_cas set identifier_decoder_method_name = 'ee.ria.xroad.common.util.FISubjectClientIdDecoder.getSubjectClientId';" centerui_production`
-
-In the earlier X-Road 6.7.x versions this value was added through the user interface. If this value is not in the database the central server will display error message "Global configuration generation failing since xxx".
-
-
-# 5 Installation Error Handling
-
-## 5.1 Cannot Set LC_ALL to Default Locale
+### 5.1 Cannot Set LC_ALL to Default Locale
 
 If running the locale command results in the error message
 
@@ -334,8 +334,7 @@ Set the operating system locale. Add following line to /etc/environment file.
 
 After updating the system’s locale settings, it is recommended to restart the operating system.
 
-
-## 5.2 PostgreSQL Is Not UTF8 Compatible
+### 5.2 PostgreSQL Is Not UTF8 Compatible
 
 If the central server installation is aborted, with the error message
 
@@ -350,8 +349,7 @@ To complete the interrupted installation, run the command:
 
 `sudo apt-get -f install`
 
-
-## 5.3 Could Not Create Default Cluster
+### 5.3 Could Not Create Default Cluster
 
 If the following error message is displayed during PostgreSQL installation
 
@@ -366,8 +364,7 @@ The interrupted installation can be finished using
 
 `sudo apt-get -f install`
 
-
-## 5.4 Is Postgres Running on Port 5432?
+### 5.4 Is Postgres Running on Port 5432?
 
 If the following error message appears during installation
 

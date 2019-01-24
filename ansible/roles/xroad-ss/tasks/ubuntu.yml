@@ -1,16 +1,12 @@
 ---
-- name: Update all packages to the latest version
-  apt:
-    force: yes
-    upgrade: dist
-
 - name: install packages
   apt:
-    name: "{{ item }}"
+    name: "{{ items }}"
     state: present
-  with_items:
-    - postgresql
-    - postgresql-contrib
+  vars:
+    items:
+      - postgresql
+      - postgresql-contrib
 
 - name: debconf xroad-common
   debconf:
@@ -34,14 +30,6 @@
     
 - name: install xroad security server packages
   apt:
-    name: "{{ item }}"
+    name: "{{ vars['xroad_varpkg_' + variant] }}"
     state: latest
     force: yes
-  with_items:
-    - "{{ vars['xroad_varpkg_' + variant] }}"
-# these are dependencies of xroad-securityserver, no need to install them explicitely
-#    - xroad-common
-#    - xroad-jetty9
-#    - xroad-addon-messagelog
-#    - xroad-addon-metaservices
-#    - xroad-proxy

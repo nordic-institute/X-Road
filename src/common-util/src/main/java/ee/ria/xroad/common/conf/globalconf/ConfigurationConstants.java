@@ -1,6 +1,8 @@
 /**
  * The MIT License
- * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,31 +29,31 @@ package ee.ria.xroad.common.conf.globalconf;
  */
 public final class ConfigurationConstants {
 
-  private ConfigurationConstants() {
-  }
+    private ConfigurationConstants() {
+    }
 
-  /**
-   * The content identifier for the private parameters.
-   */
-  public static final String CONTENT_ID_PRIVATE_PARAMETERS =
-      "PRIVATE-PARAMETERS";
+    /**
+     * The content identifier for the private parameters.
+     */
+    public static final String CONTENT_ID_PRIVATE_PARAMETERS =
+            "PRIVATE-PARAMETERS";
 
-  /**
-   * The default file name of private parameters.
-   */
-  public static final String FILE_NAME_PRIVATE_PARAMETERS =
-      "private-params.xml";
+    /**
+     * The default file name of private parameters.
+     */
+    public static final String FILE_NAME_PRIVATE_PARAMETERS =
+            "private-params.xml";
 
-  /**
-   * The content identifier for the shared parameters.
-   */
-  public static final String CONTENT_ID_SHARED_PARAMETERS =
-      "SHARED-PARAMETERS";
+    /**
+     * The content identifier for the shared parameters.
+     */
+    public static final String CONTENT_ID_SHARED_PARAMETERS =
+            "SHARED-PARAMETERS";
 
-  /**
-   * The default file name of shared parameters.
-   */
-  public static final String FILE_NAME_SHARED_PARAMETERS =
-      "shared-params.xml";
+    /**
+     * The default file name of shared parameters.
+     */
+    public static final String FILE_NAME_SHARED_PARAMETERS =
+            "shared-params.xml";
 
 }

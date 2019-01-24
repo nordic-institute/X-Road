@@ -1,6 +1,8 @@
 /**
  * The MIT License
- * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -59,8 +61,8 @@ public class SkKlass3CertificateProfileInfoProvider implements CertificateProfil
             super(new DnFieldDescription[] {
                     new DnFieldDescriptionImpl("SN", "Serial Number (SN)", params.getServerId().getMemberCode())
                             .setReadOnly(true),
-                    new DnFieldDescriptionImpl("CN", "Common Name (CN)", params.getMemberName()).setReadOnly(true)
-                }
+                    new DnFieldDescriptionImpl("CN", "Common Name (CN)",
+                            params.getMemberName()).setReadOnly(true) }
             );
         }
     }
@@ -99,8 +101,7 @@ public class SkKlass3CertificateProfileInfoProvider implements CertificateProfil
                     ).setReadOnly(true),
                     new DnFieldDescriptionImpl("CN", "Common Name (CN)",
                         params.getMemberName()
-                    ).setReadOnly(true)
-                }
+                    ).setReadOnly(true) }
             );
 
             instanceIdentifier = params.getClientId().getXRoadInstance();

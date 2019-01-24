@@ -1,6 +1,8 @@
 /**
  * The MIT License
- * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +31,6 @@ import org.junit.Test;
 
 import java.nio.file.Paths;
 
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -106,72 +107,5 @@ public class ConfigurationDirectoryTest {
 
         ConfigurationDirectoryV2.verifyUpToDate(Paths.get("src/test/resources/globalconf_expired/foo/"
                 + ConfigurationDirectoryV2.PRIVATE_PARAMETERS_XML));
-    }
-
-    /**
-     * Test to ensure a correct configuration directory is read properly.
-     *
-     * @throws Exception in case of any unexpected errors
-     */
-    @Test
-    public void readDirectoryV1() throws Exception {
-        ConfigurationDirectoryV1 dir = new ConfigurationDirectoryV1("src/test/resources/globalconf_good_v1");
-
-        assertEquals("EE", dir.getInstanceIdentifier());
-
-        PrivateParametersV1 p = dir.getPrivate("foo");
-
-        assertNotNull(p);
-        assertEquals("foo", p.getInstanceIdentifier());
-
-        SharedParametersV1 s = dir.getShared("foo");
-
-        assertNotNull(s);
-        assertEquals("foo", s.getInstanceIdentifier());
-
-        dir.getShared("foo"); // intentional
-
-        assertNull(dir.getPrivate("bar"));
-        assertNotNull(dir.getShared("bar"));
-        assertNull(dir.getShared("xxx"));
-    }
-
-    /**
-     * Test to ensure an empty configuration directory is read properly.
-     *
-     * @throws Exception in case of any unexpected errors
-     */
-    @Test
-    public void readEmptyDirectoryV1() throws Exception {
-        ConfigurationDirectoryV1 dir = new ConfigurationDirectoryV1("src/test/resources/globalconf_empty");
-
-        assertNull(dir.getPrivate("foo"));
-        assertNull(dir.getShared("foo"));
-    }
-
-    /**
-     * Test to ensure that reading of a malformed configuration fails.
-     *
-     * @throws Exception in case of any unexpected errors
-     */
-    @Test
-    public void readMalformedDirectoryV1() throws Exception {
-        thrown.expectError(X_MALFORMED_GLOBALCONF);
-
-        ConfigurationDirectoryV1 dir = new ConfigurationDirectoryV1("src/test/resources/globalconf_malformed");
-
-        assertNull(dir.getPrivate("foo"));
-        assertNull(dir.getShared("foo"));
-    }
-
-    /**
-     * Test to ensure that reading of an outdated configuration fails.
-     */
-    @Test
-    public void readExpiredDirectoryV1() {
-        thrown.expectError(X_OUTDATED_GLOBALCONF);
-
-        ConfigurationDirectoryV1.verifyUpToDate(Paths.get("src/test/resources/globalconf_expired/foo/"
-                + ConfigurationDirectoryV1.PRIVATE_PARAMETERS_XML));
     }
 }

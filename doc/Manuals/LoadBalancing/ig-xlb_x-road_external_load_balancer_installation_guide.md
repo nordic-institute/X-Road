@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.4  
+Version: 1.6  
 Doc. ID: IG-XLB
 
 
@@ -11,58 +11,62 @@ Doc. ID: IG-XLB
 | 15.6.2017   | 1.2         | Added health check interface maintenance mode                                                                            | Tatu Repo                    |
 | 21.6.2017   | 1.3         | Added chapter 7 on [upgrading the security server cluster](#7-upgrading-a-clustered-x-road-security-server-installation) | Olli Lindgren                |
 | 02.03.2018  | 1.4         | Added uniform terms and conditions reference                                                                             | Tatu Repo                    |
+| 15.11.2018  | 1.5         | Updates for Ubuntu 18.04 support                                                                                         | Jarkko Hyöty                 |
+| 20.12.2018  | 1.6         | Update upgrade instructions                                                                                              | Jarkko Hyöty                 |
 
 ## Table of Contents
 
 <!-- toc -->
+<!-- vim-markdown-toc GFM -->
 
-- [License](#license)
-- [1. Introduction](#1-introduction)
+* [License](#license)
+* [1. Introduction](#1-introduction)
   * [1.1 Target Audience](#11-target-audience)
   * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
   * [1.3 References](#13-references)
-- [2. Overview](#2-overview)
+* [2. Overview](#2-overview)
   * [2.1 Goals and assumptions](#21-goals-and-assumptions)
   * [2.2 Communication with external servers and services: The cluster from the point of view of a client or service](#22-communication-with-external-servers-and-services-the-cluster-from-the-point-of-view-of-a-client-or-service)
   * [2.3 State replication from the master to the slaves](#23-state-replication-from-the-master-to-the-slaves)
-    + [2.3.1 Replicated state](#231-replicated-state)
+    * [2.3.1 Replicated state](#231-replicated-state)
         * [2.3.1.1 `serverconf` database replication](#2311-serverconf-database-replication)
         * [2.3.1.2 Key configuration and software token replication from `/etc/xroad/signer/*`](#2312-key-configuration-and-software-token-replication-from-etcxroadsigner)
         * [2.3.1.3 Other server configuration parameters from `/etc/xroad/*`](#2313-other-server-configuration-parameters-from-etcxroad)
-    + [2.3.2 Non-replicated state](#232-non-replicated-state)
+    * [2.3.2 Non-replicated state](#232-non-replicated-state)
         * [2.3.2.1 `messagelog` database](#2321-messagelog-database)
         * [2.3.2.2 OCSP responses from `/var/cache/xroad/`](#2322-ocsp-responses-from-varcachexroad)
-- [3. X-Road Installation and configuration](#3-x-road-installation-and-configuration)
+* [3. X-Road Installation and configuration](#3-x-road-installation-and-configuration)
   * [3.1 Prerequisites](#31-prerequisites)
   * [3.2 Master installation](#32-master-installation)
   * [3.3 Slave installation](#33-slave-installation)
   * [3.4 Health check service configuration](#34-health-check-service-configuration)
-    + [3.4.1 Known check result inconsistencies vs. actual state](#341-known-check-result-inconsistencies-vs-actual-state)
-    + [3.4.2 Health check examples](#342-health-check-examples)
-- [4. Database replication setup](#4-database-replication-setup)
+    * [3.4.1 Known check result inconsistencies vs. actual state](#341-known-check-result-inconsistencies-vs-actual-state)
+    * [3.4.2 Health check examples](#342-health-check-examples)
+* [4. Database replication setup](#4-database-replication-setup)
   * [4.1 Setting up TLS certificates for database authentication](#41-setting-up-tls-certificates-for-database-authentication)
   * [4.2 Creating a separate PostgreSQL instance for the `serverconf` database](#42-creating-a-separate-postgresql-instance-for-the-serverconf-database)
-    + [4.2.1 on RHEL](#421-on-rhel)
-    + [4.2.2 on Ubuntu](#422-on-ubuntu)
+    * [4.2.1 on RHEL](#421-on-rhel)
+    * [4.2.2 on Ubuntu](#422-on-ubuntu)
   * [4.3 Configuring the master instance for replication](#43-configuring-the-master-instance-for-replication)
   * [4.4 Configuring the slave instance for replication](#44-configuring-the-slave-instance-for-replication)
-- [5. Configuring data replication with rsync over SSH](#5-configuring-data-replication-with-rsync-over-ssh)
+* [5. Configuring data replication with rsync over SSH](#5-configuring-data-replication-with-rsync-over-ssh)
   * [5.1 Set up SSH between slaves and the master](#51-set-up-ssh-between-slaves-and-the-master)
   * [5.2 Set up periodic configuration synchronization on the slave nodes](#52-set-up-periodic-configuration-synchronization-on-the-slave-nodes)
-    + [5.2.1 RHEL: Use systemd for configuration synchronization](#521-rhel-use-systemd-for-configuration-synchronization)
-    + [5.2.2 Ubuntu: Use upstart and cron for configuration synchronization](#522-ubuntu-use-upstart-and-cron-for-configuration-synchronization)
+    * [5.2.1 RHEL/Ubuntu 18.04: Use systemd for configuration synchronization](#521-rhelubuntu-1804-use-systemd-for-configuration-synchronization)
+    * [5.2.2 Ubuntu 14.04: Use upstart and cron for configuration synchronization](#522-ubuntu-1404-use-upstart-and-cron-for-configuration-synchronization)
   * [5.3 Set up log rotation for the sync log on the slave nodes](#53-set-up-log-rotation-for-the-sync-log-on-the-slave-nodes)
-- [6. Verifying the setup](#6-verifying-the-setup)
+* [6. Verifying the setup](#6-verifying-the-setup)
   * [6.1 Verifying rsync+ssh replication](#61-verifying-rsyncssh-replication)
   * [6.2 Verifying database replication](#62-verifying-database-replication)
   * [6.3 Verifying replication from the admin user interface](#63-verifying-replication-from-the-admin-user-interface)
-- [7. Upgrading a clustered X-Road security server installation](#7-upgrading-a-clustered-x-road-security-server-installation)
+* [7. Upgrading a clustered X-Road security server installation](#7-upgrading-a-clustered-x-road-security-server-installation)
   * [7.1 Offline upgrade](#71-offline-upgrade)
   * [7.2 Online rolling upgrade](#72-online-rolling-upgrade)
-    + [7.2.1 Pausing the database and configuration synchronization](#721-pausing-the-database-and-configuration-synchronization)
-    + [7.2.2 Upgrading the master](#722-upgrading-the-master)
-    + [7.2.3 Upgrade a single slave node](#723-upgrade-a-single-slave-node)
+    * [7.2.1 Pausing the database and configuration synchronization](#721-pausing-the-database-and-configuration-synchronization)
+    * [7.2.2 Upgrading the master](#722-upgrading-the-master)
+    * [7.2.3 Upgrade a single slave node](#723-upgrade-a-single-slave-node)
 
+<!-- vim-markdown-toc -->
 <!-- tocstop -->
 
 ## License
@@ -410,9 +414,8 @@ Continue to [chapter 6](#6-verifying-the-setup) to verify the setup.
 
 For technical details on the PostgreSQL replication, refer to the [official documentation](https://www.postgresql.org/docs/9.2/static/high-availability.html).
 Note that the versions of PostgreSQL distributed with RHEL and Ubuntu are different. At the time of writing, RHEL 7
-distributes PostgreSQL version 9.2 and Ubuntu 14.04 distributes version 9.3; the replication configuration is the same
-for both versions.
-
+distributes PostgreSQL version 9.2, Ubuntu 14.04 distributes version 9.3, and Ubuntu 18.04 version 10; the replication configuration is the same
+for all these versions.
 
 ### 4.1 Setting up TLS certificates for database authentication
 This section describes how to create and set up certificate authentication between the slave and master database instances.
@@ -502,7 +505,7 @@ systemctl enable postgresql-serverconf
 ```bash
 sudo -u postgres pg_createcluster -p 5433 9.3 serverconf
 ```
-In the above command, `9.3` is the postgresql version. Use `pg_lsclusters` to find out what version(s) are available.
+In the above command, `9.3` is the postgresql major version. Use `pg_lsclusters` to find out what version(s) are available.
 
 
 **PostgreSQL configuration location:**
@@ -543,10 +546,15 @@ The `samenet` above assumes that the slaves will be in the same subnet as the ma
 
 Start the master instance:
 
-**Ubuntu:**
+**Ubuntu 14.04:**
 
 ```bash
 /etc/init.d/postgresql start
+```
+**Ubuntu 18.04:**
+
+```bash
+systemctl start postgresql@10-serverconf
 ```
 
 **RHEL:**
@@ -589,7 +597,7 @@ Prerequisites:
 
 Go to the postgresql data directory:
  * RHEL: `/var/lib/pgsql/serverconf`
- * Ubuntu: `/var/lib/postgresql/9.3/serverconf`
+ * Ubuntu: `/var/lib/postgresql/<postgresql major version>/serverconf`
 
 Clear the data directory:
 
@@ -646,11 +654,16 @@ Finally, start the database instance
 ```bash
 systemctl start postgresql-serverconf
 ```
-**Ubuntu:**
+**Ubuntu 14.04:**
 ```bash
 /etc/init.d/postgresql start
 ```
 Note that on Ubuntu, the command starts all configured database instances.
+
+**Ubuntu 18.04:**
+```bash
+systemctl start postgresql@10-serverconf
+```
 
 ## 5. Configuring data replication with rsync over SSH
 
@@ -690,7 +703,7 @@ there will be a small delay before the services are started.
 > Note that only modifications to the signer keyconf will be applied when the system is running. Changes to any other
 configuration files,  like `local.ini`, require restarting the services, which is not automatic.
 
-#### 5.2.1 RHEL: Use systemd for configuration synchronization
+#### 5.2.1 RHEL/Ubuntu 18.04: Use systemd for configuration synchronization
 
 First, add `xroad-sync` as a `systemd` service.
 
@@ -736,19 +749,20 @@ OnUnitActiveSec=60
 WantedBy=timers.target
 ```
 
-Next, configure SELinux to allow `rsync` to be run as a `systemd` service
+RHEL only: Configure SELinux to allow `rsync` to be run as a `systemd` service
 
 ```
 setsebool -P rsync_client 1
 setsebool -P rsync_full_access 1
 ```
+
 Finally, enable the services:
 ```
 systemctl enable xroad-sync.timer xroad-sync.service
 systemctl start xroad-sync.timer
 ```
 
-#### 5.2.2 Ubuntu: Use upstart and cron for configuration synchronization
+#### 5.2.2 Ubuntu 14.04: Use upstart and cron for configuration synchronization
 
 First, create the main upstart task for syncing.
 
@@ -914,8 +928,15 @@ The steps are in more detail below, but in short, the procedure is:
     following command:
 
     ```bash
+    # PostgreSQL version < 10
     sudo -u postgres psql -p 5433 -c 'select pg_xlog_replay_pause();'
     ```
+
+    ```bash
+    # PostgreSQL version >= 10
+    sudo -u postgres psql -p 5433 -c 'select pg_wal_replay_pause();'
+    ```
+
 2. Disable the configuration synchronization on the slave nodes:
     ```
     sudo -u xroad touch /var/tmp/xroad/sync-disabled
@@ -978,35 +999,38 @@ Repeat this process for each slave node, one by one.
 
 3. Enable database synchronization on the slave:
    ```
+   #PostgreSQL version < 10
    sudo -u postgres psql -p 5433 -c 'select pg_xlog_replay_resume()'
+   ```
+   ```
+   #PostgreSQL version >= 10
+   sudo -u postgres psql -p 5433 -c 'select pg_wal_replay_resume()'
    ```
    Note that the above command assumes that the `serverconf` database is running in port `5433`.
 
-4. Enable the shared configuration synchronization on the slave node:
+   **Note:** Before proceeding, make sure that the database is up to date. The following should return `t`:
+   ```
+   #PostgreSQL < 10
+   sudo -u postgres psql -p 5433 -c 'select pg_last_xlog_replay_location() = pg_last_xlog_receive_location()'
+   ```
+   ```
+   #PostgreSQL >= 10
+   sudo -u postgres psql -p 5433 -c 'select pg_last_wal_replay_lsn() = pg_last_wal_receive_lsn()'
+   ```
+4. Upgrade the packages on the slave node to the new software version.
+
+5. Enable the shared configuration synchronization on the slave node:
    ```
    sudo rm /var/tmp/xroad/sync-disabled
    ```
-5. Wait for the master node changes to propagate to the slave node.
+6. Wait for the master node configuration changes to propagate to the slave node.
 
    The configuration synchronization can be forced, if necessary.
 
-   **Ubuntu:**
    ```
-   sudo start xroad-sync
+   service xroad-sync start
    ```
-
-   **RHEL:**
-   ```
-   sudo systemctl start xroad-sync
-   ```
-
-   **Note:** Before proceeding, make sure that the database is up to date. The following should return `t`:
-   ```
-   sudo -u postgres psql -p 5433 -c 'select pg_last_xlog_replay_location() = pg_last_xlog_receive_location()'
-   ```
-6. Upgrade the packages on the slave node to the new software version.
-
-7. Start the X-Road services and wait until the slave node is healthy.
+7. Restart the X-Road services and wait until the slave node is healthy.
 
 8. After the node is healthy, enable the slave node in the load balancer if you manually disabled it. If using the
    maintenance mode, it was cleared on `xroad-proxy` service restart. See

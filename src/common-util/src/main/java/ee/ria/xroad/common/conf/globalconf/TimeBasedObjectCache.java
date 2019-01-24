@@ -1,6 +1,8 @@
 /**
  * The MIT License
- * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,47 +37,47 @@ import java.util.Map;
 @Slf4j
 public class TimeBasedObjectCache {
 
-  @Value
-  private static class TimeAndValue {
-    private LocalDateTime time;
-    private Object value;
-  }
-
-  private final int expireSeconds;
-
-  private Map<String, TimeAndValue> values = new HashMap<>();
-
-  /**
-   * Constructor.
-   */
-  public TimeBasedObjectCache(int expireSeconds) {
-    if (expireSeconds < 0) {
-      throw new IllegalArgumentException("Cache expiration period cannot be negative");
+    @Value
+    private static class TimeAndValue {
+        private LocalDateTime time;
+        private Object value;
     }
-    this.expireSeconds = expireSeconds;
-    log.trace("creating TimeBasedObjectCache with expiration of {} seconds", expireSeconds);
-  }
 
-  /**
-   * Check if cache value is valid
-   */
-  public boolean isValid(String key) {
-    TimeAndValue timeAndValue = values.get(key);
-    LocalDateTime now = LocalDateTime.now().minusSeconds(expireSeconds);
-    return timeAndValue != null && timeAndValue.getTime().isAfter(now);
-  }
+    private final int expireSeconds;
 
-  /**
-   * Get value from cache. The user should first check the validity with isValid.
-   */
-  public Object getValue(String key) {
-    return values.get(key).getValue();
-  }
+    private Map<String, TimeAndValue> values = new HashMap<>();
 
-  /**
-   * Set cache value.
-   */
-  public void setValue(String key, Object value) {
-    values.put(key, new TimeAndValue(LocalDateTime.now(), value));
-  }
+    /**
+     * Constructor.
+     */
+    public TimeBasedObjectCache(int expireSeconds) {
+        if (expireSeconds < 0) {
+            throw new IllegalArgumentException("Cache expiration period cannot be negative");
+        }
+        this.expireSeconds = expireSeconds;
+        log.trace("creating TimeBasedObjectCache with expiration of {} seconds", expireSeconds);
+    }
+
+    /**
+     * Check if cache value is valid
+     */
+    public boolean isValid(String key) {
+        TimeAndValue timeAndValue = values.get(key);
+        LocalDateTime now = LocalDateTime.now().minusSeconds(expireSeconds);
+        return timeAndValue != null && timeAndValue.getTime().isAfter(now);
+    }
+
+    /**
+     * Get value from cache. The user should first check the validity with isValid.
+     */
+    public Object getValue(String key) {
+        return values.get(key).getValue();
+    }
+
+    /**
+     * Set cache value.
+     */
+    public void setValue(String key, Object value) {
+        values.put(key, new TimeAndValue(LocalDateTime.now(), value));
+    }
 }

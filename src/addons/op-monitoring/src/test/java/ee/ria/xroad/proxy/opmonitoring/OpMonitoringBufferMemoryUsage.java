@@ -1,6 +1,8 @@
 /**
  * The MIT License
- * Copyright (c) 2016 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -149,23 +151,20 @@ public final class OpMonitoringBufferMemoryUsage {
         return runtime.totalMemory() - runtime.freeMemory();
     }
 
-    private static Map<Long, OpMonitoringData> createBuffer(int count,
-            int shortStrLen, int longStrLen) {
+    private static Map<Long, OpMonitoringData> createBuffer(int count, int shortStrLen, int longStrLen) {
         Map<Long, OpMonitoringData> buffer = new LinkedHashMap<>();
         OpMonitoringData record;
 
         for (long i = 0; i < count; ++i) {
-            record = new OpMonitoringData(
-                    OpMonitoringData.SecurityServerType.PRODUCER, MILLIS);
+            record = new OpMonitoringData(OpMonitoringData.SecurityServerType.PRODUCER, MILLIS);
             record.setRequestInTs(MILLIS);
             record.setRequestOutTs(MILLIS);
             record.setResponseInTs(MILLIS);
-            record.setResponseOutTs(MILLIS);
+            record.setResponseOutTs(MILLIS, true);
 
             record.setClientId(createClient(shortStrLen, longStrLen));
             record.setServiceId(createService(shortStrLen, longStrLen));
-            record.setRepresentedParty(createRepresentedParty(shortStrLen,
-                    longStrLen));
+            record.setRepresentedParty(createRepresentedParty(shortStrLen, longStrLen));
 
             record.setMessageId(getDummyStr(longStrLen));
             record.setMessageUserId(getDummyStr(longStrLen));

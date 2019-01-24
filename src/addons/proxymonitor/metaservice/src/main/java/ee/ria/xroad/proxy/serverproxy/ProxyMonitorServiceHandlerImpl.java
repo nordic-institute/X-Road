@@ -1,6 +1,8 @@
 /**
  * The MIT License
- * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +35,7 @@ import ee.ria.xroad.common.message.SoapMessageEncoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.util.XmlUtils;
 import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxymonitor.ProxyMonitor;
@@ -133,7 +136,7 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
 
         final StringMetricType version = new StringMetricType();
         version.setName("proxyVersion");
-        version.setValue(ProxyMain.getVersion());
+        version.setValue(ProxyMain.readProxyVersion());
         root.getMetrics().add(version);
 
         if (client != null) {
@@ -170,7 +173,7 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
      * @throws Exception
      */
     private Document parse(ProxyMessage proxyRequestMessage) throws Exception {
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory dbf = XmlUtils.createDocumentBuilderFactory();
         dbf.setNamespaceAware(true);
         DocumentBuilder db = dbf.newDocumentBuilder();
         byte[] bytes = proxyRequestMessage.getSoap().getBytes();

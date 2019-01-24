@@ -1,6 +1,8 @@
 /**
  * The MIT License
- * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -513,9 +515,10 @@ class ServerMessageProcessor extends MessageProcessorBase {
                 exception = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
             }
 
-            opMonitoringData.setSoapFault(exception);
-
             monitorAgentNotifyFailure(exception);
+
+            opMonitoringData.setSoapFault(exception);
+            opMonitoringData.setResponseOutTs(getEpochMillisecond(), false);
 
             encoder.fault(SoapFault.createFaultXml(exception));
             encoder.close();
@@ -635,9 +638,11 @@ class ServerMessageProcessor extends MessageProcessorBase {
         @Override
         public void soap(SoapMessage message, Map<String, String> headers) throws Exception {
             responseSoap = (SoapMessageImpl) message;
-            encoder.soap(responseSoap, headers);
 
             opMonitoringData.setResponseSoapSize(responseSoap.getBytes().length);
+            opMonitoringData.setResponseOutTs(getEpochMillisecond(), true);
+
+            encoder.soap(responseSoap, headers);
         }
 
         @Override

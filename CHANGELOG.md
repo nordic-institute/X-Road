@@ -1,19 +1,61 @@
 # Change Log
 
+## 6.20.0 - 2019-01-23
+- XTE-427 / XRDDEV-108: Operational monitoring timestamp 'responseOutTs' is taken just before payload byte array is sent out with HTTP response.
+- XRDDEV-8: Update wsdlvalidator to use the latest Apache CXF wsdlvalidator version.
+- XRDDEV-117: Secure XML external entity processing
+- XRDDEV-105: Fix global configuration returning outdated data
+- XRDDEV-119: Add NIIS as copyright owner in license files and source code license headers (.java, .rb)
+- XRDDEV-94: Create security server installation packages for Ubuntu 18.04 LTS
+- XRDDEV-106: Improved performance by making authentication key and signing context caching implementation more efficient
+- XRDDEV-86: Separate X-Road version number from packaging
+- XRDDEV-29: Update cryptographic strength of key exchange to 128bits on communication between security servers and op monitoring. Introduce whitelist setting to configure accepted cipher suites.
+- XRDDEV-62: Log a warning in proxy.log when the amount of timestamped records reaches 70% of timestamp-records-limit
+- XRDDEV-141: Fix queries can fail when the service provider's subsystem is registered in multiple security servers and only some of the host names do not resolve.
+- XRDDEV-162: NIIS package repository updated to documentation
+- XRDDEV-150, XRDDEV-60: Central Server: Added script for changing IP address of cluster nodes & updated document IG-CSHA respectively.
+- XRDDEV-144: Change BatchSigner to use configuration parameter for timeouts
+- XRDDEV-165: Fix ClientProxy to enforce defined cipher suites
+- XRDDEV-145: Batch time-stamping cycle is repeated until the number of time-stamped records is lower than "timestamp-records-limit".
+- XRDDEV-29: The cipher suite that's used in connections between Security Servers was changed so that cryptographic strength of key exchange is 128 bits.
+- XRDDEV-95, XRDDEV-96: Fixes to Ubuntu 18 packaging. Add Ubuntu 18 support to local development environment. Discard xroad-common package (Ubuntu) and remove dependencies to obsoleted xroad-common (RHEL).
+- XRDDEV-138: Fix namespace in metaservices document
+- XRDDEV-143: Make Signer's module manager update interval configurable
+- XRDDEV-169: Add installation instructions for Security Server on RHEL7
+- XRDDEV-184: Conver UG-SIGDOC from Word to Markdown.
+- XRDDEV-192: Add support for extracting message from ASiC container when verification of the container fails.
+- XRDDEV-220: Fix FastestSocketSelector can cause timeout if none of the target hosts' names are resolvable.
+- XRDDEV-170: Update security server cluster Ansible setup scripts to support Ubuntu 18.04.
+- XRDDEV-191: Fix environmental monitoring daemon missing from the architecture document
+- XRDDEV-146: Drop support for global configuration v1
+- XRDDEV-10: Replace outdated Logback logging module by Slf4jRequestLog
+- XRDDEV-229: Update default authentication and signing key length to 3072 bits (Finnish national settings)
+- XRDDEV-231: Add X-Road brand colors and and X-Road logo int CS and SS layouts
+- XRDDEV-232: Add feedback page
+- XRDDEV-177: Change version number format
+- XRDDEV-108: Set operational monitoring timestamp 'responseOutTs' just before payload byte array is sent.
+- XRDDEV-101: Installation instructions for Ubuntu 18
+- XRDDEV-178: Add Ubuntu 18 support to Central Server clustering
+- XRDDEV-168: Remove unnecessary Ruby helper method
+- XRDDEV-248: Avoid infinite read timeout when establishing a connection to security server.
+- XRDDEV-257: Remove dependency on ntpd.
+- XRDDEV-256: Add option that displays the X-Road software version to the AsicVerifier utility.
+
 ## 6.19.0 - 2018-09-27
 - PVAYLADEV-1107/XRJD #214: Security Server: Fix SSL handshake does not include internal certificate's certificate chain.
 - PVAYLADEV-1139: Documentation: Update build and development environment instructions.
 - PVAYLADEV-785: Security Server: Fix malformed global configuration can cause a NPE in the admin UI.
 - PVAYLADEV-1137/XRJD #228: Security server: List approved certificate authorities.
-- XRDDEV-36: Fixed Messagelog tests randomly failing
-- XRDDEV-39: Fix subsystem registration request failing on CIS hardened RHEL security server
-- XRDDEV-53: Fix access right error message in webview
+- XRDDEV-36: Fixed Messagelog tests randomly failing.
+- XRDDEV-39: Fix subsystem registration request failing on CIS hardened RHEL security server.
+- XRDDEV-53: Fix access right error message in webview.
 - XRDDEV-51: Security Server refresh OCSP responses recovery algorithm during OCSP responder service breaks was changed from Fibonacci based schedule to fixed schedule.
-- XRDDEV-79: Fix X-Road package dependencies on Ubuntu 14 so that OpenJDK 8 is always installed
+- XRDDEV-79: Fix X-Road package dependencies on Ubuntu 14 so that OpenJDK 8 is always installed.
 - XRDDEV-28: Fix performance problem in FastestConnectionSelectingSSLSocketFactory when connecting to a clustered X-Road server.
 - XRDDEV-85: Fix failure in message log archiving.
-- XRDDEV-61: Fix last hash step tmp files written in the filesystem
-- XRDDEV-74: Fix blocker and critical level issues reported by SonarQube static analysis
+- XRDDEV-61: Fix last hash step tmp files written in the filesystem.
+- XRDDEV-74: Fix blocker and critical level issues reported by SonarQube static analysis.
+- XRDEV-60 / XTE-425: Central Server: Added script for changing IP address of cluster nodes.
 
 ## 6.18.0 - 2018-05-14
 - XTE-314 / Backlog #221: Central Server: Bugfix: Write globalconf files atomic way.

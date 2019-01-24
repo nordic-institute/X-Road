@@ -1,0 +1,88 @@
+#!/bin/bash
+
+set -e
+
+umask 007
+
+if [ "$1" = configure ]; then
+    # Make sure the administrative user exists
+    if ! getent passwd xroad > /dev/null; then
+        adduser --system --quiet --home /var/lib/xroad --no-create-home \
+            --shell /bin/bash --group --gecos "X-Road system user" xroad
+    fi
+
+    # check validity of xroad user and group
+    if [ "`id -u xroad`" -eq 0 ]; then
+        echo "The xroad system user must not have uid 0 (root).
+Please fix this and reinstall this package." >&2
+        exit 1
+    fi
+    if [ "`id -g xroad`" -eq 0 ]; then
+        echo "The xroad system user must not have root as primary group.
+Please fix this and reinstall this package." >&2
+        exit 1
+    fi
+    #add xroad to shadow group for pam
+    adduser xroad shadow
+
+    # ensure home directory ownership
+    mkdir -p /var/lib/xroad/backup
+    su - xroad -c "test -O /var/lib/xroad && test -G /var/lib/xroad" || chown xroad:xroad /var/lib/xroad
+    chown xroad:xroad /var/lib/xroad/backup
+    chmod 0775 /var/lib/xroad
+
+    # nicer log directory permissions
+    mkdir -p -m 1770 /var/log/xroad
+    chmod 1770 /var/log/xroad
+    chown xroad:adm /var/log/xroad
+
+    # test and fix config folder
+    su - xroad -c "test -O /etc/xroad && test -G /etc/xroad" || chown xroad:xroad /etc/xroad
+    chmod 0751 /etc/xroad
+
+    #tmp folder
+    mkdir -p /var/tmp/xroad
+    chmod 1750 /var/tmp/xroad
+    chown xroad:xroad /var/tmp/xroad
+
+    # create socket directory
+    [ -d /var/run/xroad ] || \
+       install -d -m 2770 -o xroad -g xroad /var/run/xroad
+
+    #local overrides
+    test -f /etc/xroad/services/local.conf || touch /etc/xroad/services/local.conf
+    test -f /etc/xroad/conf.d/local.ini || touch /etc/xroad/conf.d/local.ini
+
+    test -d /etc/xroad/conf.d || mkdir -p -m 0750 /etc/xroad/conf.d && chown xroad:xroad /etc/xroad/conf.d
+    test -d /etc/xroad/ssl || mkdir -p -m 0750 /etc/xroad/ssl && chown xroad:xroad /etc/xroad/ssl
+    test -e /etc/nginx/sites-enabled/default && rm /etc/nginx/sites-enabled/default
+
+    chmod 0750 /etc/xroad/ssl
+    chown -R xroad:xroad /etc/xroad/ssl
+
+    chmod 0750 /etc/xroad/services
+    chown -R xroad:xroad /etc/xroad/services
+
+    chown -R xroad:xroad /etc/xroad/conf.d
+    chmod -R u=rwX,g=rX,o= /etc/xroad/services /etc/xroad/conf.d
+
+    chmod 0440 /etc/sudoers.d/xroad-restore
+
+    test -d /etc/xroad/backup.d || mkdir -p /etc/xroad/backup.d
+    chmod 0750 /etc/xroad/backup.d
+    chown -R xroad:xroad /etc/xroad/backup.d
+
+    #check if java trustAnchor file is non-empty. add certs if neccecary
+    if [ ! -s "/etc/ssl/certs/java/cacerts" ]; then
+        /usr/sbin/update-ca-certificates -f
+    fi
+fi
+
+if [ "$1" = triggered ]; then
+    # triggered if /etc/xroad is changed
+    # fix configuration directory permissions
+    chown -R xroad:xroad /etc/xroad/conf.d /etc/xroad/services ||:
+    chmod -R u=rwX,g=rX,o= /etc/xroad/services /etc/xroad/conf.d ||:
+fi
+exit 0
+

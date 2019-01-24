@@ -1,6 +1,8 @@
 /**
  * The MIT License
- * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,38 +25,31 @@
 package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.db.HibernateUtil;
-import ee.ria.xroad.common.logging.RequestLogImplFixLogback1052;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonHttpClient;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.StartStop;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.antidos.AntiDosConnector;
-import ee.ria.xroad.proxy.conf.AuthKeyManager;
+import ee.ria.xroad.proxy.util.SSLContextUtil;
 
-import ch.qos.logback.access.jetty.RequestLogImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.Slf4jRequestLog;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.SecureRandom;
 
 /**
  * Server proxy that handles requests of client proxies.
@@ -151,7 +146,7 @@ public class ServerProxy implements StartStop {
         connector.setHost(listenAddress);
 
         connector.setSoLingerTime(CONNECTOR_SO_LINGER_MILLIS);
-        connector.setIdleTimeout(SystemProperties.getServerProxyConnectorMaxIdleTime());
+        connector.setIdleTimeout(SystemProperties.getServerProxyConnectorInitialIdleTime());
 
         connector.getConnectionFactories().stream()
                 .filter(cf -> cf instanceof HttpConnectionFactory)
@@ -165,10 +160,11 @@ public class ServerProxy implements StartStop {
     private void createHandlers() {
         log.trace("createHandlers()");
 
+        final Slf4jRequestLog reqLog = new Slf4jRequestLog();
+        reqLog.setLoggerName(getClass().getPackage().getName() + ".RequestLog");
+        reqLog.setExtended(true);
+
         RequestLogHandler logHandler = new RequestLogHandler();
-        RequestLogImpl reqLog = new RequestLogImplFixLogback1052();
-        reqLog.setResource("/logback-access-serverproxy.xml");
-        reqLog.setQuiet(true);
         logHandler.setRequestLog(reqLog);
 
         ServerProxyHandler proxyHandler = new ServerProxyHandler(client, opMonitorClient);
@@ -224,15 +220,11 @@ public class ServerProxy implements StartStop {
     private static ServerConnector createClientProxySslConnector(Server server) throws Exception {
         SslContextFactory cf = new SslContextFactory(false);
         cf.setNeedClientAuth(true);
-        cf.setIncludeCipherSuites(CryptoUtils.getINCLUDED_CIPHER_SUITES());
+        cf.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);
+        cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
-
-        SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[]{AuthKeyManager.getInstance()}, new TrustManager[]{new AuthTrustManager()},
-                new SecureRandom());
-
-        cf.setSslContext(ctx);
+        cf.setSslContext(SSLContextUtil.createXroadSSLContext());
 
         return SystemProperties.isAntiDosEnabled()
                 ? new AntiDosConnector(server, ACCEPTOR_COUNT, cf)

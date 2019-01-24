@@ -26,6 +26,13 @@ et:
       name:  "XROAD keskserver"
       version: "versioon"
 
+  feedback:
+    index:
+      instruction_text_html: "X-Road enhancement requests and error reports can be submitted to the %{service_desk_link}. %{sign_up_link} for an account and get access to the %{service_desk_link_0} and %{backlog_link}."
+      service_desk: "X-Road Service Desk"
+      sign_up: "Sign up"
+      backlog: "X-Road Backlog"
+
   backup:
     index:
       item:

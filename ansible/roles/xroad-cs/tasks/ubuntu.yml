@@ -1,16 +1,12 @@
 ---
-- name: Update all packages to the latest version
-  apt:
-    force: yes
-    upgrade: dist
-
 - name: install packages
   apt:
-    name: "{{ item }}"
+    name: "{{ items }}"
     state: present
-  with_items:
-    - postgresql
-    - postgresql-contrib
+  vars:
+    items:
+      - postgresql
+      - postgresql-contrib
 
 - name: debconf xroad-common
   debconf:

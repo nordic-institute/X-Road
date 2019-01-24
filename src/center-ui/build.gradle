@@ -91,7 +91,7 @@ task runPgHaTests(dependsOn: [updatePostgresDbSchema], type: Exec) {
 
 task checkRubySource(type: Exec) {
     inputs.files fileTree('app') + fileTree('lib')
-    outputs.files file('build/rubocop_report.txt')
+    outputs.files file('build/rubocop-result.json')
     commandLine = getRubySourceCheckCommand("$projectDir")
 }
 
@@ -112,3 +112,10 @@ task licenseFormatAddsCheck(type:nl.javadude.gradle.plugins.license.License) {
 
 licenseFormat.dependsOn licenseFormatAdds
 licenseTest.dependsOn licenseFormatAddsCheck
+
+sonarqube {
+    properties {
+        properties["sonar.sources"] += [file('app'), file('lib'), file('public')]
+        property "sonar.ruby.rubocop.reportPath", file('build/rubocop-result.json')
+    }
+}

@@ -1,6 +1,8 @@
 /**
  * The MIT License
- * Copyright (c) 2016 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -209,12 +211,17 @@ public class OpMonitoringData {
     }
 
     /**
-     * Sets the "response out" timestamp. In case the field
-     * assignResponseOutTsToResponseInTs is true,
-     * the same value is assigned to the "response in" also.
+     * Sets the "response out" timestamp. In case the field assignResponseOutTsToResponseInTs is
+     * true, the same value is assigned to the "response in" also.
+     *
      * @param timestamp Unix timestamp in milliseconds
+     * @param overwrite if true, old value is overwritten, otherwise old value remains
      */
-    public void setResponseOutTs(long timestamp) {
+    public void setResponseOutTs(long timestamp, boolean overwrite) {
+        if (!overwrite && data.get(RESPONSE_OUT_TIMESTAMP) != null) {
+            return;
+        }
+
         if (assignResponseOutTsToResponseInTs) {
             setResponseInTs(timestamp);
         }

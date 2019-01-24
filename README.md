@@ -1,7 +1,7 @@
 
 ![X-Road logo](xroad_logo_small.png) ![European Regional Development Fund](eu_logo.png "European Regional Development Fund - DO NOT REMOVE THIS IMAGE BEFORE 01.11.2022")
 
-## About the repository
+## About the repository 
 
 This repository contains information about the X-Road, source codes, its development, installation and documentation.
 
@@ -97,6 +97,7 @@ Consultation services for deploying independent X-Road instances should be obtai
 * [Cybercom Finland Oy](http://www.cybercom.fi)
 * [Cybernetica AS](https://cyber.ee)
 * [Gofore Oyj](https://www.gofore.com)
+* [Planetway Corp.](https://planetway.com/en/)
 * [Roksnet Solutions OÜ](https://roksnet.com)
 
 No support for X-Road deployment is provided here.

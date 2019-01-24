@@ -1,6 +1,8 @@
 /**
  * The MIT License
- * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -164,6 +166,33 @@ public class MessageLogTest extends AbstractMessageLogTest {
         assertEquals(0, getDeadLetters().size());
 
         log.info("dead letters: " + getDeadLetters());
+    }
+
+    /**
+     * Test for system property timestamp-records-limit
+     */
+    @Test
+    public void testTimestampRecordsLimit() throws Exception {
+        log.trace("testTimestampRecordsLimit()");
+        int orig = MessageLogProperties.getTimestampRecordsLimit();
+        try {
+            System.setProperty(MessageLogProperties.TIMESTAMP_RECORDS_LIMIT, "2");
+            log(createMessage(), createSignature());
+            log(createMessage(), createSignature());
+            log(createMessage(), createSignature());
+            log(createMessage(), createSignature());
+            log(createMessage(), createSignature());
+            assertTaskQueueSize(5);
+
+            startTimestamping();
+
+            TimestampSucceeded timestamp = waitForTimestampSuccessful();
+            assertTrue(TestTaskQueue.waitForTimestampSaved());
+
+            assertEquals(2, timestamp.getMessageRecords().length);
+        } finally {
+            System.setProperty(MessageLogProperties.TIMESTAMP_RECORDS_LIMIT, String.valueOf(orig));
+        }
     }
 
     /**

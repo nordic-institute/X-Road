@@ -85,7 +85,7 @@ var XROAD_GROUP_EDIT = function() {
     function editDescription(dialog) {
         var newDescription = $("#group_description_edit_value").val();
 
-        params = {
+        var params = {
             groupId: groupId,
             description: newDescription
         };
@@ -118,7 +118,7 @@ var XROAD_GROUP_EDIT = function() {
     }
 
     function getRemovableMemberIds() {
-        result = [];
+        var result = [];
 
         $.each(oGroupMembers.getSelectedData(), function(index, each) {
             result.push({
@@ -404,7 +404,7 @@ var XROAD_GROUP_EDIT = function() {
     }
 
     function initGroupMembersAddDialog() {
-        var dialog = $("#group_members_add_dialog").initDialog({
+        $("#group_members_add_dialog").initDialog({
             autoOpen: false,
             modal: true,
             height: 600,

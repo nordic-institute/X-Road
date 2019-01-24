@@ -2,35 +2,46 @@
 - name: Update all packages to the latest version
   apt:
     force: yes
-    upgrade: dist
-
-- name: "update apt cache"
-  apt:
+    upgrade: full
     update_cache: yes
 
 - name: install packages
   apt:
-    name: "{{ item }}"
+    name: "{{ items }}"
     state: present
-  with_items:
-    - git
-    - curl
-    - apt-transport-https
-    - apt-utils
-    - net-tools
+  vars:
+    items:
+      - acl
+      - git
+      - curl
+      - apt-transport-https
+      - apt-utils
+      - net-tools
 
-- name: install apt repo key
+- name: install trusty apt repo key
   apt_key:
-    url: "{{ubuntu_apt_key}}"
+    url: "{{ubuntu_14_apt_key}}"
     state: present
-  when: package_source == "remote"
+  when: package_source == "remote" and ansible_distribution_release == "trusty"
 
-- name: xroad apt repository
+- name: install bionic apt repo key
+  apt_key:
+    url: "{{ubuntu_18_apt_key}}"
+    state: present
+  when: package_source == "remote" and ansible_distribution_release == "bionic"
+
+- name: xroad trusty apt repository
   apt_repository:
-    repo: "{{ubuntu_apt_repo}}"
+    repo: "{{ubuntu_14_apt_repo}}"
     state: present
+  when: ansible_distribution_release == "trusty"
 
-# ppa doesn't work with debian, only ubuntu
+- name: xroad bionic apt repository
+  apt_repository:
+    repo: "{{ubuntu_18_apt_repo}}"
+    state: present
+  when: ansible_distribution_release == "bionic"
+
 - name: openjdk and nginx repositories
   apt_repository:
     repo: "ppa:{{ item }}"

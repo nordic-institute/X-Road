@@ -10,7 +10,7 @@
     var params;
 
     function enableActions(prefix) {
-        certViewButton = $("#" + prefix + "_cert_view");
+        var certViewButton = $("#" + prefix + "_cert_view");
         certViewButton.hide();
 
         if (hasCert) {
@@ -102,7 +102,7 @@
         $("#" + prefix + "_url").val(_url);
         $("#" + prefix + "_cert_file").text("");
 
-        certUploadButton = $("#" + prefix + "_cert_button");
+        var certUploadButton = $("#" + prefix + "_cert_button");
         certUploadButton.hide();
 
         if (certOptional) {

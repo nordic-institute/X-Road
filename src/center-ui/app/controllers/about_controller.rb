@@ -1,6 +1,8 @@
 #
 # The MIT License
-# Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+# Copyright (c) 2018 Estonian Information System Authority (RIA),
+# Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+# Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,12 +22,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
+java_import Java::ee.ria.xroad.common.Version
 
 class AboutController < ApplicationController
+
   before_filter :verify_get
 
   def index
-    @version = %x[dpkg-query -f '${Version}' -W xroad-center 2>&1].strip
-    @version = t('about.unknown') unless $?.exitstatus == 0
+      @version = Version::XROAD_VERSION
   end
 end
