@@ -1,8 +1,6 @@
 /**
  * The MIT License
- * Copyright (c) 2018 Estonian Information System Authority (RIA),
- * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
- * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2019 Planetway Europe OÜ
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,33 +20,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.tokenmanager.module;
+package ee.ria.xroad.signer;
 
-import akka.actor.Props;
-import lombok.extern.slf4j.Slf4j;
+import ee.ria.xroad.common.SystemProperties;
+
+import scala.concurrent.duration.Duration;
+import scala.concurrent.duration.FiniteDuration;
+
+import java.util.concurrent.TimeUnit;
 
 /**
- * Default module manager supporting only software modules.
+ * Contains Signer properties.
  */
-@Slf4j
-public class DefaultModuleManagerImpl extends AbstractModuleManager {
+public final class SignerProperties {
 
-    @Override
-    protected void initializeModule(ModuleType module) {
-        if (module instanceof SoftwareModuleType) {
-            initializeSoftwareModule((SoftwareModuleType) module);
-        }
+    private SignerProperties() {
     }
 
-    void initializeSoftwareModule(SoftwareModuleType softwareModule) {
-        if (getContext().getChild(softwareModule.getType()) != null) {
-            // already initialized
-            return;
-        }
+    private static final int MODULE_MANAGER_UPDATE_INTERVAL_SECONDS = SystemProperties.getModuleManagerUpdateInterval();
 
-        log.debug("Initializing software module");
-
-        Props props = Props.create(SoftwareModuleWorker.class);
-        initializeModuleWorker(softwareModule, props);
-    }
+    public static final FiniteDuration MODULE_MANAGER_UPDATE_INTERVAL =
+            Duration.create(MODULE_MANAGER_UPDATE_INTERVAL_SECONDS, TimeUnit.SECONDS);
 }

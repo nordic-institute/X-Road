@@ -24,7 +24,10 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
+import ee.ria.xroad.signer.SignerMain;
+
 import akka.actor.Props;
+import akka.actor.Terminated;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -48,10 +51,37 @@ public class HardwareModuleManagerImpl extends DefaultModuleManagerImpl {
         if (!isModuleInitialized(hardwareModule)) {
             try {
                 Props props = Props.create(HardwareModuleWorker.class, hardwareModule).withDispatcher(DISPATCHER);
-                initializeModuleWorker(hardwareModule.getType(), props);
+                initializeModuleWorker(hardwareModule, props);
             } catch (Exception e) {
                 log.error("Error initializing hardware module '" + hardwareModule.getType() + "'", e);
             }
+        }
+    }
+
+    @Override
+    public void onMessage(Object message) throws Exception {
+        if (message instanceof Terminated) {
+            Terminated terminatedMessage = (Terminated) message;
+            String name = terminatedMessage.getActor().path().name();
+            log.error("Hardware module " + name + " terminated.");
+
+            SignerMain.exit(1);
+        } else {
+            super.onMessage(message);
+        }
+    }
+
+    @Override
+    protected ModuleBackoffOptions getModuleBackoffOptions(ModuleType module) {
+        if (module instanceof HardwareModuleType) {
+            HardwareModuleType hardwareModuleType = (HardwareModuleType) module;
+            ModuleBackoffOptions moduleBackoffOptions = new ModuleBackoffOptions();
+            moduleBackoffOptions.setMaxNrOfRetries(hardwareModuleType.getBackoffMaxRetries());
+            moduleBackoffOptions.setMinSeconds(hardwareModuleType.getBackoffMinSeconds());
+            moduleBackoffOptions.setMaxSeconds(hardwareModuleType.getBackoffMaxSeconds());
+            return moduleBackoffOptions;
+        } else {
+            return super.getModuleBackoffOptions(module);
         }
     }
 }

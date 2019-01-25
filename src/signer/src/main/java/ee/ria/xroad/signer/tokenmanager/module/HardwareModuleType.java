@@ -53,4 +53,10 @@ public class HardwareModuleType implements ModuleType {
     private final PrivKeyAttributes privKeyAttributes;
 
     private final PubKeyAttributes pubKeyAttributes;
+
+    private final Long backoffMinSeconds;
+
+    private final Long backoffMaxSeconds;
+
+    private final Integer backoffMaxRetries;
 }

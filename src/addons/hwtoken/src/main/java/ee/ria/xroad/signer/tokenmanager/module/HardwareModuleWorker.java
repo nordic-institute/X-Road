@@ -72,15 +72,8 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
 
         log.info("Initializing module '{}' (library: {})", module.getType(), module.getPkcs11LibraryPath());
 
-        try {
-            pkcs11Module = moduleGetInstance(module.getPkcs11LibraryPath());
-
-            pkcs11Module.initialize(getInitializeArgs(module.getLibraryCantCreateOsThreads(), module.getOsLockingOk()));
-        } catch (Throwable t) {
-            // Note that we catch all serious errors here since we do not want Signer to crash if the module could
-            // not be loaded for some reason.
-            throw new RuntimeException(t);
-        }
+        pkcs11Module = moduleGetInstance(module.getPkcs11LibraryPath());
+        pkcs11Module.initialize(getInitializeArgs(module.getLibraryCantCreateOsThreads(), module.getOsLockingOk()));
     }
 
     private static InitializeArgs getInitializeArgs(Boolean libraryCantCreateOsThreads, Boolean osLockingOk) {

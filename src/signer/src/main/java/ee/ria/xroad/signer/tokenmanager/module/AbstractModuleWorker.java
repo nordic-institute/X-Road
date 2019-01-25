@@ -24,6 +24,7 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
+import ee.ria.xroad.signer.SignerProperties;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.token.TokenType;
@@ -31,6 +32,7 @@ import ee.ria.xroad.signer.util.AbstractUpdateableActor;
 import ee.ria.xroad.signer.util.Update;
 
 import akka.actor.ActorRef;
+import akka.actor.Cancellable;
 import akka.actor.OneForOneStrategy;
 import akka.actor.Props;
 import akka.actor.SupervisorStrategy;
@@ -38,12 +40,15 @@ import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Module worker base class.
  */
 @Slf4j
 public abstract class AbstractModuleWorker extends AbstractUpdateableActor {
+
+    private Cancellable updateSchedule;
 
     @Override
     public SupervisorStrategy supervisorStrategy() {
@@ -54,10 +59,11 @@ public abstract class AbstractModuleWorker extends AbstractUpdateableActor {
     public void preStart() throws Exception {
         try {
             initializeModule();
+            scheduleUpdates();
         } catch (Exception e) {
             log.error("Failed to initialize module", e);
 
-            getContext().stop(getSelf());
+            throw e;
         }
     }
 
@@ -67,6 +73,8 @@ public abstract class AbstractModuleWorker extends AbstractUpdateableActor {
             deinitializeModule();
         } catch (Exception e) {
             log.error("Failed to deinitialize module", e);
+        } finally {
+            unscheduleUpdates();
         }
     }
 
@@ -152,6 +160,22 @@ public abstract class AbstractModuleWorker extends AbstractUpdateableActor {
             return info;
         } else {
             return TokenManager.createToken(tokenType);
+        }
+    }
+
+    private void scheduleUpdates() {
+        updateSchedule = getContext().system().scheduler().schedule(
+                Duration.create(1, TimeUnit.SECONDS),
+                SignerProperties.MODULE_MANAGER_UPDATE_INTERVAL,
+                getSelf(),
+                new Update(),
+                getContext().system().dispatcher(),
+                ActorRef.noSender());
+    }
+
+    private void unscheduleUpdates() {
+        if (updateSchedule != null) {
+            updateSchedule.cancel();
         }
     }
 }

@@ -44,7 +44,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-import java.util.concurrent.TimeoutException;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CENTER;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
@@ -126,14 +125,6 @@ public final class SignerMain {
         } catch (Exception e) {
             log.error("Error stopping admin port", e);
         }
-
-        try {
-            Await.ready(actorSystem.terminate(), Duration.Inf());
-        } catch (TimeoutException e) {
-            log.error("Timed out while waiting for akka to terminate");
-        } catch (InterruptedException e) {
-            log.error("Interrupted while waiting for akka to terminate");
-        }
     }
 
     private static AdminPort createAdminPort(int signerPort) {
@@ -188,4 +179,16 @@ public final class SignerMain {
         return conf.withValue("akka.remote.netty.tcp.port",
                 ConfigValueFactory.fromAnyRef(signerPort));
     }
+
+    /**
+      * Terminate the actor system and exit with status code.
+      * @param statusCode
+      */
+    public static void exit(int statusCode) {
+        if (actorSystem != null) {
+            actorSystem.terminate();
+        }
+        System.exit(statusCode);
+    }
+
 }

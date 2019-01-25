@@ -67,8 +67,9 @@ public final class ServiceLocator {
      */
     public static ActorSelection getToken(UntypedActorContext context,
             String tokenId) {
-        String path = String.format("/user/%s/%s/%s", MODULE_MANAGER,
-                getModuleId(tokenId), tokenId);
+        String moduleId = getModuleId(tokenId);
+        String path = String.format("/user/%s/%s/%s/%s", MODULE_MANAGER,
+                moduleId, moduleId, tokenId);
         return context.actorSelection(path);
     }
 

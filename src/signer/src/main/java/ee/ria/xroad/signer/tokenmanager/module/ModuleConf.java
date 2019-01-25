@@ -65,6 +65,9 @@ public final class ModuleConf {
     private static final Map<String, Long> SUPPORTED_KEY_ALLOWED_MECHANISMS = createSupportedKeyAllowedMechanismMap();
 
     private static final String DEFAULT_SIGN_MECHANISM_NAME = PKCS11Constants.NAME_CKM_RSA_PKCS;
+    private static final Long DEFAULT_BACKOFF_MIN_SECONDS = 10L;
+    private static final Long DEFAULT_BACKOFF_MAX_SECONDS = 600L;
+    private static final Integer DEFAULT_BACKOFF_MAX_RETRIES = 6;
 
     // Module configuration fields.
     private static final String ENABLED_PARAM = "enabled";
@@ -92,6 +95,9 @@ public final class ModuleConf {
     private static final String PRIV_KEY_ATTRIBUTE_NEVER_EXTRACTABLE_PARAM = "priv_key_attribute_never_extractable";
     private static final String PRIV_KEY_ATTRIBUTE_WRAP_WITH_TRUSTED_PARAM = "priv_key_attribute_wrap_with_trusted";
     private static final String PRIV_KEY_ATTRIBUTE_ALLOWED_MECHANISMS_PARAM = "priv_key_attribute_allowed_mechanisms";
+    private static final String BACKOFF_MIN_SECONDS = "backoff_min_seconds";
+    private static final String BACKOFF_MAX_SECONDS = "backoff_max_seconds";
+    private static final String BACKOFF_MAX_RETRIES = "backoff_max_retries";
 
     private static FileContentChangeChecker changeChecker = null;
 
@@ -240,11 +246,17 @@ public final class ModuleConf {
         PubKeyAttributes pubKeyAttributes = loadPubKeyAttributes(section);
         PrivKeyAttributes privKeyAttributes = loadPrivKeyAttributes(section);
 
-        log.debug("Read module configuration (UID = {}, library = {}, library_cant_create_os_threads = {}"
+        Long backoffMinSeconds = getLong(section, BACKOFF_MIN_SECONDS, DEFAULT_BACKOFF_MIN_SECONDS);
+        Long backoffMaxSeconds = getLong(section, BACKOFF_MAX_SECONDS, DEFAULT_BACKOFF_MAX_SECONDS);
+        Integer backoffMaxRetries = getInteger(section, BACKOFF_MAX_RETRIES, DEFAULT_BACKOFF_MAX_RETRIES);
+
+        log.info("Read module configuration (UID = {}, library = {}, library_cant_create_os_threads = {}"
                 + ", os_locking_ok = {}, token_id_format = {}, pin_verification_per_signing = {}, batch_signing = {}"
-                + ", sign_mechanism = {}, pub_key_attributes = {}, priv_key_attributes = {})",
+                + ", sign_mechanism = {}, pub_key_attributes = {}, priv_key_attributes = {}"
+                + ", backoffMinSeconds = {}, backoffMaxSeconds = {}, backoffMaxRetries = {})",
                 uid, library, libraryCantCreateOsThreads, osLockingOk, tokenIdFormat, verifyPin, batchSigning,
-                signMechanismName, pubKeyAttributes, privKeyAttributes);
+                signMechanismName, pubKeyAttributes, privKeyAttributes,
+                backoffMinSeconds, backoffMaxSeconds, backoffMaxRetries);
 
         if (MODULES.containsKey(uid)) {
             log.warn("Module information already defined for {}, skipping...", uid);
@@ -253,7 +265,8 @@ public final class ModuleConf {
         }
 
         MODULES.put(uid, new HardwareModuleType(uid, library, libraryCantCreateOsThreads, osLockingOk, tokenIdFormat,
-                verifyPin, batchSigning, readOnly, signMechanismName, privKeyAttributes, pubKeyAttributes));
+                verifyPin, batchSigning, readOnly, signMechanismName, privKeyAttributes, pubKeyAttributes,
+                backoffMinSeconds, backoffMaxSeconds, backoffMaxRetries));
     }
 
     private static PubKeyAttributes loadPubKeyAttributes(SubnodeConfiguration section) {
@@ -321,6 +334,24 @@ public final class ModuleConf {
     private static String[] getStringArray(SubnodeConfiguration section, String key) {
         try {
             return section.getStringArray(key);
+        } catch (ConversionException e) {
+            throw new ConversionException(String.format("Invalid value of '%s' for module (%s), skipping...",
+                    key, section.getSubnodeKey()), e);
+        }
+    }
+
+    private static Long getLong(SubnodeConfiguration section, String key, Long defaultValue) {
+        try {
+            return section.getLong(key, defaultValue);
+        } catch (ConversionException e) {
+            throw new ConversionException(String.format("Invalid value of '%s' for module (%s), skipping...",
+                    key, section.getSubnodeKey()), e);
+        }
+    }
+
+    private static Integer getInteger(SubnodeConfiguration section, String key, Integer defaultValue) {
+        try {
+            return section.getInteger(key, defaultValue);
         } catch (ConversionException e) {
             throw new ConversionException(String.format("Invalid value of '%s' for module (%s), skipping...",
                     key, section.getSubnodeKey()), e);
