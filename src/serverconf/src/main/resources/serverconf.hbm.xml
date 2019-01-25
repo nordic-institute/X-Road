@@ -76,12 +76,7 @@
         <property name="disabledNotice" access="field"/>
         <property name="refreshedDate" access="field"/>
 
-        <property name="type">
-            <type name="org.hibernate.type.EnumType">
-                <param name="enumClass">ee.ria.xroad.common.conf.serverconf.model.DescriptionType</param>
-                <param name="useNamed">true</param>
-            </type>
-        </property>
+        <property name="type" access="field" not-null="true"/>
 
         <bag name="service" access="field" cascade="all-delete-orphan"
                 inverse="true">
