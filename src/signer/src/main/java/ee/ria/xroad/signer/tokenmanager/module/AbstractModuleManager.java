@@ -31,19 +31,22 @@ import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
 import ee.ria.xroad.signer.tokenmanager.ServiceLocator;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.AbstractUpdateableActor;
-import ee.ria.xroad.signer.util.Update;
 
 import akka.actor.ActorRef;
 import akka.actor.OneForOneStrategy;
 import akka.actor.Props;
 import akka.actor.SupervisorStrategy;
+import akka.pattern.Backoff;
+import akka.pattern.BackoffSupervisor;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
 import static java.util.Objects.requireNonNull;
@@ -55,6 +58,9 @@ import static java.util.Objects.requireNonNull;
 public abstract class AbstractModuleManager extends AbstractUpdateableActor {
 
     private final SystemProperties.NodeType serverNodeType = SystemProperties.getServerNodeType();
+
+    private static final Long BACKOFF_MIN_SECONDS = 10L;
+    private static final Long BACKOFF_MAX_SECONDS = 600L;
 
     @Override
     public SupervisorStrategy supervisorStrategy() {
@@ -77,8 +83,6 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
         if (SLAVE.equals(serverNodeType)) {
             mergeConfiguration();
         }
-
-        updateModuleWorkers();
 
         if (!SLAVE.equals(serverNodeType)) {
             persistConfiguration();
@@ -105,12 +109,6 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
         Collection<ModuleType> modules = ModuleConf.getModules();
         addNewModules(modules);
         removeLostModules(modules);
-    }
-
-    private void updateModuleWorkers() {
-        for (ActorRef worker : getContext().getChildren()) {
-            worker.tell(new Update(), getSelf());
-        }
     }
 
     private void persistConfiguration() {
@@ -160,10 +158,11 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
         }
     }
 
-    void initializeModuleWorker(String name, Props props) {
+    void initializeModuleWorker(ModuleType moduleType, Props props) {
+        String name = moduleType.getType();
         log.trace("Starting module worker for module '{}'", name);
 
-        getContext().watch(getContext().actorOf(props, name));
+        getContext().watch(getContext().actorOf(backoffSupervisorProps(name, props, moduleType), name));
     }
 
     void deinitializeModuleWorker(String name) {
@@ -189,5 +188,44 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
                 .filter(m -> m.getType().equals(moduleId))
                 .findFirst()
                 .isPresent();
+    }
+
+    private Props backoffSupervisorProps(String childName, Props childProps, ModuleType module) {
+        ModuleBackoffOptions moduleBackoffOptions = getModuleBackoffOptions(module);
+        return BackoffSupervisor.props(
+                Backoff.onFailure(
+                        childProps,
+                        childName,
+                        Duration.create(moduleBackoffOptions.minSeconds, TimeUnit.SECONDS),
+                        Duration.create(moduleBackoffOptions.maxSeconds, TimeUnit.SECONDS),
+                        0.0)
+                        .withSupervisorStrategy(backoffStrategy(moduleBackoffOptions.maxNrOfRetries)));
+    }
+
+    private OneForOneStrategy backoffStrategy(int maxNrOfRetries) {
+        return new OneForOneStrategy(maxNrOfRetries, Duration.Inf(), t -> {
+            // Throwable can be an ActorInitializationException caused by a PKCS11Exception.
+            if (t instanceof PKCS11Exception || t.getCause() instanceof PKCS11Exception) {
+                return SupervisorStrategy.restart();
+            } else {
+                return SupervisorStrategy.resume();
+            }
+        });
+    }
+
+    protected ModuleBackoffOptions getModuleBackoffOptions(ModuleType module) {
+        ModuleBackoffOptions moduleBackoffOptions = new ModuleBackoffOptions();
+        moduleBackoffOptions.setMaxNrOfRetries(-1);
+        moduleBackoffOptions.setMinSeconds(BACKOFF_MIN_SECONDS);
+        moduleBackoffOptions.setMaxSeconds(BACKOFF_MAX_SECONDS);
+        return moduleBackoffOptions;
+    }
+
+    @Data
+    protected static class ModuleBackoffOptions {
+
+        private int maxNrOfRetries;
+        private long minSeconds;
+        private long maxSeconds;
     }
 }

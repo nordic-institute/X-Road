@@ -44,6 +44,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CENTER;
@@ -59,6 +60,8 @@ import static ee.ria.xroad.signer.protocol.ComponentNames.SIGNER;
  */
 @Slf4j
 public final class SignerMain {
+
+    private static final long SHUTDOWN_TIMEOUT_SECONDS = 60L;
 
     static {
         SystemPropertiesLoader.create()
@@ -128,7 +131,7 @@ public final class SignerMain {
         }
 
         try {
-            Await.ready(actorSystem.terminate(), Duration.Inf());
+            Await.ready(actorSystem.terminate(), Duration.create(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             log.error("Timed out while waiting for akka to terminate");
         } catch (InterruptedException e) {

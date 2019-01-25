@@ -180,7 +180,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
 
             log.error("Error initializing token ({})", getWorkerId(), e);
 
-            return;
+            throw e;
         }
 
         try {

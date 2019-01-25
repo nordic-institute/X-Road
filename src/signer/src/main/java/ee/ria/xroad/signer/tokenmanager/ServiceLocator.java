@@ -67,8 +67,9 @@ public final class ServiceLocator {
      */
     public static ActorSelection getToken(UntypedActorContext context,
             String tokenId) {
-        String path = String.format("/user/%s/%s/%s", MODULE_MANAGER,
-                getModuleId(tokenId), tokenId);
+        String moduleId = getModuleId(tokenId);
+        String path = String.format("/user/%s/%s/%s/%s", MODULE_MANAGER,
+                moduleId, moduleId, tokenId);
         return context.actorSelection(path);
     }
 
@@ -79,8 +80,9 @@ public final class ServiceLocator {
      */
     public static ActorSelection getTokenWorker(UntypedActorContext context,
             String tokenId) {
-        String path = String.format("/user/%s/%s/%s/%s", MODULE_MANAGER,
-                getModuleId(tokenId), tokenId, TOKEN_WORKER);
+        String moduleId = getModuleId(tokenId);
+        String path = String.format("/user/%s/%s/%s/%s/%s", MODULE_MANAGER,
+                moduleId, moduleId, tokenId, TOKEN_WORKER);
         return context.actorSelection(path);
     }
 
@@ -91,8 +93,9 @@ public final class ServiceLocator {
      */
     public static ActorSelection getTokenSigner(UntypedActorContext context,
             String tokenId) {
-        String path = String.format("/user/%s/%s/%s/%s", MODULE_MANAGER,
-                getModuleId(tokenId), tokenId, TOKEN_SIGNER);
+        String moduleId = getModuleId(tokenId);
+        String path = String.format("/user/%s/%s/%s/%s/%s", MODULE_MANAGER,
+                moduleId, moduleId, tokenId, TOKEN_SIGNER);
         return context.actorSelection(path);
     }
 

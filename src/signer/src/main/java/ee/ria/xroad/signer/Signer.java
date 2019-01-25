@@ -65,11 +65,6 @@ public class Signer implements StartStop {
     private static final String MODULE_MANAGER_IMPL_CLASS =
             SystemProperties.PREFIX + "signer.moduleManagerImpl";
 
-    private static final int MODULE_MANAGER_UPDATE_INTERVAL_SECONDS = SystemProperties.getModuleManagerUpdateInterval();
-
-    private static final FiniteDuration MODULE_MANAGER_UPDATE_INTERVAL =
-            Duration.create(MODULE_MANAGER_UPDATE_INTERVAL_SECONDS, TimeUnit.SECONDS);
-
     private final ActorSystem actorSystem;
 
     private FileWatcherRunner keyConfFileWatcherRunner;
@@ -163,7 +158,7 @@ public class Signer implements StartStop {
     private static class ModuleManagerJob extends PeriodicJob {
 
         ModuleManagerJob() {
-            super(MODULE_MANAGER, new Update(), MODULE_MANAGER_UPDATE_INTERVAL);
+            super(MODULE_MANAGER, new Update(), SignerProperties.MODULE_MANAGER_UPDATE_INTERVAL);
         }
 
         @Override

@@ -49,7 +49,6 @@ public class DefaultModuleManagerImpl extends AbstractModuleManager {
         log.debug("Initializing software module");
 
         Props props = Props.create(SoftwareModuleWorker.class);
-        initializeModuleWorker(softwareModule.getType(), props);
+        initializeModuleWorker(softwareModule, props);
     }
-
 }

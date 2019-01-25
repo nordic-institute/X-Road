@@ -22,41 +22,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.tokenmanager.module;
+package ee.ria.xroad.signer;
 
-import lombok.Data;
+import ee.ria.xroad.common.SystemProperties;
+
+import scala.concurrent.duration.Duration;
+import scala.concurrent.duration.FiniteDuration;
+
+import java.util.concurrent.TimeUnit;
 
 /**
- * Module type for hardware modules.
+ * Contains Signer properties.
  */
-@Data
-public class HardwareModuleType implements ModuleType {
+public final class SignerProperties {
 
-    private final String type;
+    private SignerProperties() {
+    }
 
-    private final String pkcs11LibraryPath;
+    private static final int MODULE_MANAGER_UPDATE_INTERVAL_SECONDS = SystemProperties.getModuleManagerUpdateInterval();
 
-    // Library initialization boolean flags.
-    private final Boolean libraryCantCreateOsThreads;
-    private final Boolean osLockingOk;
-
-    private final String tokenIdFormat;
-
-    private final boolean pinVerificationPerSigning;
-
-    private final boolean batchSigningEnabled;
-
-    private final boolean forceReadOnly;
-
-    private final String signMechanismName;
-
-    private final PrivKeyAttributes privKeyAttributes;
-
-    private final PubKeyAttributes pubKeyAttributes;
-
-    private final Long backoffMinSeconds;
-
-    private final Long backoffMaxSeconds;
-
-    private final Integer backoffMaxRetries;
+    public static final FiniteDuration MODULE_MANAGER_UPDATE_INTERVAL =
+            Duration.create(MODULE_MANAGER_UPDATE_INTERVAL_SECONDS, TimeUnit.SECONDS);
 }
