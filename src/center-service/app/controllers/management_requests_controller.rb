@@ -213,7 +213,7 @@ class ManagementRequestsController < ApplicationController
     end
   end
 
-   def auto_approve_auth_cert_reg_requests?
-      Java::ee.ria.xroad.common.SystemProperties::getCenterAutoApproveAuthCertRegRequests
-   end
+  def auto_approve_auth_cert_reg_requests?
+    Java::ee.ria.xroad.common.SystemProperties::getCenterAutoApproveAuthCertRegRequests
+  end
 end
