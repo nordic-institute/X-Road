@@ -6,7 +6,7 @@
 # Signed Document Download and Verification Manual
 **X-ROAD 6**
 
-Version: 1.5  
+Version: 1.6  
 03.11.2018  
 Doc. ID: UG-SIGDOC
 
