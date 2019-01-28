@@ -26,6 +26,7 @@ require "shellwords"
 
 java_import Java::ee.ria.xroad.common.SystemProperties
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.AccessRightType
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.DescriptionType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServiceType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType
 java_import Java::ee.ria.xroad.common.identifier.SecurityCategoryId
@@ -66,6 +67,7 @@ module Clients::Services
     servicedescription.disabledNotice = t('clients.default_disabled_service_notice')
     servicedescription.refreshedDate = Date.new
     servicedescription.client = client
+    servicedescription.type = DescriptionType::WSDL
 
     audit_log_data[:clientIdentifier] = client.identifier
     audit_log_data[:wsdlUrl] = servicedescription.url
