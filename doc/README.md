@@ -56,7 +56,7 @@ Index of X-Road Documentation
 
 ### Data Models
 
-- [\[DM-SS\] Security Server Configuration](DataModels/dm-ss_x-road_security_server_configuration._data_model_1.2_Y-883-12.docx)
+- [\[DM-SS\] Security Server Configuration](DataModels/dm-ss_x-road_security_server_configuration_data_model.md)
 - [\[DM-CS\] Central Server Configuration](DataModels/dm-cs_x-road_central_server_configuration_data_model.md)
 - [\[DM-ML\] Message Log](DataModels/dm-ml_x-road_message_log_data_model.md)
 
