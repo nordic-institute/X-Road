@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 1.1  
+Version: 1.2  
 Doc. ID: IG-SS-RHEL7
 
 ---
@@ -18,6 +18,7 @@ Doc. ID: IG-SS-RHEL7
  ---------- | ------- | --------------------------------------------------------------- | --------------------
  25.10.2018 | 1.0     | Initial version                                                 | Petteri Kivimäki
  16.11.2018 | 1.1     | Update link to Ubuntu installation guide                        | Jarkko Hyöty
+ 28.01.2018 | 1.2     | Update port 2080 documentation                                  | Petteri Kivimäki
  
 ## Table of Contents
 
@@ -97,12 +98,12 @@ The software can be installed both on physical and virtualized hardware (of the 
  1.3    |                                         | Account name in the user interface
  1.4    | TCP 5500                                | Port for inbound connections (from the external network to the security server)<br> Message exchange between security servers
  &nbsp; | TCP 5577                                | Port for inbound connections (from the external network to the security server)<br> Querying of OCSP responses between security servers
- &nbsp; | TCP 2080                                | Port for inbound connections (from the external network to the security server)<br> Message exchange between security server and operational data monitoring daemon (by default on localhost)
  &nbsp; | TCP 9011                                | Port for inbound connections (from the external network to the security server)<br> Operational data monitoring daemon JMX listening port
   &nbsp; | TCP 9999                                | Port for inbound connections (from the external network to the security server)<br> Environmental monitoring daemon JMX listening port
  1.5  | TCP 5500                                  | Ports for outbound connections (from the security server to the external network)<br> Message exchange between security servers
  &nbsp; | TCP 5577                                | Ports for outbound connections (from the security server to the external network)<br> Querying of OCSP responses between security servers
  &nbsp; | TCP 4001                                | Ports for outbound connections (from the security server to the external network)<br> Communication with the central server
+ &nbsp; | TCP 2080                                | Ports for outbound connections (from the security server to the internal network)<br> Message exchange between security server and operational data monitoring daemon (by default on localhost)
  &nbsp; | TCP 80                                  | Ports for outbound connections (from the security server to the external network)<br> Downloading global configuration
  &nbsp; | TCP 80,443                              | Ports for outbound connections (from the security server to the external network)<br> Most common OCSP and time-stamping services
  1.6  | TCP 4000                                  | User interface (local network)
