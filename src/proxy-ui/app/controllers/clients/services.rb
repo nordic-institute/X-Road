@@ -26,8 +26,9 @@ require "shellwords"
 
 java_import Java::ee.ria.xroad.common.SystemProperties
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.AccessRightType
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.DescriptionType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServiceType
-java_import Java::ee.ria.xroad.common.conf.serverconf.model.WsdlType
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType
 java_import Java::ee.ria.xroad.common.identifier.SecurityCategoryId
 java_import Java::ee.ria.xroad.proxyui.InternalServerTestUtil
 java_import Java::ee.ria.xroad.proxyui.WSDLParser
@@ -48,8 +49,8 @@ module Clients::Services
     render_json(read_services(client))
   end
 
-  def wsdl_add
-    audit_log("Add WSDL", audit_log_data = {})
+  def servicedescription_add
+    audit_log("Add service description", audit_log_data = {})
 
     authorize!(:add_wsdl)
 
@@ -60,33 +61,34 @@ module Clients::Services
 
     client = get_client(params[:client_id])
 
-    wsdl = WsdlType.new
-    wsdl.url = params[:wsdl_add_url]
-    wsdl.disabled = true
-    wsdl.disabledNotice = t('clients.default_disabled_service_notice')
-    wsdl.refreshedDate = Date.new
-    wsdl.client = client
+    servicedescription = ServiceDescriptionType.new
+    servicedescription.url = params[:wsdl_add_url]
+    servicedescription.disabled = true
+    servicedescription.disabledNotice = t('clients.default_disabled_service_notice')
+    servicedescription.refreshedDate = Date.new
+    servicedescription.client = client
+    servicedescription.type = DescriptionType::WSDL
 
     audit_log_data[:clientIdentifier] = client.identifier
-    audit_log_data[:wsdlUrl] = wsdl.url
-    audit_log_data[:disabled] = wsdl.disabled
+    audit_log_data[:wsdlUrl] = servicedescription.url
+    audit_log_data[:disabled] = servicedescription.disabled
     audit_log_data[:refreshedDate] =
-      Time.at(wsdl.refreshedDate.getTime / 1000).iso8601
+      Time.at(servicedescription.refreshedDate.getTime / 1000).iso8601
 
-    parse_and_check_services(wsdl)
+    parse_and_check_services(servicedescription)
 
-    client.wsdl.add(wsdl)
+    client.serviceDescription.add(servicedescription)
 
     serverconf_save
 
     render_json(read_services(client))
   end
 
-  def wsdl_disable
+  def servicedescription_disable
     if params[:enable].nil?
-      audit_log("Disable WSDL", audit_log_data = {})
+      audit_log("Disable service description", audit_log_data = {})
     else
-      audit_log("Enable WSDL", audit_log_data = {})
+      audit_log("Enable service description", audit_log_data = {})
     end
 
     authorize!(:enable_disable_wsdl)
@@ -108,13 +110,13 @@ module Clients::Services
 
     audit_log_data[:wsdlUrls] = []
 
-    client.wsdl.each do |wsdl|
-      next unless params[:wsdl_ids].include?(wsdl.url)
+    client.serviceDescription.each do |servicedescription|
+      next unless params[:wsdl_ids].include?(servicedescription.url)
 
-      wsdl.disabled = params[:enable].nil?
-      wsdl.disabledNotice = params[:wsdl_disabled_notice] if params[:enable].nil?
+      servicedescription.disabled = params[:enable].nil?
+      servicedescription.disabledNotice = params[:wsdl_disabled_notice] if params[:enable].nil?
 
-      audit_log_data[:wsdlUrls] << wsdl.url
+      audit_log_data[:wsdlUrls] << servicedescription.url
     end
 
 
@@ -123,8 +125,8 @@ module Clients::Services
     render_json(read_services(client))
   end
 
-  def wsdl_edit
-    audit_log("Edit WSDL", audit_log_data = {})
+  def servicedescription_edit
+    audit_log("Edit service description", audit_log_data = {})
 
     authorize!(:refresh_wsdl)
 
@@ -137,33 +139,33 @@ module Clients::Services
     client = get_client(params[:client_id])
     audit_log_data[:clientIdentifier] = client.identifier
 
-    client.wsdl.each do |wsdl|
-      if wsdl.url == params[:new_url]
+    client.serviceDescription.each do |servicedescription|
+      if servicedescription.url == params[:new_url]
         raise t('clients.wsdl_exists')
       end
     end if params[:wsdl_id] != params[:new_url]
 
-    wsdls = wsdls_by_urls(client, [params[:wsdl_id]])
-    wsdls[0].url = params[:new_url]
-    wsdls[0].refreshedDate = Date.new
+    servicedescriptions = servicedescriptions_by_urls(client, [params[:wsdl_id]])
+    servicedescriptions[0].url = params[:new_url]
+    servicedescriptions[0].refreshedDate = Date.new
 
-    added_objs, added, deleted = parse_wsdls(client, wsdls)
-    update_wsdls(client, added_objs, deleted)
+    added_objs, added, deleted = parse_servicedescriptions(client, servicedescriptions)
+    update_servicedescriptions(client, added_objs, deleted)
 
     serverconf_save
 
     audit_log_data[:wsdl] = {
       :wsdlUrl => params[:wsdl_id],
       :wsdlUrlNew => params[:new_url],
-      :servicesAdded => added[wsdls[0].url],
-      :servicesDeleted => deleted[wsdls[0].url]
+      :servicesAdded => added[servicedescriptions[0].url],
+      :servicesDeleted => deleted[servicedescriptions[0].url]
     }
 
     render_json(read_services(client))
   end
 
-  def wsdl_refresh
-    audit_log("Refresh WSDL", audit_log_data = {})
+  def servicedescription_refresh
+    audit_log("Refresh service description", audit_log_data = {})
 
     authorize!(:refresh_wsdl)
 
@@ -175,13 +177,13 @@ module Clients::Services
     client = get_client(params[:client_id])
     audit_log_data[:clientIdentifier] = client.identifier
 
-    wsdls = wsdls_by_urls(client, params[:wsdl_ids])
+    servicedescriptions = servicedescriptions_by_urls(client, params[:wsdl_ids])
 
-    added_objs, added, deleted = parse_wsdls(client, wsdls, audit_log_data)
-    update_wsdls(client, added_objs, deleted)
+    added_objs, added, deleted = parse_servicedescriptions(client, servicedescriptions, audit_log_data)
+    update_servicedescriptions(client, added_objs, deleted)
 
-    wsdls.each do |wsdl|
-      wsdl.refreshedDate = Date.new
+    servicedescriptions.each do |servicedescription|
+      servicedescription.refreshedDate = Date.new
     end
 
     serverconf_save
@@ -189,8 +191,8 @@ module Clients::Services
     render_json(read_services(client))
   end
 
-  def wsdl_delete
-    audit_log("Delete WSDL", audit_log_data = {})
+  def servicedescription_delete
+    audit_log("Delete service description", audit_log_data = {})
 
     authorize!(:delete_wsdl)
 
@@ -205,18 +207,18 @@ module Clients::Services
     audit_log_data[:wsdlUrls] = []
 
     deleted = []
-    client.wsdl.each do |wsdl|
-      deleted << wsdl if params[:wsdl_ids].include?(wsdl.url)
+    client.serviceDescription.each do |servicedescription|
+      deleted << servicedescription if params[:wsdl_ids].include?(servicedescription.url)
     end
 
-    deleted.each do |wsdl|
-      audit_log_data[:wsdlUrls] << wsdl.url
+    deleted.each do |servicedescription|
+      audit_log_data[:wsdlUrls] << servicedescription.url
 
-      clean_acls(client, wsdl)
+      clean_acls(client, servicedescription)
 
-      wsdl.client = nil
-      client.wsdl.remove(wsdl)
-      @session.delete(wsdl)
+      servicedescription.client = nil
+      client.serviceDescription.remove(servicedescription)
+      @session.delete(servicedescription)
     end
 
     serverconf_save
@@ -247,13 +249,13 @@ module Clients::Services
 
     audit_log_data[:clientIdentifier] = client.identifier
 
-    client.wsdl.each do |wsdl|
-      next unless wsdl.url == params[:params_wsdl_id]
+    client.serviceDescription.each do |servicedescription|
+      next unless servicedescription.url == params[:params_wsdl_id]
 
-      audit_log_data[:wsdlUrl] = wsdl.url
+      audit_log_data[:wsdlUrl] = servicedescription.url
       audit_log_data[:services] = []
 
-      wsdl.service.each do |service|
+      servicedescription.service.each do |service|
         service_match = params[:params_service_id] == get_service_id(service)
 
         if params[:params_url_all] || service_match
@@ -325,8 +327,8 @@ module Clients::Services
     client = get_client(params[:client_id])
 
     services = {}
-    client.wsdl.each do |wsdl|
-      wsdl.service.each do |service|
+    client.serviceDescription.each do |servicedescription|
+      servicedescription.service.each do |service|
         services[service.serviceCode] = {
           :service_code => service.serviceCode,
           :title => service.title
@@ -412,29 +414,29 @@ module Clients::Services
 
   private
 
-  def wsdls_by_urls(client, wsdl_urls)
-    wsdls = []
-    client.wsdl.each do |wsdl|
-      wsdls << wsdl if wsdl_urls.include?(wsdl.url)
+  def servicedescriptions_by_urls(client, servicedescription_urls)
+    servicedescriptions = []
+    client.serviceDescription.each do |servicedescription|
+      servicedescriptions << servicedescription if servicedescription_urls.include?(servicedescription.url)
     end
 
-    if wsdls.length != wsdl_urls.length
-      raise "Some WSDLs were not found"
+    if servicedescriptions.length != servicedescription_urls.length
+      raise "Some service descriptions were not found"
     end
 
-    wsdls
+    servicedescriptions
   end
 
   def read_services(client)
     services = []
 
-    client.wsdl.each do |wsdl|
+    client.serviceDescription.each do |servicedescription|
       name = t('clients.wsdl')
-      name += " " + t('clients.wsdl_disabled') if wsdl.disabled
+      name += " " + t('clients.wsdl_disabled') if servicedescription.disabled
 
       services << {
         :wsdl => true,
-        :wsdl_id => wsdl.url,
+        :wsdl_id => servicedescription.url,
         :service_id => nil,
         :name => name,
         :title => nil,
@@ -442,12 +444,12 @@ module Clients::Services
         :timeout => nil,
         :security_category => nil,
         :sslauth => nil,
-        :last_refreshed => format_time(wsdl.refreshedDate),
-        :disabled => wsdl.disabled,
-        :disabled_notice => wsdl.disabledNotice
+        :last_refreshed => format_time(servicedescription.refreshedDate),
+        :disabled => servicedescription.disabled,
+        :disabled_notice => servicedescription.disabledNotice
       }
 
-      wsdl.service.each do |service|
+      servicedescription.service.each do |service|
         categories = []
         service.requiredSecurityCategory.each do |category|
           categories << category.categoryCode
@@ -455,7 +457,7 @@ module Clients::Services
 
         services << {
           :wsdl => false,
-          :wsdl_id => wsdl.url,
+          :wsdl_id => servicedescription.url,
           :service_id => get_service_id(service),
           :name => get_service_id(service),
           :service_code => service.serviceCode,
@@ -464,8 +466,8 @@ module Clients::Services
           :timeout => service.timeout,
           :security_category => categories,
           :sslauth => service.sslAuthentication.nil? || service.sslAuthentication,
-          :last_refreshed => format_time(wsdl.refreshedDate),
-          :disabled => wsdl.disabled,
+          :last_refreshed => format_time(servicedescription.refreshedDate),
+          :disabled => servicedescription.disabled,
           :subjects_count => subjects_count(client, service.serviceCode)
         }
       end
@@ -484,10 +486,10 @@ module Clients::Services
     return i
   end
 
-  def parse_wsdls(client, wsdls, audit_log_data = nil)
+  def parse_servicedescriptions(client, wsdls, audit_log_data = nil)
     # construct a list of existing services mapped to their wsdls
     existing_services = {}
-    client.wsdl.each do |wsdl|
+    client.serviceDescription.each do |wsdl|
       wsdl.service.each do |service|
         existing_services[get_service_id(service)] = wsdl.url
       end
@@ -554,10 +556,10 @@ module Clients::Services
     return added_objs, added, deleted
   end
 
-  def update_wsdls(client, added_objs, deleted)
+  def update_servicedescriptions(client, added_objs, deleted)
     deleted_codes = Set.new
 
-    client.wsdl.each do |wsdl|
+    client.serviceDescription.each do |wsdl|
       services_deleted = []
 
       deleted[wsdl.url].each do |service_id|
@@ -582,7 +584,7 @@ module Clients::Services
         service.title = service_parsed.title
         service.url = service_parsed.url
         service.timeout = DEFAULT_SERVICE_TIMEOUT
-        service.wsdl = wsdl
+        service.serviceDescription = wsdl
 
         wsdl.service.add(service)
       end if added_objs.has_key?(wsdl.url)
@@ -594,7 +596,7 @@ module Clients::Services
   def parse_and_check_services(wsdl)
     existing_services = {}
 
-    wsdl.client.wsdl.each do |other_wsdl|
+    wsdl.client.serviceDescription.each do |other_wsdl|
       if other_wsdl.url == wsdl.url
         raise t('clients.wsdl_exists')
       end
@@ -621,7 +623,7 @@ module Clients::Services
       service.title = parsed_service.title
       service.url = parsed_service.url
       service.timeout = DEFAULT_SERVICE_TIMEOUT
-      service.wsdl = wsdl
+      service.serviceDescription = wsdl
 
       wsdl.service.add(service)
     end
@@ -718,7 +720,7 @@ module Clients::Services
     return if service_codes.empty?
 
     # Exclude services existing with different version.
-    client.wsdl.each do |w|
+    client.serviceDescription.each do |w|
       if w.id != wsdl_id
         service_codes.subtract(get_service_codes(w))
 

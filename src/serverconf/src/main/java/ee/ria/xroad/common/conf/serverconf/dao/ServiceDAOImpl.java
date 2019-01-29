@@ -78,7 +78,7 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
             ClientId serviceProvider) {
         StringBuilder qb = new StringBuilder();
         qb.append("select s from ServiceType s");
-        qb.append(" inner join fetch s.wsdl w");
+        qb.append(" inner join fetch s.serviceDescription w");
         qb.append(" inner join fetch w.client c");
 
         qb.append(" where c.identifier.xRoadInstance = :clientInstance ");
@@ -107,7 +107,7 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
     private ServiceType find(Session session, ServiceId id) {
         StringBuilder qb = new StringBuilder();
         qb.append("select s from ServiceType s");
-        qb.append(" inner join fetch s.wsdl w");
+        qb.append(" inner join fetch s.serviceDescription w");
         qb.append(" inner join fetch w.client c");
 
         qb.append(" where s.serviceCode = :serviceCode");

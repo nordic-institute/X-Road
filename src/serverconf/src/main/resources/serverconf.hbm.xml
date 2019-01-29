@@ -41,10 +41,10 @@
         <property name="clientStatus" access="field"/>
         <property name="isAuthentication" access="field"/>
 
-        <bag name="wsdl" access="field" cascade="all-delete-orphan"
+        <bag name="serviceDescription" access="field" cascade="all-delete-orphan"
                 inverse="true">
             <key column="client_id"/>
-            <one-to-many class="WsdlType"/>
+            <one-to-many class="ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType"/>
         </bag>
 
         <bag name="localGroup" access="field" cascade="all-delete-orphan">
@@ -63,7 +63,7 @@
         </bag>
     </class>
 
-    <class name="WsdlType" table="WSDL">
+    <class name="ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType" table="SERVICEDESCRIPTION">
         <id name="id" type="long" access="field">
             <generator class="native"/>
         </id>
@@ -72,14 +72,20 @@
             class="ClientType" cascade="all"/>
 
         <property name="url" access="field" not-null="true"/>
-        <property name="wsdlLocation" access="field"/>
         <property name="disabled" access="field" not-null="true"/>
         <property name="disabledNotice" access="field"/>
         <property name="refreshedDate" access="field"/>
 
+        <property name="type" access="field" not-null="true">
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">ee.ria.xroad.common.conf.serverconf.model.DescriptionType</param>
+                <param name="useNamed">true</param>
+            </type>
+        </property>
+
         <bag name="service" access="field" cascade="all-delete-orphan"
                 inverse="true">
-            <key column="wsdl_id"/>
+            <key column="servicedescription_id"/>
             <one-to-many class="ServiceType"/>
         </bag>
     </class>
@@ -89,8 +95,8 @@
             <generator class="native"/>
         </id>
 
-        <many-to-one name="wsdl" access="field" column="wsdl_id"
-            class="WsdlType" cascade="all"/>
+        <many-to-one name="serviceDescription" access="field" column="servicedescription_id"
+                     class="ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType" cascade="all"/>
 
         <property name="serviceCode" access="field" not-null="true"/>
         <property name="serviceVersion" access="field"/>

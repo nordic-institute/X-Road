@@ -22,32 +22,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.serverconf.dao;
+package ee.ria.xroad.common.conf.serverconf.model;
 
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
-import ee.ria.xroad.common.identifier.ServiceId;
+import lombok.Getter;
+import lombok.Setter;
 
-import org.hibernate.Session;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
- * Wsdl data access object implementation.
+ * Service description such as WSDL or OpenAPI
  */
-public class WsdlDAOImpl extends AbstractDAOImpl<WsdlType> {
+@Getter
+@Setter
+public class ServiceDescriptionType {
 
-    /**
-     * Returns the WSDL of the given service identifier.
-     * @param session the session
-     * @param id the service identifier
-     * @return the WSDL of the given service identifier
-     */
-    public WsdlType getWsdl(Session session, ServiceId id) {
-        ServiceType service =
-                new ServiceDAOImpl().getService(session, id);
-        if (service != null) {
-            return service.getWsdl();
-        }
+    private final List<ServiceType> service = new ArrayList<>();
 
-        return null;
-    }
+    private Long id;
+
+    private ClientType client;
+
+    private String url;
+
+    private boolean disabled;
+
+    private String disabledNotice;
+
+    private Date refreshedDate;
+
+    private DescriptionType type;
 }
