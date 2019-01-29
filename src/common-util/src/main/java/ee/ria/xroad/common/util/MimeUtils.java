@@ -60,7 +60,7 @@ public final class MimeUtils {
     public static final String PARAM_INSTANCE = "instance";
     public static final String HEADER_CONTENT_ID = "content-id";
     public static final String HEADER_MESSAGE_TYPE = "x-road-message-type";
-    public static final String HEADER_MESSAGE_ID = "x-road-id";
+    public static final String HEADER_QUERY_ID = "x-road-id";
     public static final String HEADER_CLIENT_ID = "x-road-client";
     public static final String HEADER_REQUEST_HASH = "x-road-request-hash";
 

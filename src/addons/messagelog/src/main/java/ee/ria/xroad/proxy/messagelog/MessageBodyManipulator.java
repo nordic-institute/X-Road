@@ -29,11 +29,15 @@ import ee.ria.xroad.common.message.SoapBuilder;
 import ee.ria.xroad.common.message.SoapHeader;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
+import ee.ria.xroad.common.messagelog.LogMessage;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
+import ee.ria.xroad.common.messagelog.RestLogMessage;
+import ee.ria.xroad.common.messagelog.SoapLogMessage;
 
 import com.google.common.collect.Iterables;
 import lombok.Setter;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -41,7 +45,7 @@ import java.util.Objects;
  * Utility class for processing SoapMessages and removing altered message with <soap:body>
  * section removed.
  */
-public class SoapMessageBodyManipulator {
+public class MessageBodyManipulator {
 
     /**
      * Extract configuration reading for better testability
@@ -82,22 +86,33 @@ public class SoapMessageBodyManipulator {
      * (when soap:body logging is used for this message) or manipulated soap message with
      * soap:body element cleared.
      * @param message soap message
-     * @param clientSide whether we are calling external service (true) or someone else is calling our service (false)
      * @return the string that should be logged
      * @throws Exception when error occurs
      */
-    public String getLoggableMessageText(SoapMessageImpl message, boolean clientSide) throws Exception {
-        if (isSoapBodyLogged(message, clientSide)) {
-            return message.getXml();
+    public String getLoggableMessageText(SoapLogMessage message) throws Exception {
+        if (isBodyLogged(message)) {
+            return message.getMessage().getXml();
         } else {
             return buildBodyRemovedMessage(message);
         }
     }
 
-    private String buildBodyRemovedMessage(SoapMessageImpl message) throws Exception {
+    /**
+     * Returns the string that should be logged. This will either be the original message
+     * filtered message with some elements removed
+     */
+    public String getLoggableMessageText(RestLogMessage message) {
+        if (isBodyLogged(message)) {
+            return new String(message.getMessage().getMessageBytes(), StandardCharsets.UTF_8);
+        } else {
+            return new String(message.getMessage().getFilteredMessage(), StandardCharsets.UTF_8);
+        }
+    }
+
+    private String buildBodyRemovedMessage(SoapLogMessage message) throws Exception {
         // build a new empty message with SoapBuilder and
         // set old SoapHeader to it
-        SoapHeader oldHeader = message.getHeader();
+        SoapHeader oldHeader = message.getMessage().getHeader();
         SoapBuilder builder = new SoapBuilder();
         builder.setHeader(oldHeader);
         builder.setRpcEncoded(false);
@@ -113,22 +128,18 @@ public class SoapMessageBodyManipulator {
     /**
      * Tells whether SOAP body should be logged for this message.
      * @param message SOAP message
-     * @param clientSide whether we are calling external service (true) or someone
-     *                   else is calling our service (false)
      * @return true if this message's body is logged
      */
-    public boolean isSoapBodyLogged(SoapMessageImpl message, boolean clientSide) {
+    public boolean isBodyLogged(LogMessage message) {
 
         Collection<ClientId> overrides;
-        if (clientSide) {
+        if (message.isClientSide()) {
             overrides = configurator.getRemoteProducerOverrides();
         } else {
             overrides = configurator.getLocalProducerOverrides();
         }
 
-        boolean producerSubsystemIsOverridden = isClientInCollection(
-                message.getService().getClientId(),
-                overrides);
+        boolean producerSubsystemIsOverridden = isClientInCollection(message.getService().getClientId(), overrides);
 
         if (configurator.isSoapBodyLoggingEnabled()) {
             return !producerSubsystemIsOverridden;

@@ -25,13 +25,13 @@
 package ee.ria.xroad.proxy.protocol;
 
 import ee.ria.xroad.common.message.RestRequest;
+import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.common.util.MimeTypes;
-import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.MultipartEncoder;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 import ee.ria.xroad.proxy.signedmessage.Signer;
@@ -40,11 +40,9 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.io.output.CountingOutputStream;
-import org.apache.http.Header;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.DigestCalculator;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -169,7 +167,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
      */
     public void restRequest(RestRequest request) {
         try {
-            final byte[] message = request.toByteArray();
+            final byte[] message = request.getMessageBytes();
             signer.addPart(MessageFileNames.MESSAGE,
                     hashAlgoId,
                     request.getHash(),
@@ -203,33 +201,9 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     /**
      * Encode rest response (without body)
      */
-    public void restResponse(RestRequest request, int responseCode, String reason, Header[] headers) {
+    public void restResponse(RestResponse response) {
         try {
-            ByteArrayOutputStream bof = new ByteArrayOutputStream();
-            writeString(bof, String.valueOf(responseCode));
-            bof.write(CRLF);
-            writeString(bof, reason);
-            bof.write(CRLF);
-
-            writeString(bof, MimeUtils.HEADER_MESSAGE_ID);
-            bof.write(':');
-            writeString(bof, request.getMessageId());
-            bof.write(CRLF);
-
-            writeString(bof, MimeUtils.HEADER_REQUEST_HASH);
-            bof.write(':');
-            writeString(bof, CryptoUtils.encodeBase64(request.getHash()));
-            bof.write(CRLF);
-
-            for (Header h : headers) {
-                if (RestRequest.SKIPPED_HEADERS.contains(h.getName().toLowerCase())) continue;
-                writeString(bof, h.getName());
-                writeString(bof, ":");
-                writeString(bof, h.getValue());
-                bof.write(CRLF);
-            }
-
-            final byte[] message = bof.toByteArray();
+            final byte[] message = response.getMessageBytes();
             signer.addPart(MessageFileNames.MESSAGE,
                     hashAlgoId,
                     CryptoUtils.calculateDigest(hashAlgoId, message),

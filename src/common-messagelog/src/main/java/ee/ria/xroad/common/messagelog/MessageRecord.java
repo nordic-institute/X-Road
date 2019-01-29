@@ -39,6 +39,9 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.InputStream;
+import java.sql.Blob;
+
 import static ee.ria.xroad.common.util.CryptoUtils.MD5_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.hexDigest;
 
@@ -47,7 +50,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.hexDigest;
  */
 @Slf4j
 @ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, exclude = {"attachment"})
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class MessageRecord extends AbstractLogRecord {
 
@@ -98,6 +101,14 @@ public class MessageRecord extends AbstractLogRecord {
     @Getter
     @Setter
     private String subsystemCode;
+
+    @Getter
+    @Setter
+    private Blob attachment;
+
+    @Getter
+    @Setter
+    private transient InputStream attachmentStream;
 
     /**
      * Constructs a message record.

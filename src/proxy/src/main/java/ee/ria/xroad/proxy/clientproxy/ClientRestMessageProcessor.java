@@ -39,6 +39,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
@@ -66,6 +67,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_RESPONSE;
@@ -73,7 +75,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_REST;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_MESSAGE_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.VALUE_MESSAGE_TYPE_REST;
@@ -160,13 +161,16 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     private void processRequest() throws Exception {
         log.trace("processRequest()");
 
+        if (restRequest.getQueryId() == null) {
+            restRequest.setQueryId("xrd-" + UUID.randomUUID().toString());
+        }
+
         try (HttpSender httpSender = createHttpSender()) {
             sendRequest(httpSender);
             parseResponse(httpSender);
         }
 
         checkConsistency();
-
         logResponseMessage();
     }
 
@@ -222,26 +226,21 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
-    private void checkConsistency() throws Exception {
-        checkRequestHash();
-    }
-
-    private void checkRequestHash() {
-        final Header header = response.getRestResponse().getHeaders().stream()
-                .filter(h -> MimeUtils.HEADER_REQUEST_HASH.equalsIgnoreCase(h.getName()))
-                .findAny()
-                .orElseThrow(() -> new CodedException(X_INCONSISTENT_RESPONSE,
-                        "Response from server proxy is missing request message hash"));
-
-        if (!Arrays.equals(restRequest.getHash(), decodeBase64(header.getValue()))) {
-            throw new CodedException(X_INCONSISTENT_RESPONSE,
-                    "Request message hash does not match request message");
+    private void checkConsistency() {
+        if (!Objects.equals(restRequest.getQueryId(), response.getRestResponse().getQueryId())) {
+            throw new CodedException(X_INCONSISTENT_RESPONSE, "Response message id does not match request message");
+        }
+        if (!Arrays.equals(restRequest.getHash(), response.getRestResponse().getRequestHash())) {
+            throw new CodedException(X_INCONSISTENT_RESPONSE, "Response message hash does not match request message");
         }
     }
 
-    private void logResponseMessage() throws Exception {
+    private void logResponseMessage() {
         log.trace("logResponseMessage()");
-        //MessageLog.log(response.getSoap(), response.getSignature(), true);
+        MessageLog.log(restRequest,
+                response.getRestResponse(),
+                response.getSignature(),
+                response.getRestBody(), true);
     }
 
     private void sendResponse() throws Exception {
@@ -313,10 +312,6 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                     enc.ocspResponse(ocsp);
                 }
 
-                if (restRequest.getMessageId() == null) {
-                    restRequest.getHeaders().add(new BasicHeader(MimeUtils.HEADER_MESSAGE_ID,
-                            "xrd-" + UUID.randomUUID().toString()));
-                }
                 enc.restRequest(restRequest);
 
                 //optimize the case without request body (e.g. simple get requests)
@@ -328,14 +323,13 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                         try (TeeInputStream tee = new TeeInputStream(in, cache)) {
                             enc.restBody(tee);
                             enc.sign(KeyConf.getSigningCtx(senderId));
-                            // TBD log request (rest body is in the cache)
-                            // MessageLog.log(...)
+                            MessageLog.log(restRequest, enc.getSignature(), cache.getCachedContents(), true);
                         } finally {
                             cache.consume();
                         }
                     } else {
                         enc.sign(KeyConf.getSigningCtx(senderId));
-                        //MessageLog.log(...)
+                        MessageLog.log(restRequest, enc.getSignature(), null, true);
                     }
                 }
 

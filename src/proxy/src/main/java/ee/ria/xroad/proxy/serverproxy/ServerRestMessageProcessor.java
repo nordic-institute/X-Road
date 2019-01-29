@@ -34,6 +34,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestRequest;
+import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.monitoring.MessageInfo;
@@ -77,6 +78,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
@@ -112,6 +114,8 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
     private HttpClient opMonitorHttpClient;
     private OpMonitoringData opMonitoringData;
+    private RestResponse restResponse;
+    private CachingStream restResponseBody;
 
     ServerRestMessageProcessor(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
             HttpClient httpClient, X509Certificate[] clientSslCerts, HttpClient opMonitorHttpClient,
@@ -134,8 +138,10 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             readMessage();
             verifyAccess();
             verifySignature();
+            logRequestMessage();
             sendRequest();
             sign();
+            logResponseMessage();
             writeSignature();
             close();
         } catch (Exception ex) {
@@ -143,6 +149,9 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         } finally {
             if (requestMessage != null) {
                 requestMessage.consume();
+            }
+            if (restResponseBody != null) {
+                restResponseBody.consume();
             }
         }
     }
@@ -308,14 +317,29 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
         HttpRequestBase req;
         switch (requestMessage.getRest().getVerb()) {
-            case "GET" : req = new HttpGet(address); break;
-            case "POST": req = new HttpPost(address); break;
-            case "PUT" : req = new HttpPut(address); break;
-            case "DELETE": req = new HttpDelete(address); break;
-            case "PATCH": req = new HttpPatch(address); break;
-            case "OPTIONS": req = new HttpOptions(address); break;
-            case "HEAD": req = new HttpHead(address); break;
-            default: throw new CodedException(X_INVALID_REQUEST, "Unsupported REST verb");
+            case "GET":
+                req = new HttpGet(address);
+                break;
+            case "POST":
+                req = new HttpPost(address);
+                break;
+            case "PUT":
+                req = new HttpPut(address);
+                break;
+            case "DELETE":
+                req = new HttpDelete(address);
+                break;
+            case "PATCH":
+                req = new HttpPatch(address);
+                break;
+            case "OPTIONS":
+                req = new HttpOptions(address);
+                break;
+            case "HEAD":
+                req = new HttpHead(address);
+                break;
+            default:
+                throw new CodedException(X_INVALID_REQUEST, "Unsupported REST verb");
         }
 
         int timeout = TimeUtils.secondsToMillis(ServerConf.getServiceTimeout(requestServiceId));
@@ -329,7 +353,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
 
         if (req instanceof HttpEntityEnclosingRequest) {
-            ((HttpEntityEnclosingRequest)req).setEntity(new InputStreamEntity(requestMessage.getRestBody()));
+            ((HttpEntityEnclosingRequest) req).setEntity(new InputStreamEntity(requestMessage.getRestBody()));
         }
 
         preprocess();
@@ -337,26 +361,30 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         HttpContext ctx = new BasicHttpContext();
         ctx.setAttribute(ServiceId.class.getName(), requestServiceId);
         final HttpResponse response = httpClient.execute(req, ctx);
-        encoder.restResponse(
-                requestMessage.getRest(),
+        restResponse = new RestResponse(requestMessage.getRest().getQueryId(),
+                requestMessage.getRest().getHash(),
                 response.getStatusLine().getStatusCode(),
                 response.getStatusLine().getReasonPhrase(),
-                response.getAllHeaders());
+                Arrays.asList(response.getAllHeaders()));
+        encoder.restResponse(restResponse);
 
         if (response.getEntity() != null) {
-            CachingStream cache = new CachingStream();
-            TeeInputStream tee = new TeeInputStream(response.getEntity().getContent(), cache);
+            restResponseBody = new CachingStream();
+            TeeInputStream tee = new TeeInputStream(response.getEntity().getContent(), restResponseBody);
             encoder.restBody(tee);
             EntityUtils.consume(response.getEntity());
-            cache.consume();
         }
     }
 
-    private void logRequestMessage() throws Exception {
+    private void logRequestMessage() {
         log.trace("logRequestMessage()");
-        MessageLog.log(requestMessage.getSoap(), requestMessage.getSignature(), false);
+        MessageLog.log(requestMessage.getRest(), requestMessage.getSignature(), requestMessage.getRestBody(), false);
     }
 
+    private void logResponseMessage() {
+        MessageLog.log(requestMessage.getRest(), restResponse, encoder.getSignature(),
+                restResponseBody == null ? null : restResponseBody.getCachedContents(), false);
+    }
 
     private void sign() throws Exception {
         log.trace("sign({})", requestServiceId.getClientId());

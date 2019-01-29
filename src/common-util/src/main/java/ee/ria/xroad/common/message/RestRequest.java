@@ -36,15 +36,10 @@ import org.apache.http.message.BasicHeader;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.UriUtils.uriSegmentPercentDecode;
@@ -53,7 +48,7 @@ import static ee.ria.xroad.common.util.UriUtils.uriSegmentPercentDecode;
  * Rest message
  */
 @Getter
-public class RestRequest {
+public class RestRequest extends RestMessage {
 
     private ClientId client;
     private ServiceId requestServiceId;
@@ -61,15 +56,10 @@ public class RestRequest {
     private String requestPath;
     private String query;
     private String servicePath;
-    private final List<Header> headers;
-    private byte[] hash;
-    private String messageId;
     private int version;
 
     /**
      * Create RestRequest from a byte array
-     *
-     * @param messageBytes
      */
     public RestRequest(byte[] messageBytes) throws Exception {
         final BufferedReader reader = new BufferedReader(
@@ -81,7 +71,6 @@ public class RestRequest {
         query = uri.getRawQuery();
         headers = reader.lines()
                 .map(RestResponse::split)
-                .filter(s -> s.length > 0 && !SKIPPED_HEADERS.contains(s[0].toLowerCase()))
                 .map(s -> new BasicHeader(s[0], s.length > 1 ? s[1] : null))
                 .collect(Collectors.toList());
 
@@ -92,7 +81,7 @@ public class RestRequest {
     /**
      * Create RestRequest
      */
-    public RestRequest(String verb, String path, String query, List<Header> headers) throws Exception {
+    public RestRequest(String verb, String path, String query, List<Header> headers) {
         this.verb = verb;
         this.headers = headers;
         this.requestPath = path;
@@ -101,27 +90,12 @@ public class RestRequest {
     }
 
     /**
-     * get digest
-     *
-     * @return
-     */
-    public byte[] getHash() {
-        if (hash == null) {
-            try {
-                hash = CryptoUtils.calculateDigest(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID, toByteArray());
-            } catch (Exception e) {
-                throw new IllegalStateException("Unable to calculate hash", e);
-            }
-        }
-        return hash;
-    }
-
-    /**
      * serialize
      *
      * @return
      */
-    public byte[] toByteArray() {
+    @Override
+    protected byte[] toByteArray() {
         try (ByteArrayOutputStream bof = new ByteArrayOutputStream()) {
             writeString(bof, verb);
             bof.write(CRLF);
@@ -147,6 +121,33 @@ public class RestRequest {
         }
     }
 
+    /**
+     * serialize
+     *
+     * @return
+     */
+    @Override
+    public byte[] getFilteredMessage() {
+        try (ByteArrayOutputStream bof = new ByteArrayOutputStream()) {
+            writeString(bof, verb);
+            bof.write(CRLF);
+            writeString(bof, requestPath);
+            bof.write(CRLF);
+
+            for (Header h : headers) {
+                if (h.getName().toLowerCase().startsWith("x-road-")) {
+                    writeString(bof, h.getName());
+                    writeString(bof, ":");
+                    writeString(bof, h.getValue());
+                    bof.write(CRLF);
+                }
+            }
+            return bof.toByteArray();
+        } catch (Exception io) {
+            throw new IllegalStateException("Unable to serialize request", io);
+        }
+    }
+
     @SuppressWarnings({"checkstyle:magicnumber", "checkstyle:innerassignment"})
     private void decodeIdentifiers() {
         if (requestPath == null) {
@@ -165,8 +166,8 @@ public class RestRequest {
                         uriSegmentPercentDecode(parts[2]),
                         uriSegmentPercentDecode(parts[3])
                 );
-            } else if (MimeUtils.HEADER_MESSAGE_ID.equalsIgnoreCase(h.getName())) {
-                this.messageId = h.getValue();
+            } else if (MimeUtils.HEADER_QUERY_ID.equalsIgnoreCase(h.getName())) {
+                this.queryId = h.getValue();
             }
             //TBD optional header values
         }
@@ -196,32 +197,5 @@ public class RestRequest {
         } else {
             servicePath = "";
         }
-    }
-
-    private static void writeString(OutputStream os, String s) throws IOException {
-        os.write(s.getBytes(StandardCharsets.UTF_8));
-    }
-
-    private static final byte[] CRLF = "\r\n".getBytes(StandardCharsets.UTF_8);
-    private static final byte[] SPACE = " ".getBytes(StandardCharsets.UTF_8);
-    public static final Set<String> SKIPPED_HEADERS;
-
-    static {
-        final HashSet<String> tmp = new HashSet<>();
-        tmp.add("transfer-encoding");
-        tmp.add("keep-alive");
-        tmp.add("proxy-authenticate");
-        tmp.add("proxy-authorization");
-        tmp.add("te");
-        tmp.add("trailer");
-        tmp.add("upgrade");
-        tmp.add("connection");
-        tmp.add("pragma");
-        tmp.add("user-agent");
-        tmp.add("host");
-        tmp.add("content-length");
-        tmp.add("server");
-        tmp.add("expect");
-        SKIPPED_HEADERS = Collections.unmodifiableSet(tmp);
     }
 }

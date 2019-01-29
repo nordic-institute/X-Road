@@ -37,6 +37,9 @@ import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -69,9 +72,10 @@ public final class LogRecordManager {
 
     /**
      * Returns a log record for a given message Query Id, start and end time.
-     * @param queryId the message query id.
+     *
+     * @param queryId   the message query id.
      * @param startTime the start time.
-     * @param endTime the end time.
+     * @param endTime   the end time.
      * @return the log record or null, if log record is not found in database.
      * @throws Exception if an error occurs while communicating with database.
      */
@@ -83,8 +87,9 @@ public final class LogRecordManager {
 
     /**
      * Returns a log record for a given message Query Id and sender Client Id.
-     * @param queryId the message query id.
-     * @param clientId the sender client id.
+     *
+     * @param queryId    the message query id.
+     * @param clientId   the sender client id.
      * @param isResponse whether the response record should be retrieved.
      * @return the log record or null, if log record is not found in database.
      * @throws Exception if an error occurs while communicating with database.
@@ -98,8 +103,9 @@ public final class LogRecordManager {
 
     /**
      * Returns a list of log records for a given message Query Id and sender Client Id.
-     * @param queryId the message query id.
-     * @param clientId the sender client id.
+     *
+     * @param queryId    the message query id.
+     * @param clientId   the sender client id.
      * @param isResponse whether the response record should be retrieved.
      * @return the log record list or empty list, if no log records were not found in database.
      * @throws Exception if an error occurs while communicating with database.
@@ -113,6 +119,7 @@ public final class LogRecordManager {
 
     /**
      * Returns a log record for a given log record number.
+     *
      * @param number the log record number.
      * @return the log record or null, if log record is not found in database.
      * @throws Exception if an error occurs while communicating with database.
@@ -125,19 +132,33 @@ public final class LogRecordManager {
 
     /**
      * Saves the message record to database.
+     *
      * @param messageRecord the message record to be saved.
      * @throws Exception if an error occurs while communicating with database.
      */
     static void saveMessageRecord(MessageRecord messageRecord) throws Exception {
         doInTransaction(session -> {
-            save(session, messageRecord);
-
+            try {
+                //the blob must be created within hibernate session
+                final InputStream is = messageRecord.getAttachmentStream();
+                if (is != null) {
+                    messageRecord.setAttachment(session.getLobHelper().createBlob(
+                            is,
+                            // REFACTOR: This works since we know that available() really returns the bytes available
+                            // up to 2GB (the stream is backed by FileChannel or ByteArrayInputStream).
+                            is.available()));
+                }
+                save(session, messageRecord);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
             return null;
         });
     }
 
     /**
      * Saves the message record in the database.
+     *
      * @param messageRecord the message record to be updated.
      * @throws Exception if an error occurs while communicating with database.
      */
@@ -150,13 +171,16 @@ public final class LogRecordManager {
     }
 
     /**
-     * Saves the time-stamp record to database. Associates the message records with this time-stamp record.
-     * @param timestampRecord the time-stamp record to be saved.
+     * Saves the time-stamp record to database. Associates the message records with this time-stamp
+     * record.
+     *
+     * @param timestampRecord       the time-stamp record to be saved.
      * @param timestampedLogRecords the message records that were time-stamped.
-     * @param hashChains the time-stamp hash chains for each message record.
+     * @param hashChains            the time-stamp hash chains for each message record.
      * @throws Exception if an error occurs while communicating with database.
      */
-    static void saveTimestampRecord(TimestampRecord timestampRecord, Long[] timestampedLogRecords, String[] hashChains)
+    static void saveTimestampRecord(TimestampRecord timestampRecord, Long[]
+            timestampedLogRecords, String[] hashChains)
             throws Exception {
         doInTransaction(session -> {
             save(session, timestampRecord);
@@ -168,28 +192,30 @@ public final class LogRecordManager {
 
     /**
      * Saves the log record to database. Sets the number of the log record.
-     * @param session the Hibernate session.
+     *
+     * @param session   the Hibernate session.
      * @param logRecord the log record to save.
      * @throws Exception if an error occurs while communicating with database.
      */
     static void save(Session session, LogRecord logRecord) {
         log.trace("save({})", logRecord.getClass());
-
         session.save(logRecord);
     }
 
     /**
      * Associates each log record with the time-stamp record.
-     * @param session the Hibernate session.
-     * @param messageRecords the message records.
+     *
+     * @param session         the Hibernate session.
+     * @param messageRecords  the message records.
      * @param timestampRecord the time-stamp record.
-     * @param hashChains the time-stamp hash chains.
+     * @param hashChains      the time-stamp hash chains.
      * @throws Exception if an error occurs while communicating with database.
      */
     private static void setMessageRecordsTimestamped(Session session, Long[] messageRecords,
             TimestampRecord timestampRecord, String[] hashChains) {
         if (log.isTraceEnabled()) {
-            log.trace("setMessageRecordsTimestamped({}, {})", Arrays.toString(messageRecords), timestampRecord.getId());
+            log.trace("setMessageRecordsTimestamped({}, {})", Arrays.toString(messageRecords),
+                    timestampRecord.getId());
         }
 
         if (hashChains != null && messageRecords.length != hashChains.length) {
@@ -199,11 +225,13 @@ public final class LogRecordManager {
         // Let's perform directly JDBC related work for bulk update.
         // Needs to flush the session to get access to previously saved timestamp record.
         session.flush();
-        session.doWork(connection -> setMessageRecordsTimestamped(messageRecords, timestampRecord, hashChains,
+        session.doWork(connection -> setMessageRecordsTimestamped(messageRecords, timestampRecord,
+                hashChains,
                 connection, getConfiguredBatchSize(session)));
     }
 
-    private static void setMessageRecordsTimestamped(Long[] messageRecords, TimestampRecord timestampRecord,
+    private static void setMessageRecordsTimestamped(Long[] messageRecords, TimestampRecord
+            timestampRecord,
             String[] hashChains, Connection connection, int batchSize) throws SQLException {
         log.trace("setMessageRecordsTimestamped({})", messageRecords.length);
 
@@ -239,7 +267,8 @@ public final class LogRecordManager {
     }
 
     @SneakyThrows
-    private static MessageRecord getMessageRecord(Session session, String queryId, Date startTime, Date endTime) {
+    private static MessageRecord getMessageRecord(Session session, String queryId, Date startTime, Date
+            endTime) {
         Criteria criteria = session.createCriteria(MessageRecord.class);
         criteria.add(Restrictions.eq("queryId", queryId));
         criteria.add(Restrictions.between("time", startTime.getTime(), endTime.getTime()));
@@ -258,7 +287,8 @@ public final class LogRecordManager {
 
     @SneakyThrows
     @SuppressWarnings("unchecked")
-    private static List<MessageRecord> getMessageRecords(Session session, String queryId, ClientId clientId,
+    private static List<MessageRecord> getMessageRecords(Session session, String queryId, ClientId
+            clientId,
             boolean isResponse) {
         Criteria criteria = createRecordCriteria(session, queryId, clientId, isResponse);
 
@@ -286,4 +316,5 @@ public final class LogRecordManager {
 
         return configuredBatchSize;
     }
+
 }

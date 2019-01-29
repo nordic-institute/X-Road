@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+    <changeSet id="6-rest-message" author="niis">
+        <addColumn tableName="LOGRECORD">
+            <column name="ATTACHMENT" type="OID"/>
+        </addColumn>
+        <sql dbms="postgresql" splitStatements="false"><![CDATA[
+CREATE TRIGGER t_logrecord_attachment
+    BEFORE DELETE ON logrecord
+    FOR EACH ROW
+    EXECUTE PROCEDURE lo_manage(attachment);
+        ]]></sql>
+    </changeSet>
+</databaseChangeLog>

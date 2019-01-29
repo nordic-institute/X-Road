@@ -53,6 +53,8 @@ public final class MessageLogProperties {
 
     private static final int DEFAULT_ARCHIVE_TRANSACTION_BATCH_SIZE = 10000;
 
+    private static final long DEFAULT_MAX_LOGGABLE_MESSAGE_BODY_SIZE = 10 * 1024 * 1024;
+
     private static final String PREFIX = "xroad.message-log.";
 
     /** Property name of the timestamper client connect timeout (milliseconds). */
@@ -97,6 +99,9 @@ public final class MessageLogProperties {
 
     /** Postfix for overriding SOAP body logging for remote producers **/
     private static final String SOAP_BODY_LOGGING_REMOTE_PRODUCER = "-remote-producer-subsystems";
+
+    /** Postfix for overriding SOAP body logging for remote producers **/
+    private static final String MAX_LOGGABLE_MESSAGE_BODY_SIZE = PREFIX + "max-loggable-message-body-size";
 
     public static final int NUM_COMPONENTS = 4;
     public static final int FIRST_COMPONENT = 0;
@@ -239,6 +244,14 @@ public final class MessageLogProperties {
     }
 
 
+    /**
+     * Returns maximum loggable REST body size
+     */
+    public static long getMaxLoggableBodySize() {
+        return Long.getLong(MAX_LOGGABLE_MESSAGE_BODY_SIZE, DEFAULT_MAX_LOGGABLE_MESSAGE_BODY_SIZE);
+    }
+
+
     private static String getSoapBodyLoggingOverrideParameterName(boolean enable, boolean local) {
         String prefix = enable ? SOAP_BODY_LOGGING_ENABLE : SOAP_BODY_LOGGING_DISABLE;
         String postfix = local ? SOAP_BODY_LOGGING_LOCAL_PRODUCER : SOAP_BODY_LOGGING_REMOTE_PRODUCER;
@@ -309,4 +322,5 @@ public final class MessageLogProperties {
 
         return toReturn;
     }
+
 }

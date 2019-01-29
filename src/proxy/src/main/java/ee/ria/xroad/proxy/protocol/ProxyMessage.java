@@ -81,6 +81,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
 
     /**
      * Constructs new proxy message with the original message content type.
+     *
      * @param originalContentType the original content type.
      */
     public ProxyMessage(String originalContentType) {
@@ -98,6 +99,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
     public RestRequest getRest() {
         return restMessage;
     }
+
     public RestResponse getRestResponse() {
         return restResponse;
     }
@@ -265,8 +267,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
     }
 
     /**
-     * get rest body
-     * @return
+     * Get rest body as inputstream.
      */
     public InputStream getRestBody() {
         if (restBody != null) {

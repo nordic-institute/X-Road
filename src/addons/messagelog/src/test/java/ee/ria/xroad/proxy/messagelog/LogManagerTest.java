@@ -25,7 +25,7 @@
 package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.messagelog.FindByQueryId;
-import ee.ria.xroad.common.messagelog.LogMessage;
+import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.util.JobManager;
 
 import akka.actor.ActorRef;
@@ -110,7 +110,7 @@ public class LogManagerTest {
             log.debug("asking the rest of messages");
 
             replies.add(Patterns.ask(subject, "another-foostring", timeout));
-            replies.add(Patterns.ask(subject, new LogMessage(null, null, false), timeout));
+            replies.add(Patterns.ask(subject, new SoapLogMessage(null, null, false), timeout));
             replies.add(Patterns.ask(subject, new FindByQueryId(null, null, null), timeout));
             replies.add(Patterns.ask(subject, new SetTimestampingStatusMessage(
                     SetTimestampingStatusMessage.Status.SUCCESS), timeout));

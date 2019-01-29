@@ -24,19 +24,26 @@
  */
 package ee.ria.xroad.common.messagelog;
 
-import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.signature.SignatureData;
 
-import lombok.Value;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Message for logging the contained SOAP message and signature data.
  */
-@Value
-public class LogMessage {
 
-    private final SoapMessageImpl message;
+@Getter
+@RequiredArgsConstructor
+public abstract class LogMessage {
+
     private final SignatureData signature;
     private final boolean clientSide;
+
+    public abstract String getQueryId();
+    public abstract ClientId getClient();
+    public abstract ServiceId getService();
 
 }

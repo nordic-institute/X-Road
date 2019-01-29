@@ -376,7 +376,7 @@ public class ProxyMessageDecoder {
     private void handleRestResponse(BodyDescriptor bd, InputStream is) {
         try {
             final byte[] request = IOUtils.toByteArray(is);
-            callback.rest(new RestResponse(request));
+            callback.rest(RestResponse.of(request));
             verifier.addPart(MessageFileNames.MESSAGE,
                     getHashAlgoId(),
                     CryptoUtils.calculateDigest(getHashAlgoId(), request),

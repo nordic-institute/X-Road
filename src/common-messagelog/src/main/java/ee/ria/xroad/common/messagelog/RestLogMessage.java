@@ -22,40 +22,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.messagelog;
+package ee.ria.xroad.common.messagelog;
 
-import ee.ria.xroad.common.messagelog.AbstractLogManager;
-import ee.ria.xroad.common.messagelog.LogMessage;
-import ee.ria.xroad.common.messagelog.LogRecord;
-import ee.ria.xroad.common.messagelog.TimestampRecord;
-import ee.ria.xroad.common.util.JobManager;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.RestMessage;
+import ee.ria.xroad.common.message.RestResponse;
+import ee.ria.xroad.common.signature.SignatureData;
 
-import java.util.Date;
+import lombok.Getter;
+
+import java.io.InputStream;
 
 /**
- * A dummy implementation of message log that does nothing.
- * Actual implementation can be provided by addon.
+ * LogMessage for REST
  */
-public class NullLogManager extends AbstractLogManager {
+@Getter
+public final class RestLogMessage extends LogMessage {
 
-    NullLogManager(JobManager jobManager) throws Exception {
-        super(jobManager);
+    private final String queryId;
+    private final RestMessage message;
+    private final InputStream body;
+    private final ClientId client;
+    private final ServiceId service;
+
+    /**
+     * Create Loggable Rest Message
+     */
+    public RestLogMessage(String queryId, ClientId client, ServiceId service, RestMessage message,
+            SignatureData signature,
+            InputStream body, boolean clientside) {
+        super(signature, clientside);
+        this.queryId = queryId;
+        this.client = client;
+        this.service = service;
+        this.message = message;
+        this.body = body;
     }
 
-    @Override
-    protected void log(LogMessage message) throws Exception {
-        // do nothing
+    public boolean isResponse() {
+        return message instanceof RestResponse;
     }
-
-    @Override
-    protected LogRecord findByQueryId(String queryId, Date startTime,
-            Date endTime) throws Exception {
-        return null;
-    }
-
-    @Override
-    protected TimestampRecord timestamp(Long messageRecordId) throws Exception {
-        return null;
-    }
-
 }
