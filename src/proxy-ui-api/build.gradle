@@ -1,6 +1,7 @@
 buildscript {
     ext {
         springBootVersion = '2.1.0.RELEASE'
+        openapiGeneratorVersion = '3.3.4'
     }
     repositories {
         mavenCentral()
@@ -8,6 +9,8 @@ buildscript {
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath "org.openapitools:openapi-generator-gradle-plugin:3.3.4"
+//        classpath "org.openapitools:openapi-generator-gradle-plugin:{openapiGeneratorVersion}"
         classpath 'com.moowork.gradle:gradle-node-plugin:1.1.0'
     }
 }
@@ -34,6 +37,7 @@ if (!excludeDevToolsSetting) {
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: "com.moowork.node"
+apply plugin: 'org.openapi.generator'
 
 bootRun {
     jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
@@ -83,6 +87,47 @@ processResources.dependsOn 'buildFront'
 clean.delete << file('frontend/node_modules')
 clean.delete << file('frontend/dist')
 
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = "src/main/resources/openapi-definition.json".toString()
+    outputDir = "$buildDir/generated-sources".toString()
+    apiPackage = "org.niis.xroad.authproto.openapi"
+    modelPackage = "org.niis.xroad.authproto.openapi.model"
+    systemProperties = [
+        modelDocs: "false",
+        apis: "", // must use empty strings instead of "true":
+        // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
+        models: ""
+    ]
+    configOptions = [
+        interfaceOnly: "true"
+    ]
+}
+
+compileJava.dependsOn tasks.openApiGenerate
+
+sourceSets {
+    main {
+        java.srcDirs = ['src/main/java', 'build/generated-sources']
+    }
+}
+
+// set license format to ignore generated java sources
+task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+}
+
+task licenseTestJava(type:nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+    check = true
+}
+
+licenseFormatMain.enabled = false
+licenseMain.enabled = false
+
+licenseFormat.dependsOn licenseFormatJava
+licenseTest.dependsOn licenseTestJava
+
 dependencies {
     implementation project(':serverconf')
     implementation('org.springframework.boot:spring-boot-starter-security')
@@ -93,4 +138,11 @@ dependencies {
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')
     developmentOnly("org.springframework.boot:spring-boot-devtools")
+    // openapi-generator related
+    implementation('io.springfox:springfox-swagger2:2.8.0')
+    implementation('io.springfox:springfox-swagger-ui:2.8.0')
+    implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
+    implementation('org.openapitools:jackson-databind-nullable:0.1.0')
+    implementation('javax.validation:validation-api')
+    // /openapi-generator related
 }
