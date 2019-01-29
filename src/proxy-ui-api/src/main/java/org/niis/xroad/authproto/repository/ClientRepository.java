@@ -27,17 +27,21 @@ package org.niis.xroad.authproto.repository;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
+import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.niis.xroad.authproto.DatabaseContextHelper;
+import org.niis.xroad.authproto.openapi.model.Client;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Not sure if we are going to have this kind of repositories...
@@ -72,9 +76,40 @@ public class ClientRepository {
         return DatabaseContextHelper.serverConfTransaction(
                 session -> {
                     ClientType client = clientDAO.getClient(session, clientId);
-                    ClientType clientDto = copy(client);
+                    ClientType clientDto = copyToClientType(client);
                     return clientDto;
                 });
+    }
+
+    //CHECKSTYLE.OFF: TodoComment
+    /**
+     * TODO: should repositories talk in openapi terms?
+     *
+     * @return
+     */
+    //CHECKSTYLE.ON: TodoComment
+    public List<Client> getAllClients() {
+        ServerConfDAOImpl serverConf = new ServerConfDAOImpl();
+        return DatabaseContextHelper.serverConfTransaction(
+                session -> {
+                    List<Client> clients = new ArrayList<>();
+                    for (ClientType client : serverConf.getConf().getClient()) {
+                        clients.add(copy(client));
+                    }
+                    return clients;
+                });
+    }
+
+
+    /**
+     * Placeholder transformation from xroad POJO to API DTO
+     */
+    private Client copy(ClientType client) {
+        Client copy = new Client();
+        copy.setId(UUID.randomUUID());
+        copy.setName(client.getIdentifier().toShortString());
+        copy.setStatus(client.getClientStatus());
+        return copy;
     }
 
     /**
@@ -87,7 +122,7 @@ public class ClientRepository {
      * @param client
      * @return
      */
-    private ClientType copy(ClientType client) {
+    private ClientType copyToClientType(ClientType client) {
         ClientType copy = new ClientType();
         BeanUtils.copyProperties(client, copy, "conf");
         for (WsdlType w: client.getWsdl()) {
@@ -100,6 +135,8 @@ public class ClientRepository {
             }
             copy.getWsdl().add(wc);
         }
+        // pass client id to UI somehow, just for demo purposes
+        copy.setIsAuthentication(client.getIdentifier().toShortString());
         return copy;
     }
 }

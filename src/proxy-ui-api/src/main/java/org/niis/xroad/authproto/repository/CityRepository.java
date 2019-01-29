@@ -32,8 +32,6 @@ import java.util.Arrays;
 /**
  * read cities from db
  */
-//public interface CityRepository extends CrudRepository<City, Long> {
-//}
 @Component
 public class CityRepository {
 

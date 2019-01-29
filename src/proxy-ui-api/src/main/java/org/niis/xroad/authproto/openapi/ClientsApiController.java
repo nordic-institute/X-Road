@@ -24,10 +24,19 @@
  */
 package org.niis.xroad.authproto.openapi;
 
+import org.niis.xroad.authproto.repository.ClientRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.context.request.NativeWebRequest;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -37,11 +46,22 @@ import java.util.Optional;
 @RequestMapping("/test-api")
 public class ClientsApiController implements org.niis.xroad.authproto.openapi.ClientsApi {
 
+    public static final int MAX_FIFTY_RESULTS = 50;
     private final NativeWebRequest request;
 
-    @org.springframework.beans.factory.annotation.Autowired
+    @Autowired
+    private ClientRepository clientRepository;
+
+    @Autowired
     public ClientsApiController(NativeWebRequest request) {
         this.request = request;
+    }
+
+    @Override
+    public ResponseEntity<List<org.niis.xroad.authproto.openapi.model.Client>> getClients(@Valid String term,
+            @Min(0) @Valid Integer offset, @Min(0) @Max(MAX_FIFTY_RESULTS) @Valid Integer limit) {
+        List<org.niis.xroad.authproto.openapi.model.Client> clients = clientRepository.getAllClients();
+        return new ResponseEntity<>(clients, HttpStatus.OK);
     }
 
     @Override
