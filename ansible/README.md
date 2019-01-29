@@ -54,7 +54,7 @@ Playbook `xroad_init.yml` uses package repositories for X-Road installations.
 The default repository configurations are:
 
 * for Ubuntu 14 DEB-packages `deb https://artifactory.niis.org/xroad-release-deb trusty-current main`
-* for Ubuntu 18 DEB-packages `TBD - not yet released`
+* for Ubuntu 18 DEB-packages `deb https://artifactory.niis.org/xroad-release-deb bionic-current main`
 * for RHEL-packages `https://artifactory.niis.org/xroad-release-rpm/rhel/7/current`.
 
 The used repository can be configured in `vars_files/remote_repo.yml`. The file contains repository and key variables for RHEL, Ubuntu 14 and Ubuntu 18.
