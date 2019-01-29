@@ -2,6 +2,7 @@ buildscript {
     ext {
         springBootVersion = '2.1.0.RELEASE'
         openapiGeneratorVersion = '3.3.4'
+        nodePluginVersion = '1.1.0'
     }
     repositories {
         mavenCentral()
@@ -9,9 +10,8 @@ buildscript {
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-        classpath "org.openapitools:openapi-generator-gradle-plugin:3.3.4"
-//        classpath "org.openapitools:openapi-generator-gradle-plugin:{openapiGeneratorVersion}"
-        classpath 'com.moowork.gradle:gradle-node-plugin:1.1.0'
+        classpath "org.openapitools:openapi-generator-gradle-plugin:${openapiGeneratorVersion}"
+        classpath "com.moowork.gradle:gradle-node-plugin:${nodePluginVersion}"
     }
 }
 
