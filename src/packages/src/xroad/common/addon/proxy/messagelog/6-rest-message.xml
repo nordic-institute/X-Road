@@ -10,5 +10,11 @@ CREATE TRIGGER t_logrecord_attachment
     FOR EACH ROW
     EXECUTE PROCEDURE lo_manage(attachment);
         ]]></sql>
+        <rollback>
+            <dropColumn tableName="LOGRECORD">
+                <column name="ATTACHMENT"/>
+            </dropColumn>
+            <sql dbms="postgresql">DROP TRIGGER IF EXISTS t_logrecord_attachment ON LOGRECORD;</sql>
+        </rollback>
     </changeSet>
 </databaseChangeLog>
