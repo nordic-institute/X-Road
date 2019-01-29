@@ -285,7 +285,7 @@ public class LogManager extends AbstractLogManager {
 
         messageRecord.setTime(new Date().getTime());
 
-        if (message.getBody() != null && manipulator.isBodyLogged(message)) {
+        if (message.getBody() != null && MAX_LOGGABLE_MESSAGE_SIZE > 0 && manipulator.isBodyLogged(message)) {
             final BoundedInputStream body = new BoundedInputStream(message.getBody(), MAX_LOGGABLE_MESSAGE_SIZE);
             body.setPropagateClose(false);
             messageRecord.setAttachmentStream(body);

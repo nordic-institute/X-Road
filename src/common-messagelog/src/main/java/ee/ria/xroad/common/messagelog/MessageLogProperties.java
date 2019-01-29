@@ -54,6 +54,7 @@ public final class MessageLogProperties {
     private static final int DEFAULT_ARCHIVE_TRANSACTION_BATCH_SIZE = 10000;
 
     private static final long DEFAULT_MAX_LOGGABLE_MESSAGE_BODY_SIZE = 10 * 1024 * 1024;
+    private static final long MAX_LOGGABLE_MESSAGE_BODY_SIZE_LIMIT = 1024 * 1024 * 1024;
 
     private static final String PREFIX = "xroad.message-log.";
 
@@ -220,6 +221,7 @@ public final class MessageLogProperties {
 
     /**
      * Returns global setting for SOAP body logging.
+     *
      * @return true if body logging is enabled.
      */
     public static boolean isSoapBodyLoggingEnabled() {
@@ -229,17 +231,19 @@ public final class MessageLogProperties {
 
     /**
      * Returns list of remote producer subsystem ClientIds for which global SOAP body logging setting is overridden.
+     *
      * @return list of ClientId.
      */
-    public static Collection<ClientId> getSoapBodyLoggingRemoteProducerOverrides()  {
+    public static Collection<ClientId> getSoapBodyLoggingRemoteProducerOverrides() {
         return getSoapBodyLoggingOverrides(false);
     }
 
     /**
      * Returns list of local producer subsystem ClientIds for which global SOAP body logging setting is overridden.
+     *
      * @return list of ClientId.
      */
-    public static Collection<ClientId> getSoapBodyLoggingLocalProducerOverrides()  {
+    public static Collection<ClientId> getSoapBodyLoggingLocalProducerOverrides() {
         return getSoapBodyLoggingOverrides(true);
     }
 
@@ -248,9 +252,13 @@ public final class MessageLogProperties {
      * Returns maximum loggable REST body size
      */
     public static long getMaxLoggableBodySize() {
-        return Long.getLong(MAX_LOGGABLE_MESSAGE_BODY_SIZE, DEFAULT_MAX_LOGGABLE_MESSAGE_BODY_SIZE);
+        final Long value = Long.getLong(MAX_LOGGABLE_MESSAGE_BODY_SIZE, DEFAULT_MAX_LOGGABLE_MESSAGE_BODY_SIZE);
+        if (value < 0 || value > MAX_LOGGABLE_MESSAGE_BODY_SIZE_LIMIT) {
+            throw new IllegalArgumentException(String.format("%s must be between 0 and %d",
+                    MAX_LOGGABLE_MESSAGE_BODY_SIZE, MAX_LOGGABLE_MESSAGE_BODY_SIZE_LIMIT));
+        }
+        return value;
     }
-
 
     private static String getSoapBodyLoggingOverrideParameterName(boolean enable, boolean local) {
         String prefix = enable ? SOAP_BODY_LOGGING_ENABLE : SOAP_BODY_LOGGING_DISABLE;
@@ -275,6 +283,7 @@ public final class MessageLogProperties {
 
     /**
      * Check that given parameter is not in use, and if it is throws IllegalStateException.
+     *
      * @param enable
      * @param local
      */
@@ -285,7 +294,7 @@ public final class MessageLogProperties {
         }
     }
 
-    private static Collection<ClientId> getSoapBodyLoggingOverrides(boolean local)  {
+    private static Collection<ClientId> getSoapBodyLoggingOverrides(boolean local) {
         validateBodyLoggingOverrideParameters();
 
         return parseClientIdParameters(getSoapBodyLoggingOverrideParameter(!isSoapBodyLoggingEnabled(), local));
@@ -295,10 +304,11 @@ public final class MessageLogProperties {
      * Given one parameter parses it to collection of ClientIds. Parameter should be of format
      * FI/GOV/1710128-9/MANSIKKA, FI/GOV/1710128-9/MUSTIKKA, that is: comma separated list of slash-separated subsystem
      * identifiers.
+     *
      * @param clientIdParameters
      * @return
      */
-    private static Collection<ClientId> parseClientIdParameters(String clientIdParameters)  {
+    private static Collection<ClientId> parseClientIdParameters(String clientIdParameters) {
         Collection<ClientId> toReturn = new ArrayList<>();
         Iterable<String> splitSubsystemParams = Splitter.on(",")
                 .trimResults()
@@ -307,7 +317,7 @@ public final class MessageLogProperties {
 
         Splitter codeSplitter = Splitter.on("/").trimResults();
 
-        for (String oneSubsystemParam: splitSubsystemParams) {
+        for (String oneSubsystemParam : splitSubsystemParams) {
             List<String> codes = Lists.newArrayList(codeSplitter.split(oneSubsystemParam));
 
             if (codes.size() != NUM_COMPONENTS) {
