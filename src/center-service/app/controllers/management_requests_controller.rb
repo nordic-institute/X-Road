@@ -25,6 +25,7 @@
 
 require 'thread'
 
+java_import Java::ee.ria.xroad.common.SystemProperties
 java_import Java::ee.ria.xroad.common.request.ManagementRequestHandler
 java_import Java::ee.ria.xroad.common.request.ManagementRequestParser
 java_import Java::ee.ria.xroad.common.request.ManagementRequestUtil
@@ -94,14 +95,30 @@ class ManagementRequestsController < ApplicationController
     verify_owner(security_server)
 
     req = nil
+    auth_cert_reg_request = nil
+
+    auth_cert_bytes = String.from_java_bytes(req_type.getAuthCert())
 
     @@auth_cert_registration_mutex.synchronize do
       req = AuthCertRegRequest.new(
         :security_server => security_server,
-        :auth_cert => String.from_java_bytes(req_type.getAuthCert()),
+        :auth_cert => auth_cert_bytes,
         :address => req_type.getAddress(),
         :origin => Request::SECURITY_SERVER)
       req.register()
+
+      if auto_approve_auth_cert_reg_requests?
+        auth_cert_reg_request = AuthCertRegRequest.new(
+          :security_server => security_server,
+          :auth_cert => auth_cert_bytes,
+          :address => req_type.getAddress(),
+          :origin => Request::CENTER)
+        auth_cert_reg_request.register()
+      end
+    end
+
+    if auto_approve_auth_cert_reg_requests?
+      RequestWithProcessing.approve(auth_cert_reg_request.id)
     end
 
     req.id
@@ -194,5 +211,9 @@ class ManagementRequestsController < ApplicationController
     unless @xroad_instance.eql?(xroad_id.xroad_instance)
       raise t("request.incorrect_instance")
     end
+  end
+
+  def auto_approve_auth_cert_reg_requests?
+    Java::ee.ria.xroad.common.SystemProperties::getCenterAutoApproveAuthCertRegRequests
   end
 end

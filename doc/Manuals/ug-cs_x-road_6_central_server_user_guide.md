@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide
 
-Version: 2.6  
+Version: 2.8  
 Doc. ID: UG-CS
 
 
@@ -28,10 +28,11 @@ Doc. ID: UG-CS
 | 17.12.2015 | 2.1     | Added user instructions for monitoring. ||
 | 14.4.2016  | 2.2     | Added chapter for additional configuration options. ||
 | 5.9.2016   | 2.3     | Added instructions for configuring OCSP fetch interval. ||
-| 20.01.2017 | 2.4       | Added license text and version history | Sami Kallio |
+| 20.01.2017 | 2.4     | Added license text and version history | Sami Kallio |
 | 05.03.2018 | 2.5     | Added terms and abbreviations reference and document links | Tatu Repo |
 | 18.08.2018 | 2.6     | Corrected `ocspFetchInterval` default value (Chapter 16.2) | Petteri Kivimäki |
 | 15.11.2018 | 2.7     | Minor corrections for Ubuntu 18 | Jarkko Hyöty |
+| 23.01.2019 | 2.8     | Information about automatic approval of auth cert registration requests added. Updates in Chapters 6-8. | Petteri Kivimäki |
 
 ## Table of Contents
 <!-- toc -->
@@ -457,7 +458,7 @@ To delete an anchor file, follow these steps.
 # 6. The Management Requests System
 ## 6.1 Registration Requests
 
-As the registration of associations in the X-Road governing authority is security-critical, the following measures are applied to increase security:
+As the registration of associations in the X-Road governing authority is security-critical, the following measures are applied to increase security by default:
 
 - The registration request must be submitted to the X-Road governing authority over two channels, or in other words, the registration wish must be expressed through two complementary requests:
 one request is submitted to the X-Road central server through the security server,
@@ -468,6 +469,8 @@ There are two types of registration requests:
 
 - authentication certificate registration request (see Sections 7.4 and 8.3);
 - security server client registration request (see Section 7.5).
+
+It is possible to streamline the registration process of authentication certificates by enabling automatic approval of authentication certificate registration requests. When automatic approval is enabled, it is enough to submit a registration request to the X-Road central server through the security server, and the request will be automatically approved immediately. By default, automatic approval of authentication certificate registration requests is disabled. It can be enabled by setting the `auto-approve-auth-cert-reg-requests` property value to `true` on central server.
 
 ### 6.1.1 State Machine Model for Registration Requests
 
@@ -492,6 +495,8 @@ Approved – the complementary registration requests have been approved. The ass
 Declined – the complementary registration requests have been declined.
 
 Revoked – a registration request has been revoked.
+
+If automatic approval of authentication certificate registration requests is enabled, the complimentary registration request is created and approved automatically. Therefore, the request moves directly to Approved state.
 
 ## 6.2 Deletion Requests
 
@@ -582,7 +587,12 @@ To add a subsystem to an X-Road member, follow these steps.
 
 Access rights: Registration Officer
 
-To register an X-Road member's security server, the following actions must be taken.
+The actions required to register an X-Road member's security server depend on whether automatic approval of authentication certificate registration requests is enabled or disabled (_default_).
+
+When automatic approval of authentication certificate registration requests is enabled, the following action must be taken:
+- An authentication certificate registration request must be sent from the security server to the central server by the security server administrator.
+
+Automatic approval of authentication certificate registration requests is disabled by default. In that case, to register an X-Road member's security server, the following actions must be taken.
 - An authentication certificate registration request must be sent from the security server to the central server by the security server administrator;
 - The complementary authentication certificate registration request must be formalized in the central server by the central server administrator, on the appeal of the security server's owner.
 - The complimentary requests must be approved by the central server administrator.
@@ -771,7 +781,12 @@ To change the security server address, follow these steps.
 
 Access rights: Registration Officer
 
-To register a security server's authentication certificate, the following actions must be taken.
+The actions required to register a security server's authentication certificate depend on whether automatic approval of authentication certificate registration requests is enabled or disabled (_default_).
+
+When automatic approval of authentication certificate registration requests is enabled, the following action must be taken:
+- An authentication certificate registration request must be sent from the security server to the central server by the security server administrator.
+
+Automatic approval of authentication certificate registration requests is disabled by default. In that case, to register a security server's authentication certificate, the following actions must be taken.
 - An authentication certificate registration request must be sent from the security server to the central server by the security server administrator;
 - The complementary authentication certificate registration request must be formalized in the central server by the central server administrator, on the appeal of the security server's owner.
 - The complimentary requests must be approved by the central server administrator.
