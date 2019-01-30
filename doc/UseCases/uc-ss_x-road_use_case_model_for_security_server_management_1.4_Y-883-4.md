@@ -248,7 +248,7 @@ manage the security server configuration.
         - 3a.3a. SS administrator selects to terminate the use case.
 
 - 4a. The user with the inserted user name does not exist or the password is incorrect.
-    - 4a.1. System displays the error message “Authentication failed”.
+    - 4a.1. System displays the error message “Authentication failed. Please try again”. The text fields are emptied.
     - 4a.2. System logs the event “Log in user failed” to the audit log.
     - 4a.3. SS administrator selects to reinsert the user name and/or the password. Use case continues from step 3.
         - 4a.3a. SS administrator selects to terminate the use case.
