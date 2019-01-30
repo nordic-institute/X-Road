@@ -3,7 +3,7 @@ FROM ubuntu:18.04
 ARG uid
 ARG gid
 
-ENV JRUBY_VERSION="9.1.13.0"
+ENV JRUBY_VERSION="9.2.5.0"
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN groupadd -g $gid builder && useradd -m -u $uid -g $gid builder
@@ -23,7 +23,7 @@ RUN cd ~ && \
 
 RUN ~/.rvm/bin/rvm install jruby-$JRUBY_VERSION --binary --skip-gemsets && \
     ~/.rvm/bin/rvm jruby-$JRUBY_VERSION do jgem install jruby-openssl jruby-launcher \
-    gem-wrappers rubygems-bundler rake:12.0.0 rvm jruby-jars:$JRUBY_VERSION bundler:1.14.6 warbler:2.0.4 bundler-audit && \
+    gem-wrappers rubygems-bundler rake:12.3.2 rvm jruby-jars:$JRUBY_VERSION bundler:1.14.6 warbler:2.0.4 bundler-audit && \
     mkdir -p /var/tmp/xroad
 
 WORKDIR /mnt

@@ -2,6 +2,7 @@ source 'https://rubygems.org'
 
 gem 'activerecord-jdbcpostgresql-adapter', '~>1.2.9'
 gem 'jdbc-postgres', '~>9.2.1002.1'
+gem 'test-unit', '~> 3.0'
 
 if File.exists?("../common-ui")
   gem 'common-ui', :path => "../common-ui"
