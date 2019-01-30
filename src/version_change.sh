@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+export DEBFULLNAME=NIIS
+export DEBEMAIL=info@niis.org
+
 RELEASE=false
 DEB_CHANGELOG=packages/src/xroad/ubuntu/generic/changelog
 DEBJ9_CHANGELOG=packages/src/xroad-jetty9/ubuntu/generic/changelog
@@ -69,6 +72,10 @@ fi
 
 if [[ $VERSION == $CURRENT_VERSION ]]; then
     echo "$VERSION is the current version"
+    if [[ $RELEASE == true ]]; then
+        echo "Releasing the current version"
+        release_current
+    fi
     exit 1
 fi
 
@@ -87,13 +94,6 @@ while true; do
         * ) echo "Please answer yes or no.";;
     esac
 done
-
-# Backup files before editing them
-cp ../CHANGELOG.md ../CHANGELOG.md~
-cp gradle.properties gradle.properties~
-cp packages/build-rpm.sh packages/build-rpm.sh~
-cp "$DEB_CHANGELOG" "$DEB_CHANGELOG~"
-cp "$DEBJ9_CHANGELOG" "$DEBJ9_CHANGELOG~"
 
 if [[ $DOWNGRADE == true ]]; then
     downgrade "2" "$VERSION" "../CHANGELOG.md"
