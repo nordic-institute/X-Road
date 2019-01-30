@@ -1250,11 +1250,15 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the so_linger value in seconds that should be set for server proxy connector, 0 by default
+     * @return the so_linger value in milliseconds that should be set for server proxy connector, -1 (disabled) by
+     * default
      */
+    @SuppressWarnings("checkstyle:magicnumber")
     public static int getServerProxyConnectorSoLinger() {
-        return Integer.parseInt(System.getProperty(SERVERPROXY_CONNECTOR_SO_LINGER,
+        final int linger = Integer.parseInt(System.getProperty(SERVERPROXY_CONNECTOR_SO_LINGER,
                 DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER));
+        if (linger >= 0) return linger * 1000;
+        return -1;
     }
 
     /**

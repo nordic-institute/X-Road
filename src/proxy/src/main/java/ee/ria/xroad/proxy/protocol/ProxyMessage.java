@@ -31,6 +31,7 @@ import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageEncoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.common.util.CacheInputStream;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
@@ -214,18 +215,9 @@ public class ProxyMessage implements ProxyMessageConsumer {
 
     @Override
     public void restBody(InputStream content) throws Exception {
-        final byte[] buffer = new byte[REST_BODY_LIMIT];
-        final int bytes = IOUtils.read(content, buffer);
-        if (bytes > 0) {
-            if (bytes == buffer.length) {
-                //could test for the case that there actually are more bytes to read
-                attachmentCache = new CachingStream();
-                attachmentCache.write(buffer, 0, bytes);
-                IOUtils.copyLarge(content, attachmentCache, buffer);
-            } else {
-                restBody = new ByteArrayInputStream(buffer, 0, bytes);
-            }
-        }
+        assert (attachmentCache == null);
+        attachmentCache = new CachingStream();
+        IOUtils.copyLarge(content, attachmentCache);
     }
 
     @Override
@@ -266,16 +258,15 @@ public class ProxyMessage implements ProxyMessageConsumer {
                 && !hasAttachments();
     }
 
+
+    public boolean hasRestBody() {
+        return attachmentCache != null && (restMessage != null || restResponse != null);
+    }
     /**
      * Get rest body as inputstream.
      */
-    public InputStream getRestBody() {
-        if (restBody != null) {
-            hasBeenConsumed = true;
-            return restBody;
-        }
+    public CacheInputStream getRestBody() {
         if (attachmentCache != null) {
-            hasBeenConsumed = true;
             return attachmentCache.getCachedContents();
         }
         return null;

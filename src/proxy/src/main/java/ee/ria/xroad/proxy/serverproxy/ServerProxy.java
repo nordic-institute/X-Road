@@ -66,8 +66,7 @@ public class ServerProxy implements StartStop {
     // SSL session timeout in seconds
     private static final int SSL_SESSION_TIMEOUT = 600;
 
-    private static final int CONNECTOR_SO_LINGER_MILLIS = SystemProperties.getServerProxyConnectorSoLinger() * 1000;
-
+    private static final int CONNECTOR_SO_LINGER_MILLIS = SystemProperties.getServerProxyConnectorSoLinger();
     private static final String CLIENT_PROXY_CONNECTOR_NAME = "ClientProxyConnector";
 
     private Server server = new Server();
@@ -81,6 +80,7 @@ public class ServerProxy implements StartStop {
 
     /**
      * Constructs and configures a new server proxy.
+     *
      * @throws Exception in case of any errors
      */
     public ServerProxy() throws Exception {
@@ -89,6 +89,7 @@ public class ServerProxy implements StartStop {
 
     /**
      * Constructs and configures a new client proxy with the specified listen address.
+     *
      * @param listenAddress the address this server proxy should listen at
      * @throws Exception in case of any errors
      */

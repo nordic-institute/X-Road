@@ -37,6 +37,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -73,11 +74,14 @@ public class RestResponse extends RestMessage {
         this.reason = reason;
         this.queryId = queryId;
         this.requestHash = requestHash;
-        this.headers = headers.stream()
+        final ArrayList<Header> tmp = headers.stream()
                 .filter(h -> !SKIPPED_HEADERS.contains(h.getName().toLowerCase()))
                 .filter(h -> !h.getName().equalsIgnoreCase(MimeUtils.HEADER_QUERY_ID)
                         && !h.getName().equalsIgnoreCase(MimeUtils.HEADER_REQUEST_HASH))
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(ArrayList::new));
+        tmp.add(new BasicHeader(MimeUtils.HEADER_QUERY_ID, queryId));
+        tmp.add(new BasicHeader(MimeUtils.HEADER_REQUEST_HASH, CryptoUtils.encodeBase64(requestHash)));
+        this.headers = tmp;
     }
 
     @Override
@@ -87,16 +91,6 @@ public class RestResponse extends RestMessage {
             writeString(bof, String.valueOf(responseCode));
             bof.write(CRLF);
             writeString(bof, reason);
-            bof.write(CRLF);
-
-            writeString(bof, MimeUtils.HEADER_QUERY_ID);
-            writeString(bof, ":");
-            writeString(bof, queryId);
-            bof.write(CRLF);
-
-            writeString(bof, MimeUtils.HEADER_REQUEST_HASH);
-            writeString(bof, ":");
-            writeString(bof, CryptoUtils.encodeBase64(requestHash));
             bof.write(CRLF);
 
             for (Header h : headers) {
@@ -123,16 +117,6 @@ public class RestResponse extends RestMessage {
             writeString(bof, String.valueOf(responseCode));
             bof.write(CRLF);
             writeString(bof, reason);
-            bof.write(CRLF);
-
-            writeString(bof, MimeUtils.HEADER_QUERY_ID);
-            writeString(bof, ":");
-            writeString(bof, queryId);
-            bof.write(CRLF);
-
-            writeString(bof, MimeUtils.HEADER_REQUEST_HASH);
-            writeString(bof, ":");
-            writeString(bof, CryptoUtils.encodeBase64(requestHash));
             bof.write(CRLF);
 
             for (Header h : headers) {

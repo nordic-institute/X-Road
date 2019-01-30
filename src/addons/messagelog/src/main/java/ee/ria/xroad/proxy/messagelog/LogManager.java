@@ -64,6 +64,7 @@ import java.time.LocalTime;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import static ee.ria.xroad.common.ErrorCodes.X_LOGGING_FAILED_X;
 import static ee.ria.xroad.common.ErrorCodes.X_MLOG_TIMESTAMPER_FAILED;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getAcceptableTimestampFailurePeriodSeconds;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveInterval;
@@ -91,7 +92,9 @@ public class LogManager extends AbstractLogManager {
     static final String TIMESTAMPER_NAME = "RequestLogTimestamper";
     static final String ARCHIVER_NAME = "RequestLogArchiver";
     static final String CLEANER_NAME = "RequestLogCleaner";
-    static final long MAX_LOGGABLE_MESSAGE_SIZE = MessageLogProperties.getMaxLoggableBodySize();
+
+    static final long MAX_LOGGABLE_BODY_SIZE = MessageLogProperties.getMaxLoggableBodySize();
+    static final boolean TRUNCATED_BODY_ALLOWED = MessageLogProperties.isTruncatedBodyAllowed();
 
     // Date at which a time-stamping first failed.
     private DateTime timestampFailed;
@@ -285,10 +288,13 @@ public class LogManager extends AbstractLogManager {
 
         messageRecord.setTime(new Date().getTime());
 
-        if (message.getBody() != null && MAX_LOGGABLE_MESSAGE_SIZE > 0 && manipulator.isBodyLogged(message)) {
-            final BoundedInputStream body = new BoundedInputStream(message.getBody(), MAX_LOGGABLE_MESSAGE_SIZE);
+        if (message.getBody() != null && MAX_LOGGABLE_BODY_SIZE > 0 && manipulator.isBodyLogged(message)) {
+            if (message.getBody().size() > MAX_LOGGABLE_BODY_SIZE && !TRUNCATED_BODY_ALLOWED) {
+                throw new CodedException(X_LOGGING_FAILED_X, "Message size exceeds maximum loggable size");
+            }
+            final BoundedInputStream body = new BoundedInputStream(message.getBody(), MAX_LOGGABLE_BODY_SIZE);
             body.setPropagateClose(false);
-            messageRecord.setAttachmentStream(body);
+            messageRecord.setAttachmentStream(body, Math.min(message.getBody().size(), MAX_LOGGABLE_BODY_SIZE));
         }
 
         if (message.getSignature().isBatchSignature()) {

@@ -37,9 +37,7 @@ import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -138,20 +136,13 @@ public final class LogRecordManager {
      */
     static void saveMessageRecord(MessageRecord messageRecord) throws Exception {
         doInTransaction(session -> {
-            try {
-                //the blob must be created within hibernate session
-                final InputStream is = messageRecord.getAttachmentStream();
-                if (is != null) {
-                    messageRecord.setAttachment(session.getLobHelper().createBlob(
-                            is,
-                            // REFACTOR: This works since we know that available() really returns the bytes available
-                            // up to 2GB (the stream is backed by FileChannel or ByteArrayInputStream).
-                            is.available()));
-                }
-                save(session, messageRecord);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
+            //the blob must be created within hibernate session
+            final InputStream is = messageRecord.getAttachmentStream();
+            if (is != null) {
+                messageRecord.setAttachment(session.getLobHelper().createBlob(is,
+                        messageRecord.getAttachmentStreamSize()));
             }
+            save(session, messageRecord);
             return null;
         });
     }

@@ -53,7 +53,7 @@ public final class MessageLogProperties {
 
     private static final int DEFAULT_ARCHIVE_TRANSACTION_BATCH_SIZE = 10000;
 
-    private static final long DEFAULT_MAX_LOGGABLE_MESSAGE_BODY_SIZE = 10 * 1024 * 1024;
+    private static final long DEFAULT_MAX_LOGGABLE_MESSAGE_BODY_SIZE = 1024 * 1024 * 1024;
     private static final long MAX_LOGGABLE_MESSAGE_BODY_SIZE_LIMIT = 1024 * 1024 * 1024;
 
     private static final String PREFIX = "xroad.message-log.";
@@ -101,8 +101,11 @@ public final class MessageLogProperties {
     /** Postfix for overriding SOAP body logging for remote producers **/
     private static final String SOAP_BODY_LOGGING_REMOTE_PRODUCER = "-remote-producer-subsystems";
 
-    /** Postfix for overriding SOAP body logging for remote producers **/
+    /** max loggable body size for rest messages **/
     private static final String MAX_LOGGABLE_MESSAGE_BODY_SIZE = PREFIX + "max-loggable-message-body-size";
+
+    /** is truncating body in logging allowed **/
+    private static final String REST_TRUNCATED_BODY_ALLOWED = PREFIX + "truncated-body-allowed";
 
     public static final int NUM_COMPONENTS = 4;
     public static final int FIRST_COMPONENT = 0;
@@ -258,6 +261,10 @@ public final class MessageLogProperties {
                     MAX_LOGGABLE_MESSAGE_BODY_SIZE, MAX_LOGGABLE_MESSAGE_BODY_SIZE_LIMIT));
         }
         return value;
+    }
+
+    public static boolean isTruncatedBodyAllowed() {
+        return Boolean.getBoolean(REST_TRUNCATED_BODY_ALLOWED);
     }
 
     private static String getSoapBodyLoggingOverrideParameterName(boolean enable, boolean local) {

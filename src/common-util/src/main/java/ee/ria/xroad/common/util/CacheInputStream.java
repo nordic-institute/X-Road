@@ -22,44 +22,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.messagelog;
+package ee.ria.xroad.common.util;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.RestMessage;
-import ee.ria.xroad.common.message.RestResponse;
-import ee.ria.xroad.common.signature.SignatureData;
-import ee.ria.xroad.common.util.CacheInputStream;
-
-import lombok.Getter;
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.nio.channels.Channels;
+import java.nio.channels.SeekableByteChannel;
 
 /**
- * LogMessage for REST
+ * Cache contents as an input stream
  */
-@Getter
-public final class RestLogMessage extends LogMessage {
+public final class CacheInputStream extends FilterInputStream {
+    private final long size;
 
-    private final String queryId;
-    private final RestMessage message;
-    private final CacheInputStream body;
-    private final ClientId client;
-    private final ServiceId service;
-
-    /**
-     * Create Loggable Rest Message
-     */
-    public RestLogMessage(String queryId, ClientId client, ServiceId service, RestMessage message,
-            SignatureData signature,
-            CacheInputStream body, boolean clientside) {
-        super(signature, clientside);
-        this.queryId = queryId;
-        this.client = client;
-        this.service = service;
-        this.message = message;
-        this.body = body;
+    CacheInputStream(SeekableByteChannel ch) throws IOException {
+        super(Channels.newInputStream(ch.position(0)));
+        size = ch.size();
     }
 
-    public boolean isResponse() {
-        return message instanceof RestResponse;
+    public long size() {
+        return size;
+    }
+
+    @Override
+    public void close() {
+        //NOP
+    }
+
+    @Override
+    public void mark(int readlimit) {
+        //NOP
+    }
+
+    @Override
+    public void reset() throws IOException {
+        throw new IOException("mark/reset not supported");
+    }
+
+    @Override
+    public boolean markSupported() {
+        return false;
     }
 }

@@ -107,8 +107,9 @@ public class MessageRecord extends AbstractLogRecord {
     private Blob attachment;
 
     @Getter
-    @Setter
     private transient InputStream attachmentStream;
+    @Getter
+    private transient long attachmentStreamSize;
 
     /**
      * Constructs a message record.
@@ -167,6 +168,11 @@ public class MessageRecord extends AbstractLogRecord {
         }
 
         return new AsicContainer(message, signatureData, timestamp);
+    }
+
+    public void setAttachmentStream(InputStream stream, long size) {
+        this.attachmentStream = stream;
+        this.attachmentStreamSize = size;
     }
 
     /**

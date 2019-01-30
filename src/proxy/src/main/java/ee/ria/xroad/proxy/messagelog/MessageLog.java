@@ -36,6 +36,7 @@ import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.common.util.CacheInputStream;
 import ee.ria.xroad.common.util.JobManager;
 
 import akka.actor.ActorRef;
@@ -46,7 +47,6 @@ import akka.util.Timeout;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.Await;
 
-import java.io.InputStream;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.LogRecord;
@@ -108,7 +108,7 @@ public final class MessageLog {
     /**
      * Save the message and signature to message log. The message body is saved from an input stream.
      */
-    public static void log(RestRequest message, SignatureData signature, InputStream body, boolean clientside) {
+    public static void log(RestRequest message, SignatureData signature, CacheInputStream body, boolean clientside) {
         try {
             ask(new RestLogMessage(message.getQueryId(), message.getClient(), message.getRequestServiceId(),
                     message, signature, body, clientside));
@@ -121,7 +121,7 @@ public final class MessageLog {
      * Save the message and signature to message log. The message body is saved from an input stream.
      */
     public static void log(RestRequest request, RestResponse message,
-            SignatureData signature, InputStream body, boolean clientside) {
+            SignatureData signature, CacheInputStream body, boolean clientside) {
         try {
             ask(new RestLogMessage(request.getQueryId(), request.getClient(), request.getRequestServiceId(),
                     message, signature, body, clientside));

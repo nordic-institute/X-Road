@@ -352,7 +352,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             req.addHeader(header);
         }
 
-        if (req instanceof HttpEntityEnclosingRequest) {
+        if (req instanceof HttpEntityEnclosingRequest && requestMessage.hasRestBody()) {
             ((HttpEntityEnclosingRequest) req).setEntity(new InputStreamEntity(requestMessage.getRestBody()));
         }
 

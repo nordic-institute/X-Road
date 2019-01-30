@@ -258,7 +258,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         for (Header h : rest.getHeaders()) {
             servletResponse.addHeader(h.getName(), h.getValue());
         }
-        if (response.getRestBody() != null) {
+        if (response.hasRestBody()) {
             IOUtils.copy(response.getRestBody(), servletResponse.getOutputStream());
         }
     }
@@ -314,7 +314,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
                 enc.restRequest(restRequest);
 
-                //optimize the case without request body (e.g. simple get requests)
+                //Optimize the case without request body (e.g. simple get requests)
                 try (PushbackInputStream in = new PushbackInputStream(servletRequest.getInputStream(), 1)) {
                     int b = in.read();
                     if (b >= 0) {

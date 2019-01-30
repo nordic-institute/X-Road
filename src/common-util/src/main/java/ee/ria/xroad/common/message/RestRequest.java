@@ -131,7 +131,11 @@ public class RestRequest extends RestMessage {
         try (ByteArrayOutputStream bof = new ByteArrayOutputStream()) {
             writeString(bof, verb);
             bof.write(CRLF);
-            writeString(bof, requestPath);
+            if (servicePath.isEmpty()) {
+                writeString(bof, requestPath);
+            } else {
+                writeString(bof, requestPath.substring(0, requestPath.length() - servicePath.length()));
+            }
             bof.write(CRLF);
 
             for (Header h : headers) {
