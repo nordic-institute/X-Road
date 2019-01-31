@@ -225,6 +225,9 @@ public class MultiAuthWebSecurityConfig {
         @Autowired
         ApiKeyAuthenticationManager apiKeyAuthenticationManager;
 
+        @Autowired
+        private Http401AuthenticationEntryPoint http401AuthenticationEntryPoint;
+
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
@@ -242,7 +245,7 @@ public class MultiAuthWebSecurityConfig {
                     .anyRequest().authenticated()
                     .and()
                 .exceptionHandling()
-                    .authenticationEntryPoint(new Http401AuthenticationEntryPoint())
+                    .authenticationEntryPoint(http401AuthenticationEntryPoint)
                     .and()
                 .csrf()
                     // we require csrf protection only if session cookie-authentication is used

@@ -22,42 +22,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.authproto.auth;
+package org.niis.xroad.authproto.exceptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.HandlerExceptionResolver;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import java.io.IOException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
 /**
- * AuthenticationEntryPoint that returns 401
+ * exception handler
  */
-@Component
-public class Http401AuthenticationEntryPoint implements AuthenticationEntryPoint {
-    Logger logger = LoggerFactory.getLogger(Http401AuthenticationEntryPoint.class);
+@ControllerAdvice
+public class ApplicationExceptionHandler {
+
+    static Logger logger = LoggerFactory.getLogger(ApplicationExceptionHandler.class);
 
     @Autowired
-    @Qualifier("handlerExceptionResolver")
-    private HandlerExceptionResolver resolver;
+    private ExceptionTranslator exceptionTranslator;
 
     /**
-     * @inheritDoc
+     * handle exceptions
+     * @param e
+     * @return
      */
-    public void commence(HttpServletRequest request, HttpServletResponse response,
-                         AuthenticationException exception) throws IOException, ServletException {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Pre-authenticated entry point called. Rejecting access");
-        }
-        resolver.resolveException(request, response, null, exception);
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorInfo> exception(Exception e) {
+        logger.error("exception caught", e);
+        return exceptionTranslator.toResponseEntity(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+    /**
+     * handle auth exceptions
+     * @param e
+     * @return
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorInfo> exception(AuthenticationException e) {
+        logger.error("exception caught", e);
+        return exceptionTranslator.toResponseEntity(e, HttpStatus.UNAUTHORIZED);
+    }
+
 }

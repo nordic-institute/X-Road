@@ -75,7 +75,7 @@ task buildFront(type: NpmTask, dependsOn: 'npmInstall') {
     inputs.dir("frontend")
     outputs.dir("frontend/dist")
     args = ['run', 'build']
-    execOverrides {
+    execOverrides {e
         it.workingDir = 'frontend'
     }
 }

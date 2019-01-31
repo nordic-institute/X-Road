@@ -22,42 +22,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.authproto.auth;
+package org.niis.xroad.authproto.exceptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.HandlerExceptionResolver;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import java.io.IOException;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 /**
- * AuthenticationEntryPoint that returns 401
+ * Handle Spring internal exceptions
  */
-@Component
-public class Http401AuthenticationEntryPoint implements AuthenticationEntryPoint {
-    Logger logger = LoggerFactory.getLogger(Http401AuthenticationEntryPoint.class);
+@ControllerAdvice
+@Order(SpringInternalExceptionHandler.TEN)
+public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandler {
+    public static final int TEN = 10;
+
+    static Logger logger = LoggerFactory.getLogger(SpringInternalExceptionHandler.class);
 
     @Autowired
-    @Qualifier("handlerExceptionResolver")
-    private HandlerExceptionResolver resolver;
+    private ExceptionTranslator exceptionTranslator;
 
-    /**
-     * @inheritDoc
-     */
-    public void commence(HttpServletRequest request, HttpServletResponse response,
-                         AuthenticationException exception) throws IOException, ServletException {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Pre-authenticated entry point called. Rejecting access");
-        }
-        resolver.resolveException(request, response, null, exception);
+    @Override
+    protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object body,
+                                                             HttpHeaders headers, HttpStatus status,
+                                                             WebRequest request) {
+        logger.error("exception caught", ex);
+        ErrorInfo errorInfo = new ErrorInfo(status.value());
+        return super.handleExceptionInternal(ex, errorInfo, headers,
+                status, request);
     }
 }

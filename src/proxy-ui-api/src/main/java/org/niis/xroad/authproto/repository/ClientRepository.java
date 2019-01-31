@@ -35,8 +35,11 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import org.niis.xroad.authproto.DatabaseContextHelper;
 import org.niis.xroad.authproto.openapi.model.Client;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,10 +52,48 @@ import java.util.UUID;
 @Component
 public class ClientRepository {
 
+    static Logger logger = LoggerFactory.getLogger(ClientRepository.class);
+
     public static final int MEMBER_ID_PARTS = 3;
 
     public List<MemberInfo> getAllMembers() {
         return GlobalConf.getMembers();
+    }
+
+    /**
+     * dummy
+     * @param s
+     */
+    public void throwRuntimeException(String s) {
+        logger.error("throwing exception {}", s);
+        throw new RuntimeException(s);
+    }
+
+    /**
+     * dummy
+     * @param s
+     */
+    public void throwApplicationException(String s) throws MyApplicationException {
+        logger.error("throwing exception {}", s);
+        throw new MyApplicationException(s);
+    }
+
+    /**
+     * dummy
+     * @param s
+     */
+    public void throwSpringException(String s) {
+        logger.error("throwing exception {}", s);
+        throw new RestClientException(s);
+    }
+
+    /**
+     * dummy
+     */
+    public static class MyApplicationException extends Exception {
+        public MyApplicationException(String s) {
+            super(s);
+        }
     }
 
     /**

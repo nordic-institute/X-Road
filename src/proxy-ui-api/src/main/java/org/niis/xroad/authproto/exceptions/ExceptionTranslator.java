@@ -22,42 +22,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.authproto.auth;
+package org.niis.xroad.authproto.exceptions;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.HandlerExceptionResolver;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import java.io.IOException;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * AuthenticationEntryPoint that returns 401
+ * Translate exceptions to ResponseEntities
  */
 @Component
-public class Http401AuthenticationEntryPoint implements AuthenticationEntryPoint {
-    Logger logger = LoggerFactory.getLogger(Http401AuthenticationEntryPoint.class);
-
-    @Autowired
-    @Qualifier("handlerExceptionResolver")
-    private HandlerExceptionResolver resolver;
+public class ExceptionTranslator {
 
     /**
-     * @inheritDoc
+     * Create ResponseEntity<ErrorInfo> from an Exception.
+     * Use provided status or override it with value from
+     * Exception's ResponseStatus annotation if one exists
+     * @param e
+     * @return
      */
-    public void commence(HttpServletRequest request, HttpServletResponse response,
-                         AuthenticationException exception) throws IOException, ServletException {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Pre-authenticated entry point called. Rejecting access");
+    public ResponseEntity<ErrorInfo> toResponseEntity(Exception e, HttpStatus defaultStatus) {
+        HttpStatus status = defaultStatus;
+        ResponseStatus statusAnnotation = AnnotationUtils.findAnnotation(
+                e.getClass(), ResponseStatus.class);
+        if (statusAnnotation != null) {
+            // take status from exception annotation
+            status = statusAnnotation.value();
         }
-        resolver.resolveException(request, response, null, exception);
+        ErrorInfo errorDto = new ErrorInfo(status.value());
+        return new ResponseEntity<ErrorInfo>(errorDto, status);
     }
 }
