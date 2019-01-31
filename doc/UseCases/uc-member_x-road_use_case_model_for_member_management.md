@@ -2722,9 +2722,9 @@ Figure 1. Use case diagram for member management
 
     -   The name of the client. A clear structured list defines with the help of icons the hierarchy of the clients. The Name of the client opens a view of the details of the desired client: [2.4.2](#242-uc-member_45-view-the-details-of-a-security-server-client);
     
-    -   The X-Road identifier of the Member Owner and all Subsystems ("Member or Subsystem":"Instance":"Member Class":"Server code":"Client name")
+    -   The X-Road identifier of the Member (Owner) and all Subsystems ("Member or Subsystem":"Instance":"Member Class":"Server code":"Client name")
     
-    -   The status of the Member Owner and all Subsystems 
+    -   The status of the Member (Owner) and all Subsystems 
     
     -   The option to add a Subsystem  (in case a client is a member)
 
