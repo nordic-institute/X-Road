@@ -98,8 +98,7 @@ public class ClientsApiController implements org.niis.xroad.authproto.openapi.Cl
 
     @Override
     public ResponseEntity<List<Certificate>> getClientCertificate(String id, String cid) {
-        if (true) throw new RestNotFoundException("hiio hoi");
-//        clientRepository.throwSpringException("spring exception");
+        clientRepository.throwSpringException("spring exception");
         return null;
     }
 
