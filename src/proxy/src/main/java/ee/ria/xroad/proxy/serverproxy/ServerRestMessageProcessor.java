@@ -58,6 +58,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpDelete;
@@ -68,6 +69,7 @@ import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
@@ -275,7 +277,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private void verifyAccess() throws Exception {
+    private void verifyAccess() {
         log.trace("verifyAccess()");
 
         if (!ServerConf.serviceExists(requestServiceId)) {
@@ -317,26 +319,29 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
         HttpRequestBase req;
         switch (requestMessage.getRest().getVerb()) {
-            case "GET":
+            case GET:
                 req = new HttpGet(address);
                 break;
-            case "POST":
+            case POST:
                 req = new HttpPost(address);
                 break;
-            case "PUT":
+            case PUT:
                 req = new HttpPut(address);
                 break;
-            case "DELETE":
+            case DELETE:
                 req = new HttpDelete(address);
                 break;
-            case "PATCH":
+            case PATCH:
                 req = new HttpPatch(address);
                 break;
-            case "OPTIONS":
+            case OPTIONS:
                 req = new HttpOptions(address);
                 break;
-            case "HEAD":
+            case HEAD:
                 req = new HttpHead(address);
+                break;
+            case TRACE:
+                req = new HttpTrace(address);
                 break;
             default:
                 throw new CodedException(X_INVALID_REQUEST, "Unsupported REST verb");
@@ -358,13 +363,14 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
         preprocess();
 
-        HttpContext ctx = new BasicHttpContext();
+        final HttpContext ctx = new BasicHttpContext();
         ctx.setAttribute(ServiceId.class.getName(), requestServiceId);
         final HttpResponse response = httpClient.execute(req, ctx);
+        final StatusLine statusLine = response.getStatusLine();
         restResponse = new RestResponse(requestMessage.getRest().getQueryId(),
                 requestMessage.getRest().getHash(),
-                response.getStatusLine().getStatusCode(),
-                response.getStatusLine().getReasonPhrase(),
+                statusLine.getStatusCode(),
+                statusLine.getReasonPhrase(),
                 Arrays.asList(response.getAllHeaders()));
         encoder.restResponse(restResponse);
 

@@ -189,10 +189,23 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
      */
     @Override
     public void restBody(InputStream content) throws Exception {
+        restBody(new byte[0], 0, content);
+    }
+
+    /**
+     * Encode rest message body
+     * @param head first byte(s)
+     * @param rest rest of the body
+     * @throws Exception
+     */
+    public void restBody(byte[] head, int count, InputStream rest) throws Exception {
         DigestCalculator calc = createDigestCalculator(hashAlgoId);
-        TeeInputStream proxyIs = new TeeInputStream(content, calc.getOutputStream(), true);
+        final OutputStream dout = calc.getOutputStream();
+        dout.write(head, 0, count);
+        TeeInputStream proxyIs = new TeeInputStream(rest, dout, true);
 
         mpEncoder.startPart("application/x-road-rest-body");
+        mpEncoder.write(head, 0, count);
         mpEncoder.write(proxyIs);
 
         signer.addPart(MessageFileNames.attachment(++attachmentNo), hashAlgoId, calc.getDigest());

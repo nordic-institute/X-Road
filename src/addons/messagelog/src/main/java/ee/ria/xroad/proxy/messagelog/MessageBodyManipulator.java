@@ -57,7 +57,7 @@ public class MessageBodyManipulator {
          * @return list of ClientId
          */
         public Collection<ClientId> getLocalProducerOverrides() {
-            return MessageLogProperties.getSoapBodyLoggingLocalProducerOverrides();
+            return MessageLogProperties.getMessageBodyLoggingLocalProducerOverrides();
         }
 
         /**
@@ -66,15 +66,15 @@ public class MessageBodyManipulator {
          * @return list of ClientId
          */
         public Collection<ClientId> getRemoteProducerOverrides() {
-            return MessageLogProperties.getSoapBodyLoggingRemoteProducerOverrides();
+            return MessageLogProperties.getMessageBodyLoggingRemoteProducerOverrides();
         }
 
         /**
          * Tells whether SOAP body logging is enabled
          * @return true if enabled
          */
-        public boolean isSoapBodyLoggingEnabled() {
-            return MessageLogProperties.isSoapBodyLoggingEnabled();
+        public boolean isMessageBodyLoggingEnabled() {
+            return MessageLogProperties.isMessageBodyLoggingEnabled();
         }
     }
 
@@ -141,7 +141,7 @@ public class MessageBodyManipulator {
 
         boolean producerSubsystemIsOverridden = isClientInCollection(message.getService().getClientId(), overrides);
 
-        if (configurator.isSoapBodyLoggingEnabled()) {
+        if (configurator.isMessageBodyLoggingEnabled()) {
             return !producerSubsystemIsOverridden;
         } else {
             return producerSubsystemIsOverridden;

@@ -80,7 +80,7 @@ public class MessageBodyManipulatorTest {
                     return remoteOverrides;
                 }
                 @Override
-                public boolean isSoapBodyLoggingEnabled() {
+                public boolean isMessageBodyLoggingEnabled() {
                     return globalBodyLogging;
                 }
             });

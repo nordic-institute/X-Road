@@ -18,6 +18,7 @@ Doc. ID: DM-ML
 | 16.02.2017 | 1.3         | Converted to markdown                           | Ilkka Seppälä      |
 | 16.02.2017 | 1.4         | Added index to logrecord, fixed earlier logrecord index name  | Olli Lindgren      |
 | 02.03.2018 | 1.5         | Added uniform terms and conditions reference    | Tatu Repo |
+| 31.01.2019 | 1.6         | REST support                                    | Jarkko Hyöty |
 
 ##Table of Contents
 
@@ -110,7 +111,7 @@ Log record can either be a message record or a timestamp record. A message recor
 | memberclass | character varying(255) | | Member class of the client who sent this message. Only present for message records. |
 | membercode | character varying(255) | | Member code of the client who sent this message. Only present for message records. |
 | subsystemcode | character varying(255) | | Subsystem code of the client who sent this message. Only present for message records. |
-| message | text | | The SOAP message body. Only present for message records. |
+| message | text | | The SOAP message body or REST request data. Only present for message records. |
 | signature | text | | The signature of the message. Only present for message records. |
 | signaturehash | text | | Hash of the signature of the message. Only present for message records. |
 | timestamp | text | | Base64-encoded contents of the time stamp.  Only present for timestamp records. |
@@ -120,6 +121,7 @@ Log record can either be a message record or a timestamp record. A message recor
 | hashchainresult | text | | If the signature is a batch signature, the base-64 encoded hash chain result. Only present for message records. |
 | time | bigint | | The creation time of the log record (number of milliseconds since January 1, 1970, 00:00:00 GMT). |
 | archived | boolean | | A flag indicating whether this log record has been archived. |
+| attachment | oid | | The REST message body (a large binary object) |
 
 ## 2.2 LAST_ARCHIVE_DIGEST
 

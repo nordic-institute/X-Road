@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.39  
+Version: 2.40  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -49,6 +49,7 @@ Doc. ID: UG-SYSPAR
 | 08.11.2018 | 2.37     | Improved definition of *minimum-global-configuration-version* on the central server and configuration proxy | Ilkka Seppälä |
 | 19.12.2018 | 2.38     | Fixed the default value of trusted-anchors-allowed | Ilkka Seppälä |
 | 21.12.2018 | 2.39     | Add connector initial idle time parameters | Jarkko Hyöty |
+| 31.01.2019 | 2.40     | REST message log parameters | Jarkko Hyöty |
 
 ## Table of Contents
 
@@ -289,7 +290,8 @@ This chapter describes the system parameters used by the components of the X-Roa
 
 | **Parameter**                                    | **Vanilla value**                          | **FI-package value** | **EE-package value** | **Description** |
 |--------------------------------------------------|--------------------------------------------|----------------------|----------------------|-----------------|
-| soap-body-logging                                | true                                       | false  |   | Whether SOAP body of the messages should be logged or not.<br/><br/>If *true*, the SOAP messages are logged in their original form. If *false*, the SOAP body is cleared of its contents and only has an empty child element inside it. In addition, the SOAP header will only have specific set of elements logged, see [Note on logged X-Road message headers](#note-on-logged-x-road-message-headers) . As a side effect, details such as formatting and namespace labels of the xml message can be changed and new elements may be introduced for default values in SOAP header.<br/><br/>Removal of SOAP body is usually done for confidentiality reasons (body contains data that we do not want to have in the logs).<br/><br/>Note that changing the message this way prevents verifying its signature with the asicverifier tool. |
+| message-body-logging                             | true                                       | false  |   | Whether message body should be logged or not.<br/><br/>If *true*, the messages are logged in their original form. If *false*, the message body is cleared of its contents (SOAP body will have an empty child element inside it). In addition, the SOAP/REST header will only have specific set of elements logged, see [Note on logged X-Road message headers](#note-on-logged-x-road-message-headers) . As a side effect, details such as formatting and namespace labels of the xml message can be changed and new elements may be introduced for default values in SOAP header.<br/><br/>Removal of message body is usually done for confidentiality reasons (body contains data that we do not want to have in the logs).<br/><br/>Note that changing the message this way prevents verifying its signature with the asicverifier tool. |
+| soap-body-logging                                | true                                       | false  |   | (deprecated, see message-body-logging) | 
 | enabled-body-logging-local-producer-subsystems   |                                            |   |   | Subsystem-specific overrides for SOAP body logging when soap-body-logging = false.<br/><br/>This parameter defines logging for **local producer** subsystems, that is, our subsystems that produce some service which external clients use.<br/><br/>Comma-separated list of client identifiers for which SOAP body logging is enabled. For example FI/ORG/1710128-9/SUBSYSTEM\_A1, FI/ORG/1710128-9/SUBSYSTEM\_A2 where<br/>-   FI = x-road instance<br/>-   ORG = member class<br/>-   1710128-9 = member code<br/>-   SUBSYSTEM\_A1 = subsystem code<br/><br/>This parameter can only be used on subsystem-level, it is not possible to configure SOAP body logging per member.<br/><br/>If a subsystem has forward slashes “/” in for example subsystem code, those subsystems can’t be configured with this parameter. |
 | enabled-body-logging-remote-producer-subsystems  |                                            |   |   | Subsystem-specific overrides for **remote producer** subsystems, that is, remote subsystems that produce services which we use.<br/><br/>Parameter is used when soap-body-logging = false. |
 | disabled-body-logging-local-producer-subsystems  |                                            |   |   | Same as enabled-body-logging-local-producer-subsystems, but this parameter is used when soap-body-logging = true. |
@@ -306,6 +308,8 @@ This chapter describes the system parameters used by the components of the X-Roa
 | timestamper-client-connect-timeout               | 20000                                      |   |   | The timestamper client connect timeout in milliseconds. A timeout of zero is interpreted as an infinite timeout. |
 | timestamper-client-read-timeout                  | 60000                                      |   |   | The timestamper client read timeout in milliseconds. A timeout of zero is interpreted as an infinite timeout. |
 | archive-transaction-batch                        | 10000                                      |   |   | Size of transaction batch for archiving messagelog. This size is not exact because it will always make sure that last archived batch includes timestamp also (this might mean that it will go over transaction size).
+| max-loggable-body-size                           | 1073741824 (1 GiB)                         |   |   | Maximum loggable REST message body size |
+| truncated-body-allowed                           | false                                      |   |   | If the REST message body exceeds the maximum loggable body size, truncate the body in the log (true) or reject the message (false) |
 
 #### 3.7.1 Note on logged X-Road message headers
 If the messagelog add-on has the SOAP body logging disabled, only a preconfigured set of the SOAP headers will be included in the message log.

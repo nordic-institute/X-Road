@@ -364,6 +364,7 @@ public class ProxyMessageDecoder {
 
     private void handleRest(BodyDescriptor bd, InputStream is) {
         try {
+            //The request size is unbounded; should have a limit?
             final byte[] request = IOUtils.toByteArray(is);
             final byte[] digest = CryptoUtils.calculateDigest(getHashAlgoId(), request);
             callback.rest(new RestRequest(request));
@@ -375,6 +376,7 @@ public class ProxyMessageDecoder {
 
     private void handleRestResponse(BodyDescriptor bd, InputStream is) {
         try {
+            //The response size is unbounded; should have a limit?
             final byte[] request = IOUtils.toByteArray(is);
             callback.rest(RestResponse.of(request));
             verifier.addPart(MessageFileNames.MESSAGE,

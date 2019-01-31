@@ -52,12 +52,18 @@ public class RestRequest extends RestMessage {
 
     private ClientId client;
     private ServiceId requestServiceId;
-    private final String verb;
+    private final Verb verb;
     private String requestPath;
     private String query;
     private String servicePath;
     private int version;
 
+    /**
+     * Supported HTTP Verbs
+     */
+    public enum Verb {
+        DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT, TRACE
+    }
     /**
      * Create RestRequest from a byte array
      */
@@ -65,7 +71,7 @@ public class RestRequest extends RestMessage {
         final BufferedReader reader = new BufferedReader(
                 new InputStreamReader(new ByteArrayInputStream(messageBytes), StandardCharsets.UTF_8));
 
-        verb = reader.readLine();
+        verb = Verb.valueOf(reader.readLine());
         final URI uri = new URI(reader.readLine());
         requestPath = uri.getRawPath();
         query = uri.getRawQuery();
@@ -82,7 +88,7 @@ public class RestRequest extends RestMessage {
      * Create RestRequest
      */
     public RestRequest(String verb, String path, String query, List<Header> headers) {
-        this.verb = verb;
+        this.verb = Verb.valueOf(verb);
         this.headers = headers;
         this.requestPath = path;
         this.query = query;
@@ -97,7 +103,7 @@ public class RestRequest extends RestMessage {
     @Override
     protected byte[] toByteArray() {
         try (ByteArrayOutputStream bof = new ByteArrayOutputStream()) {
-            writeString(bof, verb);
+            writeString(bof, verb.toString());
             bof.write(CRLF);
             writeString(bof, requestPath);
             if (query != null) {
@@ -129,7 +135,7 @@ public class RestRequest extends RestMessage {
     @Override
     public byte[] getFilteredMessage() {
         try (ByteArrayOutputStream bof = new ByteArrayOutputStream()) {
-            writeString(bof, verb);
+            writeString(bof, verb.toString());
             bof.write(CRLF);
             if (servicePath.isEmpty()) {
                 writeString(bof, requestPath);

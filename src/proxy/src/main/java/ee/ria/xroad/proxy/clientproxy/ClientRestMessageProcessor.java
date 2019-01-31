@@ -61,7 +61,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PushbackInputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -315,13 +314,16 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                 enc.restRequest(restRequest);
 
                 //Optimize the case without request body (e.g. simple get requests)
-                try (PushbackInputStream in = new PushbackInputStream(servletRequest.getInputStream(), 1)) {
-                    int b = in.read();
-                    if (b >= 0) {
-                        in.unread(b);
+                //TBD: Optimize the case without body logging
+                try (InputStream in = servletRequest.getInputStream()) {
+                    @SuppressWarnings("checkstyle:magicnumber")
+                    byte[] buf = new byte[4096];
+                    int count = in.read(buf);
+                    if (count >= 0) {
                         final CachingStream cache = new CachingStream();
+                        cache.write(buf, 0, count);
                         try (TeeInputStream tee = new TeeInputStream(in, cache)) {
-                            enc.restBody(tee);
+                            enc.restBody(buf, count, tee);
                             enc.sign(KeyConf.getSigningCtx(senderId));
                             MessageLog.log(restRequest, enc.getSignature(), cache.getCachedContents(), true);
                         } finally {
