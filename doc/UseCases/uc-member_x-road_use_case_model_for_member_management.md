@@ -2710,7 +2710,7 @@ Figure 1. Use case diagram for member management
 
 **Preconditions**: -
 
-**Postconditions**: The list of clients of the security server and their structure (Member s and their Subsystems) has been displayed to SS administrator.
+**Postconditions**: The list of clients of the security server and their structure (Member Owner, Members and their Subsystems) has been displayed to SS administrator.
 
 **Trigger**: -
 
@@ -2718,13 +2718,13 @@ Figure 1. Use case diagram for member management
 
 1.  SS administrator selects to view the security server clients.
 
-2.  System displays the list structure of clients (Members and related Subsystems). The following information is displayed for each client in the view.
+2.  System displays the list structure of clients (Member Owner, Members and related Subsystems). The following information is displayed for each client in the view.
 
     -   The name of the client. A clear structured list defines with the help of icons the hierarchy of the clients. The Name of the client opens a view of the details of the desired client: [2.4.2](#242-uc-member_45-view-the-details-of-a-security-server-client);
     
-    -   The X-Road identifier of the client ("Member or Subsystem"/"Instance"/"Member Class"/"Server code"/"Client name"
+    -   The X-Road identifier of the Member Owner and all Subsystems ("Member or Subsystem":"Instance":"Member Class":"Server code":"Client name")
     
-    -   The status of the client.
+    -   The status of the Member Owner and all Subsystems 
     
     -   The option to add a Subsystem  (in case a client is a member)
 
