@@ -6,6 +6,7 @@ dependencies {
 }
 
 jar {
+    version = ''
     // Build 'fat jar'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }} {
         // remove all signature files (necessary to make it run)

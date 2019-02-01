@@ -248,7 +248,7 @@ manage the security server configuration.
         - 3a.3a. SS administrator selects to terminate the use case.
 
 - 4a. The user with the inserted user name does not exist or the password is incorrect.
-    - 4a.1. System displays the error message “Authentication failed”.
+    - 4a.1. System displays the error message “Authentication failed. Please try again”. The text fields are emptied.
     - 4a.2. System logs the event “Log in user failed” to the audit log.
     - 4a.3. SS administrator selects to reinsert the user name and/or the password. Use case continues from step 3.
         - 4a.3a. SS administrator selects to terminate the use case.
@@ -283,9 +283,9 @@ manage the security server configuration.
 
 **Main Success Scenario**:
 
-1.  SS administrator selects to log out of the GUI.
+1.  SS administrator selects to log out of the GUI (Profile Menu > Log out).
 
-2.  System logs the SS administrator out of the GUI.
+2.  System logs the SS administrator out of the GUI and redirects the user to the Log-in view.
 
 3.  System logs the event “Log out user” to the audit log.
 
@@ -318,9 +318,11 @@ logged in user has been idle for 30 minutes.
 
 **Main Success Scenario**:
 
-1.  System logs the user out of the GUI.
+1.  User has been idle for 30 minutes.
 
-2.  System displays the message “Session timed out. Redirecting.”
+2.  System displays the dialog “Session expired - You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out. <Button OK>”
+ 
+3.  System logs the SS administrator out of the GUI and redirects the user to the Log-in view.
 
 **Extensions**: -
 

@@ -82,7 +82,6 @@ subprojects {
 
     apply plugin: 'eclipse'
     apply plugin: 'java'
-    apply plugin: 'maven'
     apply plugin: 'idea'
     apply plugin: 'checkstyle'
     apply plugin: 'jacoco'
@@ -127,11 +126,6 @@ subprojects {
 
     }
 
-    task sourcesJar(type: Jar, dependsOn: classes) {
-        classifier = 'sources'
-        from sourceSets.main.allSource
-    }
-
     task testJar(type: Jar) {
         classifier 'test'
         from sourceSets.test.output
@@ -149,13 +143,13 @@ subprojects {
         }
     }
 
-
     task buildall(dependsOn: [build, ':proxy-ui:warble', ':center-ui:warble', ':center-service:warble']) {
         description = "Builds all that can be built (even the slow tasks)"
     }
 
+    testJar.enabled = false
+
     artifacts {
-        archives sourcesJar
         testArtifacts testJar
     }
 
@@ -201,7 +195,6 @@ subprojects {
         from rootProject.file('LICENSE.txt')
     }
 }
-
 
 configure(subprojects.findAll { it.name.contains('-ui') or it.name.contains('center-service') or it.name.contains('center-common')}) {
 

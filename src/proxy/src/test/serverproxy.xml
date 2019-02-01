@@ -1,6 +1,7 @@
 <Configure id="Server" class="org.eclipse.jetty.server.Server">
+    <Set name="stopTimeout">1000</Set>
     <Get name="ThreadPool">
-        <Set name="minThreads" type="int">1500</Set>
+        <Set name="minThreads" type="int">10</Set>
         <Set name="maxThreads" type="int">5000</Set>
         <Set name="idleTimeout" type="int">60000</Set>
         <Set name="detailedDump">false</Set>

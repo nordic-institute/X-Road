@@ -6,8 +6,7 @@
 # Central Server High Availability Installation Guide
 **X-ROAD 6**
 
-Version: 1.7  
-19.12.2018  
+Version: 1.8  
 Doc. ID: IG-CSHA
 
 ---
@@ -26,6 +25,7 @@ Doc. ID: IG-CSHA
  05.03.2018 | 1.5     | Added terms and abbreviations references and document links  | Tatu Repo
  03.10.2018 | 1.6     | Added the chapter "Changing Nodes' IP Addresses in HA Cluster"
  19.12.2018 | 1.7     | Minor changes related to Ubuntu 18 support
+ 03.01.2019 | 1.8     | Removed forced NTP installation. | Jarkko Hyöty
 
 ## Table of Contents
 
@@ -109,7 +109,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\]
 
 1.  Correct timekeeping is crucial.
 
-    NTP is installed during cluster setup to all nodes. It is assumed that setting the system time using NTP is enabled. The administrator must take care to keep the time synced at all times. Conflict resolution between database nodes is based on timestamps – the newest change will win and older ones will be rejected. Monitoring of the time drift on servers is generally suggested.
+    It is assumed that the clocks of the cluster nodes are synchronized using e.g. NTP. The administrator must configure a time synchronization service (e.g. ntpd, chrony, systemd-timesyncd) and take care to keep the time synced. Conflict resolution between database nodes is based on timestamps – the newest change will win and older ones will be rejected. Monitoring of the time drift on servers is generally suggested.
 
 2.  Network security and speed.
 
@@ -228,13 +228,11 @@ If key-based SSH access to the nodes by the root user was disabled before enabli
 
     1.  An SSH key is configured and a command for distributing the SSH key to all the servers is displayed. **The public key must be distributed to all the servers manually, before allowing the script to continue.** SSH access to all nodes is checked next.
 
-    2.  NTP is installed and immediate NTP time sync is called to ensure time correctness on all nodes.
+    2.  A self-signed CA is created and TLS keys for secure database connections are generated.
 
-    3.  A self-signed CA is created and TLS keys for secure database connections are generated.
+    3.  PostgreSQL 9.4 with BDR plugin is installed and configured to establish database connections between nodes.
 
-    4.  PostgreSQL 9.4 with BDR plugin is installed and configured to establish database connections between nodes.
-
-    5.  An X-Road specific database role with the needed features is created.
+    4.  An X-Road specific database role with the needed features is created.
         If the first node contains an older database with the X-Road database schema then the old database schema will be migrated to the new database.
 
     **NOTE 1**: The location of the log file with detailed information about initialization progress is displayed when you start the cluster initialization script. Logs are named as

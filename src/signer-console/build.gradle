@@ -3,8 +3,6 @@ plugins {
   id 'com.github.johnrengelman.shadow' version '2.0.1'
 }
 
-apply plugin: 'application'
-
 dependencies {
     compile 'commons-cli:commons-cli:1.2'
 
@@ -13,8 +11,15 @@ dependencies {
     compile files('libs/asg.cliche-110413.jar')
 }
 
+ext {
+  mainClassName = 'ee.ria.xroad.signer.console.SignerCLI'
+}
 
-mainClassName = 'ee.ria.xroad.signer.console.SignerCLI'
+jar {
+  manifest {
+    attributes  'Main-Class': mainClassName
+  }
+}
 
 shadowJar {
     classifier = ''
