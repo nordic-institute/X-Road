@@ -155,14 +155,30 @@ class ManagementRequestsController < ApplicationController
     verify_owner(security_server)
 
     req = nil
+    client_reg_request = nil
+
+    # Requests can be automatically approved if auto approval is enabled and if client registration request has been
+    # signed by the member owning the client to be added, and if signature and certificate have passed verification.
+    auto_approve = auto_approve_client_reg_requests? && @client_reg_request_helper.getClientRegRequestSignedAndVerified
 
     @@client_registration_mutex.synchronize do
       req = ClientRegRequest.new(
         :security_server => security_server,
         :sec_serv_user => server_user,
         :origin => Request::SECURITY_SERVER)
-
       req.register()
+
+      if auto_approve
+        client_reg_request = ClientRegRequest.new(
+          :security_server => security_server,
+          :sec_serv_user => server_user,
+          :origin => Request::CENTER)
+        client_reg_request.register()
+      end
+    end
+
+    if auto_approve
+      RequestWithProcessing.approve(client_reg_request.id)
     end
 
     req.id
@@ -219,5 +235,9 @@ class ManagementRequestsController < ApplicationController
 
   def auto_approve_auth_cert_reg_requests?
     Java::ee.ria.xroad.common.SystemProperties::getCenterAutoApproveAuthCertRegRequests
+  end
+
+  def auto_approve_client_reg_requests?
+    Java::ee.ria.xroad.common.SystemProperties::getCenterAutoApproveClientRegRequests
   end
 end
