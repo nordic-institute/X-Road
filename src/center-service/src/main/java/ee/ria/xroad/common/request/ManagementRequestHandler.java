@@ -76,14 +76,14 @@ public final class ManagementRequestHandler {
      */
     public static SoapMessageImpl readRequest(String contentType,
                                               InputStream inputStream) throws Exception {
-       return readRequest(contentType, inputStream, new ClientRegRequestHelper());
+        return readRequest(contentType, inputStream, new ClientRegRequestHelper());
     }
 
     /**
      * Reads management requests from input stream.
      *
-     * @param contentType expected content type of the stream
-     * @param inputStream the input stream
+     * @param contentType            expected content type of the stream
+     * @param inputStream            the input stream
      * @param clientRegRequestHelper helper for processing clientRegRequests
      * @return management request SOAP message
      * @throws Exception in case of any errors
@@ -134,17 +134,7 @@ public final class ManagementRequestHandler {
         // in the request (server id)
         AuthCertRegRequestType req = ManagementRequestParser.parseAuthCertRegRequest(soap);
 
-        ClientId idFromCert = GlobalConf.getSubjectName(
-                new SignCertificateProfileInfoParameters(
-                        ClientId.create(
-                                GlobalConf.getInstanceIdentifier(),
-                                DUMMY_CLIENT_ID,
-                                DUMMY_CLIENT_ID
-                        ),
-                        DUMMY_CLIENT_ID
-                ),
-                ownerCert
-        );
+        ClientId idFromCert = getClientIdFromCert(ownerCert);
 
         ClientId idFromReq = req.getServer().getOwner();
 
@@ -180,17 +170,7 @@ public final class ManagementRequestHandler {
         // that owns the subsystem to be registered.
         ClientRequestType req = ManagementRequestParser.parseClientRegRequest(soap);
 
-        ClientId idFromCert = GlobalConf.getSubjectName(
-                new SignCertificateProfileInfoParameters(
-                        ClientId.create(
-                                GlobalConf.getInstanceIdentifier(),
-                                DUMMY_CLIENT_ID,
-                                DUMMY_CLIENT_ID
-                        ),
-                        DUMMY_CLIENT_ID
-                ),
-                clientCert
-        );
+        ClientId idFromCert = getClientIdFromCert(clientCert);
 
         ClientId idFromReq = req.getClient();
 
@@ -200,6 +180,20 @@ public final class ManagementRequestHandler {
                             + " client's member identifier (%s) in request",
                     idFromCert, idFromReq);
         }
+    }
+
+    private static ClientId getClientIdFromCert(X509Certificate cert) throws Exception {
+        return GlobalConf.getSubjectName(
+                new SignCertificateProfileInfoParameters(
+                        ClientId.create(
+                                GlobalConf.getInstanceIdentifier(),
+                                DUMMY_CLIENT_ID,
+                                DUMMY_CLIENT_ID
+                        ),
+                        DUMMY_CLIENT_ID
+                ),
+                cert
+        );
     }
 
     private static void verifyCertificate(X509Certificate ownerCert, OCSPResp ownerCertOcsp) throws Exception {
@@ -253,7 +247,7 @@ public final class ManagementRequestHandler {
         private byte[] clientCert;
         private byte[] clientCertOcsp;
 
-        private Boolean clientRegRequestSignedAndVerified = false;
+        private boolean clientRegRequestSignedAndVerified = false;
 
         @Override
         public void soap(SoapMessage message, Map<String, String> additionalHeaders) throws Exception {
@@ -366,7 +360,7 @@ public final class ManagementRequestHandler {
             throw translateException(t);
         }
 
-        public Boolean getClientRegRequestSignedAndVerified() {
+        public boolean getClientRegRequestSignedAndVerified() {
             return this.clientRegRequestSignedAndVerified;
         }
 
