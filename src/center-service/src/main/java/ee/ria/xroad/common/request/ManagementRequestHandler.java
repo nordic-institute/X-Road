@@ -56,7 +56,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 /**
  * Reads management requests from input stream.
- * Verifies authentication certificate registration requests.
+ * Verifies authentication certificate and client registration requests.
  */
 @Slf4j
 public final class ManagementRequestHandler {
@@ -76,12 +76,29 @@ public final class ManagementRequestHandler {
      */
     public static SoapMessageImpl readRequest(String contentType,
                                               InputStream inputStream) throws Exception {
+       return readRequest(contentType, inputStream, new ClientRegRequestHelper());
+    }
+
+    /**
+     * Reads management requests from input stream.
+     *
+     * @param contentType expected content type of the stream
+     * @param inputStream the input stream
+     * @param clientRegRequestHelper helper for processing clientRegRequests
+     * @return management request SOAP message
+     * @throws Exception in case of any errors
+     */
+    public static SoapMessageImpl readRequest(String contentType,
+                                              InputStream inputStream,
+                                              ClientRegRequestHelper clientRegRequestHelper) throws Exception {
         log.info("readRequest(contentType={})", contentType);
 
         DecoderCallback cb = new DecoderCallback();
 
         SoapMessageDecoder decoder = new SoapMessageDecoder(contentType, cb);
         decoder.parse(inputStream);
+
+        clientRegRequestHelper.setClientRegRequestSignedAndVerified(cb.getClientRegRequestSignedAndVerified());
 
         return cb.getSoapMessage();
     }
@@ -236,6 +253,8 @@ public final class ManagementRequestHandler {
         private byte[] clientCert;
         private byte[] clientCertOcsp;
 
+        private Boolean clientRegRequestSignedAndVerified = false;
+
         @Override
         public void soap(SoapMessage message, Map<String, String> additionalHeaders) throws Exception {
             this.soapMessage = (SoapMessageImpl) message;
@@ -333,6 +352,7 @@ public final class ManagementRequestHandler {
 
                 try {
                     verifyClientRegRequest(this);
+                    clientRegRequestSignedAndVerified = true;
                 } catch (Exception e) {
                     log.error("Failed to verify client reg request", e);
 
@@ -344,6 +364,10 @@ public final class ManagementRequestHandler {
         @Override
         public void onError(Exception t) throws Exception {
             throw translateException(t);
+        }
+
+        public Boolean getClientRegRequestSignedAndVerified() {
+            return this.clientRegRequestSignedAndVerified;
         }
 
         private static void verifyMessagePart(Object value, String message) {
