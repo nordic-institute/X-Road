@@ -101,7 +101,7 @@ class ManagementRequestsController < ApplicationController
 
     owner = member_id(req_type.getServer())
     # Auto-approval must be enabled and Security Server owner must be registered on Central Server
-    auto_approve = auto_approve_auth_cert_reg_requests? && !SecurityServerClient.find_by_id(owner).nil?
+    auto_approve_and_owner_exists = auto_approve_auth_cert_reg_requests? && !SecurityServerClient.find_by_id(owner).nil?
 
     @@auth_cert_registration_mutex.synchronize do
       req = AuthCertRegRequest.new(
@@ -111,7 +111,7 @@ class ManagementRequestsController < ApplicationController
         :origin => Request::SECURITY_SERVER)
       req.register()
 
-      if auto_approve
+      if auto_approve_and_owner_exists
         auth_cert_reg_request = AuthCertRegRequest.new(
           :security_server => security_server,
           :auth_cert => auth_cert_bytes,
@@ -121,7 +121,7 @@ class ManagementRequestsController < ApplicationController
       end
     end
 
-    if auto_approve
+    if auto_approve_and_owner_exists
       RequestWithProcessing.approve(auth_cert_reg_request.id)
     end
 
