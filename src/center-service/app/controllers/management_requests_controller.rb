@@ -157,9 +157,16 @@ class ManagementRequestsController < ApplicationController
     req = nil
     client_reg_request = nil
 
-    # Requests can be automatically approved if auto approval is enabled and if client registration request has been
-    # signed by the member owning the client to be added, and if signature and certificate have passed verification.
-    auto_approve = auto_approve_client_reg_requests? && @client_reg_request_helper.getClientRegRequestSignedAndVerified
+    server_user_member = SecurityServerClient.find_by_id(member_id(req_type.getClient()))
+
+    # Requests can be automatically approved when:
+    # 1) auto approval is enabled;
+    # 2) client registration request has been signed by the member owning the client to be added,
+    #    and if signature and certificate have passed verification;
+    # 3) member owning the client exists on Central Server.
+    auto_approve = auto_approve_client_reg_requests? &&
+                    @client_reg_request_helper.getClientRegRequestSignedAndVerified &&
+                    !server_user_member.nil?
 
     @@client_registration_mutex.synchronize do
       req = ClientRegRequest.new(
@@ -178,6 +185,14 @@ class ManagementRequestsController < ApplicationController
     end
 
     if auto_approve
+      # If subsystem to be added does not exist on Central Server yet, it
+      # must be created before the approval
+      if SecurityServerClient.find_by_id(server_user).nil?
+        Subsystem.create!(
+              :xroad_member => server_user_member,
+              :subsystem_code => req_type.getClient().getSubsystemCode())
+        logger.info("New subsystem created: #{server_user}")
+      end
       RequestWithProcessing.approve(client_reg_request.id)
     end
 
@@ -211,6 +226,11 @@ class ManagementRequestsController < ApplicationController
   def client_id(id_type)
     ClientId.from_parts(id_type.getXRoadInstance(), id_type.getMemberClass(),
       id_type.getMemberCode(), id_type.getSubsystemCode())
+  end
+
+  def member_id(id_type)
+    ClientId.from_parts(id_type.getXRoadInstance(), id_type.getMemberClass(),
+      id_type.getMemberCode())
   end
 
   def verify_owner(security_server)
