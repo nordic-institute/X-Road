@@ -232,6 +232,37 @@ configure(subprojects.findAll({ it.name.contains('center-common') or it.name.con
 
 }
 
+configure(subprojects.findAll({ it.name.contains('proxy-ui-api')})) {
+    def sources = (fileTree('frontend'))
+
+    license {
+        header rootProject.file('LICENSE-NIIS.txt')
+        include '**/*.java'
+        include '**/*.ts'
+        include '**/*.vue'
+        skipExistingHeaders = true
+
+        mapping('vue', 'SLASHSTAR_STYLE')
+        mapping('ts', 'SLASHSTAR_STYLE')
+        jar {
+            from rootProject.file('LICENSE-NIIS.txt')
+        }
+    }
+
+    task licenseFormatFrontend(type: nl.javadude.gradle.plugins.license.License) {
+        source = sources
+    }
+
+    task licenseFormatFrontendCheck(type: nl.javadude.gradle.plugins.license.License) {
+        source = sources
+        check = true
+    }
+
+    licenseFormat.dependsOn licenseFormatFrontend
+    licenseTest.dependsOn licenseFormatFrontendCheck
+
+}
+
 task clean(type: Delete) {
    delete "${rootDir}/packages/build"
 }
