@@ -306,7 +306,7 @@ class SystemSettingsController < ApplicationController
       "http://#{SystemParameter.central_server_address}/managementservices.wsdl"
 
     @services_address =
-      "http://#{SystemParameter.central_server_address}:4400/managementservice/"
+      "https://#{SystemParameter.central_server_address}:4002/managementservice/manage/"
   end
 
   def read_member_classes

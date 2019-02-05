@@ -22,6 +22,7 @@
 #
 
 CenterService::Application.routes.draw do
-  root :to => 'management_requests#create', :via => :post
+  root :to => 'auth_cert_registration#create', :via => :post
+  match 'manage' => 'registration_management#create', :via => :post
   match 'gen_conf' => 'conf_generator#index', :via => :get
 end

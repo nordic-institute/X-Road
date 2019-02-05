@@ -100,16 +100,17 @@ Caution: Data necessary for the functioning of the operating system is not inclu
 
 | **Ref**              |                                                  | **Explanation**                                    |
 |----------------------|--------------------------------------------------|----------------------------------------------------|
-| 1.0 | Ubuntu 14.04, 64-bit, 2 GB RAM, 3 GB free disk space | Minimum requirements |
-| 1.1 | http://x-road.eu/packages | X-Road package repository |
-| 1.2 | http://x-road.eu/packages/xroad_repo.gpg | The repository key |
-| 1.3 |  | Account name in the user interface |
-| 1.4 | TCP 4001 service for authentication certificate registration<br>TCP 80 distribution of the global configuration | Ports for inbound connections (from the external network to the central server) |
-| 1.5 | TCP 80 software updates | Ports for outbound connections (from the central server to the external network) |
-| 1.6 | TCP 80 HTTP between the central server and the management services' security server<br>TCP 4000 user interface<br>TCP 4001 HTTPS between the central server and the management services' security server<br>TCP 4400 HTTP between central server and management services' security server | Internal network ports, the user interface port, and management service ports for the management services' security server |
-| 1.7 |  | central server internal IP address(es) and hostname(s) |
-| 1.8 |  | central server public IP address, NAT address |
-| 1.9 | <by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field> | Information about the user interface TLS certificate |
+| 1.0  | Ubuntu 14.04, 64-bit, 2 GB RAM, 3 GB free disk space | Minimum requirements |
+| 1.1  | http://x-road.eu/packages | X-Road package repository |
+| 1.2  | http://x-road.eu/packages/xroad_repo.gpg | The repository key |
+| 1.3  |  | Account name in the user interface |
+| 1.4  | TCP 4001 service for authentication certificate registration<br>TCP 80 distribution of the global configuration | Ports for inbound connections (from the external network to the central server) |
+| 1.4.1| TCP 4002 management services | Port for inbound connections from the management security server |
+| 1.5  | TCP 80 software updates | Ports for outbound connections (from the central server to the external network) |
+| 1.6  | TCP 80 HTTP between the central server and the management services' security server<br>TCP 4000 user interface<br>TCP 4001 HTTPS between the central server and the management services' security server<br>TCP 4400 HTTP between central server and management services' security server | Internal network ports, the user interface port, and management service ports for the management services' security server |
+| 1.7  |  | central server internal IP address(es) and hostname(s) |
+| 1.8  |  | central server public IP address, NAT address |
+| 1.9  | <by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field> | Information about the user interface TLS certificate |
 | 1.10 | <by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field> | Information about the services TLS certificate |
 
 
@@ -123,7 +124,7 @@ Minimum recommended hardware parameters:
 
 Requirements for software and settings:
 - an installed and configured Ubuntu 14.04 LTS x86-64 operating system;
-- the necessary connections are allowed in the firewall (reference data: 1.4; 1.5; 1.6),
+- the necessary connections are allowed in the firewall (reference data: 1.4; 1.4.1; 1.5; 1.6),
 - if the central server has a private IP address, a corresponding NAT record must be created in the firewall (reference data: 1.8).
 
 
