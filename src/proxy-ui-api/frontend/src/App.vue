@@ -1,39 +1,66 @@
 <template>
-  <v-app>
-    <v-toolbar app>
-      <v-toolbar-title class="headline text-uppercase">
-        <span>Vuetify</span>
-        <span class="font-weight-light">MATERIAL DESIGN</span>
-      </v-toolbar-title>
-      <v-spacer></v-spacer>
-      <v-btn
-        flat
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-      >
-        <span class="mr-2">Latest Release</span>
-        <v-icon>fas fa-external-link-alt</v-icon>
-      </v-btn>
-    </v-toolbar>
-
-    <v-content>
-      <HelloWorld/>
-    </v-content>
+  <v-app class="xr-app">
+    <div>
+      <transition name="fade" mode="out-in">
+        <router-view/>
+      </transition>
+    </div>
+    <snackbar ref="snackbar"></snackbar>
   </v-app>
 </template>
 
-<script>
-import HelloWorld from './components/HelloWorld'
+<script lang="ts">
+import Vue from 'vue';
+import axios from 'axios';
+import SnackbarMixin from './components/SnackbarMixin.vue';
 
-export default {
+export default Vue.extend({
   name: 'App',
-  components: {
-    HelloWorld
+  mixins: [SnackbarMixin],
+  created() {
+    // Add a response interceptor
+    axios.interceptors.response.use(
+      response => {
+        return response;
+      },
+      error => {
+        if (
+          error.response.status === 401 &&
+          error.response.config &&
+          !error.response.config.__isRetryRequest
+        ) {
+          // if you ever get an unauthorized, logout the user
+          this.$store.dispatch('clearAuth');
+          this.$router.replace('/login');
+        }
+        // Do something with response error
+        throw error;
+      }
+    );
   },
-  data () {
-    return {
-      //
-    }
-  }
-}
+});
 </script>
+
+<style lang="scss">
+@import './assets/global-style.scss';
+</style>
+
+<style lang="scss" scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition-duration: 0.2s;
+  transition-property: opacity;
+  transition-timing-function: ease;
+}
+
+.fade-enter,
+.fade-leave-active {
+  opacity: 0;
+}
+
+// Set the app background color
+.theme--light.application.xr-app {
+  background: white;
+}
+</style>
+
