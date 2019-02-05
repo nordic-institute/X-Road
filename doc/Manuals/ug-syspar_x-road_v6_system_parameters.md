@@ -354,7 +354,7 @@ For instructions on how to change the parameter values, see section [Changing th
 | internal-directory      | internalconf                            | Name of the signed internal configuration directory that is distributed to the configuration clients (security servers and/or configuration proxies) of this X-Road instance. |
 | trusted-anchors-allowed | true                                    | True if federation is allowed for this X-Road instance. |
 | minimum-global-configuration-version | 2                          | The minimum supported global configuration version on the central server. This parameter is used if the central server needs to generate multiple versions of global configuration. Note that the support for global configuration V1 has been dropped in X-Road 6.20.0 and since that version the minimum value for this parameter is 2. |
-| auto-approve-auth-cert-reg-requests | false                       | True if automatic approval of auth cert registration requests is enabled for this X-Road instance. |
+| auto-approve-auth-cert-reg-requests | false                       | True if automatic approval of auth cert registration requests is enabled for this X-Road instance. Automatic approval is applied to existing members only. |
 
 #### 4.1.3 Signer parameters: `[signer]`
 
