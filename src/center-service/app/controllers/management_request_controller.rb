@@ -1,8 +1,6 @@
 #
 # The MIT License
-# Copyright (c) 2018 Estonian Information System Authority (RIA),
-# Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
-# Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+# Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,9 +32,7 @@ java_import Java::ee.ria.xroad.common.message.SoapFault
 java_import Java::ee.ria.xroad.common.ErrorCodes
 java_import Java::ee.ria.xroad.common.CodedException
 
-class ManagementRequestsController < ApplicationController
-  @@auth_cert_registration_mutex = Mutex.new
-  @@client_registration_mutex = Mutex.new
+class ManagementRequestController < ApplicationController
 
   def create
     begin
@@ -67,102 +63,11 @@ class ManagementRequestsController < ApplicationController
   private
 
   def handle_request
-    service = @request_soap.getService().getServiceCode()
-    case service
-    when ManagementRequests::AUTH_CERT_REG
-      handle_auth_cert_registration
-    when ManagementRequests::AUTH_CERT_DELETION
-      handle_auth_cert_deletion
-    when ManagementRequests::CLIENT_REG
-      handle_client_registration
-    when ManagementRequests::CLIENT_DELETION
-      handle_client_deletion
-    else
-      raise "Unknown service code '#{service}'"
-    end
+      raise "Unknown service"
   end
 
   def handle_error(ex)
     render :text => SoapFault.createFaultXml(ex)
-  end
-
-  def handle_auth_cert_registration
-    req_type = ManagementRequestParser.parseAuthCertRegRequest(@request_soap)
-    security_server = security_server_id(req_type.getServer())
-
-    verify_xroad_instance(security_server)
-    verify_owner(security_server)
-
-    req = nil
-
-    @@auth_cert_registration_mutex.synchronize do
-      req = AuthCertRegRequest.new(
-        :security_server => security_server,
-        :auth_cert => String.from_java_bytes(req_type.getAuthCert()),
-        :address => req_type.getAddress(),
-        :origin => Request::SECURITY_SERVER)
-      req.register()
-    end
-
-    req.id
-  end
-
-  def handle_auth_cert_deletion
-    req_type = ManagementRequestParser.parseAuthCertDeletionRequest(
-      @request_soap)
-    security_server = security_server_id(req_type.getServer())
-
-    verify_xroad_instance(security_server)
-    verify_owner(security_server)
-
-    req = AuthCertDeletionRequest.new(
-      :security_server => security_server,
-      :auth_cert => String.from_java_bytes(req_type.getAuthCert()),
-      :origin => Request::SECURITY_SERVER)
-    req.register()
-    req.id
-  end
-
-  def handle_client_registration
-    req_type = ManagementRequestParser.parseClientRegRequest(@request_soap)
-    security_server = security_server_id(req_type.getServer())
-    server_user = client_id(req_type.getClient())
-
-    verify_xroad_instance(security_server)
-    verify_xroad_instance(server_user)
-
-    verify_owner(security_server)
-
-    req = nil
-
-    @@client_registration_mutex.synchronize do
-      req = ClientRegRequest.new(
-        :security_server => security_server,
-        :sec_serv_user => server_user,
-        :origin => Request::SECURITY_SERVER)
-
-      req.register()
-    end
-
-    req.id
-  end
-
-  def handle_client_deletion
-    req_type = ManagementRequestParser.parseClientDeletionRequest(@request_soap)
-    security_server = security_server_id(req_type.getServer())
-    server_user = client_id(req_type.getClient())
-
-    verify_xroad_instance(security_server)
-    verify_xroad_instance(server_user)
-
-    verify_owner(security_server)
-
-    req = ClientDeletionRequest.new(
-      :security_server => security_server,
-      :sec_serv_user => server_user,
-      :origin => Request::SECURITY_SERVER)
-    req.register()
-    req.id
   end
 
   def security_server_id(id_type)

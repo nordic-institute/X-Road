@@ -1,6 +1,6 @@
 # X-Road: Central Server Installation Guide
 
-Version: 2.9
+Version: 2.10
 Doc. ID: IG-CS
 
 ---
@@ -27,40 +27,38 @@ Doc. ID: IG-CS
 | 10.04.2018 | 2.7     | Updated chapter "[Installing the Support for Hardware Tokens](#26-installing-the-support-for-hardware-tokens)" with configurable parameters described in the configuration file 'devices.ini' | Cybernetica AS |
 | 14.10.2018 | 2.8     | Update package repository address | Petteri Kivimäki |
 | 15.11.2018 | 2.9     | Add Ubuntu 18.04 installation instructions | Jarkko Hyöty |
+| 05.02.2019 | 2.10    | Update ports | Jarkko Hyöty |
  
 ## Table of Contents
 
 <!-- toc -->
 <!-- vim-markdown-toc GFM -->
 
-- [X-Road: Central Server Installation Guide](#x-road-central-server-installation-guide)
-  - [Version history](#version-history)
-  - [Table of Contents](#table-of-contents)
-  - [License](#license)
-  - [1. Introduction](#1-introduction)
-    - [1.1 Target Audience](#11-target-audience)
-    - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
-    - [1.3 References](#13-references)
-  - [2. Installation](#2-installation)
-    - [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
-    - [2.2 Reference Data](#22-reference-data)
-    - [2.3 Requirements to the Central Server](#23-requirements-to-the-central-server)
-    - [2.4 Preparing OS](#24-preparing-os)
-    - [2.5 Installation](#25-installation)
-    - [2.6 Installing the Support for Hardware Tokens](#26-installing-the-support-for-hardware-tokens)
-    - [2.7 Installing the Support for Monitoring](#27-installing-the-support-for-monitoring)
-    - [2.8 Post-Installation Checks](#28-post-installation-checks)
-  - [3 Initial Configuration](#3-initial-configuration)
-    - [3.1 Reference Data](#31-reference-data)
-    - [3.2 Initializing the Central Server](#32-initializing-the-central-server)
-    - [3.3 Configuring the Central Server and the Management Services' Security Server](#33-configuring-the-central-server-and-the-management-services-security-server)
-  - [4 Additional configuration](#4-additional-configuration)
-    - [4.1 Global configuration V1 support](#41-global-configuration-v1-support)
-  - [5 Installation Error Handling](#5-installation-error-handling)
-    - [5.1 Cannot Set LC_ALL to Default Locale](#51-cannot-set-lcall-to-default-locale)
-    - [5.2 PostgreSQL Is Not UTF8 Compatible](#52-postgresql-is-not-utf8-compatible)
-    - [5.3 Could Not Create Default Cluster](#53-could-not-create-default-cluster)
-    - [5.4 Is Postgres Running on Port 5432?](#54-is-postgres-running-on-port-5432)
+* [License](#license)
+* [1. Introduction](#1-introduction)
+  * [1.1 Target Audience](#11-target-audience)
+  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+  * [1.3 References](#13-references)
+* [2. Installation](#2-installation)
+  * [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
+  * [2.2 Reference Data](#22-reference-data)
+  * [2.3 Requirements to the Central Server](#23-requirements-to-the-central-server)
+  * [2.4 Preparing OS](#24-preparing-os)
+  * [2.5 Installation](#25-installation)
+  * [2.6 Installing the Support for Hardware Tokens](#26-installing-the-support-for-hardware-tokens)
+  * [2.7 Installing the Support for Monitoring](#27-installing-the-support-for-monitoring)
+  * [2.8 Post-Installation Checks](#28-post-installation-checks)
+* [3 Initial Configuration](#3-initial-configuration)
+  * [3.1 Reference Data](#31-reference-data)
+  * [3.2 Initializing the Central Server](#32-initializing-the-central-server)
+  * [3.3 Configuring the Central Server and the Management Services' Security Server](#33-configuring-the-central-server-and-the-management-services-security-server)
+* [4 Additional configuration](#4-additional-configuration)
+  * [4.1 Global configuration V1 support](#41-global-configuration-v1-support)
+* [5 Installation Error Handling](#5-installation-error-handling)
+  * [5.1 Cannot Set LC_ALL to Default Locale](#51-cannot-set-lc_all-to-default-locale)
+  * [5.2 PostgreSQL Is Not UTF8 Compatible](#52-postgresql-is-not-utf8-compatible)
+  * [5.3 Could Not Create Default Cluster](#53-could-not-create-default-cluster)
+  * [5.4 Is Postgres Running on Port 5432?](#54-is-postgres-running-on-port-5432)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -106,16 +104,17 @@ Caution: Data necessary for the functioning of the operating system is not inclu
 
 | **Ref**              |                                                  | **Explanation**                                    |
 |----------------------|--------------------------------------------------|----------------------------------------------------|
-| 1.0 | Ubuntu 14.04 or 18.04, 64-bit, 2 GB RAM, 3 GB free disk space | Minimum requirements |
-| 1.1 | https://artifactory.niis.org/xroad-release-deb | X-Road package repository |
-| 1.2 | https://artifactory.niis.org/api/gpg/key/public | The repository key |
-| 1.3 |  | Account name in the user interface |
-| 1.4 | TCP 4001 service for authentication certificate registration<br>TCP 80 distribution of the global configuration | Ports for inbound connections (from the external network to the central server) |
-| 1.5 | TCP 80 software updates | Ports for outbound connections (from the central server to the external network) |
-| 1.6 | TCP 80 HTTP between the central server and the management services' security server<br>TCP 4000 user interface<br>TCP 4001 HTTPS between the central server and the management services' security server<br>TCP 4400 HTTP between central server and management services' security server | Internal network ports, the user interface port, and management service ports for the management services' security server |
-| 1.7 |  | central server internal IP address(es) and hostname(s) |
-| 1.8 |  | central server public IP address, NAT address |
-| 1.9 | <by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field> | Information about the user interface TLS certificate |
+| 1.0  | Ubuntu 14.04 or 18.04, 64-bit, 2 GB RAM, 3 GB free disk space | Minimum requirements |
+| 1.1  | https://artifactory.niis.org/xroad-release-deb | X-Road package repository |
+| 1.2  | https://artifactory.niis.org/api/gpg/key/public | The repository key |
+| 1.3  |  | Account name in the user interface |
+| 1.4  | TCP 4001 service for authentication certificate registration<br>TCP 80 distribution of the global configuration | Ports for inbound connections (from the external network to the central server) |
+| 1.4.1| TCP 4002 management services | Port for inbound connections from the management security server |
+| 1.5  | TCP 80 software updates | Ports for outbound connections (from the central server to the external network) |
+| 1.6  | TCP 80 HTTP between the central server and the management services' security server<br>TCP 4000 user interface<br>TCP 4001 HTTPS between the central server and the management services' security server<br>TCP 4400 HTTP between central server and management services' security server | Internal network ports, the user interface port, and management service ports for the management services' security server |
+| 1.7  |  | central server internal IP address(es) and hostname(s) |
+| 1.8  |  | central server public IP address, NAT address |
+| 1.9  | <by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field> | Information about the user interface TLS certificate |
 | 1.10 | <by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field> | Information about the services TLS certificate |
 
 ### 2.3 Requirements to the Central Server
@@ -128,7 +127,7 @@ Minimum recommended hardware parameters:
 
 Requirements for software and settings:
 - an installed and configured Ubuntu 14.04 or 18.04 LTS x86-64 operating system;
-- the necessary connections are allowed in the firewall (reference data: 1.4; 1.5; 1.6),
+- the necessary connections are allowed in the firewall (reference data: 1.4; 1.4.1; 1.5; 1.6),
 - if the central server has a private IP address, a corresponding NAT record must be created in the firewall (reference data: 1.8).
 
 ### 2.4 Preparing OS
