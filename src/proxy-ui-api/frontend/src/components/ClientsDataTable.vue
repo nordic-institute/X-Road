@@ -3,7 +3,7 @@
     <div class="table-toolbar">
       <v-text-field
         v-model="search"
-        append-icon="search"
+        append-icon="fas fa-search"
         label="Search"
         single-line
         hide-details
