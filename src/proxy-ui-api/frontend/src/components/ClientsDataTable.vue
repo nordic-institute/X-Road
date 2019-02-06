@@ -1,15 +1,9 @@
 <template>
   <v-layout align-center justify-center column fill-height elevation-0 class="full-width">
     <div class="table-toolbar">
-      <v-text-field
-        v-model="search"
-        append-icon="fas fa-search"
-        label="Search"
-        single-line
-        hide-details
-        class="search-input"
-      ></v-text-field>
-
+      <v-text-field v-model="search" label="Search" single-line hide-details class="search-input">
+        <v-icon slot="append" small>fas fa-search</v-icon>
+      </v-text-field>
       <v-btn
         color="primary"
         @click="addClient"
