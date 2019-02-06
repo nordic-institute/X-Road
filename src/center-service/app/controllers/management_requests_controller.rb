@@ -26,7 +26,7 @@
 require 'thread'
 
 java_import Java::ee.ria.xroad.common.SystemProperties
-java_import Java::ee.ria.xroad.common.request.ClientRegRequestHelper
+java_import Java::ee.ria.xroad.common.request.ClientRegRequestStatusWrapper
 java_import Java::ee.ria.xroad.common.request.ManagementRequestHandler
 java_import Java::ee.ria.xroad.common.request.ManagementRequestParser
 java_import Java::ee.ria.xroad.common.request.ManagementRequestUtil
@@ -47,12 +47,12 @@ class ManagementRequestsController < ApplicationController
       @xroad_instance = SystemParameter.instance_identifier
       raise "X-Road instance must exist!" if @xroad_instance.blank?
 
-      @client_reg_request_helper = ClientRegRequestHelper.new
+      @client_reg_request_status_wrapper = ClientRegRequestStatusWrapper.new
 
       @request_soap = ManagementRequestHandler.readRequest(
         request.headers["CONTENT_TYPE"],
         StringIO.new(request.raw_post).to_inputstream,
-        @client_reg_request_helper)
+        @client_reg_request_status_wrapper)
 
       id = handle_request
       logger.debug("Created request id: #{id}")
@@ -163,9 +163,9 @@ class ManagementRequestsController < ApplicationController
     # 1) auto approval is enabled;
     # 2) client registration request has been signed by the member owning the client to be added,
     #    and if signature and certificate have passed verification;
-    # 3) member owning the client exists on Central Server.
-    auto_approve = auto_approve_client_reg_requests? &&
-                    @client_reg_request_helper.getClientRegRequestSignedAndVerified &&
+    # 3) member owning the subsystem exists on Central Server.
+    auto_approve_and_request_verified_and_owner_exists = auto_approve_client_reg_requests? &&
+                    @client_reg_request_status_wrapper.getClientRegRequestSignedAndVerified &&
                     !server_user_member.nil?
 
     @@client_registration_mutex.synchronize do
@@ -175,7 +175,7 @@ class ManagementRequestsController < ApplicationController
         :origin => Request::SECURITY_SERVER)
       req.register()
 
-      if auto_approve
+      if auto_approve_and_request_verified_and_owner_exists
         client_reg_request = ClientRegRequest.new(
           :security_server => security_server,
           :sec_serv_user => server_user,
@@ -184,7 +184,7 @@ class ManagementRequestsController < ApplicationController
       end
     end
 
-    if auto_approve
+    if auto_approve_and_request_verified_and_owner_exists
       # If subsystem to be added does not exist on Central Server yet, it
       # must be created before the approval
       if SecurityServerClient.find_by_id(server_user).nil?

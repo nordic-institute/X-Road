@@ -76,7 +76,7 @@ public final class ManagementRequestHandler {
      */
     public static SoapMessageImpl readRequest(String contentType,
                                               InputStream inputStream) throws Exception {
-        return readRequest(contentType, inputStream, new ClientRegRequestHelper());
+        return readRequest(contentType, inputStream, new ClientRegRequestStatusWrapper());
     }
 
     /**
@@ -84,13 +84,14 @@ public final class ManagementRequestHandler {
      *
      * @param contentType            expected content type of the stream
      * @param inputStream            the input stream
-     * @param clientRegRequestHelper helper for processing clientRegRequests
+     * @param clientRegRequestStatusWrapper helper for processing clientRegRequests
      * @return management request SOAP message
      * @throws Exception in case of any errors
      */
     public static SoapMessageImpl readRequest(String contentType,
                                               InputStream inputStream,
-                                              ClientRegRequestHelper clientRegRequestHelper) throws Exception {
+                                              ClientRegRequestStatusWrapper clientRegRequestStatusWrapper)
+            throws Exception {
         log.info("readRequest(contentType={})", contentType);
 
         DecoderCallback cb = new DecoderCallback();
@@ -98,7 +99,7 @@ public final class ManagementRequestHandler {
         SoapMessageDecoder decoder = new SoapMessageDecoder(contentType, cb);
         decoder.parse(inputStream);
 
-        clientRegRequestHelper.setClientRegRequestSignedAndVerified(cb.getClientRegRequestSignedAndVerified());
+        clientRegRequestStatusWrapper.setClientRegRequestSignedAndVerified(cb.getClientRegRequestSignedAndVerified());
 
         return cb.getSoapMessage();
     }
