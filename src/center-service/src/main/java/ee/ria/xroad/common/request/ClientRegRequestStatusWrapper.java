@@ -27,7 +27,7 @@ package ee.ria.xroad.common.request;
 /**
  * Helper class for processing client registration requests.
  */
-public final class ClientRegRequestHelper {
+public final class ClientRegRequestStatusWrapper {
     private boolean clientRegRequestSignedAndVerified = false;
 
     public void setClientRegRequestSignedAndVerified(boolean value) {
