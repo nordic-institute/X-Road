@@ -26,7 +26,16 @@
         <property name="message" value="Line has trailing spaces."/>
     </module>
 
+    <module name="SuppressWarningsFilter" />
+
     <module name="TreeWalker">
+        <module name="SuppressWarningsHolder" />
+        <module name="SuppressionCommentFilter">
+            <property name="offCommentFormat" value="CHECKSTYLE.OFF\: ([\w\|]+)"/>
+            <property name="onCommentFormat" value="CHECKSTYLE.ON\: ([\w\|]+)"/>
+            <property name="checkFormat" value="$1"/>
+        </module>
+
         <!-- Checks for Javadoc comments.                     -->
         <!-- See http://checkstyle.sf.net/config_javadoc.html -->
 

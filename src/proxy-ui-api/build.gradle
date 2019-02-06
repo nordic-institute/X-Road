@@ -1,0 +1,148 @@
+buildscript {
+    ext {
+        springBootVersion = '2.1.0.RELEASE'
+        openapiGeneratorVersion = '3.3.4'
+        nodePluginVersion = '1.1.0'
+    }
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath "org.openapitools:openapi-generator-gradle-plugin:${openapiGeneratorVersion}"
+        classpath "com.moowork.gradle:gradle-node-plugin:${nodePluginVersion}"
+    }
+}
+
+configurations {
+    developmentOnly
+    runtimeClasspath {
+        extendsFrom developmentOnly
+    }
+}
+
+ext.excludeDevToolsSetting = project.hasProperty('activate-devtools-do-not-use-in-production') ? false : true
+
+if (!excludeDevToolsSetting) {
+    ant.input(message: 'Are you sure you want to activate devtools for jar packages?\n'
+        + 'Devtools must not be used in non-development environments', validargs: 'y,n', addproperty: 'confirmation')
+
+    if(ant.confirmation != 'y') {
+        throw new GradleException('Stopped build since devtools should not be activated for non-development\n'
+        + 'environments')
+    }
+}
+
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: "com.moowork.node"
+apply plugin: 'org.openapi.generator'
+
+bootRun {
+    jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
+    if (project.hasProperty('args')) {
+        args project.args.split(',')
+    }
+}
+
+bootJar {
+    excludeDevtools = excludeDevToolsSetting
+    println 'excludeDevTools in bootJar=' + excludeDevToolsSetting
+}
+
+processResources {
+    from ('frontend/dist/') {
+        into 'public/'
+    }
+}
+
+ext['hibernate.version'] = '4.3.11.Final'
+ext['postgresql.version'] = '42.2.1'
+ext['hikaricp.version'] = '2.3.3'
+ext['quartz.version'] = '2.1.6'
+
+node {
+    download = false
+    npmWorkDir = file("frontend")
+    nodeModulesDir = file("frontend/node_modules")
+}
+
+task buildFront(type: NpmTask, dependsOn: 'npmInstall') {
+    onlyIf {
+        !project.hasProperty('skip-frontend-build')
+    }
+    inputs.dir("frontend")
+    outputs.dir("frontend/dist")
+    args = ['run', 'build']
+    execOverrides {
+        it.workingDir = 'frontend'
+    }
+}
+
+npmInstall.onlyIf { !project.hasProperty('skip-frontend-build') }
+
+processResources.dependsOn 'buildFront'
+
+clean.delete << file('frontend/node_modules')
+clean.delete << file('frontend/dist')
+
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = "$projectDir/src/main/resources/openapi-definition.json".toString()
+    outputDir = "$buildDir/generated-sources".toString()
+    apiPackage = "org.niis.xroad.restapi.openapi"
+    modelPackage = "org.niis.xroad.restapi.openapi.model"
+    systemProperties = [
+        modelDocs: "false",
+        apis: "", // must use empty strings instead of "true":
+        // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
+        models: ""
+    ]
+    configOptions = [
+        interfaceOnly: "true"
+    ]
+}
+
+compileJava.dependsOn tasks.openApiGenerate
+
+sourceSets {
+    main {
+        java.srcDirs = ['src/main/java', 'build/generated-sources']
+    }
+}
+
+// set license format to ignore generated java sources
+task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+}
+
+task licenseTestJava(type:nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+    check = true
+}
+
+licenseFormatMain.enabled = false
+licenseMain.enabled = false
+
+licenseFormat.dependsOn licenseFormatJava
+licenseTest.dependsOn licenseTestJava
+
+dependencies {
+    implementation project(':serverconf')
+    implementation('org.springframework.boot:spring-boot-starter-security')
+    implementation('org.springframework.boot:spring-boot-starter-web')
+    implementation('org.springframework.boot:spring-boot-starter-thymeleaf')
+    implementation('org.springframework.boot:spring-boot-starter-actuator')
+    implementation('org.kohsuke:libpam4j:1.11')
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
+    testImplementation('org.springframework.security:spring-security-test')
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
+    // openapi-generator related
+    implementation('io.springfox:springfox-swagger2:2.8.0')
+    implementation('io.springfox:springfox-swagger-ui:2.8.0')
+    implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
+    implementation('org.openapitools:jackson-databind-nullable:0.1.0')
+    implementation('javax.validation:validation-api')
+    // /openapi-generator related
+}
