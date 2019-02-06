@@ -64,6 +64,8 @@ public class DummyInMemoryUserDetailsService {
                             .password("password")
 //CHECKSTYLE.OFF: TodoComment - need this todo and still want builds to succeed
                     // TODO: remove user & admin roles....
+                    // TODO: move to a separate development time module, not
+                    // included in production builds
 //CHECKSTYLE.ON: TodoComment
                             .roles("USER", "ADMIN", "XROAD-SYSTEM-ADMINISTRATOR")
                             .build());
