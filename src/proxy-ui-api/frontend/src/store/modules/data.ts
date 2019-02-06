@@ -2,7 +2,16 @@ import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 
-export interface ClientsArray extends Array<Object> { }
+
+export interface Client {
+  id: string;
+  name: string;
+  type?: string;
+  status?: string;
+  subsystems?: Array<Client>;
+}
+
+export interface ClientsArray extends Array<Client> { }
 
 export interface DataState {
   cities: [];
