@@ -34,7 +34,7 @@ import java.util.Optional;
  * system api controller
  */
 @Controller
-@RequestMapping("/test-api")
+@RequestMapping("/api")
 public class SystemApiController implements org.niis.xroad.restapi.openapi.SystemApi {
 
     private final NativeWebRequest request;

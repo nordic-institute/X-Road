@@ -24,10 +24,9 @@
  */
 package org.niis.xroad.restapi.auth;
 
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.domain.ApiKey;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -47,17 +46,16 @@ import java.util.stream.Collectors;
  */
 
 @Component
+@Slf4j
 public class ApiKeyAuthenticationManager implements AuthenticationManager {
 
     @Autowired
     private ApiKeyRepository apiKeyRepository;
 
-    Logger logger = LoggerFactory.getLogger(ApiKeyAuthenticationManager.class);
-
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String principal = (String) authentication.getPrincipal();
-        logger.debug("principal: {}", principal);
+        log.debug("principal: {}", principal);
         ApiKey key = apiKeyRepository.get(principal);
         if (key == null) {
             throw new BadCredentialsException("The API key was not found or not the expected value.");
@@ -66,7 +64,7 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
                 new PreAuthenticatedAuthenticationToken(authentication.getPrincipal(),
                         authentication.getCredentials(),
                         rolenamesToGrants(key.getRoles()));
-        logger.debug("authentication: {}", authenticationWithGrants);
+        log.debug("authentication: {}", authenticationWithGrants);
         return authenticationWithGrants;
     }
 

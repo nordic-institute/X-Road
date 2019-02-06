@@ -24,8 +24,7 @@
  */
 package org.niis.xroad.restapi.auth;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.AuthenticationException;
@@ -43,8 +42,8 @@ import java.io.IOException;
  * AuthenticationEntryPoint that returns 401
  */
 @Component
+@Slf4j
 public class Http401AuthenticationEntryPoint implements AuthenticationEntryPoint {
-    Logger logger = LoggerFactory.getLogger(Http401AuthenticationEntryPoint.class);
 
     @Autowired
     @Qualifier("handlerExceptionResolver")
@@ -55,8 +54,8 @@ public class Http401AuthenticationEntryPoint implements AuthenticationEntryPoint
      */
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException exception) throws IOException, ServletException {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Pre-authenticated entry point called. Rejecting access");
+        if (log.isDebugEnabled()) {
+            log.debug("Pre-authenticated entry point called. Rejecting access");
         }
         resolver.resolveException(request, response, null, exception);
     }

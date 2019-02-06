@@ -34,7 +34,7 @@ import java.util.Optional;
  * logout controller (needless)
  */
 @Controller
-@RequestMapping("/test-api")
+@RequestMapping("/api")
 public class LogoutApiController implements org.niis.xroad.restapi.openapi.LogoutApi {
 
     private final NativeWebRequest request;

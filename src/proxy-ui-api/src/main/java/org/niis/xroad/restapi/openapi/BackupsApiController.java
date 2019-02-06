@@ -41,7 +41,7 @@ import java.util.Optional;
  * backups controller
  */
 @Controller
-@RequestMapping("/test-api")
+@RequestMapping("/api")
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class BackupsApiController implements org.niis.xroad.restapi.openapi.BackupsApi {
 

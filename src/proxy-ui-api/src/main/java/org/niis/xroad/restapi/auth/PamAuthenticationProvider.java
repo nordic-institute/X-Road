@@ -24,11 +24,10 @@
  */
 package org.niis.xroad.restapi.auth;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -49,9 +48,8 @@ import java.util.stream.Stream;
  * Application has to be run as a user who has read access to /etc/shadow (likely means that belongs to group shadow)
  * roles are granted with user groups xroad-auth-proto-user and xroad-auth-proto-admin
  */
+@Slf4j
 public class PamAuthenticationProvider implements AuthenticationProvider {
-
-    static Logger logger = LoggerFactory.getLogger(PamAuthenticationProvider.class);
 
     /**
      * users with these groups are allowed access
@@ -74,11 +72,8 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
             throw new AuthenticationServiceException("Could not initialize PAM.", e);
         }
         try {
-            logger.info("trying PAM login with {}/{}", username, password);
             UnixUser user = pam.authenticate(username, password);
-            logger.info("logged in successfully");
             Set<String> groups = user.getGroups();
-            logger.info("got groups: {}", groups);
             Set<GrantedAuthority> grants = new HashSet<>();
             Set<String> matchingGroups = groups.stream()
                     .filter(ALLOWED_GROUP_NAMES::contains)

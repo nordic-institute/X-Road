@@ -24,8 +24,7 @@
  */
 package org.niis.xroad.restapi.auth;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -74,19 +73,18 @@ import java.io.IOException;
  *
  * Built from three different WebSecurityConfigurerAdapters.
  * Authentication configurations are used in the following order:
- * - CreateApiKeyWebSecurityConfigurerAdapter, @Order(1), matches /test-api/create-api-key/**
- * - ApiWebSecurityConfigurerAdapter, @Order(2), matches /test-api/**
- * - FormLoginWebSecurityConfigurerAdapter, @Order(100), matches any URL (denies /test-api/**)
+ * - CreateApiKeyWebSecurityConfigurerAdapter, @Order(1), matches /api/create-api-key/**
+ * - ApiWebSecurityConfigurerAdapter, @Order(2), matches /api/**
+ * - FormLoginWebSecurityConfigurerAdapter, @Order(100), matches any URL (denies /api/**)
  */
 @EnableWebSecurity(debug = true)
 @EnableGlobalMethodSecurity(prePostEnabled = true)
+@Slf4j
 public class MultiAuthWebSecurityConfig {
-
-    static Logger logger = LoggerFactory.getLogger(WebSecurityConfigurerAdapter.class);
 
     /**
      * form login / session cookie authentication
-     * matching any url (but denying /test-api/*** since 2 other configurations are used
+     * matching any url (but denying /api/*** since 2 other configurations are used
      * for those)
      * has order 100 (@Order(100)) - see WebSecurityConfigurerAdapter
      */
@@ -97,7 +95,7 @@ public class MultiAuthWebSecurityConfig {
         private boolean pam;
         @Override
         protected void configure(HttpSecurity http) throws Exception {
-            logger.info("***** configuring security, pam = {}", pam);
+            log.debug("***** configuring security, pam = {}", pam);
             http
                 .authorizeRequests()
                     .antMatchers("/error").permitAll()
@@ -109,7 +107,7 @@ public class MultiAuthWebSecurityConfig {
                     // actuator endpoints are open to public, and
                     // even allow shutdown - so do not use this for production
                     .antMatchers("/actuator/**").permitAll()
-                    .antMatchers("/test-api/**").denyAll()
+                    .antMatchers("/api/**").denyAll()
                     .anyRequest().denyAll()
                     .and()
                   .csrf()
@@ -172,7 +170,7 @@ public class MultiAuthWebSecurityConfig {
 
     /**
      * basic authentication for create-api-key
-     * matching url /test-api/create-api-key/**
+     * matching url /api/create-api-key/**
      */
     @Configuration
     @Order(1)
@@ -183,7 +181,7 @@ public class MultiAuthWebSecurityConfig {
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             http
-                .antMatcher("/test-api/create-api-key/**")
+                .antMatcher("/api/create-api-key/**")
                 .authorizeRequests()
                     .anyRequest().hasRole("XROAD-SYSTEM-ADMINISTRATOR")
                     .and()
@@ -215,7 +213,7 @@ public class MultiAuthWebSecurityConfig {
 
     /**
      * custom token / session cookie authentication for rest apis
-     * matching url /test-api/**
+     * matching url /api/**
      */
     @Configuration
     @Order(2)
@@ -236,7 +234,7 @@ public class MultiAuthWebSecurityConfig {
             filter.setExceptionIfHeaderMissing(false); // exception at this point
             // would cause http 500, we want http 401
             http
-                .antMatcher("/test-api/**")
+                .antMatcher("/api/**")
                 .addFilter(filter)
                 .sessionManagement()
                     .sessionCreationPolicy(SessionCreationPolicy.NEVER)

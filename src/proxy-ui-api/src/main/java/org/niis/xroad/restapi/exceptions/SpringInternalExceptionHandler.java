@@ -24,8 +24,7 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
@@ -41,10 +40,9 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
  */
 @ControllerAdvice
 @Order(SpringInternalExceptionHandler.TEN)
+@Slf4j
 public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandler {
     public static final int TEN = 10;
-
-    static Logger logger = LoggerFactory.getLogger(SpringInternalExceptionHandler.class);
 
     @Autowired
     private ExceptionTranslator exceptionTranslator;
@@ -53,7 +51,7 @@ public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandl
     protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object body,
                                                              HttpHeaders headers, HttpStatus status,
                                                              WebRequest request) {
-        logger.error("exception caught", ex);
+        log.error("exception caught", ex);
         ErrorInfo errorInfo = new ErrorInfo(status.value());
         return super.handleExceptionInternal(ex, errorInfo, headers,
                 status, request);

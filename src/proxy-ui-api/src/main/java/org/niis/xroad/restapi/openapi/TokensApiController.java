@@ -34,7 +34,7 @@ import java.util.Optional;
  * tokens controller
  */
 @Controller
-@RequestMapping("/test-api")
+@RequestMapping("/api")
 public class TokensApiController implements org.niis.xroad.restapi.openapi.TokensApi {
 
     private final NativeWebRequest request;
