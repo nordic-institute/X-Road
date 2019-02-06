@@ -102,6 +102,9 @@ public class ClientRepository {
      */
     public ClientType getClient(String id) {
         ClientDAOImpl clientDAO = new ClientDAOImpl();
+        //CHECKSTYLE.OFF: TodoComment
+        // TODO: implement better clientcode parsing (and tests)
+        //CHECKSTYLE.ON: TodoComment
         List<String> parts = Arrays.asList(id.split(":"));
         String instance = parts.get(0);
         String memberClass = parts.get(1);
