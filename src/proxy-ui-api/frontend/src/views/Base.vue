@@ -14,9 +14,6 @@
           <router-view/>
         </transition>
       </v-layout>
-      <!--
-      <demoComponent/>
-      -->
     </v-layout>
   </div>
 </template>
@@ -26,13 +23,11 @@ import Vue from 'vue';
 
 import TabContent from '../components/TabContent.vue';
 import Toolbar from '../components/Toolbar.vue';
-import DemoComponent from '../components/DemoComponent.vue';
 
 export default Vue.extend({
   components: {
     TabContent,
     Toolbar,
-    DemoComponent,
   },
   data() {
     return {
