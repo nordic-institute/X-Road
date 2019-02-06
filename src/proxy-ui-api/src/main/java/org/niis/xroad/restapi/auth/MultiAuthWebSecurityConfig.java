@@ -24,8 +24,7 @@
  */
 package org.niis.xroad.restapi.auth;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -80,9 +79,8 @@ import java.io.IOException;
  */
 @EnableWebSecurity(debug = true)
 @EnableGlobalMethodSecurity(prePostEnabled = true)
+@Slf4j
 public class MultiAuthWebSecurityConfig {
-
-    static Logger logger = LoggerFactory.getLogger(WebSecurityConfigurerAdapter.class);
 
     /**
      * form login / session cookie authentication
@@ -97,7 +95,7 @@ public class MultiAuthWebSecurityConfig {
         private boolean pam;
         @Override
         protected void configure(HttpSecurity http) throws Exception {
-            logger.info("***** configuring security, pam = {}", pam);
+            log.debug("***** configuring security, pam = {}", pam);
             http
                 .authorizeRequests()
                     .antMatchers("/error").permitAll()

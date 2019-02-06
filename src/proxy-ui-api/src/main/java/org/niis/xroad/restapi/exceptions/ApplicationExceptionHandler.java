@@ -24,8 +24,7 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,9 +36,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
  * exception handler
  */
 @ControllerAdvice
+@Slf4j
 public class ApplicationExceptionHandler {
-
-    static Logger logger = LoggerFactory.getLogger(ApplicationExceptionHandler.class);
 
     @Autowired
     private ExceptionTranslator exceptionTranslator;
@@ -51,7 +49,7 @@ public class ApplicationExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorInfo> exception(Exception e) {
-        logger.error("exception caught", e);
+        log.error("exception caught", e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
     /**
@@ -61,7 +59,7 @@ public class ApplicationExceptionHandler {
      */
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorInfo> exception(AuthenticationException e) {
-        logger.error("exception caught", e);
+        log.error("exception caught", e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.UNAUTHORIZED);
     }
 

@@ -33,10 +33,9 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.DatabaseContextHelper;
 import org.niis.xroad.restapi.openapi.model.Client;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -49,10 +48,9 @@ import java.util.UUID;
 /**
  * Not sure if we are going to have this kind of repositories...
  */
+@Slf4j
 @Component
 public class ClientRepository {
-
-    static Logger logger = LoggerFactory.getLogger(ClientRepository.class);
 
     public static final int MEMBER_ID_PARTS = 3;
 
@@ -65,7 +63,7 @@ public class ClientRepository {
      * @param s
      */
     public void throwRuntimeException(String s) {
-        logger.error("throwing exception {}", s);
+        log.error("throwing exception {}", s);
         throw new RuntimeException(s);
     }
 
@@ -74,7 +72,7 @@ public class ClientRepository {
      * @param s
      */
     public void throwApplicationException(String s) throws MyApplicationException {
-        logger.error("throwing exception {}", s);
+        log.error("throwing exception {}", s);
         throw new MyApplicationException(s);
     }
 
@@ -83,7 +81,7 @@ public class ClientRepository {
      * @param s
      */
     public void throwSpringException(String s) {
-        logger.error("throwing exception {}", s);
+        log.error("throwing exception {}", s);
         throw new RestClientException(s);
     }
 

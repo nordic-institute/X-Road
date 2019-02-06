@@ -28,13 +28,12 @@ import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.domain.ApiKey;
 import org.niis.xroad.restapi.domain.City;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
 import org.niis.xroad.restapi.repository.CityRepository;
 import org.niis.xroad.restapi.repository.ClientRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -56,10 +55,10 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/api")
+@Slf4j
 public class ResourceController {
 
     public static final long CITY_ID = 999L;
-    Logger logger = LoggerFactory.getLogger(ResourceController.class);
 
     @Autowired
     private CityRepository cityRepository;
@@ -91,7 +90,7 @@ public class ResourceController {
      */
     @RequestMapping(value = "/client/{id}")
     public ClientType getClient(@PathVariable("id") String id) {
-        logger.debug("fetching client {} from repository (db)", id);
+        log.debug("fetching client {} from repository (db)", id);
         ClientType type = clientRepository.getClient(id);
         return type;
     }
@@ -102,7 +101,7 @@ public class ResourceController {
      */
     @RequestMapping(value = "/client-id/{id}")
     public ClientId getClientId(@PathVariable("id") String id) {
-        logger.debug("fetching client {} from repository (db)", id);
+        log.debug("fetching client {} from repository (db)", id);
         ClientType type = clientRepository.getClient(id);
         return type.getIdentifier();
     }
@@ -117,7 +116,7 @@ public class ResourceController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Set<String> roles = authentication.getAuthorities().stream()
                 .map(r -> r.getAuthority()).collect(Collectors.toSet());
-        logger.debug("roles =" + roles);
+        log.debug("roles =" + roles);
         return roles;
     }
 
@@ -127,7 +126,7 @@ public class ResourceController {
     @PostMapping(value = "/city")
     @PreAuthorize("hasAuthority('ROLE_USER') or hasAuthority('ROLE_ADMIN')")
     public City saveCity(@RequestBody City city) {
-        logger.debug("this would save a city {} ", city);
+        log.debug("this would save a city {} ", city);
         return city;
     }
 
@@ -141,7 +140,7 @@ public class ResourceController {
         debugRoles();
         List<City> cities = new ArrayList<>();
         cityRepository.findAll().forEach(cities::add);
-        logger.debug("cities: " + cities);
+        log.debug("cities: " + cities);
         return cities;
     }
 
@@ -157,7 +156,7 @@ public class ResourceController {
         userCity.setName("Usercity, from a method which requires 'USER' role");
         cities.add(userCity);
         cityRepository.findAll().forEach(cities::add);
-        logger.debug("cities: " + cities);
+        log.debug("cities: " + cities);
         return cities;
     }
 
@@ -165,7 +164,7 @@ public class ResourceController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Set<String> roles = authentication.getAuthorities().stream()
                 .map(r -> r.getAuthority()).collect(Collectors.toSet());
-        logger.debug("current users roles:" + roles);
+        log.debug("current users roles:" + roles);
     }
 
     /**
@@ -181,7 +180,7 @@ public class ResourceController {
         adminCity.setName("Admincity, from a method which requires 'ADMIN' role");
         cities.add(adminCity);
         cityRepository.findAll().forEach(cities::add);
-        logger.debug("cities: " + cities);
+        log.debug("cities: " + cities);
         return cities;
     }
 
@@ -192,7 +191,7 @@ public class ResourceController {
     public ApiKey createKey(@RequestBody List<String> roles) {
         if (roles.isEmpty()) throw new NullPointerException();
         ApiKey key = apiKeyRepository.create(roles);
-        logger.debug("created api key " + key.getKey());
+        log.debug("created api key " + key.getKey());
         return key;
     }
 }

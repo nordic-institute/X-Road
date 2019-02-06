@@ -24,10 +24,9 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.openapi.model.Certificate;
 import org.niis.xroad.restapi.repository.ClientRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,9 +48,8 @@ import java.util.Optional;
  */
 @Controller
 @RequestMapping("/api")
+@Slf4j
 public class ClientsApiController implements org.niis.xroad.restapi.openapi.ClientsApi {
-
-    static Logger logger = LoggerFactory.getLogger(ClientsApiController.class);
 
     public static final int MAX_FIFTY_RESULTS = 50;
     private final NativeWebRequest request;
@@ -85,8 +83,7 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     public ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Client>> getClient(String id) {
         List<org.niis.xroad.restapi.openapi.model.Client> clients = clientRepository.getAllClients();
         String idWithSlashes = id.replaceAll(":", "/");
-        logger.info("looking for id {}", idWithSlashes);
-        logger.debug("looking for id {}", idWithSlashes);
+        log.debug("looking for id {}", idWithSlashes);
         for (org.niis.xroad.restapi.openapi.model.Client client: clients) {
             if (idWithSlashes.equals(client.getName())) {
                 return new ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Client>>(
