@@ -19,7 +19,7 @@ var cities = [
 ];
 
 
-app.get('/test-api/cities', function (req, res) {
+app.get('/api/cities', function (req, res) {
   console.log("GET From SERVER");
   res.send(cities);
 });

@@ -34,7 +34,7 @@ import java.util.Optional;
  * login controller (needless)
  */
 @Controller
-@RequestMapping("/test-api")
+@RequestMapping("/api")
 public class LoginApiController implements org.niis.xroad.restapi.openapi.LoginApi {
 
     private final NativeWebRequest request;

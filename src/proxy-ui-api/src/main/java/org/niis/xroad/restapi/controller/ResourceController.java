@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
  * Controller for some demo rest apis
  */
 @RestController
-@RequestMapping("/test-api")
+@RequestMapping("/api")
 public class ResourceController {
 
     public static final long CITY_ID = 999L;

@@ -46,29 +46,29 @@ logins for dummy in-memory authentication:
 
 # Api auth examples
 ```
-$ curl --header "Authorization: naive-api-key-1" localhost:8020/test-api/cities
-{"timestamp":"2018-11-27T07:09:03.991+0000","status":500,"error":"Internal Server Error","message":"The API key was not found or not the expected value.","path":"/test-api/adminCities"}
+$ curl --header "Authorization: naive-api-key-1" localhost:8020/api/cities
+{"timestamp":"2018-11-27T07:09:03.991+0000","status":500,"error":"Internal Server Error","message":"The API key was not found or not the expected value.","path":"/api/adminCities"}
 
-$ curl -X POST -u admin:password localhost:8020/test-api/create-api-key --data '["USER"]' --header "Content-Type: application/json"
+$ curl -X POST -u admin:password localhost:8020/api/create-api-key --data '["USER"]' --header "Content-Type: application/json"
 {"key":"naive-api-key-1","roles":["USER"]}
 
-$ curl -X POST -u admin:password localhost:8020/test-api/create-api-key --data '["ADMIN"]' --header "Content-Type: application/json"
+$ curl -X POST -u admin:password localhost:8020/api/create-api-key --data '["ADMIN"]' --header "Content-Type: application/json"
 {"key":"naive-api-key-2","roles":["ADMIN"]}
 
-$ curl -X POST -u admin:password localhost:8020/test-api/create-api-key --data '["USER","ADMIN","GUGGU"]' --header "Content-Type: application/json"
+$ curl -X POST -u admin:password localhost:8020/api/create-api-key --data '["USER","ADMIN","GUGGU"]' --header "Content-Type: application/json"
 {"key":"naive-api-key-3","roles":["GUGGU","ADMIN","USER"]}
 
-curl --header "Authorization: naive-api-key-1" localhost:8020/test-api/roles
+curl --header "Authorization: naive-api-key-1" localhost:8020/api/roles
 ["ROLE_USER"]
 
-curl --header "Authorization: naive-api-key-1" localhost:8020/test-api/cities
+curl --header "Authorization: naive-api-key-1" localhost:8020/api/cities
 [{"id":1,"name":"Tampere"},{"id":2,"name":"Ylojarvi"},{"id":3,"name":"Helsinki"},{"id":4,"name":"Vantaa"},{"id":5,"name":"Nurmes"}]
 
-curl --header "Authorization: naive-api-key-3" localhost:8020/test-api/adminCities
+curl --header "Authorization: naive-api-key-3" localhost:8020/api/adminCities
 [{"id":999,"name":"Admincity, from a method which requires 'ADMIN' role"},{"id":1,"name":"Tampere"},{"id":2,"name":"Ylojarvi"},{"id":3,"name":"Helsinki"},{"id":4,"name":"Vantaa"},{"id":5,"name":"Nurmes"}]
 
-curl --header "Authorization: naive-api-key-1" localhost:8020/test-api/adminCities
-{"timestamp":"2018-11-27T07:08:22.398+0000","status":403,"error":"Forbidden","message":"Forbidden","path":"/test-api/adminCities"}
+curl --header "Authorization: naive-api-key-1" localhost:8020/api/adminCities
+{"timestamp":"2018-11-27T07:08:22.398+0000","status":403,"error":"Forbidden","message":"Forbidden","path":"/api/adminCities"}
 ```
 
 # PAM login
@@ -137,30 +137,30 @@ Set-Cookie: JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4; Path=/; HttpOnly
 ```
 Using the cookies and CSRF header correctly
 ```
-curl -D - localhost:8020/test-api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=45eeef1e-3d0a-4dea-9a65-b84f9a505335" --header "X-XSRF-TOKEN: 45eeef1e-3d0a-4dea-9a65-b84f9a505335"
+curl -D - localhost:8020/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=45eeef1e-3d0a-4dea-9a65-b84f9a505335" --header "X-XSRF-TOKEN: 45eeef1e-3d0a-4dea-9a65-b84f9a505335"
 HTTP/1.1 200 
 [{"id":999,"name":"Admincity, from a method which requires 'ADMIN' role"},{"id":1,"name":"Tampere"},{"id":2,"name":"Ylojarvi"},{"id":3,"name":"Helsinki"},{"id":4,"name":"Vantaa"},{"id":5,"name":"Nurmes"}]
 ```
 
 Actual CSRF token value does not matter
 ```
-curl -D - localhost:8020/test-api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo" --header "X-XSRF-TOKEN: foo"
+curl -D - localhost:8020/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo" --header "X-XSRF-TOKEN: foo"
 HTTP/1.1 200 
 [{"id":999,"name":"Admincity, from a method which requires 'ADMIN' role"},{"id":1,"name":"Tampere"},{"id":2,"name":"Ylojarvi"},{"id":3,"name":"Helsinki"},{"id":4,"name":"Vantaa"},{"id":5,"name":"Nurmes"}]
 ```
 
 But it needs to exist and match the value from cookie
 ```
-curl -D - localhost:8020/test-api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo" --header "X-XSRF-TOKEN: bar"
+curl -D - localhost:8020/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo" --header "X-XSRF-TOKEN: bar"
 HTTP/1.1 403 
 ```
 
 ```
-curl -D - localhost:8020/test-api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo"
+curl -D - localhost:8020/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo"
 HTTP/1.1 403 
 ```
 
 ```
-curl -D - localhost:8020/test-api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4" --header "X-XSRF-TOKEN: 45eeef1e-3d0a-4dea-9a65-b84f9a505335"
+curl -D - localhost:8020/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4" --header "X-XSRF-TOKEN: 45eeef1e-3d0a-4dea-9a65-b84f9a505335"
 HTTP/1.1 403 
 ```

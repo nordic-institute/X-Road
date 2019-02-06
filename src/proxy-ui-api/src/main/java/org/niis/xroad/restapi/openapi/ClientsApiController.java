@@ -48,7 +48,7 @@ import java.util.Optional;
  * clients api
  */
 @Controller
-@RequestMapping("/test-api")
+@RequestMapping("/api")
 public class ClientsApiController implements org.niis.xroad.restapi.openapi.ClientsApi {
 
     static Logger logger = LoggerFactory.getLogger(ClientsApiController.class);
