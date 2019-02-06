@@ -29,8 +29,8 @@ import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
@@ -102,6 +102,9 @@ public class ClientRepository {
      */
     public ClientType getClient(String id) {
         ClientDAOImpl clientDAO = new ClientDAOImpl();
+        //CHECKSTYLE.OFF: TodoComment
+        // TODO: implement better clientcode parsing (and tests)
+        //CHECKSTYLE.ON: TodoComment
         List<String> parts = Arrays.asList(id.split(":"));
         String instance = parts.get(0);
         String memberClass = parts.get(1);
@@ -164,15 +167,15 @@ public class ClientRepository {
     private ClientType copyToClientType(ClientType client) {
         ClientType copy = new ClientType();
         BeanUtils.copyProperties(client, copy, "conf");
-        for (WsdlType w: client.getWsdl()) {
-            WsdlType wc = new WsdlType();
-            BeanUtils.copyProperties(w, wc, "client");
-            for (ServiceType s: wc.getService()) {
+        for (ServiceDescriptionType sd: client.getServiceDescription()) {
+            ServiceDescriptionType sdc = new ServiceDescriptionType();
+            BeanUtils.copyProperties(sd, sdc, "client");
+            for (ServiceType s: sd.getService()) {
                 ServiceType sc = new ServiceType();
                 BeanUtils.copyProperties(s, sc, "requiredSecurityCategory");
-                wc.getService().add(sc);
+                sdc.getService().add(sc);
             }
-            copy.getWsdl().add(wc);
+            copy.getServiceDescription().add(sdc);
         }
         // pass client id to UI somehow, just for demo purposes
         copy.setIsAuthentication(client.getIdentifier().toShortString());
