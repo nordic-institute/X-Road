@@ -91,10 +91,8 @@ public class ResourceController {
      */
     @RequestMapping(value = "/client/{id}")
     public ClientType getClient(@PathVariable("id") String id) {
-        logger.info("fetching client {} from repository (db)", id);
+        logger.debug("fetching client {} from repository (db)", id);
         ClientType type = clientRepository.getClient(id);
-        logger.info("clientRepository got result");
-        logger.info("received client {}", type);
         return type;
     }
 
@@ -104,7 +102,7 @@ public class ResourceController {
      */
     @RequestMapping(value = "/client-id/{id}")
     public ClientId getClientId(@PathVariable("id") String id) {
-        logger.info("fetching client {} from repository (db)", id);
+        logger.debug("fetching client {} from repository (db)", id);
         ClientType type = clientRepository.getClient(id);
         return type.getIdentifier();
     }
@@ -119,7 +117,7 @@ public class ResourceController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Set<String> roles = authentication.getAuthorities().stream()
                 .map(r -> r.getAuthority()).collect(Collectors.toSet());
-        logger.info("roles =" + roles);
+        logger.debug("roles =" + roles);
         return roles;
     }
 
@@ -129,7 +127,7 @@ public class ResourceController {
     @PostMapping(value = "/city")
     @PreAuthorize("hasAuthority('ROLE_USER') or hasAuthority('ROLE_ADMIN')")
     public City saveCity(@RequestBody City city) {
-        logger.info("this would save a city {} ", city);
+        logger.debug("this would save a city {} ", city);
         return city;
     }
 
@@ -143,7 +141,7 @@ public class ResourceController {
         debugRoles();
         List<City> cities = new ArrayList<>();
         cityRepository.findAll().forEach(cities::add);
-        logger.info("cities: " + cities);
+        logger.debug("cities: " + cities);
         return cities;
     }
 
@@ -159,7 +157,7 @@ public class ResourceController {
         userCity.setName("Usercity, from a method which requires 'USER' role");
         cities.add(userCity);
         cityRepository.findAll().forEach(cities::add);
-        logger.info("cities: " + cities);
+        logger.debug("cities: " + cities);
         return cities;
     }
 
@@ -167,7 +165,7 @@ public class ResourceController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Set<String> roles = authentication.getAuthorities().stream()
                 .map(r -> r.getAuthority()).collect(Collectors.toSet());
-        logger.info("current users roles:" + roles);
+        logger.debug("current users roles:" + roles);
     }
 
     /**
@@ -183,7 +181,7 @@ public class ResourceController {
         adminCity.setName("Admincity, from a method which requires 'ADMIN' role");
         cities.add(adminCity);
         cityRepository.findAll().forEach(cities::add);
-        logger.info("cities: " + cities);
+        logger.debug("cities: " + cities);
         return cities;
     }
 
