@@ -1,5 +1,8 @@
 # Change Log
 
+## 6.19.1 - 2019-02-05
+- XRDDEV-351: Fix XRDDEV-351
+
 ## 6.19.0 - 2018-09-27
 - PVAYLADEV-1107/XRJD #214: Security Server: Fix SSL handshake does not include internal certificate's certificate chain.
 - PVAYLADEV-1139: Documentation: Update build and development environment instructions.
