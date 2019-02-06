@@ -31,13 +31,13 @@ import ee.ria.xroad.common.conf.serverconf.dao.CertificateDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServiceDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.WsdlDAOImpl;
+import ee.ria.xroad.common.conf.serverconf.dao.ServiceDescriptionDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
 import ee.ria.xroad.common.db.TransactionCallback;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
@@ -212,13 +212,13 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public String getDisabledNotice(ServiceId service) {
         return tx(session -> {
-            WsdlType wsdlType = getWsdl(session, service);
-            if (wsdlType != null && wsdlType.isDisabled()) {
-                if (wsdlType.getDisabledNotice() == null) {
+            ServiceDescriptionType serviceDescriptionType = getServiceDescription(session, service);
+            if (serviceDescriptionType != null && serviceDescriptionType.isDisabled()) {
+                if (serviceDescriptionType.getDisabledNotice() == null) {
                     return String.format("Service '%s' is disabled", service);
                 }
 
-                return wsdlType.getDisabledNotice();
+                return serviceDescriptionType.getDisabledNotice();
             }
 
             return null;
@@ -269,8 +269,8 @@ public class ServerConfImpl implements ServerConfProvider {
         return new ServiceDAOImpl().getService(session, s);
     }
 
-    protected WsdlType getWsdl(Session session, ServiceId service) {
-        return new WsdlDAOImpl().getWsdl(session, service);
+    protected ServiceDescriptionType getServiceDescription(Session session, ServiceId service) {
+        return new ServiceDescriptionDAOImpl().getServiceDescription(session, service);
     }
 
     private boolean internalIsQueryAllowed(Session session, ClientId client, ServiceId service) {

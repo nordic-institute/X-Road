@@ -45,7 +45,7 @@ public class ClientType {
     public static final String STATUS_DELINPROG = "deletion in progress";
     public static final String STATUS_GLOBALERR = "global error";
 
-    private final List<WsdlType> wsdl = new ArrayList<>();
+    private final List<ServiceDescriptionType> serviceDescription = new ArrayList<>();
     private final List<LocalGroupType> localGroup = new ArrayList<>();
     private final List<CertificateType> isCert = new ArrayList<>();
     private final List<AccessRightType> acl = new ArrayList<>();
