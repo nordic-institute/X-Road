@@ -6,7 +6,7 @@
 
 **Technical Specification**
 
-Version: 1.11  
+Version: 1.12  
 Doc. ID: PR-MSERV
 
 |  Date      | Version |  Description                                                             | Author             |
@@ -30,6 +30,7 @@ Doc. ID: PR-MSERV
 | 11.12.2015 | 1.9     | Corrected documentation about registering only subsystems                | Siim Annuk         |
 | 07.06.2017 | 1.10    | Additional signature algorithms supported                                | Kristo Heero       |
 | 06.03.2018 | 1.11    | Added terms section, term doc reference and link, fixed references       | Tatu Repo          |
+| 06.02.2019 | 1.12    | Update *clientReg* message description                                   | Petteri Kivimäki   |
 
 ## Table of Contents
 
@@ -119,6 +120,16 @@ The XML Schema fragment of the client registration request body is shown below. 
     </xsd:sequence>
 </xsd:complexType>
 ```
+
+The request is sent using HTTP POST method. The content type of the request MUST be *multipart/related* and the request must contain the following MIME parts.
+
+1. X-Road SOAP request message. The message MUST contain the regular X-Road headers and the two data fields (*server*, *client*). The content type of this part MUST be *text/xml*.
+
+2. Signature of the member that owns the subsystem to be registered as a security server client. The MIME part must contain signature of the SOAP request message, created with the private key corresponding to a **signing certificate** of the subsystem's owner. The content type of this part must be *application/octet-stream*. Additionally, the part MUST include header field *signature-algorithm-ID* that identifies the signature algorithm. Currently supported signature algorithms are *SHA256withRSA*, *SHA384withRSA*, *SHA512withRSA*, *SHA256withRSAandMGF1*, *SHA384withRSAandMGF1*, and *SHA512withRSAandMGF1*.
+
+3. Signing certificate of the subsystem's owner that was used to create the second MIME part. The content type of this part MUST be *application/octet-stream*.
+
+4. OCSP response certifying that the signing certificate was valid at the time of creation of the request. The content type of this part MUST be *application/octet-stream*.
 
 The response echoes back the client and the server fields of the request and adds the field *requestId*.
 
@@ -236,6 +247,8 @@ An example of the authentication certificate deletion request and response is gi
 Request message
 
 ```xml
+--jetty113950090iemuz6a3
+Content-Type: text/xml; charset=UTF-8
 <?xml version="1.0" encoding="UTF-8"?>
 <SOAP-ENV:Envelope
         xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
@@ -273,6 +286,20 @@ Request message
         </xroad:clientReg>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>
+--jetty113950090iemuz6a3
+Content-Type: application/octet-stream
+signature-algorithm-id: SHA512withRSA
+ 
+[SUBSYSTEM OWNER SIGNATURE BYTES]
+--jetty113950090iemuz6a3
+Content-Type: application/octet-stream
+ 
+[SUBSYSTEM OWNER CERTIFICATE BYTES]
+--jetty113950090iemuz6a3
+Content-Type: application/octet-stream
+ 
+[SUBSYSTEM OWNER CERTIFICATE OCSP RESPONSE BYTES]
+--jetty113950090iemuz6a3--
 ```
 
 Response message

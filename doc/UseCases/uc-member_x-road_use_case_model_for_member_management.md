@@ -2936,6 +2936,8 @@ Figure 1. Use case diagram for member management
 
 -   The security server client is not the owner of the security server.
 
+-   The member that owns the subsystem to be registered as a security server client has a signing key and certificate.
+
 **Postconditions**: An audit log record for the event is created.
 
 **Trigger**: -

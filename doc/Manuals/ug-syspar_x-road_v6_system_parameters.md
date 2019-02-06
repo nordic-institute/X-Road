@@ -356,7 +356,7 @@ For instructions on how to change the parameter values, see section [Changing th
 | trusted-anchors-allowed | true                                    | True if federation is allowed for this X-Road instance. |
 | minimum-global-configuration-version | 2                          | The minimum supported global configuration version on the central server. This parameter is used if the central server needs to generate multiple versions of global configuration. Note that the support for global configuration V1 has been dropped in X-Road 6.20.0 and since that version the minimum value for this parameter is 2. |
 | auto-approve-auth-cert-reg-requests | false                       | True if automatic approval of auth cert registration requests is enabled for this X-Road instance. |
-| auto-approve-client-reg-requests | false                          | True if automatic approval of client registration requests is enabled for this X-Road instance. |
+| auto-approve-client-reg-requests | false                          | True if automatic approval of client registration requests is enabled for this X-Road instance. Automatic approval is applied to existing members only. In addition, automatic approval is applied only if the client registration request has been signed by the member owning the subsystem to be registered as a security server client. |
 
 #### 4.1.3 Signer parameters: `[signer]`
 
