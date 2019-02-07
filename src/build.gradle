@@ -27,8 +27,8 @@ repositories {
 sonarqube {
     properties {
         property "sonar.host.url", "https://sonarqube.niis.org"
-        property "sonar.projectKey", "xroad"
-        property "sonar.projectName", "X-Road"
+        property "sonar.projectKey", "xroad-rest-ui"
+        property "sonar.projectName", "X-Road-REST-UI"
         property "sonar.projectDescription", "Data Exchange Layer"
         property "sonar.projectVersion", xroadVersion
     }
