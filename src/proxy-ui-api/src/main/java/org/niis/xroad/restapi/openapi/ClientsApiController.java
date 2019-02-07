@@ -29,6 +29,7 @@ import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -47,6 +48,9 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/api")
 @Slf4j
+//CHECKSTYLE.OFF: TodoComment - need this todo and still want builds to succeed
+//@PreAuthorize("hasAuthority('ROLE_XROAD-SERVICE-ADMINISTRATOR')") // TODO: proper auth
+//CHECKSTYLE.ON: TodoComment
 public class ClientsApiController implements org.niis.xroad.restapi.openapi.ClientsApi {
 
     public static final int MAX_FIFTY_RESULTS = 50;
@@ -63,6 +67,7 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     /**
      * Example exception
      */
+    @PreAuthorize("hasAuthority('ROLE_XROAD-SERVICE-ADMINISTRATOR')")
     @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "No such Thing there")
     public static class RestNotFoundException extends RuntimeException {
         public RestNotFoundException(String s) {

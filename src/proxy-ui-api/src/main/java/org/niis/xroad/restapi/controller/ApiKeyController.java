@@ -22,30 +22,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.controller;
 
-import org.niis.xroad.restapi.domain.City;
-import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.domain.ApiKey;
+import org.niis.xroad.restapi.repository.ApiKeyRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Arrays;
+import java.util.List;
 
 /**
- * read cities from db
+ * Controller for rest apis for api key operations
  */
-@Component
-public class CityRepository {
+@RestController
+@RequestMapping("/api")
+@Slf4j
+public class ApiKeyController {
+
+    @Autowired
+    private ApiKeyRepository apiKeyRepository;
 
     /**
-     * dummy
-     * @return
+     * create api keys
      */
-    public Iterable<City> findAll() {
-        City c1 = new City();
-        c1.setId(1L);
-        c1.setName("Tampere");
-        City c2 = new City();
-        c2.setId(2L);
-        c2.setName("Helsinki");
-        return Arrays.asList(c1, c2);
+    @PostMapping(value = "/create-api-key", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ApiKey createKey(@RequestBody List<String> roles) {
+        if (roles.isEmpty()) throw new NullPointerException();
+        ApiKey key = apiKeyRepository.create(roles);
+        log.debug("created api key " + key.getKey());
+        return key;
     }
 }
