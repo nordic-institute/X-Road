@@ -29,21 +29,17 @@ import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
 import org.niis.xroad.restapi.DatabaseContextHelper;
+import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.openapi.model.Client;
-import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -53,8 +49,13 @@ import java.util.List;
 @Component
 public class ClientRepository {
 
-    public static final int MEMBER_ID_PARTS = 3;
+    @Autowired
+    private ClientConverter clientConverter;
 
+    /**
+     *
+      * @return
+     */
     public List<MemberInfo> getAllMembers() {
         return GlobalConf.getMembers();
     }
@@ -101,32 +102,22 @@ public class ClientRepository {
      * - correct id encoding (see rest proxy)
      * @param id
      */
-    public ClientType getClient(String id) {
+    public Client getClient(String encodedId) {
         ClientDAOImpl clientDAO = new ClientDAOImpl();
-        //CHECKSTYLE.OFF: TodoComment
-        // TODO: implement better clientcode parsing (and tests)
-        //CHECKSTYLE.ON: TodoComment
-        List<String> parts = Arrays.asList(id.split(":"));
-        String instance = parts.get(0);
-        String memberClass = parts.get(1);
-        String memberCode = parts.get(2);
-        String subsystemCode = null;
-        if (parts.size() > MEMBER_ID_PARTS) {
-            subsystemCode = parts.get(MEMBER_ID_PARTS);
-        }
-        ClientId clientId = ClientId.create(instance, memberClass, memberCode, subsystemCode);
+        ClientId clientId = clientConverter.convertId(encodedId);
 
         return DatabaseContextHelper.serverConfTransaction(
                 session -> {
-                    ClientType client = clientDAO.getClient(session, clientId);
-                    ClientType clientDto = copyToClientType(client);
-                    return clientDto;
+                    ClientType clientType = clientDAO.getClient(session, clientId);
+                    Client client = clientConverter.convert(clientType);
+                    return client;
                 });
     }
 
     //CHECKSTYLE.OFF: TodoComment
     /**
      * TODO: should repositories talk in openapi terms?
+     * some analysis in confluence, need to think more
      *
      * @return
      */
@@ -136,68 +127,11 @@ public class ClientRepository {
         return DatabaseContextHelper.serverConfTransaction(
                 session -> {
                     List<Client> clients = new ArrayList<>();
-                    for (ClientType client : serverConf.getConf().getClient()) {
-                        clients.add(copy(client));
+                    for (ClientType clientType : serverConf.getConf().getClient()) {
+                        clients.add(clientConverter.convert(clientType));
                     }
                     return clients;
                 });
-    }
-
-
-    /**
-     * Comversion utility, to be replaced with something better
-     * @param id
-     * @return
-     */
-    public static String getColonSeparatedId(ClientId id) {
-        return id.getXRoadInstance() + ":"
-                + id.getMemberClass() + ":"
-                + id.getMemberCode()
-                + (StringUtils.isNotEmpty(id.getSubsystemCode()) ? ":" + id.getSubsystemCode() : "");
-    }
-    /**
-     * Placeholder transformation from xroad POJO to API DTO
-     */
-    private Client copy(ClientType client) {
-        //CHECKSTYLE.OFF: TodoComment
-        Client copy = new Client();
-        copy.setId(getColonSeparatedId(client.getIdentifier()));
-        copy.setCreated(OffsetDateTime.now()); // TODO: fix
-        copy.setMemberClass(client.getIdentifier().getMemberClass());
-        copy.setMemberCode(client.getIdentifier().getMemberCode());
-        copy.setSubsystemCode(client.getIdentifier().getSubsystemCode());
-        copy.setMemberName(GlobalConf.getMemberName(client.getIdentifier())); // TODO: check if need to cache
-        copy.setStatus(client.getClientStatus());
-        return copy;
-        //CHECKSTYLE.ON: TodoComment
-    }
-
-    /**
-     * There may be a universal configuration which
-     * tells jackson not to serialize non-initialized items -
-     * may need to research depending on what type of dto
-     * handling we need:
-     * https://stackoverflow.com/questions/21708339/
-     * avoid-jackson-serialization-on-non-fetched-lazy-objects/21760361#21760361
-     * @param client
-     * @return
-     */
-    private ClientType copyToClientType(ClientType client) {
-        ClientType copy = new ClientType();
-        BeanUtils.copyProperties(client, copy, "conf");
-        for (ServiceDescriptionType sd: client.getServiceDescription()) {
-            ServiceDescriptionType sdc = new ServiceDescriptionType();
-            BeanUtils.copyProperties(sd, sdc, "client");
-            for (ServiceType s: sd.getService()) {
-                ServiceType sc = new ServiceType();
-                BeanUtils.copyProperties(s, sc, "requiredSecurityCategory");
-                sdc.getService().add(sc);
-            }
-            copy.getServiceDescription().add(sdc);
-        }
-        // pass client id to UI somehow, just for demo purposes
-        copy.setIsAuthentication(client.getIdentifier().toShortString());
-        return copy;
     }
 }
 
