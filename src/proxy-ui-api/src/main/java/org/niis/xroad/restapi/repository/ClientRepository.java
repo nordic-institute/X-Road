@@ -34,16 +34,17 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.niis.xroad.restapi.DatabaseContextHelper;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Not sure if we are going to have this kind of repositories...
@@ -144,14 +145,31 @@ public class ClientRepository {
 
 
     /**
+     * Comversion utility, to be replaced with something better
+     * @param id
+     * @return
+     */
+    public static String getColonSeparatedId(ClientId id) {
+        return id.getXRoadInstance() + ":"
+                + id.getMemberClass() + ":"
+                + id.getMemberCode()
+                + (StringUtils.isNotEmpty(id.getSubsystemCode()) ? ":" + id.getSubsystemCode() : "");
+    }
+    /**
      * Placeholder transformation from xroad POJO to API DTO
      */
     private Client copy(ClientType client) {
+        //CHECKSTYLE.OFF: TodoComment
         Client copy = new Client();
-        copy.setId(UUID.randomUUID());
-        copy.setName(client.getIdentifier().toShortString());
+        copy.setId(getColonSeparatedId(client.getIdentifier()));
+        copy.setCreated(OffsetDateTime.now()); // TODO: fix
+        copy.setMemberClass(client.getIdentifier().getMemberClass());
+        copy.setMemberCode(client.getIdentifier().getMemberCode());
+        copy.setSubsystemCode(client.getIdentifier().getSubsystemCode());
+        copy.setMemberName(GlobalConf.getMemberName(client.getIdentifier())); // TODO: check if need to cache
         copy.setStatus(client.getClientStatus());
         return copy;
+        //CHECKSTYLE.ON: TodoComment
     }
 
     /**
