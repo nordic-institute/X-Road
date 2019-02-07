@@ -108,7 +108,7 @@ export const actions: ActionTree<DataState, RootState> = {
 
     commit('setLoading', true);
 
-    return axios.get('/cities')
+    return axios.get('/clients')
       .then((res) => {
         console.log(res);
         const cities = res.data;
