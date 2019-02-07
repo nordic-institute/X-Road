@@ -46,7 +46,6 @@
             </template>
 
             <template v-else>
-              <!-- <v-icon color="grey darken-2" class="pl-5 fal">fa-address-card</v-icon> -->
               <v-icon color="grey darken-2" class="pl-5" small>far fa-address-card</v-icon>
               <span
                 class="font-weight-bold name"
@@ -77,40 +76,6 @@
           </td>
         </tr>
       </template>
-      <!--
-      <template slot="items" slot-scope="props">
-        <tr @click="props.expanded = !props.expanded">
-          <td>
-            <v-icon color="grey darken-2">business</v-icon>
-            {{ props.item.name }}
-          </td>
-          <td class="text-xs-left">{{ props.item.id }}</td>
-          <td class="layout px-0">
-            <v-spacer></v-spacer>
-            <v-btn
-              small
-              outline
-              round
-              color="primary"
-              class="mr-2 text-capitalize table-button"
-              @click="addSubsystem(props.item)"
-            >Add Subsystem</v-btn>
-          </td>
-        </tr>
-      </template>
-      -->
-      <table slot="expand" slot-scope="props" class="expand-table">
-        <!-- <v-card flat>
-          <v-card-text>Peek-a-boo! {{props.item}}</v-card-text>
-        </v-card>-->
-        <tr v-for="sub in props.item.subsystems" v-bind:key="sub.id">
-          <td class="expand-name">
-            <v-icon color="grey darken-2">computer</v-icon>
-            {{ sub.name }}
-          </td>
-          <td class="expand-id">{{ sub.id }}</td>
-        </tr>
-      </table>
 
       <template slot="no-data">No data</template>
       <v-alert
@@ -208,19 +173,6 @@ export default Vue.extend({
     addSubsystem(item: any) {
       this.$router.push('/add-subsystem');
     },
-
-    customFilter(items: Array<any>, search: string, filter: string) {
-      search = search.toString().toLowerCase();
-      //return items.filter(row => filter(row['type'], search));
-      return items;
-    },
-  },
-
-  mounted() {
-    /*for (let i = 0; i < this.clients.length; i += 1) {
-      const item = this.clients[i];
-      this.$set(this.$refs.dTable.expanded, item.name, true);
-    }*/
   },
 });
 </script>
@@ -251,19 +203,6 @@ export default Vue.extend({
   padding-left: 60px !important;
 }
 
-.expand-id {
-}
-
-.expand-row {
-  //padding: 40px;
-}
-
-.expand-row {
-  td {
-    //background-color: green;
-    //width: 50%;
-  }
-}
 .search-input {
   max-width: 300px;
 }

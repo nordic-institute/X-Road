@@ -14,14 +14,11 @@ export const state: AuthState = {
 export const getters: GetterTree<AuthState, RootState> = {
   isAuthenticated(state) {
 
-    // Check auths state from the cookie
-    // TODO: maybe use localstore instead?
     if (document.cookie.split(';').filter((item) => item.includes('XSRF-TOKEN=')).length) {
       console.log('The cookie "reader" exists');
       return true;
     }
     return false;
-    //return state.authenticated;
   },
 };
 
