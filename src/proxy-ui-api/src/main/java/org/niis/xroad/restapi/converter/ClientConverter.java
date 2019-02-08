@@ -24,29 +24,34 @@
  */
 package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.apache.commons.lang.StringUtils;
 import org.niis.xroad.restapi.openapi.model.Client;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
 
 /**
- * TODO: add tests
  * Converter Client related data between openapi and (jaxb) service classes
  */
 @Component
 public class ClientConverter {
 
+    private GlobalConfWrapper globalConfWrapper;
+
     public static final int INSTANCE_INDEX = 0;
     public static final int MEMBER_CLASS_INDEX = 1;
     public static final int MEMBER_CODE_INDEX = 2;
     public static final int SUBSYSTEM_CODE_INDEX = 3;
-    public static final String ENCODED_CLIENT_ID_SEPARATOR = ":";
+    public static final char ENCODED_CLIENT_ID_SEPARATOR = ':';
+
+    public ClientConverter(@Autowired GlobalConfWrapper globalConfWrapper) {
+        this.globalConfWrapper = globalConfWrapper;
+    }
 
     /**
      * convert ClientType into openapi Client class
@@ -59,7 +64,7 @@ public class ClientConverter {
         client.setMemberClass(clientType.getIdentifier().getMemberClass());
         client.setMemberCode(clientType.getIdentifier().getMemberCode());
         client.setSubsystemCode(clientType.getIdentifier().getSubsystemCode());
-        client.setMemberName(GlobalConf.getMemberName(clientType.getIdentifier()));
+        client.setMemberName(globalConfWrapper.getMemberName(clientType.getIdentifier()));
         client.setStatus(clientType.getClientStatus());
         return client;
     }
@@ -89,7 +94,11 @@ public class ClientConverter {
      * @return
      */
     public ClientId convertId(String encodedId) {
-        List<String> parts = Arrays.asList(encodedId.split(ENCODED_CLIENT_ID_SEPARATOR));
+        int separators = countOccurences(encodedId, ENCODED_CLIENT_ID_SEPARATOR);
+        if (separators != MEMBER_CODE_INDEX && separators != SUBSYSTEM_CODE_INDEX) {
+            throw new IllegalArgumentException("Invalid client id " + encodedId);
+        }
+        List<String> parts = Arrays.asList(encodedId.split(String.valueOf(ENCODED_CLIENT_ID_SEPARATOR)));
         String instance = parts.get(INSTANCE_INDEX);
         String memberClass = parts.get(MEMBER_CLASS_INDEX);
         String memberCode = parts.get(MEMBER_CODE_INDEX);
@@ -102,6 +111,11 @@ public class ClientConverter {
             subsystemCode = parts.get(SUBSYSTEM_CODE_INDEX);
         }
         return ClientId.create(instance, memberClass, memberCode, subsystemCode);
+    }
+
+    private int countOccurences(String from, char searched) {
+        String removed = from.replace(String.valueOf(searched), "");
+        return from.length() - removed.length();
     }
 
 }

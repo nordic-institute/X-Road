@@ -43,7 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Not sure if we are going to have this kind of repositories...
+ * client repository
  */
 @Slf4j
 @Component
