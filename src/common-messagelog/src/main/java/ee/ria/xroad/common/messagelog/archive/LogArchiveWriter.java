@@ -181,7 +181,7 @@ public class LogArchiveWriter implements Closeable {
         }
 
         try (InputStream input = logArchiveCache.getArchiveFile();
-             OutputStream output = Channels.newOutputStream(archiveOut)) {
+                OutputStream output = Channels.newOutputStream(archiveOut)) {
             IOUtils.copy(input, output);
         } catch (IOException e) {
             log.error("Failed to archive ASiC containers due to IO error", e);

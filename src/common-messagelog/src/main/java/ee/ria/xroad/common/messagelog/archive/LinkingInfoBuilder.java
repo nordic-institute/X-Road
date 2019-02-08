@@ -89,7 +89,7 @@ class LinkingInfoBuilder {
                 .append(hashAlgoId).append('\n');
 
         digestsForFiles.forEach(each ->
-            builder.append(each.toLinkingInfoEntry()).append('\n')
+                builder.append(each.toLinkingInfoEntry()).append('\n')
         );
 
         return builder.toString().getBytes(StandardCharsets.UTF_8);

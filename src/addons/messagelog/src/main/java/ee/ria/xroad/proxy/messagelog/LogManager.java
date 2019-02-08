@@ -143,16 +143,22 @@ public class LogManager extends AbstractLogManager {
     // ------------------------------------------------------------------------
 
     @Override
-    protected void log(SoapMessageImpl message, SignatureData signature, boolean clientSide) throws Exception {
+    protected void log(SoapMessageImpl message, SignatureData signature, boolean clientSide, String xRequestId)
+            throws Exception {
         boolean shouldTimestampImmediately = shouldTimestampImmediately();
 
         verifyCanLogMessage(shouldTimestampImmediately);
 
-        MessageRecord logRecord = saveMessageRecord(message, signature, clientSide);
+        MessageRecord logRecord = saveMessageRecord(message, signature, clientSide, xRequestId);
 
         if (shouldTimestampImmediately) {
             timestampImmediately(logRecord);
         }
+    }
+
+    @Override
+    protected void log(SoapMessageImpl message, SignatureData signature, boolean clientSide) throws Exception {
+        log(message, signature, clientSide, null);
     }
 
     @Override
@@ -240,22 +246,22 @@ public class LogManager extends AbstractLogManager {
         }
     }
 
-    private MessageRecord saveMessageRecord(SoapMessageImpl message, SignatureData signature, boolean clientSide)
-            throws Exception {
+    private MessageRecord saveMessageRecord(SoapMessageImpl message, SignatureData signature, boolean clientSide,
+            String xRequestId) throws Exception {
         log.trace("saveMessageRecord()");
 
-        return saveMessageRecord(createMessageRecord(message, signature, clientSide));
+        return saveMessageRecord(createMessageRecord(message, signature, clientSide, xRequestId));
     }
 
     private static MessageRecord createMessageRecord(SoapMessageImpl message, SignatureData signature,
-                                                     boolean clientSide) throws Exception {
+            boolean clientSide, String xRequestId) throws Exception {
         log.trace("createMessageRecord()");
 
         String loggedMessage = new SoapMessageBodyManipulator().getLoggableMessageText(message, clientSide);
 
         MessageRecord messageRecord = new MessageRecord(message.getQueryId(), loggedMessage,
                 signature.getSignatureXml(), message.isResponse(),
-                clientSide ? message.getClient() : message.getService().getClientId());
+                clientSide ? message.getClient() : message.getService().getClientId(), xRequestId);
 
         messageRecord.setTime(new Date().getTime());
 

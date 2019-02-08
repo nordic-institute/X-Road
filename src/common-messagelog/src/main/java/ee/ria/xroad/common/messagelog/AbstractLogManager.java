@@ -57,7 +57,7 @@ public abstract class AbstractLogManager extends UntypedActor {
         try {
             if (message instanceof LogMessage) {
                 LogMessage m = (LogMessage) message;
-                log(m.getMessage(), m.getSignature(), m.isClientSide());
+                log(m.getMessage(), m.getSignature(), m.isClientSide(), m.getXRequestId());
 
                 getSender().tell(new Object(), getSelf());
             } else if (message instanceof FindByQueryId) {
@@ -86,6 +86,9 @@ public abstract class AbstractLogManager extends UntypedActor {
             getSender().tell(e, getSelf());
         }
     }
+
+    protected abstract void log(SoapMessageImpl message, SignatureData signature, boolean clientSide,
+            String xRequestId) throws Exception;
 
     protected abstract void log(SoapMessageImpl message, SignatureData signature, boolean clientSide) throws Exception;
 

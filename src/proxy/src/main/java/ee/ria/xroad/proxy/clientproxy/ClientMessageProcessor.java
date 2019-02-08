@@ -86,6 +86,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -110,6 +111,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_SOAP_ACTION;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_PROXY_VERSION;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static ee.ria.xroad.proxy.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
 
@@ -157,6 +159,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
     /** Holds the request to the server proxy. */
     private ProxyMessageEncoder request;
+    private String xRequestId;
 
     /** Holds the response from server proxy. */
     private ProxyMessage response;
@@ -188,6 +191,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
         this.opMonitoringData = opMonitoringData;
         this.reqIns = new PipedInputStream();
         this.reqOuts = new PipedOutputStream(reqIns);
+        this.xRequestId = UUID.randomUUID().toString();
     }
 
     @Override
@@ -289,6 +293,9 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
             httpSender.setConnectionTimeout(SystemProperties.getClientProxyTimeout());
             httpSender.setSocketTimeout(SystemProperties.getClientProxyHttpClientTimeout());
+
+            // Add unique id to distinguish request/response pairs
+            httpSender.addHeader(HEADER_REQUEST_ID, xRequestId);
 
             httpSender.addHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId());
             httpSender.addHeader(HEADER_PROXY_VERSION, ProxyMain.readProxyVersion());
@@ -465,7 +472,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
     private void logResponseMessage() throws Exception {
         log.trace("logResponseMessage()");
 
-        MessageLog.log(response.getSoap(), response.getSignature(), true);
+        MessageLog.log(response.getSoap(), response.getSignature(), true, xRequestId);
     }
 
     private void sendResponse() throws Exception {
@@ -701,7 +708,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
         private void logRequestMessage() throws Exception {
             log.trace("logRequestMessage()");
 
-            MessageLog.log(requestSoap, request.getSignature(), true);
+            MessageLog.log(requestSoap, request.getSignature(), true, xRequestId);
         }
 
         @Override

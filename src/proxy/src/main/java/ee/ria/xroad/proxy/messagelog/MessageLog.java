@@ -91,16 +91,25 @@ public final class MessageLog {
      * @param message the message
      * @param signature the signature
      * @param clientSide whether this message is logged by the client proxy
+     * @param xRequestId (optional) additional request if to distinguish request/response pairs
      * @throws Exception if an error occurs
      */
-    public static void log(SoapMessageImpl message, SignatureData signature, boolean clientSide) throws Exception {
+    public static void log(SoapMessageImpl message, SignatureData signature, boolean clientSide, String xRequestId)
+            throws Exception {
         log.trace("log()");
 
         try {
-            ask(new LogMessage(message, signature, clientSide));
+            ask(new LogMessage(message, signature, clientSide, xRequestId));
         } catch (Exception e) {
             throw translateWithPrefix(X_LOGGING_FAILED_X, e);
         }
+    }
+
+    /**
+     * @see #log(SoapMessageImpl, SignatureData, boolean, String)
+     */
+    public static void log(SoapMessageImpl message, SignatureData signature, boolean clientSide) throws Exception {
+        log(message, signature, clientSide, null);
     }
 
     /**

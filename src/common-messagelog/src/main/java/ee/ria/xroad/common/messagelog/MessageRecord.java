@@ -99,16 +99,21 @@ public class MessageRecord extends AbstractLogRecord {
     @Setter
     private String subsystemCode;
 
+    @Getter
+    @Setter
+    private String xRequestId;
+
     /**
      * Constructs a message record.
      * @param msg the message
      * @param sig the signature
      * @param clientId message sender client identifier
+     * @param xRequestId common id between a request and it's response
      * @throws Exception in case of any errors
      */
-    public MessageRecord(SoapMessageImpl msg, String sig, ClientId clientId)
+    public MessageRecord(SoapMessageImpl msg, String sig, ClientId clientId, String xRequestId)
             throws Exception {
-        this(msg.getQueryId(), msg.getXml(), sig, msg.isResponse(), clientId);
+        this(msg.getQueryId(), msg.getXml(), sig, msg.isResponse(), clientId, xRequestId);
     }
 
     /**
@@ -118,9 +123,10 @@ public class MessageRecord extends AbstractLogRecord {
      * @param sig the signature
      * @param response whether this record is for a response
      * @param clientId message sender client identifier
+     * @param xRequestId common id between a request and it's response
      */
     public MessageRecord(String qid, String msg, String sig, boolean response,
-            ClientId clientId) {
+            ClientId clientId, String xRequestId) {
         this.queryId = qid;
         this.message = msg;
         this.signature = sig;
@@ -128,6 +134,7 @@ public class MessageRecord extends AbstractLogRecord {
         this.memberClass = clientId.getMemberClass();
         this.memberCode = clientId.getMemberCode();
         this.subsystemCode = clientId.getSubsystemCode();
+        this.xRequestId = xRequestId;
     }
 
     @Override

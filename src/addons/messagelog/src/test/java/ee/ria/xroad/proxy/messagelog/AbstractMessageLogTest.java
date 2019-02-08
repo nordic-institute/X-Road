@@ -156,6 +156,10 @@ abstract class AbstractMessageLogTest {
         logManager.log(message, signature, true);
     }
 
+    protected void logWithAdditionalId(SoapMessageImpl message, SignatureData signature, String xRequestId) throws Exception {
+        logManager.log(message, signature, true, xRequestId);
+    }
+
     TimestampRecord timestamp(MessageRecord record) throws Exception {
         return logManager.timestamp(record.getId());
     }

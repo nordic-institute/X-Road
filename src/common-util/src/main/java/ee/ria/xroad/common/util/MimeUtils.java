@@ -58,6 +58,7 @@ public final class MimeUtils {
     public static final String HEADER_VERSION = "Version";
     public static final String PARAM_INSTANCE = "instance";
     public static final String HEADER_CONTENT_ID = "content-id";
+    public static final String HEADER_REQUEST_ID = "x-request-id";
 
     public static final String HASH_CHAIN_CONTENT_TYPE = "application/hash-chain";
     public static final String HASH_CHAIN_RESULT_CONTENT_TYPE = "application/hash-chain-result";
