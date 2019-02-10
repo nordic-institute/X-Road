@@ -156,10 +156,14 @@ Add X-Road package repository (**reference data: 1.1**)
   sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
   ```
 
-  *Ubuntu 14.04 only*: Add openjdk and nginx repositories
+  Add nginx repository
+  ```
+  sudo apt-add-repository -y ppa:ondrej/nginx
+  ```
+
+  *Ubuntu 14.04 only*: Add openjdk repository
   ```
   sudo apt-add-repository -y ppa:openjdk-r/ppa
-  sudo apt-add-repository -y ppa:nginx/stable
   ```
 
 Issue the following commands to install the central server packages:

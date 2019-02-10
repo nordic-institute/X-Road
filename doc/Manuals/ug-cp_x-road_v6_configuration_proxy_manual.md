@@ -146,10 +146,13 @@ To install the X-Road configuration proxy software, follow these steps.
 
         sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
 
-    *Only Ubuntu 14.04*: Add openjdk and nginx repositories
+    Add nginx repository
+
+        sudo apt-add-repository -y ppa:ondrej/nginx
+
+    *Only Ubuntu 14.04*: Add openjdk repository
 
         sudo apt-add-repository -y ppa:openjdk-r/ppa
-        sudo apt-add-repository -y ppa:nginx/stable
 
 3.  Issue the following commands to install the configuration proxy packages:
 

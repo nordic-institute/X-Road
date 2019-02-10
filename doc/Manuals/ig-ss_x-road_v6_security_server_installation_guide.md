@@ -193,10 +193,13 @@ To install the X-Road security server software on *Ubuntu* operating system, fol
 
         sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
 
-    *Only Ubuntu 14.04 (trusty)*: Add OpenJDK and nginx repositories
+    Add nginx repository
+
+        sudo apt-add-repository -y ppa:ondrej/nginx
+
+    *Only Ubuntu 14.04 (trusty)*: Add OpenJDK repository
 
         sudo apt-add-repository -y ppa:openjdk-r/ppa
-        sudo apt-add-repository -y ppa:nginx/stable
 
 3.  Issue the following commands to install the security server packages (use package xroad-securityserver-ee to include configuration specific to Estonia; use package xroad-securityserver-fi to include configuration specific to Finland):
 
