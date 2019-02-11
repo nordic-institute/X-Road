@@ -47,7 +47,7 @@
     repo: "ppa:{{ item }}"
   with_items:
     - openjdk-r/ppa
-    - nginx/stable
+    - ondrej/nginx
 
 - name: enable UTF-8 locales
   lineinfile:
