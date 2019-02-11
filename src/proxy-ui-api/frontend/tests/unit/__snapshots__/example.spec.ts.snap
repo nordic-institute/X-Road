@@ -1,0 +1,103 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Toolbar snapshot test 1`] = `
+<nav
+  class="elevation-2 v-toolbar theme--dark primary"
+  style="margin-top: 0px; padding-right: 0px; padding-left: 0px; transform: translateY(0px);"
+>
+  <div
+    class="v-toolbar__content"
+    style="height: 64px;"
+  >
+    <div
+      class="v-responsive v-image"
+      style="height: 64px; max-height: 64px; max-width: 128px; width: 128px;"
+    >
+      <div
+        class="v-responsive__content"
+      />
+    </div>
+     
+    <div
+      class="separator"
+    />
+     
+    <div
+      class="white--text server-name"
+    >
+      name of the server
+    </div>
+     
+    <div
+      class="spacer"
+    />
+    Username?
+  
+    <div
+      class="v-menu v-menu--inline"
+    >
+      <div
+        class="v-menu__activator"
+      >
+        <button
+          class="v-btn v-btn--icon theme--dark"
+          type="button"
+        >
+          <div
+            class="v-btn__content"
+          >
+            <i
+              aria-hidden="true"
+              class="v-icon fa fa-user-circle theme--dark"
+            />
+          </div>
+        </button>
+      </div>
+      <div
+        class="v-menu__content theme--light "
+        style="max-height: auto; min-width: 0px; max-width: auto; top: 12px; left: 0px; z-index: 0; display: none;"
+      >
+         
+        <div
+          class="v-list theme--light"
+          role="list"
+        >
+          <div
+            role="listitem"
+          >
+            <a
+              class="v-list__tile v-list__tile--link theme--light"
+            >
+              <div
+                class="v-list__tile__title"
+              >
+                Logout
+              </div>
+            </a>
+          </div>
+           
+          <div
+            role="listitem"
+          >
+            <a
+              class="v-list__tile v-list__tile--link theme--light"
+            >
+              <div
+                class="v-list__tile__title"
+              >
+                Logout without UI
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+     
+    <div
+      id="header-title"
+    >
+      Security Server
+    </div>
+  </div>
+</nav>
+`;

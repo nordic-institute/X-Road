@@ -1,0 +1,39 @@
+
+.detail-table {
+  width: 100%;
+  margin-top: 40px;
+  border-collapse: collapse;
+
+  td {
+    height: 48px;
+    border-bottom: #ededed solid 1px;
+    padding-left: 16px;
+  }
+  tr td:first-child {
+    font-weight: bold;
+    width: 20%;
+  }
+  tr td:last-child {
+  }
+}
+
+.certificate-table {
+  width: 100%;
+  margin-top: 40px;
+  border-collapse: collapse;
+
+  td {
+    height: 48px;
+    border-bottom: #ededed solid 1px;
+    padding-left: 16px;
+  }
+  th {
+    height: 48px;
+    border-bottom: #9b9b9b solid 2px;
+    padding-left: 16px;
+    text-align: left;
+  }
+  tr td:first-child {
+    font-weight: bold;
+  }
+}

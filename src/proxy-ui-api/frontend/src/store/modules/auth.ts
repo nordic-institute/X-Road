@@ -13,7 +13,12 @@ export const state: AuthState = {
 
 export const getters: GetterTree<AuthState, RootState> = {
   isAuthenticated(state) {
-    return state.authenticated;
+
+    if (document.cookie.split(';').filter((item) => item.includes('XSRF-TOKEN=')).length) {
+      console.log('The cookie "reader" exists');
+      return true;
+    }
+    return false;
   },
 };
 
