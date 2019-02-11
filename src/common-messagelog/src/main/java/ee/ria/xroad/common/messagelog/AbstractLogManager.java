@@ -90,8 +90,6 @@ public abstract class AbstractLogManager extends UntypedActor {
     protected abstract void log(SoapMessageImpl message, SignatureData signature, boolean clientSide,
             String xRequestId) throws Exception;
 
-    protected abstract void log(SoapMessageImpl message, SignatureData signature, boolean clientSide) throws Exception;
-
     protected abstract LogRecord findByQueryId(String queryId, Date startTime, Date endTime) throws Exception;
 
     protected abstract TimestampRecord timestamp(Long messageRecordId) throws Exception;

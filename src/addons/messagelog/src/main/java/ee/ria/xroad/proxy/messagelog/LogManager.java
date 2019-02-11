@@ -156,7 +156,6 @@ public class LogManager extends AbstractLogManager {
         }
     }
 
-    @Override
     protected void log(SoapMessageImpl message, SignatureData signature, boolean clientSide) throws Exception {
         log(message, signature, clientSide, null);
     }

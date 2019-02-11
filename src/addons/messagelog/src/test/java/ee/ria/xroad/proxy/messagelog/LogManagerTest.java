@@ -75,63 +75,69 @@ public class LogManagerTest {
 
     @Test
     public void testControlMessageOvertakesOthers() throws Exception {
-        new JavaTestKit(system) {{
-            final Props props = Props.create(MessageRecordingLogManager.class, jobManager)
-                    .withDispatcher("akka.control-aware-dispatcher");
-            final ActorRef subject = system.actorOf(props);
+        new JavaTestKit(system) {
+            {
+                final Props props = Props.create(MessageRecordingLogManager.class, jobManager)
+                        .withDispatcher("akka.control-aware-dispatcher");
+                final ActorRef subject = system.actorOf(props);
 
-            // request direct access to logmanager instance
-            subject.tell(MessageRecordingLogManager.GET_INSTANCE_MESSAGE, getRef());
-            // wait for response with handle to logmanager
-            final int timeout = 5000;
-            final FiniteDuration timeoutDuration = FiniteDuration.create(timeout, TimeUnit.MILLISECONDS);
-            MessageRecordingLogManager logManager = expectMsgClass(timeoutDuration, MessageRecordingLogManager.class);
+                // request direct access to logmanager instance
+                subject.tell(MessageRecordingLogManager.GET_INSTANCE_MESSAGE, getRef());
+                // wait for response with handle to logmanager
+                final int timeout = 5000;
+                final FiniteDuration timeoutDuration = FiniteDuration.create(timeout, TimeUnit.MILLISECONDS);
+                MessageRecordingLogManager logManager = expectMsgClass(timeoutDuration,
+                        MessageRecordingLogManager.class);
 
-            // stop processing messages
-            log.debug("stopping processing");
+                // stop processing messages
+                log.debug("stopping processing");
 
-            logManager.stopProcessingMessages();
-            // send bunch of messages. first one will be received and
-            // then processing stops. once processing is freed, the
-            // next one (2nd overall) should be the control message
-            List<Future> replies = new ArrayList();
+                logManager.stopProcessingMessages();
+                // send bunch of messages. first one will be received and
+                // then processing stops. once processing is freed, the
+                // next one (2nd overall) should be the control message
+                List<Future> replies = new ArrayList();
 
-            log.debug("asking first message");
+                log.debug("asking first message");
 
-            replies.add(Patterns.ask(subject, "dummy first message guaranteed to be processed as first item", timeout));
-            // wait until the first message has arrived
-            // (this is needed for predictable results, otherwise 2nd message may overtake the first
-            // on the way to mailbox)
-            log.debug("waiting for first message");
+                replies.add(Patterns.ask(subject, "dummy first message guaranteed to be processed as first item",
+                        timeout));
+                // wait until the first message has arrived
+                // (this is needed for predictable results, otherwise 2nd message may overtake the first
+                // on the way to mailbox)
+                log.debug("waiting for first message");
 
-            logManager.waitForFirstMessageToArrive();
+                logManager.waitForFirstMessageToArrive();
 
-            // then the rest of the messages - these are the actual test targets
-            log.debug("asking the rest of messages");
+                // then the rest of the messages - these are the actual test targets
+                log.debug("asking the rest of messages");
 
-            replies.add(Patterns.ask(subject, "another-foostring", timeout));
-            replies.add(Patterns.ask(subject, new LogMessage(null, null, false), timeout));
-            replies.add(Patterns.ask(subject, new FindByQueryId(null, null, null), timeout));
-            replies.add(Patterns.ask(subject, new SetTimestampingStatusMessage(
-                    SetTimestampingStatusMessage.Status.SUCCESS), timeout));
-            // enable processing
-            logManager.resumeProcessingMessages();
+                replies.add(Patterns.ask(subject, "another-foostring", timeout));
+                replies.add(Patterns.ask(subject, new LogMessage(null, null, false),
+                        timeout));
+                replies.add(Patterns.ask(subject, new FindByQueryId(null, null, null),
+                        timeout));
+                replies.add(Patterns.ask(subject, new SetTimestampingStatusMessage(
+                        SetTimestampingStatusMessage.Status.SUCCESS), timeout));
+                // enable processing
+                logManager.resumeProcessingMessages();
 
-            // wait for all processed
-            for (Future f : replies) {
-                Await.ready(f, timeoutDuration);
+                // wait for all processed
+                for (Future f : replies) {
+                    Await.ready(f, timeoutDuration);
+                }
+
+                List<Object> messages = logManager.getMessages();
+
+                log.debug("logManager mailbox contents: " + dumpMailbox(messages));
+
+                assertEquals(5, messages.size());
+                // check that item #2 is the control message
+
+                assertTrue("message should have been SetTimestampingStatusMessage, was "
+                        + messages.get(1), messages.get(1) instanceof SetTimestampingStatusMessage);
             }
-
-            List<Object> messages = logManager.getMessages();
-
-            log.debug("logManager mailbox contents: " + dumpMailbox(messages));
-
-            assertEquals(5, messages.size());
-            // check that item #2 is the control message
-
-            assertTrue("message should have been SetTimestampingStatusMessage, was "
-                    + messages.get(1), messages.get(1) instanceof SetTimestampingStatusMessage);
-        }};
+        };
     }
 
     private String dumpMailbox(List<Object> messages) {

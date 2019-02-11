@@ -156,7 +156,8 @@ abstract class AbstractMessageLogTest {
         logManager.log(message, signature, true);
     }
 
-    protected void logWithAdditionalId(SoapMessageImpl message, SignatureData signature, String xRequestId) throws Exception {
+    protected void logWithAdditionalId(SoapMessageImpl message, SignatureData signature, String xRequestId)
+            throws Exception {
         logManager.log(message, signature, true, xRequestId);
     }
 
