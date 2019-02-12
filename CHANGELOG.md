@@ -1,7 +1,7 @@
 # Change Log
 
 ## 6.21.0 - XXXX-XX-XX
-- TBD
+- XTE-432: Fix resource leak - close discarded socket.
 
 ## 6.20.0 - 2019-01-23
 - XTE-427 / XRDDEV-108: Operational monitoring timestamp 'responseOutTs' is taken just before payload byte array is sent out with HTTP response.
