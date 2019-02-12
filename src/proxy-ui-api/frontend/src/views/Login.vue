@@ -68,8 +68,8 @@ export default Vue.extend({
   data() {
     return {
       loading: false,
-      username: 'user',
-      password: 'password',
+      username: 'xrd',
+      password: 'secret',
     };
   },
   computed: {
