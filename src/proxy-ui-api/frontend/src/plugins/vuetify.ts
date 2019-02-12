@@ -1,6 +1,6 @@
-import Vue from 'vue'
-import Vuetify from 'vuetify/lib'
-import 'vuetify/src/stylus/app.styl'
+import Vue from 'vue';
+import Vuetify from 'vuetify/lib';
+import 'vuetify/src/stylus/app.styl';
 
 Vue.use(Vuetify, {
   iconfont: 'fa',
@@ -9,4 +9,4 @@ Vue.use(Vuetify, {
     secondary: '#00C9E7',
     accent: '#8c9eff',
   },
-})
+});

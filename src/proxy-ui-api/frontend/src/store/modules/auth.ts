@@ -7,7 +7,7 @@ export interface AuthState {
   authenticated: boolean;
 }
 
-export const state: AuthState = {
+export const authState: AuthState = {
   authenticated: false,
 };
 
@@ -15,7 +15,6 @@ export const getters: GetterTree<AuthState, RootState> = {
   isAuthenticated(state) {
 
     if (document.cookie.split(';').filter((item) => item.includes('XSRF-TOKEN=')).length) {
-      console.log('The cookie "reader" exists');
       return true;
     }
     return false;
@@ -42,15 +41,13 @@ export const actions: ActionTree<AuthState, RootState> = {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      data: data,
+      data,
     })
       .then((res) => {
-        console.log(res);
         commit('authUser');
         router.replace('/');
       })
       .catch((error) => {
-        console.log(error);
         throw error;
       });
   },
@@ -78,7 +75,7 @@ export const actions: ActionTree<AuthState, RootState> = {
 
 export const auth: Module<AuthState, RootState> = {
   namespaced: false,
-  state,
+  state: authState,
   getters,
   actions,
   mutations,

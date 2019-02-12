@@ -40,8 +40,10 @@
   </v-container>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import Vue from 'vue';
+
+export default Vue.extend({
   data: () => ({
     member: {
       name: 'Kuikka',
@@ -50,12 +52,14 @@ export default {
     },
   }),
   methods: {
-    addSubsystem() {},
+    addSubsystem() {
+      console.log('add subsystem');
+    },
     cancel() {
       this.$router.replace('/');
     },
   },
-};
+});
 </script>
 
 <style lang="scss" scoped>
