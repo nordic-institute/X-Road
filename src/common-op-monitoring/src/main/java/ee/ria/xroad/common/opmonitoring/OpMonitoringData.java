@@ -88,6 +88,7 @@ public class OpMonitoringData {
     private static final String MESSAGE_PROTOCOL_VERSION =
             "messageProtocolVersion";
 
+    private static final String X_REQUEST_ID = "xRequestId";
     private static final String REQUEST_SOAP_SIZE = "requestSoapSize";
     private static final String REQUEST_MIME_SIZE = "requestMimeSize";
     private static final String REQUEST_ATTACHMENT_COUNT =
@@ -381,5 +382,13 @@ public class OpMonitoringData {
             data.put(SOAP_FAULT_CODE, e.getFaultCode());
             data.put(SOAP_FAULT_STRING, e.getFaultString());
         }
+    }
+
+    /**
+     * Sets x-request-id of the message.
+     * @param xRequestId x-request-id
+     */
+    public void setXRequestId(String xRequestId) {
+        data.put(X_REQUEST_ID, xRequestId);
     }
 }

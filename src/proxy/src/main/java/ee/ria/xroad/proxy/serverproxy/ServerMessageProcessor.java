@@ -143,6 +143,9 @@ class ServerMessageProcessor extends MessageProcessorBase {
     public void process() throws Exception {
         log.info("process({})", servletRequest.getContentType());
 
+        xRequestId = servletRequest.getHeader(HEADER_REQUEST_ID);
+
+        opMonitoringData.setXRequestId(xRequestId);
         updateOpMonitoringClientSecurityServerAddress();
         updateOpMonitoringServiceSecurityServerAddress();
 
@@ -257,7 +260,6 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private void readMessage() throws Exception {
         log.trace("readMessage()");
 
-        xRequestId = servletRequest.getHeader(HEADER_REQUEST_ID);
         originalSoapAction = validateSoapActionHeader(servletRequest.getHeader(HEADER_ORIGINAL_SOAP_ACTION));
         requestMessage = new ProxyMessage(servletRequest.getHeader(HEADER_ORIGINAL_CONTENT_TYPE)) {
             @Override

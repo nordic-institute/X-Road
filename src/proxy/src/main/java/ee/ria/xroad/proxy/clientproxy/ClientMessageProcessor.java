@@ -198,6 +198,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
     public void process() throws Exception {
         log.trace("process()");
 
+        opMonitoringData.setXRequestId(xRequestId);
         updateOpMonitoringClientSecurityServerAddress();
 
         Future<?> soapHandler = SOAP_HANDLER_EXECUTOR.submit(this::handleSoap);

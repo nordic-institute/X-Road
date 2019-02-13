@@ -110,6 +110,8 @@
         <property name="soapFaultString" column="soap_fault_string"
                   type="string" length="2048" />
 
+        <property name="xRequestId" column="x_request_id" type="string" />
+
     </class>
 
 </hibernate-mapping>
