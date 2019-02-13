@@ -1,5 +1,8 @@
 # Change Log
 
+## 6.20.1 - 2019-02-05
+- XRDDEV-351: Fix XRDDEV-351
+
 ## 6.20.0 - 2019-01-23
 - XTE-427 / XRDDEV-108: Operational monitoring timestamp 'responseOutTs' is taken just before payload byte array is sent out with HTTP response.
 - XRDDEV-8: Update wsdlvalidator to use the latest Apache CXF wsdlvalidator version.
