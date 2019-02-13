@@ -13,11 +13,7 @@ export const authState: AuthState = {
 
 export const getters: GetterTree<AuthState, RootState> = {
   isAuthenticated(state) {
-
-    if (document.cookie.split(';').filter((item) => item.includes('XSRF-TOKEN=')).length) {
-      return true;
-    }
-    return false;
+    return state.authenticated;
   },
 };
 
