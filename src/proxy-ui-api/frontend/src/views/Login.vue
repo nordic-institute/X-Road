@@ -106,6 +106,7 @@ export default Vue.extend({
         .then(
           (response) => {
             this.$bus.$emit('show-success', 'Logged in successfully');
+            this.$router.replace('/');
           },
           (error) => {
             // Display invalid username/password error in inputs
@@ -126,7 +127,7 @@ export default Vue.extend({
             }
 
             this.$bus.$emit('show-error', error.message);
-          },
+          }
         )
         .finally(() => {
           // Clear loading state

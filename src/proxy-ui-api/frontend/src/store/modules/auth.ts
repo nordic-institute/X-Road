@@ -1,5 +1,4 @@
 import axiosAuth from '../../axios-auth';
-import router from '../../router';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 
@@ -41,7 +40,6 @@ export const actions: ActionTree<AuthState, RootState> = {
     })
       .then((res) => {
         commit('authUser');
-        router.replace('/');
       })
       .catch((error) => {
         throw error;
@@ -51,11 +49,8 @@ export const actions: ActionTree<AuthState, RootState> = {
     commit('clearAuthData');
     axiosAuth.post('/logout')
       .catch((error) => {
-        console.log('logout failed');
-        console.log(error);
+        console.error(error);
       });
-
-    router.replace('/login');
   },
   clearAuth({ commit }) {
     commit('clearAuthData');
@@ -63,8 +58,7 @@ export const actions: ActionTree<AuthState, RootState> = {
   demoLogout({ commit, dispatch }) {
     axiosAuth.post('/logout')
       .catch((error) => {
-        console.log('logout failed');
-        console.log(error);
+        console.error(error);
       });
   },
 };

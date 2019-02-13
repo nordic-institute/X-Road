@@ -35,12 +35,9 @@ import Vue from 'vue';
 export default Vue.extend({
   name: 'toolbar',
   methods: {
-    refresh(): void {
-      console.log('Refresh!');
-    },
     logout(): void {
-      console.log('logout');
       this.$store.dispatch('logout');
+      this.$router.replace('/login');
     },
     demoLogout(): void {
       this.$store.dispatch('demoLogout');
