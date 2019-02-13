@@ -14,7 +14,7 @@
     "axios": "^0.18.0",
     "roboto-fontface": "*",
     "vee-validate": "^2.1.7",
-    "vue": "^2.6.3",
+    "vue": "^2.6.6",
     "vue-router": "^3.0.1",
     "vuetify": "^1.5.0",
     "vuex": "^3.0.1",
@@ -34,9 +34,9 @@
     "stylus": "^0.54.5",
     "stylus-loader": "^3.0.1",
     "ts-jest": "^23.0.0",
-    "typescript": "^3.0.0",
+    "typescript": "^3.3.3",
     "vue-cli-plugin-vuetify": "^0.4.6",
-    "vue-template-compiler": "^2.6.3",
-    "vuetify-loader": "^1.0.5"
+    "vue-template-compiler": "^2.6.6",
+    "vuetify-loader": "^1.2.1"
   }
 }
