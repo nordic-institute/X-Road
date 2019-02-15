@@ -35,7 +35,7 @@ export default Vue.extend({
         }
         // Do something with response error
         throw error;
-      }
+      },
     );
   },
 });

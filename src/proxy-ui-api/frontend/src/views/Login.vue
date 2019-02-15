@@ -127,7 +127,7 @@ export default Vue.extend({
             }
 
             this.$bus.$emit('show-error', error.message);
-          }
+          },
         )
         .finally(() => {
           // Clear loading state
