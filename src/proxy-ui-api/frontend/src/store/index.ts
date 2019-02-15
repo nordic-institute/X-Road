@@ -10,7 +10,7 @@ Vue.use(Vuex);
 const vuexLocal = new VuexPersistence({
   storage: window.localStorage,
   modules: ['auth'],
-})
+});
 
 const store: StoreOptions<RootState> = {
   state: {
