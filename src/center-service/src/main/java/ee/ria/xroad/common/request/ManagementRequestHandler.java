@@ -197,17 +197,17 @@ public final class ManagementRequestHandler {
         );
     }
 
-    private static void verifyCertificate(X509Certificate ownerCert, OCSPResp ownerCertOcsp) throws Exception {
+    private static void verifyCertificate(X509Certificate memberCert, OCSPResp memberCertOcsp) throws Exception {
         try {
-            ownerCert.checkValidity();
+            memberCert.checkValidity();
         } catch (Exception e) {
-            throw new CodedException(X_CERT_VALIDATION, "Owner certificate is invalid: %s", e.getMessage());
+            throw new CodedException(X_CERT_VALIDATION, "Member (owner/client) sign certificate is invalid: %s", e.getMessage());
         }
 
-        X509Certificate issuer = GlobalConf.getCaCert(GlobalConf.getInstanceIdentifier(), ownerCert);
+        X509Certificate issuer = GlobalConf.getCaCert(GlobalConf.getInstanceIdentifier(), memberCert);
         new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false),
                 new OcspVerifierOptions(GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()))
-                .verifyValidityAndStatus(ownerCertOcsp, ownerCert, issuer);
+                .verifyValidityAndStatus(memberCertOcsp, memberCert, issuer);
     }
 
     private static boolean verifySignature(X509Certificate cert,
