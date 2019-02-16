@@ -201,7 +201,8 @@ public final class ManagementRequestHandler {
         try {
             memberCert.checkValidity();
         } catch (Exception e) {
-            throw new CodedException(X_CERT_VALIDATION, "Member (owner/client) sign certificate is invalid: %s", e.getMessage());
+            throw new CodedException(X_CERT_VALIDATION, "Member (owner/client) sign certificate is invalid: %s",
+                    e.getMessage());
         }
 
         X509Certificate issuer = GlobalConf.getCaCert(GlobalConf.getInstanceIdentifier(), memberCert);
