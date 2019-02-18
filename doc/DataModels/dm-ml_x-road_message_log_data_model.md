@@ -84,7 +84,7 @@ When timestamping synchronously, the logging call will block until the timestamp
 
 ## 1.7 Entity-Relationship Diagram
 
-![Entity-Relationship Diagram](img/messagelog-er-diagram.png)
+![Entity-Relationship Diagram](img/messagelog-er.png)
 
 # 2. Description of Entities
 
@@ -121,7 +121,7 @@ Log record can either be a message record or a timestamp record. A message recor
 | hashchainresult | text | | If the signature is a batch signature, the base-64 encoded hash chain result. Only present for message records. |
 | time | bigint | | The creation time of the log record (number of milliseconds since January 1, 1970, 00:00:00 GMT). |
 | archived | boolean | | A flag indicating whether this log record has been archived. |
-| xrequestid | character varying(255) | | An id which is shared between a request and a response. |
+| xrequestid | character varying(255) | | An optional id which is shared between a request and a response. |
 
 ## 2.2 LAST_ARCHIVE_DIGEST
 
