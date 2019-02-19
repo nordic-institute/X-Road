@@ -32,14 +32,11 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.niis.xroad.restapi.DatabaseContextHelper;
-import org.niis.xroad.restapi.converter.ClientConverter;
-import org.niis.xroad.restapi.openapi.model.Client;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -48,9 +45,6 @@ import java.util.List;
 @Slf4j
 @Component
 public class ClientRepository {
-
-    @Autowired
-    private ClientConverter clientConverter;
 
     /**
      *
@@ -102,35 +96,25 @@ public class ClientRepository {
      * - correct id encoding (see rest proxy)
      * @param id
      */
-    public Client getClient(String encodedId) {
+    public ClientType getClient(ClientId id) {
         ClientDAOImpl clientDAO = new ClientDAOImpl();
-        ClientId clientId = clientConverter.convertId(encodedId);
-
         return DatabaseContextHelper.serverConfTransaction(
                 session -> {
-                    ClientType clientType = clientDAO.getClient(session, clientId);
-                    Client client = clientConverter.convert(clientType);
-                    return client;
+                    return clientDAO.getClient(session, id);
                 });
     }
 
-    //CHECKSTYLE.OFF: TodoComment
     /**
-     * TODO: change layering, repository should not know about
-     * openapi
-     *
+     * return all clients
      * @return
      */
-    //CHECKSTYLE.ON: TodoComment
-    public List<Client> getAllClients() {
+    public List<ClientType> getAllClients() {
         ServerConfDAOImpl serverConf = new ServerConfDAOImpl();
         return DatabaseContextHelper.serverConfTransaction(
                 session -> {
-                    List<Client> clients = new ArrayList<>();
-                    for (ClientType clientType : serverConf.getConf().getClient()) {
-                        clients.add(clientConverter.convert(clientType));
-                    }
-                    return clients;
+                    List<ClientType> clientTypes = serverConf.getConf().getClient();
+                    Hibernate.initialize(clientTypes);
+                    return clientTypes;
                 });
     }
 }

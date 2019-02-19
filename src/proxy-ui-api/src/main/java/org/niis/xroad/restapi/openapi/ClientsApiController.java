@@ -24,7 +24,12 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.identifier.ClientId;
+
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.ClientConverter;
+import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -39,6 +44,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,6 +66,9 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     private ClientRepository clientRepository;
 
     @Autowired
+    private ClientConverter clientConverter;
+
+    @Autowired
     public ClientsApiController(NativeWebRequest request) {
         this.request = request;
     }
@@ -76,16 +85,22 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     }
 
     @Override
-    public ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Client>> getClients(@Valid String sort,
+    public ResponseEntity<List<Client>> getClients(@Valid String sort,
              @Valid String term, @Min(0) @Valid Integer offset, @Min(0) @Max(MAX_FIFTY_RESULTS) @Valid Integer limit) {
-        List<org.niis.xroad.restapi.openapi.model.Client> clients = clientRepository.getAllClients();
+        List<ClientType> clientTypes = clientRepository.getAllClients();
+        List<Client> clients = new ArrayList<>();
+        for (ClientType clientType : clientTypes) {
+            clients.add(clientConverter.convert(clientType));
+        }
         return new ResponseEntity<>(clients, HttpStatus.OK);
     }
 
     @Override
-    public ResponseEntity<org.niis.xroad.restapi.openapi.model.Client> getClient(String id) {
+    public ResponseEntity<Client> getClient(String id) {
 //CHECKSTYLE.OFF: TodoComment - need this todo and still want builds to succeed
-        org.niis.xroad.restapi.openapi.model.Client client = clientRepository.getClient(id);
+        ClientId clientId = clientConverter.convertId(id);
+        ClientType clientType = clientRepository.getClient(clientId);
+        Client client = clientConverter.convert(clientType);
         // TODO: 404 not working
         return new ResponseEntity<>(client, HttpStatus.OK);
 //CHECKSTYLE.ON: TodoComment
