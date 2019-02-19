@@ -116,8 +116,8 @@ public class ClientRepository {
 
     //CHECKSTYLE.OFF: TodoComment
     /**
-     * TODO: should repositories talk in openapi terms?
-     * some analysis in confluence, need to think more
+     * TODO: change layering, repository should not know about
+     * openapi
      *
      * @return
      */
