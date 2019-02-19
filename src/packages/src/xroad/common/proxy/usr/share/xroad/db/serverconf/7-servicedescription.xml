@@ -16,16 +16,11 @@ ALTER TABLE wsdl ADD COLUMN wsdllocation varchar(255);
     </changeSet>
 
     <changeSet author="is" id="7-addcolumn">
-        <sql splitStatements="false">
-<![CDATA[
-ALTER TABLE servicedescription ADD COLUMN type varchar(255) NOT NULL DEFAULT 'WSDL';
-]]>
-        </sql>
-        <rollback>
-<![CDATA[
-ALTER TABLE servicedescription DROP COLUMN type;
-]]>
-        </rollback>
+        <addColumn tableName="servicedescription">
+            <column name="type" type="varchar(255)" defaultValue="WSDL">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
     </changeSet>
 
 </databaseChangeLog>

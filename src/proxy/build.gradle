@@ -79,6 +79,9 @@ task runProxyMain(type: JavaExec) {
 apply plugin: "jacoco"
 
 task runProxyTest(type: JavaExec) {
+    group = "verification"
+    shouldRunAfter test
+
     jvmArgs '-Xmx2g',
         '-Dxroad.proxy.ocspCachePath=build/ocsp-cache',
         '-Dxroad.tempFiles.path=build/attach-tmp',
@@ -100,10 +103,7 @@ jacoco {
     applyTo runProxyTest
 }
 
-task deleteForeverGrowingJacocoFile(type: Delete) {
-    delete file("$buildDir/jacoco/runProxyTest.exec")
-    // for some reason this jacoco file keeps appending, so we delete it to cleanup
-}
+runProxyTest.jacoco.append=false
 
 task mergedJacoco(dependsOn: 'runProxyTest', type: JacocoMerge) {
     // merge jacoco results from normal tests and runProxyTest
@@ -113,7 +113,6 @@ task mergedJacoco(dependsOn: 'runProxyTest', type: JacocoMerge) {
 
 runProxyTest.doLast {
     tasks.mergedJacoco.execute()
-    tasks.deleteForeverGrowingJacocoFile.execute()
 }
 
 task mergedCoverageReport(type:JacocoReport){
