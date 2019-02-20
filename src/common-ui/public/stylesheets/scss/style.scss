@@ -28,16 +28,17 @@ td.deletable_subsystem {
 }
 
 p.notfound {
-  color: $base-color-medium
+    color: $base-color-medium
 }
 
 pre {
-  white-space: pre-wrap;
+    white-space: pre-wrap;
 }
 
 #login {
     background: #f3f3f3;
 }
+
 #login input {
     margin: 0 !important;
 }
@@ -126,7 +127,7 @@ pre {
             }
 
             a.active {
-                color:$xroad-light-blue;
+                color: $xroad-light-blue;
             }
 
             &:hover {
@@ -369,9 +370,9 @@ pre {
     width: 400px;
     margin: -100px auto 0 -200px;
     padding: 10px;
-    border:  1px solid #ddd;
+    border: 1px solid #ddd;
     background: #fff;
-    top:  50%;
+    top: 50%;
     left: 50%;
 
     form {
@@ -438,7 +439,8 @@ iframe {
     color: #FFF;
     padding-left: 15px;
 }
-#services_tab .services_actions{
+
+#services_tab .services_actions {
     margin-top: 5px;
 }
 
@@ -468,4 +470,29 @@ body.wait *, body.wait {
 
 .mh35 {
     max-height: 35px;
+}
+
+/* Responsive styles */
+@include xs {
+    .xs-hide {
+        display: none;
+    }
+}
+
+@include sm {
+    .sm-hide {
+        display: none;
+    }
+}
+
+@include md {
+    .md-hide {
+        display: none;
+    }
+}
+
+@include lg {
+    .lg-hide {
+        display: none;
+    }
 }
