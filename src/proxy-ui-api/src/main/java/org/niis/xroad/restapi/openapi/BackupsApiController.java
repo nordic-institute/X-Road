@@ -24,17 +24,10 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.context.request.NativeWebRequest;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -57,14 +50,5 @@ public class BackupsApiController implements org.niis.xroad.restapi.openapi.Back
     @Override
     public Optional<NativeWebRequest> getRequest() {
         return Optional.ofNullable(request);
-    }
-
-    @Override
-    public ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Backup>> getBackups(@Valid String term,
-             @Min(0) @Valid Integer offset, @Min(0) @Max(MAX_FIFTY_ITEMS) @Valid Integer limit) {
-        ApiUtil.setExampleResponse(request, "application/json", "{  \"date\" :"
-                + " \"2000-01-23T04:56:07.000+00:00\",  \"name\" : \"ACTUAL IMPLEMENTATION\",  \"id\" :"
-                + " \"046b6c7f-0b8a-43b9-b35d-6489e6daee91\",  \"status\" : \"completed\"}");
-        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
