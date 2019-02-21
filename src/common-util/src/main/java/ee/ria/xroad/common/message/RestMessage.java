@@ -24,6 +24,7 @@
  */
 package ee.ria.xroad.common.message;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 
@@ -94,6 +95,27 @@ public abstract class RestMessage {
     protected abstract byte[] toByteArray();
 
     public abstract byte[] getFilteredMessage();
+
+    public abstract ClientId getSender();
+
+    /**
+     * Create rest message from message bytes
+     * @param messageBytes
+     * @return parsed rest message (response or request)
+     * @see RestResponse
+     * @see RestRequest
+     */
+    public static RestMessage of(byte[] messageBytes) throws Exception {
+        if (messageBytes != null && messageBytes.length > 0) {
+            if (messageBytes[0] >= '1' && messageBytes[0] <= '9') {
+                return RestResponse.of(messageBytes);
+            } else {
+                return new RestRequest(messageBytes);
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid message");
+        }
+    }
 
     static String[] split(String header) {
         if (header == null || header.isEmpty()) {

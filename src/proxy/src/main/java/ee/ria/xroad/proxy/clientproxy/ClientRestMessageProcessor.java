@@ -229,6 +229,9 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         if (!Objects.equals(restRequest.getQueryId(), response.getRestResponse().getQueryId())) {
             throw new CodedException(X_INCONSISTENT_RESPONSE, "Response message id does not match request message");
         }
+        if (!Objects.equals(restRequest.getRequestServiceId(), response.getRestResponse().getServiceId())) {
+            throw new CodedException(X_INCONSISTENT_RESPONSE, "Response service id does not match request message");
+        }
         if (!Arrays.equals(restRequest.getHash(), response.getRestResponse().getRequestHash())) {
             throw new CodedException(X_INCONSISTENT_RESPONSE, "Response message hash does not match request message");
         }

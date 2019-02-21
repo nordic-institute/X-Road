@@ -158,6 +158,11 @@ public class RestRequest extends RestMessage {
         }
     }
 
+    @Override
+    public ClientId getSender() {
+        return client;
+    }
+
     @SuppressWarnings({"checkstyle:magicnumber", "checkstyle:innerassignment"})
     private void decodeIdentifiers() {
         if (requestPath == null) {

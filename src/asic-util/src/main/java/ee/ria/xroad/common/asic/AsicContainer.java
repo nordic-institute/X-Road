@@ -27,8 +27,9 @@ package ee.ria.xroad.common.asic;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.MimeTypes;
 
+import lombok.Getter;
+
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -64,9 +65,18 @@ public class AsicContainer {
 
     /** Holds the entries in the container. */
     private final Map<String, String> entries = new HashMap<>();
+    private final InputStream attachment;
+    @Getter
+    private final byte[] attachmentDigest;
 
     AsicContainer(Map<String, String> entries) throws Exception {
+        this(entries, null);
+    }
+
+    AsicContainer(Map<String, String> entries, byte[] attachmentDigest) throws Exception {
         this.entries.putAll(entries);
+        this.attachment = null;
+        this.attachmentDigest = attachmentDigest;
         verifyContents();
     }
 
@@ -79,7 +89,7 @@ public class AsicContainer {
      */
     public AsicContainer(String message, SignatureData signature)
             throws Exception {
-        this(message, signature, null);
+        this(message, signature, null, null);
     }
 
     /**
@@ -91,12 +101,14 @@ public class AsicContainer {
      * @throws Exception if container content verification fails
      */
     public AsicContainer(String message, SignatureData signature,
-            TimestampData timestamp) throws Exception {
+            TimestampData timestamp, InputStream attachment) throws Exception {
         put(ENTRY_MIMETYPE, MIMETYPE);
         put(ENTRY_MESSAGE, message);
         put(ENTRY_SIGNATURE, signature.getSignatureXml());
         put(ENTRY_SIG_HASH_CHAIN_RESULT, signature.getHashChainResult());
         put(ENTRY_SIG_HASH_CHAIN, signature.getHashChain());
+        this.attachment = attachment;
+        this.attachmentDigest = null;
 
         if (timestamp != null) {
             if (isNotBlank(timestamp.getHashChainResult())) { // batch ts
@@ -161,19 +173,6 @@ public class AsicContainer {
     }
 
     /**
-     * Gets the binary content of this container in ZIP format.
-     * @return binary content of this container in ZIP format
-     * @throws Exception if errors occurred when writing ZIP entries
-     */
-    public byte[] getBytes() throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        write(out);
-
-        return out.toByteArray();
-    }
-
-    /**
      * True if the given file is an attachment.
      * @param fileName the file to check
      * @return true if the given file is an attachment, false otherwise
@@ -223,13 +222,14 @@ public class AsicContainer {
 
     /**
      * Write this container to the given output stream in ZIP format.
+     * Does not close the output stream.
      * @param out the stream for writing container
      * @throws Exception if errors occurred when writing ZIP entries
      */
     public void write(OutputStream out) throws Exception {
-        try (ZipOutputStream zip = new ZipOutputStream(out)) {
-            AsicHelper.write(this, zip);
-        }
+        ZipOutputStream zip = new ZipOutputStream(out);
+        AsicHelper.write(this, zip);
+        zip.finish();
     }
 
     private void createManifests() throws Exception {
@@ -310,5 +310,9 @@ public class AsicContainer {
         if (isNotBlank(data)) {
             this.entries.put(entryName, data);
         }
+    }
+
+    InputStream getAttachment() {
+        return attachment;
     }
 }
