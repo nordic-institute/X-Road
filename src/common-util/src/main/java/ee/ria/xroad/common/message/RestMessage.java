@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * Base class for rest messages
@@ -136,6 +137,21 @@ public abstract class RestMessage {
 
         result[1] = header.substring(i + 1);
         return result;
+    }
+
+    static void serializeHeaders(List<Header> headers, OutputStream os, Predicate<Header> filter) throws IOException {
+        for (Header h: headers) {
+            if (filter.test(h)) {
+                writeString(os, h.getName());
+                writeString(os, ":");
+                writeString(os, h.getValue());
+                os.write(CRLF);
+            }
+        }
+    }
+
+    static boolean isXroadHeader(Header h) {
+        return h != null && h.getName() != null && h.getName().toLowerCase().startsWith("x-road-");
     }
 
     static void writeString(OutputStream os, String s) throws IOException {

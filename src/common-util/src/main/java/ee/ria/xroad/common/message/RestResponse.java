@@ -103,13 +103,7 @@ public class RestResponse extends RestMessage {
             bof.write(CRLF);
             writeString(bof, reason);
             bof.write(CRLF);
-
-            for (Header h : headers) {
-                writeString(bof, h.getName());
-                writeString(bof, ":");
-                writeString(bof, h.getValue());
-                bof.write(CRLF);
-            }
+            serializeHeaders(headers, bof, h -> true);
 
             return bof.toByteArray();
         } catch (IOException e) {
@@ -129,15 +123,7 @@ public class RestResponse extends RestMessage {
             bof.write(CRLF);
             writeString(bof, reason);
             bof.write(CRLF);
-
-            for (Header h : headers) {
-                if (h.getName().toLowerCase().startsWith("x-road-")) {
-                    writeString(bof, h.getName());
-                    writeString(bof, ":");
-                    writeString(bof, h.getValue());
-                    bof.write(CRLF);
-                }
-            }
+            serializeHeaders(headers, bof, RestMessage::isXroadHeader);
             return bof.toByteArray();
         } catch (Exception io) {
             throw new IllegalStateException("Unable to serialize request", io);
