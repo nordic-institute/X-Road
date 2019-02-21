@@ -1,13 +1,3 @@
-# GIT
-
-frontend implementation from https://bitbucket.niis.org/projects/X-ROAD/repos/x-road-ui-proto/browse
-```
-commit ef996ba39f1bd55c38e85f31522010e713f27346 (HEAD -> master, origin/master)
-Author: Mikko Riippi <mikko.riippi@gofore.com>
-Date:   Mon Jan 21 15:56:15 2019 +0200
-
-    Fixed a typo
-```
 # Building
 
 Default build does frontend `npm run build` and packages the built frontend assets from `frontend/dist`
@@ -40,10 +30,6 @@ java -jar proxy-ui-api-1.0.jar --spring.profiles.active=development
 
 browser: `http://localhost:8020`
 
-logins for dummy in-memory authentication: 
-- user/password
-- admin/password etc
-
 # Api auth examples
 ```
 $ curl --header "Authorization: naive-api-key-1" localhost:8020/api/cities
@@ -73,31 +59,42 @@ curl --header "Authorization: naive-api-key-1" localhost:8020/api/adminCities
 
 # PAM login
 
-Start with parameter `proto.pam=true` to activate PAM login:
+PAM login is active by default. You can use dummy in-memory authentication with parameter `proto.pam=false`:
 
 ```
-../gradlew bootRun --console plain -Pargs=--proto.pam=true
+../gradlew bootRun --console plain -Pargs=--proto.pam=false
 ```
 
-Login using unix user and password. There's some requirements
+Logins for dummy in-memory authentication: 
+- user/password
+- admin/password etc
+
+PAM login is done using unix user and password. There's some requirements
 - application has to be run as user who can read `/etc/shadow`
-- users with groups `xroad-auth-proto-admin` or `xroad-auth-proto-admin` can login and get USER/ADMIN roles
+- roles are granted using linux groups `xroad-security-officer`, 
+`xroad-registration-officer`,
+`xroad-service-administrator`,
+`xroad-system-administrator`, and 
+`xroad-securityserver-observer` as in old implementation.
 
-To set these up
+To set some test users up
 ```
 sudo usermod -a -G shadow <user which runs the app>
 ```
 Better logout / login at this point to make sure PAM works.
 
-Then some users, lets say xroad-user, xroad-admin, xroad-admin-user:
+Then some users, lets say xrd-full-user and xrd-system-admin:
 ```
-sudo groupadd xroad-auth-proto-admin
-sudo groupadd xroad-auth-proto-user
+(if these groups do not exist. They do exist for an operational (dockerized) security server)
+sudo groupadd xroad-security-officer
+sudo groupadd xroad-registration-officer
+sudo groupadd xroad-service-administrator
+sudo groupadd xroad-system-administrator
+sudo groupadd xroad-securityserver-observer
 
-sudo useradd -G xroad-auth-proto-user xroad-user --shell=/bin/false
-sudo useradd -G xroad-auth-proto-admin xroad-admin --shell=/bin/false
-sudo useradd -G xroad-auth-proto-admin xroad-admin-user --shell=/bin/false
-sudo usermod -a -G xroad-auth-proto-user xroad-admin-user
+sudo useradd -G xroad-security-officer xrd-full-user --shell=/bin/false
+sudo useradd -G xroad-system-administrator xrd-system-admin --shell=/bin/false
+sudo usermod -a -G xroad-registration-officer,xroad-service-administrator,xroad-system-administrator,xroad-securityserver-observer xrd-full-user
 
 sudo passwd xroad-admin-user
 sudo passwd xroad-admin

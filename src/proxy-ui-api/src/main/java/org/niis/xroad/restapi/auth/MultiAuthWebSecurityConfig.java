@@ -78,7 +78,8 @@ import java.io.IOException;
  * - FormLoginWebSecurityConfigurerAdapter, @Order(100), matches any URL (denies /api/**)
  */
 @EnableWebSecurity(debug = true)
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+// explain and document this
+@EnableGlobalMethodSecurity(jsr250Enabled = true, proxyTargetClass = true)
 @Slf4j
 public class MultiAuthWebSecurityConfig {
 
@@ -183,7 +184,7 @@ public class MultiAuthWebSecurityConfig {
             http
                 .antMatcher("/api/create-api-key/**")
                 .authorizeRequests()
-                    .anyRequest().hasRole("XROAD-SYSTEM-ADMINISTRATOR")
+                    .anyRequest().hasRole(Role.XROAD_SYSTEM_ADMINISTRATOR.name())
                     .and()
                 .sessionManagement()
                     .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
