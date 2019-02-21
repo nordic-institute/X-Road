@@ -47,8 +47,8 @@ $ curl -X POST -u admin:password docker-ss.local:8020/api/create-api-key --data 
 $ curl --header "Authorization: naive-api-key-1" "docker-ss.local:8020/api/clients"
 [{"id":"XRD2:GOV:M1:SUB1","member_name":"member1","member_class":"GOV","member_code":"M1","subsystem_code":"SUB1","status":"saved"},{"id":"XRD2:GOV:M4:SS1","member_name":"member4","member_class":"GOV","member_code":"M4","subsystem_code":"SS1","status":"registered"},{"id":"XRD2:GOV:M4","member_name":"member4","member_class":"GOV","member_code":"M4","subsystem_code":null,"status":"registered"}]
 
-curl --header "Authorization: naive-api-key-2" localhost:8020/api/cities
-{"timestamp":"2018-11-27T07:08:22.398+0000","status":403,"error":"Forbidden","message":"Forbidden","path":"/api/adminCities"}
+$ curl --header "Authorization: naive-api-key-2" "docker-ss.local:8020/api/clients"
+{"timestamp":"2018-11-27T07:08:22.398+0000","status":403,"error":"Forbidden","message":"Forbidden","path":"/api/clients"}
 ```
 
 # PAM login
