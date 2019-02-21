@@ -53,9 +53,6 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/api")
 @Slf4j
-//CHECKSTYLE.OFF: TodoComment - need this todo and still want builds to succeed
-//@PreAuthorize("hasAuthority('ROLE_XROAD-SERVICE-ADMINISTRATOR')") // TODO: proper auth
-//CHECKSTYLE.ON: TodoComment
 @DenyAll
 public class ClientsApiController implements org.niis.xroad.restapi.openapi.ClientsApi {
 
@@ -110,6 +107,9 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     }
 
     @Override
+    @RolesAllowed({Role.Names.XROAD_REGISTRATION_OFFICER,
+            Role.Names.XROAD_SERVICE_ADMINISTRATOR,
+            Role.Names.XROAD_SECURITYSERVER_OBSERVER})
     public ResponseEntity<Client> getClient(String id) {
 //CHECKSTYLE.OFF: TodoComment - need this todo and still want builds to succeed
         ClientId clientId = clientConverter.convertId(id);
