@@ -35,25 +35,19 @@ browser: `http://localhost:8020`
 $ curl --header "Authorization: naive-api-key-1" localhost:8020/api/cities
 {"timestamp":"2018-11-27T07:09:03.991+0000","status":500,"error":"Internal Server Error","message":"The API key was not found or not the expected value.","path":"/api/adminCities"}
 
-$ curl -X POST -u admin:password localhost:8020/api/create-api-key --data '["USER"]' --header "Content-Type: application/json"
-{"key":"naive-api-key-1","roles":["USER"]}
+$ curl -X POST -u admin:password docker-ss.local:8020/api/create-api-key --data '["XROAD_SECURITY_OFFICER"]' --header "Content-Type: application/json"
+{"key":"naive-api-key-1","roles":["XROAD_SECURITY_OFFICER"]}
 
-$ curl -X POST -u admin:password localhost:8020/api/create-api-key --data '["ADMIN"]' --header "Content-Type: application/json"
-{"key":"naive-api-key-2","roles":["ADMIN"]}
+$ curl -X POST -u admin:password docker-ss.local:8020/api/create-api-key --data '["XROAD_SYSTEM_ADMINISTRATOR"]' --header "Content-Type: application/json"
+{"key":"naive-api-key-2","roles":["XROAD_SYSTEM_ADMINISTRATOR"]}
 
-$ curl -X POST -u admin:password localhost:8020/api/create-api-key --data '["USER","ADMIN","GUGGU"]' --header "Content-Type: application/json"
-{"key":"naive-api-key-3","roles":["GUGGU","ADMIN","USER"]}
+$ curl -X POST -u admin:password docker-ss.local:8020/api/create-api-key --data '["XROAD_SECURITY_OFFICER", "XROAD_SYSTEM_ADMINISTRATOR"]' --header "Content-Type: application/json"
+{"key":"naive-api-key-3","roles":["XROAD_SECURITY_OFFICER","XROAD_SYSTEM_ADMINISTRATOR"]}
 
-curl --header "Authorization: naive-api-key-1" localhost:8020/api/roles
-["ROLE_USER"]
+$ curl --header "Authorization: naive-api-key-1" "docker-ss.local:8020/api/clients"
+[{"id":"XRD2:GOV:M1:SUB1","member_name":"member1","member_class":"GOV","member_code":"M1","subsystem_code":"SUB1","status":"saved"},{"id":"XRD2:GOV:M4:SS1","member_name":"member4","member_class":"GOV","member_code":"M4","subsystem_code":"SS1","status":"registered"},{"id":"XRD2:GOV:M4","member_name":"member4","member_class":"GOV","member_code":"M4","subsystem_code":null,"status":"registered"}]
 
-curl --header "Authorization: naive-api-key-1" localhost:8020/api/cities
-[{"id":1,"name":"Tampere"},{"id":2,"name":"Ylojarvi"},{"id":3,"name":"Helsinki"},{"id":4,"name":"Vantaa"},{"id":5,"name":"Nurmes"}]
-
-curl --header "Authorization: naive-api-key-3" localhost:8020/api/adminCities
-[{"id":999,"name":"Admincity, from a method which requires 'ADMIN' role"},{"id":1,"name":"Tampere"},{"id":2,"name":"Ylojarvi"},{"id":3,"name":"Helsinki"},{"id":4,"name":"Vantaa"},{"id":5,"name":"Nurmes"}]
-
-curl --header "Authorization: naive-api-key-1" localhost:8020/api/adminCities
+curl --header "Authorization: naive-api-key-2" localhost:8020/api/cities
 {"timestamp":"2018-11-27T07:08:22.398+0000","status":403,"error":"Forbidden","message":"Forbidden","path":"/api/adminCities"}
 ```
 
