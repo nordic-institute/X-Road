@@ -45,6 +45,8 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.web.util.WebUtils;
@@ -248,13 +250,52 @@ public class MultiAuthWebSecurityConfig {
                     .and()
                 .csrf()
                     // we require csrf protection only if session cookie-authentication is used
-                    .requireCsrfProtectionMatcher(request -> WebUtils.getCookie(request, "JSESSIONID") != null)
-                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                    .requireCsrfProtectionMatcher(request -> isSessionCookieAuthenticated(request))
+                    .csrfTokenRepository(new ApiKeyAuthAwareCookieCsrfTokenRepository())
                     .and()
                 .anonymous()
                     .disable()
                 .formLogin()
                     .disable();
+        }
+
+    }
+
+    /**
+     * Checks whether session cookie, or some other (api key) auth was used.
+     * Purely based on existence of JSESSIONID cookie.
+     */
+    private static boolean isSessionCookieAuthenticated(HttpServletRequest request) {
+        return WebUtils.getCookie(request, "JSESSIONID") != null;
+    }
+
+    /**
+     * CookieCsrfTokenRepository (wrapper) which does not send unneeded CSRF cookies if we're
+     * using api key auth
+     */
+    private static class ApiKeyAuthAwareCookieCsrfTokenRepository implements CsrfTokenRepository {
+
+        // final class, cannot be extended
+        private CookieCsrfTokenRepository cookieCsrfTokenRepository;
+
+        ApiKeyAuthAwareCookieCsrfTokenRepository() {
+            this.cookieCsrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        }
+        @Override
+        public CsrfToken generateToken(HttpServletRequest request) {
+            return cookieCsrfTokenRepository.generateToken(request);
+        }
+
+        @Override
+        public void saveToken(CsrfToken token, HttpServletRequest request, HttpServletResponse response) {
+            if (isSessionCookieAuthenticated(request)) {
+                cookieCsrfTokenRepository.saveToken(token, request, response);
+            }
+        }
+
+        @Override
+        public CsrfToken loadToken(HttpServletRequest request) {
+            return cookieCsrfTokenRepository.loadToken(request);
         }
     }
 
