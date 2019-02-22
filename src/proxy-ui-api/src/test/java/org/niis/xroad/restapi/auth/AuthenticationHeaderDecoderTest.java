@@ -57,5 +57,12 @@ public class AuthenticationHeaderDecoderTest {
             fail("should have thrown exception");
         } catch (IllegalArgumentException expected) {
         }
+
+        badEncoded = "dsadsadasdasadsX-Road-ApiKEy token=123";
+        try {
+            decoder.decodeApiKey(badEncoded);
+            fail("should have thrown exception");
+        } catch (IllegalArgumentException expected) {
+        }
     }
 }

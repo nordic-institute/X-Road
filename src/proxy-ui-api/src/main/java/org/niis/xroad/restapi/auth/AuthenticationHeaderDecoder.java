@@ -42,7 +42,8 @@ public class AuthenticationHeaderDecoder {
      * @return
      */
     public String decodeApiKey(String authenticationHeader) {
-        if (authenticationHeader == null || authenticationHeader.toUpperCase().indexOf(UPPERCASE_APIKEY_PREFIX) == -1) {
+        if (authenticationHeader == null
+                || authenticationHeader.toUpperCase().indexOf(UPPERCASE_APIKEY_PREFIX) != 0) {
             throw new IllegalArgumentException("Invalid X-Road-Apikey authorization header");
         }
         String apiKey = authenticationHeader.substring(UPPERCASE_APIKEY_PREFIX.length());
