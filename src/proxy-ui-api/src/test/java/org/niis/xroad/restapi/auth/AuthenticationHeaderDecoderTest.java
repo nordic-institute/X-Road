@@ -37,7 +37,7 @@ public class AuthenticationHeaderDecoderTest {
     @Test
     public void decode() throws Exception {
         AuthenticationHeaderDecoder decoder = new AuthenticationHeaderDecoder();
-        // case sensitivity?
+
         String encoded = "X-Road-ApiKEy toKen=123";
         assertEquals("123", decoder.decodeApiKey(encoded));
 
