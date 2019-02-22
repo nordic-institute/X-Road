@@ -25,7 +25,10 @@
 package org.niis.xroad.restapi.auth;
 
 import org.apache.commons.lang.StringUtils;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
+
 
 /**
  * Helper for handling encoded authentication headers
@@ -37,18 +40,18 @@ public class AuthenticationHeaderDecoder {
 
     /**
      * Returns decoded api key from authorization header,
-     * or IllegalArgumentException if one was not found
+     * or AuthenticationException if one was not found
      * @param authenticationHeader
      * @return
      */
-    public String decodeApiKey(String authenticationHeader) {
+    public String decodeApiKey(String authenticationHeader) throws AuthenticationException {
         if (authenticationHeader == null
                 || authenticationHeader.toUpperCase().indexOf(UPPERCASE_APIKEY_PREFIX) != 0) {
-            throw new IllegalArgumentException("Invalid X-Road-Apikey authorization header");
+            throw new BadCredentialsException("Invalid X-Road-Apikey authorization header");
         }
         String apiKey = authenticationHeader.substring(UPPERCASE_APIKEY_PREFIX.length());
         if (StringUtils.isBlank(apiKey)) {
-            throw new IllegalArgumentException("Missing api key from authorization header");
+            throw new BadCredentialsException("Missing api key from authorization header");
         }
         return apiKey.trim();
     }

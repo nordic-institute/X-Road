@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.auth;
 
 import org.junit.Test;
+import org.springframework.security.core.AuthenticationException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -48,21 +49,21 @@ public class AuthenticationHeaderDecoderTest {
         try {
             decoder.decodeApiKey(badEncoded);
             fail("should have thrown exception");
-        } catch (IllegalArgumentException expected) {
+        } catch (AuthenticationException expected) {
         }
 
         badEncoded = "X-Road-ApiKEy token=         ";
         try {
             decoder.decodeApiKey(badEncoded);
             fail("should have thrown exception");
-        } catch (IllegalArgumentException expected) {
+        } catch (AuthenticationException expected) {
         }
 
         badEncoded = "dsadsadasdasadsX-Road-ApiKEy token=123";
         try {
             decoder.decodeApiKey(badEncoded);
             fail("should have thrown exception");
-        } catch (IllegalArgumentException expected) {
+        } catch (AuthenticationException expected) {
         }
     }
 }
