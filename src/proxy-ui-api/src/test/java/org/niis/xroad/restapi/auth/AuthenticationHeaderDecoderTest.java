@@ -22,34 +22,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.auth;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import org.junit.Test;
+import org.springframework.security.core.AuthenticationException;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
- * Handle Spring internal exceptions
+ * test AuthenticationHeaderDecoder
  */
-@ControllerAdvice
-@Order(SpringInternalExceptionHandler.TEN)
-@Slf4j
-public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandler {
-    public static final int TEN = 10;
+public class AuthenticationHeaderDecoderTest {
 
-    @Override
-    protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object body,
-                                                             HttpHeaders headers, HttpStatus status,
-                                                             WebRequest request) {
-        log.error("exception caught", ex);
-        ErrorInfo errorInfo = new ErrorInfo(status.value());
-        return super.handleExceptionInternal(ex, errorInfo, headers,
-                status, request);
+    @Test
+    public void decode() throws Exception {
+        AuthenticationHeaderDecoder decoder = new AuthenticationHeaderDecoder();
+
+        String encoded = "X-Road-ApiKEy toKen=123";
+        assertEquals("123", decoder.decodeApiKey(encoded));
+
+        encoded = "X-Road-ApiKEy toKen=  123  \n ";
+        assertEquals("123", decoder.decodeApiKey(encoded));
+
+        String badEncoded = "Bearer 123";
+        try {
+            decoder.decodeApiKey(badEncoded);
+            fail("should have thrown exception");
+        } catch (AuthenticationException expected) {
+        }
+
+        badEncoded = "X-Road-ApiKEy token=         ";
+        try {
+            decoder.decodeApiKey(badEncoded);
+            fail("should have thrown exception");
+        } catch (AuthenticationException expected) {
+        }
+
+        badEncoded = "dsadsadasdasadsX-Road-ApiKEy token=123";
+        try {
+            decoder.decodeApiKey(badEncoded);
+            fail("should have thrown exception");
+        } catch (AuthenticationException expected) {
+        }
     }
 }

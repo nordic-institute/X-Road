@@ -1,13 +1,3 @@
-# GIT
-
-frontend implementation from https://bitbucket.niis.org/projects/X-ROAD/repos/x-road-ui-proto/browse
-```
-commit ef996ba39f1bd55c38e85f31522010e713f27346 (HEAD -> master, origin/master)
-Author: Mikko Riippi <mikko.riippi@gofore.com>
-Date:   Mon Jan 21 15:56:15 2019 +0200
-
-    Fixed a typo
-```
 # Building
 
 Default build does frontend `npm run build` and packages the built frontend assets from `frontend/dist`
@@ -40,64 +30,65 @@ java -jar proxy-ui-api-1.0.jar --spring.profiles.active=development
 
 browser: `http://localhost:8020`
 
-logins for dummy in-memory authentication: 
-- user/password
-- admin/password etc
-
 # Api auth examples
 ```
-$ curl --header "Authorization: naive-api-key-1" localhost:8020/api/cities
+$ curl --header "Authorization: X-Road-ApiKey token=naive-api-key-1" localhost:8020/api/cities
 {"timestamp":"2018-11-27T07:09:03.991+0000","status":500,"error":"Internal Server Error","message":"The API key was not found or not the expected value.","path":"/api/adminCities"}
 
-$ curl -X POST -u admin:password localhost:8020/api/create-api-key --data '["USER"]' --header "Content-Type: application/json"
-{"key":"naive-api-key-1","roles":["USER"]}
+$ curl -X POST -u admin:password docker-ss.local:8020/api/create-api-key --data '["XROAD_SECURITY_OFFICER"]' --header "Content-Type: application/json"
+{"key":"naive-api-key-1","roles":["XROAD_SECURITY_OFFICER"]}
 
-$ curl -X POST -u admin:password localhost:8020/api/create-api-key --data '["ADMIN"]' --header "Content-Type: application/json"
-{"key":"naive-api-key-2","roles":["ADMIN"]}
+$ curl -X POST -u admin:password docker-ss.local:8020/api/create-api-key --data '["XROAD_SYSTEM_ADMINISTRATOR"]' --header "Content-Type: application/json"
+{"key":"naive-api-key-2","roles":["XROAD_SYSTEM_ADMINISTRATOR"]}
 
-$ curl -X POST -u admin:password localhost:8020/api/create-api-key --data '["USER","ADMIN","GUGGU"]' --header "Content-Type: application/json"
-{"key":"naive-api-key-3","roles":["GUGGU","ADMIN","USER"]}
+$ curl -X POST -u admin:password docker-ss.local:8020/api/create-api-key --data '["XROAD_SECURITY_OFFICER", "XROAD_SYSTEM_ADMINISTRATOR"]' --header "Content-Type: application/json"
+{"key":"naive-api-key-3","roles":["XROAD_SECURITY_OFFICER","XROAD_SYSTEM_ADMINISTRATOR"]}
 
-curl --header "Authorization: naive-api-key-1" localhost:8020/api/roles
-["ROLE_USER"]
+$ curl --header "Authorization: X-Road-ApiKey token=naive-api-key-1" "docker-ss.local:8020/api/clients"
+[{"id":"XRD2:GOV:M1:SUB1","member_name":"member1","member_class":"GOV","member_code":"M1","subsystem_code":"SUB1","status":"saved"},{"id":"XRD2:GOV:M4:SS1","member_name":"member4","member_class":"GOV","member_code":"M4","subsystem_code":"SS1","status":"registered"},{"id":"XRD2:GOV:M4","member_name":"member4","member_class":"GOV","member_code":"M4","subsystem_code":null,"status":"registered"}]
 
-curl --header "Authorization: naive-api-key-1" localhost:8020/api/cities
-[{"id":1,"name":"Tampere"},{"id":2,"name":"Ylojarvi"},{"id":3,"name":"Helsinki"},{"id":4,"name":"Vantaa"},{"id":5,"name":"Nurmes"}]
-
-curl --header "Authorization: naive-api-key-3" localhost:8020/api/adminCities
-[{"id":999,"name":"Admincity, from a method which requires 'ADMIN' role"},{"id":1,"name":"Tampere"},{"id":2,"name":"Ylojarvi"},{"id":3,"name":"Helsinki"},{"id":4,"name":"Vantaa"},{"id":5,"name":"Nurmes"}]
-
-curl --header "Authorization: naive-api-key-1" localhost:8020/api/adminCities
-{"timestamp":"2018-11-27T07:08:22.398+0000","status":403,"error":"Forbidden","message":"Forbidden","path":"/api/adminCities"}
+$ curl --header "Authorization: X-Road-ApiKey token=naive-api-key-2" "docker-ss.local:8020/api/clients"
+{"timestamp":"2018-11-27T07:08:22.398+0000","status":403,"error":"Forbidden","message":"Forbidden","path":"/api/clients"}
 ```
 
 # PAM login
 
-Start with parameter `proto.pam=true` to activate PAM login:
+PAM login is active by default. You can use dummy in-memory authentication with parameter `proto.pam=false`:
 
 ```
-../gradlew bootRun --console plain -Pargs=--proto.pam=true
+../gradlew bootRun --console plain -Pargs=--proto.pam=false
 ```
 
-Login using unix user and password. There's some requirements
+Logins for dummy in-memory authentication: 
+- user/password
+- admin/password etc
+
+PAM login is done using unix user and password. There's some requirements
 - application has to be run as user who can read `/etc/shadow`
-- users with groups `xroad-auth-proto-admin` or `xroad-auth-proto-admin` can login and get USER/ADMIN roles
+- roles are granted using linux groups `xroad-security-officer`, 
+`xroad-registration-officer`,
+`xroad-service-administrator`,
+`xroad-system-administrator`, and 
+`xroad-securityserver-observer` as in old implementation.
 
-To set these up
+To set some test users up
 ```
 sudo usermod -a -G shadow <user which runs the app>
 ```
 Better logout / login at this point to make sure PAM works.
 
-Then some users, lets say xroad-user, xroad-admin, xroad-admin-user:
+Then some users, lets say xrd-full-user and xrd-system-admin:
 ```
-sudo groupadd xroad-auth-proto-admin
-sudo groupadd xroad-auth-proto-user
+(if these groups do not exist. They do exist for an operational (dockerized) security server)
+sudo groupadd xroad-security-officer
+sudo groupadd xroad-registration-officer
+sudo groupadd xroad-service-administrator
+sudo groupadd xroad-system-administrator
+sudo groupadd xroad-securityserver-observer
 
-sudo useradd -G xroad-auth-proto-user xroad-user --shell=/bin/false
-sudo useradd -G xroad-auth-proto-admin xroad-admin --shell=/bin/false
-sudo useradd -G xroad-auth-proto-admin xroad-admin-user --shell=/bin/false
-sudo usermod -a -G xroad-auth-proto-user xroad-admin-user
+sudo useradd -G xroad-security-officer xrd-full-user --shell=/bin/false
+sudo useradd -G xroad-system-administrator xrd-system-admin --shell=/bin/false
+sudo usermod -a -G xroad-registration-officer,xroad-service-administrator,xroad-system-administrator,xroad-securityserver-observer xrd-full-user
 
 sudo passwd xroad-admin-user
 sudo passwd xroad-admin

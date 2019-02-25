@@ -22,34 +22,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.auth;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.stereotype.Component;
+
 
 /**
- * Handle Spring internal exceptions
+ * Helper for handling encoded authentication headers
  */
-@ControllerAdvice
-@Order(SpringInternalExceptionHandler.TEN)
-@Slf4j
-public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandler {
-    public static final int TEN = 10;
+@Component
+public class AuthenticationHeaderDecoder {
 
-    @Override
-    protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object body,
-                                                             HttpHeaders headers, HttpStatus status,
-                                                             WebRequest request) {
-        log.error("exception caught", ex);
-        ErrorInfo errorInfo = new ErrorInfo(status.value());
-        return super.handleExceptionInternal(ex, errorInfo, headers,
-                status, request);
+    private static final String UPPERCASE_APIKEY_PREFIX = "X-ROAD-APIKEY TOKEN=";
+
+    /**
+     * Returns decoded api key from authorization header,
+     * or AuthenticationException if one was not found
+     * @param authenticationHeader
+     * @return
+     */
+    public String decodeApiKey(String authenticationHeader) throws AuthenticationException {
+        if (authenticationHeader == null
+                || authenticationHeader.toUpperCase().indexOf(UPPERCASE_APIKEY_PREFIX) != 0) {
+            throw new BadCredentialsException("Invalid X-Road-Apikey authorization header");
+        }
+        String apiKey = authenticationHeader.substring(UPPERCASE_APIKEY_PREFIX.length());
+        if (StringUtils.isBlank(apiKey)) {
+            throw new BadCredentialsException("Missing api key from authorization header");
+        }
+        return apiKey.trim();
     }
 }
