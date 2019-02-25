@@ -105,7 +105,6 @@ export default Vue.extend({
         .dispatch('login', loginData)
         .then(
           (response) => {
-            this.$bus.$emit('show-success', 'Logged in successfully');
             this.$router.replace('/');
           },
           (error) => {
@@ -125,7 +124,7 @@ export default Vue.extend({
               this.errors.first('username');
               this.errors.first('password');
             }
-
+            console.log(error);
             this.$bus.$emit('show-error', error.message);
           },
         )
