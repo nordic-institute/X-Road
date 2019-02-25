@@ -1,7 +1,7 @@
 
 import Vue from 'vue';
 import Vuex, { StoreOptions } from 'vuex';
-import VuexPersistence from 'vuex-persist'
+import VuexPersistence from 'vuex-persist';
 import { RootState } from './types';
 import { data } from './modules/data';
 import { auth } from './modules/auth';
