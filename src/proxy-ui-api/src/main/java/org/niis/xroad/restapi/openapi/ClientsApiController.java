@@ -103,12 +103,6 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     }
 
     @Override
-    public ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Certificate>> getClientCertificates(String id) {
-        clientRepository.throwSpringException("spring exception");
-        return null;
-    }
-
-    @Override
     public Optional<NativeWebRequest> getRequest() {
         return Optional.ofNullable(request);
     }

@@ -24,8 +24,6 @@
  */
 package org.niis.xroad.restapi.repository;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
@@ -35,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.niis.xroad.restapi.DatabaseContextHelper;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClientException;
 
 import java.util.List;
 
@@ -45,50 +42,6 @@ import java.util.List;
 @Slf4j
 @Component
 public class ClientRepository {
-
-    /**
-     *
-      * @return
-     */
-    public List<MemberInfo> getAllMembers() {
-        return GlobalConf.getMembers();
-    }
-
-    /**
-     * dummy
-     * @param s
-     */
-    public void throwRuntimeException(String s) {
-        log.error("throwing exception {}", s);
-        throw new RuntimeException(s);
-    }
-
-    /**
-     * dummy
-     * @param s
-     */
-    public void throwApplicationException(String s) throws MyApplicationException {
-        log.error("throwing exception {}", s);
-        throw new MyApplicationException(s);
-    }
-
-    /**
-     * dummy
-     * @param s
-     */
-    public void throwSpringException(String s) {
-        log.error("throwing exception {}", s);
-        throw new RestClientException(s);
-    }
-
-    /**
-     * dummy
-     */
-    public static class MyApplicationException extends Exception {
-        public MyApplicationException(String s) {
-            super(s);
-        }
-    }
 
     /**
      * transactions
