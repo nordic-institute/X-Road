@@ -3,7 +3,7 @@ FROM ubuntu:18.04
 ARG uid
 ARG gid
 
-ENV JRUBY_VERSION="9.1.13.0"
+ENV JRUBY_VERSION="9.1.17.0"
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN groupadd -g $gid builder && useradd -m -u $uid -g $gid builder
