@@ -247,6 +247,8 @@ public final class SystemProperties {
 
     private static final String DEFAULT_CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = "false";
 
+    private static final String DEFAULT_CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS = "false";
+
     private static final String DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
 
     private static final String DEFAULT_PROXY_CONNECTOR_INITIAL_IDLE_TIME = "30000";
@@ -425,6 +427,10 @@ public final class SystemProperties {
     /** Property name of enabling automatic approval of auth cert registration requests. */
     public static final String CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS =
             PREFIX + "center.auto-approve-auth-cert-reg-requests";
+
+    /** Property name of enabling automatic approval of client registration requests. */
+    public static final String CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS =
+            PREFIX + "center.auto-approve-client-reg-requests";
 
     // Misc -------------------------------------------------------------------
 
@@ -969,6 +975,14 @@ public final class SystemProperties {
     public static boolean getCenterAutoApproveAuthCertRegRequests() {
         return Boolean.parseBoolean(System.getProperty(CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS,
                 DEFAULT_CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS));
+    }
+
+    /**
+     * @return whether automatic approval of client registration requests is enabled, 'false' by default.
+     */
+    public static boolean getCenterAutoApproveClientRegRequests() {
+        return Boolean.parseBoolean(System.getProperty(CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS,
+                DEFAULT_CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS));
     }
 
     /**

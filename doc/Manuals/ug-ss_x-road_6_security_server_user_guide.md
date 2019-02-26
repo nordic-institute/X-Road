@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.23  
+Version: 2.24  
 Doc. ID: UG-SS
 
 ---
@@ -56,6 +56,7 @@ Doc. ID: UG-SS
  10.04.2018 | 2.21    | Update internal server certificate documentation. | Jarkko Hyöty
  25.05.2018 | 2.22    | Update system parameters documentation. | Jarkko Hyöty
  15.11.2018 | 2.23    | Minor updates for Ubuntu 18.04 | Jarkko Hyöty
+ 06.02.2019 | 2.24    | Minor updates on security server client registration in Chapters [4.3](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client) and [4.4](#44-registering-a-security-server-client-in-the-x-road-governing-authority). | Petteri Kivimäki
 
 ## Table of Contents
 
@@ -544,7 +545,7 @@ The new client is added to the list of security server clients in the "Saved" st
 
 ### 4.3 Configuring a Signing Key and Certificate for a Security Server Client
 
-A signing key and certificate must be configured for the security server client to sign messages exchanged over the X-Road.
+A signing key and certificate must be configured for the security server client to sign messages exchanged over the X-Road. In addition, a signing key and certificate are required for registering a security server client.
 
 Certificates are not issued to subsystems; therefore, the certificate of the subsystem’s owner (that is, an X-Road member) is used for the subsystem.
 
@@ -556,6 +557,8 @@ The process of configuring the signing key and certificate for a security server
 ### 4.4 Registering a Security Server Client in the X-Road Governing Authority
 
 To register a security server client in the X-Road governing authority, the following actions must be completed.
+
+-   A signing key and certificate must be configured for the member that owns the subsystem to be registered as a the security server client (see [4.3](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client)).
 
 -   The security server client registration request must be submitted from the security server (see [4.4.1](#441-registering-a-security-server-client)).
 
