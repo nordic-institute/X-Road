@@ -68,8 +68,8 @@ export default Vue.extend({
   data() {
     return {
       loading: false,
-      username: 'user',
-      password: 'password',
+      username: 'xrd',
+      password: 'secret',
     };
   },
   computed: {
@@ -104,10 +104,10 @@ export default Vue.extend({
       this.$store
         .dispatch('login', loginData)
         .then(
-          response => {
-            this.$bus.$emit('show-success', 'Logged in successfully');
+          (response) => {
+            this.$router.replace('/');
           },
-          error => {
+          (error) => {
             // Display invalid username/password error in inputs
             if (error.response && error.response.status === 401) {
               this.errors.add({
@@ -124,9 +124,9 @@ export default Vue.extend({
               this.errors.first('username');
               this.errors.first('password');
             }
-
+            console.log(error);
             this.$bus.$emit('show-error', error.message);
-          }
+          },
         )
         .finally(() => {
           // Clear loading state

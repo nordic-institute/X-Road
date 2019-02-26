@@ -8,7 +8,7 @@ export interface Client {
   name: string;
   type?: string;
   status?: string;
-  subsystems?: Array<Client>;
+  subsystems?: Client[];
 }
 
 export interface ClientsArray extends Array<Client> { }
@@ -19,7 +19,7 @@ export interface DataState {
   loading: boolean;
 }
 
-export const state: DataState = {
+export const dataState: DataState = {
   cities: [],
   clients: [
     {
@@ -36,7 +36,7 @@ export const state: DataState = {
         id: 'Subsystem:Dev:Org:111:Teppo',
         name: 'Teppo',
         status: 'saved',
-      },]
+      }],
     }, {
       name: 'Tampere',
       id: 'Member:Dev:Org:222',
@@ -56,8 +56,8 @@ export const state: DataState = {
           name: 'Hervanta',
           status: 'global error',
         },
-      ]
-    }
+      ],
+    },
   ],
   loading: false,
 };
@@ -69,14 +69,14 @@ export const getters: GetterTree<DataState, RootState> = {
   clients(state): ClientsArray {
     return state.clients;
   },
-  clientsFlat(state): Array<object> {
+  clientsFlat(state): object[] {
 
-    const flat: Array<object> = [];
+    const flat: object[] = [];
 
-    state.clients.forEach(element => {
+    state.clients.forEach((element) => {
       flat.push({ id: element.id, name: element.name, status: element.status, type: element.type || 'client' });
       if (element.subsystems && element.subsystems.length > 0) {
-        element.subsystems.forEach(subsystem => {
+        element.subsystems.forEach((subsystem) => {
           flat.push({ id: subsystem.id, name: subsystem.name, status: subsystem.status, type: 'subsystem' });
         });
       }
@@ -102,8 +102,8 @@ export const mutations: MutationTree<DataState> = {
 export const actions: ActionTree<DataState, RootState> = {
   fetchData({ commit, rootGetters }) {
     if (!rootGetters.isAuthenticated) {
-      //console.log('Not authenticated! Cant call get cities!');
-      //return;
+      // console.log('Not authenticated! Cant call get cities!');
+      // return;
     }
 
     commit('setLoading', true);
@@ -129,7 +129,7 @@ export const actions: ActionTree<DataState, RootState> = {
 
 export const data: Module<DataState, RootState> = {
   namespaced: false,
-  state,
+  state: dataState,
   getters,
   actions,
   mutations,

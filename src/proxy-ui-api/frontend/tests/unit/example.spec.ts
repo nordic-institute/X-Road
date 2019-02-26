@@ -10,7 +10,7 @@ describe('Toolbar', () => {
   let wrapper: any;
 
   const routes = [
-    { path: '/clients', name: 'clients' }
+    { path: '/clients', name: 'clients' },
   ];
 
   const router = new VueRouter({ routes });
@@ -24,7 +24,7 @@ describe('Toolbar', () => {
     silenceWarnHack.disable();
 
     wrapper = mount(Toolbar, {
-      localVue: localVue,
+      localVue,
       router,
     });
   });

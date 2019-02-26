@@ -32,8 +32,10 @@
   </v-stepper>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import Vue from 'vue';
+
+export default Vue.extend({
   data: () => ({
     e1: 0,
   }),
@@ -42,7 +44,7 @@ export default {
       this.$router.replace('/');
     },
   },
-};
+});
 </script>
 
 <style lang="scss" scoped>

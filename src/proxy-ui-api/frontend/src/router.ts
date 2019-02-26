@@ -62,7 +62,7 @@ const router = new Router({
           path: '',
           component: Clients,
         },
-      ]
+      ],
     },
     {
       path: '/login',

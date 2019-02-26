@@ -20,10 +20,10 @@ export default Vue.extend({
   created() {
     // Add a response interceptor
     axios.interceptors.response.use(
-      response => {
+      (response) => {
         return response;
       },
-      error => {
+      (error) => {
         if (
           error.response.status === 401 &&
           error.response.config &&
@@ -35,7 +35,7 @@ export default Vue.extend({
         }
         // Do something with response error
         throw error;
-      }
+      },
     );
   },
 });
