@@ -23,6 +23,7 @@
 
 require 'thread'
 
+java_import Java::ee.ria.xroad.common.request.ClientRegRequestStatusWrapper
 java_import Java::ee.ria.xroad.common.request.ManagementRequestHandler
 java_import Java::ee.ria.xroad.common.request.ManagementRequestParser
 java_import Java::ee.ria.xroad.common.request.ManagementRequestUtil
@@ -41,9 +42,12 @@ class ManagementRequestController < ApplicationController
             @xroad_instance = SystemParameter.instance_identifier
             raise "X-Road instance must exist!" if @xroad_instance.blank?
 
+            @client_reg_request_status_wrapper = ClientRegRequestStatusWrapper.new
+
             @request_soap = ManagementRequestHandler.readRequest(
                 request.headers["CONTENT_TYPE"],
-                StringIO.new(request.raw_post).to_inputstream)
+                StringIO.new(request.raw_post).to_inputstream,
+                @client_reg_request_status_wrapper)
 
             id = handle_request
             logger.debug("Created request id: #{id}")
