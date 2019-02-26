@@ -43,10 +43,6 @@ export const mutations: MutationTree<DataState> = {
 
 export const actions: ActionTree<DataState, RootState> = {
   fetchClients({ commit, rootGetters }) {
-    if (!rootGetters.isAuthenticated) {
-      // console.log('Not authenticated! Cant call get clients!');
-      // return;
-    }
 
     commit('setLoading', true);
 
