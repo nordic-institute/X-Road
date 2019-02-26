@@ -32,7 +32,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.niis.xroad.restapi.DatabaseContextHelper;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -40,13 +41,12 @@ import java.util.List;
  * client repository
  */
 @Slf4j
-@Component
+@Repository
+@Transactional
 public class ClientRepository {
 
     /**
-     * transactions
-     * test rollback
-     * - correct id encoding (see rest proxy)
+     * return one client
      * @param id
      */
     public ClientType getClient(ClientId id) {
