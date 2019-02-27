@@ -33,6 +33,7 @@ import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SoapFault;
@@ -43,6 +44,7 @@ import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.conf.SigningCtx;
@@ -232,6 +234,12 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                         + decoder.getAttachmentsByteCount());
             }
         }
+
+        if (requestMessage.getRest() != null) {
+            // Set request data into the opmon object
+            opMonitoringData.setServiceId(requestServiceId);
+            updateOpMonitoringDataByRestMessage(requestMessage.getRest());
+        }
     }
 
     private void checkRequest() throws Exception {
@@ -375,6 +383,9 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                 Arrays.asList(response.getAllHeaders()));
         encoder.restResponse(restResponse);
 
+        // Update opmon object data with restresponse data - if we get to this point
+        updateOpMonitoringDataByRestMessage(restResponse);
+
         if (response.getEntity() != null) {
             restResponseBody = new CachingStream();
             TeeInputStream tee = new TeeInputStream(response.getEntity().getContent(), restResponseBody);
@@ -467,6 +478,19 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
 
         return hashAlgoId;
+    }
+
+    /**
+     * Update operational monitoring data with REST message header data and
+     * the size of the message.
+     */
+    private void updateOpMonitoringDataByRestMessage(RestMessage restMessage) {
+        if (opMonitoringData != null && restMessage != null) {
+            opMonitoringData.setClientId(restMessage.getSender());
+            opMonitoringData.setMessageId(restMessage.findHeaderValueByName(MimeUtils.HEADER_QUERY_ID));
+            opMonitoringData.setMessageUserId(restMessage.findHeaderValueByName(MimeUtils.HEADER_USER_ID));
+            opMonitoringData.setMessageIssue(restMessage.findHeaderValueByName(MimeUtils.HEADER_ISSUE));
+        }
     }
 
 }

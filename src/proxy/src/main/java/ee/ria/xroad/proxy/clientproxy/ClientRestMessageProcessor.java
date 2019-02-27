@@ -111,6 +111,8 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                     headers(servletRequest)
             );
 
+            updateOpMonitoringDataByRestRequest();
+
             senderId = restRequest.getClient();
             requestServiceId = restRequest.getRequestServiceId();
 
@@ -365,6 +367,20 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
             }
         }
         return tmp;
+    }
+
+    /**
+     * Update operational monitoring data with REST message header data and
+     * the size of the message.
+     */
+    private void updateOpMonitoringDataByRestRequest() {
+        if (opMonitoringData != null && restRequest != null) {
+            opMonitoringData.setClientId(restRequest.getClient());
+            opMonitoringData.setServiceId(restRequest.getRequestServiceId());
+            opMonitoringData.setMessageId(restRequest.findHeaderValueByName(MimeUtils.HEADER_QUERY_ID));
+            opMonitoringData.setMessageUserId(restRequest.findHeaderValueByName(MimeUtils.HEADER_USER_ID));
+            opMonitoringData.setMessageIssue(restRequest.findHeaderValueByName(MimeUtils.HEADER_ISSUE));
+        }
     }
 
 }
