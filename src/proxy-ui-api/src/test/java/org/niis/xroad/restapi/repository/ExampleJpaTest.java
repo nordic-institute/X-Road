@@ -24,63 +24,71 @@
  */
 package org.niis.xroad.restapi.repository;
 
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 
 /**
  * test ClientRepository
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@DataJpaTest
 @AutoConfigureTestDatabase
 @Slf4j
 @Transactional
-public class ClientRepositoryIntegrationTest {
+public class ExampleJpaTest {
+
+    // TestEntityManager only works with DataJpaTests (?)
+    // and DataJpaTests only inject jpa repositories (which we
+    // dont have at least yet), so not sure how useful this
+    // kind of tests will be
+    @Autowired
+    private TestEntityManager testEntityManager;
 
     @Autowired
-    private ClientRepository clientRepository;
+    private JdbcTemplate jdbcTemplate;
+
 
     @Test
-    public void getAllClients() {
-        List<ClientType> clients = clientRepository.getAllClients();
-        assertEquals(2, clients.size());
+    public void testTestEntityManager() {
+        ServerConfType conf2 = new ServerConfType();
+        conf2.setServerCode("from-test");
+        conf2.setId(null);
+        conf2.setOwner(null);
+        ServerConfType confPersisted = testEntityManager.persistFlushFind(conf2);
+
+        ServerConfType confLoad1 = testEntityManager.find(ServerConfType.class, 1L);
+        assertEquals("TEST-INMEM-SS", confLoad1.getServerCode());
+
+        ServerConfType confLoad2 = testEntityManager.find(ServerConfType.class, confPersisted.getId());
+        assertEquals("from-test", confLoad2.getServerCode());
     }
 
     @Test
-    public void testRollback1() {
-        String code = clientRepository.getAndUpdateServerCode();
-        assertEquals("TEST-INMEM-SS", code);
-        log.info("got code {}", code);
+    public void testThatConstraintsWork() {
+        // null conf_id is allowed
+        jdbcTemplate.update("INSERT INTO CLIENT (id, conf_id, identifier)"
+                + " values (1000, null, null)");
+        try {
+            // foreign key constrain should break with conf_id = 1000 (does not exist)
+            jdbcTemplate.update("INSERT INTO CLIENT (id, conf_id, identifier)"
+                    + " values (2000, 1000, null)");
 
-        String updated = clientRepository.getAndUpdateServerCode();
-        assertNotEquals("TEST-INMEM-SS", updated);
-        log.info("got updated code {}", updated);
+        } catch (DataIntegrityViolationException expected) { }
     }
 
-    @Test
-    public void testRollback2() {
-        // transactions should be rolled back between tests
-        String code = clientRepository.getAndUpdateServerCode();
-        assertEquals("TEST-INMEM-SS", code);
-        log.info("got (2) code {}", code);
-
-        String updated = clientRepository.getAndUpdateServerCode();
-        assertNotEquals("TEST-INMEM-SS", updated);
-        log.info("got (2) updated code {}", updated);
-    }
 }
 
 

@@ -36,11 +36,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.NativeWebRequest;
 
 import javax.annotation.security.DenyAll;
+import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 
 import java.util.ArrayList;
@@ -54,6 +56,7 @@ import java.util.Optional;
 @RequestMapping("/api")
 @Slf4j
 @DenyAll
+@Transactional
 public class ClientsApiController implements org.niis.xroad.restapi.openapi.ClientsApi {
 
     private final NativeWebRequest request;
@@ -90,6 +93,28 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     public ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Service>> getClientServices(String id) {
         if (true) throw new NullPointerException("NullPointerException");
         return null;
+    }
+
+    /**
+     * test transactions
+     * @return
+     */
+    @PermitAll
+    @RequestMapping(value = "/update")
+    public String getAndUpdateServerCode() {
+        return clientRepository.getAndUpdateServerCode();
+    }
+
+    /**
+     * test transactions
+     * @return
+     */
+    @PermitAll
+    @RequestMapping(value = "/rollback")
+    public String getAndUpdateServerCodeRollback() {
+        String code = clientRepository.getAndUpdateServerCode();
+        if (true) throw new NullPointerException("code broke, transaction should rollback");
+        return code;
     }
 
     @Override

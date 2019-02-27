@@ -27,13 +27,17 @@ package org.niis.xroad.restapi.repository;
 import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
-import org.niis.xroad.restapi.DatabaseContextHelper;
+import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
 
 import java.util.List;
 
@@ -45,16 +49,20 @@ import java.util.List;
 @Transactional
 public class ClientRepository {
 
+    @Autowired
+    private EntityManager entityManager;
+
+    private Session getCurrentSession() {
+        return entityManager.unwrap(Session.class);
+    }
+
     /**
      * return one client
      * @param id
      */
     public ClientType getClient(ClientId id) {
         ClientDAOImpl clientDAO = new ClientDAOImpl();
-        return DatabaseContextHelper.serverConfTransaction(
-                session -> {
-                    return clientDAO.getClient(session, id);
-                });
+        return clientDAO.getClient(getCurrentSession(), id);
     }
 
     /**
@@ -63,12 +71,24 @@ public class ClientRepository {
      */
     public List<ClientType> getAllClients() {
         ServerConfDAOImpl serverConf = new ServerConfDAOImpl();
-        return DatabaseContextHelper.serverConfTransaction(
-                session -> {
-                    List<ClientType> clientTypes = serverConf.getConf().getClient();
-                    Hibernate.initialize(clientTypes);
-                    return clientTypes;
-                });
+        List<ClientType> clientTypes = serverConf.getConf(getCurrentSession()).getClient();
+        Hibernate.initialize(clientTypes);
+        return clientTypes;
     }
+
+
+    /**
+     * Test transaction rollbacks
+     * @return
+     */
+    public String getAndUpdateServerCode() {
+        ServerConfDAOImpl serverConf = new ServerConfDAOImpl();
+        ServerConfType conf = serverConf.getConf(getCurrentSession());
+        String serverCode = conf.getServerCode();
+        conf.setServerCode(serverCode + "-modified" + System.currentTimeMillis());
+        getCurrentSession().save(conf);
+        return serverCode;
+    }
+
 }
 
