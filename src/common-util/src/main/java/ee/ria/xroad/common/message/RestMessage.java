@@ -38,6 +38,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -91,6 +92,18 @@ public abstract class RestMessage {
         } else {
             throw new IllegalStateException("Can not change queryId");
         }
+    }
+
+    /**
+     * Finds header value as a String
+     * @param name http header name
+     * @return http header value as a String or null if header not found
+     */
+    public String findHeaderValueByName(String name) {
+        Optional<Header> header = headers.stream()
+                .filter(h -> h.getName().equalsIgnoreCase(name))
+                .findFirst();
+        return header.map(Header::getValue).orElse(null);
     }
 
     protected abstract byte[] toByteArray();
