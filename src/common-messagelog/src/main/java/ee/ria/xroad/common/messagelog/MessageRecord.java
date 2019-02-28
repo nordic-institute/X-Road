@@ -113,8 +113,9 @@ public class MessageRecord extends AbstractLogRecord {
 
     /**
      * Constructs a message record.
-     * @param msg the message
-     * @param sig the signature
+     *
+     * @param msg      the message
+     * @param sig      the signature
      * @param clientId message sender client identifier
      * @throws Exception in case of any errors
      */
@@ -125,9 +126,10 @@ public class MessageRecord extends AbstractLogRecord {
 
     /**
      * Constructs a message record.
-     * @param qid the query ID
-     * @param msg the message
-     * @param sig the signature
+     *
+     * @param qid      the query ID
+     * @param msg      the message
+     * @param sig      the signature
      * @param response whether this record is for a response
      * @param clientId message sender client identifier
      */
@@ -154,7 +156,14 @@ public class MessageRecord extends AbstractLogRecord {
      */
     public AsicContainer toAsicContainer() throws Exception {
         log.trace("toAsicContainer({})", queryId);
+        return toAsicContainer(false);
+    }
 
+    /**
+     * @return an ASiC container constructed from this message record
+     * @throws Exception in case of any errors
+     */
+    public AsicContainer toAsicContainer(boolean includeAttachment) throws Exception {
         SignatureData signatureData =
                 new SignatureData(signature, hashChainResult, hashChain);
 
@@ -167,7 +176,8 @@ public class MessageRecord extends AbstractLogRecord {
                     timestampHashChain);
         }
 
-        return new AsicContainer(message, signatureData, timestamp);
+        return new AsicContainer(message, signatureData, timestamp,
+                (includeAttachment && attachment != null) ? attachment.getBinaryStream() : null);
     }
 
     public void setAttachmentStream(InputStream stream, long size) {
@@ -188,4 +198,5 @@ public class MessageRecord extends AbstractLogRecord {
         return (base64Encoded != null && !base64Encoded.isEmpty())
                 ? new String(CryptoUtils.decodeBase64(base64Encoded)) : null;
     }
+
 }

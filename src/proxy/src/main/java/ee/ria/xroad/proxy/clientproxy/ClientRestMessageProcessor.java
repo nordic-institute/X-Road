@@ -26,6 +26,7 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -161,7 +162,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         log.trace("processRequest()");
 
         if (restRequest.getQueryId() == null) {
-            restRequest.setQueryId("xrd-" + UUID.randomUUID().toString());
+            restRequest.setQueryId(GlobalConf.getInstanceIdentifier() + "-" + UUID.randomUUID().toString());
         }
 
         try (HttpSender httpSender = createHttpSender()) {
@@ -228,6 +229,9 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     private void checkConsistency() {
         if (!Objects.equals(restRequest.getQueryId(), response.getRestResponse().getQueryId())) {
             throw new CodedException(X_INCONSISTENT_RESPONSE, "Response message id does not match request message");
+        }
+        if (!Objects.equals(restRequest.getRequestServiceId(), response.getRestResponse().getServiceId())) {
+            throw new CodedException(X_INCONSISTENT_RESPONSE, "Response service id does not match request message");
         }
         if (!Arrays.equals(restRequest.getHash(), response.getRestResponse().getRequestHash())) {
             throw new CodedException(X_INCONSISTENT_RESPONSE, "Response message hash does not match request message");

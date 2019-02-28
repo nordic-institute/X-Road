@@ -293,9 +293,8 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
             ZipOutputStream zos, String type) throws Exception {
 
         for (MessageRecord record : requests) {
-            String filename = nameGen.getArchiveFilename(queryId, type);
-            zos.putNextEntry(new ZipEntry(filename));
-            zos.write(record.toAsicContainer().getBytes());
+            zos.putNextEntry(new ZipEntry(nameGen.getArchiveFilename(queryId, type)));
+            record.toAsicContainer().write(zos);
             zos.closeEntry();
         }
     }
@@ -308,8 +307,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
         servletResponse.setContentType(MimeTypes.ASIC_ZIP);
         servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=\"" + filename + "\"");
-
-        servletResponse.getOutputStream().write(request.toAsicContainer().getBytes());
+        request.toAsicContainer().write(servletResponse.getOutputStream());
     }
 
     @SneakyThrows

@@ -24,6 +24,7 @@
  */
 package ee.ria.xroad.common.message;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 
@@ -38,6 +39,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * Base class for rest messages
@@ -95,6 +97,27 @@ public abstract class RestMessage {
 
     public abstract byte[] getFilteredMessage();
 
+    public abstract ClientId getSender();
+
+    /**
+     * Create rest message from message bytes
+     * @param messageBytes
+     * @return parsed rest message (response or request)
+     * @see RestResponse
+     * @see RestRequest
+     */
+    public static RestMessage of(byte[] messageBytes) throws Exception {
+        if (messageBytes != null && messageBytes.length > 0) {
+            if (messageBytes[0] >= '1' && messageBytes[0] <= '9') {
+                return RestResponse.of(messageBytes);
+            } else {
+                return new RestRequest(messageBytes);
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid message");
+        }
+    }
+
     static String[] split(String header) {
         if (header == null || header.isEmpty()) {
             throw new IllegalArgumentException("Invalid header");
@@ -114,6 +137,21 @@ public abstract class RestMessage {
 
         result[1] = header.substring(i + 1);
         return result;
+    }
+
+    static void serializeHeaders(List<Header> headers, OutputStream os, Predicate<Header> filter) throws IOException {
+        for (Header h: headers) {
+            if (filter.test(h)) {
+                writeString(os, h.getName());
+                writeString(os, ":");
+                writeString(os, h.getValue());
+                os.write(CRLF);
+            }
+        }
+    }
+
+    static boolean isXroadHeader(Header h) {
+        return h != null && h.getName() != null && h.getName().toLowerCase().startsWith("x-road-");
     }
 
     static void writeString(OutputStream os, String s) throws IOException {

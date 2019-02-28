@@ -39,6 +39,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -64,6 +65,7 @@ public class RestRequest extends RestMessage {
     public enum Verb {
         DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT, TRACE
     }
+
     /**
      * Create RestRequest from a byte array
      */
@@ -89,7 +91,9 @@ public class RestRequest extends RestMessage {
      */
     public RestRequest(String verb, String path, String query, List<Header> headers) {
         this.verb = Verb.valueOf(verb);
-        this.headers = headers;
+        this.headers = headers.stream()
+                .filter(h -> !SKIPPED_HEADERS.contains(h.getName().toLowerCase()))
+                .collect(Collectors.toCollection(ArrayList::new));
         this.requestPath = path;
         this.query = query;
         decodeIdentifiers();
@@ -111,14 +115,7 @@ public class RestRequest extends RestMessage {
                 writeString(bof, query);
             }
             bof.write(CRLF);
-
-            for (Header h : headers) {
-                if (SKIPPED_HEADERS.contains(h.getName().toLowerCase())) continue;
-                writeString(bof, h.getName());
-                writeString(bof, ":");
-                writeString(bof, h.getValue());
-                bof.write(CRLF);
-            }
+            serializeHeaders(headers, bof, h -> true);
             final byte[] bytes = bof.toByteArray();
             hash = CryptoUtils.calculateDigest(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID, bytes);
             return bytes;
@@ -143,22 +140,19 @@ public class RestRequest extends RestMessage {
                 writeString(bof, requestPath.substring(0, requestPath.length() - servicePath.length()));
             }
             bof.write(CRLF);
-
-            for (Header h : headers) {
-                if (h.getName().toLowerCase().startsWith("x-road-")) {
-                    writeString(bof, h.getName());
-                    writeString(bof, ":");
-                    writeString(bof, h.getValue());
-                    bof.write(CRLF);
-                }
-            }
+            serializeHeaders(headers, bof, RestMessage::isXroadHeader);
             return bof.toByteArray();
         } catch (Exception io) {
             throw new IllegalStateException("Unable to serialize request", io);
         }
     }
 
-    @SuppressWarnings({"checkstyle:magicnumber", "checkstyle:innerassignment"})
+    @Override
+    public ClientId getSender() {
+        return client;
+    }
+
+    @SuppressWarnings(value = {"checkstyle:magicnumber", "checkstyle:innerassignment"})
     private void decodeIdentifiers() {
         if (requestPath == null) {
             throw new IllegalArgumentException("Request uri must not be null");

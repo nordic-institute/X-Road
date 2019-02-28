@@ -369,6 +369,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         final StatusLine statusLine = response.getStatusLine();
         restResponse = new RestResponse(requestMessage.getRest().getQueryId(),
                 requestMessage.getRest().getHash(),
+                requestServiceId,
                 statusLine.getStatusCode(),
                 statusLine.getReasonPhrase(),
                 Arrays.asList(response.getAllHeaders()));
