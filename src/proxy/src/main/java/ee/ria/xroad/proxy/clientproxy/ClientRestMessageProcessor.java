@@ -111,10 +111,10 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                     headers(servletRequest)
             );
 
-            updateOpMonitoringDataByRestRequest();
-
             senderId = restRequest.getClient();
             requestServiceId = restRequest.getRequestServiceId();
+
+            updateOpMonitoringDataByRestRequest();
 
             verifyClientStatus(senderId);
             verifyClientAuthentication(senderId);
@@ -154,8 +154,8 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
     private void updateOpMonitoringDataByResponse(ProxyMessageDecoder decoder) {
         if (response.getRestResponse() != null) {
-            opMonitoringData.setResponseSoapSize(0);
-            opMonitoringData.setResponseAttachmentCount(0);
+            opMonitoringData.setResponseRestSize(response.getRestResponse().getMessageBytes().length);
+            opMonitoringData.setResponseAttachmentCount(decoder.getAttachmentCount());
         }
     }
 
@@ -375,8 +375,8 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
      */
     private void updateOpMonitoringDataByRestRequest() {
         if (opMonitoringData != null && restRequest != null) {
-            opMonitoringData.setClientId(restRequest.getClient());
-            opMonitoringData.setServiceId(restRequest.getRequestServiceId());
+            opMonitoringData.setClientId(senderId);
+            opMonitoringData.setServiceId(requestServiceId);
             opMonitoringData.setMessageId(restRequest.findHeaderValueByName(MimeUtils.HEADER_QUERY_ID));
             opMonitoringData.setMessageUserId(restRequest.findHeaderValueByName(MimeUtils.HEADER_USER_ID));
             opMonitoringData.setMessageIssue(restRequest.findHeaderValueByName(MimeUtils.HEADER_ISSUE));

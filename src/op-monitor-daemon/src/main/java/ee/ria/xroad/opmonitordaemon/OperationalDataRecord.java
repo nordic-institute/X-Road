@@ -185,6 +185,10 @@ public class OperationalDataRecord {
 
     @Getter
     @Setter
+    private Long requestRestSize;
+
+    @Getter
+    @Setter
     private Long requestMimeSize;
 
     @Getter
@@ -194,6 +198,10 @@ public class OperationalDataRecord {
     @Getter
     @Setter
     private Long responseSoapSize;
+
+    @Getter
+    @Setter
+    private Long responseRestSize;
 
     @Getter
     @Setter

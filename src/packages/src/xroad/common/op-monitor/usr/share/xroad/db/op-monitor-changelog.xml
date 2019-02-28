@@ -7,5 +7,5 @@
 
   <include file="op-monitor/0-initial.xml"/>
   <include file="op-monitor/1-largerfaultstring.xml"/>
+  <include file="op-monitor/2-restsizes.xml"/>
 </databaseChangeLog>
-

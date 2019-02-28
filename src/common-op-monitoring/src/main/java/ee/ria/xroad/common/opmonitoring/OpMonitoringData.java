@@ -90,11 +90,14 @@ public class OpMonitoringData {
 
     private static final String REQUEST_SOAP_SIZE = "requestSoapSize";
     private static final String REQUEST_MIME_SIZE = "requestMimeSize";
+    private static final String REQUEST_REST_SIZE = "requestRestSize";
+
     private static final String REQUEST_ATTACHMENT_COUNT =
             "requestAttachmentCount";
 
     private static final String RESPONSE_SOAP_SIZE = "responseSoapSize";
     private static final String RESPONSE_MIME_SIZE = "responseMimeSize";
+    private static final String RESPONSE_REST_SIZE = "responseRestSize";
     private static final String RESPONSE_ATTACHMENT_COUNT =
             "responseAttachmentCount";
 
@@ -317,6 +320,14 @@ public class OpMonitoringData {
     }
 
     /**
+     * Sets request REST size.
+     * @param size REST size
+     */
+    public void setRequestRestSize(long size) {
+        data.put(REQUEST_REST_SIZE, size);
+    }
+
+    /**
      * Sets request SOAP size.
      * @param size SOAP size
      */
@@ -346,6 +357,14 @@ public class OpMonitoringData {
      */
     public void setResponseSoapSize(long size) {
         data.put(RESPONSE_SOAP_SIZE, size);
+    }
+
+    /**
+     * Sets response REST size.
+     * @param size REST size
+     */
+    public void setResponseRestSize(long size) {
+        data.put(RESPONSE_REST_SIZE, size);
     }
 
     /**
