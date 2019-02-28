@@ -87,6 +87,9 @@
         <property name="requestSoapSize" column="request_soap_size"
                   type="long" />
 
+        <property name="requestRestSize" column="request_rest_size"
+                  type="long" />
+
         <property name="requestMimeSize" column="request_mime_size"
                   type="long" />
 
@@ -94,6 +97,9 @@
                   column="request_attachment_count" type="int" />
 
         <property name="responseSoapSize" column="response_soap_size"
+                  type="long" />
+
+        <property name="responseRestSize" column="response_rest_size"
                   type="long" />
 
         <property name="responseMimeSize" column="response_mime_size"

@@ -238,6 +238,13 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         if (requestMessage.getRest() != null) {
             // Set request data into the opmon object
             opMonitoringData.setServiceId(requestServiceId);
+            opMonitoringData.setRequestAttachmentCount(decoder.getAttachmentCount());
+            opMonitoringData.setRequestRestSize(requestMessage.getRest().getMessageBytes().length);
+
+            if (decoder.getAttachmentCount() > 0) {
+                opMonitoringData.setRequestMimeSize(requestMessage.getRest().getMessageBytes().length
+                        + decoder.getAttachmentsByteCount());
+            }
             updateOpMonitoringDataByRestMessage(requestMessage.getRest());
         }
     }
