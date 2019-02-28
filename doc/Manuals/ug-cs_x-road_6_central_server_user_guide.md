@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide
 
-Version: 2.8  
+Version: 2.9  
 Doc. ID: UG-CS
 
 
@@ -33,6 +33,7 @@ Doc. ID: UG-CS
 | 18.08.2018 | 2.6     | Corrected `ocspFetchInterval` default value (Chapter 16.2) | Petteri Kivimäki |
 | 15.11.2018 | 2.7     | Minor corrections for Ubuntu 18 | Jarkko Hyöty |
 | 23.01.2019 | 2.8     | Information about automatic approval of auth cert registration requests added. Updates in Chapters 6-8. | Petteri Kivimäki |
+| 06.02.2019 | 2.9     | Information about automatic approval of security server client registration requests added. Updates in Chapters 6-8. | Petteri Kivimäki |
 
 ## Table of Contents
 <!-- toc -->
@@ -470,7 +471,16 @@ There are two types of registration requests:
 - authentication certificate registration request (see Sections 7.4 and 8.3);
 - security server client registration request (see Section 7.5).
 
-It is possible to streamline the registration process of authentication certificates by enabling automatic approval of authentication certificate registration requests. When automatic approval is enabled, it is enough to submit a registration request to the X-Road central server through the security server, and the request will be automatically approved immediately. By default, automatic approval of authentication certificate registration requests is disabled. It can be enabled by setting the `auto-approve-auth-cert-reg-requests` property value to `true` on central server.
+It is possible to streamline the registration process of authentication certificates and security server clients by enabling automatic approval.
+ 
+- authentication certificate registration requests
+  - When automatic approval is enabled, it is enough to submit an authentication certificate registration request to the X-Road central server through the security server, and the request will be automatically approved immediately.
+  - Automatic approval is applied to existing members only.
+  - By default, automatic approval of authentication certificate registration requests is disabled. It can be enabled by setting the `auto-approve-auth-cert-reg-requests` property value to `true` on central server.
+- security server client registration requests
+  - When automatic approval is enabled, it is enough to submit a security server client registration request to the X-Road central server through the security server, and the request will be automatically approved immediately.
+  - Automatic approval is applied to existing members only. In addition, automatic approval is applied only if the client registration request has been signed by the member owning the subsystem to be registered as a security server client.
+  - By default, automatic approval of security server client registration requests is disabled. It can be enabled by setting the `auto-approve-client-reg-requests` property value to `true` on central server.
 
 ### 6.1.1 State Machine Model for Registration Requests
 
@@ -496,7 +506,7 @@ Declined – the complementary registration requests have been declined.
 
 Revoked – a registration request has been revoked.
 
-If automatic approval of authentication certificate registration requests is enabled, the complimentary registration request is created and approved automatically. Therefore, the request moves directly to Approved state.
+If automatic approval of authentication certificate registration requests and/or security server client registration requests is enabled, the complimentary registration request is created and approved automatically. Therefore, the request moves directly to Approved state.
 
 ## 6.2 Deletion Requests
 
@@ -634,7 +644,12 @@ To revoke a request, follow these steps.
 
 Access rights: Registration Officer
 
-To register a subsystem of an X-Road member as a security server client, the following actions must be taken.
+The actions required to register a subsystem of an X-Road member as a security server client depend on whether automatic approval of security server client registration requests is enabled or disabled (_default_).
+
+When automatic approval of security server client registration requests is enabled, the following action must be taken:
+- A security server client registration request must be sent from the security server to the central server by the security server administrator.
+
+Automatic approval of security server client registration requests is disabled by default. In that case, to register a subsystem of an X-Road member as a security server client, the following actions must be taken.
 - A security server client registration request must be sent from the security server to the central server by the security server administrator;
 - The complementary security server client registration request must be formalized in the central server by the central server administrator, on the appeal of the security server's owner.
 - The complimentary requests must be approved by the central server administrator.
