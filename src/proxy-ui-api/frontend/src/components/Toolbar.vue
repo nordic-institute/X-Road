@@ -12,7 +12,7 @@
     <v-spacer></v-spacer>Username?
     <v-menu bottom left>
       <v-btn slot="activator" dark icon>
-        <v-icon>person</v-icon>
+        <v-icon>fa-user-circle</v-icon>
       </v-btn>
 
       <v-list>
@@ -25,6 +25,7 @@
         </v-list-tile>
       </v-list>
     </v-menu>
+    <div id="header-title">Security Server</div>
   </v-toolbar>
 </template>
 
@@ -34,12 +35,9 @@ import Vue from 'vue';
 export default Vue.extend({
   name: 'toolbar',
   methods: {
-    refresh(): void {
-      console.log('Refresh!');
-    },
     logout(): void {
-      console.log('logout');
       this.$store.dispatch('logout');
+      this.$router.replace('/login');
     },
     demoLogout(): void {
       this.$store.dispatch('demoLogout');
@@ -59,5 +57,24 @@ export default Vue.extend({
   height: 24px;
   margin-left: 6px;
   background-color: white;
+}
+
+#header-title {
+  text-align: center;
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  width: 190px;
+  opacity: 0.2;
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 29px;
+
+  @media only screen and (max-width: 920px) {
+    display: none;
+  }
 }
 </style>

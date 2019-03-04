@@ -22,12 +22,12 @@ export default Vue.extend({
   methods: {
     fetchCities() {
       this.$store.dispatch('fetchData').then(
-        response => {
+        (response) => {
           this.$bus.$emit('show-success', 'Great success!');
         },
-        error => {
+        (error) => {
           this.$bus.$emit('show-error', error.message);
-        }
+        },
       );
     },
     clearCities(): void {

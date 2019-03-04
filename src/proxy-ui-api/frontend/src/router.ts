@@ -6,6 +6,8 @@ import Clients from './views/Clients.vue';
 import Keys from './views/Keys.vue';
 import Settings from './views/Settings.vue';
 import Diagnostics from './views/Diagnostics.vue';
+import AddSubsystem from './views/AddSubsystem.vue';
+import AddClient from './views/AddClient.vue';
 import Subsystem from './views/Subsystem.vue';
 import Client from './views/Client.vue';
 import { sync } from 'vuex-router-sync';
@@ -36,6 +38,16 @@ const router = new Router({
           component: Settings,
         },
         {
+          name: 'add-subsystem',
+          path: '/add-subsystem',
+          component: AddSubsystem,
+        },
+        {
+          name: 'add-client',
+          path: '/add-client',
+          component: AddClient,
+        },
+        {
           name: 'subsystem',
           path: '/subsystem',
           component: Subsystem,
@@ -50,7 +62,7 @@ const router = new Router({
           path: '',
           component: Clients,
         },
-      ]
+      ],
     },
     {
       path: '/login',

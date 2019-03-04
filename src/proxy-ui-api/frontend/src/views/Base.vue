@@ -14,7 +14,6 @@
           <router-view/>
         </transition>
       </v-layout>
-      <demoComponent/>
     </v-layout>
   </div>
 </template>
@@ -24,13 +23,11 @@ import Vue from 'vue';
 
 import TabContent from '../components/TabContent.vue';
 import Toolbar from '../components/Toolbar.vue';
-import DemoComponent from '../components/DemoComponent.vue';
 
 export default Vue.extend({
   components: {
     TabContent,
     Toolbar,
-    DemoComponent,
   },
   data() {
     return {
@@ -40,12 +37,12 @@ export default Vue.extend({
   methods: {
     fetchCities() {
       this.$store.dispatch('fetchData').then(
-        response => {
+        (response) => {
           this.$bus.$emit('show-success', 'Great success!');
         },
-        error => {
+        (error) => {
           this.$bus.$emit('show-error', error.message);
-        }
+        },
       );
     },
     clearCities(): void {
@@ -79,6 +76,7 @@ export default Vue.extend({
 
 .full-width {
   width: 100%;
+  max-width: 1280px;
 }
 
 .fade-enter-active,

@@ -13,7 +13,7 @@
       </v-toolbar>
       <v-container fluid fill-height>
         <v-layout align-center justify-center>
-          <v-flex xs12 sm8 md4>
+          <v-flex sm8 md4 class="set-width">
             <v-card flat>
               <v-toolbar flat class="login-form-toolbar">
                 <v-toolbar-title class="login-form-toolbar-title">Log in</v-toolbar-title>
@@ -25,7 +25,6 @@
                     label="Username"
                     type="text"
                     v-model="username"
-                    v-validate="'required'"
                     :error-messages="errors.collect('username')"
                     data-vv-name="username"
                     @keyup.enter="submit"
@@ -36,7 +35,6 @@
                     label="Password"
                     type="password"
                     v-model="password"
-                    v-validate="'required'"
                     :error-messages="errors.collect('password')"
                     data-vv-name="password"
                     @keyup.enter="submit"
@@ -50,11 +48,10 @@
                   class="rounded-button"
                   @click="submit"
                   round
-                  :disabled="loading"
+                  :disabled="isDisabled"
+                  :loading="loading"
                 >Log in</v-btn>
               </v-card-actions>
-              <v-progress-linear :indeterminate="true" v-if="loading"></v-progress-linear>
-              <div id="padding" v-else/>
             </v-card>
           </v-flex>
         </v-layout>
@@ -71,9 +68,21 @@ export default Vue.extend({
   data() {
     return {
       loading: false,
-      username: 'user',
-      password: 'password',
+      username: 'xrd',
+      password: 'secret',
     };
+  },
+  computed: {
+    isDisabled() {
+      if (
+        this.username.length < 1 ||
+        this.password.length < 1 ||
+        this.loading
+      ) {
+        return true;
+      }
+      return false;
+    },
   },
   methods: {
     async submit() {
@@ -95,10 +104,10 @@ export default Vue.extend({
       this.$store
         .dispatch('login', loginData)
         .then(
-          response => {
-            this.$bus.$emit('show-success', 'Logged in successfully');
+          (response) => {
+            this.$router.replace('/');
           },
-          error => {
+          (error) => {
             // Display invalid username/password error in inputs
             if (error.response && error.response.status === 401) {
               this.errors.add({
@@ -110,12 +119,14 @@ export default Vue.extend({
                 msg: 'Wrong username or password',
               });
 
+              this.username = '';
+              this.password = '';
               this.errors.first('username');
               this.errors.first('password');
             }
-
+            console.log(error);
             this.$bus.$emit('show-error', error.message);
-          }
+          },
         )
         .finally(() => {
           // Clear loading state
@@ -150,6 +161,10 @@ export default Vue.extend({
 
 .v-progress-linear {
   margin: 0;
+}
+
+.set-width {
+  max-width: 420px;
 }
 
 #padding {
