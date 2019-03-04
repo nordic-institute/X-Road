@@ -74,13 +74,13 @@ As can be seen from [Figure 1](#Messtransport_protocol_overview), three protocol
 
 - X-Road message transport protocol – a synchronous secure communication protocol that provides confidentiality and integrity when exchanging messages between two security servers over the public Internet. This protocol is described in the current document.
 
-- OCSP Response Retrieval Protocol – the protocol used in parallel with the X-Road message transport protocol when establishing a secure communications channel between the service client's and the service provider's security servers (see [Section 2.2](#22-downloading-ocsp-responses-from-service-providers) for details).
+- OCSP Response Retrieval Protocol – the protocol used in parallel with the X-Road message transport protocol when establishing a secure communications channel between the service client's and the service provider's security servers (see [Section 2.2](#22-downloading-ocsp-responses-from-service-provider) for details).
 
 The communication protocol is divided into two layers ([Figure 2](#Messtransport_protocol_layers)) – the transport layer and the application layer. The transport layer uses HTTP over mutually authenticated TLS; see  [Section 2](#2-transport-layer)  for details on how the TLS session is established. The application layer consists of MIME multipart encoded X-Road transport messages that are exchanged over the transport layer (HTTPS); see [Section 3](#3-application-layer) for the exact format of the message and how it's processed.
 
-The service client's security server encapsulates the request message it receives from the service client into an X-Road transport message and in turn receives an X-Road transport message (message format described in [Section 3.1](#31-x-road-transport-message)) from the service provider's security server before forwarding the encapsulated response back to the service client (process described in detail in [Section 3.2](#32-message-handling-in-service-client-s-security-server)).
+The service client's security server encapsulates the request message it receives from the service client into an X-Road transport message and in turn receives an X-Road transport message (message format described in [Section 3.1](#31-x-road-transport-message)) from the service provider's security server before forwarding the encapsulated response back to the service client (process described in detail in [Section 3.2](#32-message-handling-in-service-clients-security-server)).
  
-The service provider's security server receives the X-Road transport message from the service client's security server and forwards the encapsulated request message to the service provider. The service provider's security server encapsulates the response from the service provider into an X-Road transport message and sends it to the service client's security server (process described in detail in [Section 3.3](##33-message-handling-in-service-providers-security-server)).
+The service provider's security server receives the X-Road transport message from the service client's security server and forwards the encapsulated request message to the service provider. The service provider's security server encapsulates the response from the service provider into an X-Road transport message and sends it to the service client's security server (process described in detail in [Section 3.3](#33-message-handling-in-service-providers-security-server)).
 
 Chapters [2](#2-transport-layer) and [3](#3-application-layer), as well as the annex of this specification contain normative information. All the other sections are informative in nature. All the references are normative.
 
@@ -123,7 +123,7 @@ The process of establishing of a secure communication channel can be described b
 
 5. Service client's security server checks if the local OCSP cache contains OCSP responses for the received certificates.
 
-6. If the OCSP responses are not cached, the service client's security server must download them from the service provider's security server and cache them locally (see [Section 2.2](#22-downloading-ocsp-responses-from-service-providers) for details).
+6. If the OCSP responses are not cached, the service client's security server must download them from the service provider's security server and cache them locally (see [Section 2.2](#22-downloading-ocsp-responses-from-service-provider) for details).
 
 7. Service client's security server verifies that the authentication certificate of the service provider's security server was issued by an approved certification service provider and builds the certification chain for the authentication certificate. The certification chain and corresponding OCSP responses are then verified.
 
@@ -209,7 +209,7 @@ The following describes the actions that the service client's security server mu
 
 2. Parse the SOAP message to determine the target service provider.
 
-3. Establish TLS connection with it's security server (see [Section 2.1](#21-tls_authentication)).
+3. Establish TLS connection with it's security server (see [Section 2.1](#21-tls-authentication)).
 
 4. Send an X-Road transport message to the service provider's security server (message format described in [Section 3.1](#31-x-road-transport-message)) in the following steps:
 
@@ -258,7 +258,7 @@ Figure 5. Message processing on service client's side
 
 The following describes the actions that the service provider's security server must take in order to perform a secure message exchange between a service client and a service provider.
 
-1. Establish TLS connection with the service client's security server (see [Section 2.1](#21-tls_authentication)).
+1. Establish TLS connection with the service client's security server (see [Section 2.1](#21-tls-authentication)).
 
 2. Start reading the X-Road transport message from the service client's security server (message format described in [Section 3.1](#31-x-road-transport-message)).
 
