@@ -30,6 +30,7 @@ Doc. ID: UC-MEMBER
  24.11.2016 | 1.4     | XTE-297: Internal Servers tab is displayed to security server owner | Meril Vaht
  23.02.2017 | 1.6     | Converted to Github flavoured Markdown, added license text, adjusted tables and identification for better output in PDF | Toomas Mölder 
  06.03.2018 | 1.7     | Moved terms to term doc, added term doc reference and link, added internal MD-doc links | Tatu Repo
+ 06.02.2019 | 1.8     | Minor update to [UC_MEMBER\_48](#245-uc-member_48-register-a-security-server-client) | Petteri Kivimäki
 
 ## Table of Contents
 
@@ -2935,6 +2936,8 @@ Figure 1. Use case diagram for member management
 -   The state of the security server client is *saved*.
 
 -   The security server client is not the owner of the security server.
+
+-   The member that owns the subsystem to be registered as a security server client has a signing key and certificate.
 
 **Postconditions**: An audit log record for the event is created.
 
