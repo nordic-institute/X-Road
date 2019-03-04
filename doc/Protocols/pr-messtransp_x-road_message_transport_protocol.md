@@ -39,18 +39,18 @@ Date       | Version | Description                                              
   * [1.2 Terms and Abbreviations](#12-terms-and-abbreviations)
   * [1.3 References](#13-references)
 - [2 Transport Layer](#2-transport-layer)
-  * [2.1 TLS Authentication](#21-tls_authentication)
-  * [2.2 Downloading OCSP Responses from Service Providers](#22-downloading-ocsp-responses-from-service-providers)
+  * [2.1 TLS Authentication](#21-tls-authentication)
+  * [2.2 Downloading OCSP Responses from Service Providers](#22-downloading-ocsp-responses-from-service-provider)
 - [3 Application Layer](#3-application-layer)
   * [3.1 X-road Transport Message](#31-x-road-transport-message)
-  * [3.2 Message Handling in Service Client's Security Server](#32-message-handling-in-service-client-s-security-server)
-  * [3.3 Message Handling in Service Provider's Security Server](#33-message-handling-in-service-provider-s-security-server)
+  * [3.2 Message Handling in Service Client's Security Server](#32-message-handling-in-service-clients-security-server)
+  * [3.3 Message Handling in Service Provider's Security Server](#33-message-handling-in-service-providers-security-server)
 - [4 Annex: Example Messages](#4-annex-example-messages)
   * [4.1 Response to OCSP Downloading Request](#41-response-to-ocsp-downloading-request)
   * [4.2 Simple Request](#42-simple-request)
   * [4.3 Simple Response](#43-simple-response)
   * [4.4 Request with Attachments](#44-request-with-attachments)
-  * [4.5 Response with Fault as Last Part](#45-response-woth-fault-as-last-part)
+  * [4.5 Response with Fault as Last Part](#45-response-with-fault-as-last-part)
 
 <!-- tocstop -->
 
@@ -70,7 +70,7 @@ This document describes the communications protocol that is used by service clie
 Figure 1. Protocols used in the X-Road system
 
 As can be seen from [Figure 1](#Messtransport_protocol_overview), three protocols are involved when exchanging messages between a service client and a service provider. These include:
-- X-Road message protocol – used for communication between an information system and a security server within an organization (see [PR-MESS](#PR-MESS) for details). X-Road message protocol is a profile of the SOAP protocol (<http://www.w3.org/TR/2000/NOTE-SOAP-20000508/>).
+- X-Road message protocol – used for communication between an information system and a security server within an organization (see [PR-MESS](#Ref_PR-MESS) for details). X-Road message protocol is a profile of the SOAP protocol (<http://www.w3.org/TR/2000/NOTE-SOAP-20000508/>).
 
 - X-Road message transport protocol – a synchronous secure communication protocol that provides confidentiality and integrity when exchanging messages between two security servers over the public Internet. This protocol is described in the current document.
 
@@ -80,7 +80,7 @@ The communication protocol is divided into two layers ([Figure 2](#Messtransport
 
 The service client's security server encapsulates the request message it receives from the service client into an X-Road transport message and in turn receives an X-Road transport message (message format described in [Section 3.1](#31-x-road-transport-message)) from the service provider's security server before forwarding the encapsulated response back to the service client (process described in detail in [Section 3.2](#32-message-handling-in-service-client-s-security-server)).
  
-The service provider's security server receives the X-Road transport message from the service client's security server and forwards the encapsulated request message to the service provider. The service provider's security server encapsulates the response from the service provider into an X-Road transport message and sends it to the service client's security server (process described in detail in [Section 3.3](#33-message-handling-in-service-provider-s-security-server)).
+The service provider's security server receives the X-Road transport message from the service client's security server and forwards the encapsulated request message to the service provider. The service provider's security server encapsulates the response from the service provider into an X-Road transport message and sends it to the service client's security server (process described in detail in [Section 3.3](##33-message-handling-in-service-providers-security-server)).
 
 Chapters [2](#2-transport-layer) and [3](#3-application-layer), as well as the annex of this specification contain normative information. All the other sections are informative in nature. All the references are normative.
 
@@ -154,7 +154,7 @@ As a response to this request the service responds with a MIME multipart message
 
 ## 3 Application Layer
 
-The integrity of transmitted message is ensured by signing the X-Road transport message in the security server. The signature can be either a regular signature or a batch signature. Batch signatures must be created for messages that contain attachments. If a signing key is located on a slow secure signature creation device then batch signatures may be used when signing many messages simultaneously. See \[[PR-SIGDOC](#PR-SIGDOC)\] for more information about how signatures are created.
+The integrity of transmitted message is ensured by signing the X-Road transport message in the security server. The signature can be either a regular signature or a batch signature. Batch signatures must be created for messages that contain attachments. If a signing key is located on a slow secure signature creation device then batch signatures may be used when signing many messages simultaneously. See \[[PR-SIGDOC](#Ref_PR-SIGDOC)\] for more information about how signatures are created.
 
 The X-Road message transport protocol is designed for streaming the message contents (e.g. attachments) between security servers. The signature can be calculated after the previous parts (e.g. attachments) of the transport message have been transferred to the other party. Streaming the message contents puts restrictions on how the signature of the transport message must be verified. The contents of the transport message must be cached in the security server before the signature of the message can be verified, because the verification result determines the validity of the message – the security server must not forward an invalid message to the other party.
 
@@ -205,7 +205,7 @@ The normal X-Road response message must consist of the following MIME message pa
 
 The following describes the actions that the service client's security server must take in order to perform a secure message exchange between a service client and a service provider.
 
-1. Receive a SOAP message or a SOAP message package (if attachments are present) from the service client (message format described in [PR-MESS](#PR-MESS)).
+1. Receive a SOAP message or a SOAP message package (if attachments are present) from the service client (message format described in [PR-MESS](#Ref_PR-MESS)).
 
 2. Parse the SOAP message to determine the target service provider.
 
@@ -227,7 +227,7 @@ The following describes the actions that the service client's security server mu
 
     d) If the original request was a SOAP message package, write a nested MIME multipart (content-type `multipart/mixed`) containing all attachments as parts. Copy the MIME headers of each attachment part and calculate the hash of the data. 
 
-    e) Calculate the signature using the stored message and attachment hashes in accordance with \[[PR-SIGDOC](#PR-SIGDOC), [BATCH-TS](#BATCH-TS)\]. Write the signature as the last part of the message (content-type `signature/bdoc-1.0/ts`).
+    e) Calculate the signature using the stored message and attachment hashes in accordance with \[[PR-SIGDOC](#Ref_PR-SIGDOC), [BATCH-TS](#Ref_BATCH-TS)\]. Write the signature as the last part of the message (content-type `signature/bdoc-1.0/ts`).
 
 5. Start reading a response from the target service provider's security server (message format described in [Section 3.1](#31-x-road-transport-message).
 
@@ -245,7 +245,7 @@ The following describes the actions that the service client's security server mu
 
 If the content-type of the response is `text/xml` then an error occurred at the service provider's security server and the received SOAP Fault must be returned to the service client. In case of any other content-type, the response is malformed and a corresponding SOAP Fault must be returned to the service client.
 
-7. Verify the response message using the stored message hash, attachment hashes, and signature in accordance with \[[PR-SIGDOC](#PR-SIGDOC), [BATCH-TS](#BATCH-TS)\].
+7. Verify the response message using the stored message hash, attachment hashes, and signature in accordance with \[[PR-SIGDOC](#Ref_PR-SIGDOC), [BATCH-TS](#Ref_BATCH-TS)\].
 
 8. Send the service provider's encapsulated response SOAP message (or a SOAP message package in case the response has attachments) to the service client.
 
@@ -276,11 +276,11 @@ The following describes the actions that the service provider's security server 
 
     f) If the content-type of the last part is `signature/bdoc-1.0/ts` then the part contains the signature of the message. If the content-type of the last part is `text/xml` then the part contains a SOAP fault indicating that an error occurred during the processing of the message in the service client's security server.
 
-4. Verify the request message using the stored message hash, attachment hashes, and signature in accordance with \[[PR-SIGDOC](#PR-SIGDOC), [BATCH-TS](#BATCH-TS)\].
+4. Verify the request message using the stored message hash, attachment hashes, and signature in accordance with \[[PR-SIGDOC](#Ref_PR-SIGDOC), [BATCH-TS](#Ref_BATCH-TS)\].
 
 5. Send the encapsulated SOAP message and any attachments to the target service provider.
 
-6. Start reading a response from the target service provider (message format described in [PR-MESS](#PR-MESS)).
+6. Start reading a response from the target service provider (message format described in [PR-MESS](#Ref_PR-MESS)).
 
 7. Send an X-Road transport message to the service client's security server (message format described in [Section 3.1](#31-x-road-transport-message)) in the following steps:
 
@@ -294,7 +294,7 @@ The following describes the actions that the service provider's security server 
 
     c) If the response from the service provider was a SOAP message package, write a nested MIME multipart (`multipart/mixed`) containing all attachments as parts. For each part, calculate the hash of the data to be used when creating the signature.
 
-    d) Calculate the signature using the stored message and attachment hashes in accordance with \[[PR-SIGDOC](#PR-SIGDOC), [BATCH-TS](#BATCH-TS)\]. Write the signature as the last part of the message (content-type `signature/bdoc-1.0/ts`).
+    d) Calculate the signature using the stored message and attachment hashes in accordance with \[[PR-SIGDOC](#Ref_PR-SIGDOC), [BATCH-TS](#Ref_BATCH-TS)\]. Write the signature as the last part of the message (content-type `signature/bdoc-1.0/ts`).
     
 <a id="Messtransport_protocol_message_processing_service_provider" class="anchor"></a>
 ![](img/pr-messtransport-protocol-message-processing-service-provider.png)
