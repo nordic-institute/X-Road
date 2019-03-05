@@ -12,4 +12,5 @@
     <include file="messagelog/4-archive-index.xml"/>
     <include file="messagelog/5-timestamping-index.xml"/>
     <include file="messagelog/6-rest-message.xml"/>
+    <include file="messagelog/7-x-request-id.xml"/>
 </databaseChangeLog>

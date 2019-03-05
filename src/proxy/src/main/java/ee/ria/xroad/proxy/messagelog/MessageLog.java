@@ -96,10 +96,12 @@ public final class MessageLog {
      * @param message    the message
      * @param signature  the signature
      * @param clientSide whether this message is logged by the client proxy
+     * @param xRequestId (optional) additional request if to distinguish request/response pairs
      */
-    public static void log(SoapMessageImpl message, SignatureData signature, boolean clientSide) {
+    public static void log(SoapMessageImpl message, SignatureData signature, boolean clientSide,
+            String xRequestId) {
         try {
-            ask(new SoapLogMessage(message, signature, clientSide));
+            ask(new SoapLogMessage(message, signature, clientSide, xRequestId));
         } catch (Exception e) {
             throw translateWithPrefix(X_LOGGING_FAILED_X, e);
         }
@@ -108,10 +110,11 @@ public final class MessageLog {
     /**
      * Save the message and signature to message log. The message body is saved from an input stream.
      */
-    public static void log(RestRequest message, SignatureData signature, CacheInputStream body, boolean clientside) {
+    public static void log(RestRequest message, SignatureData signature, CacheInputStream body, boolean clientside,
+            String xRequestId) {
         try {
             ask(new RestLogMessage(message.getQueryId(), message.getClient(), message.getRequestServiceId(),
-                    message, signature, body, clientside));
+                    message, signature, body, clientside, xRequestId));
         } catch (Exception e) {
             throw translateWithPrefix(X_LOGGING_FAILED_X, e);
         }
@@ -121,13 +124,26 @@ public final class MessageLog {
      * Save the message and signature to message log. The message body is saved from an input stream.
      */
     public static void log(RestRequest request, RestResponse message,
-            SignatureData signature, CacheInputStream body, boolean clientside) {
+            SignatureData signature, CacheInputStream body, boolean clientside, String xRequestId) {
         try {
             ask(new RestLogMessage(request.getQueryId(), request.getClient(), request.getRequestServiceId(),
-                    message, signature, body, clientside));
+                    message, signature, body, clientside, xRequestId));
         } catch (Exception e) {
             throw translateWithPrefix(X_LOGGING_FAILED_X, e);
         }
+    }
+
+    public static void log(SoapMessageImpl message, SignatureData signature, boolean clientSide) {
+        log(message, signature, clientSide, null);
+    }
+
+    public static void log(RestRequest message, SignatureData signature, CacheInputStream body, boolean clientside) {
+        log(message, signature, body, clientside, null);
+    }
+
+    public static void log(RestRequest request, RestResponse message,
+                           SignatureData signature, CacheInputStream body, boolean clientside) {
+        log(request, message, signature, body, clientside, null);
     }
 
     /**

@@ -39,7 +39,6 @@ import java.util.stream.Collectors;
  */
 public final class MimeUtils {
 
-
     private static final int RANDOM_BOUNDARY_LENGTH = 30;
 
     public static final String HEADER_CONTENT_TYPE = "content-type";
@@ -64,6 +63,7 @@ public final class MimeUtils {
     public static final String HEADER_CLIENT_ID = "x-road-client";
     public static final String HEADER_SERVICE_ID = "x-road-service";
     public static final String HEADER_REQUEST_HASH = "x-road-request-hash";
+    public static final String HEADER_REQUEST_ID = "x-request-id";
 
     public static final String HASH_CHAIN_CONTENT_TYPE = "application/hash-chain";
     public static final String HASH_CHAIN_RESULT_CONTENT_TYPE = "application/hash-chain-result";

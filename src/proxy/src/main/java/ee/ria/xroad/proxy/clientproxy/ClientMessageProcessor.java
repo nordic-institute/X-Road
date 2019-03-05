@@ -72,6 +72,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -92,6 +93,8 @@ import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_SOAP_ACTION;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_PROXY_VERSION;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
@@ -133,6 +136,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
 
     /** Holds the request to the server proxy. */
     private ProxyMessageEncoder request;
+    private String xRequestId;
 
     /** Holds the response from server proxy. */
     private ProxyMessage response;
@@ -158,12 +162,14 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         super(servletRequest, servletResponse, httpClient, clientCert, opMonitoringData);
         this.reqIns = new PipedInputStream();
         this.reqOuts = new PipedOutputStream(reqIns);
+        this.xRequestId = UUID.randomUUID().toString();
     }
 
     @Override
     public void process() throws Exception {
         log.trace("process()");
 
+        opMonitoringData.setXRequestId(xRequestId);
         updateOpMonitoringClientSecurityServerAddress();
 
         Future<?> soapHandler = SOAP_HANDLER_EXECUTOR.submit(this::handleSoap);
@@ -366,7 +372,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
     private void logResponseMessage() throws Exception {
         log.trace("logResponseMessage()");
 
-        MessageLog.log(response.getSoap(), response.getSignature(), true);
+        MessageLog.log(response.getSoap(), response.getSignature(), true, xRequestId);
     }
 
     private void sendResponse() throws Exception {
@@ -541,7 +547,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         private void logRequestMessage() throws Exception {
             log.trace("logRequestMessage()");
 
-            MessageLog.log(requestSoap, request.getSignature(), true);
+            MessageLog.log(requestSoap, request.getSignature(), true, xRequestId);
         }
 
         @Override

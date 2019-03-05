@@ -1,6 +1,6 @@
 # X-Road: Message Log Data Model
 
-Version: 1.5  
+Version: 1.7  
 Doc. ID: DM-ML
 
 | Date       | Version     | Description                                     | Author             |
@@ -19,8 +19,7 @@ Doc. ID: DM-ML
 | 16.02.2017 | 1.4         | Added index to logrecord, fixed earlier logrecord index name  | Olli Lindgren      |
 | 02.03.2018 | 1.5         | Added uniform terms and conditions reference    | Tatu Repo |
 | 31.01.2019 | 1.6         | REST support                                    | Jarkko Hyöty |
-
-### Table of Contents
+| 11.02.2019 | 1.7         | Added xRequestId                                | Caro Hautamäki |
 
 <!-- vim-markdown-toc GFM -->
 
@@ -88,7 +87,7 @@ When timestamping synchronously, the logging call will block until the timestamp
 
 ## 1.7 Entity-Relationship Diagram
 
-![Entity-Relationship Diagram](img/messagelog-er-diagram.png)
+![Entity-Relationship Diagram](img/messagelog-er.png)
 
 # 2. Description of Entities
 
@@ -126,6 +125,7 @@ Log record can either be a message record or a timestamp record. A message recor
 | time | bigint | | The creation time of the log record (number of milliseconds since January 1, 1970, 00:00:00 GMT). |
 | archived | boolean | | A flag indicating whether this log record has been archived. |
 | attachment | oid | | The REST message body (a large binary object) |
+| xrequestid | character varying(255) | | An optional id which is shared between a request and a response. |
 
 ## 2.2 LAST_ARCHIVE_DIGEST
 

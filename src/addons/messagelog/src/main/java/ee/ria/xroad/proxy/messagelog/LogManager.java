@@ -262,7 +262,7 @@ public class LogManager extends AbstractLogManager {
                 loggedMessage,
                 message.getSignature().getSignatureXml(),
                 message.isResponse(),
-                message.isClientSide() ? message.getClient() : message.getService().getClientId());
+                message.isClientSide() ? message.getClient() : message.getService().getClientId(), message.getXRequestId());
 
         messageRecord.setTime(new Date().getTime());
 
@@ -284,7 +284,7 @@ public class LogManager extends AbstractLogManager {
                 manipulator.getLoggableMessageText(message),
                 message.getSignature().getSignatureXml(),
                 message.isResponse(),
-                message.isClientSide() ? message.getClient() : message.getService().getClientId());
+                message.isClientSide() ? message.getClient() : message.getService().getClientId(), message.getXRequestId());
 
         messageRecord.setTime(new Date().getTime());
 

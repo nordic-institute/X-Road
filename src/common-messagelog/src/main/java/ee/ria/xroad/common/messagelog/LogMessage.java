@@ -41,9 +41,20 @@ public abstract class LogMessage {
 
     private final SignatureData signature;
     private final boolean clientSide;
+    private final String xRequestId;
 
     public abstract String getQueryId();
     public abstract ClientId getClient();
     public abstract ServiceId getService();
 
+    /**
+     * Constructs a new LogMessage without x-request-id header.
+     * @param signature signature of the message
+     * @param clientSide whether this message is logged by the client proxy
+     */
+    public LogMessage(SignatureData signature, boolean clientSide) {
+        this.signature = signature;
+        this.clientSide = clientSide;
+        this.xRequestId = null;
+    }
 }

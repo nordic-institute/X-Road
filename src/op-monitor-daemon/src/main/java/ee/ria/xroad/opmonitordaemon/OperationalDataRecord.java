@@ -215,4 +215,8 @@ public class OperationalDataRecord {
     @Setter
     private String soapFaultString;
 
+    @Getter
+    @Setter
+    private String xRequestId;
+
 }
