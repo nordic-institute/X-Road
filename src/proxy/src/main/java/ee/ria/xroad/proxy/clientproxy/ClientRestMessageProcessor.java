@@ -77,6 +77,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_MESSAGE_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.MimeUtils.VALUE_MESSAGE_TYPE_REST;
 import static ee.ria.xroad.common.util.MimeUtils.getBoundary;
 
@@ -91,11 +92,13 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
     private ClientId senderId;
     private RestRequest restRequest;
+    private String xRequestId;
 
     ClientRestMessageProcessor(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
             HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
             throws Exception {
         super(servletRequest, servletResponse, httpClient, clientCert, opMonitoringData);
+        this.xRequestId = UUID.randomUUID().toString();
     }
 
     @Override
@@ -180,6 +183,9 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         final URI[] addresses = prepareRequest(httpSender, requestServiceId, null);
         httpSender.addHeader(HEADER_MESSAGE_TYPE, VALUE_MESSAGE_TYPE_REST);
 
+        // Add unique id to distinguish request/response pairs
+        httpSender.addHeader(HEADER_REQUEST_ID, xRequestId);
+
         try {
             final String contentType = MimeUtils.mpMixedContentType("xtop" + RandomStringUtils.randomAlphabetic(30));
             httpSender.doPost(addresses[0], new ProxyMessageEntity(contentType));
@@ -243,7 +249,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         MessageLog.log(restRequest,
                 response.getRestResponse(),
                 response.getSignature(),
-                response.getRestBody(), true);
+                response.getRestBody(), true, xRequestId);
     }
 
     private void sendResponse() throws Exception {
@@ -329,13 +335,13 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                         try (TeeInputStream tee = new TeeInputStream(in, cache)) {
                             enc.restBody(buf, count, tee);
                             enc.sign(KeyConf.getSigningCtx(senderId));
-                            MessageLog.log(restRequest, enc.getSignature(), cache.getCachedContents(), true);
+                            MessageLog.log(restRequest, enc.getSignature(), cache.getCachedContents(), true, xRequestId);
                         } finally {
                             cache.consume();
                         }
                     } else {
                         enc.sign(KeyConf.getSigningCtx(senderId));
-                        MessageLog.log(restRequest, enc.getSignature(), null, true);
+                        MessageLog.log(restRequest, enc.getSignature(), null, true, xRequestId);
                     }
                 }
 

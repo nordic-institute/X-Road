@@ -244,6 +244,9 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
             // Preserve the original SOAPAction header
             httpSender.addHeader(HEADER_ORIGINAL_SOAP_ACTION, originalSoapAction);
 
+            // Add unique id to distinguish request/response pairs
+            httpSender.addHeader(HEADER_REQUEST_ID, xRequestId);
+
             try {
                 opMonitoringData.setRequestOutTs(getEpochMillisecond());
                 httpSender.doPost(getServiceAddress(addresses), reqIns, CHUNKED_LENGTH, outputContentType);

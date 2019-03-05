@@ -59,6 +59,16 @@ public final class RestLogMessage extends LogMessage {
         this.body = body;
     }
 
+    public RestLogMessage(String queryId, ClientId client, ServiceId service, RestMessage message,
+            SignatureData signature, CacheInputStream body, boolean clientside, String xRequestId) {
+        super(signature, clientside, xRequestId);
+        this.queryId = queryId;
+        this.client = client;
+        this.service = service;
+        this.message = message;
+        this.body = body;
+    }
+
     public boolean isResponse() {
         return message instanceof RestResponse;
     }
