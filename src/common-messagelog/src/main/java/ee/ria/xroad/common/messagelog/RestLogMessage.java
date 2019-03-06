@@ -59,6 +59,9 @@ public final class RestLogMessage extends LogMessage {
         this.body = body;
     }
 
+    /**
+     * Create Loggable Rest Message with xRequestId
+     */
     public RestLogMessage(String queryId, ClientId client, ServiceId service, RestMessage message,
             SignatureData signature, CacheInputStream body, boolean clientside, String xRequestId) {
         super(signature, clientside, xRequestId);

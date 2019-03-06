@@ -335,7 +335,8 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                         try (TeeInputStream tee = new TeeInputStream(in, cache)) {
                             enc.restBody(buf, count, tee);
                             enc.sign(KeyConf.getSigningCtx(senderId));
-                            MessageLog.log(restRequest, enc.getSignature(), cache.getCachedContents(), true, xRequestId);
+                            MessageLog.log(restRequest, enc.getSignature(), cache.getCachedContents(), true,
+                                    xRequestId);
                         } finally {
                             cache.consume();
                         }
