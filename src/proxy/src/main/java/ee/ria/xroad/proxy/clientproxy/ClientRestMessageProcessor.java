@@ -104,6 +104,8 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     @Override
     public void process() throws Exception {
         log.trace("process()");
+
+        opMonitoringData.setXRequestId(xRequestId);
         updateOpMonitoringClientSecurityServerAddress();
 
         try {
