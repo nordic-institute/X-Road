@@ -34,6 +34,7 @@ import ee.ria.xroad.common.messagelog.TimestampRecord;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Criteria;
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
 
@@ -44,6 +45,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Function;
 
 import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
 
@@ -92,11 +94,12 @@ public final class LogRecordManager {
      * @return the log record or null, if log record is not found in database.
      * @throws Exception if an error occurs while communicating with database.
      */
-    public static MessageRecord getByQueryIdUnique(String queryId, ClientId clientId, boolean isResponse)
+    public static <R> R getByQueryIdUnique(String queryId, ClientId clientId, Boolean isResponse,
+            Function<MessageRecord, R> processor)
             throws Exception {
         log.trace(GET_BY_QUERY_ID_LOG_FORMAT, queryId, clientId, isResponse);
 
-        return doInTransaction(session -> getMessageRecord(session, queryId, clientId, isResponse));
+        return doInTransaction(session -> processor.apply(getMessageRecord(session, queryId, clientId, isResponse)));
     }
 
     /**
@@ -108,11 +111,12 @@ public final class LogRecordManager {
      * @return the log record list or empty list, if no log records were not found in database.
      * @throws Exception if an error occurs while communicating with database.
      */
-    public static List<MessageRecord> getByQueryId(String queryId, ClientId clientId, boolean isResponse)
+    public static <R> R getByQueryId(String queryId, ClientId clientId, Boolean isResponse,
+            Function<List<MessageRecord>, R> processor)
             throws Exception {
         log.trace(GET_BY_QUERY_ID_LOG_FORMAT, queryId, clientId, isResponse);
 
-        return doInTransaction(session -> getMessageRecords(session, queryId, clientId, isResponse));
+        return doInTransaction(session -> processor.apply(getMessageRecords(session, queryId, clientId, isResponse)));
     }
 
     /**
@@ -153,10 +157,14 @@ public final class LogRecordManager {
      * @param messageRecord the message record to be updated.
      * @throws Exception if an error occurs while communicating with database.
      */
-    static void updateMessageRecord(MessageRecord messageRecord) throws Exception {
+    static void updateMessageRecordSignature(MessageRecord messageRecord) throws Exception {
         doInTransaction(session -> {
-            session.update(messageRecord);
-
+            final Query query = session.createQuery("update MessageRecord m set m.signature = :signature, "
+                    + "m.signatureHash = :hash where id = :id");
+            query.setParameter("id", messageRecord.getId());
+            query.setParameter("hash", messageRecord.getSignatureHash());
+            query.setParameter("signature", messageRecord.getSignature());
+            query.executeUpdate();
             return null;
         });
     }
@@ -270,7 +278,7 @@ public final class LogRecordManager {
 
     @SneakyThrows
     private static MessageRecord getMessageRecord(Session session, String queryId, ClientId clientId,
-            boolean isResponse) {
+            Boolean isResponse) {
         Criteria criteria = createRecordCriteria(session, queryId, clientId, isResponse);
 
         return (MessageRecord) criteria.uniqueResult();
@@ -280,14 +288,15 @@ public final class LogRecordManager {
     @SuppressWarnings("unchecked")
     private static List<MessageRecord> getMessageRecords(Session session, String queryId, ClientId
             clientId,
-            boolean isResponse) {
+            Boolean isResponse) {
         Criteria criteria = createRecordCriteria(session, queryId, clientId, isResponse);
 
         return criteria.list();
     }
 
     private static Criteria createRecordCriteria(Session session, String queryId, ClientId clientId,
-            boolean isResponse) {
+            Boolean isResponse) {
+
         Criteria criteria = session.createCriteria(MessageRecord.class);
         criteria.add(Restrictions.eq("queryId", queryId));
         criteria.add(Restrictions.eq("memberClass", clientId.getMemberClass()));
@@ -295,7 +304,11 @@ public final class LogRecordManager {
         String subsystemCode = clientId.getSubsystemCode();
         criteria.add(subsystemCode == null
                 ? Restrictions.isNull("subsystemCode") : Restrictions.eq("subsystemCode", subsystemCode));
-        criteria.add(Restrictions.eq("response", isResponse));
+        if (isResponse != null) {
+            criteria.add(Restrictions.eq("response", isResponse));
+        }
+
+        criteria.setReadOnly(true);
 
         return criteria;
     }

@@ -62,7 +62,7 @@ import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 @Slf4j
 public final class MessageLog {
 
-    private static final int ASK_TIMEOUT = 40;
+    private static final int ASK_TIMEOUT = 120;
 
     public static final String LOG_MANAGER = "LogManager";
 
