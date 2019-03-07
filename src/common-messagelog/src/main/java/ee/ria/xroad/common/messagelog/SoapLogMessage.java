@@ -45,6 +45,11 @@ public final class SoapLogMessage extends LogMessage {
         this.message = message;
     }
 
+    public SoapLogMessage(SoapMessageImpl message, SignatureData signature, boolean clientSide, String xRequestId) {
+        super(signature, clientSide, xRequestId);
+        this.message = message;
+    }
+
     public String getQueryId() {
         return message.getQueryId();
     }
