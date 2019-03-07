@@ -53,7 +53,7 @@ public final class MessageLogProperties {
 
     private static final int DEFAULT_ARCHIVE_TRANSACTION_BATCH_SIZE = 10000;
 
-    private static final long DEFAULT_MAX_LOGGABLE_MESSAGE_BODY_SIZE = 1024 * 1024 * 1024;
+    private static final long DEFAULT_MAX_LOGGABLE_MESSAGE_BODY_SIZE = 10 * 1024 * 1024;
     private static final long MAX_LOGGABLE_MESSAGE_BODY_SIZE_LIMIT = 1024 * 1024 * 1024;
 
     private static final String PREFIX = "xroad.message-log.";
