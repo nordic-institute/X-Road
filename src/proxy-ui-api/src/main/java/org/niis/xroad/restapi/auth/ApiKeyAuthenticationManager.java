@@ -37,6 +37,7 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -55,6 +56,9 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
     @Autowired
     private AuthenticationHeaderDecoder authenticationHeaderDecoder;
 
+    @Autowired
+    private PermissionMapper permissionMapper;
+
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String encodedAuthenticationHeader = (String) authentication.getPrincipal();
@@ -66,12 +70,31 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
         PreAuthenticatedAuthenticationToken authenticationWithGrants =
                 new PreAuthenticatedAuthenticationToken(authentication.getPrincipal(),
                         authentication.getCredentials(),
-                        rolenamesToGrants(key.getRoles()));
+                        getAllGrants(key.getRoles()));
         log.debug("authentication: {}", authenticationWithGrants);
         return authenticationWithGrants;
     }
 
-    private Set<SimpleGrantedAuthority> rolenamesToGrants(Collection<String> rolenames) {
+    /**
+     * Create set of grants, consisting of roles and permissions
+     * @param rolenames
+     * @return
+     */
+    private Set<SimpleGrantedAuthority> getAllGrants(Collection<String> rolenames) {
+        Set<SimpleGrantedAuthority> grants = new HashSet<>();
+        grants.addAll(getRoleGrants(rolenames));
+        grants.addAll(getPermissionGrants(rolenames));
+        return grants;
+    }
+
+    private Set<SimpleGrantedAuthority> getPermissionGrants(Collection<String> rolenames) {
+        return permissionMapper.getPermissions(rolenames)
+                .stream()
+                .map(name -> new SimpleGrantedAuthority(name.toUpperCase()))
+                .collect(Collectors.toSet());
+    }
+
+    private Set<SimpleGrantedAuthority> getRoleGrants(Collection<String> rolenames) {
         return rolenames.stream()
                 .map(name -> new SimpleGrantedAuthority("ROLE_" + name.toUpperCase()))
                 .collect(Collectors.toSet());

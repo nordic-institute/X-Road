@@ -28,13 +28,15 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.auth.Role;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,11 +45,13 @@ import org.springframework.web.context.request.NativeWebRequest;
 
 import javax.annotation.security.DenyAll;
 import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * clients api
@@ -117,11 +121,44 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
         return code;
     }
 
+    @PermitAll
+    @RequestMapping(value = "/ugu")
+    public ResponseEntity<String> getFoo(Authentication authentication) {
+        return new ResponseEntity<>("ljkjhkj", HttpStatus.OK);
+    }
+
+    @PermitAll
+    @RequestMapping(value = "/roles")
+    public ResponseEntity<Set<String>> getRoles(Authentication authentication) {
+        return new ResponseEntity<>(
+                getAuthorities(authentication, name -> name.startsWith("ROLE_")),
+                HttpStatus.OK);
+    }
+
+    @PermitAll
+    @RequestMapping(value = "/permissions")
+    public ResponseEntity<Set<String>> getPermissions(Authentication authentication) {
+        return new ResponseEntity<>(
+                getAuthorities(authentication, name -> !name.startsWith("ROLE_")),
+                HttpStatus.OK);
+    }
+
+    private Set<String> getAuthorities(Authentication authentication,
+                                       Predicate<String> authorityNamePredicate) {
+        Set<String> roles = authentication.getAuthorities().stream()
+                .map(authority -> ((GrantedAuthority) authority).getAuthority())
+                .filter(authorityNamePredicate)
+                .collect(Collectors.toSet());
+        return roles;
+    }
+
+
     @Override
-    @RolesAllowed({Role.Names.XROAD_SECURITY_OFFICER,
-                    Role.Names.XROAD_REGISTRATION_OFFICER,
-                    Role.Names.XROAD_SERVICE_ADMINISTRATOR,
-                    Role.Names.XROAD_SECURITYSERVER_OBSERVER})
+    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
+//    @RolesAllowed({Role.Names.XROAD_SECURITY_OFFICER,
+//                    Role.Names.XROAD_REGISTRATION_OFFICER,
+//                    Role.Names.XROAD_SERVICE_ADMINISTRATOR,
+//                    Role.Names.XROAD_SECURITYSERVER_OBSERVER})
     public ResponseEntity<List<Client>> getClients() {
         List<ClientType> clientTypes = clientRepository.getAllClients();
         List<Client> clients = new ArrayList<>();
@@ -132,9 +169,10 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     }
 
     @Override
-    @RolesAllowed({Role.Names.XROAD_REGISTRATION_OFFICER,
-            Role.Names.XROAD_SERVICE_ADMINISTRATOR,
-            Role.Names.XROAD_SECURITYSERVER_OBSERVER})
+    @PreAuthorize("hasAuthority('NO_ONE_HAS_THIS')")
+//    @RolesAllowed({Role.Names.XROAD_REGISTRATION_OFFICER,
+//            Role.Names.XROAD_SERVICE_ADMINISTRATOR,
+//            Role.Names.XROAD_SECURITYSERVER_OBSERVER})
     public ResponseEntity<Client> getClient(String id) {
 //CHECKSTYLE.OFF: TodoComment - need this todo and still want builds to succeed
         ClientId clientId = clientConverter.convertId(id);

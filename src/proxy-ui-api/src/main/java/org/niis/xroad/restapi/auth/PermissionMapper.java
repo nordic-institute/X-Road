@@ -3,17 +3,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,37 +22,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.config;
+package org.niis.xroad.restapi.auth;
 
-import ee.ria.xroad.common.SystemPropertiesLoader;
+import org.springframework.stereotype.Component;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY_UI;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
- * Helper wrapper which makes sure system properties are initialized
+ * Maps roles to permissions
  */
-public final class SystemPropertiesInitializer {
-    private SystemPropertiesInitializer() {
+@Component
+public class PermissionMapper {
+    private static final Map<String, Set<String>> DUMMY_MAPPINGS = new HashMap();
+    static {
+        DUMMY_MAPPINGS.put("XROAD_SERVICE_ADMINISTRATOR",
+                Stream.of("view_clients", "view_clients.add_client",
+                        "view_clients.view_client_details_dialog.view_client_services.edit_wsdl")
+                        .collect(Collectors.toSet()));
+        DUMMY_MAPPINGS.put("XROAD_REGISTRATION_OFFICER",
+                Stream.of("view_clients.add_client")
+                        .collect(Collectors.toSet()));
     }
-    private static final AtomicBoolean XROAD_PROPERTIES_INITIALIZED = new AtomicBoolean(false);
 
     /**
-     * initialize, if not yet initialized
+     * Return permissions for given role
+     * @param roles
+     * @return
      */
-    public static synchronized void initialize() {
-
-        if (true) return;
-        if (!XROAD_PROPERTIES_INITIALIZED.get()) {
-            SystemPropertiesLoader.create().withCommonAndLocal()
-                    .with(CONF_FILE_PROXY)
-                    .with(CONF_FILE_PROXY_UI)
-                    .with(CONF_FILE_SIGNER)
-                    .load();
-            XROAD_PROPERTIES_INITIALIZED.set(true);
+    public Collection<String> getPermissions(Collection<String> roles) {
+        Set<String> permissions = new HashSet<>();
+        for (String role: roles) {
+            if (DUMMY_MAPPINGS.containsKey(role)) {
+                permissions.addAll(DUMMY_MAPPINGS.get(role));
+            }
         }
+        return permissions;
     }
 }
