@@ -18,8 +18,6 @@ buildscript {
 configurations {
     compile {
         exclude group: 'org.hibernate', module: 'hibernate-hikaricp'
-//        exclude group: 'org.postgresql', module: 'postgresql'
-//        exclude group: 'org.hsqldb', module: 'hsqldb'
     }
     developmentOnly
     runtimeClasspath {
@@ -131,12 +129,6 @@ licenseMain.enabled = false
 licenseFormat.dependsOn licenseFormatJava
 licenseTest.dependsOn licenseTestJava
 
-// TODO: would rather use hsqldb (why? maybe since old code uses that)
-// but there's some case sensitivity problems (see confluence)
-// TODO: why do we have to have serverconf.server_code instead of serverconf.server_code?
-// but table names had messed up UPPERCASEs
-// TODO: also would like to take *.hbm.xml from classpath and not copypaste those
-
 dependencies {
     implementation project(':serverconf')
     implementation('org.springframework.boot:spring-boot-starter-security')
@@ -146,11 +138,8 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-data-jpa')
     implementation('org.kohsuke:libpam4j:1.11')
     implementation('org.postgresql:postgresql:42.2.5')
-//    implementation('mysql:mysql-connector-java')
-//    implementation('org.postgresql:postgresql:42.2.5')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')
-//    testImplementation('com.h2database:h2')
     testImplementation('org.hsqldb:hsqldb')
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")

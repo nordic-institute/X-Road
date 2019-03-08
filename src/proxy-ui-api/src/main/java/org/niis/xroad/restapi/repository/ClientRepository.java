@@ -27,7 +27,6 @@ package org.niis.xroad.restapi.repository;
 import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
@@ -75,20 +74,5 @@ public class ClientRepository {
         Hibernate.initialize(clientTypes);
         return clientTypes;
     }
-
-
-    /**
-     * Test transaction rollbacks
-     * @return
-     */
-    public String getAndUpdateServerCode() {
-        ServerConfDAOImpl serverConf = new ServerConfDAOImpl();
-        ServerConfType conf = serverConf.getConf(getCurrentSession());
-        String serverCode = conf.getServerCode();
-        conf.setServerCode(serverCode + "-modified" + System.currentTimeMillis());
-        getCurrentSession().save(conf);
-        return serverCode;
-    }
-
 }
 

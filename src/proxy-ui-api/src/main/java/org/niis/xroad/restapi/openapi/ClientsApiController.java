@@ -42,7 +42,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.NativeWebRequest;
 
 import javax.annotation.security.DenyAll;
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 
 import java.util.ArrayList;
@@ -84,40 +83,6 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     }
 
     @Override
-    public ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Group>> getClientGroups(String id) {
-        if (true) throw new RestNotFoundException("RestNotFoundException");
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Service>> getClientServices(String id) {
-        if (true) throw new NullPointerException("NullPointerException");
-        return null;
-    }
-
-    /**
-     * test transactions
-     * @return
-     */
-    @PermitAll
-    @RequestMapping(value = "/update")
-    public String getAndUpdateServerCode() {
-        return clientRepository.getAndUpdateServerCode();
-    }
-
-    /**
-     * test transactions
-     * @return
-     */
-    @PermitAll
-    @RequestMapping(value = "/rollback")
-    public String getAndUpdateServerCodeRollback() {
-        String code = clientRepository.getAndUpdateServerCode();
-        if (true) throw new NullPointerException("code broke, transaction should rollback");
-        return code;
-    }
-
-    @Override
     @RolesAllowed({Role.Names.XROAD_SECURITY_OFFICER,
                     Role.Names.XROAD_REGISTRATION_OFFICER,
                     Role.Names.XROAD_SERVICE_ADMINISTRATOR,
@@ -137,6 +102,8 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
             Role.Names.XROAD_SECURITYSERVER_OBSERVER})
     public ResponseEntity<Client> getClient(String id) {
 //CHECKSTYLE.OFF: TodoComment - need this todo and still want builds to succeed
+        // getClient is not yet implemented at this point,
+        // but keeping the work-in-progress version here anyway
         ClientId clientId = clientConverter.convertId(id);
         ClientType clientType = clientRepository.getClient(clientId);
         Client client = clientConverter.convert(clientType);
