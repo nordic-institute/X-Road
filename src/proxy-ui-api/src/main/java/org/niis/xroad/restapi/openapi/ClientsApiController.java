@@ -43,9 +43,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.NativeWebRequest;
 
-import javax.annotation.security.DenyAll;
-import javax.annotation.security.PermitAll;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -59,7 +56,7 @@ import java.util.stream.Collectors;
 @Controller
 @RequestMapping("/api")
 @Slf4j
-@DenyAll
+@PreAuthorize("denyAll")
 @Transactional
 public class ClientsApiController implements org.niis.xroad.restapi.openapi.ClientsApi {
 
@@ -79,7 +76,6 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     /**
      * Example exception
      */
-//    @PreAuthorize("hasAuthority('ROLE_XROAD-SERVICE-ADMINISTRATOR')")
     @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "No such Thing there")
     public static class RestNotFoundException extends RuntimeException {
         public RestNotFoundException(String s) {
@@ -103,7 +99,7 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
      * test transactions
      * @return
      */
-    @PermitAll
+    @PreAuthorize("permitAll()")
     @RequestMapping(value = "/update")
     public String getAndUpdateServerCode() {
         return clientRepository.getAndUpdateServerCode();
@@ -113,7 +109,7 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
      * test transactions
      * @return
      */
-    @PermitAll
+    @PreAuthorize("permitAll()")
     @RequestMapping(value = "/rollback")
     public String getAndUpdateServerCodeRollback() {
         String code = clientRepository.getAndUpdateServerCode();
@@ -126,7 +122,7 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
      * @param authentication
      * @return
      */
-    @PermitAll
+    @PreAuthorize("permitAll()")
     @RequestMapping(value = "/roles")
     public ResponseEntity<Set<String>> getRoles(Authentication authentication) {
         return new ResponseEntity<>(
@@ -139,7 +135,7 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
      * @param authentication
      * @return
      */
-    @PermitAll
+    @PreAuthorize("permitAll()")
     @RequestMapping(value = "/permissions")
     public ResponseEntity<Set<String>> getPermissions(Authentication authentication) {
         return new ResponseEntity<>(
@@ -159,10 +155,6 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-//    @RolesAllowed({Role.Names.XROAD_SECURITY_OFFICER,
-//                    Role.Names.XROAD_REGISTRATION_OFFICER,
-//                    Role.Names.XROAD_SERVICE_ADMINISTRATOR,
-//                    Role.Names.XROAD_SECURITYSERVER_OBSERVER})
     public ResponseEntity<List<Client>> getClients() {
         List<ClientType> clientTypes = clientRepository.getAllClients();
         List<Client> clients = new ArrayList<>();
@@ -174,9 +166,6 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
 
     @Override
     @PreAuthorize("hasAuthority('NO_ONE_HAS_THIS')")
-//    @RolesAllowed({Role.Names.XROAD_REGISTRATION_OFFICER,
-//            Role.Names.XROAD_SERVICE_ADMINISTRATOR,
-//            Role.Names.XROAD_SECURITYSERVER_OBSERVER})
     public ResponseEntity<Client> getClient(String id) {
 //CHECKSTYLE.OFF: TodoComment - need this todo and still want builds to succeed
         ClientId clientId = clientConverter.convertId(id);

@@ -81,7 +81,7 @@ import java.io.IOException;
  */
 @EnableWebSecurity(debug = true)
 // explain and document this
-@EnableGlobalMethodSecurity(jsr250Enabled = true, proxyTargetClass = true)
+@EnableGlobalMethodSecurity(proxyTargetClass = true, prePostEnabled = true)
 @Slf4j
 public class MultiAuthWebSecurityConfig {
 

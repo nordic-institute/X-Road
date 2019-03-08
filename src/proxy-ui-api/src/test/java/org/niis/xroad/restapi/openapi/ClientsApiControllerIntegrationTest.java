@@ -83,7 +83,7 @@ public class ClientsApiControllerIntegrationTest {
 //        assertEquals(2, response.getBody().size());
 //    }
     @Test
-    @WithMockUser(roles = "XROAD_REGISTRATION_OFFICER")
+    @WithMockUser(authorities = "VIEW_CLIENTS")
     public void getClients() {
         ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Client>> response =
                 clientsApiController.getClients();
