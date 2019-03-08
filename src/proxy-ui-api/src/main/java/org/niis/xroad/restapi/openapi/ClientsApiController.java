@@ -109,7 +109,7 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
      * test transactions
      * @return
      */
-    @PreAuthorize("permitAll()")
+    @PreAuthorize("hasAuthority('INIT_CONFIG')")
     @RequestMapping(value = "/rollback")
     public String getAndUpdateServerCodeRollback() {
         String code = clientRepository.getAndUpdateServerCode();

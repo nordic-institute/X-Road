@@ -24,6 +24,9 @@
  */
 package org.niis.xroad.restapi.auth;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.config.YamlMapFactoryBean;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
@@ -34,22 +37,53 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Maps roles to granted authorities
  */
 @Component
+@Slf4j
 public class GrantedAuthorityMapper {
-    private static final Map<String, Set<String>> DUMMY_MAPPINGS = new HashMap();
-    static {
-        DUMMY_MAPPINGS.put("XROAD_SERVICE_ADMINISTRATOR",
-                Stream.of("view_clients", "view_clients.add_client",
-                        "view_clients.view_client_details_dialog.view_client_services.edit_wsdl")
-                        .collect(Collectors.toSet()));
-        DUMMY_MAPPINGS.put("XROAD_REGISTRATION_OFFICER",
-                Stream.of("view_clients.add_client")
-                        .collect(Collectors.toSet()));
+
+    private static final String YAML_PERMISSIONS_RESOURCE = "permissions.yml";
+
+    private Map<String, Set<String>> rolesToPermissions;
+
+    /**
+     * constructor
+     */
+    public GrantedAuthorityMapper() {
+        rolesToPermissions = parseYamlPermissions(YAML_PERMISSIONS_RESOURCE);
+    }
+
+    /**
+     * Read yaml permissions
+     * @param res
+     */
+    private Map<String, Set<String>> parseYamlPermissions(String res) {
+
+        YamlMapFactoryBean yamlMapFactoryBean = new YamlMapFactoryBean();
+        yamlMapFactoryBean.setResources(new ClassPathResource(res));
+        Map<String, Object> parsedYamlPermissions = yamlMapFactoryBean.getObject();
+        Collection<Map<String, Collection<String>>> permissionsToRolesList =
+                (Collection<Map<String, Collection<String>>>) parsedYamlPermissions.get("document");
+
+
+        Map<String, Set<String>> rolePermissionMappings = new HashMap<>();
+        for (Map<String, Collection<String>> permissionsToRoles: permissionsToRolesList) {
+            for (String permissionName: permissionsToRoles.keySet()) {
+                for (String roleName: permissionsToRoles.get(permissionName)) {
+                    Role role = Role.valueOf(roleName.toUpperCase());
+                    if (!rolePermissionMappings.containsKey(role.name())) {
+                        rolePermissionMappings.put(role.name(), new HashSet<>());
+                    }
+                    rolePermissionMappings.get(role.name()).add(permissionName);
+                }
+            }
+        }
+
+        log.debug("props: {}", rolePermissionMappings);
+        return rolePermissionMappings;
     }
 
     /**
@@ -71,9 +105,7 @@ public class GrantedAuthorityMapper {
     private Set<SimpleGrantedAuthority> getPermissionGrants(Collection<String> rolenames) {
         Set<String> permissions = new HashSet<>();
         for (String role: rolenames) {
-            if (DUMMY_MAPPINGS.containsKey(role)) {
-                permissions.addAll(DUMMY_MAPPINGS.get(role));
-            }
+            permissions.addAll(rolesToPermissions.get(role));
         }
         return permissions
                 .stream()

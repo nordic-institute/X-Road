@@ -33,7 +33,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 /**
  * Test GrantedAuthorityMapper
@@ -52,11 +52,24 @@ public class GrantedAuthorityMapperTest {
         String roleName = "XROAD_REGISTRATION_OFFICER";
         Set<GrantedAuthority> authorities = mapper.getAuthorities(
                 Collections.singletonList(roleName));
-        assertEquals(2, authorities.size());
+        assertTrue(authorities.size() > 1);
         Set<String> authStrings = authorities.stream().map(
                 auth -> auth.getAuthority())
                 .collect(Collectors.toSet());
         assertTrue(authStrings.contains("ROLE_" + roleName));
-        assertTrue(authStrings.contains("VIEW_CLIENTS.ADD_CLIENT"));
+        assertTrue(authStrings.contains("ADD_CLIENT"));
+        assertFalse(authStrings.contains("INIT_CONFIG"));
     }
+
+    @Test
+    public void simpleMappingSystemAdmin() {
+        String roleName = "XROAD_SYSTEM_ADMINISTRATOR";
+        Set<GrantedAuthority> authorities = mapper.getAuthorities(
+                Collections.singletonList(roleName));
+        Set<String> authStrings = authorities.stream().map(
+                auth -> auth.getAuthority())
+                .collect(Collectors.toSet());
+        assertTrue(authStrings.contains("INIT_CONFIG"));
+    }
+
 }
