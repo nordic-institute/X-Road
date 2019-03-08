@@ -24,6 +24,8 @@
  */
 package org.niis.xroad.restapi.auth;
 
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -35,10 +37,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Maps roles to permissions
+ * Maps roles to granted authorities
  */
 @Component
-public class PermissionMapper {
+public class GrantedAuthorityMapper {
     private static final Map<String, Set<String>> DUMMY_MAPPINGS = new HashMap();
     static {
         DUMMY_MAPPINGS.put("XROAD_SERVICE_ADMINISTRATOR",
@@ -51,17 +53,38 @@ public class PermissionMapper {
     }
 
     /**
-     * Return permissions for given role
-     * @param roles
+     * Return granted authorities for given roles.
+     * Result contains
+     * - SimpleGrantedAuthority for each xroad role, named using standard "ROLE_" + rolename
+     * convention
+     * - SimpleGrantedAuthority for permissions that are granted for the xroad roles
+     * @param roleNames roles, xroad authentication related or others
      * @return
      */
-    public Collection<String> getPermissions(Collection<String> roles) {
+    public Set<GrantedAuthority> getAuthorities(Collection<String> roleNames) {
+        Set<GrantedAuthority> auths = new HashSet<>();
+        auths.addAll(getPermissionGrants(roleNames));
+        auths.addAll(getRoleGrants(roleNames));
+        return auths;
+    }
+
+    private Set<SimpleGrantedAuthority> getPermissionGrants(Collection<String> rolenames) {
         Set<String> permissions = new HashSet<>();
-        for (String role: roles) {
+        for (String role: rolenames) {
             if (DUMMY_MAPPINGS.containsKey(role)) {
                 permissions.addAll(DUMMY_MAPPINGS.get(role));
             }
         }
-        return permissions;
+        return permissions
+                .stream()
+                .map(name -> new SimpleGrantedAuthority(name.toUpperCase()))
+                .collect(Collectors.toSet());
     }
+
+    private Set<SimpleGrantedAuthority> getRoleGrants(Collection<String> rolenames) {
+        return rolenames.stream()
+                .map(name -> new SimpleGrantedAuthority("ROLE_" + name.toUpperCase()))
+                .collect(Collectors.toSet());
+    }
+
 }

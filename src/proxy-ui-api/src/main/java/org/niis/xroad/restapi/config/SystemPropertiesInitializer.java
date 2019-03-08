@@ -44,8 +44,6 @@ public final class SystemPropertiesInitializer {
      * initialize, if not yet initialized
      */
     public static synchronized void initialize() {
-
-        if (true) return; // TODO: fix back
         if (!XROAD_PROPERTIES_INITIALIZED.get()) {
             SystemPropertiesLoader.create().withCommonAndLocal()
                     .with(CONF_FILE_PROXY)

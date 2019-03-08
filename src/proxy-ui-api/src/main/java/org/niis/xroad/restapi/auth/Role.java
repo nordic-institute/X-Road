@@ -66,7 +66,7 @@ public enum Role {
     /**
      * @return name which follows the "ROLE_" + name convention
      */
-    public String getRoleName() {
+    public String getGrantedAuthorityName() {
         return "ROLE_" + name();
     }
 

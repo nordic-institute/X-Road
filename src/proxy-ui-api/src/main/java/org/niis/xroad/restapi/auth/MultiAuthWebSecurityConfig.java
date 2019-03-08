@@ -96,6 +96,10 @@ public class MultiAuthWebSecurityConfig {
 
         @Value("${proto.pam}")
         private boolean pam;
+
+        @Autowired
+        private PamAuthenticationProvider pamAuthenticationProvider;
+
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             log.debug("***** configuring security, pam = {}", pam);
@@ -132,7 +136,7 @@ public class MultiAuthWebSecurityConfig {
         @Override
         protected void configure(AuthenticationManagerBuilder builder) throws Exception {
             if (pam) {
-                builder.authenticationProvider(new PamAuthenticationProvider());
+                builder.authenticationProvider(pamAuthenticationProvider);
             } else {
                 super.configure(builder);
             }
@@ -181,6 +185,9 @@ public class MultiAuthWebSecurityConfig {
         @Value("${proto.pam}")
         private boolean pam;
 
+        @Autowired
+        private PamAuthenticationProvider pamAuthenticationProvider;
+
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             http
@@ -206,7 +213,7 @@ public class MultiAuthWebSecurityConfig {
             // TODO: remove non-pam authentication
 //CHECKSTYLE.ON: TodoComment
             if (pam) {
-                builder.authenticationProvider(new PamAuthenticationProvider());
+                builder.authenticationProvider(pamAuthenticationProvider);
             } else {
                 super.configure(builder);
             }
