@@ -121,12 +121,11 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
         return code;
     }
 
-    @PermitAll
-    @RequestMapping(value = "/ugu")
-    public ResponseEntity<String> getFoo(Authentication authentication) {
-        return new ResponseEntity<>("ljkjhkj", HttpStatus.OK);
-    }
-
+    /**
+     * get roles
+     * @param authentication
+     * @return
+     */
     @PermitAll
     @RequestMapping(value = "/roles")
     public ResponseEntity<Set<String>> getRoles(Authentication authentication) {
@@ -135,6 +134,11 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
                 HttpStatus.OK);
     }
 
+    /**
+     * get permissions
+     * @param authentication
+     * @return
+     */
     @PermitAll
     @RequestMapping(value = "/permissions")
     public ResponseEntity<Set<String>> getPermissions(Authentication authentication) {
