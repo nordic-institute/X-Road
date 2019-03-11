@@ -122,8 +122,8 @@ public final class CertHashBasedOcspResponderClient {
             }
         });
 
-        try {
-            parser.parse(connection.getInputStream());
+        try (InputStream is = connection.getInputStream()) {
+            parser.parse(is);
         } catch (MimeException e) {
             throw new OCSPException("Error parsing response", e);
         }

@@ -1,7 +1,7 @@
 # Change Log
 
 ## 6.21.0 - XXXX-XX-XX
-- TBD
+- XTE-432: Fix resource leak - close discarded socket.
 
 ## 6.20.1 - 2019-02-05
 - XRDDEV-351: Fix XRDDEV-351
