@@ -124,7 +124,7 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     }
 
     @Override
-    @PreAuthorize("hasAuthority('NO_ONE_HAS_THIS')")
+    @PreAuthorize("hasAuthority('NO_ONE_HAS_THIS_PERMISSION_YET')")
     public ResponseEntity<Client> getClient(String id) {
 //CHECKSTYLE.OFF: TodoComment - need this todo and still want builds to succeed
         ClientId clientId = clientConverter.convertId(id);
