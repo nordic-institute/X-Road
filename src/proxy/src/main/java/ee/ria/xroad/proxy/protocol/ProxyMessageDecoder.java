@@ -390,9 +390,13 @@ public class ProxyMessageDecoder {
 
     private void handleRestBody(BodyDescriptor bd, InputStream is) {
         try {
-            DigestCalculator dc = CryptoUtils.createDigestCalculator(getHashAlgoId());
-            TeeInputStream proxyIs = new TeeInputStream(is, dc.getOutputStream(), true);
+            final DigestCalculator dc = CryptoUtils.createDigestCalculator(getHashAlgoId());
+            final CountingOutputStream cos = new CountingOutputStream(dc.getOutputStream());
+            final TeeInputStream proxyIs = new TeeInputStream(is, cos, true);
+
             callback.restBody(proxyIs);
+            attachmentsByteCount += cos.getByteCount();
+
             verifier.addPart(
                     MessageFileNames.attachment(++attachmentNo),
                     getHashAlgoId(), dc.getDigest());

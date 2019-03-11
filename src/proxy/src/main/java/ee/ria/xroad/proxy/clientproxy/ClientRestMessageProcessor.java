@@ -114,8 +114,6 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
             senderId = restRequest.getClient();
             requestServiceId = restRequest.getRequestServiceId();
 
-            updateOpMonitoringDataByRestRequest();
-
             verifyClientStatus(senderId);
             verifyClientAuthentication(senderId);
 
@@ -155,7 +153,10 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     private void updateOpMonitoringDataByResponse(ProxyMessageDecoder decoder) {
         if (response.getRestResponse() != null) {
             opMonitoringData.setResponseRestSize(response.getRestResponse().getMessageBytes().length);
+            int responseMessageBytes = response.getRestResponse().getMessageBytes().length;
+            opMonitoringData.setResponseRestSize(responseMessageBytes);
             opMonitoringData.setResponseAttachmentCount(decoder.getAttachmentCount());
+            opMonitoringData.setResponseMimeSize(responseMessageBytes + decoder.getAttachmentsByteCount());
         }
     }
 
@@ -319,6 +320,8 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
                 enc.restRequest(restRequest);
 
+                updateOpMonitoringDataByRestRequest();
+
                 //Optimize the case without request body (e.g. simple get requests)
                 //TBD: Optimize the case without body logging
                 try (InputStream in = servletRequest.getInputStream()) {
@@ -380,6 +383,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
             opMonitoringData.setMessageId(restRequest.findHeaderValueByName(MimeUtils.HEADER_QUERY_ID));
             opMonitoringData.setMessageUserId(restRequest.findHeaderValueByName(MimeUtils.HEADER_USER_ID));
             opMonitoringData.setMessageIssue(restRequest.findHeaderValueByName(MimeUtils.HEADER_ISSUE));
+            opMonitoringData.setRequestRestSize(restRequest.getMessageBytes().length);
         }
     }
 
