@@ -35,8 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,9 +44,6 @@ import org.springframework.web.context.request.NativeWebRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * clients api
@@ -116,42 +111,6 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
         if (true) throw new NullPointerException("code broke, transaction should rollback");
         return code;
     }
-
-    /**
-     * get roles
-     * @param authentication
-     * @return
-     */
-    @PreAuthorize("permitAll()")
-    @RequestMapping(value = "/roles")
-    public ResponseEntity<Set<String>> getRoles(Authentication authentication) {
-        return new ResponseEntity<>(
-                getAuthorities(authentication, name -> name.startsWith("ROLE_")),
-                HttpStatus.OK);
-    }
-
-    /**
-     * get permissions
-     * @param authentication
-     * @return
-     */
-    @PreAuthorize("permitAll()")
-    @RequestMapping(value = "/permissions")
-    public ResponseEntity<Set<String>> getPermissions(Authentication authentication) {
-        return new ResponseEntity<>(
-                getAuthorities(authentication, name -> !name.startsWith("ROLE_")),
-                HttpStatus.OK);
-    }
-
-    private Set<String> getAuthorities(Authentication authentication,
-                                       Predicate<String> authorityNamePredicate) {
-        Set<String> roles = authentication.getAuthorities().stream()
-                .map(authority -> ((GrantedAuthority) authority).getAuthority())
-                .filter(authorityNamePredicate)
-                .collect(Collectors.toSet());
-        return roles;
-    }
-
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
