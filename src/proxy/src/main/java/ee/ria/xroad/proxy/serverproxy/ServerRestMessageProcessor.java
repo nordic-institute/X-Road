@@ -396,13 +396,20 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                 Arrays.asList(response.getAllHeaders()));
         encoder.restResponse(restResponse);
 
-        // Update opmon object data with restresponse data - if we get to this point
+        // Update opmon object data with restresponse headers and messagesize - if we get to this point
         updateOpMonitoringDataByRestMessage(restResponse);
+        long restMessageSize = restResponse.getMessageBytes().length;
+        opMonitoringData.setResponseRestSize(restMessageSize);
 
         if (response.getEntity() != null) {
             restResponseBody = new CachingStream();
             TeeInputStream tee = new TeeInputStream(response.getEntity().getContent(), restResponseBody);
             encoder.restBody(tee);
+            // Update opmon object data with restresponse attachment count and mimesize
+            opMonitoringData.setResponseAttachmentCount(encoder.getAttachmentCount());
+            if (encoder.getAttachmentCount() > 0) {
+                opMonitoringData.setResponseMimeSize(restMessageSize + encoder.getAttachmentsByteCount());
+            }
             EntityUtils.consume(response.getEntity());
         }
     }
