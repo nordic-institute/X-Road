@@ -100,6 +100,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 
 @Slf4j
 class ServerRestMessageProcessor extends MessageProcessorBase {
@@ -121,6 +122,8 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     private RestResponse restResponse;
     private CachingStream restResponseBody;
 
+    private String xRequestId;
+
     ServerRestMessageProcessor(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
             HttpClient httpClient, X509Certificate[] clientSslCerts, HttpClient opMonitorHttpClient,
             OpMonitoringData opMonitoringData) {
@@ -135,6 +138,9 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     public void process() throws Exception {
         log.info("process({})", servletRequest.getContentType());
 
+        xRequestId = servletRequest.getHeader(HEADER_REQUEST_ID);
+
+        opMonitoringData.setXRequestId(xRequestId);
         updateOpMonitoringClientSecurityServerAddress();
         updateOpMonitoringServiceSecurityServerAddress();
 
@@ -403,12 +409,13 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
     private void logRequestMessage() {
         log.trace("logRequestMessage()");
-        MessageLog.log(requestMessage.getRest(), requestMessage.getSignature(), requestMessage.getRestBody(), false);
+        MessageLog.log(requestMessage.getRest(), requestMessage.getSignature(), requestMessage.getRestBody(),
+                false, xRequestId);
     }
 
     private void logResponseMessage() {
         MessageLog.log(requestMessage.getRest(), restResponse, encoder.getSignature(),
-                restResponseBody == null ? null : restResponseBody.getCachedContents(), false);
+                restResponseBody == null ? null : restResponseBody.getCachedContents(), false, xRequestId);
     }
 
     private void sign() throws Exception {

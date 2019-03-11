@@ -159,7 +159,7 @@ abstract class AbstractMessageLogTest {
 
     protected void log(SoapMessageImpl message, SignatureData signature, String xRequestId)
             throws Exception {
-        logManager.log(message, signature, true, xRequestId);
+        logManager.log(new SoapLogMessage(message, signature, true, xRequestId));
     }
 
     TimestampRecord timestamp(MessageRecord record) throws Exception {
