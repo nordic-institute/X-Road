@@ -80,7 +80,6 @@ import java.io.IOException;
  * - FormLoginWebSecurityConfigurerAdapter, @Order(100), matches any URL (denies /api/**)
  */
 @EnableWebSecurity(debug = true)
-// explain and document this
 @EnableGlobalMethodSecurity(proxyTargetClass = true, prePostEnabled = true)
 @Slf4j
 public class MultiAuthWebSecurityConfig {
