@@ -11,7 +11,7 @@ dependencies {
     compile "org.eclipse.jetty:jetty-xml:$jettyVersion"
 
     testCompile project(':common-test')
-    testCompile 'org.hsqldb:hsqldb:2.3.2'
+    testCompile 'org.hsqldb:hsqldb:2.4.1'
     testCompile "com.typesafe.akka:akka-testkit_2.11:$akkaVersion"
 
     testCompile 'org.powermock:powermock-api-mockito:1.6.5'
