@@ -38,7 +38,6 @@ import ee.ria.xroad.common.conf.globalconf.FileConsumer;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.MessageRecord;
-import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.util.HttpHeaders;
 import ee.ria.xroad.common.util.MimeTypes;
@@ -46,7 +45,6 @@ import ee.ria.xroad.proxy.messagelog.LogRecordManager;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -59,10 +57,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.metadata.MetadataRequests.ASIC;
 import static ee.ria.xroad.common.metadata.MetadataRequests.VERIFICATIONCONF;
 import static ee.ria.xroad.proxy.clientproxy.AbstractClientProxyHandler.getIsAuthenticationData;
@@ -137,7 +136,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
             throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex);
         } catch (Exception ex) {
             throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    ErrorCodes.X_INTERNAL_ERROR, ex.getMessage());
+                    X_INTERNAL_ERROR, ex.getMessage());
         }
     }
 
@@ -179,32 +178,43 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
         boolean requestOnly = hasParameter(PARAM_REQUEST_ONLY);
         boolean responseOnly = hasParameter(PARAM_RESPONSE_ONLY);
-
         if (requestOnly && responseOnly) {
             throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_BAD_REQUEST, ErrorCodes.X_BAD_REQUEST,
                     INVALID_PARAM_COMBINATION_FAULT_MESSAGE);
         }
 
+        Boolean response = responseOnly ? Boolean.TRUE : (requestOnly ? Boolean.FALSE : null);
         boolean unique = hasParameter(PARAM_UNIQUE);
 
-        if (requestOnly) {
-            if (unique) {
-                writeAsicContainer(clientId, queryId, nameGen, false);
-            } else {
-                writeRequestContainers(clientId, queryId, nameGen);
-            }
-        } else if (responseOnly) {
-            if (unique) {
-                writeAsicContainer(clientId, queryId, nameGen, true);
-            } else {
-                writeResponseContainers(clientId, queryId, nameGen);
-            }
+        ensureTimestamped(clientId, queryId, response, hasParameter(PARAM_FORCE));
+
+        if (unique && response != null) {
+            writeAsicContainer(clientId, queryId, nameGen, response);
+        } else if (!unique) {
+            writeContainers(clientId, queryId, nameGen, response);
         } else {
-            if (!unique) {
-                writeAllContainers(clientId, queryId, nameGen);
-            } else {
-                throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_BAD_REQUEST, ErrorCodes.X_BAD_REQUEST,
-                        MISSING_CONSTRAINT_FAULT_MESSAGE);
+            throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_BAD_REQUEST, ErrorCodes.X_BAD_REQUEST,
+                    MISSING_CONSTRAINT_FAULT_MESSAGE);
+        }
+    }
+
+    private void ensureTimestamped(ClientId id, String queryId, Boolean response, boolean force) throws Exception {
+        final List<MessageRecord> records = LogRecordManager.getByQueryId(queryId, id, response, Function.identity());
+
+        if (records.isEmpty()) {
+            throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_NOT_FOUND, ErrorCodes.X_NOT_FOUND,
+                    DOCUMENTS_NOT_FOUND_FAULT_MESSAGE);
+        }
+
+        for (MessageRecord record : records) {
+            if (record.getTimestampRecord() == null) {
+                if (force) {
+                    if (MessageLog.timestamp(record) == null) {
+                        throw new Exception(TIMESTAMPING_FAILED_FAULT_MESSAGE);
+                    }
+                } else {
+                    throw new Exception(MISSING_TIMESTAMP_FAULT_MESSAGE);
+                }
             }
         }
     }
@@ -213,142 +223,74 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         return servletRequest.getParameterMap().containsKey(param);
     }
 
-    private void writeAllContainers(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen)
-            throws Exception {
-        String filename = AsicUtils.escapeString(queryId);
-        List<MessageRecord> requests = timestampedRecords(clientId, queryId, false);
-        List<MessageRecord> responses = timestampedRecords(clientId, queryId, true);
+    private void writeContainers(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
+            Boolean response) throws Exception {
 
-        if (!requests.isEmpty() || !responses.isEmpty()) {
-            try (ZipOutputStream zos = startZipResponse(filename)) {
-                writeContainers(requests, queryId, nameGen, zos, AsicContainerNameGenerator.TYPE_REQUEST);
-                writeContainers(responses, queryId, nameGen, zos, AsicContainerNameGenerator.TYPE_RESPONSE);
+        final String filename = AsicUtils.escapeString(queryId)
+                + (response == null ? "" : (response ? "-response" : "-request"));
+
+        LogRecordManager.getByQueryId(queryId, clientId, response, records -> {
+            if (records.isEmpty()) {
+                throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_NOT_FOUND, ErrorCodes.X_NOT_FOUND,
+                        DOCUMENTS_NOT_FOUND_FAULT_MESSAGE);
             }
-        } else {
-            throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_NOT_FOUND, ErrorCodes.X_NOT_FOUND,
-                    DOCUMENTS_NOT_FOUND_FAULT_MESSAGE);
-        }
-    }
-
-    private void writeRequestContainers(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen)
-            throws Exception {
-        String filename = AsicUtils.escapeString(queryId) + "-" + AsicContainerNameGenerator.TYPE_REQUEST;
-        List<MessageRecord> records = timestampedRecords(clientId, queryId, false);
-
-        if (!records.isEmpty()) {
             try (ZipOutputStream zos = startZipResponse(filename)) {
-                writeContainers(records, queryId, nameGen, zos, AsicContainerNameGenerator.TYPE_REQUEST);
+                zos.setLevel(0);
+                for (MessageRecord record : records) {
+                    if (record.getTimestampRecord() == null) {
+                        // Only happens if there are matching messages that are sent after
+                        // the ensureTimestamped check was made. Ignore to emulate the previous behavior.
+                        continue;
+                    }
+                    String type = record.isResponse() ? AsicContainerNameGenerator.TYPE_RESPONSE
+                            : AsicContainerNameGenerator.TYPE_REQUEST;
+                    zos.putNextEntry(new ZipEntry(nameGen.getArchiveFilename(queryId, type)));
+                    record.toAsicContainer(true).write(zos);
+                    zos.closeEntry();
+                }
+            } catch (CodedException ce) {
+                throw ce;
+            } catch (Exception e) {
+                throw new CodedException(X_INTERNAL_ERROR, e);
             }
-        } else {
-            throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_NOT_FOUND, ErrorCodes.X_NOT_FOUND,
-                    DOCUMENTS_NOT_FOUND_FAULT_MESSAGE);
-        }
-    }
-
-    private void writeResponseContainers(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen)
-            throws Exception {
-        String filename = AsicUtils.escapeString(queryId) + "-response";
-        List<MessageRecord> records = timestampedRecords(clientId, queryId, true);
-
-        if (!records.isEmpty()) {
-            try (ZipOutputStream zos = startZipResponse(filename)) {
-                writeContainers(records, queryId, nameGen, zos, AsicContainerNameGenerator.TYPE_RESPONSE);
-            }
-        } else {
-            throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_NOT_FOUND, ErrorCodes.X_NOT_FOUND,
-                    DOCUMENTS_NOT_FOUND_FAULT_MESSAGE);
-        }
-    }
-
-    private List<MessageRecord> timestampedRecords(ClientId clientId, String queryId, boolean response)
-            throws Exception {
-        List<MessageRecord> allRecords = LogRecordManager.getByQueryId(queryId, clientId, response);
-        List<MessageRecord> timestampedRecords;
-
-        if (hasParameter(PARAM_FORCE)) {
-            timestampedRecords = allRecords.stream()
-                    .map(this::ensureRecordTimestamped)
-                    .collect(Collectors.toList());
-        } else {
-            verifyAllRecordsTimestamped(allRecords);
-            timestampedRecords = allRecords;
-        }
-
-        return timestampedRecords;
-    }
-
-    private void verifyAllRecordsTimestamped(List<MessageRecord> allRecords) throws Exception {
-        int allCount = allRecords.size();
-        List<MessageRecord> timestampedRecords = allRecords.stream()
-                .filter(r -> r.getTimestampRecord() != null)
-                .collect(Collectors.toList());
-        int timestampedCount = timestampedRecords.size();
-
-        if (allCount != timestampedCount) {
-            throw new Exception(MISSING_TIMESTAMPS_FAULT_MESSAGE);
-        }
-    }
-
-    private void writeContainers(List<MessageRecord> requests, String queryId, AsicContainerNameGenerator nameGen,
-            ZipOutputStream zos, String type) throws Exception {
-
-        for (MessageRecord record : requests) {
-            zos.putNextEntry(new ZipEntry(nameGen.getArchiveFilename(queryId, type)));
-            record.toAsicContainer().write(zos);
-            zos.closeEntry();
-        }
+            return null;
+        });
     }
 
     private void writeAsicContainer(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
             boolean response) throws Exception {
-        MessageRecord request = getTimestampedRecord(clientId, queryId, response);
         String filename = nameGen.getArchiveFilename(queryId,
                 response ? AsicContainerNameGenerator.TYPE_RESPONSE : AsicContainerNameGenerator.TYPE_REQUEST);
-
         servletResponse.setContentType(MimeTypes.ASIC_ZIP);
-        servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=\"" + filename + "\"");
-        request.toAsicContainer().write(servletResponse.getOutputStream());
-    }
+        servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
 
-    @SneakyThrows
-    private MessageRecord getTimestampedRecord(ClientId clientId, String queryId, boolean response) {
-        MessageRecord record = LogRecordManager.getByQueryIdUnique(queryId, clientId, response);
-
-        if (record != null) {
-            return ensureRecordTimestamped(record);
-        } else {
-            throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_NOT_FOUND, ErrorCodes.X_NOT_FOUND,
-                    DOCUMENTS_NOT_FOUND_FAULT_MESSAGE);
-        }
-    }
-
-    @SneakyThrows
-    private MessageRecord ensureRecordTimestamped(MessageRecord record) {
-        if (record.getTimestampRecord() == null) {
-            if (hasParameter(PARAM_FORCE)) {
-                TimestampRecord timestamp = MessageLog.timestamp(record);
-
-                if (timestamp == null) {
-                    throw new Exception(TIMESTAMPING_FAILED_FAULT_MESSAGE);
+        LogRecordManager.getByQueryIdUnique(queryId, clientId, response, record -> {
+            try {
+                if (record == null) {
+                    throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_NOT_FOUND, ErrorCodes.X_NOT_FOUND,
+                            DOCUMENTS_NOT_FOUND_FAULT_MESSAGE);
                 }
-
-                return (MessageRecord) LogRecordManager.get(record.getId());
-            } else {
-                throw new Exception(MISSING_TIMESTAMP_FAULT_MESSAGE);
+                if (record.getTimestampRecord() != null) {
+                    throw new CodedException(X_INTERNAL_ERROR, MISSING_TIMESTAMP_FAULT_MESSAGE);
+                }
+                record.toAsicContainer(true).write(servletResponse.getOutputStream());
+            } catch (CodedException ce) {
+                throw ce;
+            } catch (Exception e) {
+                throw new CodedException(X_INTERNAL_ERROR, e);
             }
-        }
-
-        return record;
+            return null;
+        });
     }
 
     private ZipOutputStream startZipResponse(String filename) throws IOException {
         servletResponse.setContentType(MimeTypes.ZIP);
-        servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=\"" + filename + ".zip\"");
+        servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + ".zip\"");
 
         return new ZipOutputStream(servletResponse.getOutputStream());
     }
 
-    private ClientId getClientIdFromRequest() throws Exception {
+    private ClientId getClientIdFromRequest() {
         String instanceIdentifier = getParameter(PARAM_INSTANCE_IDENTIFIER, false);
         String memberClass = getParameter(PARAM_MEMBER_CLASS, false);
         String memberCode = getParameter(PARAM_MEMBER_CODE, false);

@@ -49,7 +49,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.hexDigest;
  * A message log record.
  */
 @Slf4j
-@ToString(callSuper = true)
+@ToString(callSuper = true, exclude = {"attachment"})
 @EqualsAndHashCode(callSuper = true, exclude = {"attachment"})
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class MessageRecord extends AbstractLogRecord {
