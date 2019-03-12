@@ -30,8 +30,8 @@ import org.springframework.stereotype.Component;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Dummy in-memory repository for api keys
@@ -39,15 +39,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Component
 public class ApiKeyRepository {
 
-    AtomicInteger apiKeyIndex = new AtomicInteger(1);
     Map<String, ApiKey> keys = new ConcurrentHashMap<>();
 
     /**
-     * Naive key implementation
+     * Api keys are created with UUID.randomUUID which uses SecureRandom,
+     * which is cryptographically secure.
      * @return
      */
     private String createApiKey() {
-        return "naive-api-key-" + apiKeyIndex.getAndAdd(1);
+        return UUID.randomUUID().toString();
     }
 
     /**

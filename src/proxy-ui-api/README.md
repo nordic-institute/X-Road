@@ -32,22 +32,22 @@ browser: `http://localhost:8020`
 
 # Api auth examples
 ```
-$ curl --header "Authorization: X-Road-ApiKey token=naive-api-key-1" localhost:8020/api/cities
+$ curl --header "Authorization: X-Road-ApiKey token=481e50de-a93f-46d8-9748-1bca86eea454" localhost:8020/api/cities
 {"timestamp":"2018-11-27T07:09:03.991+0000","status":500,"error":"Internal Server Error","message":"The API key was not found or not the expected value.","path":"/api/adminCities"}
 
 $ curl -X POST -u admin:password docker-ss.local:8020/api/create-api-key --data '["XROAD_SECURITY_OFFICER"]' --header "Content-Type: application/json"
-{"key":"naive-api-key-1","roles":["XROAD_SECURITY_OFFICER"]}
+{"key":"481e50de-a93f-46d8-9748-1bca86eea454","roles":["XROAD_SECURITY_OFFICER"]}
 
 $ curl -X POST -u admin:password docker-ss.local:8020/api/create-api-key --data '["XROAD_SYSTEM_ADMINISTRATOR"]' --header "Content-Type: application/json"
-{"key":"naive-api-key-2","roles":["XROAD_SYSTEM_ADMINISTRATOR"]}
+{"key":"5f9a20cd-06d0-4730-9cbc-fb1c191d6bb9","roles":["XROAD_SYSTEM_ADMINISTRATOR"]}
 
 $ curl -X POST -u admin:password docker-ss.local:8020/api/create-api-key --data '["XROAD_SECURITY_OFFICER", "XROAD_SYSTEM_ADMINISTRATOR"]' --header "Content-Type: application/json"
-{"key":"naive-api-key-3","roles":["XROAD_SECURITY_OFFICER","XROAD_SYSTEM_ADMINISTRATOR"]}
+{"key":"c2f9a0ea-789f-49f5-8b2b-23a4a7c09fb2","roles":["XROAD_SECURITY_OFFICER","XROAD_SYSTEM_ADMINISTRATOR"]}
 
-$ curl --header "Authorization: X-Road-ApiKey token=naive-api-key-1" "docker-ss.local:8020/api/clients"
+$ curl --header "Authorization: X-Road-ApiKey token=481e50de-a93f-46d8-9748-1bca86eea454" "docker-ss.local:8020/api/clients"
 [{"id":"XRD2:GOV:M1:SUB1","member_name":"member1","member_class":"GOV","member_code":"M1","subsystem_code":"SUB1","status":"saved"},{"id":"XRD2:GOV:M4:SS1","member_name":"member4","member_class":"GOV","member_code":"M4","subsystem_code":"SS1","status":"registered"},{"id":"XRD2:GOV:M4","member_name":"member4","member_class":"GOV","member_code":"M4","subsystem_code":null,"status":"registered"}]
 
-$ curl --header "Authorization: X-Road-ApiKey token=naive-api-key-2" "docker-ss.local:8020/api/clients"
+$ curl --header "Authorization: X-Road-ApiKey token=5f9a20cd-06d0-4730-9cbc-fb1c191d6bb9" "docker-ss.local:8020/api/clients"
 {"timestamp":"2018-11-27T07:08:22.398+0000","status":403,"error":"Forbidden","message":"Forbidden","path":"/api/clients"}
 ```
 
