@@ -25,7 +25,6 @@
 package org.niis.xroad.restapi.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.domain.ApiKey;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -34,7 +33,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controller for rest apis for api key operations
@@ -51,9 +52,11 @@ public class ApiKeyController {
      * create api keys
      */
     @PostMapping(value = "/create-api-key", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ApiKey createKey(@RequestBody List<String> roles) {
-        ApiKey key = apiKeyRepository.create(roles);
-        log.debug("created api key " + key.getKey());
-        return key;
+    public Map<String, Object> createKey(@RequestBody List<String> roles) {
+        String key = apiKeyRepository.create(roles);
+        Map<String, Object> result = new HashMap();
+        result.put("key", key);
+        result.put("roles", roles);
+        return result;
     }
 }

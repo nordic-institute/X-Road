@@ -22,46 +22,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.auth;
 
-import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.exceptions.InvalidParametersException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-
-import static junit.framework.TestCase.fail;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
- * Test api key repository
+ * password config
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Slf4j
-public class ApiKeyRepositoryTest {
-
-    @Autowired
-    private ApiKeyRepository apiKeyRepository;
-
-    @Test
-    public void test() {
-        try {
-            String key = apiKeyRepository.create(new ArrayList<>());
-            fail("should fail due to missing roles");
-        } catch (InvalidParametersException expected) { }
-
-        try {
-            String key = apiKeyRepository.create(Arrays.asList("XROAD_SECURITY_OFFICER",
-                    "FOOBAR"));
-            fail("should fail due to bad role");
-        } catch (InvalidParametersException expected) { }
-
-        String key = apiKeyRepository.create(Arrays.asList("XROAD_SECURITY_OFFICER",
-                "XROAD_REGISTRATION_OFFICER"));
+@Configuration
+public class PasswordEncoderConfig {
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

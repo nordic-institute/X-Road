@@ -34,17 +34,17 @@ import java.util.Set;
  * WIP api key
  */
 @Getter
-public class ApiKey {
-    private String key;
+public class ApiKeyData {
+    private String encodedKey;
     private Set<String> roles;
 
     /**
      * Create api key
-     * @param key
+     * @param encodedKey
      * @param roles
      */
-    public ApiKey(String key, Collection<String> roles) {
-        this.key = key;
+    public ApiKeyData(String encodedKey, Collection<String> roles) {
+        this.encodedKey = encodedKey;
         this.roles = new HashSet<>();
         this.roles.addAll(roles);
     }

@@ -25,13 +25,15 @@
 package org.niis.xroad.restapi.repository;
 
 import org.niis.xroad.restapi.auth.Role;
-import org.niis.xroad.restapi.domain.ApiKey;
+import org.niis.xroad.restapi.domain.ApiKeyData;
 import org.niis.xroad.restapi.exceptions.InvalidParametersException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -41,7 +43,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class ApiKeyRepository {
 
-    Map<String, ApiKey> keys = new ConcurrentHashMap<>();
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    Set<ApiKeyData> keys = Collections.newSetFromMap(new ConcurrentHashMap<ApiKeyData, Boolean>());
 
     /**
      * Api keys are created with UUID.randomUUID which uses SecureRandom,
@@ -55,14 +60,15 @@ public class ApiKeyRepository {
     /**
      * create api key with one role
      */
-    public ApiKey create(String role) {
+    public String create(String role) {
         return create(Collections.singletonList(role));
     }
 
     /**
      * create api key with collection of roles
+     * @return plaintext key
      */
-    public ApiKey create(Collection<String> roles) {
+    public String create(Collection<String> roles) {
         if (roles.isEmpty()) {
             throw new InvalidParametersException("missing roles");
         }
@@ -71,14 +77,33 @@ public class ApiKeyRepository {
                 throw new InvalidParametersException("invalid role " + roleParam);
             }
         }
-        ApiKey key = new ApiKey(createApiKey(),
-                Collections.unmodifiableCollection(roles));
-        keys.put(key.getKey(), key);
+        String key = createApiKey();
+        String encoded = encode(key);
+        ApiKeyData apiKeyData = new ApiKeyData(encoded, Collections.unmodifiableCollection(roles));
+        keys.add(apiKeyData);
         return key;
     }
 
-    public ApiKey get(String key) {
-        return keys.get(key);
+    private String encode(String key) {
+        return passwordEncoder.encode(key);
+    }
+
+    /**
+     * this scales linearly for key number.
+     * Options:
+     * - add "username"
+     * - accept slowness, will not have millions of api keys
+     * - get rid of encoding
+     * @param key
+     * @return
+     */
+    public ApiKeyData get(String key) {
+        for (ApiKeyData apiKeyData: keys) {
+            if (passwordEncoder.matches(key, apiKeyData.getEncodedKey())) {
+                return apiKeyData;
+            }
+        }
+        return null;
     }
 
 }
