@@ -185,7 +185,6 @@ export default Vue.extend({
     },
 
     openClient(item: object): void {
-      console.log('edit');
       this.$router.push('/client');
     },
 
