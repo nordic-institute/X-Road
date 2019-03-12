@@ -6,7 +6,7 @@ export interface UserState {
   authenticated: boolean;
 }
 
-export const authState: UserState = {
+export const userState: UserState = {
   authenticated: false,
 };
 
@@ -63,9 +63,9 @@ export const actions: ActionTree<UserState, RootState> = {
   },
 };
 
-export const auth: Module<UserState, RootState> = {
+export const user: Module<UserState, RootState> = {
   namespaced: false,
-  state: authState,
+  state: userState,
   getters,
   actions,
   mutations,
