@@ -79,9 +79,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
@@ -104,9 +102,6 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 class ServerRestMessageProcessor extends MessageProcessorBase {
 
     private final X509Certificate[] clientSslCerts;
-
-    private final List<ServiceHandler> handlers = new ArrayList<>();
-
     private ProxyMessage requestMessage;
     private ServiceId requestServiceId;
 
@@ -115,7 +110,6 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
     private SigningCtx responseSigningCtx;
 
-    private HttpClient opMonitorHttpClient;
     private OpMonitoringData opMonitoringData;
     private RestResponse restResponse;
     private CachingStream restResponseBody;
@@ -123,12 +117,10 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     private String xRequestId;
 
     ServerRestMessageProcessor(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
-            HttpClient httpClient, X509Certificate[] clientSslCerts, HttpClient opMonitorHttpClient,
-            OpMonitoringData opMonitoringData) {
+            HttpClient httpClient, X509Certificate[] clientSslCerts, OpMonitoringData opMonitoringData) {
         super(servletRequest, servletResponse, httpClient);
 
         this.clientSslCerts = clientSslCerts;
-        this.opMonitorHttpClient = opMonitorHttpClient;
         this.opMonitoringData = opMonitoringData;
     }
 
@@ -230,14 +222,9 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     }
 
     private void updateOpMonitoringDataByRequest() {
-        if (requestMessage.getSoap() != null) {
-            opMonitoringData.setRequestAttachmentCount(decoder.getAttachmentCount());
-
-            if (decoder.getAttachmentCount() > 0) {
-                opMonitoringData.setRequestMimeSize(requestMessage.getSoap().getBytes().length
-                        + decoder.getAttachmentsByteCount());
-            }
-        }
+        updateOpMonitoringDataByRestRequest(opMonitoringData, requestMessage.getRest());
+        opMonitoringData.setRequestRestSize(requestMessage.getRest().getMessageBytes().length
+                + decoder.getAttachmentsByteCount());
     }
 
     private void checkRequest() throws Exception {
@@ -387,6 +374,8 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             encoder.restBody(tee);
             EntityUtils.consume(response.getEntity());
         }
+
+        opMonitoringData.setResponseRestSize(restResponse.getMessageBytes().length + encoder.getAttachmentsByteCount());
     }
 
     private void logRequestMessage() {

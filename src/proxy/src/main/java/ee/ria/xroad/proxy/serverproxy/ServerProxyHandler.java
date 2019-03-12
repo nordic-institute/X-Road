@@ -120,7 +120,7 @@ class ServerProxyHandler extends HandlerBase {
 
         if (VALUE_MESSAGE_TYPE_REST.equals(request.getHeader(HEADER_MESSAGE_TYPE))) {
             return new ServerRestMessageProcessor(request, response, client, getClientSslCertChain(request),
-                    opMonitorClient, opMonitoringData) {
+                    opMonitoringData) {
                 @Override
                 protected void postprocess() throws Exception {
                     super.postprocess();
