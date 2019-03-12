@@ -2,21 +2,21 @@ import axiosAuth from '../../axios-auth';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 
-export interface AuthState {
+export interface UserState {
   authenticated: boolean;
 }
 
-export const authState: AuthState = {
+export const authState: UserState = {
   authenticated: false,
 };
 
-export const getters: GetterTree<AuthState, RootState> = {
+export const getters: GetterTree<UserState, RootState> = {
   isAuthenticated(state) {
     return state.authenticated;
   },
 };
 
-export const mutations: MutationTree<AuthState> = {
+export const mutations: MutationTree<UserState> = {
   authUser(state) {
     state.authenticated = true;
   },
@@ -26,7 +26,7 @@ export const mutations: MutationTree<AuthState> = {
   },
 };
 
-export const actions: ActionTree<AuthState, RootState> = {
+export const actions: ActionTree<UserState, RootState> = {
   login({ commit, dispatch }, authData): Promise<any> {
     const data = `username=${authData.username}&password=${authData.password}`;
 
@@ -63,7 +63,7 @@ export const actions: ActionTree<AuthState, RootState> = {
   },
 };
 
-export const auth: Module<AuthState, RootState> = {
+export const auth: Module<UserState, RootState> = {
   namespaced: false,
   state: authState,
   getters,

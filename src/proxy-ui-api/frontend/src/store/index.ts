@@ -5,7 +5,7 @@ import VuexPersistence from 'vuex-persist';
 import { RootState } from './types';
 import { mockDataModule } from './modules/mockData';
 import { clientsModule } from './modules/clients';
-import { auth } from './modules/auth';
+import { auth } from './modules/user';
 
 Vue.use(Vuex);
 const vuexLocal = new VuexPersistence({
