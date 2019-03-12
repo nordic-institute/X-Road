@@ -33,7 +33,6 @@ import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SoapFault;
@@ -44,7 +43,6 @@ import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.conf.SigningCtx;
@@ -81,9 +79,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
@@ -106,9 +102,6 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 class ServerRestMessageProcessor extends MessageProcessorBase {
 
     private final X509Certificate[] clientSslCerts;
-
-    private final List<ServiceHandler> handlers = new ArrayList<>();
-
     private ProxyMessage requestMessage;
     private ServiceId requestServiceId;
 
@@ -117,7 +110,6 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
     private SigningCtx responseSigningCtx;
 
-    private HttpClient opMonitorHttpClient;
     private OpMonitoringData opMonitoringData;
     private RestResponse restResponse;
     private CachingStream restResponseBody;
@@ -125,12 +117,10 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     private String xRequestId;
 
     ServerRestMessageProcessor(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
-            HttpClient httpClient, X509Certificate[] clientSslCerts, HttpClient opMonitorHttpClient,
-            OpMonitoringData opMonitoringData) {
+            HttpClient httpClient, X509Certificate[] clientSslCerts, OpMonitoringData opMonitoringData) {
         super(servletRequest, servletResponse, httpClient);
 
         this.clientSslCerts = clientSslCerts;
-        this.opMonitorHttpClient = opMonitorHttpClient;
         this.opMonitoringData = opMonitoringData;
     }
 
@@ -232,27 +222,9 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     }
 
     private void updateOpMonitoringDataByRequest() {
-        if (requestMessage.getSoap() != null) {
-            opMonitoringData.setRequestAttachmentCount(decoder.getAttachmentCount());
-
-            if (decoder.getAttachmentCount() > 0) {
-                opMonitoringData.setRequestMimeSize(requestMessage.getSoap().getBytes().length
-                        + decoder.getAttachmentsByteCount());
-            }
-        }
-
-        if (requestMessage.getRest() != null) {
-            // Set request data into the opmon object
-            opMonitoringData.setServiceId(requestServiceId);
-            opMonitoringData.setRequestAttachmentCount(decoder.getAttachmentCount());
-            opMonitoringData.setRequestRestSize(requestMessage.getRest().getMessageBytes().length);
-
-            if (decoder.getAttachmentCount() > 0) {
-                opMonitoringData.setRequestMimeSize(requestMessage.getRest().getMessageBytes().length
-                        + decoder.getAttachmentsByteCount());
-            }
-            updateOpMonitoringDataByRestMessage(requestMessage.getRest());
-        }
+        updateOpMonitoringDataByRestRequest(opMonitoringData, requestMessage.getRest());
+        opMonitoringData.setRequestRestSize(requestMessage.getRest().getMessageBytes().length
+                + decoder.getAttachmentsByteCount());
     }
 
     private void checkRequest() throws Exception {
@@ -396,22 +368,14 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                 Arrays.asList(response.getAllHeaders()));
         encoder.restResponse(restResponse);
 
-        // Update opmon object data with restresponse headers and messagesize - if we get to this point
-        updateOpMonitoringDataByRestMessage(restResponse);
-        long restMessageSize = restResponse.getMessageBytes().length;
-        opMonitoringData.setResponseRestSize(restMessageSize);
-
         if (response.getEntity() != null) {
             restResponseBody = new CachingStream();
             TeeInputStream tee = new TeeInputStream(response.getEntity().getContent(), restResponseBody);
             encoder.restBody(tee);
-            // Update opmon object data with restresponse attachment count and mimesize
-            opMonitoringData.setResponseAttachmentCount(encoder.getAttachmentCount());
-            if (encoder.getAttachmentCount() > 0) {
-                opMonitoringData.setResponseMimeSize(restMessageSize + encoder.getAttachmentsByteCount());
-            }
             EntityUtils.consume(response.getEntity());
         }
+
+        opMonitoringData.setResponseRestSize(restResponse.getMessageBytes().length + encoder.getAttachmentsByteCount());
     }
 
     private void logRequestMessage() {
@@ -499,19 +463,6 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
 
         return hashAlgoId;
-    }
-
-    /**
-     * Update operational monitoring data with REST message header data and
-     * the size of the message.
-     */
-    private void updateOpMonitoringDataByRestMessage(RestMessage restMessage) {
-        if (opMonitoringData != null && restMessage != null) {
-            opMonitoringData.setClientId(restMessage.getSender());
-            opMonitoringData.setMessageId(restMessage.findHeaderValueByName(MimeUtils.HEADER_QUERY_ID));
-            opMonitoringData.setMessageUserId(restMessage.findHeaderValueByName(MimeUtils.HEADER_USER_ID));
-            opMonitoringData.setMessageIssue(restMessage.findHeaderValueByName(MimeUtils.HEADER_ISSUE));
-        }
     }
 
 }

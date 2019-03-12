@@ -52,14 +52,12 @@ import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.message.BasicHeader;
-import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.io.TeeInputStream;
 import org.eclipse.jetty.server.Response;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
@@ -144,27 +142,12 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
-    private void updateOpMonitoringServiceSecurityServerAddress(URI addresses[], HttpSender httpSender) {
-        if (addresses.length == 1) {
-            opMonitoringData.setServiceSecurityServerAddress(addresses[0].getHost());
-        } else {
-            // In case multiple addresses the service security server
-            // address will be founded by received TLS authentication
-            // certificate in AuthTrustVerifier class.
-            httpSender.setAttribute(OpMonitoringData.class.getName(), opMonitoringData);
-        }
-    }
-
     private void updateOpMonitoringDataByResponse(ProxyMessageDecoder decoder) {
         if (response.getRestResponse() != null) {
-            opMonitoringData.setResponseRestSize(response.getRestResponse().getMessageBytes().length);
-            int responseMessageBytes = response.getRestResponse().getMessageBytes().length;
-            opMonitoringData.setResponseRestSize(responseMessageBytes);
-            opMonitoringData.setResponseAttachmentCount(decoder.getAttachmentCount());
-            opMonitoringData.setResponseMimeSize(responseMessageBytes + decoder.getAttachmentsByteCount());
+            opMonitoringData.setResponseRestSize(response.getRestResponse().getMessageBytes().length
+                    + decoder.getAttachmentsByteCount());
         }
     }
-
 
     private void processRequest() throws Exception {
         log.trace("processRequest()");
@@ -172,6 +155,8 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         if (restRequest.getQueryId() == null) {
             restRequest.setQueryId(GlobalConf.getInstanceIdentifier() + "-" + UUID.randomUUID().toString());
         }
+
+        updateOpMonitoringDataByRestRequest(opMonitoringData, restRequest);
 
         try (HttpSender httpSender = createHttpSender()) {
             sendRequest(httpSender);
@@ -313,22 +298,16 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         }
 
         @Override
-        public void writeTo(OutputStream outstream) throws IOException {
-
+        public void writeTo(OutputStream outstream) {
             try {
                 final ProxyMessageEncoder enc = new ProxyMessageEncoder(outstream,
                         CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID, getBoundary(contentType.getValue()));
 
-                CertChain chain = KeyConf.getAuthKey().getCertChain();
-                List<OCSPResp> ocspResponses = KeyConf.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot());
-
-                for (OCSPResp ocsp : ocspResponses) {
-                    enc.ocspResponse(ocsp);
-                }
+                final CertChain chain = KeyConf.getAuthKey().getCertChain();
+                KeyConf.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot())
+                        .forEach(resp -> enc.ocspResponse(resp));
 
                 enc.restRequest(restRequest);
-
-                updateOpMonitoringDataByRestRequest();
 
                 //Optimize the case without request body (e.g. simple get requests)
                 //TBD: Optimize the case without body logging
@@ -352,6 +331,9 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                         MessageLog.log(restRequest, enc.getSignature(), null, true, xRequestId);
                     }
                 }
+
+                opMonitoringData.setRequestRestSize(restRequest.getMessageBytes().length
+                        + enc.getAttachmentsByteCount());
 
                 enc.writeSignature();
                 enc.close();
@@ -379,21 +361,6 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
             }
         }
         return tmp;
-    }
-
-    /**
-     * Update operational monitoring data with REST message header data and
-     * the size of the message.
-     */
-    private void updateOpMonitoringDataByRestRequest() {
-        if (opMonitoringData != null && restRequest != null) {
-            opMonitoringData.setClientId(senderId);
-            opMonitoringData.setServiceId(requestServiceId);
-            opMonitoringData.setMessageId(restRequest.findHeaderValueByName(MimeUtils.HEADER_QUERY_ID));
-            opMonitoringData.setMessageUserId(restRequest.findHeaderValueByName(MimeUtils.HEADER_USER_ID));
-            opMonitoringData.setMessageIssue(restRequest.findHeaderValueByName(MimeUtils.HEADER_ISSUE));
-            opMonitoringData.setRequestRestSize(restRequest.getMessageBytes().length);
-        }
     }
 
 }

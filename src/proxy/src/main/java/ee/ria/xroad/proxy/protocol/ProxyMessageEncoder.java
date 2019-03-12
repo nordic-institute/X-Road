@@ -136,12 +136,10 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     }
 
     @Override
-    public void ocspResponse(OCSPResp resp) throws Exception {
-        byte[] responseEncoded = resp.getEncoded();
-
-        log.trace("writeOcspResponse({} bytes)", responseEncoded.length);
-
+    public void ocspResponse(OCSPResp resp) {
         try {
+            byte[] responseEncoded = resp.getEncoded();
+            log.trace("writeOcspResponse({} bytes)", responseEncoded.length);
             mpEncoder.startPart(MimeTypes.OCSP_RESPONSE);
             mpEncoder.write(responseEncoded);
         } catch (Exception ex) {
@@ -320,9 +318,9 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     /**
      * Writes the signature to stream. Call after sing().
      *
-     * @throws Exception in case of any errors
+     * @throws IOException in case of any errors
      */
-    public void writeSignature() throws Exception {
+    public void writeSignature() throws IOException {
         log.trace("writeSignature()");
 
         endAttachments();
@@ -352,13 +350,12 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
         mpEncoder.close();
     }
 
-    private void signature(String signatureData) throws Exception {
+    private void signature(String signatureData) throws IOException {
         mpEncoder.startPart(MimeTypes.SIGNATURE_BDOC);
         mpEncoder.write(signatureData.getBytes(StandardCharsets.UTF_8));
     }
 
-    private void hashChain(String hashChainResult, String hashChain)
-            throws Exception {
+    private void hashChain(String hashChainResult, String hashChain) throws IOException {
         mpEncoder.startPart(MimeTypes.HASH_CHAIN_RESULT);
         mpEncoder.write(hashChainResult.getBytes(StandardCharsets.UTF_8));
 
@@ -379,10 +376,4 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
         return attachmentNo;
     }
 
-    private static void writeString(OutputStream os, String s) throws IOException {
-        os.write(s.getBytes(StandardCharsets.UTF_8));
-    }
-
-    private static final byte[] CRLF = "\r\n".getBytes(StandardCharsets.UTF_8);
-    private static final byte[] SPACE = " ".getBytes(StandardCharsets.UTF_8);
 }
