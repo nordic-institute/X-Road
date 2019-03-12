@@ -80,4 +80,18 @@ public enum Role {
                 .filter(role -> role.linuxGroupName.equals(linuxGroupName))
                 .findFirst();
     }
+
+    /**
+     * Tells if parameter string is one of Role names
+     * @param name
+     * @return
+     */
+    public static boolean contains(String name) {
+        for (Role role: Role.values()) {
+            if (role.name().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

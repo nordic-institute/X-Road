@@ -24,61 +24,39 @@
  */
 package org.niis.xroad.restapi.repository;
 
-import org.niis.xroad.restapi.auth.Role;
+import org.junit.Test;
 import org.niis.xroad.restapi.domain.ApiKey;
 import org.niis.xroad.restapi.exceptions.InvalidParametersException;
-import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.fail;
+import static org.junit.Assert.assertEquals;
 
 /**
- * Dummy in-memory repository for api keys
+ * Test api key repository
  */
-@Component
-public class ApiKeyRepository {
+public class ApiKeyRepositoryTest {
+    @Test
+    public void test() {
+        ApiKeyRepository apiKeyRepository = new ApiKeyRepository();
+        try {
+            ApiKey key = apiKeyRepository.create(new ArrayList<>());
+            fail("should fail due to missing roles");
+        } catch (InvalidParametersException expected) { }
 
-    Map<String, ApiKey> keys = new ConcurrentHashMap<>();
+        try {
+            ApiKey key = apiKeyRepository.create(Arrays.asList("XROAD_SECURITY_OFFICER",
+                    "FOOBAR"));
+            fail("should fail due to bad role");
+        } catch (InvalidParametersException expected) { }
 
-    /**
-     * Api keys are created with UUID.randomUUID which uses SecureRandom,
-     * which is cryptographically secure.
-     * @return
-     */
-    private String createApiKey() {
-        return UUID.randomUUID().toString();
+        ApiKey key = apiKeyRepository.create(Arrays.asList("XROAD_SECURITY_OFFICER",
+                "XROAD_REGISTRATION_OFFICER"));
+        assertEquals(2, key.getRoles().size());
+        assertTrue(key.getRoles().contains("XROAD_SECURITY_OFFICER"));
+        assertTrue(key.getRoles().contains("XROAD_REGISTRATION_OFFICER"));
     }
-
-    /**
-     * create api key with one role
-     */
-    public ApiKey create(String role) {
-        return create(Collections.singletonList(role));
-    }
-
-    /**
-     * create api key with collection of roles
-     */
-    public ApiKey create(Collection<String> roles) {
-        if (roles.isEmpty()) {
-            throw new InvalidParametersException("missing roles");
-        }
-        for (String roleParam: roles) {
-            if (!Role.contains(roleParam)) {
-                throw new InvalidParametersException("invalid role " + roleParam);
-            }
-        }
-        ApiKey key = new ApiKey(createApiKey(),
-                Collections.unmodifiableCollection(roles));
-        keys.put(key.getKey(), key);
-        return key;
-    }
-
-    public ApiKey get(String key) {
-        return keys.get(key);
-    }
-
 }

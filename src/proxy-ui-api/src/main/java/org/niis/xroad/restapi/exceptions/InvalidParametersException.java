@@ -22,38 +22,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.controller;
+package org.niis.xroad.restapi.exceptions;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.domain.ApiKey;
-import org.niis.xroad.restapi.repository.ApiKeyRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Controller for rest apis for api key operations
+ * Thrown if parameters were invalid.
+ * Results in http 400 BAD_REQUEST
  */
-@RestController
-@RequestMapping("/api")
-@Slf4j
-public class ApiKeyController {
-
-    @Autowired
-    private ApiKeyRepository apiKeyRepository;
-
-    /**
-     * create api keys
-     */
-    @PostMapping(value = "/create-api-key", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ApiKey createKey(@RequestBody List<String> roles) {
-        ApiKey key = apiKeyRepository.create(roles);
-        log.debug("created api key " + key.getKey());
-        return key;
+@ResponseStatus(value = HttpStatus.BAD_REQUEST)
+public class InvalidParametersException extends RuntimeException {
+    public InvalidParametersException() {
     }
+
+    public InvalidParametersException(String msg) {
+        super(msg);
+    }
+
+    public InvalidParametersException(String msg, Throwable t) {
+        super(msg, t);
+    }
+
+    public InvalidParametersException(Throwable t) {
+        super(t);
+    }
+
 }
