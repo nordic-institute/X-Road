@@ -24,8 +24,8 @@
  */
 package org.niis.xroad.restapi.repository;
 
-import org.niis.xroad.restapi.auth.Role;
-import org.niis.xroad.restapi.domain.ApiKeyData;
+import org.niis.xroad.restapi.domain.ApiKeyType;
+import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.exceptions.InvalidParametersException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -46,7 +46,7 @@ public class ApiKeyRepository {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    Set<ApiKeyData> keys = Collections.newSetFromMap(new ConcurrentHashMap<ApiKeyData, Boolean>());
+    Set<ApiKeyType> keys = Collections.newSetFromMap(new ConcurrentHashMap<ApiKeyType, Boolean>());
 
     /**
      * Api keys are created with UUID.randomUUID which uses SecureRandom,
@@ -60,27 +60,24 @@ public class ApiKeyRepository {
     /**
      * create api key with one role
      */
-    public String create(String role) {
-        return create(Collections.singletonList(role));
+    public String create(String roleName) {
+        return create(Collections.singletonList(roleName));
     }
 
     /**
      * create api key with collection of roles
      * @return plaintext key
      */
-    public String create(Collection<String> roles) {
-        if (roles.isEmpty()) {
+    public String create(Collection<String> roleNames) {
+        if (roleNames.isEmpty()) {
             throw new InvalidParametersException("missing roles");
         }
-        for (String roleParam: roles) {
-            if (!Role.contains(roleParam)) {
-                throw new InvalidParametersException("invalid role " + roleParam);
-            }
-        }
+
+        Set<Role> roles = Role.getForNames(roleNames);
         String key = createApiKey();
         String encoded = encode(key);
-        ApiKeyData apiKeyData = new ApiKeyData(encoded, Collections.unmodifiableCollection(roles));
-        keys.add(apiKeyData);
+        ApiKeyType apiKeyType = new ApiKeyType(encoded, Collections.unmodifiableCollection(roles));
+        keys.add(apiKeyType);
         return key;
     }
 
@@ -97,10 +94,10 @@ public class ApiKeyRepository {
      * @param key
      * @return
      */
-    public ApiKeyData get(String key) {
-        for (ApiKeyData apiKeyData: keys) {
-            if (passwordEncoder.matches(key, apiKeyData.getEncodedKey())) {
-                return apiKeyData;
+    public ApiKeyType get(String key) {
+        for (ApiKeyType apiKeyType : keys) {
+            if (passwordEncoder.matches(key, apiKeyType.getEncodedKey())) {
+                return apiKeyType;
             }
         }
         return null;

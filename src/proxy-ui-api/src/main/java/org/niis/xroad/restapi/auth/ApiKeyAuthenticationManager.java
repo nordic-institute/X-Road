@@ -25,7 +25,7 @@
 package org.niis.xroad.restapi.auth;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.domain.ApiKeyData;
+import org.niis.xroad.restapi.domain.ApiKeyType;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -57,7 +57,7 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String encodedAuthenticationHeader = (String) authentication.getPrincipal();
         String apiKeyValue = authenticationHeaderDecoder.decodeApiKey(encodedAuthenticationHeader);
-        ApiKeyData key = apiKeyRepository.get(apiKeyValue);
+        ApiKeyType key = apiKeyRepository.get(apiKeyValue);
         if (key == null) {
             throw new BadCredentialsException("The API key was not found or not the expected value.");
         }

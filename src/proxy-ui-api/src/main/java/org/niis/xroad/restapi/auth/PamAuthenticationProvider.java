@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;
+import org.niis.xroad.restapi.domain.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -87,10 +88,10 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
             if (matchingGroups.isEmpty()) {
                 throw new AuthenticationServiceException("user hasn't got any required groups");
             }
-            Collection<String> xroadRoleNames = matchingGroups.stream()
-                    .map(groupName -> Role.getForGroupName(groupName).get().name())
+            Collection<Role> xroadRoles = matchingGroups.stream()
+                    .map(groupName -> Role.getForGroupName(groupName).get())
                     .collect(Collectors.toSet());
-            Set<GrantedAuthority> grants = grantedAuthorityMapper.getAuthorities(xroadRoleNames);
+            Set<GrantedAuthority> grants = grantedAuthorityMapper.getAuthorities(xroadRoles);
             return new UsernamePasswordAuthenticationToken(user.getUserName(), authentication.getCredentials(), grants);
         } catch (PAMException e) {
             throw new BadCredentialsException("PAM authentication failed.", e);

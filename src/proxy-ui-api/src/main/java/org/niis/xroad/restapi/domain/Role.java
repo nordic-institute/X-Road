@@ -22,13 +22,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.auth;
+package org.niis.xroad.restapi.domain;
 
 import com.google.common.collect.MoreCollectors;
 import lombok.Getter;
+import org.niis.xroad.restapi.exceptions.InvalidParametersException;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * User roles
@@ -102,6 +106,23 @@ public enum Role {
         return Arrays.stream(values())
                 .filter(role -> role.linuxGroupName.equals(linuxGroupName))
                 .findFirst();
+    }
+
+    /**
+     * Return Roles matching the given role names. Throws InvalidParametersException
+     * if matching Role for some name does not exist.
+     * @param names
+     * @return
+     */
+    public static Set<Role> getForNames(Collection<String> names) {
+        Set<Role> roles = new HashSet<>();
+        for (String name: names) {
+            if (!Role.contains(name)) {
+                throw new InvalidParametersException("invalid role " + name);
+            }
+            roles.add(Role.valueOf(name));
+        }
+        return roles;
     }
 
     /**

@@ -34,18 +34,22 @@ import java.util.Set;
  * WIP api key
  */
 @Getter
-public class ApiKeyData {
+public class ApiKeyType {
+    private Long id;
     private String encodedKey;
-    private Set<String> roles;
+    private Set<Role> roles;
 
     /**
      * Create api key
      * @param encodedKey
      * @param roles
      */
-    public ApiKeyData(String encodedKey, Collection<String> roles) {
+    public ApiKeyType(String encodedKey, Collection<Role> roles) {
         this.encodedKey = encodedKey;
         this.roles = new HashSet<>();
         this.roles.addAll(roles);
+    }
+
+    public ApiKeyType() {
     }
 }
