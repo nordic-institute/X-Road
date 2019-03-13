@@ -25,14 +25,22 @@
 package org.niis.xroad.restapi.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.domain.ApiKeyType;
+import org.niis.xroad.restapi.exceptions.ErrorInfo;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,4 +67,30 @@ public class ApiKeyController {
         result.put("roles", roles);
         return result;
     }
+
+    /**
+     * list api keys from db - just development time, remove
+     */
+    @PreAuthorize("permitAll()")
+    @RequestMapping(value = "/list-keys")
+    public ResponseEntity<Collection<ApiKeyType>> list() {
+        Collection<ApiKeyType> keys = apiKeyRepository.listAll();
+        return new ResponseEntity<>(keys,
+                HttpStatus.OK);
+    }
+
+    /**
+     * revoke key
+     * @param id
+     * @return
+     */
+    @PreAuthorize("permitAll()")
+    @RequestMapping(value = "/revoke-api-key/{id}", method = RequestMethod.DELETE)
+    public ResponseEntity<ErrorInfo> revoke(@PathVariable("id") long id) {
+        apiKeyRepository.removeById(id);
+        // TO DO: return something else than errorInfo
+        return new ResponseEntity<>(new ErrorInfo(HttpStatus.OK.value()),
+                HttpStatus.OK);
+    }
+
 }

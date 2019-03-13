@@ -30,9 +30,12 @@ import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.domain.ApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.exceptions.InvalidParametersException;
+import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,22 +50,35 @@ import static org.junit.Assert.assertEquals;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureTestDatabase
 @Slf4j
-public class ApiKeyRepositoryTest {
+@Transactional
+public class ApiKeyRepositoryIntegrationTest {
 
     @Autowired
     private ApiKeyRepository apiKeyRepository;
 
     @Test
+    public void testDelete() {
+        String plainKey = apiKeyRepository.create(Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"));
+        assertEquals(1, apiKeyRepository.listAll().size());
+        apiKeyRepository.remove(plainKey);
+        assertEquals(0, apiKeyRepository.listAll().size());
+        try {
+            apiKeyRepository.remove(plainKey);
+            fail("should throw exception");
+        } catch (NotFoundException expected) {
+        }
+    }
+
+    @Test
     public void testSaveAndLoad() {
         String plainKey = apiKeyRepository.create(Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"));
-        ApiKeyType key = apiKeyRepository.get(plainKey);
-        assertNotNull(key);
-        String encodedKey = key.getEncodedKey();
-        assertTrue(!plainKey.equals(encodedKey));
-
         ApiKeyType loaded = apiKeyRepository.get(plainKey);
+        assertNotNull(loaded);
+        String encodedKey = loaded.getEncodedKey();
         assertEquals(new Long(1), loaded.getId());
+        assertTrue(!plainKey.equals(encodedKey));
         assertEquals(encodedKey, loaded.getEncodedKey());
         assertEquals(2, loaded.getRoles().size());
         assertTrue(loaded.getRoles().contains(Role.XROAD_SECURITY_OFFICER));

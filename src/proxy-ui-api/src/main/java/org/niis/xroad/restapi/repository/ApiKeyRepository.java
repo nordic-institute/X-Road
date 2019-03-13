@@ -30,6 +30,7 @@ import org.niis.xroad.restapi.dao.ApiKeyDAOImpl;
 import org.niis.xroad.restapi.domain.ApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.exceptions.InvalidParametersException;
+import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
@@ -105,19 +106,46 @@ public class ApiKeyRepository {
      * - add "username"
      * - accept slowness, will not have millions of api keys
      * - get rid of encoding
-     * Chosen path, TO DO:
+     * *** Chosen path, TO DO:
      * - get rid of salting, use a fast hashing algorithm
      * @param key
      * @return
+     * @throws NotFoundException if api key was not found
      */
-    public ApiKeyType get(String key) {
+    public ApiKeyType get(String key) throws NotFoundException {
         List<ApiKeyType> keys = new ApiKeyDAOImpl().findAll(getCurrentSession());
         for (ApiKeyType apiKeyType : keys) {
+            // TO DO: without random salting, no need to use matches,
+            // could encode once and compare encoded values
             if (passwordEncoder.matches(key, apiKeyType.getEncodedKey())) {
                 return apiKeyType;
             }
         }
-        return null;
+        throw new NotFoundException("api key not found");
+    }
+
+    /**
+     * remove / revoke one key
+     * @param key
+     * @throws NotFoundException if api key was not found
+     */
+    public void remove(String key) throws NotFoundException {
+        ApiKeyType apiKeyType = get(key);
+        new ApiKeyDAOImpl().delete(getCurrentSession(), apiKeyType);
+    }
+
+    /**
+     * remove / revoke one key by id
+     * @param id
+     * @throws NotFoundException if api key was not found
+     */
+    public void removeById(long id) throws NotFoundException {
+        ApiKeyDAOImpl dao = new ApiKeyDAOImpl();
+        ApiKeyType apiKeyType = dao.findById(getCurrentSession(), id);
+        if (apiKeyType == null) {
+            throw new NotFoundException("api key with id " + id + " not found");
+        }
+        dao.delete(getCurrentSession(), apiKeyType);
     }
 
     /**

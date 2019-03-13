@@ -25,10 +25,7 @@
 package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.domain.ApiKeyType;
 import org.niis.xroad.restapi.openapi.model.User;
-import org.niis.xroad.restapi.repository.ApiKeyRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -41,7 +38,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.context.request.NativeWebRequest;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -118,19 +114,5 @@ public class UserApiController implements org.niis.xroad.restapi.openapi.UserApi
                 .collect(Collectors.toSet());
         return roles;
     }
-
-    /**
-     * list api keys from db - just development time, remove
-     */
-    @PreAuthorize("permitAll()")
-    @RequestMapping(value = "/key/list")
-    public ResponseEntity<Collection<ApiKeyType>> list() {
-        Collection<ApiKeyType> keys = apiKeyRepository.listAll();
-        return new ResponseEntity<>(keys,
-                HttpStatus.OK);
-    }
-
-    @Autowired
-    private ApiKeyRepository apiKeyRepository;
 
 }

@@ -22,34 +22,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.dao;
+package org.niis.xroad.restapi.exceptions;
 
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.niis.xroad.restapi.domain.ApiKeyType;
-
-import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * API key data access object implementation.
+ * Thrown if item was not found.
+ * Results in http 404 NOT_FOUND
  */
-public class ApiKeyDAOImpl {
-
-    public ApiKeyType findById(Session session, Long id) {
-        return (ApiKeyType) session.get(ApiKeyType.class, id);
+@ResponseStatus(value = HttpStatus.NOT_FOUND)
+public class NotFoundException extends RuntimeException {
+    public NotFoundException() {
     }
 
-    @SuppressWarnings("unchecked")
-    public List<ApiKeyType> findAll(Session session) {
-        Query query = session.createQuery("from " + ApiKeyType.class.getName());
-        return query.list();
+    public NotFoundException(String msg) {
+        super(msg);
     }
 
-    public void insert(Session session, ApiKeyType apiKeyType) {
-        session.persist(apiKeyType);
+    public NotFoundException(String msg, Throwable t) {
+        super(msg, t);
     }
 
-    public void delete(Session session, ApiKeyType apiKeyType) {
-        session.delete(apiKeyType);
+    public NotFoundException(Throwable t) {
+        super(t);
     }
+
 }
