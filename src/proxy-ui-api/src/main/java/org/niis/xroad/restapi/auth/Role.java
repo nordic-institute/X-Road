@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.auth;
 
+import com.google.common.collect.MoreCollectors;
 import lombok.Getter;
 
 import java.util.Arrays;
@@ -34,11 +35,11 @@ import java.util.Optional;
  */
 @Getter
 public enum Role {
-    XROAD_SECURITY_OFFICER("xroad-security-officer"),
-    XROAD_REGISTRATION_OFFICER("xroad-registration-officer"),
-    XROAD_SERVICE_ADMINISTRATOR("xroad-service-administrator"),
-    XROAD_SYSTEM_ADMINISTRATOR("xroad-system-administrator"),
-    XROAD_SECURITYSERVER_OBSERVER("xroad-securityserver-observer");
+    XROAD_SECURITY_OFFICER(1, "xroad-security-officer"),
+    XROAD_REGISTRATION_OFFICER(2, "xroad-registration-officer"),
+    XROAD_SERVICE_ADMINISTRATOR(3, "xroad-service-administrator"),
+    XROAD_SYSTEM_ADMINISTRATOR(4, "xroad-system-administrator"),
+    XROAD_SECURITYSERVER_OBSERVER(5, "xroad-securityserver-observer");
 
     /**
      * Some unfortunate extra boilerplate, since role names in @RolesAllowed
@@ -58,9 +59,31 @@ public enum Role {
     }
 
     private String linuxGroupName;
+    // primary key in db
+    private int key;
 
-    Role(String linuxGroupName) {
+    Role(int key, String linuxGroupName) {
+        this.key = key;
         this.linuxGroupName = linuxGroupName;
+    }
+
+    /**
+     * get key
+     * @return
+     */
+    public int getKey() {
+        return key;
+    }
+
+    /**
+     * return Role matching given key
+     * @param key
+     * @return
+     */
+    public static Role getForKey(int key) {
+        return Arrays.stream(values())
+                .filter(role -> role.getKey() == key)
+                .collect(MoreCollectors.onlyElement());
     }
 
     /**
