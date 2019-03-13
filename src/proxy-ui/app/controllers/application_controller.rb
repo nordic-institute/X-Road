@@ -40,6 +40,7 @@ java_import Java::ee.ria.xroad.common.identifier.SecurityServerId
 java_import Java::ee.ria.xroad.common.util.CryptoUtils
 java_import Java::ee.ria.xroad.commonui.SignerProxy
 java_import Java::ee.ria.xroad.common.util.AtomicSave
+java_import Java::org.hibernate.resource.transaction.spi.TransactionStatus
 
 class ApplicationController < BaseController
 
@@ -122,7 +123,7 @@ class ApplicationController < BaseController
   private
 
   def render(*args)
-    if @tx && @tx.isActive && !@tx.wasCommitted
+    if @tx && @tx.status.equals(TransactionStatus::ACTIVE)
       logger.debug("committing transaction")
       @tx.commit
     end
@@ -135,7 +136,7 @@ class ApplicationController < BaseController
   end
 
   def transaction
-    if @tx && @tx.isActive && !@tx.wasCommitted
+    if @tx && @tx.status.equals(TransactionStatus::ACTIVE)
       yield
       return
     end
@@ -157,7 +158,7 @@ class ApplicationController < BaseController
 
       yield
 
-      if @tx.isActive && !@tx.wasCommitted
+      if @tx.status.equals(TransactionStatus::ACTIVE)
         logger.debug("committing transaction")
         @tx.commit
       end

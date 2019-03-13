@@ -1,8 +1,8 @@
 dependencies {
     compile project(':common-util')
-    compile 'org.hibernate:hibernate-core:4.3.11.Final'
-    compile 'org.hibernate:hibernate-hikaricp:4.3.11.Final'
-    compile 'org.postgresql:postgresql:42.2.1'
+    compile 'org.hibernate:hibernate-core:5.1.17.Final'
+    compile 'org.hibernate:hibernate-hikaricp:5.1.17.Final'
+    compile 'org.postgresql:postgresql:42.2.5'
 
     // DB layer tests use HSQLDB with in-memory tables
     testCompile 'org.hsqldb:hsqldb:2.3.2'
