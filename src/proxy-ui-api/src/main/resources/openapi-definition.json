@@ -1,21 +1,24 @@
 {
   "openapi" : "3.0.0",
-  "servers" : [ {
-    "description" : "X-ROAD API",
-    "url" : "https://virtserver.swaggerhub.com/lakoutan/X-Road/1.0.0"
-  } ],
   "info" : {
-    "description" : "X-Road UI Based API",
-    "version" : "1.0.0",
     "title" : "X-Road UI Based API",
+    "description" : "X-Road UI Based API",
     "contact" : {
       "email" : "lauri.koutaniemi@gofore.com"
     },
     "license" : {
-      "name" : "Apache 2.0",
-      "url" : "http://www.apache.org/licenses/LICENSE-2.0.html"
-    }
+      "name" : "MIT",
+      "url" : "https://opensource.org/licenses/MIT"
+    },
+    "version" : "1.0.0"
   },
+  "servers" : [ {
+    "url" : "https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0",
+    "description" : "X-Road API Design"
+  } ],
+  "security" : [ {
+    "cookieAuth" : [ ]
+  } ],
   "tags" : [ {
     "name" : "security server",
     "description" : "<br>Security Server operations and API calls"
@@ -28,34 +31,52 @@
       "get" : {
         "tags" : [ "security server" ],
         "summary" : "search security server backups",
-        "operationId" : "getBackups",
         "description" : "SS administrator views or searches backups of the security server.",
+        "operationId" : "getBackups",
         "parameters" : [ {
-          "in" : "query",
           "name" : "term",
+          "in" : "query",
           "description" : "pass an optional search string for looking up backups",
           "required" : false,
+          "style" : "form",
+          "explode" : true,
           "schema" : {
             "type" : "string"
           }
         }, {
-          "in" : "query",
           "name" : "offset",
+          "in" : "query",
           "description" : "number of records to skip for pagination",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
           "schema" : {
+            "minimum" : 0,
             "type" : "integer",
-            "format" : "int32",
-            "minimum" : 0
+            "format" : "int32"
           }
         }, {
-          "in" : "query",
           "name" : "limit",
+          "in" : "query",
           "description" : "maximum number of records to return",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int32",
+            "maximum" : 50,
             "minimum" : 0,
-            "maximum" : 50
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "sort",
+          "in" : "query",
+          "description" : "sort records",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
           }
         } ],
         "responses" : {
@@ -80,17 +101,29 @@
       "post" : {
         "tags" : [ "security server" ],
         "summary" : "add or upload new backup for the security server",
-        "operationId" : "addBackup",
         "description" : "Adds backup to the system",
+        "operationId" : "addBackup",
         "parameters" : [ {
-          "in" : "query",
           "name" : "file",
+          "in" : "query",
           "description" : "optional backup file",
           "required" : false,
+          "style" : "form",
+          "explode" : true,
           "schema" : {
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "description" : "backup to add",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Backup"
+              }
+            }
+          }
+        },
         "responses" : {
           "201" : {
             "description" : "item created"
@@ -101,41 +134,24 @@
           "409" : {
             "description" : "an existing item already exists"
           }
-        },
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/Backup"
-              }
-            }
-          },
-          "description" : "backup to add"
         }
       }
     },
     "/backups/{id}" : {
       "get" : {
         "tags" : [ "security server" ],
-        "summary" : "get or download security server backup information",
-        "operationId" : "getBackup",
+        "summary" : "get security server backup information",
         "description" : "SS administrator views the backup details of the security server.",
+        "operationId" : "getBackup",
         "parameters" : [ {
-          "in" : "path",
           "name" : "id",
+          "in" : "path",
           "description" : "id of the backup",
           "required" : true,
+          "style" : "simple",
+          "explode" : false,
           "schema" : {
             "type" : "string"
-          }
-        }, {
-          "in" : "query",
-          "name" : "download",
-          "description" : "download backup",
-          "required" : false,
-          "schema" : {
-            "type" : "string",
-            "default" : false
           }
         } ],
         "responses" : {
@@ -144,10 +160,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Backup"
-                  }
+                  "$ref" : "#/components/schemas/Backup"
                 }
               }
             }
@@ -160,13 +173,15 @@
       "delete" : {
         "tags" : [ "security server" ],
         "summary" : "delete security server backup",
-        "operationId" : "deleteBackup",
         "description" : "SS administrator deletes the backup of the security server.",
+        "operationId" : "deleteBackup",
         "parameters" : [ {
-          "in" : "path",
           "name" : "id",
+          "in" : "path",
           "description" : "id of the backup",
           "required" : true,
+          "style" : "simple",
+          "explode" : false,
           "schema" : {
             "type" : "string"
           }
@@ -195,13 +210,15 @@
       "put" : {
         "tags" : [ "security server" ],
         "summary" : "restore configuration from backup",
-        "operationId" : "restoreBackup",
         "description" : "SS administrator restores the configuration from backup.",
+        "operationId" : "restoreBackup",
         "parameters" : [ {
-          "in" : "path",
           "name" : "id",
+          "in" : "path",
           "description" : "id of the backup",
           "required" : true,
+          "style" : "simple",
+          "explode" : false,
           "schema" : {
             "type" : "string"
           }
@@ -212,10 +229,246 @@
             "content" : {
               "application/json" : {
                 "schema" : {
+                  "$ref" : "#/components/schemas/Backup"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      }
+    },
+    "/backups/{id}/download" : {
+      "get" : {
+        "tags" : [ "security server" ],
+        "summary" : "download security server backup",
+        "description" : "SS administrator downloads the backup of the security server.",
+        "operationId" : "downloadBackup",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the backup",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "ok",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Backup"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      }
+    },
+    "/certificates/{id}" : {
+      "get" : {
+        "tags" : [ "security server" ],
+        "summary" : "get certificate information",
+        "description" : "SS administrator views certificate details.",
+        "operationId" : "getCertificate",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the certificate",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "ok",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Certificate"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "security server" ],
+        "summary" : "delete certificate",
+        "description" : "SS administrator deletes the certificate.",
+        "operationId" : "deleteCertificate",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the certificate",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "item deleted",
+            "content" : {
+              "application/json" : {
+                "schema" : {
                   "type" : "array",
                   "items" : {
-                    "$ref" : "#/components/schemas/Backup"
+                    "$ref" : "#/components/schemas/Certificate"
                   }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      }
+    },
+    "/certificates/{id}/activate" : {
+      "put" : {
+        "tags" : [ "security server" ],
+        "summary" : "activate certificate",
+        "description" : "SS administrator activates selected certificate.",
+        "operationId" : "activateCertificate",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the certificate",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "activation ok",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Certificate"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      }
+    },
+    "/certificates/{id}/disable" : {
+      "put" : {
+        "tags" : [ "security server" ],
+        "summary" : "disable certificate",
+        "description" : "SS administrator disables selected certificate.",
+        "operationId" : "disableCertificate",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the certificate",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "disabled",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Certificate"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      }
+    },
+    "/certificates/{id}/register" : {
+      "put" : {
+        "tags" : [ "security server" ],
+        "summary" : "register certificate",
+        "description" : "SS administrator registers selected certificate.",
+        "operationId" : "registerCertificate",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the certificate",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "registered",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Certificate"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      }
+    },
+    "/certificates/{id}/unregister" : {
+      "put" : {
+        "tags" : [ "security server" ],
+        "summary" : "unregister certificate",
+        "description" : "SS administrator unregisters selected certificate.",
+        "operationId" : "unregisterCertificate",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the certificate",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "unregister ok",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Certificate"
                 }
               }
             }
@@ -230,36 +483,8 @@
       "get" : {
         "tags" : [ "security server" ],
         "summary" : "search security server clients",
-        "operationId" : "getClients",
         "description" : "SS administrator views or search the clients of the security server.",
-        "parameters" : [ {
-          "in" : "query",
-          "name" : "term",
-          "description" : "pass an optional search string for looking up clients",
-          "required" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "query",
-          "name" : "offset",
-          "description" : "number of records to skip for pagination",
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32",
-            "minimum" : 0
-          }
-        }, {
-          "in" : "query",
-          "name" : "limit",
-          "description" : "maximum number of records to return",
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32",
-            "minimum" : 0,
-            "maximum" : 50
-          }
-        } ],
+        "operationId" : "getClients",
         "responses" : {
           "200" : {
             "description" : "search results matching criteria",
@@ -282,8 +507,18 @@
       "post" : {
         "tags" : [ "security server" ],
         "summary" : "adds new client for security server",
-        "operationId" : "addClient",
         "description" : "Adds an item to the system",
+        "operationId" : "addClient",
+        "requestBody" : {
+          "description" : "client to add",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Client"
+              }
+            }
+          }
+        },
         "responses" : {
           "201" : {
             "description" : "item created"
@@ -294,16 +529,6 @@
           "409" : {
             "description" : "an existing item already exists"
           }
-        },
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/Client"
-              }
-            }
-          },
-          "description" : "client to add"
         }
       }
     },
@@ -311,13 +536,15 @@
       "get" : {
         "tags" : [ "security server" ],
         "summary" : "get security server client information",
-        "operationId" : "getClient",
         "description" : "SS administrator views the client details of the security server.",
+        "operationId" : "getClient",
         "parameters" : [ {
-          "in" : "path",
           "name" : "id",
+          "in" : "path",
           "description" : "id of the client",
           "required" : true,
+          "style" : "simple",
+          "explode" : false,
           "schema" : {
             "type" : "string"
           }
@@ -328,10 +555,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Client"
-                  }
+                  "$ref" : "#/components/schemas/Client"
                 }
               }
             }
@@ -344,21 +568,25 @@
       "put" : {
         "tags" : [ "security server" ],
         "summary" : "update security server client information",
-        "operationId" : "updateClient",
         "description" : "SS administrator updates the client information.",
+        "operationId" : "updateClient",
         "parameters" : [ {
-          "in" : "path",
           "name" : "id",
+          "in" : "path",
           "description" : "id of the client",
           "required" : true,
+          "style" : "simple",
+          "explode" : false,
           "schema" : {
             "type" : "string"
           }
         }, {
-          "in" : "query",
           "name" : "other",
+          "in" : "query",
           "description" : "other parameters tbd",
           "required" : false,
+          "style" : "form",
+          "explode" : true,
           "schema" : {
             "type" : "string"
           }
@@ -369,10 +597,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Client"
-                  }
+                  "$ref" : "#/components/schemas/Client"
                 }
               }
             }
@@ -385,13 +610,15 @@
       "delete" : {
         "tags" : [ "security server" ],
         "summary" : "delete security server client",
-        "operationId" : "deleteClient",
         "description" : "SS administrator deletes the client of the security server.",
+        "operationId" : "deleteClient",
         "parameters" : [ {
-          "in" : "path",
           "name" : "id",
+          "in" : "path",
           "description" : "id of the client",
           "required" : true,
+          "style" : "simple",
+          "explode" : false,
           "schema" : {
             "type" : "string"
           }
@@ -420,13 +647,15 @@
       "get" : {
         "tags" : [ "security server" ],
         "summary" : "get security server client TLS certificates information",
-        "operationId" : "getClientCertificates",
         "description" : "SS administrator views the TLS certificates for the client.",
+        "operationId" : "getClientCertificates",
         "parameters" : [ {
-          "in" : "path",
           "name" : "id",
+          "in" : "path",
           "description" : "id of the client",
           "required" : true,
+          "style" : "simple",
+          "explode" : false,
           "schema" : {
             "type" : "string"
           }
@@ -453,25 +682,39 @@
       "post" : {
         "tags" : [ "security server" ],
         "summary" : "add new certificate for the security server client",
-        "operationId" : "addClientCertificate",
         "description" : "SS administrator adds a new certificate for the client.",
+        "operationId" : "addClientCertificate",
         "parameters" : [ {
-          "in" : "path",
           "name" : "id",
+          "in" : "path",
           "description" : "id of the client",
           "required" : true,
+          "style" : "simple",
+          "explode" : false,
           "schema" : {
             "type" : "string"
           }
         }, {
-          "in" : "query",
           "name" : "file",
+          "in" : "query",
           "description" : "certificate file",
           "required" : false,
+          "style" : "form",
+          "explode" : true,
           "schema" : {
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "description" : "certificate to add",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Certificate"
+              }
+            }
+          }
+        },
         "responses" : {
           "201" : {
             "description" : "item created"
@@ -482,79 +725,32 @@
           "409" : {
             "description" : "an existing item already exists"
           }
-        },
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/Certificate"
-              }
-            }
-          },
-          "description" : "certificate to add"
         }
       }
     },
     "/clients/{id}/certificates/{cid}" : {
-      "get" : {
-        "tags" : [ "security server" ],
-        "summary" : "get certificate information for the selected client",
-        "operationId" : "getClientCertificate",
-        "description" : "SS administrator views certificate details.",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "description" : "id of the client",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "path",
-          "name" : "cid",
-          "description" : "id of the certificate",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "ok",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Certificate"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
-          }
-        }
-      },
       "delete" : {
         "tags" : [ "security server" ],
         "summary" : "delete certificate",
+        "description" : "SS administrator deletes the certificate from selected client.",
         "operationId" : "deleteClientCertificate",
-        "description" : "SS administrator deletes the certificate.",
         "parameters" : [ {
-          "in" : "path",
           "name" : "id",
+          "in" : "path",
           "description" : "id of the client",
           "required" : true,
+          "style" : "simple",
+          "explode" : false,
           "schema" : {
             "type" : "string"
           }
         }, {
-          "in" : "path",
           "name" : "cid",
+          "in" : "path",
           "description" : "id of the certificate",
           "required" : true,
+          "style" : "simple",
+          "explode" : false,
           "schema" : {
             "type" : "string"
           }
@@ -579,68 +775,19 @@
         }
       }
     },
-    "/clients/{id}/certificates/{cid}/verify" : {
-      "put" : {
-        "tags" : [ "security server" ],
-        "summary" : "update certificate information",
-        "operationId" : "updateClientCertificate",
-        "description" : "SS administrator updates the certificate information.",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "description" : "id of the client",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "path",
-          "name" : "cid",
-          "description" : "id of the certificate",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "query",
-          "name" : "other",
-          "description" : "other parameters tbd",
-          "required" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "update ok",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Certificate"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
-          }
-        }
-      }
-    },
     "/clients/{id}/groups" : {
       "get" : {
         "tags" : [ "security server" ],
         "summary" : "get local groups for the selected client",
-        "operationId" : "getClientGroups",
         "description" : "SS administrator views the local groups for the client.",
+        "operationId" : "getClientGroups",
         "parameters" : [ {
-          "in" : "path",
           "name" : "id",
+          "in" : "path",
           "description" : "id of the client",
           "required" : true,
+          "style" : "simple",
+          "explode" : false,
           "schema" : {
             "type" : "string"
           }
@@ -667,17 +814,29 @@
       "post" : {
         "tags" : [ "security server" ],
         "summary" : "add new local group for the security server client",
-        "operationId" : "addClientGroup",
         "description" : "SS administrator adds a new local group for the client.",
+        "operationId" : "addClientGroup",
         "parameters" : [ {
-          "in" : "path",
           "name" : "id",
+          "in" : "path",
           "description" : "id of the client",
           "required" : true,
+          "style" : "simple",
+          "explode" : false,
           "schema" : {
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "description" : "group to add",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Group"
+              }
+            }
+          }
+        },
         "responses" : {
           "201" : {
             "description" : "item created"
@@ -688,38 +847,22 @@
           "409" : {
             "description" : "an existing item already exists"
           }
-        },
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/Group"
-              }
-            }
-          },
-          "description" : "group to add"
         }
       }
     },
-    "/clients/{id}/groups/{gid}" : {
-      "get" : {
+    "/clients/{id}/register" : {
+      "put" : {
         "tags" : [ "security server" ],
-        "summary" : "get local group information for the selected client",
-        "operationId" : "getClientGroup",
-        "description" : "SS administrator views local group details.",
+        "summary" : "register security server client",
+        "description" : "SS administrator registers client.",
+        "operationId" : "registerClient",
         "parameters" : [ {
-          "in" : "path",
           "name" : "id",
+          "in" : "path",
           "description" : "id of the client",
           "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "path",
-          "name" : "gid",
-          "description" : "id of the local group",
-          "required" : true,
+          "style" : "simple",
+          "explode" : false,
           "schema" : {
             "type" : "string"
           }
@@ -730,197 +873,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Group"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
-          }
-        }
-      },
-      "put" : {
-        "tags" : [ "security server" ],
-        "summary" : "update local group information",
-        "operationId" : "updateClientGroup",
-        "description" : "SS administrator updates the local group information.",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "description" : "id of the client",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "path",
-          "name" : "gid",
-          "description" : "id of the local group",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "query",
-          "name" : "other",
-          "description" : "other parameters tbd",
-          "required" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "update ok",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Group"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
-          }
-        }
-      },
-      "delete" : {
-        "tags" : [ "security server" ],
-        "summary" : "delete local group",
-        "operationId" : "deleteClientGroup",
-        "description" : "SS administrator deletes the local group.",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "description" : "id of the client",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "path",
-          "name" : "gid",
-          "description" : "id of the local group",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "item deleted",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Group"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
-          }
-        }
-      }
-    },
-    "/clients/{id}/groups/{gid}/members" : {
-      "post" : {
-        "tags" : [ "security server" ],
-        "summary" : "add new member for the local group",
-        "operationId" : "addClientGroupMember",
-        "description" : "SS administrator adds a new member for the local group.",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "description" : "id of the client",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "path",
-          "name" : "gid",
-          "description" : "id of the local group",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "201" : {
-            "description" : "item created"
-          },
-          "400" : {
-            "description" : "invalid input, object invalid"
-          },
-          "409" : {
-            "description" : "an existing item already exists"
-          }
-        },
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/Member"
-              }
-            }
-          },
-          "description" : "member to add"
-        }
-      }
-    },
-    "/clients/{id}/groups/{gid}/members/{mid}" : {
-      "delete" : {
-        "tags" : [ "security server" ],
-        "summary" : "delete member from local group",
-        "operationId" : "deleteClientGroupMember",
-        "description" : "SS administrator deletes the member from local group.",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "description" : "id of the client",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "path",
-          "name" : "gid",
-          "description" : "id of the local group",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "path",
-          "name" : "mid",
-          "description" : "id of the member",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "item deleted",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Member"
-                  }
+                  "$ref" : "#/components/schemas/Client"
                 }
               }
             }
@@ -935,13 +888,15 @@
       "get" : {
         "tags" : [ "security server" ],
         "summary" : "get service clients for the selected client",
-        "operationId" : "getClientServiceclients",
         "description" : "SS administrator views the service clients for the client.",
+        "operationId" : "getClientServiceclients",
         "parameters" : [ {
-          "in" : "path",
           "name" : "id",
+          "in" : "path",
           "description" : "id of the client",
           "required" : true,
+          "style" : "simple",
+          "explode" : false,
           "schema" : {
             "type" : "string"
           }
@@ -968,17 +923,29 @@
       "post" : {
         "tags" : [ "security server" ],
         "summary" : "add new service client for the security server client",
-        "operationId" : "addClientServiceclient",
         "description" : "SS administrator adds a new service client for the client.",
+        "operationId" : "addClientServiceclient",
         "parameters" : [ {
-          "in" : "path",
           "name" : "id",
+          "in" : "path",
           "description" : "id of the client",
           "required" : true,
+          "style" : "simple",
+          "explode" : false,
           "schema" : {
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "description" : "service client to add",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ServiceClient"
+              }
+            }
+          }
+        },
         "responses" : {
           "201" : {
             "description" : "item created"
@@ -989,38 +956,22 @@
           "409" : {
             "description" : "an existing item already exists"
           }
-        },
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/ServiceClient"
-              }
-            }
-          },
-          "description" : "service client to add"
         }
       }
     },
-    "/clients/{id}/serviceclients/{sid}" : {
+    "/clients/{id}/services" : {
       "get" : {
         "tags" : [ "security server" ],
-        "summary" : "get service client information for the selected client",
-        "operationId" : "getClientServiceclient",
-        "description" : "SS administrator views service client details.",
+        "summary" : "get security server client services",
+        "description" : "SS administrator views the services for the client.",
+        "operationId" : "getClientServices",
         "parameters" : [ {
-          "in" : "path",
           "name" : "id",
+          "in" : "path",
           "description" : "id of the client",
           "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "path",
-          "name" : "sid",
-          "description" : "id of the service client",
-          "required" : true,
+          "style" : "simple",
+          "explode" : false,
           "schema" : {
             "type" : "string"
           }
@@ -1033,276 +984,7 @@
                 "schema" : {
                   "type" : "array",
                   "items" : {
-                    "$ref" : "#/components/schemas/ServiceClient"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
-          }
-        }
-      },
-      "put" : {
-        "tags" : [ "security server" ],
-        "summary" : "update service client information",
-        "operationId" : "updateClientServiceclient",
-        "description" : "SS administrator updates the service client information.",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "description" : "id of the client",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "path",
-          "name" : "sid",
-          "description" : "id of the service client",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "query",
-          "name" : "other",
-          "description" : "other parameters tbd",
-          "required" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "update ok",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ServiceClient"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
-          }
-        }
-      },
-      "delete" : {
-        "tags" : [ "security server" ],
-        "summary" : "delete service client",
-        "operationId" : "deleteClientServiceclient",
-        "description" : "SS administrator deletes the service client.",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "description" : "id of the client",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "path",
-          "name" : "sid",
-          "description" : "id of the service client",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "item deleted",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ServiceClient"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
-          }
-        }
-      }
-    },
-    "/clients/{id}/wsdls" : {
-      "get" : {
-        "tags" : [ "security server" ],
-        "summary" : "get security server client WSDL files",
-        "operationId" : "getClientWsdls",
-        "description" : "SS administrator views the WSDL files for the client.",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "description" : "id of the client",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "ok",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Temp"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
-          }
-        }
-      },
-      "put" : {
-        "tags" : [ "security server" ],
-        "summary" : "update security server client WSDL files",
-        "operationId" : "updateClientWsdls",
-        "description" : "SS administrator updates TLS certicates for the client.",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "description" : "id of the client TLS certificate",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "query",
-          "name" : "other",
-          "description" : "other parameters tbd",
-          "required" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "update ok",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Temp"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
-          }
-        }
-      },
-      "delete" : {
-        "tags" : [ "security server" ],
-        "summary" : "delete security server client TLS certificate",
-        "operationId" : "deleteClientWsdl",
-        "description" : "SS administrator deletes the TLS certificate for client.",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "description" : "id of the client TLS certificate",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "item deleted",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Temp"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
-          }
-        }
-      }
-    },
-    "/clients/{id}/register" : {
-      "put" : {
-        "tags" : [ "security server" ],
-        "summary" : "register security server client",
-        "operationId" : "registerClient",
-        "description" : "SS administrator registers client.",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "description" : "id of the client",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "ok",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Client"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
-          }
-        }
-      }
-    },
-    "/clients/{id}/unregister" : {
-      "put" : {
-        "tags" : [ "security server" ],
-        "summary" : "unregister security server client",
-        "operationId" : "unregisterClient",
-        "description" : "SS administrator unregisters client.",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "description" : "id of the client",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "ok",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Client"
+                    "$ref" : "#/components/schemas/Service"
                   }
                 }
               }
@@ -1318,13 +1000,83 @@
       "get" : {
         "tags" : [ "security server" ],
         "summary" : "get server settings",
-        "operationId" : "getClientSettings",
         "description" : "SS administrator views the settings for the client.",
+        "operationId" : "getClientSettings",
         "parameters" : [ {
-          "in" : "path",
           "name" : "id",
+          "in" : "path",
           "description" : "id of the client",
           "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "ok",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Settings"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      }
+    },
+    "/clients/{id}/unregister" : {
+      "put" : {
+        "tags" : [ "security server" ],
+        "summary" : "unregister security server client",
+        "description" : "SS administrator unregisters client.",
+        "operationId" : "unregisterClient",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the client",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "ok",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Client"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      }
+    },
+    "/clients/{id}/wsdls" : {
+      "get" : {
+        "tags" : [ "security server" ],
+        "summary" : "get security server client WSDL files",
+        "description" : "SS administrator views the WSDL files for the client.",
+        "operationId" : "getClientWsdls",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the client",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
           "schema" : {
             "type" : "string"
           }
@@ -1337,8 +1089,511 @@
                 "schema" : {
                   "type" : "array",
                   "items" : {
-                    "$ref" : "#/components/schemas/Settings"
+                    "$ref" : "#/components/schemas/Wsdl"
                   }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "security server" ],
+        "summary" : "add new wsdl for the security server client",
+        "description" : "SS administrator adds a new wsdl for the client.",
+        "operationId" : "addClientWsdl",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the client",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "description" : "service client to add",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Wsdl"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "item created"
+          },
+          "400" : {
+            "description" : "invalid input, object invalid"
+          },
+          "409" : {
+            "description" : "an existing item already exists"
+          }
+        }
+      }
+    },
+    "/groups/{id}" : {
+      "get" : {
+        "tags" : [ "security server" ],
+        "summary" : "get local group information",
+        "description" : "SS administrator views local group details.",
+        "operationId" : "getGroup",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the local group",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "ok",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Group"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "security server" ],
+        "summary" : "update local group information",
+        "description" : "SS administrator updates the local group information.",
+        "operationId" : "updateGroup",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the local group",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "other",
+          "in" : "query",
+          "description" : "other parameters tbd",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "update ok",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Group"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "security server" ],
+        "summary" : "delete local group",
+        "description" : "SS administrator deletes the local group.",
+        "operationId" : "deleteGroup",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the local group",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "item deleted",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Group"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      }
+    },
+    "/groups/{id}/members" : {
+      "post" : {
+        "tags" : [ "security server" ],
+        "summary" : "add new member for the local group",
+        "description" : "SS administrator adds a new member for the local group.",
+        "operationId" : "addGroupMember",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the client",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "description" : "member to add",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Member"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "item created"
+          },
+          "400" : {
+            "description" : "invalid input, object invalid"
+          },
+          "409" : {
+            "description" : "an existing item already exists"
+          }
+        }
+      }
+    },
+    "/groups/{id}/members/{mid}" : {
+      "delete" : {
+        "tags" : [ "security server" ],
+        "summary" : "delete member from local group",
+        "description" : "SS administrator deletes the member from local group.",
+        "operationId" : "deleteGroupMember",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the group",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "mid",
+          "in" : "path",
+          "description" : "id of the member",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "item deleted",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Member"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      }
+    },
+    "/keys/{id}" : {
+      "get" : {
+        "tags" : [ "security server" ],
+        "summary" : "get information for the selected key",
+        "description" : "SS administrator views key details.",
+        "operationId" : "getKey",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the key",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "ok",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Key"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "security server" ],
+        "summary" : "update key information",
+        "description" : "SS administrator updates the key information.",
+        "operationId" : "updateKey",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the key",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "other",
+          "in" : "query",
+          "description" : "other parameters tbd",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "update ok",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Key"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "security server" ],
+        "summary" : "delete key",
+        "description" : "SS administrator deletes the key.",
+        "operationId" : "deleteKey",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the key",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "item deleted",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Key"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      }
+    },
+    "/keys/{id}/certificates" : {
+      "post" : {
+        "tags" : [ "security server" ],
+        "summary" : "adds new certificate for selected key",
+        "description" : "Adds certificate to the system",
+        "operationId" : "addCertificate",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the key",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "import",
+          "in" : "query",
+          "description" : "import file",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string",
+            "default" : "false"
+          }
+        } ],
+        "requestBody" : {
+          "description" : "Certificate to add",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Certificate"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "item created"
+          },
+          "400" : {
+            "description" : "invalid input, object invalid"
+          },
+          "409" : {
+            "description" : "an existing item already exists"
+          }
+        }
+      }
+    },
+    "/keys/{id}/generatecsr" : {
+      "put" : {
+        "tags" : [ "security server" ],
+        "summary" : "generate csr for the selected key",
+        "description" : "SS administrator generates csr for the key.",
+        "operationId" : "unregisterClient",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the key",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "key_usage",
+          "in" : "query",
+          "description" : "inteded usage for the key (signing or authentication)",
+          "required" : true,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "approved_ca",
+          "in" : "query",
+          "description" : "approved certification service",
+          "required" : true,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "csr_format",
+          "in" : "query",
+          "description" : "format of the certificate signing request (PEM or DER)",
+          "required" : true,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "member_id",
+          "in" : "query",
+          "description" : "security server client the certificate will be issued for (only for signing certificates)",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "ok",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Certificate"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      }
+    },
+    "/language" : {
+      "put" : {
+        "tags" : [ "security server" ],
+        "summary" : "change language",
+        "description" : "SS administrator changes the language for the UI.",
+        "operationId" : "language",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the language (language code)",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "language changed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Language"
                 }
               }
             }
@@ -1353,31 +1608,46 @@
       "post" : {
         "tags" : [ "security server" ],
         "summary" : "login to the service and return the authentication cookie",
-        "operationId" : "login",
         "description" : "SS administrator logs in to the GUI.",
-        "security" : [ ],
+        "operationId" : "login",
         "parameters" : [ {
-          "in" : "query",
           "name" : "username",
+          "in" : "query",
           "description" : "username of the user",
           "required" : true,
+          "style" : "form",
+          "explode" : true,
           "schema" : {
             "type" : "string"
           }
         }, {
-          "in" : "query",
           "name" : "password",
+          "in" : "query",
           "description" : "password of the user",
           "required" : true,
+          "style" : "form",
+          "explode" : true,
           "schema" : {
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "description" : "User information",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/User"
+              }
+            }
+          }
+        },
         "responses" : {
           "200" : {
             "description" : "Login ok. The session ID is returned in a cookie named `JSESSIONID`. You need to include this cookie in subsequent requests.",
             "headers" : {
               "Set-Cookie" : {
+                "style" : "simple",
+                "explode" : false,
                 "schema" : {
                   "type" : "string",
                   "example" : "JSESSIONID=abcde12345; Path=/; HttpOnly"
@@ -1389,36 +1659,369 @@
             "description" : "invalid input, object invalid"
           }
         },
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/User"
-              }
-            }
-          },
-          "description" : "User information"
-        }
+        "security" : [ ]
       }
     },
     "/logout" : {
       "delete" : {
         "tags" : [ "security server" ],
         "summary" : "logout from the service",
-        "operationId" : "logout",
         "description" : "SS administrator logs out from GUI.",
-        "security" : [ {
-          "cookieAuth" : [ ]
-        } ],
+        "operationId" : "logout",
         "responses" : {
           "200" : {
             "description" : "logout successfully",
             "content" : {
               "application/json" : {
                 "schema" : {
+                  "$ref" : "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        },
+        "security" : [ {
+          "cookieAuth" : [ ]
+        } ]
+      }
+    },
+    "/services/{id}" : {
+      "put" : {
+        "tags" : [ "security server" ],
+        "summary" : "update service information",
+        "description" : "SS administrator updates the service information.",
+        "operationId" : "updateService",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the service",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "other",
+          "in" : "query",
+          "description" : "other parameters tbd",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "update ok",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Service"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "security server" ],
+        "summary" : "delete service",
+        "description" : "SS administrator deletes the service.",
+        "operationId" : "deleteService",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the service",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "item deleted",
+            "content" : {
+              "application/json" : {
+                "schema" : {
                   "type" : "array",
                   "items" : {
-                    "$ref" : "#/components/schemas/User"
+                    "$ref" : "#/components/schemas/Service"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      }
+    },
+    "/services/{id}/accessrights" : {
+      "get" : {
+        "tags" : [ "security server" ],
+        "summary" : "get access rights for the selected service",
+        "description" : "SS administrator views service accessrights.",
+        "operationId" : "getServiceAccessrights",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the service",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "ok",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Accessright"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "security server" ],
+        "summary" : "adds new accessright for selected service",
+        "description" : "Adds accessright to the service",
+        "operationId" : "addServiceAccessright",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the service",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "other",
+          "in" : "query",
+          "description" : "tbd",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string",
+            "default" : "false"
+          }
+        } ],
+        "requestBody" : {
+          "description" : "accessright to add",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Accessright"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "item created"
+          },
+          "400" : {
+            "description" : "invalid input, object invalid"
+          },
+          "409" : {
+            "description" : "an existing item already exists"
+          }
+        }
+      }
+    },
+    "/services/{id}/accessrights/{aid}" : {
+      "delete" : {
+        "tags" : [ "security server" ],
+        "summary" : "remove accessright",
+        "description" : "SS administrator removes accessright from selected service.",
+        "operationId" : "deleteServiceAccessright",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the service",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "aid",
+          "in" : "path",
+          "description" : "id of the accessright",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "accessright removed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Accessright"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      }
+    },
+    "/serviceclients/{id}/accessrights" : {
+      "get" : {
+        "tags" : [ "security server" ],
+        "summary" : "get access rights for the selected service client.",
+        "description" : "SS administrator views service client's accessrights.",
+        "operationId" : "getServiceclientAccessrights",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the service client",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "ok",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Accessright"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "security server" ],
+        "summary" : "adds new accessright for selected service client",
+        "description" : "Adds accessright to the service client.",
+        "operationId" : "addServiceclientAccessright",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the service",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "other",
+          "in" : "query",
+          "description" : "tbd",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string",
+            "default" : "false"
+          }
+        } ],
+        "requestBody" : {
+          "description" : "accessright to add",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Accessright"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "item created"
+          },
+          "400" : {
+            "description" : "invalid input, object invalid"
+          },
+          "409" : {
+            "description" : "an existing item already exists"
+          }
+        }
+      }
+    },
+    "/serviceclients/{id}/accessrights/{aid}" : {
+      "delete" : {
+        "tags" : [ "security server" ],
+        "summary" : "remove accessright",
+        "description" : "SS administrator removes accessright from selected service client.",
+        "operationId" : "deleteServiceclientAccessright",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the service client",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "aid",
+          "in" : "path",
+          "description" : "id of the accessright",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "accessright removed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Accessright"
                   }
                 }
               }
@@ -1434,11 +2037,165 @@
       "get" : {
         "tags" : [ "security server" ],
         "summary" : "get system information",
-        "operationId" : "getSystem",
         "description" : "SS administrator views the system information.",
+        "operationId" : "getSystem",
         "responses" : {
           "200" : {
             "description" : "information fetched successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/System"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      }
+    },
+    "/system/anchor" : {
+      "get" : {
+        "tags" : [ "security server" ],
+        "summary" : "view the configuration anchor information",
+        "description" : "SS administrator views the configuration anchor information.",
+        "operationId" : "getAnchor",
+        "parameters" : [ {
+          "name" : "download",
+          "in" : "query",
+          "description" : "to be decided",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string",
+            "default" : "false"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "information fetched successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Anchor"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "security server" ],
+        "summary" : "update configuration anchor",
+        "description" : "SS administrator updates configuration anchor information.",
+        "operationId" : "updateAnchor",
+        "responses" : {
+          "200" : {
+            "description" : "ok",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Anchor"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "security server" ],
+        "summary" : "upload a configuration anchor file",
+        "description" : "SS administrator uploads configuration anchor file",
+        "operationId" : "uploadAnchor",
+        "requestBody" : {
+          "description" : "Configuration to add",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Anchor"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "item created"
+          },
+          "400" : {
+            "description" : "invalid input, object invalid"
+          },
+          "409" : {
+            "description" : "an existing item already exists"
+          }
+        }
+      }
+    },
+    "/system/timestamping" : {
+      "get" : {
+        "tags" : [ "security server" ],
+        "summary" : "view the timestamping service information",
+        "description" : "SS administrator views the timestamping service information.",
+        "operationId" : "getTimestamping",
+        "responses" : {
+          "200" : {
+            "description" : "information fetched successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Timestamping"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "security server" ],
+        "summary" : "add a timestamping service",
+        "description" : "SS administrator adds new timestamping service",
+        "operationId" : "addTimestamping",
+        "requestBody" : {
+          "description" : "Timestamping service to add",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Timestamping"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "item created"
+          },
+          "400" : {
+            "description" : "invalid input, object invalid"
+          },
+          "409" : {
+            "description" : "an existing item already exists"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "security server" ],
+        "summary" : "delete timestamping service",
+        "description" : "SS administrator removes timestamping service.",
+        "operationId" : "deleteTimestamping",
+        "responses" : {
+          "200" : {
+            "description" : "ok",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -1456,160 +2213,30 @@
         }
       }
     },
-    "/system/anchor" : {
+    "/system/version" : {
       "get" : {
         "tags" : [ "security server" ],
-        "summary" : "view the configuration anchor information",
-        "operationId" : "getAnchor",
-        "description" : "SS administrator views the configuration anchor information.",
+        "summary" : "get information for the selected key",
+        "description" : "SS administrator views key details.",
+        "operationId" : "getKey",
         "parameters" : [ {
-          "in" : "query",
-          "name" : "download",
-          "description" : "to be decided",
-          "required" : false,
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the key",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
           "schema" : {
-            "type" : "string",
-            "default" : false
+            "type" : "string"
           }
         } ],
         "responses" : {
           "200" : {
-            "description" : "information fetched successfully",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Anchor"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
-          }
-        }
-      },
-      "post" : {
-        "tags" : [ "security server" ],
-        "summary" : "upload a configuration anchor file",
-        "operationId" : "uploadAnchor",
-        "description" : "SS administrator uploads configuration anchor file",
-        "responses" : {
-          "201" : {
-            "description" : "item created"
-          },
-          "400" : {
-            "description" : "invalid input, object invalid"
-          },
-          "409" : {
-            "description" : "an existing item already exists"
-          }
-        },
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/Anchor"
-              }
-            }
-          },
-          "description" : "Configuration to add"
-        }
-      },
-      "put" : {
-        "tags" : [ "security server" ],
-        "summary" : "update configuration anchor",
-        "operationId" : "updateAnchor",
-        "description" : "SS administrator updates configuration anchor information.",
-        "responses" : {
-          "200" : {
             "description" : "ok",
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Anchor"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
-          }
-        }
-      }
-    },
-    "/system/timestamping" : {
-      "get" : {
-        "tags" : [ "security server" ],
-        "summary" : "view the timestamping service information",
-        "operationId" : "getTimestamping",
-        "description" : "SS administrator views the timestamping service information.",
-        "responses" : {
-          "200" : {
-            "description" : "information fetched successfully",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Temp"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
-          }
-        }
-      },
-      "post" : {
-        "tags" : [ "security server" ],
-        "summary" : "add a timestamping service",
-        "operationId" : "addTimestamping",
-        "description" : "SS administrator adds new timestamping service",
-        "responses" : {
-          "201" : {
-            "description" : "item created"
-          },
-          "400" : {
-            "description" : "invalid input, object invalid"
-          },
-          "409" : {
-            "description" : "an existing item already exists"
-          }
-        },
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/Temp"
-              }
-            }
-          },
-          "description" : "Timestamping service to add"
-        }
-      },
-      "delete" : {
-        "tags" : [ "security server" ],
-        "summary" : "delete timestamping service",
-        "operationId" : "deleteTimestamping",
-        "description" : "SS administrator removes timestamping service.",
-        "responses" : {
-          "200" : {
-            "description" : "ok",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Temp"
-                  }
+                  "$ref" : "#/components/schemas/System"
                 }
               }
             }
@@ -1624,34 +2251,42 @@
       "get" : {
         "tags" : [ "security server" ],
         "summary" : "search security server tokens",
-        "operationId" : "getTokens",
         "description" : "SS administrator views or search the tokens of the security server.",
+        "operationId" : "getTokens",
         "parameters" : [ {
-          "in" : "query",
           "name" : "term",
+          "in" : "query",
           "description" : "pass an optional search string for looking up tokens",
           "required" : false,
+          "style" : "form",
+          "explode" : true,
           "schema" : {
             "type" : "string"
           }
         }, {
-          "in" : "query",
           "name" : "offset",
+          "in" : "query",
           "description" : "number of records to skip for pagination",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
           "schema" : {
+            "minimum" : 0,
             "type" : "integer",
-            "format" : "int32",
-            "minimum" : 0
+            "format" : "int32"
           }
         }, {
-          "in" : "query",
           "name" : "limit",
+          "in" : "query",
           "description" : "maximum number of records to return",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int32",
+            "maximum" : 50,
             "minimum" : 0,
-            "maximum" : 50
+            "type" : "integer",
+            "format" : "int32"
           }
         } ],
         "responses" : {
@@ -1676,8 +2311,18 @@
       "post" : {
         "tags" : [ "security server" ],
         "summary" : "adds new token for security server",
-        "operationId" : "addToken",
         "description" : "Adds token to the system",
+        "operationId" : "addToken",
+        "requestBody" : {
+          "description" : "Token to add",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Token"
+              }
+            }
+          }
+        },
         "responses" : {
           "201" : {
             "description" : "item created"
@@ -1688,16 +2333,6 @@
           "409" : {
             "description" : "an existing item already exists"
           }
-        },
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/Token"
-              }
-            }
-          },
-          "description" : "Token to add"
         }
       }
     },
@@ -1705,13 +2340,15 @@
       "get" : {
         "tags" : [ "security server" ],
         "summary" : "get security server token information",
-        "operationId" : "getToken",
         "description" : "SS administrator views the token details of the security server.",
+        "operationId" : "getToken",
         "parameters" : [ {
-          "in" : "path",
           "name" : "id",
+          "in" : "path",
           "description" : "id of the token",
           "required" : true,
+          "style" : "simple",
+          "explode" : false,
           "schema" : {
             "type" : "string"
           }
@@ -1722,10 +2359,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Token"
-                  }
+                  "$ref" : "#/components/schemas/Token"
                 }
               }
             }
@@ -1738,21 +2372,25 @@
       "put" : {
         "tags" : [ "security server" ],
         "summary" : "update security server token information",
-        "operationId" : "updateToken",
         "description" : "SS administrator updates the token information.",
+        "operationId" : "updateToken",
         "parameters" : [ {
-          "in" : "path",
           "name" : "id",
+          "in" : "path",
           "description" : "id of the token",
           "required" : true,
+          "style" : "simple",
+          "explode" : false,
           "schema" : {
             "type" : "string"
           }
         }, {
-          "in" : "query",
           "name" : "other",
+          "in" : "query",
           "description" : "other parameters tbd",
           "required" : false,
+          "style" : "form",
+          "explode" : true,
           "schema" : {
             "type" : "string"
           }
@@ -1763,10 +2401,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Token"
-                  }
+                  "$ref" : "#/components/schemas/Token"
                 }
               }
             }
@@ -1779,13 +2414,15 @@
       "delete" : {
         "tags" : [ "security server" ],
         "summary" : "delete security server token",
-        "operationId" : "deleteToken",
         "description" : "SS administrator deletes the token of the security server.",
+        "operationId" : "deleteToken",
         "parameters" : [ {
-          "in" : "path",
           "name" : "id",
+          "in" : "path",
           "description" : "id of the token",
           "required" : true,
+          "style" : "simple",
+          "explode" : false,
           "schema" : {
             "type" : "string"
           }
@@ -1811,336 +2448,42 @@
       }
     },
     "/tokens/{id}/keys" : {
-      "get" : {
-        "tags" : [ "security server" ],
-        "summary" : "search security server keys for selected token",
-        "operationId" : "getKeys",
-        "description" : "SS administrator views or searches the keys for selected token.",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "description" : "id of the token",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "query",
-          "name" : "term",
-          "description" : "pass an optional search string for looking up keys",
-          "required" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "query",
-          "name" : "offset",
-          "description" : "number of records to skip for pagination",
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32",
-            "minimum" : 0
-          }
-        }, {
-          "in" : "query",
-          "name" : "limit",
-          "description" : "maximum number of records to return",
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32",
-            "minimum" : 0,
-            "maximum" : 50
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "search results matching criteria",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Key"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
-          }
-        }
-      },
       "post" : {
         "tags" : [ "security server" ],
         "summary" : "adds new key",
-        "operationId" : "addKey",
         "description" : "Adds key for selected token.",
+        "operationId" : "addKey",
         "parameters" : [ {
-          "in" : "path",
           "name" : "id",
+          "in" : "path",
           "description" : "id of the token",
           "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "label",
+          "in" : "query",
+          "description" : "label for the token",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
           "schema" : {
             "type" : "string"
           }
         } ],
-        "responses" : {
-          "201" : {
-            "description" : "item created"
-          },
-          "400" : {
-            "description" : "invalid input, object invalid"
-          },
-          "409" : {
-            "description" : "an existing item already exists"
-          }
-        },
         "requestBody" : {
+          "description" : "Key to add",
           "content" : {
             "application/json" : {
               "schema" : {
                 "$ref" : "#/components/schemas/Key"
               }
             }
-          },
-          "description" : "Key to add"
-        }
-      }
-    },
-    "/tokens/{id}/keys/{kid}" : {
-      "get" : {
-        "tags" : [ "security server" ],
-        "summary" : "get key information for the selected key",
-        "operationId" : "getKey",
-        "description" : "SS administrator views key details.",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "description" : "id of the token",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
           }
-        }, {
-          "in" : "path",
-          "name" : "kid",
-          "description" : "id of the key",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "ok",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Key"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
-          }
-        }
-      },
-      "put" : {
-        "tags" : [ "security server" ],
-        "summary" : "update key information",
-        "operationId" : "updateKey",
-        "description" : "SS administrator updates the key information.",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "description" : "id of the token",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "path",
-          "name" : "kid",
-          "description" : "id of the key",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "query",
-          "name" : "other",
-          "description" : "other parameters tbd",
-          "required" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "update ok",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Key"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
-          }
-        }
-      },
-      "delete" : {
-        "tags" : [ "security server" ],
-        "summary" : "delete key",
-        "operationId" : "deleteKey",
-        "description" : "SS administrator deletes the key.",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "description" : "id of the token",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "path",
-          "name" : "kid",
-          "description" : "id of the key",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "item deleted",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Key"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
-          }
-        }
-      }
-    },
-    "/tokens/{id}/keys/{kid}/certificates" : {
-      "get" : {
-        "tags" : [ "security server" ],
-        "summary" : "search security server certificates for selected key",
-        "operationId" : "getCertificates",
-        "description" : "SS administrator views or search the certificates for the key.",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "description" : "id of the token",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "path",
-          "name" : "kid",
-          "description" : "id of the key",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "query",
-          "name" : "term",
-          "description" : "pass an optional search string for looking up certificates",
-          "required" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "query",
-          "name" : "offset",
-          "description" : "number of records to skip for pagination",
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32",
-            "minimum" : 0
-          }
-        }, {
-          "in" : "query",
-          "name" : "limit",
-          "description" : "maximum number of records to return",
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32",
-            "minimum" : 0,
-            "maximum" : 50
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "search results matching criteria",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Certificate"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
-          }
-        }
-      },
-      "post" : {
-        "tags" : [ "security server" ],
-        "summary" : "adds new certificate for selected key",
-        "operationId" : "addCertificate",
-        "description" : "Adds certificate to the system",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "description" : "id of the token",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "path",
-          "name" : "kid",
-          "description" : "id of the key",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "query",
-          "name" : "import",
-          "description" : "import file",
-          "required" : false,
-          "schema" : {
-            "type" : "string",
-            "default" : false
-          }
-        } ],
+        },
         "responses" : {
           "201" : {
             "description" : "item created"
@@ -2150,224 +2493,6 @@
           },
           "409" : {
             "description" : "an existing item already exists"
-          }
-        },
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/Certificate"
-              }
-            }
-          },
-          "description" : "Certificate to add"
-        }
-      }
-    },
-    "/tokens/{id}/keys/{kid}/certificates/{cid}" : {
-      "get" : {
-        "tags" : [ "security server" ],
-        "summary" : "get certificate information",
-        "operationId" : "getCertificate",
-        "description" : "SS administrator views certificate details.",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "description" : "id of the token",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "path",
-          "name" : "kid",
-          "description" : "id of the key",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "path",
-          "name" : "cid",
-          "description" : "id of the certificate",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "ok",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Certificate"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
-          }
-        }
-      },
-      "put" : {
-        "tags" : [ "security server" ],
-        "summary" : "update security server certificate information",
-        "operationId" : "updateCertificate",
-        "description" : "SS administrator updates the certificate information.",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "description" : "id of the token",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "path",
-          "name" : "kid",
-          "description" : "id of the key",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "path",
-          "name" : "cid",
-          "description" : "id of the certificate",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "query",
-          "name" : "action",
-          "description" : "another way to do activate/register/etc.",
-          "required" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "update ok",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Certificate"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
-          }
-        }
-      },
-      "delete" : {
-        "tags" : [ "security server" ],
-        "summary" : "delete certificate",
-        "operationId" : "deleteCertificate",
-        "description" : "SS administrator deletes the certificate.",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "description" : "id of the token",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "path",
-          "name" : "kid",
-          "description" : "id of the key",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "path",
-          "name" : "cid",
-          "description" : "id of the certificate",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "item deleted",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Key"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
-          }
-        }
-      }
-    },
-    "/tokens/{id}/keys/{kid}/certificates/{cid}/activate" : {
-      "put" : {
-        "tags" : [ "security server" ],
-        "summary" : "activate certificate",
-        "operationId" : "activateCertificate",
-        "description" : "SS administrator activates selected certificate.",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "description" : "id of the token",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "path",
-          "name" : "kid",
-          "description" : "id of the key",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "path",
-          "name" : "cid",
-          "description" : "id of the certificate",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "certificate activated",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Certificate"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input"
           }
         }
       }
@@ -2376,17 +2501,29 @@
       "post" : {
         "tags" : [ "security server" ],
         "summary" : "logins to token",
-        "operationId" : "loginToken",
         "description" : "Login to token",
+        "operationId" : "loginToken",
         "parameters" : [ {
-          "in" : "path",
           "name" : "id",
+          "in" : "path",
           "description" : "id of the token",
           "required" : true,
+          "style" : "simple",
+          "explode" : false,
           "schema" : {
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "description" : "Token to add",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Token"
+              }
+            }
+          }
+        },
         "responses" : {
           "201" : {
             "description" : "item created"
@@ -2397,16 +2534,6 @@
           "409" : {
             "description" : "an existing item already exists"
           }
-        },
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/Token"
-              }
-            }
-          },
-          "description" : "Token to add"
         }
       }
     },
@@ -2414,13 +2541,15 @@
       "delete" : {
         "tags" : [ "security server" ],
         "summary" : "logout from token",
-        "operationId" : "logoutToken",
         "description" : "SS administrator logs out from token.",
+        "operationId" : "logoutToken",
         "parameters" : [ {
-          "in" : "path",
           "name" : "id",
+          "in" : "path",
           "description" : "id of the token",
           "required" : true,
+          "style" : "simple",
+          "explode" : false,
           "schema" : {
             "type" : "string"
           }
@@ -2431,10 +2560,188 @@
             "content" : {
               "application/json" : {
                 "schema" : {
+                  "$ref" : "#/components/schemas/Token"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      }
+    },
+    "/wsdls/{id}" : {
+      "put" : {
+        "tags" : [ "security server" ],
+        "summary" : "update address or services for the selected wsdl",
+        "description" : "SS administrator updates the selected wsdl.",
+        "operationId" : "updateWsdl",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the wsdl",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "other",
+          "in" : "query",
+          "description" : "other parameters tbd",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "update ok",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Wsdl"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "security server" ],
+        "summary" : "delete wsdl",
+        "description" : "SS administrator deletes the wsdl.",
+        "operationId" : "deleteWsdl",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the wsdl",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "item deleted",
+            "content" : {
+              "application/json" : {
+                "schema" : {
                   "type" : "array",
                   "items" : {
-                    "$ref" : "#/components/schemas/Token"
+                    "$ref" : "#/components/schemas/Wsdl"
                   }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      }
+    },
+    "/wsdls/{id}/disable" : {
+      "put" : {
+        "tags" : [ "security server" ],
+        "summary" : "disable selected wsdl",
+        "description" : "SS administrator disables wsdl.",
+        "operationId" : "disableWsdl",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the wsdl",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "ok",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Wsdl"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      }
+    },
+    "/wsdls/{id}/enable" : {
+      "put" : {
+        "tags" : [ "security server" ],
+        "summary" : "enable selected wsdl",
+        "description" : "SS administrator enables wsdl.",
+        "operationId" : "enableWsdl",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the wsdl",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "ok",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Wsdl"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      }
+    },
+    "/wsdls/{id}/refresh" : {
+      "put" : {
+        "tags" : [ "security server" ],
+        "summary" : "refresh selected wsdl",
+        "description" : "SS administrator refreshes wsdl.",
+        "operationId" : "refreshWsdl",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the wsdl",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "ok",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Wsdl"
                 }
               }
             }
@@ -2447,161 +2754,175 @@
     }
   },
   "components" : {
-    "securitySchemes" : {
-      "cookieAuth" : {
-        "type" : "apiKey",
-        "in" : "cookie",
-        "name" : "JSESSIONID"
-      }
-    },
     "schemas" : {
-      "Anchor" : {
+      "Accessright" : {
+        "required" : [ "acl_id", "client_id", "id", "service_code", "subject_id" ],
         "type" : "object",
-        "required" : [ "id", "name", "type", "status", "expires", "language", "version" ],
         "properties" : {
           "id" : {
             "type" : "string",
-            "format" : "uuid",
-            "example" : 123
+            "example" : "123"
+          },
+          "acl_id" : {
+            "type" : "string",
+            "example" : "123"
+          },
+          "client_id" : {
+            "type" : "string",
+            "example" : "123"
+          },
+          "subject_id" : {
+            "type" : "string",
+            "example" : "123"
+          },
+          "service_code" : {
+            "type" : "string",
+            "example" : "123"
+          }
+        }
+      },
+      "Anchor" : {
+        "required" : [ "created", "hash", "id" ],
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "example" : "123"
+          },
+          "hash" : {
+            "type" : "string",
+            "example" : "42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3"
+          },
+          "created" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "Authorities" : {
+        "required" : [ "created", "id", "name", "response" ],
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "example" : "123"
           },
           "name" : {
             "type" : "string",
-            "example" : "Authentication key"
+            "example" : "Distinguished name"
           },
-          "type" : {
+          "response" : {
             "type" : "string",
-            "example" : "AUTH"
+            "example" : "N/A"
           },
-          "status" : {
+          "created" : {
             "type" : "string",
-            "example" : "Registered"
-          },
-          "language" : {
-            "type" : "string",
-            "example" : "en"
-          },
-          "version" : {
-            "type" : "string",
-            "example" : "v1.00"
-          },
-          "expires" : {
-            "type" : "string",
-            "format" : "date-time",
-            "example" : "2018-12-15T00:00:00.001Z"
+            "format" : "date-time"
           }
         }
       },
       "Backup" : {
+        "required" : [ "created", "filename", "id" ],
         "type" : "object",
-        "required" : [ "id", "name", "status", "date" ],
         "properties" : {
           "id" : {
             "type" : "string",
-            "format" : "uuid",
-            "example" : 1
+            "format" : "uuid"
           },
-          "name" : {
+          "filename" : {
             "type" : "string",
-            "example" : "configuration_backup_20181224"
+            "example" : "configuration_backup_20181224.tar"
           },
-          "status" : {
+          "created" : {
             "type" : "string",
-            "example" : "completed"
-          },
-          "date" : {
-            "type" : "string",
-            "format" : "date-time",
-            "example" : "2018-12-15T00:00:00.001Z"
+            "format" : "date-time"
           }
         }
       },
       "Certificate" : {
+        "required" : [ "client_id", "data", "id" ],
         "type" : "object",
-        "required" : [ "id", "name", "type", "status", "expires" ],
         "properties" : {
           "id" : {
             "type" : "string",
-            "format" : "uuid",
-            "example" : 123
+            "example" : "123"
           },
-          "name" : {
+          "client_id" : {
             "type" : "string",
-            "example" : "Authentication key"
+            "example" : "123"
           },
-          "type" : {
+          "data" : {
             "type" : "string",
-            "example" : "AUTH"
-          },
-          "status" : {
-            "type" : "string",
-            "example" : "Registered"
-          },
-          "expires" : {
-            "type" : "string",
-            "format" : "date-time",
-            "example" : "2018-12-15T00:00:00.001Z"
+            "example" : "tbd"
           }
         }
       },
       "Client" : {
+        "required" : [ "id", "member_class", "member_code", "member_name", "status", "subsystem_code" ],
         "type" : "object",
-        "required" : [ "id", "name", "status", "date" ],
         "properties" : {
           "id" : {
-            "type" : "string",
-            "format" : "uuid",
-            "example" : "subsystem:111-111-111:12345678"
+            "type" : "string"
           },
-          "name" : {
+          "member_name" : {
             "type" : "string",
-            "example" : "Library"
+            "example" : "FI"
+          },
+          "member_class" : {
+            "type" : "string",
+            "example" : "GOV"
+          },
+          "member_code" : {
+            "type" : "string",
+            "example" : "123"
+          },
+          "subsystem_code" : {
+            "type" : "string",
+            "example" : "ABC"
           },
           "status" : {
             "type" : "string",
             "example" : "Registered"
-          },
-          "date" : {
-            "type" : "string",
-            "format" : "date-time",
-            "example" : "2018-12-15T00:00:00.001Z"
-          },
-          "settings" : {
-            "$ref" : "#/components/schemas/Settings"
           }
         }
       },
       "Group" : {
+        "required" : [ "client_id", "code", "description", "id", "updated" ],
         "type" : "object",
-        "required" : [ "id", "name", "status", "date" ],
         "properties" : {
           "id" : {
             "type" : "string",
-            "format" : "uuid",
-            "example" : 1
+            "example" : "1"
           },
-          "name" : {
+          "client_id" : {
             "type" : "string",
-            "example" : "Group name"
+            "example" : "1"
           },
-          "status" : {
+          "code" : {
             "type" : "string",
-            "example" : "completed"
+            "example" : "groupcode"
           },
-          "date" : {
+          "description" : {
             "type" : "string",
-            "format" : "date-time",
-            "example" : "2018-12-15T00:00:00.001Z"
+            "example" : "tbd"
+          },
+          "updated" : {
+            "type" : "string",
+            "format" : "date-time"
           }
         }
       },
       "Key" : {
+        "required" : [ "id", "name", "status", "token_id", "type" ],
         "type" : "object",
-        "required" : [ "id", "name", "type", "status", "expires" ],
         "properties" : {
           "id" : {
             "type" : "string",
-            "format" : "uuid",
-            "example" : 123
+            "example" : "123"
+          },
+          "token_id" : {
+            "type" : "string",
+            "example" : "123"
           },
           "name" : {
             "type" : "string",
@@ -2614,119 +2935,210 @@
           "status" : {
             "type" : "string",
             "example" : "Registered"
-          },
-          "expires" : {
+          }
+        }
+      },
+      "Language" : {
+        "required" : [ "id" ],
+        "type" : "object",
+        "properties" : {
+          "id" : {
             "type" : "string",
-            "format" : "date-time",
-            "example" : "2018-12-15T00:00:00.001Z"
+            "format" : "uuid"
           }
         }
       },
       "Member" : {
-        "required" : [ "id" ],
+        "required" : [ "created", "group_id", "id" ],
+        "type" : "object",
         "properties" : {
           "id" : {
             "type" : "string",
-            "format" : "uuid",
-            "example" : 123
+            "example" : "123"
+          },
+          "group_id" : {
+            "type" : "string",
+            "example" : "123"
+          },
+          "created" : {
+            "type" : "string",
+            "format" : "date-time"
           }
-        },
-        "type" : "object"
+        }
+      },
+      "Service" : {
+        "required" : [ "code", "id", "ssl", "timeout", "title", "url", "version", "wsdl_id" ],
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "example" : "123"
+          },
+          "wsdl_id" : {
+            "type" : "string",
+            "example" : "123"
+          },
+          "code" : {
+            "type" : "string",
+            "example" : "123"
+          },
+          "version" : {
+            "type" : "string",
+            "example" : "123"
+          },
+          "title" : {
+            "type" : "string",
+            "example" : "123"
+          },
+          "url" : {
+            "type" : "string",
+            "example" : "123"
+          },
+          "ssl" : {
+            "type" : "string",
+            "format" : "boolean"
+          },
+          "timeout" : {
+            "type" : "string",
+            "format" : "uint",
+            "example" : "123"
+          }
+        }
       },
       "ServiceClient" : {
-        "required" : [ "id" ],
-        "properties" : {
-          "id" : {
-            "type" : "string",
-            "format" : "uuid",
-            "example" : 123
-          }
-        },
-        "type" : "object"
-      },
-      "Settings" : {
-        "required" : [ "ip" ],
-        "properties" : {
-          "ip" : {
-            "type" : "string",
-            "example" : "123.123.123.123"
-          },
-          "os" : {
-            "type" : "string",
-            "example" : "Ubuntu"
-          }
-        },
-        "type" : "object"
-      },
-      "Token" : {
+        "required" : [ "id", "name" ],
         "type" : "object",
-        "required" : [ "id", "name", "type", "status", "expires" ],
         "properties" : {
           "id" : {
             "type" : "string",
-            "format" : "uuid",
-            "example" : 123
+            "example" : "GLOBALGROUP:DEV:security-server-owners"
           },
           "name" : {
             "type" : "string",
-            "example" : "Authentication key"
+            "example" : "Security server owners"
+          }
+        }
+      },
+      "Settings" : {
+        "required" : [ "code", "owner" ],
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string",
+            "example" : "123"
+          },
+          "owner" : {
+            "type" : "string",
+            "format" : "boolean"
+          }
+        }
+      },
+      "Token" : {
+        "required" : [ "id", "name", "status", "type" ],
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "example" : "123"
+          },
+          "name" : {
+            "type" : "string",
+            "example" : "softToken-0"
           },
           "type" : {
             "type" : "string",
-            "example" : "AUTH"
+            "example" : "software"
           },
           "status" : {
             "type" : "string",
-            "example" : "Registered"
-          },
-          "expires" : {
-            "type" : "string",
-            "format" : "date-time",
-            "example" : "2018-12-15T00:00:00.001Z"
+            "example" : "ok"
           }
         }
       },
       "System" : {
+        "required" : [ "anchor", "authorities", "certificate", "timestamping" ],
         "type" : "object",
-        "required" : [ "anchor", "timestamping", "authorities", "certificate" ],
         "properties" : {
           "anchor" : {
-            "$ref" : "#/components/schemas/Temp"
+            "$ref" : "#/components/schemas/Anchor"
           },
           "timestamping" : {
-            "$ref" : "#/components/schemas/Temp"
+            "$ref" : "#/components/schemas/Timestamping"
           },
           "authorities" : {
-            "$ref" : "#/components/schemas/Temp"
+            "$ref" : "#/components/schemas/Authorities"
           },
           "certificate" : {
-            "$ref" : "#/components/schemas/Temp"
+            "$ref" : "#/components/schemas/Certificate"
           }
         }
       },
-      "Temp" : {
-        "required" : [ "temp" ],
+      "Timestamping" : {
+        "required" : [ "id", "name", "url" ],
+        "type" : "object",
         "properties" : {
-          "temp" : {
+          "id" : {
             "type" : "string",
-            "example" : "Temp"
+            "example" : "123"
+          },
+          "name" : {
+            "type" : "string",
+            "example" : "X-Road Test TSA CN"
+          },
+          "url" : {
+            "type" : "string",
+            "example" : "http://dev.xroad.rocks:123"
           }
-        },
-        "type" : "object"
+        }
       },
       "User" : {
-        "required" : [ "username" ],
+        "required" : [ "role", "username" ],
+        "type" : "object",
         "properties" : {
           "username" : {
             "type" : "string",
             "example" : "Guest"
+          },
+          "role" : {
+            "type" : "string",
+            "format" : "uint",
+            "example" : "0"
           }
-        },
-        "type" : "object"
+        }
+      },
+      "Wsdl" : {
+        "required" : [ "client_id", "disabled", "id", "refresh", "url" ],
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "example" : "123"
+          },
+          "client_id" : {
+            "type" : "string",
+            "example" : "123"
+          },
+          "url" : {
+            "type" : "string",
+            "example" : "http://dev.xroad.rocks/services.wsdl"
+          },
+          "refresh" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "disabled" : {
+            "type" : "string",
+            "format" : "boolean"
+          }
+        }
+      }
+    },
+    "securitySchemes" : {
+      "cookieAuth" : {
+        "type" : "apiKey",
+        "name" : "JSESSIONID",
+        "in" : "cookie"
       }
     }
-  },
-  "security" : [ {
-    "cookieAuth" : [ ]
-  } ]
+  }
 }

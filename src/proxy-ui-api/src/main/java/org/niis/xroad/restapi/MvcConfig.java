@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -38,9 +39,32 @@ public class MvcConfig implements WebMvcConfigurer {
      * Configuration for spring mvc view controllers
      * @param registry
      */
+    @Override
     public void addViewControllers(ViewControllerRegistry registry) {
         registry.addViewController("/").setViewName("forward:/index.html");
     }
 
+    private static final String RESOURCE_ROOT = "classpath:/public/";
+
+    private void addResourceLocationMapping(ResourceHandlerRegistry registry, String pathPattern,
+                                            String resourceLocation) {
+        registry.addResourceHandler(pathPattern).addResourceLocations(resourceLocation);
+    }
+
+    /**
+     * need to add resource handlers by hand, since if we use default mappings
+     * (spring.resources.add-mappings=true) these take over when
+     * api handler is not found and we cannot customize 404 messages like we want to.
+     *
+     * If any other static resource paths are added, they need to be added here as well.
+     */
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        addResourceLocationMapping(registry, "/index.html", RESOURCE_ROOT);
+        addResourceLocationMapping(registry, "/favicon.ico", RESOURCE_ROOT);
+        addResourceLocationMapping(registry, "/css/**", RESOURCE_ROOT + "css/");
+        addResourceLocationMapping(registry, "/img/**", RESOURCE_ROOT + "img/");
+        addResourceLocationMapping(registry, "/js/**", RESOURCE_ROOT + "js/");
+    }
 
 }

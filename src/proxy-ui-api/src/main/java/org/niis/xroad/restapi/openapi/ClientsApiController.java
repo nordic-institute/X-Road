@@ -24,8 +24,13 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.identifier.ClientId;
+
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.openapi.model.Certificate;
+import org.niis.xroad.restapi.auth.Role;
+import org.niis.xroad.restapi.converter.ClientConverter;
+import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -35,11 +40,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.NativeWebRequest;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
+import javax.annotation.security.DenyAll;
+import javax.annotation.security.RolesAllowed;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,13 +53,16 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/api")
 @Slf4j
+@DenyAll
 public class ClientsApiController implements org.niis.xroad.restapi.openapi.ClientsApi {
 
-    public static final int MAX_FIFTY_RESULTS = 50;
     private final NativeWebRequest request;
 
     @Autowired
     private ClientRepository clientRepository;
+
+    @Autowired
+    private ClientConverter clientConverter;
 
     @Autowired
     public ClientsApiController(NativeWebRequest request) {
@@ -65,6 +72,7 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     /**
      * Example exception
      */
+//    @PreAuthorize("hasAuthority('ROLE_XROAD-SERVICE-ADMINISTRATOR')")
     @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "No such Thing there")
     public static class RestNotFoundException extends RuntimeException {
         public RestNotFoundException(String s) {
@@ -73,30 +81,44 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     }
 
     @Override
-    public ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Client>> getClients(@Valid String term,
-             @Min(0) @Valid Integer offset, @Min(0) @Max(MAX_FIFTY_RESULTS) @Valid Integer limit) {
-        List<org.niis.xroad.restapi.openapi.model.Client> clients = clientRepository.getAllClients();
+    public ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Group>> getClientGroups(String id) {
+        if (true) throw new RestNotFoundException("RestNotFoundException");
+        return null;
+    }
+
+    @Override
+    public ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Service>> getClientServices(String id) {
+        if (true) throw new NullPointerException("NullPointerException");
+        return null;
+    }
+
+    @Override
+    @RolesAllowed({Role.Names.XROAD_SECURITY_OFFICER,
+                    Role.Names.XROAD_REGISTRATION_OFFICER,
+                    Role.Names.XROAD_SERVICE_ADMINISTRATOR,
+                    Role.Names.XROAD_SECURITYSERVER_OBSERVER})
+    public ResponseEntity<List<Client>> getClients() {
+        List<ClientType> clientTypes = clientRepository.getAllClients();
+        List<Client> clients = new ArrayList<>();
+        for (ClientType clientType : clientTypes) {
+            clients.add(clientConverter.convert(clientType));
+        }
         return new ResponseEntity<>(clients, HttpStatus.OK);
     }
 
     @Override
-    public ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Client>> getClient(String id) {
-        List<org.niis.xroad.restapi.openapi.model.Client> clients = clientRepository.getAllClients();
-        String idWithSlashes = id.replaceAll(":", "/");
-        log.debug("looking for id {}", idWithSlashes);
-        for (org.niis.xroad.restapi.openapi.model.Client client: clients) {
-            if (idWithSlashes.equals(client.getName())) {
-                return new ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Client>>(
-                        Collections.singletonList(client), HttpStatus.OK);
-            }
-        }
-        throw new RestNotFoundException("client not found");
-    }
+    @RolesAllowed({Role.Names.XROAD_REGISTRATION_OFFICER,
+            Role.Names.XROAD_SERVICE_ADMINISTRATOR,
+            Role.Names.XROAD_SECURITYSERVER_OBSERVER})
+    public ResponseEntity<Client> getClient(String id) {
+//CHECKSTYLE.OFF: TodoComment - need this todo and still want builds to succeed
+        ClientId clientId = clientConverter.convertId(id);
+        ClientType clientType = clientRepository.getClient(clientId);
+        Client client = clientConverter.convert(clientType);
+        // TODO: 404 not working
+        return new ResponseEntity<>(client, HttpStatus.OK);
+//CHECKSTYLE.ON: TodoComment
 
-    @Override
-    public ResponseEntity<List<Certificate>> getClientCertificate(String id, String cid) {
-        clientRepository.throwSpringException("spring exception");
-        return null;
     }
 
     @Override

@@ -20,7 +20,7 @@
       class="elevation-0 data-table"
     >
       <template slot="items" slot-scope="props">
-        <td>{{ props.item.name }}</td>
+        <td>{{ props.item.member_name }}</td>
         <td class="text-xs-left">{{ props.item.id }}</td>
         <td class="layout px-0">
           <v-spacer></v-spacer>

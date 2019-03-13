@@ -22,30 +22,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.auth;
 
-import org.niis.xroad.restapi.domain.City;
-import org.springframework.stereotype.Component;
+import org.junit.Test;
+import org.springframework.security.core.AuthenticationException;
 
-import java.util.Arrays;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
- * read cities from db
+ * test AuthenticationHeaderDecoder
  */
-@Component
-public class CityRepository {
+public class AuthenticationHeaderDecoderTest {
 
-    /**
-     * dummy
-     * @return
-     */
-    public Iterable<City> findAll() {
-        City c1 = new City();
-        c1.setId(1L);
-        c1.setName("Tampere");
-        City c2 = new City();
-        c2.setId(2L);
-        c2.setName("Helsinki");
-        return Arrays.asList(c1, c2);
+    @Test
+    public void decode() throws Exception {
+        AuthenticationHeaderDecoder decoder = new AuthenticationHeaderDecoder();
+
+        String encoded = "X-Road-ApiKEy toKen=123";
+        assertEquals("123", decoder.decodeApiKey(encoded));
+
+        encoded = "X-Road-ApiKEy toKen=  123  \n ";
+        assertEquals("123", decoder.decodeApiKey(encoded));
+
+        String badEncoded = "Bearer 123";
+        try {
+            decoder.decodeApiKey(badEncoded);
+            fail("should have thrown exception");
+        } catch (AuthenticationException expected) {
+        }
+
+        badEncoded = "X-Road-ApiKEy token=         ";
+        try {
+            decoder.decodeApiKey(badEncoded);
+            fail("should have thrown exception");
+        } catch (AuthenticationException expected) {
+        }
+
+        badEncoded = "dsadsadasdasadsX-Road-ApiKEy token=123";
+        try {
+            decoder.decodeApiKey(badEncoded);
+            fail("should have thrown exception");
+        } catch (AuthenticationException expected) {
+        }
     }
 }

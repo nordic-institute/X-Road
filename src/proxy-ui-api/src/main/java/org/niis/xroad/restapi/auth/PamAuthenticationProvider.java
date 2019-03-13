@@ -37,11 +37,12 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * test PAM authentication provider.
@@ -51,15 +52,16 @@ import java.util.stream.Stream;
 @Slf4j
 public class PamAuthenticationProvider implements AuthenticationProvider {
 
+    // from PAMLoginModule
+    private static final String PAM_SERVICE_NAME = "xroad";
+
     /**
      * users with these groups are allowed access
      */
     private static final Set<String> ALLOWED_GROUP_NAMES = Collections.unmodifiableSet(
-            Stream.of("xroad-security-officer",
-            "xroad-registration-officer",
-            "xroad-service-administrator",
-            "xroad-system-administrator",
-            "xroad-securityserver-observer").collect(Collectors.toSet()));
+            Arrays.stream(Role.values())
+                .map(Role::getLinuxGroupName)
+                .collect(Collectors.toSet()));
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -67,7 +69,7 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
         String password = String.valueOf(authentication.getCredentials());
         PAM pam;
         try {
-            pam = new PAM("XROAD-AUTH-PROTO");
+            pam = new PAM(PAM_SERVICE_NAME);
         } catch (PAMException e) {
             throw new AuthenticationServiceException("Could not initialize PAM.", e);
         }
@@ -82,7 +84,10 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
                 throw new AuthenticationServiceException("user hasn't got any required groups");
             }
             for (String groupName: matchingGroups) {
-                grants.add(new SimpleGrantedAuthority("ROLE_" + groupName.toUpperCase()));
+                Optional<Role> role = Role.getForGroupName(groupName);
+                if (role.isPresent()) {
+                    grants.add(new SimpleGrantedAuthority(role.get().getRoleName()));
+                }
             }
             return new UsernamePasswordAuthenticationToken(user.getUserName(), authentication.getCredentials(), grants);
         } catch (PAMException e) {

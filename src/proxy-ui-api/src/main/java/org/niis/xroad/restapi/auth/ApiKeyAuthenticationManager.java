@@ -52,11 +52,14 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
     @Autowired
     private ApiKeyRepository apiKeyRepository;
 
+    @Autowired
+    private AuthenticationHeaderDecoder authenticationHeaderDecoder;
+
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        String principal = (String) authentication.getPrincipal();
-        log.debug("principal: {}", principal);
-        ApiKey key = apiKeyRepository.get(principal);
+        String encodedAuthenticationHeader = (String) authentication.getPrincipal();
+        String apiKeyValue = authenticationHeaderDecoder.decodeApiKey(encodedAuthenticationHeader);
+        ApiKey key = apiKeyRepository.get(apiKeyValue);
         if (key == null) {
             throw new BadCredentialsException("The API key was not found or not the expected value.");
         }

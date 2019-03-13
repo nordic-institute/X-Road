@@ -22,35 +22,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.domain;
+package org.niis.xroad.restapi.auth;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.stereotype.Component;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
 
 /**
- * Test entity
+ * Helper for handling encoded authentication headers
  */
-@Entity
-@Table(name = "city")
-@ToString
-public class City {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    @Getter
-    @Setter
-    private Long id;
+@Component
+public class AuthenticationHeaderDecoder {
 
-    @Column(name = "name")
-    @Getter
-    @Setter
-    private String name;
+    private static final String UPPERCASE_APIKEY_PREFIX = "X-ROAD-APIKEY TOKEN=";
+
+    /**
+     * Returns decoded api key from authorization header,
+     * or AuthenticationException if one was not found
+     * @param authenticationHeader
+     * @return
+     */
+    public String decodeApiKey(String authenticationHeader) throws AuthenticationException {
+        if (authenticationHeader == null
+                || authenticationHeader.toUpperCase().indexOf(UPPERCASE_APIKEY_PREFIX) != 0) {
+            throw new BadCredentialsException("Invalid X-Road-Apikey authorization header");
+        }
+        String apiKey = authenticationHeader.substring(UPPERCASE_APIKEY_PREFIX.length());
+        if (StringUtils.isBlank(apiKey)) {
+            throw new BadCredentialsException("Missing api key from authorization header");
+        }
+        return apiKey.trim();
+    }
 }

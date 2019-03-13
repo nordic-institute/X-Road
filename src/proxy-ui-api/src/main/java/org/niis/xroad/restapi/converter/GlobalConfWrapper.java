@@ -22,53 +22,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
 
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
-import org.niis.xroad.restapi.DatabaseContextHelper;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 /**
- * client repository
+ * wrap static methods to make things more testable
  */
-@Slf4j
 @Component
-public class ClientRepository {
-
+public class GlobalConfWrapper {
     /**
-     * transactions
-     * test rollback
-     * - correct id encoding (see rest proxy)
-     * @param id
+     * get member name
      */
-    public ClientType getClient(ClientId id) {
-        ClientDAOImpl clientDAO = new ClientDAOImpl();
-        return DatabaseContextHelper.serverConfTransaction(
-                session -> {
-                    return clientDAO.getClient(session, id);
-                });
-    }
-
-    /**
-     * return all clients
-     * @return
-     */
-    public List<ClientType> getAllClients() {
-        ServerConfDAOImpl serverConf = new ServerConfDAOImpl();
-        return DatabaseContextHelper.serverConfTransaction(
-                session -> {
-                    List<ClientType> clientTypes = serverConf.getConf().getClient();
-                    Hibernate.initialize(clientTypes);
-                    return clientTypes;
-                });
+    public String getMemberName(ClientId identifier) {
+        return GlobalConf.getMemberName(identifier);
     }
 }
-
