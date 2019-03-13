@@ -14,6 +14,7 @@
             <generator class="native"/>
         </id>
         <property name="encodedKey" access="field"/>
+        <!--<set name="roles" table="APIKEY_ROLES" access="field" lazy="false" cascade="all-delete-orphan">-->
         <set name="roles" table="APIKEY_ROLES" access="field" lazy="false">
             <key column="apikey_id" not-null="true"/>
             <element column="role" type="RoleEnum" not-null="true" />

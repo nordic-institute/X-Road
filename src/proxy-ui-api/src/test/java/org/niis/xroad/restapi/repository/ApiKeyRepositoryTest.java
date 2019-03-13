@@ -27,6 +27,8 @@ package org.niis.xroad.restapi.repository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.domain.ApiKeyType;
+import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.exceptions.InvalidParametersException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,7 +37,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Test api key repository
@@ -49,7 +54,22 @@ public class ApiKeyRepositoryTest {
     private ApiKeyRepository apiKeyRepository;
 
     @Test
-    public void test() {
+    public void testSaveAndLoad() {
+        String plainKey = apiKeyRepository.create(Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"));
+        ApiKeyType key = apiKeyRepository.get(plainKey);
+        assertNotNull(key);
+        String encodedKey = key.getEncodedKey();
+        assertTrue(!plainKey.equals(encodedKey));
+
+        ApiKeyType loaded = apiKeyRepository.get(plainKey);
+        assertEquals(new Long(1), loaded.getId());
+        assertEquals(encodedKey, loaded.getEncodedKey());
+        assertEquals(2, loaded.getRoles().size());
+        assertTrue(loaded.getRoles().contains(Role.XROAD_SECURITY_OFFICER));
+    }
+
+    @Test
+    public void testDifferentRoles() {
         try {
             String key = apiKeyRepository.create(new ArrayList<>());
             fail("should fail due to missing roles");

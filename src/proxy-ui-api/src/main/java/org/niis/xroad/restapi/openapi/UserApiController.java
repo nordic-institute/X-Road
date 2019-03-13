@@ -26,9 +26,7 @@ package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.domain.ApiKeyType;
-import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.openapi.model.User;
-import org.niis.xroad.restapi.repository.ApiKey2Repository;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -43,7 +41,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.context.request.NativeWebRequest;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
@@ -123,33 +120,16 @@ public class UserApiController implements org.niis.xroad.restapi.openapi.UserApi
     }
 
     /**
-     * create new api key and store it - just development time, remove
-     */
-    @PreAuthorize("permitAll()")
-    @RequestMapping(value = "/key/insert")
-    public ResponseEntity<String> insert() {
-        String key = apiKeyRepository.create(Arrays.asList(
-                Role.XROAD_REGISTRATION_OFFICER.name(),
-                Role.XROAD_SERVICE_ADMINISTRATOR.name()));
-        ApiKeyType apiKeyType = apiKeyRepository.get(key);
-        apiKey2Repository.insertApiKey(apiKeyType);
-        return new ResponseEntity<>(key,
-                HttpStatus.OK);
-    }
-
-    /**
      * list api keys from db - just development time, remove
      */
     @PreAuthorize("permitAll()")
     @RequestMapping(value = "/key/list")
     public ResponseEntity<Collection<ApiKeyType>> list() {
-        Collection<ApiKeyType> keys = apiKey2Repository.getApiKeys();
+        Collection<ApiKeyType> keys = apiKeyRepository.listAll();
         return new ResponseEntity<>(keys,
                 HttpStatus.OK);
     }
 
-    @Autowired
-    private ApiKey2Repository apiKey2Repository;
     @Autowired
     private ApiKeyRepository apiKeyRepository;
 

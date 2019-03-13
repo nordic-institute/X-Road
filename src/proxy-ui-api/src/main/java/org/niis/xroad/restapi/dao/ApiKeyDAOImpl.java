@@ -45,7 +45,7 @@ public class ApiKeyDAOImpl {
         return query.list();
     }
 
-    public long insert(Session session, ApiKeyType apiKeyType) {
-        return (Long) session.save(apiKeyType);
+    public void insert(Session session, ApiKeyType apiKeyType) {
+        session.persist(apiKeyType);
     }
 }

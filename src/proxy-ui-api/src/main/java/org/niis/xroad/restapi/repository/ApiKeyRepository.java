@@ -24,29 +24,42 @@
  */
 package org.niis.xroad.restapi.repository;
 
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
+import org.niis.xroad.restapi.dao.ApiKeyDAOImpl;
 import org.niis.xroad.restapi.domain.ApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.exceptions.InvalidParametersException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Dummy in-memory repository for api keys
+ * API key repository which stores encoded keys in DB
  */
-@Component
+@Slf4j
+@Repository
+@Transactional
 public class ApiKeyRepository {
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private EntityManager entityManager;
 
-    Set<ApiKeyType> keys = Collections.newSetFromMap(new ConcurrentHashMap<ApiKeyType, Boolean>());
+    private Session getCurrentSession() {
+        return entityManager.unwrap(Session.class);
+    }
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     /**
      * Api keys are created with UUID.randomUUID which uses SecureRandom,
@@ -77,7 +90,8 @@ public class ApiKeyRepository {
         String key = createApiKey();
         String encoded = encode(key);
         ApiKeyType apiKeyType = new ApiKeyType(encoded, Collections.unmodifiableCollection(roles));
-        keys.add(apiKeyType);
+        ApiKeyDAOImpl apiKeyDAO = new ApiKeyDAOImpl();
+        apiKeyDAO.insert(getCurrentSession(), apiKeyType);
         return key;
     }
 
@@ -91,10 +105,13 @@ public class ApiKeyRepository {
      * - add "username"
      * - accept slowness, will not have millions of api keys
      * - get rid of encoding
+     * Chosen path, TO DO:
+     * - get rid of salting, use a fast hashing algorithm
      * @param key
      * @return
      */
     public ApiKeyType get(String key) {
+        List<ApiKeyType> keys = new ApiKeyDAOImpl().findAll(getCurrentSession());
         for (ApiKeyType apiKeyType : keys) {
             if (passwordEncoder.matches(key, apiKeyType.getEncodedKey())) {
                 return apiKeyType;
@@ -103,4 +120,11 @@ public class ApiKeyRepository {
         return null;
     }
 
+    /**
+     * List all keys
+     * @return
+     */
+    public List<ApiKeyType> listAll() {
+        return new ApiKeyDAOImpl().findAll(getCurrentSession());
+    }
 }
