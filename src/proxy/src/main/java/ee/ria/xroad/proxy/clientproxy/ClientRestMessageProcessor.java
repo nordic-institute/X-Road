@@ -170,7 +170,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     private void sendRequest(HttpSender httpSender) throws Exception {
         log.trace("sendRequest()");
 
-        final URI[] addresses = prepareRequest(httpSender, requestServiceId, null);
+        final URI[] addresses = prepareRequest(httpSender, requestServiceId, restRequest.getTargetSecurityServer());
         httpSender.addHeader(HEADER_MESSAGE_TYPE, VALUE_MESSAGE_TYPE_REST);
 
         // Add unique id to distinguish request/response pairs

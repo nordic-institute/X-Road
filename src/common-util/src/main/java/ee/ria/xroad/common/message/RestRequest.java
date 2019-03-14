@@ -25,6 +25,7 @@
 package ee.ria.xroad.common.message;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeUtils;
@@ -57,6 +58,7 @@ public class RestRequest extends RestMessage {
     private String requestPath;
     private String query;
     private String servicePath;
+    private SecurityServerId targetSecurityServer;
     private int version;
 
     /**
@@ -173,7 +175,20 @@ public class RestRequest extends RestMessage {
             } else if (MimeUtils.HEADER_QUERY_ID.equalsIgnoreCase(h.getName())) {
                 this.queryId = h.getValue();
             }
-            //TBD optional header values
+            // Target security server
+            if (MimeUtils.HEADER_SECURITY_SERVER.equalsIgnoreCase(h.getName()) && h.getValue() != null) {
+                final String[] parts = h.getValue().split("/", 5);
+                if (parts.length != 4) {
+                    throw new IllegalArgumentException("Invalid SecurityServer Id");
+                }
+                targetSecurityServer = SecurityServerId.create(
+                        uriSegmentPercentDecode(parts[0]),
+                        uriSegmentPercentDecode(parts[1]),
+                        uriSegmentPercentDecode(parts[2]),
+                        uriSegmentPercentDecode(parts[3])
+                );
+            }
+            //TBD more optional header values
         }
 
         final String[] parts = requestPath.split("/", 8);
