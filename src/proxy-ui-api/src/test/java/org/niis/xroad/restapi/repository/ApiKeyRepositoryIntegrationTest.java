@@ -60,7 +60,8 @@ public class ApiKeyRepositoryIntegrationTest {
 
     @Test
     public void testDelete() {
-        String plainKey = apiKeyRepository.create(Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"));
+        String plainKey = apiKeyRepository.create(
+                Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"));
         assertEquals(1, apiKeyRepository.listAll().size());
         apiKeyRepository.remove(plainKey);
         assertEquals(0, apiKeyRepository.listAll().size());
@@ -73,7 +74,8 @@ public class ApiKeyRepositoryIntegrationTest {
 
     @Test
     public void testSaveAndLoad() {
-        String plainKey = apiKeyRepository.create(Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"));
+        String plainKey = apiKeyRepository.create(
+                Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"));
         ApiKeyType loaded = apiKeyRepository.get(plainKey);
         assertNotNull(loaded);
         String encodedKey = loaded.getEncodedKey();

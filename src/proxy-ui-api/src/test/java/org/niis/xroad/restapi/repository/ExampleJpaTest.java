@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
@@ -60,6 +61,17 @@ public class ExampleJpaTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @Value("${common-guggu:defaultvalue}")
+    private String common;
+
+    @Value("${test-guggu:defaultvalue}")
+    private String test;
+
+    @Test
+    public void guggu() {
+        assertEquals("common", common);
+        assertEquals("test", test);
+    }
 
     @Test
     public void testTestEntityManager() {
