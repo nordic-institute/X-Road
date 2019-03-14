@@ -3,7 +3,8 @@ import Vue from 'vue';
 import Vuex, { StoreOptions } from 'vuex';
 import VuexPersistence from 'vuex-persist';
 import { RootState } from './types';
-import { data } from './modules/data';
+import { mockDataModule } from './modules/mockData';
+import { clientsModule } from './modules/clients';
 import { auth } from './modules/auth';
 
 Vue.use(Vuex);
@@ -18,7 +19,8 @@ const store: StoreOptions<RootState> = {
   },
   modules: {
     auth,
-    data,
+    mockDataModule,
+    clientsModule,
   },
   plugins: [vuexLocal.plugin],
 };
