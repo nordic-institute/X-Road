@@ -16,7 +16,7 @@ export default Vue.extend({
 
   methods: {
     fetchCities() {
-      this.$store.dispatch('fetchData').then(
+      this.$store.dispatch('fetchClients').then(
         (response) => {
           this.$bus.$emit('show-success', 'Great success!');
         },
