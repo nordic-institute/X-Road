@@ -180,15 +180,7 @@ module Clients::Services
     render_json(read_services(client))
   end
 
-  def servicedescription_edit
-      if "OPENAPI3" == params[:service_type]
-          servicedescription_openapi3_edit(params)
-      elsif "WSDL" == params[:service_type]
-          servicedescription_wsdl_edit(params)
-      end
-  end
-
-  def servicedescription_wsdl_edit(params)
+  def servicedescription_edit(params)
     audit_log("Edit wsdl service description", audit_log_data = {})
 
     authorize!(:refresh_wsdl)
@@ -228,56 +220,6 @@ module Clients::Services
     render_json(read_services(client))
   end
 
-  def servicedescription_openapi3_edit(params)
-      audit_log("Edit openapi3 service description", audit_log_data = {})
-
-      authorize!(:refresh_openapi3)
-
-      validate_params({
-                          :client_id => [:required],
-                          :wsdl_id => [:required],
-                          :new_url => [:required],
-                          :new_service_code => [:required],
-                          :service_type => [:required]
-                      })
-
-      servicedescription_old = {
-        :client_id => params[:client_id],
-        :wsdl_ids => [params[:wsdl_id]]
-      }
-      logger.info("==================+")
-      logger.info(servicedescription_old)
-
-      servicedescription_delete_impl(servicedescription_old)
-
-
-      servicedescription_new = {
-          :client_id => params[:client_id],
-          :openapi3_add_url => params[:new_url],
-          :openapi3_service_code => params[:new_service_code],
-          :service_type => "OPENAPI3"
-      }
-      logger.info("==================")
-      logger.info(servicedescription_new)
-      servicedescription_openapi3_add(servicedescription_new)
-
-
-
-
-
-
-      serverconf_save
-
-      audit_log_data[:wsdl] = {
-          :wsdlUrl => params[:wsdl_id],
-          :wsdlUrlNew => params[:new_url],
-          :servicesAdded => added[servicedescriptions[0].url],
-          :servicesDeleted => deleted[servicedescriptions[0].url]
-      }
-
-      render_json(read_services(client))
-  end
-
   def servicedescription_refresh
     audit_log("Refresh service description", audit_log_data = {})
 
@@ -306,10 +248,6 @@ module Clients::Services
   end
 
   def servicedescription_delete
-      servicedescription_delete_impl(params)
-  end
-
-  def servicedescription_delete_impl(params)
     audit_log("Delete service description", audit_log_data = {})
 
     authorize!(:delete_wsdl)

@@ -292,6 +292,7 @@
                             openapi3_service_code: $("#params_openapi3_service_code").val()
                         };
 
+                        // Edit REST servicedescription by removing old and saving new
                         $.post(action("servicedescription_delete"), removeParams)
                             .done(function () {
                                 $.post(action("servicedescription_add"), addParams, function(response) {
