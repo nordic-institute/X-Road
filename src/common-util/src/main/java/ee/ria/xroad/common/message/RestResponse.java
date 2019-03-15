@@ -26,6 +26,7 @@ package ee.ria.xroad.common.message;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 
@@ -45,8 +46,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.util.UriUtils.uriSegmentPercentDecode;
-
 /**
  * Rest message
  */
@@ -57,15 +56,18 @@ public class RestResponse extends RestMessage {
     private final String reason;
     private final byte[] requestHash;
     private final ServiceId serviceId;
+    private final ClientId clientId;
+
 
     /**
      * create response from raw messageBytes
      *
      * @param messageBytes
      */
-    private RestResponse(byte[] messageBytes, String queryId, byte[] requestHash, ServiceId serviceId, int code,
-            String reason, List<Header> headers) {
+    private RestResponse(byte[] messageBytes, ClientId clientId, String queryId, byte[] requestHash,
+            ServiceId serviceId, int code, String reason, List<Header> headers) {
         this.messageBytes = messageBytes;
+        this.clientId = clientId;
         this.queryId = queryId;
         this.requestHash = requestHash;
         this.responseCode = code;
@@ -77,21 +79,25 @@ public class RestResponse extends RestMessage {
     /**
      * create response from data
      */
-    public RestResponse(String queryId, byte[] requestHash, ServiceId serviceId, int code, String reason,
-            List<Header> headers) {
+    public RestResponse(ClientId clientId, String queryId, byte[] requestHash, ServiceId serviceId, int code,
+            String reason, List<Header> headers) {
         this.responseCode = code;
         this.reason = reason;
         this.queryId = queryId;
         this.requestHash = requestHash;
         this.serviceId = serviceId;
+        this.clientId = clientId;
         final ArrayList<Header> tmp = headers.stream()
                 .filter(h -> !SKIPPED_HEADERS.contains(h.getName().toLowerCase()))
                 .filter(h -> !h.getName().equalsIgnoreCase(MimeUtils.HEADER_QUERY_ID)
-                        && !h.getName().equalsIgnoreCase(MimeUtils.HEADER_REQUEST_HASH))
+                        && !h.getName().equalsIgnoreCase(MimeUtils.HEADER_REQUEST_HASH)
+                        && !h.getName().equalsIgnoreCase(MimeUtils.HEADER_CLIENT_ID))
                 .collect(Collectors.toCollection(ArrayList::new));
+
         tmp.add(new BasicHeader(MimeUtils.HEADER_QUERY_ID, queryId));
+        tmp.add(new BasicHeader(MimeUtils.HEADER_CLIENT_ID, encodeXRoadId(clientId)));
+        tmp.add(new BasicHeader(MimeUtils.HEADER_SERVICE_ID, encodeXRoadId(serviceId)));
         tmp.add(new BasicHeader(MimeUtils.HEADER_REQUEST_HASH, CryptoUtils.encodeBase64(requestHash)));
-        tmp.add(new BasicHeader(MimeUtils.HEADER_SERVICE_ID, encodeServiceId(serviceId)));
         this.headers = tmp;
     }
 
@@ -153,6 +159,7 @@ public class RestResponse extends RestMessage {
         String queryId = null;
         byte[] requestHash = null;
         ServiceId serviceId = null;
+        ClientId clientId = null;
 
         for (Header h : headers) {
             if (h.getName().equalsIgnoreCase(MimeUtils.HEADER_QUERY_ID)) {
@@ -165,42 +172,32 @@ public class RestResponse extends RestMessage {
             if (h.getName().equalsIgnoreCase(MimeUtils.HEADER_SERVICE_ID)) {
                 serviceId = decodeServiceId(h.getValue());
             }
+
+            if (h.getName().equalsIgnoreCase(MimeUtils.HEADER_CLIENT_ID)) {
+                clientId = decodeClientId(h.getValue());
+            }
         }
 
         if (queryId == null || requestHash == null || queryId.isEmpty() || requestHash.length == 0) {
             throw new IllegalArgumentException("Invalid REST Response message");
         }
 
-        return new RestResponse(messageBytes, queryId, requestHash, serviceId, responseCode, reason, headers);
+        return new RestResponse(messageBytes, clientId, queryId, requestHash, serviceId, responseCode, reason, headers);
     }
 
-    @SuppressWarnings("checkstyle:magicnumber")
-    private static ServiceId decodeServiceId(String value) {
-        final String[] parts = value.split("/", 6);
-        if (parts.length != 5) {
-            throw new IllegalArgumentException("Invalid Service Id");
-        }
-        return ServiceId.create(
-                uriSegmentPercentDecode(parts[0]),
-                uriSegmentPercentDecode(parts[1]),
-                uriSegmentPercentDecode(parts[2]),
-                uriSegmentPercentDecode(parts[3]),
-                uriSegmentPercentDecode(parts[4])
-        );
-    }
-
-    private static String encodeServiceId(ServiceId serviceId) {
+    private static String encodeXRoadId(XRoadId xroadId) {
         final Escaper escaper = UrlEscapers.urlPathSegmentEscaper();
         StringBuilder sb = new StringBuilder();
-        sb.append(escaper.escape(serviceId.getXRoadInstance()));
-        sb.append('/');
-        sb.append(escaper.escape(serviceId.getMemberClass()));
-        sb.append('/');
-        sb.append(escaper.escape(serviceId.getMemberCode()));
-        sb.append('/');
-        sb.append(escaper.escape(serviceId.getSubsystemCode()));
-        sb.append('/');
-        sb.append(escaper.escape(serviceId.getServiceCode()));
+        sb.append(escaper.escape(xroadId.getXRoadInstance()));
+
+        final String[] parts = xroadId.getFieldsForStringFormat();
+        for (String part : parts) {
+            if (part != null) {
+                sb.append('/');
+                sb.append(escaper.escape(part));
+            }
+        }
         return sb.toString();
     }
+
 }

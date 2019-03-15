@@ -119,7 +119,7 @@ public abstract class XRoadId implements Serializable {
     /**
      * Returns the fields for string format of this identifier.
      */
-    protected abstract String[] getFieldsForStringFormat();
+    public abstract String[] getFieldsForStringFormat();
 
     protected static void validateField(String fieldName, String fieldValue) {
         if (StringUtils.isBlank(fieldValue)) {

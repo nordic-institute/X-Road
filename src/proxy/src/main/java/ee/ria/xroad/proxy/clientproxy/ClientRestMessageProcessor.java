@@ -114,8 +114,8 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                     headers(servletRequest)
             );
 
-            senderId = restRequest.getClient();
-            requestServiceId = restRequest.getRequestServiceId();
+            senderId = restRequest.getClientId();
+            requestServiceId = restRequest.getServiceId();
 
             verifyClientStatus(senderId);
             verifyClientAuthentication(senderId);
@@ -223,10 +223,13 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     }
 
     private void checkConsistency() {
+        if (!Objects.equals(restRequest.getClientId(), response.getRestResponse().getClientId())) {
+            throw new CodedException(X_INCONSISTENT_RESPONSE, "Response client id does not match request message");
+        }
         if (!Objects.equals(restRequest.getQueryId(), response.getRestResponse().getQueryId())) {
             throw new CodedException(X_INCONSISTENT_RESPONSE, "Response message id does not match request message");
         }
-        if (!Objects.equals(restRequest.getRequestServiceId(), response.getRestResponse().getServiceId())) {
+        if (!Objects.equals(restRequest.getServiceId(), response.getRestResponse().getServiceId())) {
             throw new CodedException(X_INCONSISTENT_RESPONSE, "Response service id does not match request message");
         }
         if (!Arrays.equals(restRequest.getHash(), response.getRestResponse().getRequestHash())) {
@@ -269,7 +272,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         }
 
         return new MessageInfo(MessageInfo.Origin.CLIENT_PROXY,
-                restRequest.getClient(),
+                restRequest.getClientId(),
                 requestServiceId,
                 null,
                 null);
