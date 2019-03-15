@@ -276,33 +276,22 @@
                 { text: _("common.ok"),
                     click: function() {
                         var dialog = this;
-                        var formParams = $("form", dialog).serializeObject();
 
-                        var removeParams =  {
+                        var params = {
                             client_id: $("#details_client_id").val(),
-                            wsdl_ids: [oServices.getFocusData().wsdl_id]
-                        };
-
-                        var addParams = {
-                            utf8: formParams.utf8,
-                            authenticity_token: formParams.authenticity_token,
+                            wsdl_id: oServices.getFocusData().wsdl_id,
+                            openapi3_old_service_code: oServices.getFocusData().openapi3_service_code,
                             service_type: "OPENAPI3",
-                            client_id: $("#details_client_id").val(),
-                            openapi3_add_url: $("#params_openapi3_url").val(),
-                            openapi3_service_code: $("#params_openapi3_service_code").val()
+                            openapi3_new_url: $("#params_openapi3_url").val(),
+                            openapi3_new_service_code: $("#params_openapi3_service_code").val()
                         };
 
-                        // Edit REST servicedescription by removing old and saving new
-                        $.post(action("servicedescription_delete"), removeParams)
-                            .done(function () {
-                                $.post(action("servicedescription_add"), addParams, function(response) {
-                                    oServices.fnReplaceData(response.data);
-                                    enableActions();
+                        $.post(action("servicedescription_edit"), params, function(response) {
+                            oServices.fnReplaceData(response.data);
+                            enableActions();
 
-                                    $(dialog).dialog("close");
-                                }       , "json").fail(showOutput);
-                            })
-                            .fail(showOutput);
+                            $(dialog).dialog("close");
+                        }, "json").fail(showOutput);
 
                     }
                 },

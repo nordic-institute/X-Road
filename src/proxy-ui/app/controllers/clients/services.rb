@@ -181,6 +181,53 @@ module Clients::Services
   end
 
   def servicedescription_edit
+      if "OPENAPI3" == params[:service_type]
+          servicedescription_openapi3_edit(params)
+      elsif "WSDL" == params[:service_type]
+          servicedescription_wsdl_edit(params)
+      end
+  end
+
+  def servicedescription_openapi3_edit(params)
+      audit_log("Edit openapi3 service description", audit_log_data = {})
+
+      authorize!(:refresh_openapi3)
+
+      validate_params({
+        :client_id => [:required],
+        :wsdl_id => [:required],
+        :openapi3_old_service_code => [:required],
+        :openapi3_new_url => [:required],
+        :openapi3_new_service_code => [:required],
+        :service_type => [:required]
+      })
+
+      client = get_client(params[:client_id])
+
+      audit_log_data[:clientIdentifier] = client.identifier
+
+      servicedescription = client.serviceDescription.detect { |servicedescription| DescriptionType::OPENAPI3 == servicedescription.type && servicedescription.url == params[:wsdl_id] }
+      client.serviceDescription.remove(servicedescription)
+
+      servicedescription.url = params[:openapi3_new_url]
+      servicedescription.service.first.url = params[:openapi3_new_url]
+      servicedescription.service.first.service_code = params[:openapi3_new_service_code]
+      client.serviceDescription.add(servicedescription)
+
+      acl = client.acl.detect { |item| params[:openapi3_old_service_code] == item.serviceCode }
+      if @acl
+        client.acl.remove(acl)
+        acl.serviceCode = params[:openapi3_new_service_code]
+        client.acl.add(acl)
+      end
+
+      serverconf_save
+
+      render_json(read_services(client))
+
+  end
+
+  def servicedescription_wsdl_edit(params)
     audit_log("Edit wsdl service description", audit_log_data = {})
 
     authorize!(:refresh_wsdl)
