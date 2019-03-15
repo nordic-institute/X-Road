@@ -42,15 +42,15 @@ import java.util.Properties;
 @Slf4j
 @Component
 @Profile("!test")
-public class MyHibernatePropertiesCustomizer implements HibernatePropertiesCustomizer {
+public class PropertyFileReadingHibernateCustomizer implements HibernatePropertiesCustomizer {
 
     @Override
     public void customize(Map<String, Object> hibernateProperties) {
         // called twice since IntelliJ tests load the class twice
         SystemPropertiesInitializer.initialize();
         Properties dbProperties = new Properties();
-        try {
-            dbProperties.load(new FileInputStream(SystemProperties.getDatabasePropertiesFile()));
+        try (FileInputStream dbPropertiesStream = new FileInputStream(SystemProperties.getDatabasePropertiesFile())) {
+            dbProperties.load(dbPropertiesStream);
         } catch (IOException ioe) {
             log.warn("db.properties file not found", ioe);
         }
