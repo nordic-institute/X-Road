@@ -125,8 +125,8 @@ module Clients::Services
 
       service = ServiceType.new
       service.serviceCode = params[:openapi3_service_code]
-      service.serviceVersion = ""
-      service.title = ""
+      service.serviceVersion = nil
+      service.title = nil
       service.url = params[:openapi3_add_url]
       service.timeout = DEFAULT_SERVICE_TIMEOUT
       service.serviceDescription = servicedescription
@@ -180,7 +180,7 @@ module Clients::Services
     render_json(read_services(client))
   end
 
-  def servicedescription_edit(params)
+  def servicedescription_edit
     audit_log("Edit wsdl service description", audit_log_data = {})
 
     authorize!(:refresh_wsdl)
