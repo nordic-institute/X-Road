@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -35,25 +36,29 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * test PAM authentication provider.
- * Application has to be run as a user who has read access to /etc/shadow (likely means that belongs to group shadow)
- * roles are granted with user groups xroad-auth-proto-user and xroad-auth-proto-admin
+ * PAM authentication provider.
+ * Application has to be run as a user who has read access to /etc/shadow (
+ * likely means that belongs to group shadow)
+ * roles are granted with user groups, mappings in {@link Role}
  */
 @Slf4j
+@Component
 public class PamAuthenticationProvider implements AuthenticationProvider {
 
     // from PAMLoginModule
     private static final String PAM_SERVICE_NAME = "xroad";
+
+    @Autowired
+    private GrantedAuthorityMapper grantedAuthorityMapper;
 
     /**
      * users with these groups are allowed access
@@ -76,19 +81,16 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
         try {
             UnixUser user = pam.authenticate(username, password);
             Set<String> groups = user.getGroups();
-            Set<GrantedAuthority> grants = new HashSet<>();
             Set<String> matchingGroups = groups.stream()
                     .filter(ALLOWED_GROUP_NAMES::contains)
                     .collect(Collectors.toSet());
             if (matchingGroups.isEmpty()) {
                 throw new AuthenticationServiceException("user hasn't got any required groups");
             }
-            for (String groupName: matchingGroups) {
-                Optional<Role> role = Role.getForGroupName(groupName);
-                if (role.isPresent()) {
-                    grants.add(new SimpleGrantedAuthority(role.get().getRoleName()));
-                }
-            }
+            Collection<String> xroadRoleNames = matchingGroups.stream()
+                    .map(groupName -> Role.getForGroupName(groupName).get().name())
+                    .collect(Collectors.toSet());
+            Set<GrantedAuthority> grants = grantedAuthorityMapper.getAuthorities(xroadRoleNames);
             return new UsernamePasswordAuthenticationToken(user.getUserName(), authentication.getCredentials(), grants);
         } catch (PAMException e) {
             throw new BadCredentialsException("PAM authentication failed.", e);

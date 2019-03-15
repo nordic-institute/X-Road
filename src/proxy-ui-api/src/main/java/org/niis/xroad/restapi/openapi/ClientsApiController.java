@@ -28,21 +28,18 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.auth.Role;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.NativeWebRequest;
-
-import javax.annotation.security.DenyAll;
-import javax.annotation.security.RolesAllowed;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +51,7 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/api")
 @Slf4j
-@DenyAll
+@PreAuthorize("denyAll")
 @Transactional
 public class ClientsApiController implements org.niis.xroad.restapi.openapi.ClientsApi {
 
@@ -74,7 +71,6 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     /**
      * Example exception
      */
-//    @PreAuthorize("hasAuthority('ROLE_XROAD-SERVICE-ADMINISTRATOR')")
     @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "No such Thing there")
     public static class RestNotFoundException extends RuntimeException {
         public RestNotFoundException(String s) {
@@ -83,10 +79,7 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     }
 
     @Override
-    @RolesAllowed({Role.Names.XROAD_SECURITY_OFFICER,
-                    Role.Names.XROAD_REGISTRATION_OFFICER,
-                    Role.Names.XROAD_SERVICE_ADMINISTRATOR,
-                    Role.Names.XROAD_SECURITYSERVER_OBSERVER})
+    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public ResponseEntity<List<Client>> getClients() {
         List<ClientType> clientTypes = clientRepository.getAllClients();
         List<Client> clients = new ArrayList<>();
@@ -97,9 +90,7 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     }
 
     @Override
-    @RolesAllowed({Role.Names.XROAD_REGISTRATION_OFFICER,
-            Role.Names.XROAD_SERVICE_ADMINISTRATOR,
-            Role.Names.XROAD_SECURITYSERVER_OBSERVER})
+    @PreAuthorize("hasAuthority('NO_ONE_HAS_THIS_PERMISSION_YET')")
     public ResponseEntity<Client> getClient(String id) {
 //CHECKSTYLE.OFF: TodoComment - need this todo and still want builds to succeed
         // getClient is not yet implemented at this point,

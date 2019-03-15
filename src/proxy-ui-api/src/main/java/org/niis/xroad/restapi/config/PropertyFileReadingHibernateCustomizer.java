@@ -37,7 +37,8 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * x
+ * HibernatePropertiesCustomizer that reads db.properties and sets non-datasource-properties.
+ * Datasource properties are handled by {@link DatabasePropertiesEnvironmentPostProcessor}
  */
 @Slf4j
 @Component

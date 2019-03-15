@@ -43,41 +43,6 @@
           "schema" : {
             "type" : "string"
           }
-        }, {
-          "name" : "offset",
-          "in" : "query",
-          "description" : "number of records to skip for pagination",
-          "required" : false,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "minimum" : 0,
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }, {
-          "name" : "limit",
-          "in" : "query",
-          "description" : "maximum number of records to return",
-          "required" : false,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "maximum" : 50,
-            "minimum" : 0,
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }, {
-          "name" : "sort",
-          "in" : "query",
-          "description" : "sort records",
-          "required" : false,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "string"
-          }
         } ],
         "responses" : {
           "200" : {
@@ -100,14 +65,43 @@
       },
       "post" : {
         "tags" : [ "security server" ],
-        "summary" : "add or upload new backup for the security server",
+        "summary" : "add new backup for the security server",
         "description" : "Adds backup to the system",
         "operationId" : "addBackup",
+        "requestBody" : {
+          "description" : "backup to add",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Backup"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "item created"
+          },
+          "400" : {
+            "description" : "invalid input, object invalid"
+          },
+          "409" : {
+            "description" : "an existing item already exists"
+          }
+        }
+      }
+    },
+    "/backups/upload" : {
+      "post" : {
+        "tags" : [ "security server" ],
+        "summary" : "upload new backup for the security server",
+        "description" : "Uploads new backup to the system",
+        "operationId" : "uploadBackup",
         "parameters" : [ {
           "name" : "file",
           "in" : "query",
           "description" : "optional backup file",
-          "required" : false,
+          "required" : true,
           "style" : "form",
           "explode" : true,
           "schema" : {
@@ -1501,7 +1495,7 @@
         "tags" : [ "security server" ],
         "summary" : "generate csr for the selected key",
         "description" : "SS administrator generates csr for the key.",
-        "operationId" : "unregisterClient",
+        "operationId" : "genrerateCsr",
         "parameters" : [ {
           "name" : "id",
           "in" : "path",
@@ -1557,9 +1551,44 @@
           "200" : {
             "description" : "ok",
             "content" : {
+              "application/pkcs10" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "binary"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      }
+    },
+    "/keys/{id}/deletecsr" : {
+      "put" : {
+        "tags" : [ "security server" ],
+        "summary" : "generate csr for the selected key",
+        "description" : "SS administrator generates csr for the key.",
+        "operationId" : "deleteCsr",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the key",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "ok",
+            "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/Certificate"
+                  "$ref" : "#/components/schemas/Key"
                 }
               }
             }
@@ -1604,73 +1633,15 @@
         }
       }
     },
-    "/login" : {
-      "post" : {
+    "/user" : {
+      "get" : {
         "tags" : [ "security server" ],
-        "summary" : "login to the service and return the authentication cookie",
-        "description" : "SS administrator logs in to the GUI.",
-        "operationId" : "login",
-        "parameters" : [ {
-          "name" : "username",
-          "in" : "query",
-          "description" : "username of the user",
-          "required" : true,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "password",
-          "in" : "query",
-          "description" : "password of the user",
-          "required" : true,
-          "style" : "form",
-          "explode" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "requestBody" : {
-          "description" : "User information",
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/User"
-              }
-            }
-          }
-        },
+        "summary" : "get user data for the logged user",
+        "description" : "SS administrator gets user data from backend.",
+        "operationId" : "user",
         "responses" : {
           "200" : {
-            "description" : "Login ok. The session ID is returned in a cookie named `JSESSIONID`. You need to include this cookie in subsequent requests.",
-            "headers" : {
-              "Set-Cookie" : {
-                "style" : "simple",
-                "explode" : false,
-                "schema" : {
-                  "type" : "string",
-                  "example" : "JSESSIONID=abcde12345; Path=/; HttpOnly"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "invalid input, object invalid"
-          }
-        },
-        "security" : [ ]
-      }
-    },
-    "/logout" : {
-      "delete" : {
-        "tags" : [ "security server" ],
-        "summary" : "logout from the service",
-        "description" : "SS administrator logs out from GUI.",
-        "operationId" : "logout",
-        "responses" : {
-          "200" : {
-            "description" : "logout successfully",
+            "description" : "ok",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -1678,14 +1649,9 @@
                 }
               }
             }
-          },
-          "400" : {
-            "description" : "invalid input"
           }
         },
-        "security" : [ {
-          "cookieAuth" : [ ]
-        } ]
+        "security" : [ ]
       }
     },
     "/services/{id}" : {
@@ -2139,6 +2105,29 @@
         }
       }
     },
+    "/system/anchor/download" : {
+      "get" : {
+        "tags" : [ "security server" ],
+        "summary" : "download configuration anchor information",
+        "description" : "SS administrator downloads the configuration anchor information.",
+        "operationId" : "downloadAnchor",
+        "responses" : {
+          "200" : {
+            "description" : "information fetched successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Anchor"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "invalid input"
+          }
+        }
+      }
+    },
     "/system/timestamping" : {
       "get" : {
         "tags" : [ "security server" ],
@@ -2216,9 +2205,9 @@
     "/system/version" : {
       "get" : {
         "tags" : [ "security server" ],
-        "summary" : "get information for the selected key",
+        "summary" : "get information for the system version",
         "description" : "SS administrator views key details.",
-        "operationId" : "getKey",
+        "operationId" : "systemVersion",
         "parameters" : [ {
           "name" : "id",
           "in" : "path",
@@ -2853,7 +2842,7 @@
           },
           "data" : {
             "type" : "string",
-            "example" : "tbd"
+            "format" : "binary"
           }
         }
       },
@@ -2862,7 +2851,8 @@
         "type" : "object",
         "properties" : {
           "id" : {
-            "type" : "string"
+            "type" : "string",
+            "example" : "FI:GOV:123:ABC"
           },
           "member_name" : {
             "type" : "string",
@@ -2996,7 +2986,8 @@
           },
           "ssl" : {
             "type" : "string",
-            "format" : "boolean"
+            "format" : "boolean",
+            "example" : "true"
           },
           "timeout" : {
             "type" : "string",
@@ -3029,7 +3020,8 @@
           },
           "owner" : {
             "type" : "string",
-            "format" : "boolean"
+            "format" : "boolean",
+            "example" : "false"
           }
         }
       },
@@ -3099,10 +3091,17 @@
             "type" : "string",
             "example" : "Guest"
           },
-          "role" : {
-            "type" : "string",
-            "format" : "uint",
-            "example" : "0"
+          "roles" : {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "permissions" : {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -3128,7 +3127,8 @@
           },
           "disabled" : {
             "type" : "string",
-            "format" : "boolean"
+            "format" : "boolean",
+            "example" : "false"
           }
         }
       }
