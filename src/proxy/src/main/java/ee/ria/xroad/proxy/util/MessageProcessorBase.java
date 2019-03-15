@@ -139,7 +139,7 @@ public abstract class MessageProcessorBase {
     protected void updateOpMonitoringDataByRestRequest(OpMonitoringData opMonitoringData, RestRequest request) {
         if (opMonitoringData != null && request != null) {
             opMonitoringData.setClientId(request.getSender());
-            opMonitoringData.setServiceId(request.getRequestServiceId());
+            opMonitoringData.setServiceId(request.getServiceId());
             opMonitoringData.setMessageId(request.getQueryId());
             opMonitoringData.setMessageUserId(request.findHeaderValueByName(MimeUtils.HEADER_USER_ID));
             opMonitoringData.setMessageIssue(request.findHeaderValueByName(MimeUtils.HEADER_ISSUE));

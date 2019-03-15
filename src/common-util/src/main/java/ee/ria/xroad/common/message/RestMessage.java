@@ -25,6 +25,7 @@
 package ee.ria.xroad.common.message;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 
@@ -41,6 +42,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
+
+import static ee.ria.xroad.common.util.UriUtils.uriSegmentPercentDecode;
 
 /**
  * Base class for rest messages
@@ -150,6 +153,35 @@ public abstract class RestMessage {
 
         result[1] = header.substring(i + 1);
         return result;
+    }
+
+    @SuppressWarnings("checkstyle:magicnumber")
+    static ServiceId decodeServiceId(String value) {
+        final String[] parts = value.split("/", 6);
+        if (parts.length != 5) {
+            throw new IllegalArgumentException("Invalid Service Id");
+        }
+        return ServiceId.create(
+                uriSegmentPercentDecode(parts[0]),
+                uriSegmentPercentDecode(parts[1]),
+                uriSegmentPercentDecode(parts[2]),
+                uriSegmentPercentDecode(parts[3]),
+                uriSegmentPercentDecode(parts[4])
+        );
+    }
+
+    @SuppressWarnings("checkstyle:magicnumber")
+    static ClientId decodeClientId(String value) {
+        final String[] parts = value.split("/", 5);
+        if (parts.length < 3 || parts.length > 4) {
+            throw new IllegalArgumentException("Invalid Client Id");
+        }
+        return ClientId.create(
+                uriSegmentPercentDecode(parts[0]),
+                uriSegmentPercentDecode(parts[1]),
+                uriSegmentPercentDecode(parts[2]),
+                parts.length == 4 ? uriSegmentPercentDecode(parts[3]) : null
+        );
     }
 
     static void serializeHeaders(List<Header> headers, OutputStream os, Predicate<Header> filter) throws IOException {

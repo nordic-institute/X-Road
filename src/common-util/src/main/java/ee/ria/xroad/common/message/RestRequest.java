@@ -52,8 +52,8 @@ import static ee.ria.xroad.common.util.UriUtils.uriSegmentPercentDecode;
 @Getter
 public class RestRequest extends RestMessage {
 
-    private ClientId client;
-    private ServiceId requestServiceId;
+    private ClientId clientId;
+    private ServiceId serviceId;
     private final Verb verb;
     private String requestPath;
     private String query;
@@ -151,7 +151,7 @@ public class RestRequest extends RestMessage {
 
     @Override
     public ClientId getSender() {
-        return client;
+        return clientId;
     }
 
     @SuppressWarnings(value = {"checkstyle:magicnumber", "checkstyle:innerassignment"})
@@ -162,16 +162,7 @@ public class RestRequest extends RestMessage {
 
         for (Header h : headers) {
             if (MimeUtils.HEADER_CLIENT_ID.equalsIgnoreCase(h.getName()) && h.getValue() != null) {
-                final String[] parts = h.getValue().split("/", 5);
-                if (parts.length != 4) {
-                    throw new IllegalArgumentException("Invalid Client Id");
-                }
-                client = ClientId.create(
-                        uriSegmentPercentDecode(parts[0]),
-                        uriSegmentPercentDecode(parts[1]),
-                        uriSegmentPercentDecode(parts[2]),
-                        uriSegmentPercentDecode(parts[3])
-                );
+                clientId = decodeClientId(h.getValue());
             } else if (MimeUtils.HEADER_QUERY_ID.equalsIgnoreCase(h.getName())) {
                 this.queryId = h.getValue();
             }
@@ -204,7 +195,7 @@ public class RestRequest extends RestMessage {
             throw new IllegalArgumentException("Invalid version");
         }
 
-        requestServiceId = ServiceId.create(
+        serviceId = ServiceId.create(
                 uriSegmentPercentDecode(parts[2]),
                 uriSegmentPercentDecode(parts[3]),
                 uriSegmentPercentDecode(parts[4]),

@@ -198,7 +198,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             @Override
             public void rest(RestRequest message) throws Exception {
                 super.rest(message);
-                requestServiceId = message.getRequestServiceId();
+                requestServiceId = message.getServiceId();
                 verifyClientStatus();
                 responseSigningCtx = KeyConf.getSigningCtx(requestServiceId.getClientId());
                 if (SystemProperties.isSslEnabled()) {
@@ -253,7 +253,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                     "Cannot verify TLS certificate, corresponding OCSP response is missing");
         }
 
-        String instanceIdentifier = requestMessage.getRest().getClient().getXRoadInstance();
+        String instanceIdentifier = requestMessage.getRest().getClientId().getXRoadInstance();
         X509Certificate trustAnchor = GlobalConf.getCaCert(instanceIdentifier,
                 clientSslCerts[clientSslCerts.length - 1]);
 
@@ -264,7 +264,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         try {
             CertChain chain = CertChain.create(instanceIdentifier, (X509Certificate[]) ArrayUtils.add(clientSslCerts,
                     trustAnchor));
-            CertHelper.verifyAuthCert(chain, requestMessage.getOcspResponses(), requestMessage.getRest().getClient());
+            CertHelper.verifyAuthCert(chain, requestMessage.getOcspResponses(), requestMessage.getRest().getClientId());
         } catch (Exception e) {
             throw new CodedException(X_SSL_AUTH_FAILED, e);
         }
@@ -277,7 +277,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_UNKNOWN_SERVICE, "Unknown service: %s", requestServiceId);
         }
 
-        if (!ServerConf.isQueryAllowed(requestMessage.getRest().getClient(), requestServiceId)) {
+        if (!ServerConf.isQueryAllowed(requestMessage.getRest().getClientId(), requestServiceId)) {
             throw new CodedException(X_ACCESS_DENIED, "Request is not allowed: %s", requestServiceId);
         }
 
@@ -292,7 +292,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     private void verifySignature() throws Exception {
         log.trace("verifySignature()");
 
-        decoder.verify(requestMessage.getRest().getClient(), requestMessage.getSignature());
+        decoder.verify(requestMessage.getRest().getClientId(), requestMessage.getSignature());
     }
 
     private void sendRequest() throws Exception {
@@ -360,7 +360,8 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         ctx.setAttribute(ServiceId.class.getName(), requestServiceId);
         final HttpResponse response = httpClient.execute(req, ctx);
         final StatusLine statusLine = response.getStatusLine();
-        restResponse = new RestResponse(requestMessage.getRest().getQueryId(),
+        restResponse = new RestResponse(requestMessage.getRest().getClientId(),
+                requestMessage.getRest().getQueryId(),
                 requestMessage.getRest().getHash(),
                 requestServiceId,
                 statusLine.getStatusCode(),
@@ -448,7 +449,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             return null;
         }
         final RestRequest rest = requestMessage.getRest();
-        return new MessageInfo(Origin.SERVER_PROXY, rest.getClient(), requestServiceId, null, null);
+        return new MessageInfo(Origin.SERVER_PROXY, rest.getClientId(), requestServiceId, null, null);
     }
 
     private X509Certificate getClientAuthCert() {

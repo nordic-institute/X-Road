@@ -113,7 +113,7 @@ public final class MessageLog {
     public static void log(RestRequest message, SignatureData signature, CacheInputStream body, boolean clientside,
             String xRequestId) {
         try {
-            ask(new RestLogMessage(message.getQueryId(), message.getClient(), message.getRequestServiceId(),
+            ask(new RestLogMessage(message.getQueryId(), message.getClientId(), message.getServiceId(),
                     message, signature, body, clientside, xRequestId));
         } catch (Exception e) {
             throw translateWithPrefix(X_LOGGING_FAILED_X, e);
@@ -126,7 +126,7 @@ public final class MessageLog {
     public static void log(RestRequest request, RestResponse message,
             SignatureData signature, CacheInputStream body, boolean clientside, String xRequestId) {
         try {
-            ask(new RestLogMessage(request.getQueryId(), request.getClient(), request.getRequestServiceId(),
+            ask(new RestLogMessage(request.getQueryId(), request.getClientId(), request.getServiceId(),
                     message, signature, body, clientside, xRequestId));
         } catch (Exception e) {
             throw translateWithPrefix(X_LOGGING_FAILED_X, e);
