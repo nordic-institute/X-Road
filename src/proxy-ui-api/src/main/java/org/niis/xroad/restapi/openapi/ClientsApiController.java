@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -54,6 +55,7 @@ import java.util.Optional;
 @RequestMapping("/api")
 @Slf4j
 @DenyAll
+@Transactional
 public class ClientsApiController implements org.niis.xroad.restapi.openapi.ClientsApi {
 
     private final NativeWebRequest request;
@@ -81,18 +83,6 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     }
 
     @Override
-    public ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Group>> getClientGroups(String id) {
-        if (true) throw new RestNotFoundException("RestNotFoundException");
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Service>> getClientServices(String id) {
-        if (true) throw new NullPointerException("NullPointerException");
-        return null;
-    }
-
-    @Override
     @RolesAllowed({Role.Names.XROAD_SECURITY_OFFICER,
                     Role.Names.XROAD_REGISTRATION_OFFICER,
                     Role.Names.XROAD_SERVICE_ADMINISTRATOR,
@@ -112,6 +102,8 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
             Role.Names.XROAD_SECURITYSERVER_OBSERVER})
     public ResponseEntity<Client> getClient(String id) {
 //CHECKSTYLE.OFF: TodoComment - need this todo and still want builds to succeed
+        // getClient is not yet implemented at this point,
+        // but keeping the work-in-progress version here anyway
         ClientId clientId = clientConverter.convertId(id);
         ClientType clientType = clientRepository.getClient(clientId);
         Client client = clientConverter.convert(clientType);

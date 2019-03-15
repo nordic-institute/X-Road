@@ -16,6 +16,9 @@ buildscript {
 }
 
 configurations {
+    compile {
+        exclude group: 'org.hibernate', module: 'hibernate-hikaricp'
+    }
     developmentOnly
     runtimeClasspath {
         extendsFrom developmentOnly
@@ -57,10 +60,8 @@ processResources {
     }
 }
 
-ext['hibernate.version'] = '4.3.11.Final'
-ext['postgresql.version'] = '42.2.1'
-ext['hikaricp.version'] = '2.3.3'
-ext['quartz.version'] = '2.1.6'
+ext['hibernate.version'] = '5.3.7.Final'
+ext['hikaricp.version'] = '3.2.0'
 
 node {
     download = false
@@ -134,12 +135,13 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation('org.springframework.boot:spring-boot-starter-thymeleaf')
     implementation('org.springframework.boot:spring-boot-starter-actuator')
+    implementation('org.springframework.boot:spring-boot-starter-data-jpa')
     implementation('org.kohsuke:libpam4j:1.11')
+    implementation('org.postgresql:postgresql:42.2.5')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')
-    testImplementation 'org.powermock:powermock-module-junit4:1.6.5'
-    testImplementation 'org.powermock:powermock-api-mockito:1.6.5'
-    testImplementation 'org.mockito:mockito-core:1.10.19'
+    testImplementation('org.hsqldb:hsqldb')
+
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     // openapi-generator related
     implementation('io.springfox:springfox-swagger2:2.8.0')

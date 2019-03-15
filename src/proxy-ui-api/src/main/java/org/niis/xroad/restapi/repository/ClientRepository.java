@@ -31,8 +31,12 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
-import org.niis.xroad.restapi.DatabaseContextHelper;
-import org.springframework.stereotype.Component;
+import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
 
 import java.util.List;
 
@@ -40,21 +44,24 @@ import java.util.List;
  * client repository
  */
 @Slf4j
-@Component
+@Repository
+@Transactional
 public class ClientRepository {
 
+    @Autowired
+    private EntityManager entityManager;
+
+    private Session getCurrentSession() {
+        return entityManager.unwrap(Session.class);
+    }
+
     /**
-     * transactions
-     * test rollback
-     * - correct id encoding (see rest proxy)
+     * return one client
      * @param id
      */
     public ClientType getClient(ClientId id) {
         ClientDAOImpl clientDAO = new ClientDAOImpl();
-        return DatabaseContextHelper.serverConfTransaction(
-                session -> {
-                    return clientDAO.getClient(session, id);
-                });
+        return clientDAO.getClient(getCurrentSession(), id);
     }
 
     /**
@@ -63,12 +70,9 @@ public class ClientRepository {
      */
     public List<ClientType> getAllClients() {
         ServerConfDAOImpl serverConf = new ServerConfDAOImpl();
-        return DatabaseContextHelper.serverConfTransaction(
-                session -> {
-                    List<ClientType> clientTypes = serverConf.getConf().getClient();
-                    Hibernate.initialize(clientTypes);
-                    return clientTypes;
-                });
+        List<ClientType> clientTypes = serverConf.getConf(getCurrentSession()).getClient();
+        Hibernate.initialize(clientTypes);
+        return clientTypes;
     }
 }
 

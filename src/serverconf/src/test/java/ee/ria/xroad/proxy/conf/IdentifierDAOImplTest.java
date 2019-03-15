@@ -92,10 +92,10 @@ public class IdentifierDAOImplTest {
     @Test
     public void serviceId() throws Exception {
         assertCreateRead(() ->
-            ServiceId.create("EE", "cls", "code", null, "service1"));
+                ServiceId.create("EE", "cls", "code", null, "service1"));
 
         assertCreateRead(() ->
-            ServiceId.create("EE", "cls", "code", null, "service2"));
+                ServiceId.create("EE", "cls", "code", null, "service2"));
     }
 
     /**
@@ -145,10 +145,10 @@ public class IdentifierDAOImplTest {
     @Test
     public void securityServerId() throws Exception {
         assertCreateRead(() ->
-            SecurityServerId.create("XX", "class", "code", "srv1"));
+                SecurityServerId.create("XX", "class", "code", "srv1"));
 
         assertCreateRead(() ->
-            SecurityServerId.create("XX", "class", "code", "srv2"));
+                SecurityServerId.create("XX", "class", "code", "srv2"));
     }
 
     private <T extends XRoadId> T get(T example) throws Exception {
