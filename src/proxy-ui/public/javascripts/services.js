@@ -44,6 +44,10 @@
             $("#wsdl_disable").hide();
             $("#wsdl_enable").show();
         }
+
+        if($(".rest.row_selected").length > 0) {
+            $("#wsdl_refresh").disable();
+        }
     }
 
     function wsdlParams() {
@@ -71,6 +75,7 @@
                       var dialog = this;
                       var params = $("form", this).serializeObject();
 
+                      params.service_type = "WSDL";
                       params.client_id = $("#details_client_id").val();
 
                       $.post(action("servicedescription_add"), params, function(response) {
@@ -93,6 +98,45 @@
             $("#wsdl_add_url", dialog).val("");
             $("#wsdl_add_dialog").dialog("option", "title", $(this).html());
             $("#wsdl_add_dialog").dialog("open");
+        });
+    }
+
+    function initOPENAPI3AddDialog() {
+        var dialog = $("#openapi3_add_dialog").initDialog({
+            autoOpen: false,
+            modal: true,
+            height: 200,
+            width: 600,
+            buttons: [
+                { text: _("common.ok"),
+                    click: function() {
+                        var dialog = this;
+                        var params = $("form", this).serializeObject();
+
+                        params.service_type = "OPENAPI3";
+                        params.client_id = $("#details_client_id").val();
+
+                        $.post(action("servicedescription_add"), params, function(response) {
+                            oServices.fnReplaceData(response.data);
+                            enableActions();
+
+                            $(dialog).dialog("close");
+                        }, "json").fail(showOutput);
+                    }
+                },
+                { text: _("common.cancel"),
+                    click: function() {
+                        $(this).dialog("close");
+                    }
+                }
+            ]
+        });
+
+        $("#openapi3_add").live('click', function() {
+            $("#openapi3_add_url", dialog).val("");
+            $("#openapi3_service_code", dialog).val("");
+            $("#openapi3_add_dialog").dialog("option", "title", $(this).html());
+            $("#openapi3_add_dialog").dialog("open");
         });
     }
 
@@ -201,7 +245,8 @@
                       var params = {
                           client_id: $("#details_client_id").val(),
                           wsdl_id: oServices.getFocusData().wsdl_id,
-                          new_url: $("#params_wsdl_url").val()
+                          new_url: $("#params_wsdl_url").val(),
+                          service_type: "WSDL"
                       };
 
                       $.post(action("servicedescription_edit"), params, function(response) {
@@ -209,13 +254,62 @@
                           enableActions();
 
                           $(dialog).dialog("close");
-                      }, "json").fail(showOutput);;
+                      }, "json").fail(showOutput);
                   }
                 },
                 { text: _("common.cancel"),
                   click: function() {
                       $(this).dialog("close");
                   }
+                }
+            ]
+        });
+    }
+
+    function initOPENAPI3ParamsDialog() {
+        $("#openapi3_params_dialog").initDialog({
+            autoOpen: false,
+            modal: true,
+            height: 200,
+            width: 700,
+            buttons: [
+                { text: _("common.ok"),
+                    click: function() {
+                        var dialog = this;
+                        var formParams = $("form", dialog).serializeObject();
+
+                        var removeParams =  {
+                            client_id: $("#details_client_id").val(),
+                            wsdl_ids: [oServices.getFocusData().wsdl_id]
+                        };
+
+                        var addParams = {
+                            utf8: formParams.utf8,
+                            authenticity_token: formParams.authenticity_token,
+                            service_type: "OPENAPI3",
+                            client_id: $("#details_client_id").val(),
+                            openapi3_add_url: $("#params_openapi3_url").val(),
+                            openapi3_service_code: $("#params_openapi3_service_code").val()
+                        };
+
+                        // Edit REST servicedescription by removing old and saving new
+                        $.post(action("servicedescription_delete"), removeParams)
+                            .done(function () {
+                                $.post(action("servicedescription_add"), addParams, function(response) {
+                                    oServices.fnReplaceData(response.data);
+                                    enableActions();
+
+                                    $(dialog).dialog("close");
+                                }       , "json").fail(showOutput);
+                            })
+                            .fail(showOutput);
+
+                    }
+                },
+                { text: _("common.cancel"),
+                    click: function() {
+                        $(this).dialog("close");
+                    }
                 }
             ]
         });
@@ -299,6 +393,9 @@
                 $("td:nth-child(3), td:nth-child(4)", nRow).hide();
 
                 $(nRow).addClass("wsdl");
+                if(oData.name === "REST") {
+                    $(nRow).addClass("rest");
+                }
             } else {
                 $(nRow).addClass("service");
             }
@@ -381,12 +478,20 @@
         $("#service_params").click(function() {
             var service = oServices.getFocusData();
 
-            if (service.wsdl) {
+            if (service.wsdl && service.name === 'WSDL') {
+                // Open WSDL service edit dialog
                 $("#params_wsdl_id").val(service.wsdl_id);
                 $("#params_wsdl_url").val(service.wsdl_id);
 
                 $("#wsdl_params_dialog").dialog("open");
-            } else {
+            } else if (service.wsdl && service.name === 'REST') {
+                // Open REST service edit dialog
+                $("#params_wsdl_id").val(service.wsdl_id);
+                $("#params_openapi3_url").val(service.wsdl_id);
+                $("#params_openapi3_service_code").val(service.openapi3_service_code);
+
+                $("#openapi3_params_dialog").dialog("open");
+            }else {
                 $("#params_url_all, #params_timeout_all, #params_sslauth_all, " +
                   "#params_security_category_all").removeAttr("checked");
 
@@ -417,6 +522,8 @@
         // add data-name attributes to improve testability
         $("#wsdl_add_dialog").parent().attr("data-name", "wsdl_add_dialog");
         $("#wsdl_params_dialog").parent().attr("data-name", "wsdl_params_dialog");
+        $("#openapi3_add_dialog").parent().attr("data-name", "openapi3_add_dialog");
+        $("#openapi3_params_dialog").parent().attr("data-name", "openapi3_params_dialog");
         $("#service_params_dialog").parent().attr("data-name", "service_params_dialog");
         $("#wsdl_disable_dialog").parent().attr("data-name", "wsdl_disable_dialog");
         $("button span:contains('Close')").parent().attr("data-name", "close");
@@ -437,8 +544,9 @@
         initWSDLAddDialog();
         initWSDLDisableDialog();
         initWSDLParamsDialog();
+        initOPENAPI3AddDialog();
+        initOPENAPI3ParamsDialog();
         initServiceParamsDialog();
-
         initServicesTable();
         initClientServicesActions();
         initTestability();
