@@ -68,19 +68,7 @@ public class ClientsApiControllerIntegrationTest {
     @Autowired
     private ClientsApiController clientsApiController;
 
-    // tests with TestRestTemplate would be good, but require some extra work
-    // for authentication setup.
-    // WithMockUser will not work with restTemplate, would need
-    // to implement auth manually. Maybe improve this later.
-//    @Autowired
-//    private TestRestTemplate restTemplate;
 
-//    @Test
-//    public void test() {
-//        ResponseEntity<List> response = this.restTemplate.getForEntity
-//                ("/api/clients", List.class);
-//        assertEquals(2, response.getBody().size());
-//    }
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void getClients() {

@@ -43,7 +43,8 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * Load datasource properties from db.properties file
+ * Load datasource properties from db.properties file.
+ * Non-datasource properties are handled by {@link PropertyFileReadingHibernateCustomizer}
  */
 @Slf4j
 @Profile("!test")
