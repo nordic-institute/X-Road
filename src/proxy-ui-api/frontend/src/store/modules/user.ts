@@ -17,12 +17,12 @@ export const userState: UserState = {
   userName: '',
 };
 
-export const getters: GetterTree<UserState, RootState> = {
+export const userGetters: GetterTree<UserState, RootState> = {
   isAuthenticated(state) {
     return state.authenticated;
   },
   allowedTabs(state) {
-    const ret = _.filter(mainTabs, function (o: any) {
+    const ret = _.filter(mainTabs, (o: any) => {
 
       if (!o || !o.permission) {
         // Tab does not have set permission (permission is not needed)
@@ -132,7 +132,7 @@ export const actions: ActionTree<UserState, RootState> = {
 export const user: Module<UserState, RootState> = {
   namespaced: false,
   state: userState,
-  getters,
+  getters: userGetters,
   actions,
   mutations,
 };
