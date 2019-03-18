@@ -84,7 +84,7 @@
               outline
               round
               color="primary"
-              class="text-capitalize table-button"
+              class="text-capitalize table-button xr-small-button"
               @click="addSubsystem(props.item)"
             >Add Subsystem</v-btn>
           </td>
@@ -299,9 +299,6 @@ export default Vue.extend({
 }
 
 .table-button {
-  height: 24px;
-  border-radius: 6px;
-  margin-right: 4px;
   margin-top: auto;
   margin-bottom: auto;
 }
