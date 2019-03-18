@@ -18,7 +18,7 @@ export interface Client {
 }
 
 export interface ClientsState {
-  clients: Array<Client>;
+  clients: Client[];
   loading: boolean;
 }
 
@@ -43,7 +43,7 @@ function createMemberDescSortName(client: Client, sortName: any): any {
 }
 
 export const getters: GetterTree<ClientsState, RootState> = {
-  clients(state): Array<Client> {
+  clients(state): Client[] {
     // New arrays to separate members and subsystems
     const members: Client[] = [];
     const subsystems: Client[] = [];
