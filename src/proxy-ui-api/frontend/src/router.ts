@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import Router from 'vue-router';
+import { sync } from 'vuex-router-sync';
 import Login from './views/Login.vue';
 import Base from './views/Base.vue';
 import Clients from './views/Clients.vue';
@@ -10,9 +11,8 @@ import AddSubsystem from './views/AddSubsystem.vue';
 import AddClient from './views/AddClient.vue';
 import Subsystem from './views/Subsystem.vue';
 import Client from './views/Client.vue';
-import { sync } from 'vuex-router-sync';
 import store from './store';
-
+import { RouteName, Permissions } from '@/global';
 
 Vue.use(Router);
 
@@ -23,50 +23,53 @@ const router = new Router({
       component: Base,
       children: [
         {
-          name: 'keys',
+          name: RouteName.Keys,
           path: '/keys',
           component: Keys,
+          meta: { permission: Permissions.VIEW_KEYS },
         },
         {
-          name: 'diagnostics',
+          name: RouteName.Diagnostics,
           path: '/diagnostics',
           component: Diagnostics,
+          meta: { permission: Permissions.DIAGNOSTICS },
         },
         {
-          name: 'settings',
+          name: RouteName.Settings,
           path: '/settings',
           component: Settings,
         },
         {
-          name: 'add-subsystem',
+          name: RouteName.AddSubsystem,
           path: '/add-subsystem',
           component: AddSubsystem,
         },
         {
-          name: 'add-client',
+          name: RouteName.AddClient,
           path: '/add-client',
           component: AddClient,
         },
         {
-          name: 'subsystem',
+          name: RouteName.Subsystem,
           path: '/subsystem',
           component: Subsystem,
         },
         {
-          name: 'client',
+          name: RouteName.Client,
           path: '/client',
           component: Client,
         },
         {
-          name: 'clients',
+          name: RouteName.Clients,
           path: '',
           component: Clients,
+          meta: { permission: Permissions.VIEW_CLIENTS },
         },
       ],
     },
     {
       path: '/login',
-      name: 'login',
+      name: RouteName.Login,
       component: Login,
     },
   ],
@@ -81,7 +84,24 @@ router.beforeEach((to, from, next) => {
   }
 
   if (store.getters.isAuthenticated) {
+
+    const record = to.matched.find((record) => record.meta.permission);
+    if (record) {
+      if (store.getters.permissions.includes(record.meta.permission)) {
+        // Route is allowed
+        next();
+        return;
+      } else {
+        // This route is not allowed
+        next({
+          name: store.getters.firstAllowedTab.to.name,
+        });
+        return;
+      }
+    }
+
     next();
+
   } else {
     next({
       path: '/login',
