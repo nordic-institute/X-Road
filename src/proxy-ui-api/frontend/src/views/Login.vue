@@ -105,7 +105,8 @@ export default Vue.extend({
         .dispatch('login', loginData)
         .then(
           (response) => {
-            this.$router.replace('/');
+            // Auth ok. Start phase 2 (fetch user data).
+            this.fetchUserData();
           },
           (error) => {
             // Display invalid username/password error in inputs
@@ -124,7 +125,26 @@ export default Vue.extend({
               this.errors.first('username');
               this.errors.first('password');
             }
-            console.log(error);
+            console.error(error);
+            this.$bus.$emit('show-error', error.message);
+          },
+        )
+        .finally(() => {
+          // Clear loading state
+          this.loading = false;
+        });
+    },
+    async fetchUserData() {
+      this.loading = true;
+      this.$store
+        .dispatch('fetchUserData')
+        .then(
+          (response) => {
+            this.$router.replace('/');
+          },
+          (error) => {
+            // Display error
+            console.error(error);
             this.$bus.$emit('show-error', error.message);
           },
         )
