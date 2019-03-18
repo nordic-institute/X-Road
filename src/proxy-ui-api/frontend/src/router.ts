@@ -85,7 +85,7 @@ router.beforeEach((to, from, next) => {
 
   if (store.getters.isAuthenticated) {
 
-    const record = to.matched.find((record) => record.meta.permission);
+    const record = to.matched.find((route) => route.meta.permission);
     if (record) {
       if (store.getters.permissions.includes(record.meta.permission)) {
         // Route is allowed
