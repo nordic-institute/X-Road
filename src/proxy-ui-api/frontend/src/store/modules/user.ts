@@ -51,6 +51,9 @@ export const actions: ActionTree<UserState, RootState> = {
       .catch((error) => {
         console.error(error);
       });
+
+    // Reload the browser page to clean up the memory
+    location.reload(true);
   },
   clearAuth({ commit }) {
     commit('clearAuthData');
