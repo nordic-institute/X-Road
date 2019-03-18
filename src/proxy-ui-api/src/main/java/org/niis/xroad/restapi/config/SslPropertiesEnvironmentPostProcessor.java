@@ -29,45 +29,36 @@ import ee.ria.xroad.common.SystemProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
- * Load datasource properties from db.properties file.
- * Non-datasource properties are handled by {@link PropertyFileReadingHibernateCustomizer}
+ * Load SSL properties from db.properties file.
+ * Supported properties are ones starting with "server.ssl."
  */
 @Slf4j
 @Profile("!test")
-public class DatabasePropertiesEnvironmentPostProcessor extends PropertyFileReadingEnvironmentPostProcessor {
-
-    private static final Map<String, String> DB_PROPERTY_NAMES_TO_SPRING_PROPERTIES =
-            new HashMap<>();
-    static {
-        DB_PROPERTY_NAMES_TO_SPRING_PROPERTIES
-                .put("serverconf.hibernate.connection.username", "spring.datasource.username");
-        DB_PROPERTY_NAMES_TO_SPRING_PROPERTIES
-                .put("serverconf.hibernate.connection.password", "spring.datasource.password");
-        DB_PROPERTY_NAMES_TO_SPRING_PROPERTIES
-                .put("serverconf.hibernate.connection.url", "spring.datasource.url");
-    }
+public class SslPropertiesEnvironmentPostProcessor extends PropertyFileReadingEnvironmentPostProcessor {
 
     @Override
     String getPropertySourceName() {
-        return "fromDbPropertiesFile";
+        return "fromSslPropertiesFile";
     }
 
     @Override
     String getPropertyFilePath() {
-        return SystemProperties.getDatabasePropertiesFile();
+        return SystemProperties.getSslPropertiesFile();
     }
 
     @Override
     boolean isSupported(String propertyName) {
-        return DB_PROPERTY_NAMES_TO_SPRING_PROPERTIES.containsKey(propertyName);
+        return propertyName.startsWith("server.ssl.");
     }
 
     @Override
     String mapToSprintPropertyName(String originalPropertyName) {
-        return DB_PROPERTY_NAMES_TO_SPRING_PROPERTIES.get(originalPropertyName);
+        return originalPropertyName;
+    }
+
+    @Override
+    boolean isPropertyFileMandatory() {
+        return false;
     }
 }
