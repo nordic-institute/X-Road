@@ -4,19 +4,14 @@
       <v-btn outline round color="primary" @click="fetchClients">FETCH DATA</v-btn>
       <v-btn outline round color="primary" @click="clearClients">CLEAR DATA</v-btn>
     </v-layout>
-
-    <dataTable/>
   </v-layout>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import DataTable from '../components/DataTable.vue';
+
 export default Vue.extend({
-  components: {
-    DataTable,
-  },
   data: () => ({}),
 
   methods: {
