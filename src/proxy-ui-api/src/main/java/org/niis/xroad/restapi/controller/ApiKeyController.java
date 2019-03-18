@@ -22,40 +22,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.serverconf.dao;
+package org.niis.xroad.restapi.controller;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.domain.ApiKey;
+import org.niis.xroad.restapi.repository.ApiKeyRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import org.hibernate.Criteria;
-import org.hibernate.Session;
-
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
+import java.util.List;
 
 /**
- * Server conf data access object implementation.
+ * Controller for rest apis for api key operations
  */
-public class ServerConfDAOImpl {
+@RestController
+@RequestMapping("/api")
+@Slf4j
+public class ApiKeyController {
+
+    @Autowired
+    private ApiKeyRepository apiKeyRepository;
 
     /**
-     * @return the server conf
+     * create api keys
      */
-    public ServerConfType getConf(Session session) {
-        ServerConfType confType = getFirst(session, ServerConfType.class);
-        if (confType == null) {
-            throw new CodedException(X_MALFORMED_SERVERCONF,
-                    "Server conf is not initialized!");
-        }
-
-        return confType;
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> T getFirst(Session session, final Class<?> clazz) {
-        Criteria c = session.createCriteria(clazz);
-        c.setFirstResult(0);
-        c.setMaxResults(1);
-        T t = (T) c.uniqueResult();
-        return t;
+    @PostMapping(value = "/create-api-key", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ApiKey createKey(@RequestBody List<String> roles) {
+        if (roles.isEmpty()) throw new NullPointerException();
+        ApiKey key = apiKeyRepository.create(roles);
+        log.debug("created api key " + key.getKey());
+        return key;
     }
 }

@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -35,31 +36,37 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
- * test PAM authentication provider.
- * Application has to be run as a user who has read access to /etc/shadow (likely means that belongs to group shadow)
- * roles are granted with user groups xroad-auth-proto-user and xroad-auth-proto-admin
+ * PAM authentication provider.
+ * Application has to be run as a user who has read access to /etc/shadow (
+ * likely means that belongs to group shadow)
+ * roles are granted with user groups, mappings in {@link Role}
  */
 @Slf4j
+@Component
 public class PamAuthenticationProvider implements AuthenticationProvider {
+
+    // from PAMLoginModule
+    private static final String PAM_SERVICE_NAME = "xroad";
+
+    @Autowired
+    private GrantedAuthorityMapper grantedAuthorityMapper;
 
     /**
      * users with these groups are allowed access
      */
     private static final Set<String> ALLOWED_GROUP_NAMES = Collections.unmodifiableSet(
-            Stream.of("xroad-security-officer",
-            "xroad-registration-officer",
-            "xroad-service-administrator",
-            "xroad-system-administrator",
-            "xroad-securityserver-observer").collect(Collectors.toSet()));
+            Arrays.stream(Role.values())
+                .map(Role::getLinuxGroupName)
+                .collect(Collectors.toSet()));
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -67,23 +74,23 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
         String password = String.valueOf(authentication.getCredentials());
         PAM pam;
         try {
-            pam = new PAM("XROAD-AUTH-PROTO");
+            pam = new PAM(PAM_SERVICE_NAME);
         } catch (PAMException e) {
             throw new AuthenticationServiceException("Could not initialize PAM.", e);
         }
         try {
             UnixUser user = pam.authenticate(username, password);
             Set<String> groups = user.getGroups();
-            Set<GrantedAuthority> grants = new HashSet<>();
             Set<String> matchingGroups = groups.stream()
                     .filter(ALLOWED_GROUP_NAMES::contains)
                     .collect(Collectors.toSet());
             if (matchingGroups.isEmpty()) {
                 throw new AuthenticationServiceException("user hasn't got any required groups");
             }
-            for (String groupName: matchingGroups) {
-                grants.add(new SimpleGrantedAuthority("ROLE_" + groupName.toUpperCase()));
-            }
+            Collection<String> xroadRoleNames = matchingGroups.stream()
+                    .map(groupName -> Role.getForGroupName(groupName).get().name())
+                    .collect(Collectors.toSet());
+            Set<GrantedAuthority> grants = grantedAuthorityMapper.getAuthorities(xroadRoleNames);
             return new UsernamePasswordAuthenticationToken(user.getUserName(), authentication.getCredentials(), grants);
         } catch (PAMException e) {
             throw new BadCredentialsException("PAM authentication failed.", e);

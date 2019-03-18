@@ -24,162 +24,55 @@
  */
 package org.niis.xroad.restapi.repository;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.DatabaseContextHelper;
-import org.niis.xroad.restapi.openapi.model.Client;
-import org.springframework.beans.BeanUtils;
-import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClientException;
+import org.hibernate.Hibernate;
+import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import javax.persistence.EntityManager;
+
 import java.util.List;
-import java.util.UUID;
 
 /**
- * Not sure if we are going to have this kind of repositories...
+ * client repository
  */
 @Slf4j
-@Component
+@Repository
+@Transactional
 public class ClientRepository {
 
-    public static final int MEMBER_ID_PARTS = 3;
+    @Autowired
+    private EntityManager entityManager;
 
-    public List<MemberInfo> getAllMembers() {
-        return GlobalConf.getMembers();
+    private Session getCurrentSession() {
+        return entityManager.unwrap(Session.class);
     }
 
     /**
-     * dummy
-     * @param s
-     */
-    public void throwRuntimeException(String s) {
-        log.error("throwing exception {}", s);
-        throw new RuntimeException(s);
-    }
-
-    /**
-     * dummy
-     * @param s
-     */
-    public void throwApplicationException(String s) throws MyApplicationException {
-        log.error("throwing exception {}", s);
-        throw new MyApplicationException(s);
-    }
-
-    /**
-     * dummy
-     * @param s
-     */
-    public void throwSpringException(String s) {
-        log.error("throwing exception {}", s);
-        throw new RestClientException(s);
-    }
-
-    /**
-     * dummy
-     */
-    public static class MyApplicationException extends Exception {
-        public MyApplicationException(String s) {
-            super(s);
-        }
-    }
-
-    /**
-     * transactions
-     * test rollback
-     * - correct id encoding (see rest proxy)
+     * return one client
      * @param id
      */
-    public ClientType getClient(String id) {
+    public ClientType getClient(ClientId id) {
         ClientDAOImpl clientDAO = new ClientDAOImpl();
-        //CHECKSTYLE.OFF: TodoComment
-        // TODO: implement better clientcode parsing (and tests)
-        //CHECKSTYLE.ON: TodoComment
-        List<String> parts = Arrays.asList(id.split(":"));
-        String instance = parts.get(0);
-        String memberClass = parts.get(1);
-        String memberCode = parts.get(2);
-        String subsystemCode = null;
-        if (parts.size() > MEMBER_ID_PARTS) {
-            subsystemCode = parts.get(MEMBER_ID_PARTS);
-        }
-        ClientId clientId = ClientId.create(instance, memberClass, memberCode, subsystemCode);
-
-        return DatabaseContextHelper.serverConfTransaction(
-                session -> {
-                    ClientType client = clientDAO.getClient(session, clientId);
-                    ClientType clientDto = copyToClientType(client);
-                    return clientDto;
-                });
+        return clientDAO.getClient(getCurrentSession(), id);
     }
 
-    //CHECKSTYLE.OFF: TodoComment
     /**
-     * TODO: should repositories talk in openapi terms?
-     *
+     * return all clients
      * @return
      */
-    //CHECKSTYLE.ON: TodoComment
-    public List<Client> getAllClients() {
+    public List<ClientType> getAllClients() {
         ServerConfDAOImpl serverConf = new ServerConfDAOImpl();
-        return DatabaseContextHelper.serverConfTransaction(
-                session -> {
-                    List<Client> clients = new ArrayList<>();
-                    for (ClientType client : serverConf.getConf().getClient()) {
-                        clients.add(copy(client));
-                    }
-                    return clients;
-                });
-    }
-
-
-    /**
-     * Placeholder transformation from xroad POJO to API DTO
-     */
-    private Client copy(ClientType client) {
-        Client copy = new Client();
-        copy.setId(UUID.randomUUID());
-        copy.setName(client.getIdentifier().toShortString());
-        copy.setStatus(client.getClientStatus());
-        return copy;
-    }
-
-    /**
-     * There may be a universal configuration which
-     * tells jackson not to serialize non-initialized items -
-     * may need to research depending on what type of dto
-     * handling we need:
-     * https://stackoverflow.com/questions/21708339/
-     * avoid-jackson-serialization-on-non-fetched-lazy-objects/21760361#21760361
-     * @param client
-     * @return
-     */
-    private ClientType copyToClientType(ClientType client) {
-        ClientType copy = new ClientType();
-        BeanUtils.copyProperties(client, copy, "conf");
-        for (ServiceDescriptionType sd: client.getServiceDescription()) {
-            ServiceDescriptionType sdc = new ServiceDescriptionType();
-            BeanUtils.copyProperties(sd, sdc, "client");
-            for (ServiceType s: sd.getService()) {
-                ServiceType sc = new ServiceType();
-                BeanUtils.copyProperties(s, sc, "requiredSecurityCategory");
-                sdc.getService().add(sc);
-            }
-            copy.getServiceDescription().add(sdc);
-        }
-        // pass client id to UI somehow, just for demo purposes
-        copy.setIsAuthentication(client.getIdentifier().toShortString());
-        return copy;
+        List<ClientType> clientTypes = serverConf.getConf(getCurrentSession()).getClient();
+        Hibernate.initialize(clientTypes);
+        return clientTypes;
     }
 }
 

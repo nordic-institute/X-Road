@@ -22,35 +22,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.domain;
+package org.niis.xroad.restapi.converter;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.identifier.ClientId;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import org.springframework.stereotype.Component;
 
 /**
- * Test entity
+ * wrap static methods to make things more testable
  */
-@Entity
-@Table(name = "city")
-@ToString
-public class City {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    @Getter
-    @Setter
-    private Long id;
-
-    @Column(name = "name")
-    @Getter
-    @Setter
-    private String name;
+@Component
+public class GlobalConfWrapper {
+    /**
+     * get member name
+     */
+    public String getMemberName(ClientId identifier) {
+        return GlobalConf.getMemberName(identifier);
+    }
 }

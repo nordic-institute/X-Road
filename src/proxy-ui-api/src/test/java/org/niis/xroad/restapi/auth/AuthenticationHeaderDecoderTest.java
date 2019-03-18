@@ -22,31 +22,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi;
+package org.niis.xroad.restapi.auth;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.context.request.NativeWebRequest;
+import org.junit.Test;
+import org.springframework.security.core.AuthenticationException;
 
-import java.util.Optional;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
- * login controller (needless)
+ * test AuthenticationHeaderDecoder
  */
-@Controller
-@RequestMapping("/api")
-public class LoginApiController implements org.niis.xroad.restapi.openapi.LoginApi {
+public class AuthenticationHeaderDecoderTest {
 
-    private final NativeWebRequest request;
+    @Test
+    public void decode() throws Exception {
+        AuthenticationHeaderDecoder decoder = new AuthenticationHeaderDecoder();
 
-    @org.springframework.beans.factory.annotation.Autowired
-    public LoginApiController(NativeWebRequest request) {
-        this.request = request;
+        String encoded = "X-Road-ApiKEy toKen=123";
+        assertEquals("123", decoder.decodeApiKey(encoded));
+
+        encoded = "X-Road-ApiKEy toKen=  123  \n ";
+        assertEquals("123", decoder.decodeApiKey(encoded));
+
+        String badEncoded = "Bearer 123";
+        try {
+            decoder.decodeApiKey(badEncoded);
+            fail("should have thrown exception");
+        } catch (AuthenticationException expected) {
+        }
+
+        badEncoded = "X-Road-ApiKEy token=         ";
+        try {
+            decoder.decodeApiKey(badEncoded);
+            fail("should have thrown exception");
+        } catch (AuthenticationException expected) {
+        }
+
+        badEncoded = "dsadsadasdasadsX-Road-ApiKEy token=123";
+        try {
+            decoder.decodeApiKey(badEncoded);
+            fail("should have thrown exception");
+        } catch (AuthenticationException expected) {
+        }
     }
-
-    @Override
-    public Optional<NativeWebRequest> getRequest() {
-        return Optional.ofNullable(request);
-    }
-
 }

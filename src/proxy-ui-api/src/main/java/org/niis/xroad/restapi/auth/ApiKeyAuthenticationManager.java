@@ -32,13 +32,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
-
-import java.util.Collection;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * AuthenticationManager which expects Authentication.principal to be
@@ -52,25 +47,25 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
     @Autowired
     private ApiKeyRepository apiKeyRepository;
 
+    @Autowired
+    private AuthenticationHeaderDecoder authenticationHeaderDecoder;
+
+    @Autowired
+    private GrantedAuthorityMapper permissionMapper;
+
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        String principal = (String) authentication.getPrincipal();
-        log.debug("principal: {}", principal);
-        ApiKey key = apiKeyRepository.get(principal);
+        String encodedAuthenticationHeader = (String) authentication.getPrincipal();
+        String apiKeyValue = authenticationHeaderDecoder.decodeApiKey(encodedAuthenticationHeader);
+        ApiKey key = apiKeyRepository.get(apiKeyValue);
         if (key == null) {
             throw new BadCredentialsException("The API key was not found or not the expected value.");
         }
         PreAuthenticatedAuthenticationToken authenticationWithGrants =
                 new PreAuthenticatedAuthenticationToken(authentication.getPrincipal(),
                         authentication.getCredentials(),
-                        rolenamesToGrants(key.getRoles()));
+                        permissionMapper.getAuthorities(key.getRoles()));
         log.debug("authentication: {}", authenticationWithGrants);
         return authenticationWithGrants;
-    }
-
-    private Set<SimpleGrantedAuthority> rolenamesToGrants(Collection<String> rolenames) {
-        return rolenames.stream()
-                .map(name -> new SimpleGrantedAuthority("ROLE_" + name.toUpperCase()))
-                .collect(Collectors.toSet());
     }
 }

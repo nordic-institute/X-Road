@@ -22,31 +22,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi;
+package org.niis.xroad.restapi.auth;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.context.request.NativeWebRequest;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.stereotype.Component;
 
-import java.util.Optional;
 
 /**
- * logout controller (needless)
+ * Helper for handling encoded authentication headers
  */
-@Controller
-@RequestMapping("/api")
-public class LogoutApiController implements org.niis.xroad.restapi.openapi.LogoutApi {
+@Component
+public class AuthenticationHeaderDecoder {
 
-    private final NativeWebRequest request;
+    private static final String UPPERCASE_APIKEY_PREFIX = "X-ROAD-APIKEY TOKEN=";
 
-    @org.springframework.beans.factory.annotation.Autowired
-    public LogoutApiController(NativeWebRequest request) {
-        this.request = request;
+    /**
+     * Returns decoded api key from authorization header,
+     * or AuthenticationException if one was not found
+     * @param authenticationHeader
+     * @return
+     */
+    public String decodeApiKey(String authenticationHeader) throws AuthenticationException {
+        if (authenticationHeader == null
+                || authenticationHeader.toUpperCase().indexOf(UPPERCASE_APIKEY_PREFIX) != 0) {
+            throw new BadCredentialsException("Invalid X-Road-Apikey authorization header");
+        }
+        String apiKey = authenticationHeader.substring(UPPERCASE_APIKEY_PREFIX.length());
+        if (StringUtils.isBlank(apiKey)) {
+            throw new BadCredentialsException("Missing api key from authorization header");
+        }
+        return apiKey.trim();
     }
-
-    @Override
-    public Optional<NativeWebRequest> getRequest() {
-        return Optional.ofNullable(request);
-    }
-
 }

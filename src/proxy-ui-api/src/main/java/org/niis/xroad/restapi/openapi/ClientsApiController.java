@@ -24,22 +24,24 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.identifier.ClientId;
+
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.openapi.model.Certificate;
+import org.niis.xroad.restapi.converter.ClientConverter;
+import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.NativeWebRequest;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,13 +51,17 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/api")
 @Slf4j
+@PreAuthorize("denyAll")
+@Transactional
 public class ClientsApiController implements org.niis.xroad.restapi.openapi.ClientsApi {
 
-    public static final int MAX_FIFTY_RESULTS = 50;
     private final NativeWebRequest request;
 
     @Autowired
     private ClientRepository clientRepository;
+
+    @Autowired
+    private ClientConverter clientConverter;
 
     @Autowired
     public ClientsApiController(NativeWebRequest request) {
@@ -73,30 +79,29 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     }
 
     @Override
-    public ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Client>> getClients(@Valid String term,
-             @Min(0) @Valid Integer offset, @Min(0) @Max(MAX_FIFTY_RESULTS) @Valid Integer limit) {
-        List<org.niis.xroad.restapi.openapi.model.Client> clients = clientRepository.getAllClients();
+    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
+    public ResponseEntity<List<Client>> getClients() {
+        List<ClientType> clientTypes = clientRepository.getAllClients();
+        List<Client> clients = new ArrayList<>();
+        for (ClientType clientType : clientTypes) {
+            clients.add(clientConverter.convert(clientType));
+        }
         return new ResponseEntity<>(clients, HttpStatus.OK);
     }
 
     @Override
-    public ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Client>> getClient(String id) {
-        List<org.niis.xroad.restapi.openapi.model.Client> clients = clientRepository.getAllClients();
-        String idWithSlashes = id.replaceAll(":", "/");
-        log.debug("looking for id {}", idWithSlashes);
-        for (org.niis.xroad.restapi.openapi.model.Client client: clients) {
-            if (idWithSlashes.equals(client.getName())) {
-                return new ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Client>>(
-                        Collections.singletonList(client), HttpStatus.OK);
-            }
-        }
-        throw new RestNotFoundException("client not found");
-    }
+    @PreAuthorize("hasAuthority('NO_ONE_HAS_THIS_PERMISSION_YET')")
+    public ResponseEntity<Client> getClient(String id) {
+//CHECKSTYLE.OFF: TodoComment - need this todo and still want builds to succeed
+        // getClient is not yet implemented at this point,
+        // but keeping the work-in-progress version here anyway
+        ClientId clientId = clientConverter.convertId(id);
+        ClientType clientType = clientRepository.getClient(clientId);
+        Client client = clientConverter.convert(clientType);
+        // TODO: 404 not working
+        return new ResponseEntity<>(client, HttpStatus.OK);
+//CHECKSTYLE.ON: TodoComment
 
-    @Override
-    public ResponseEntity<List<Certificate>> getClientCertificate(String id, String cid) {
-        clientRepository.throwSpringException("spring exception");
-        return null;
     }
 
     @Override

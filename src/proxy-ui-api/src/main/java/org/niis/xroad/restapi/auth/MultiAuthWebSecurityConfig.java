@@ -45,6 +45,8 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.web.util.WebUtils;
@@ -78,7 +80,7 @@ import java.io.IOException;
  * - FormLoginWebSecurityConfigurerAdapter, @Order(100), matches any URL (denies /api/**)
  */
 @EnableWebSecurity(debug = true)
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableGlobalMethodSecurity(proxyTargetClass = true, prePostEnabled = true)
 @Slf4j
 public class MultiAuthWebSecurityConfig {
 
@@ -93,6 +95,10 @@ public class MultiAuthWebSecurityConfig {
 
         @Value("${proto.pam}")
         private boolean pam;
+
+        @Autowired
+        private PamAuthenticationProvider pamAuthenticationProvider;
+
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             log.debug("***** configuring security, pam = {}", pam);
@@ -129,7 +135,7 @@ public class MultiAuthWebSecurityConfig {
         @Override
         protected void configure(AuthenticationManagerBuilder builder) throws Exception {
             if (pam) {
-                builder.authenticationProvider(new PamAuthenticationProvider());
+                builder.authenticationProvider(pamAuthenticationProvider);
             } else {
                 super.configure(builder);
             }
@@ -178,12 +184,15 @@ public class MultiAuthWebSecurityConfig {
         @Value("${proto.pam}")
         private boolean pam;
 
+        @Autowired
+        private PamAuthenticationProvider pamAuthenticationProvider;
+
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             http
                 .antMatcher("/api/create-api-key/**")
                 .authorizeRequests()
-                    .anyRequest().hasRole("XROAD-SYSTEM-ADMINISTRATOR")
+                    .anyRequest().hasRole(Role.XROAD_SYSTEM_ADMINISTRATOR.name())
                     .and()
                 .sessionManagement()
                     .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -203,7 +212,7 @@ public class MultiAuthWebSecurityConfig {
             // TODO: remove non-pam authentication
 //CHECKSTYLE.ON: TodoComment
             if (pam) {
-                builder.authenticationProvider(new PamAuthenticationProvider());
+                builder.authenticationProvider(pamAuthenticationProvider);
             } else {
                 super.configure(builder);
             }
@@ -247,13 +256,52 @@ public class MultiAuthWebSecurityConfig {
                     .and()
                 .csrf()
                     // we require csrf protection only if session cookie-authentication is used
-                    .requireCsrfProtectionMatcher(request -> WebUtils.getCookie(request, "JSESSIONID") != null)
-                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                    .requireCsrfProtectionMatcher(request -> isSessionCookieAuthenticated(request))
+                    .csrfTokenRepository(new ApiKeyAuthAwareCookieCsrfTokenRepository())
                     .and()
                 .anonymous()
                     .disable()
                 .formLogin()
                     .disable();
+        }
+
+    }
+
+    /**
+     * Checks whether session cookie, or some other (api key) auth was used.
+     * Purely based on existence of JSESSIONID cookie.
+     */
+    private static boolean isSessionCookieAuthenticated(HttpServletRequest request) {
+        return WebUtils.getCookie(request, "JSESSIONID") != null;
+    }
+
+    /**
+     * CookieCsrfTokenRepository (wrapper) which does not send unneeded CSRF cookies if we're
+     * using api key auth
+     */
+    private static class ApiKeyAuthAwareCookieCsrfTokenRepository implements CsrfTokenRepository {
+
+        // final class, cannot be extended
+        private CookieCsrfTokenRepository cookieCsrfTokenRepository;
+
+        ApiKeyAuthAwareCookieCsrfTokenRepository() {
+            this.cookieCsrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        }
+        @Override
+        public CsrfToken generateToken(HttpServletRequest request) {
+            return cookieCsrfTokenRepository.generateToken(request);
+        }
+
+        @Override
+        public void saveToken(CsrfToken token, HttpServletRequest request, HttpServletResponse response) {
+            if (isSessionCookieAuthenticated(request)) {
+                cookieCsrfTokenRepository.saveToken(token, request, response);
+            }
+        }
+
+        @Override
+        public CsrfToken loadToken(HttpServletRequest request) {
+            return cookieCsrfTokenRepository.loadToken(request);
         }
     }
 

@@ -22,40 +22,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.serverconf.dao;
+package org.niis.xroad.restapi.repository;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 
-import org.hibernate.Criteria;
-import org.hibernate.Session;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 
 /**
- * Server conf data access object implementation.
+ * test ClientRepository
  */
-public class ServerConfDAOImpl {
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureTestDatabase
+@Slf4j
+@Transactional
+public class ClientRepositoryIntegrationTest {
 
-    /**
-     * @return the server conf
-     */
-    public ServerConfType getConf(Session session) {
-        ServerConfType confType = getFirst(session, ServerConfType.class);
-        if (confType == null) {
-            throw new CodedException(X_MALFORMED_SERVERCONF,
-                    "Server conf is not initialized!");
-        }
+    @Autowired
+    private ClientRepository clientRepository;
 
-        return confType;
+    @Test
+    public void getAllClients() {
+        List<ClientType> clients = clientRepository.getAllClients();
+        assertEquals(2, clients.size());
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> T getFirst(Session session, final Class<?> clazz) {
-        Criteria c = session.createCriteria(clazz);
-        c.setFirstResult(0);
-        c.setMaxResults(1);
-        T t = (T) c.uniqueResult();
-        return t;
-    }
 }
+
+
