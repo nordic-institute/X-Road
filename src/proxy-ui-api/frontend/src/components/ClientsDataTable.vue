@@ -16,14 +16,18 @@
     <v-data-table
       :loading="loading"
       :headers="headers"
-      :items="clientsFlat"
+      :items="clients"
       :search="search"
+      :pagination.sync="pagination"
       :disable-initial-sort="true"
+      :must-sort="true"
+      :customSort="customSort"
+      :customFilter="customFilter"
+      hide-actions
       expand
       class="elevation-0 data-table"
-      item-key="name"
+      item-key="id"
       ref="dTable"
-      :rows-per-page-items="rowsPerPage"
     >
       <template slot="items" slot-scope="props">
         <tr @click="props.expanded = !props.expanded">
@@ -46,7 +50,12 @@
             </template>
 
             <template v-else>
-              <v-icon color="grey darken-2" class="pl-5" small>far fa-address-card</v-icon>
+              <v-icon
+                color="grey darken-2"
+                class="pl-1"
+                :class="{ 'pl-5': treeMode }"
+                small
+              >far fa-address-card</v-icon>
               <span
                 class="font-weight-bold name"
                 @click="openSubsystem(props.item)"
@@ -54,7 +63,11 @@
             </template>
           </td>
           <!-- Id -->
-          <td class="text-xs-left">{{ props.item.id }}</td>
+          <td class="text-xs-left">
+            <template v-if="props.item.type !== 'client'">
+              <span>{{props.item.id}}</span>
+            </template>
+          </td>
           <!-- Status -->
           <td class="text-xs-left">
             <div class="status-wrapper">
@@ -82,30 +95,33 @@
         slot="no-results"
         :value="true"
         color="error"
-        icon="warning"
       >Your search for "{{ search }}" found no results.</v-alert>
     </v-data-table>
   </v-layout>
 </template>
 
 <script lang="ts">
+/**
+ * This component renders the Clients data table.
+ * Default sort and filter functions are replaced to achieve the end result where
+ */
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
+
+import { getObjectValueByPath, getNestedValue } from '../util/helpers';
 
 export default Vue.extend({
   data: () => ({
     search: '',
-    rowsPerPage: [
-      10,
-      25,
-      50,
-      { text: '$vuetify.dataIterator.rowsPerPageAll', value: -1 },
-    ],
+    pagination: {
+      sortBy: 'sortNameAsc',
+      rowsPerPage: -1,
+    },
     headers: [
       {
         text: 'Name',
         align: 'left',
-        value: 'name',
+        value: 'sortNameAsc',
         class: 'xr-table-header',
       },
       { text: 'ID', align: 'left', value: 'id', class: 'xr-table-header' },
@@ -115,21 +131,34 @@ export default Vue.extend({
         value: 'status',
         class: 'xr-table-header',
       },
-      { text: '', value: 'id', sortable: false, class: 'xr-table-header' },
+      { text: '', value: '', sortable: false, class: 'xr-table-header' },
     ],
+
     editedIndex: -1,
   }),
 
   computed: {
-    ...mapGetters(['clients', 'loading', 'clientsFlat']),
+    ...mapGetters(['clients', 'loading']),
     formTitle(): string {
       return this.editedIndex === -1 ? 'New Item' : 'Edit Item';
+    },
+    treeMode(): boolean {
+      // Switch between the "tree" view and the "flat" view
+      if (this.search) {
+        return false;
+      } else if (this.pagination.sortBy === 'status') {
+        return false;
+      }
+      return true;
     },
   },
 
   methods: {
     getClientIcon(type: string) {
-      switch (type) {
+      if (!type) {
+        return '';
+      }
+      switch (type.toLowerCase()) {
         case 'client':
           return 'status-green';
         case 'owner':
@@ -141,7 +170,10 @@ export default Vue.extend({
       }
     },
     getStatusIconClass(status: string): string {
-      switch (status) {
+      if (!status) {
+        return '';
+      }
+      switch (status.toLowerCase()) {
         case 'registered':
           return 'status-green';
         case 'registration in progress':
@@ -172,6 +204,50 @@ export default Vue.extend({
 
     addSubsystem(item: any) {
       this.$router.push('/add-subsystem');
+    },
+
+    customFilter: (items: any, search: any, filter: any, headers: any[]) => {
+      // Override for the default filter function.
+      // This is done to filter by the name (that is visible to user) instead of sortNameAsc or sortNameDesc.
+      // base copied from here: https://github.com/vuetifyjs/vuetify/blob/master/packages/vuetify/src/components/VDataTable/VDataTable.js
+      search = search.toString().toLowerCase();
+      if (search.trim() === '') {
+        return items;
+      }
+
+      const props = headers.map((h) => h.value);
+      // Replace "sort name" with name
+      props[0] = 'name';
+      // pop the empty "button column" header value
+      props.pop();
+
+      return items.filter((item: any) =>
+        props.some((prop) =>
+          filter(getObjectValueByPath(item, prop, item[prop]), search),
+        ),
+      );
+    },
+
+    customSort(items: any[], index: string, isDesc: boolean) {
+      // Override of the default sorting function for the Name column to use sortNameAsc or sortNameDesc instead.
+      // This is needed to achieve the order where member is always over the subsystem regardless of the sort direction.
+      items.sort((a, b) => {
+        if (index === 'sortNameAsc') {
+          if (!isDesc) {
+            return a[index] < b[index] ? -1 : 1;
+          } else {
+            // When sorting descending by name, replace the sort data
+            return b.sortNameDesc < a.sortNameDesc ? -1 : 1;
+          }
+        } else {
+          if (!isDesc) {
+            return a[index] < b[index] ? -1 : 1;
+          } else {
+            return b[index] < a[index] ? -1 : 1;
+          }
+        }
+      });
+      return items;
     },
   },
 });
@@ -214,6 +290,8 @@ export default Vue.extend({
 .full-width {
   width: 100%;
   max-width: 1280px;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
 .table-button {

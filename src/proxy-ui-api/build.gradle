@@ -18,8 +18,6 @@ buildscript {
 configurations {
     compile {
         exclude group: 'org.hibernate', module: 'hibernate-hikaricp'
-//        exclude group: 'org.postgresql', module: 'postgresql'
-//        exclude group: 'org.hsqldb', module: 'hsqldb'
     }
     developmentOnly
     runtimeClasspath {
@@ -130,12 +128,6 @@ licenseMain.enabled = false
 
 licenseFormat.dependsOn licenseFormatJava
 licenseTest.dependsOn licenseTestJava
-
-// TODO: would rather use hsqldb (why? maybe since old code uses that)
-// but there's some case sensitivity problems (see confluence)
-// TODO: why do we have to have serverconf.server_code instead of serverconf.server_code?
-// but table names had messed up UPPERCASEs
-// TODO: also would like to take *.hbm.xml from classpath and not copypaste those
 
 dependencies {
     implementation project(':serverconf')

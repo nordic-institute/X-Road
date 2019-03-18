@@ -38,7 +38,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 
 /**
  * test ClientRepository
@@ -59,28 +58,6 @@ public class ClientRepositoryIntegrationTest {
         assertEquals(2, clients.size());
     }
 
-    @Test
-    public void testRollback1() {
-        String code = clientRepository.getAndUpdateServerCode();
-        assertEquals("TEST-INMEM-SS", code);
-        log.info("got code {}", code);
-
-        String updated = clientRepository.getAndUpdateServerCode();
-        assertNotEquals("TEST-INMEM-SS", updated);
-        log.info("got updated code {}", updated);
-    }
-
-    @Test
-    public void testRollback2() {
-        // transactions should be rolled back between tests
-        String code = clientRepository.getAndUpdateServerCode();
-        assertEquals("TEST-INMEM-SS", code);
-        log.info("got (2) code {}", code);
-
-        String updated = clientRepository.getAndUpdateServerCode();
-        assertNotEquals("TEST-INMEM-SS", updated);
-        log.info("got (2) updated code {}", updated);
-    }
 }
 
 

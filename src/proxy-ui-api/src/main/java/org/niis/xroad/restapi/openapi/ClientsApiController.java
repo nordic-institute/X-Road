@@ -79,40 +79,6 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     }
 
     @Override
-    public ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Group>> getClientGroups(String id) {
-        if (true) throw new RestNotFoundException("RestNotFoundException");
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Service>> getClientServices(String id) {
-        if (true) throw new NullPointerException("NullPointerException");
-        return null;
-    }
-
-    /**
-     * test transactions
-     * @return
-     */
-    @PreAuthorize("permitAll()")
-    @RequestMapping(value = "/update")
-    public String getAndUpdateServerCode() {
-        return clientRepository.getAndUpdateServerCode();
-    }
-
-    /**
-     * test transactions
-     * @return
-     */
-    @PreAuthorize("hasAuthority('INIT_CONFIG')")
-    @RequestMapping(value = "/rollback")
-    public String getAndUpdateServerCodeRollback() {
-        String code = clientRepository.getAndUpdateServerCode();
-        if (true) throw new NullPointerException("code broke, transaction should rollback");
-        return code;
-    }
-
-    @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public ResponseEntity<List<Client>> getClients() {
         List<ClientType> clientTypes = clientRepository.getAllClients();
@@ -127,6 +93,8 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     @PreAuthorize("hasAuthority('NO_ONE_HAS_THIS_PERMISSION_YET')")
     public ResponseEntity<Client> getClient(String id) {
 //CHECKSTYLE.OFF: TodoComment - need this todo and still want builds to succeed
+        // getClient is not yet implemented at this point,
+        // but keeping the work-in-progress version here anyway
         ClientId clientId = clientConverter.convertId(id);
         ClientType clientType = clientRepository.getClient(clientId);
         Client client = clientConverter.convert(clientType);

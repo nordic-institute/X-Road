@@ -44,7 +44,6 @@ import java.util.List;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -69,19 +68,7 @@ public class ClientsApiControllerIntegrationTest {
     @Autowired
     private ClientsApiController clientsApiController;
 
-    // tests with TestRestTemplate would be good, but require some extra work
-    // for authentication setup.
-    //    // WithMockUser will not work with restTemplate, would need
-//    // to implement auth manually
-//    @Autowired
-//    private TestRestTemplate restTemplate;
 
-//    @Test
-//    public void test() {
-//        ResponseEntity<List> response = this.restTemplate.getForEntity
-//                ("/api/clients", List.class);
-//        assertEquals(2, response.getBody().size());
-//    }
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void getClients() {
@@ -92,31 +79,6 @@ public class ClientsApiControllerIntegrationTest {
         org.niis.xroad.restapi.openapi.model.Client client = response.getBody().get(0);
         assertEquals("test-member-name", client.getMemberName());
         assertEquals("M1", client.getMemberCode());
-    }
-
-    @Test
-    @WithMockUser(roles = "XROAD_REGISTRATION_OFFICER")
-    public void testRollback1() {
-        String code = clientsApiController.getAndUpdateServerCode();
-        assertEquals("TEST-INMEM-SS", code);
-        log.info("got code {}", code);
-
-        String updated = clientsApiController.getAndUpdateServerCode();
-        assertNotEquals("TEST-INMEM-SS", updated);
-        log.info("got updated code {}", updated);
-    }
-
-    @Test
-    @WithMockUser(roles = "XROAD_REGISTRATION_OFFICER")
-    public void testRollback2() {
-        // transactions should be rolled back between tests
-        String code = clientsApiController.getAndUpdateServerCode();
-        assertEquals("TEST-INMEM-SS", code);
-        log.info("got (2) code {}", code);
-
-        String updated = clientsApiController.getAndUpdateServerCode();
-        assertNotEquals("TEST-INMEM-SS", updated);
-        log.info("got (2) updated code {}", updated);
     }
 
     @Test
