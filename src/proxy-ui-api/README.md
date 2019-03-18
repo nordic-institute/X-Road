@@ -28,27 +28,75 @@ java -jar proxy-ui-api-1.0.jar --spring.profiles.active=development
 ../gradlew bootRun --console plain
 ```
 
-browser: `http://localhost:8020`
+browser: `https://localhost:8443`
 
-# Api auth examples
+# TLS
+
+Application listens to https in port 8443.
+
+Since it uses a self-signed certificate (currently in `nginx.p12`
+keystore embedded in the build), clients need to trust this certificate. In browser access this means clicking allow exception for
+"your connection is not secure" warning. For `curl` commands this means `-k` parameter (which you can see used in the examples).
+
+# Api key administration
+
+Api keys can be created, listed and revoked through administration API. Administration access
+is limited:
+
+- user needs to have role XROAD_SYSTEM_ADMINISTRATOR
+- access is allowed only from localhost
+- authentication is done with basic auth (username & password)
+
+Create a new key with a POST request to `/api/api-key`.
+Request body should contain list of roles as array of strings.
+Response contains the key. The key is not stored and can not be retrieved after this.
+
 ```
-$ curl --header "Authorization: X-Road-ApiKey token=481e50de-a93f-46d8-9748-1bca86eea454" localhost:8020/api/cities
-{"timestamp":"2018-11-27T07:09:03.991+0000","status":500,"error":"Internal Server Error","message":"The API key was not found or not the expected value.","path":"/api/adminCities"}
+$ curl -X POST -u <username>:<password> https://localhost:8443/api/api-key --data '["XROAD_SERVICE_ADMINISTRATOR","XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
+{
+  "roles": [
+    "XROAD_SECURITYSERVER_OBSERVER",
+    "XROAD_REGISTRATION_OFFICER",
+    "XROAD_SERVICE_ADMINISTRATOR"
+  ],
+  "id": 27,
+  "key": "40ddbdd1-ee46-4b0c-b812-a736a409cc32"
+}
+```
+List all api keys with a GET request to `/api/api-key`.
 
-$ curl -X POST -u admin:password docker-ss.local:8020/api/create-api-key --data '["XROAD_SECURITY_OFFICER"]' --header "Content-Type: application/json"
-{"key":"481e50de-a93f-46d8-9748-1bca86eea454","roles":["XROAD_SECURITY_OFFICER"]}
+```
+$ curl -u <username>:<password> https://localhost:8443/api/api-key -k
+[
+...
+  {
+    "id": 27,
+    "encodedKey": "$2a$10$LihaAGbyARvQSehF.DPa7uM63oRrwNSBZPuBYnsXTCfQ7pDgEBg2G",
+    "roles": [
+      "XROAD_SECURITYSERVER_OBSERVER",
+      "XROAD_REGISTRATION_OFFICER",
+      "XROAD_SERVICE_ADMINISTRATOR"
+    ]
+  }
+]
+```
+Delete a key with a DELETE request to `/api/api-key/<id>`.
+```
+$ curl -X DELETE -u <username>:<password> https://localhost:8443/api/api-key/27 -k
+{
+  "status": 200,
+  "errorCode": null
+}
+```
 
-$ curl -X POST -u admin:password docker-ss.local:8020/api/create-api-key --data '["XROAD_SYSTEM_ADMINISTRATOR"]' --header "Content-Type: application/json"
-{"key":"5f9a20cd-06d0-4730-9cbc-fb1c191d6bb9","roles":["XROAD_SYSTEM_ADMINISTRATOR"]}
 
-$ curl -X POST -u admin:password docker-ss.local:8020/api/create-api-key --data '["XROAD_SECURITY_OFFICER", "XROAD_SYSTEM_ADMINISTRATOR"]' --header "Content-Type: application/json"
-{"key":"c2f9a0ea-789f-49f5-8b2b-23a4a7c09fb2","roles":["XROAD_SECURITY_OFFICER","XROAD_SYSTEM_ADMINISTRATOR"]}
+# Example of using API key
 
-$ curl --header "Authorization: X-Road-ApiKey token=481e50de-a93f-46d8-9748-1bca86eea454" "docker-ss.local:8020/api/clients"
+Provide api key with `Authorization: X-Road-ApiKey token=<api key>` header.
+
+```
+$ curl --header "Authorization: X-Road-ApiKey token=481e50de-a93f-46d8-9748-1bca86eea454" "https://docker-ss.local:8443/api/clients" -k
 [{"id":"XRD2:GOV:M1:SUB1","member_name":"member1","member_class":"GOV","member_code":"M1","subsystem_code":"SUB1","status":"saved"},{"id":"XRD2:GOV:M4:SS1","member_name":"member4","member_class":"GOV","member_code":"M4","subsystem_code":"SS1","status":"registered"},{"id":"XRD2:GOV:M4","member_name":"member4","member_class":"GOV","member_code":"M4","subsystem_code":null,"status":"registered"}]
-
-$ curl --header "Authorization: X-Road-ApiKey token=5f9a20cd-06d0-4730-9cbc-fb1c191d6bb9" "docker-ss.local:8020/api/clients"
-{"timestamp":"2018-11-27T07:08:22.398+0000","status":403,"error":"Forbidden","message":"Forbidden","path":"/api/clients"}
 ```
 
 # PAM login
@@ -90,8 +138,8 @@ sudo useradd -G xroad-security-officer xrd-full-user --shell=/bin/false
 sudo useradd -G xroad-system-administrator xrd-system-admin --shell=/bin/false
 sudo usermod -a -G xroad-registration-officer,xroad-service-administrator,xroad-system-administrator,xroad-securityserver-observer xrd-full-user
 
-sudo passwd xroad-admin-user
-sudo passwd xroad-admin
+sudo passwd xrd-full-user
+sudo passwd xrd-system-admin
 ```
 
 # CSRF protection
@@ -121,37 +169,37 @@ Examples:
 
 Login
 ```
-curl -X POST -d "username=admin&password=password" -D - localhost:8020/login
+curl -X POST -k -d "username=admin&password=password" -D - https://localhost:8443/login
 HTTP/1.1 200 
 Set-Cookie: XSRF-TOKEN=45eeef1e-3d0a-4dea-9a65-b84f9a505335; Path=/
 Set-Cookie: JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4; Path=/; HttpOnly
 ```
 Using the cookies and CSRF header correctly
 ```
-curl -D - localhost:8020/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=45eeef1e-3d0a-4dea-9a65-b84f9a505335" --header "X-XSRF-TOKEN: 45eeef1e-3d0a-4dea-9a65-b84f9a505335"
+curl -D -k - https://localhost:8443/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=45eeef1e-3d0a-4dea-9a65-b84f9a505335" --header "X-XSRF-TOKEN: 45eeef1e-3d0a-4dea-9a65-b84f9a505335"
 HTTP/1.1 200 
 [{"id":999,"name":"Admincity, from a method which requires 'ADMIN' role"},{"id":1,"name":"Tampere"},{"id":2,"name":"Ylojarvi"},{"id":3,"name":"Helsinki"},{"id":4,"name":"Vantaa"},{"id":5,"name":"Nurmes"}]
 ```
 
 Actual CSRF token value does not matter
 ```
-curl -D - localhost:8020/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo" --header "X-XSRF-TOKEN: foo"
+curl -D - -k https://localhost:8443/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo" --header "X-XSRF-TOKEN: foo"
 HTTP/1.1 200 
 [{"id":999,"name":"Admincity, from a method which requires 'ADMIN' role"},{"id":1,"name":"Tampere"},{"id":2,"name":"Ylojarvi"},{"id":3,"name":"Helsinki"},{"id":4,"name":"Vantaa"},{"id":5,"name":"Nurmes"}]
 ```
 
 But it needs to exist and match the value from cookie
 ```
-curl -D - localhost:8020/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo" --header "X-XSRF-TOKEN: bar"
+curl -D - -k https://localhost:8443/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo" --header "X-XSRF-TOKEN: bar"
 HTTP/1.1 403 
 ```
 
 ```
-curl -D - localhost:8020/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo"
+curl -D - -k https://localhost:8443/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo"
 HTTP/1.1 403 
 ```
 
 ```
-curl -D - localhost:8020/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4" --header "X-XSRF-TOKEN: 45eeef1e-3d0a-4dea-9a65-b84f9a505335"
+curl -D - -k https://localhost:8443/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4" --header "X-XSRF-TOKEN: 45eeef1e-3d0a-4dea-9a65-b84f9a505335"
 HTTP/1.1 403 
 ```

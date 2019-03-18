@@ -9,7 +9,7 @@
         <param name="useNamed">true</param>
     </typedef>
 
-    <class name="ApiKeyType" table="APIKEY">
+    <class name="PersistentApiKeyType" table="APIKEY">
         <id name="id" type="long" access="field">
             <generator class="native"/>
         </id>

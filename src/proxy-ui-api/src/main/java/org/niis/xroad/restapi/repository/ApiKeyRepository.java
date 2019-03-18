@@ -26,8 +26,8 @@ package org.niis.xroad.restapi.repository;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
-import org.niis.xroad.restapi.dao.ApiKeyDAOImpl;
-import org.niis.xroad.restapi.domain.ApiKeyType;
+import org.niis.xroad.restapi.dao.PersistentApiKeyDAOImpl;
+import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.exceptions.InvalidParametersException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
@@ -38,9 +38,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 
+import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -74,26 +76,28 @@ public class ApiKeyRepository {
     /**
      * create api key with one role
      */
-    public String create(String roleName) {
+    public Map.Entry<String, PersistentApiKeyType> create(String roleName) {
         return create(Collections.singletonList(roleName));
     }
 
     /**
      * create api key with collection of roles
-     * @return plaintext key
+     * @return Map.Entry with key = plaintext key, value = PersistentApiKeyType
      */
-    public String create(Collection<String> roleNames) {
+    public Map.Entry<String, PersistentApiKeyType> create(Collection<String> roleNames) {
         if (roleNames.isEmpty()) {
             throw new InvalidParametersException("missing roles");
         }
 
         Set<Role> roles = Role.getForNames(roleNames);
-        String key = createApiKey();
-        String encoded = encode(key);
-        ApiKeyType apiKeyType = new ApiKeyType(encoded, Collections.unmodifiableCollection(roles));
-        ApiKeyDAOImpl apiKeyDAO = new ApiKeyDAOImpl();
-        apiKeyDAO.insert(getCurrentSession(), apiKeyType);
-        return key;
+        String plainKey = createApiKey();
+        String encodedKey = encode(plainKey);
+        PersistentApiKeyType apiKey = new PersistentApiKeyType(encodedKey, Collections.unmodifiableCollection(roles));
+        PersistentApiKeyDAOImpl apiKeyDAO = new PersistentApiKeyDAOImpl();
+        apiKeyDAO.insert(getCurrentSession(), apiKey);
+        Map.Entry<String, PersistentApiKeyType> entry =
+                new AbstractMap.SimpleImmutableEntry<>(plainKey, apiKey);
+        return entry;
     }
 
     private String encode(String key) {
@@ -112,9 +116,9 @@ public class ApiKeyRepository {
      * @return
      * @throws NotFoundException if api key was not found
      */
-    public ApiKeyType get(String key) throws NotFoundException {
-        List<ApiKeyType> keys = new ApiKeyDAOImpl().findAll(getCurrentSession());
-        for (ApiKeyType apiKeyType : keys) {
+    public PersistentApiKeyType get(String key) throws NotFoundException {
+        List<PersistentApiKeyType> keys = new PersistentApiKeyDAOImpl().findAll(getCurrentSession());
+        for (PersistentApiKeyType apiKeyType : keys) {
             // TO DO: without random salting, no need to use matches,
             // could encode once and compare encoded values
             if (passwordEncoder.matches(key, apiKeyType.getEncodedKey())) {
@@ -130,8 +134,8 @@ public class ApiKeyRepository {
      * @throws NotFoundException if api key was not found
      */
     public void remove(String key) throws NotFoundException {
-        ApiKeyType apiKeyType = get(key);
-        new ApiKeyDAOImpl().delete(getCurrentSession(), apiKeyType);
+        PersistentApiKeyType apiKeyType = get(key);
+        new PersistentApiKeyDAOImpl().delete(getCurrentSession(), apiKeyType);
     }
 
     /**
@@ -140,8 +144,8 @@ public class ApiKeyRepository {
      * @throws NotFoundException if api key was not found
      */
     public void removeById(long id) throws NotFoundException {
-        ApiKeyDAOImpl dao = new ApiKeyDAOImpl();
-        ApiKeyType apiKeyType = dao.findById(getCurrentSession(), id);
+        PersistentApiKeyDAOImpl dao = new PersistentApiKeyDAOImpl();
+        PersistentApiKeyType apiKeyType = dao.findById(getCurrentSession(), id);
         if (apiKeyType == null) {
             throw new NotFoundException("api key with id " + id + " not found");
         }
@@ -152,7 +156,7 @@ public class ApiKeyRepository {
      * List all keys
      * @return
      */
-    public List<ApiKeyType> listAll() {
-        return new ApiKeyDAOImpl().findAll(getCurrentSession());
+    public List<PersistentApiKeyType> listAll() {
+        return new PersistentApiKeyDAOImpl().findAll(getCurrentSession());
     }
 }

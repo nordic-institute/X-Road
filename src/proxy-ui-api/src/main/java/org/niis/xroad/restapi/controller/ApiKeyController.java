@@ -25,7 +25,7 @@
 package org.niis.xroad.restapi.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.domain.ApiKeyType;
+import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.exceptions.ErrorInfo;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,32 +49,33 @@ import java.util.Map;
  * Controller for rest apis for api key operations
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/api-key")
 @Slf4j
+@PreAuthorize("hasRole('XROAD_SYSTEM_ADMINISTRATOR')")
 public class ApiKeyController {
 
     @Autowired
     private ApiKeyRepository apiKeyRepository;
 
     /**
-     * create api keys
+     * create a new api key
      */
-    @PostMapping(value = "/create-api-key", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PostMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Map<String, Object> createKey(@RequestBody List<String> roles) {
-        String key = apiKeyRepository.create(roles);
+        Map.Entry<String, PersistentApiKeyType> createdKeyData = apiKeyRepository.create(roles);
         Map<String, Object> result = new HashMap();
-        result.put("key", key);
-        result.put("roles", roles);
+        result.put("key", createdKeyData.getKey());
+        result.put("roles", createdKeyData.getValue().getRoles());
+        result.put("id", createdKeyData.getValue().getId());
         return result;
     }
 
     /**
      * list api keys from db - just development time, remove
      */
-    @PreAuthorize("permitAll()")
-    @RequestMapping(value = "/list-keys")
-    public ResponseEntity<Collection<ApiKeyType>> list() {
-        Collection<ApiKeyType> keys = apiKeyRepository.listAll();
+    @RequestMapping(method = RequestMethod.GET)
+    public ResponseEntity<Collection<PersistentApiKeyType>> list() {
+        Collection<PersistentApiKeyType> keys = apiKeyRepository.listAll();
         return new ResponseEntity<>(keys,
                 HttpStatus.OK);
     }
@@ -84,8 +85,7 @@ public class ApiKeyController {
      * @param id
      * @return
      */
-    @PreAuthorize("permitAll()")
-    @RequestMapping(value = "/revoke-api-key/{id}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     public ResponseEntity<ErrorInfo> revoke(@PathVariable("id") long id) {
         apiKeyRepository.removeById(id);
         // TO DO: return something else than errorInfo

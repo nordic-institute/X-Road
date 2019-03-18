@@ -70,13 +70,13 @@ import java.io.IOException;
  * - simple server-side rendered spring mvc thymeleaf UI
  * - rest apis with Vue frontend
  *
- * Uses http basic authentication for create-api-key api.
+ * Uses http basic authentication for manage api-key api.
  *
  * Uses authentication tokens for rest apis, when session cookies are not available.
  *
  * Built from three different WebSecurityConfigurerAdapters.
  * Authentication configurations are used in the following order:
- * - CreateApiKeyWebSecurityConfigurerAdapter, @Order(1), matches /api/create-api-key/**
+ * - CreateApiKeyWebSecurityConfigurerAdapter, @Order(1), matches /api/api-key/**
  * - ApiWebSecurityConfigurerAdapter, @Order(2), matches /api/**
  * - FormLoginWebSecurityConfigurerAdapter, @Order(100), matches any URL (denies /api/**)
  */
@@ -176,12 +176,12 @@ public class MultiAuthWebSecurityConfig {
     }
 
     /**
-     * basic authentication for create-api-key
-     * matching url /api/create-api-key/**
+     * basic authentication for managing api keys
+     * matching url /api/api-key/**
      */
     @Configuration
     @Order(1)
-    public static class CreateApiKeyWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+    public static class ManageApiKeysWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
         @Value("${proto.pam}")
         private boolean pam;
 
@@ -191,9 +191,11 @@ public class MultiAuthWebSecurityConfig {
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             http
-                .antMatcher("/api/create-api-key/**")
+                .antMatcher("/api/api-key/**")
                 .authorizeRequests()
-                    .anyRequest().hasRole(Role.XROAD_SYSTEM_ADMINISTRATOR.name())
+                    .anyRequest().access("hasRole('"
+                    + Role.XROAD_SYSTEM_ADMINISTRATOR.name()
+                    + "') and hasIpAddress('127.0.0.1')")
                     .and()
                 .sessionManagement()
                     .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

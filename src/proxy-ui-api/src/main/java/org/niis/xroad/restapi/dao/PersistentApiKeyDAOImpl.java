@@ -22,34 +22,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.domain;
+package org.niis.xroad.restapi.dao;
 
-import lombok.Getter;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 /**
- * WIP api key
+ * API key data access object implementation.
  */
-@Getter
-public class ApiKeyType {
-    private Long id;
-    private String encodedKey;
-    private Set<Role> roles;
+public class PersistentApiKeyDAOImpl {
 
-    /**
-     * Create api key
-     * @param encodedKey
-     * @param roles
-     */
-    public ApiKeyType(String encodedKey, Collection<Role> roles) {
-        this.encodedKey = encodedKey;
-        this.roles = new HashSet<>();
-        this.roles.addAll(roles);
+    public PersistentApiKeyType findById(Session session, Long id) {
+        return (PersistentApiKeyType) session.get(PersistentApiKeyType.class, id);
     }
 
-    public ApiKeyType() {
+    @SuppressWarnings("unchecked")
+    public List<PersistentApiKeyType> findAll(Session session) {
+        Query query = session.createQuery("from " + PersistentApiKeyType.class.getName());
+        return query.list();
+    }
+
+    public void insert(Session session, PersistentApiKeyType apiKeyType) {
+        session.persist(apiKeyType);
+    }
+
+    public void delete(Session session, PersistentApiKeyType apiKeyType) {
+        session.delete(apiKeyType);
     }
 }
