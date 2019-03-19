@@ -125,6 +125,7 @@ public final class ErrorCodes {
             "InvalidProtocolVersion";
     public static final String X_INVALID_CLIENT_IDENTIFIER =
             "InvalidClientIdentifier";
+    public static final String X_INVALID_SERVICE_TYPE = "ServiceType";
 
     // ASiC container related errors
 
