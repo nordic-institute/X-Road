@@ -74,6 +74,8 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
 
     @Getter
     private long attachmentsByteCount = 0;
+    @Getter
+    private byte[] restBodyDigest;
 
     /**
      * Creates the encoder instance.
@@ -207,7 +209,8 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
         mpEncoder.write(head, 0, count);
         mpEncoder.write(proxyIs);
 
-        signer.addPart(MessageFileNames.attachment(++attachmentNo), hashAlgoId, calc.getDigest());
+        restBodyDigest = calc.getDigest();
+        signer.addPart(MessageFileNames.attachment(++attachmentNo), hashAlgoId, restBodyDigest);
         attachmentsByteCount += cos.getByteCount();
     }
 

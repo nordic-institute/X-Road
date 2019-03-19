@@ -119,6 +119,9 @@ public class ProxyMessageDecoder {
 
     private int attachmentNo = 0;
 
+    @Getter
+    private byte[] restBodyDigest;
+
     /**
      * Construct a message decoder.
      *
@@ -396,10 +399,8 @@ public class ProxyMessageDecoder {
 
             callback.restBody(proxyIs);
             attachmentsByteCount += cos.getByteCount();
-
-            verifier.addPart(
-                    MessageFileNames.attachment(++attachmentNo),
-                    getHashAlgoId(), dc.getDigest());
+            restBodyDigest = dc.getDigest();
+            verifier.addPart(MessageFileNames.attachment(++attachmentNo), getHashAlgoId(), restBodyDigest);
         } catch (Exception ex) {
             throw translateException(ex);
         }

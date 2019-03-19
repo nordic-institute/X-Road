@@ -74,10 +74,12 @@ import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
+import org.bouncycastle.operator.DigestCalculator;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.io.OutputStream;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 
@@ -360,9 +362,23 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         ctx.setAttribute(ServiceId.class.getName(), requestServiceId);
         final HttpResponse response = httpClient.execute(req, ctx);
         final StatusLine statusLine = response.getStatusLine();
+
+        //calculate request hash
+        byte[] requestDigest;
+        if (decoder.getRestBodyDigest() != null) {
+            final DigestCalculator dc = CryptoUtils.createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
+            try (OutputStream out = dc.getOutputStream()) {
+                out.write(requestMessage.getRest().getHash());
+                out.write(decoder.getRestBodyDigest());
+            }
+            requestDigest = dc.getDigest();
+        } else {
+            requestDigest = requestMessage.getRest().getHash();
+        }
+
         restResponse = new RestResponse(requestMessage.getRest().getClientId(),
                 requestMessage.getRest().getQueryId(),
-                requestMessage.getRest().getHash(),
+                requestDigest,
                 requestServiceId,
                 statusLine.getStatusCode(),
                 statusLine.getReasonPhrase(),
