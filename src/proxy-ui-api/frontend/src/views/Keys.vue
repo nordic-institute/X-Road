@@ -29,12 +29,6 @@ export default Vue.extend({
       this.$store.dispatch('clearData');
     },
   },
-  computed: {
-    ...mapGetters(['isAuthenticated']),
-  },
-  created() {
-    this.fetchClients();
-  },
 });
 </script>
 
