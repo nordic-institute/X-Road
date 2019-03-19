@@ -16,5 +16,14 @@ CREATE TABLE apikey_roles
         )
 );
 
-alter table apikey owner to serverconf;
-alter table apikey_roles owner to serverconf;
+ALTER TABLE apikey OWNER TO serverconf;
+ALTER TABLE apikey_roles OWNER TO serverconf;
+
+DROP TRIGGER IF EXISTS update_history ON apikey;
+CREATE TRIGGER update_history AFTER INSERT OR UPDATE OR DELETE ON apikey_roles
+    FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+
+DROP TRIGGER IF EXISTS update_history ON apikey;
+CREATE TRIGGER update_history AFTER INSERT OR UPDATE OR DELETE ON apikey
+    FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+
