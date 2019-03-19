@@ -1,7 +1,7 @@
 <template>
   <v-app class="app-custom">
     <v-content>
-      <v-toolbar dark app color="primary" class="elevation-2">
+      <v-toolbar dark app color="#202020" class="elevation-2">
         <v-img
           :src="require('../assets/xroad_logo_64.png')"
           height="64"
