@@ -29,7 +29,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.ProxyTestSuite;
 import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
-import ee.ria.xroad.proxy.testsuite.TestServerConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 
 /**
  * ServerProxy connects to Service using SSL.
@@ -48,7 +48,7 @@ public class SslToServiceNoAuth extends SslMessageTestCase {
     protected void startUp() throws Exception {
         super.startUp();
 
-        ServerConf.reload(new TestServerConf() {
+        ServerConf.reload(new TestSuiteServerConf() {
             @Override
             public boolean isSslAuthentication(ServiceId service) {
                 return false;

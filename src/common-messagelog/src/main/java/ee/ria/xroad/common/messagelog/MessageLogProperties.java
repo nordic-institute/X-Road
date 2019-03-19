@@ -53,6 +53,9 @@ public final class MessageLogProperties {
 
     private static final int DEFAULT_ARCHIVE_TRANSACTION_BATCH_SIZE = 10000;
 
+    private static final long DEFAULT_MAX_LOGGABLE_MESSAGE_BODY_SIZE = 10 * 1024 * 1024;
+    private static final long MAX_LOGGABLE_MESSAGE_BODY_SIZE_LIMIT = 1024 * 1024 * 1024;
+
     private static final String PREFIX = "xroad.message-log.";
 
     /** Property name of the timestamper client connect timeout (milliseconds). */
@@ -83,20 +86,32 @@ public final class MessageLogProperties {
 
     public static final String ARCHIVE_TRANSFER_COMMAND = PREFIX + "archive-transfer-command";
 
-    /** Property name for toggling SOAP body logging on/off **/
+    /**
+     * Property name for toggling SOAP body logging on/off
+     * @deprecated
+     **/
     public static final String SOAP_BODY_LOGGING_ENABLED = PREFIX + "soap-body-logging";
 
-    /** Prefix for enable-overriding SOAP body logging **/
-    private static final String SOAP_BODY_LOGGING_ENABLE = PREFIX + "enabled-body-logging";
+    /** Property name for toggling message body logging on/off **/
+    public static final String MESSAGE_BODY_LOGGING_ENABLED = PREFIX + "message-body-logging";
 
-    /** Prefix for disable-overriding SOAP body logging **/
-    private static final String SOAP_BODY_LOGGING_DISABLE = PREFIX + "disabled-body-logging";
+    /** Prefix for enable-overriding message body logging **/
+    private static final String MESSAGE_BODY_LOGGING_ENABLE = PREFIX + "enabled-body-logging";
 
-    /** Postfix for overriding SOAP body logging for local producers **/
-    private static final String SOAP_BODY_LOGGING_LOCAL_PRODUCER = "-local-producer-subsystems";
+    /** Prefix for disable-overriding message body logging **/
+    private static final String MESSAGE_BODY_LOGGING_DISABLE = PREFIX + "disabled-body-logging";
 
-    /** Postfix for overriding SOAP body logging for remote producers **/
-    private static final String SOAP_BODY_LOGGING_REMOTE_PRODUCER = "-remote-producer-subsystems";
+    /** Postfix for overriding message body logging for local producers **/
+    private static final String MESSAGE_BODY_LOGGING_LOCAL_PRODUCER = "-local-producer-subsystems";
+
+    /** Postfix for overriding message body logging for remote producers **/
+    private static final String MESSAGE_BODY_LOGGING_REMOTE_PRODUCER = "-remote-producer-subsystems";
+
+    /** max loggable body size for rest messages **/
+    private static final String MAX_LOGGABLE_MESSAGE_BODY_SIZE = PREFIX + "max-loggable-message-body-size";
+
+    /** is truncating body in logging allowed **/
+    private static final String REST_TRUNCATED_BODY_ALLOWED = PREFIX + "truncated-body-allowed";
 
     public static final int NUM_COMPONENTS = 4;
     public static final int FIRST_COMPONENT = 0;
@@ -214,47 +229,70 @@ public final class MessageLogProperties {
     }
 
     /**
-     * Returns global setting for SOAP body logging.
+     * Returns global setting for message body logging.
+     *
      * @return true if body logging is enabled.
      */
-    public static boolean isSoapBodyLoggingEnabled() {
-        return "true".equalsIgnoreCase(System.getProperty(SOAP_BODY_LOGGING_ENABLED, "false"));
-
+    public static boolean isMessageBodyLoggingEnabled() {
+        // for backwards compatibility
+        final String enabled = System.getProperty(SOAP_BODY_LOGGING_ENABLED);
+        if (enabled != null) {
+            return "true".equalsIgnoreCase(enabled);
+        }
+        return "true".equalsIgnoreCase(System.getProperty(MESSAGE_BODY_LOGGING_ENABLED, "true"));
     }
 
     /**
      * Returns list of remote producer subsystem ClientIds for which global SOAP body logging setting is overridden.
+     *
      * @return list of ClientId.
      */
-    public static Collection<ClientId> getSoapBodyLoggingRemoteProducerOverrides()  {
-        return getSoapBodyLoggingOverrides(false);
+    public static Collection<ClientId> getMessageBodyLoggingRemoteProducerOverrides() {
+        return getMessageBodyLoggingOverrides(false);
     }
 
     /**
      * Returns list of local producer subsystem ClientIds for which global SOAP body logging setting is overridden.
+     *
      * @return list of ClientId.
      */
-    public static Collection<ClientId> getSoapBodyLoggingLocalProducerOverrides()  {
-        return getSoapBodyLoggingOverrides(true);
+    public static Collection<ClientId> getMessageBodyLoggingLocalProducerOverrides() {
+        return getMessageBodyLoggingOverrides(true);
     }
 
 
-    private static String getSoapBodyLoggingOverrideParameterName(boolean enable, boolean local) {
-        String prefix = enable ? SOAP_BODY_LOGGING_ENABLE : SOAP_BODY_LOGGING_DISABLE;
-        String postfix = local ? SOAP_BODY_LOGGING_LOCAL_PRODUCER : SOAP_BODY_LOGGING_REMOTE_PRODUCER;
+    /**
+     * Returns maximum loggable REST body size
+     */
+    public static long getMaxLoggableBodySize() {
+        final Long value = Long.getLong(MAX_LOGGABLE_MESSAGE_BODY_SIZE, DEFAULT_MAX_LOGGABLE_MESSAGE_BODY_SIZE);
+        if (value < 0 || value > MAX_LOGGABLE_MESSAGE_BODY_SIZE_LIMIT) {
+            throw new IllegalArgumentException(String.format("%s must be between 0 and %d",
+                    MAX_LOGGABLE_MESSAGE_BODY_SIZE, MAX_LOGGABLE_MESSAGE_BODY_SIZE_LIMIT));
+        }
+        return value;
+    }
+
+    public static boolean isTruncatedBodyAllowed() {
+        return Boolean.getBoolean(REST_TRUNCATED_BODY_ALLOWED);
+    }
+
+    private static String getMessageBodyLoggingOverrideParameterName(boolean enable, boolean local) {
+        String prefix = enable ? MESSAGE_BODY_LOGGING_ENABLE : MESSAGE_BODY_LOGGING_DISABLE;
+        String postfix = local ? MESSAGE_BODY_LOGGING_LOCAL_PRODUCER : MESSAGE_BODY_LOGGING_REMOTE_PRODUCER;
 
         return prefix + postfix;
     }
 
-    private static String getSoapBodyLoggingOverrideParameter(boolean enable, boolean local) {
-        return System.getProperty(getSoapBodyLoggingOverrideParameterName(enable, local), "");
+    private static String getMessageBodyLoggingOverrideParameter(boolean enable, boolean local) {
+        return System.getProperty(getMessageBodyLoggingOverrideParameterName(enable, local), "");
     }
 
     /**
      * Check that "enableBodyLogging..." parameters are not used if body logging is toggled on, and vice versa.
      */
     private static void validateBodyLoggingOverrideParameters() {
-        boolean checkEnableOverrides = isSoapBodyLoggingEnabled();
+        boolean checkEnableOverrides = isMessageBodyLoggingEnabled();
 
         validateBodyLoggingOverrideParamNotUsed(checkEnableOverrides, true);
         validateBodyLoggingOverrideParamNotUsed(checkEnableOverrides, false);
@@ -262,30 +300,33 @@ public final class MessageLogProperties {
 
     /**
      * Check that given parameter is not in use, and if it is throws IllegalStateException.
+     *
      * @param enable
      * @param local
      */
     private static void validateBodyLoggingOverrideParamNotUsed(boolean enable, boolean local) {
-        if (!getSoapBodyLoggingOverrideParameter(enable, local).isEmpty()) {
-            throw new IllegalStateException(getSoapBodyLoggingOverrideParameterName(enable, local)
-                    + " should not be used when " + SOAP_BODY_LOGGING_ENABLED + " is " + isSoapBodyLoggingEnabled());
+        if (!getMessageBodyLoggingOverrideParameter(enable, local).isEmpty()) {
+            throw new IllegalStateException(getMessageBodyLoggingOverrideParameterName(enable, local)
+                    + " should not be used when " + MESSAGE_BODY_LOGGING_ENABLED
+                    + " is " + isMessageBodyLoggingEnabled());
         }
     }
 
-    private static Collection<ClientId> getSoapBodyLoggingOverrides(boolean local)  {
+    private static Collection<ClientId> getMessageBodyLoggingOverrides(boolean local) {
         validateBodyLoggingOverrideParameters();
 
-        return parseClientIdParameters(getSoapBodyLoggingOverrideParameter(!isSoapBodyLoggingEnabled(), local));
+        return parseClientIdParameters(getMessageBodyLoggingOverrideParameter(!isMessageBodyLoggingEnabled(), local));
     }
 
     /**
      * Given one parameter parses it to collection of ClientIds. Parameter should be of format
      * FI/GOV/1710128-9/MANSIKKA, FI/GOV/1710128-9/MUSTIKKA, that is: comma separated list of slash-separated subsystem
      * identifiers.
+     *
      * @param clientIdParameters
      * @return
      */
-    private static Collection<ClientId> parseClientIdParameters(String clientIdParameters)  {
+    private static Collection<ClientId> parseClientIdParameters(String clientIdParameters) {
         Collection<ClientId> toReturn = new ArrayList<>();
         Iterable<String> splitSubsystemParams = Splitter.on(",")
                 .trimResults()
@@ -294,12 +335,12 @@ public final class MessageLogProperties {
 
         Splitter codeSplitter = Splitter.on("/").trimResults();
 
-        for (String oneSubsystemParam: splitSubsystemParams) {
+        for (String oneSubsystemParam : splitSubsystemParams) {
             List<String> codes = Lists.newArrayList(codeSplitter.split(oneSubsystemParam));
 
             if (codes.size() != NUM_COMPONENTS) {
-                throw new IllegalStateException(" SOAP body logging override parameter should be comma-separated list "
-                        + "of four slash-separated codesidentifying one subsystem, for example "
+                throw new IllegalStateException("Message body logging override parameter should be comma-separated "
+                        + "list of four slash-separated codesidentifying one subsystem, for example "
                         + "\"FI/ORG/1234567-1/subsystem1\", detected bad value: " + oneSubsystemParam);
             }
             ClientId id = ClientId.create(codes.get(FIRST_COMPONENT), codes.get(SECOND_COMPONENT),
@@ -309,4 +350,5 @@ public final class MessageLogProperties {
 
         return toReturn;
     }
+
 }

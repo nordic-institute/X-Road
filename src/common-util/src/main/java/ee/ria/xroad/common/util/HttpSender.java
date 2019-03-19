@@ -26,6 +26,7 @@ package ee.ria.xroad.common.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -94,6 +95,23 @@ public class HttpSender extends AbstractHttpSender {
         HttpPost post = new HttpPost(address);
         post.setConfig(getRequestConfig());
         post.setEntity(createInputStreamEntity(content, contentLength, contentType));
+
+        doRequest(post);
+    }
+
+    /**
+     * REST support
+     * @param address
+     * @param entity
+     * @throws Exception
+     */
+    public void doPost(URI address, HttpEntity entity) throws Exception {
+        log.trace("doPost(address = {}, connectionTimeout = {}, socketTimeout = {})", address, connectionTimeout,
+                socketTimeout);
+
+        HttpPost post = new HttpPost(address);
+        post.setConfig(getRequestConfig());
+        post.setEntity(entity);
 
         doRequest(post);
     }

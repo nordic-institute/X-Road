@@ -12,6 +12,7 @@ Doc. ID: UC-OPMON
 |  | 0.5       | Initial version               |          |
 | 23.01.2017 | 0.6       | Added license text, table of contents and version history | Sami Kallio |
 | 05.03.2018 | 0.7       | Added terms and abbreviations reference and moved terms to term doc | Tatu Repo |
+| 18.02.2019 | 0.8       | Main success scenario updated: optional id for request/response pairs | Caro Hautamäki |
 
 ## Table of Contents
     
@@ -126,6 +127,7 @@ The relationships between the actors and use cases are described in Figure 1.
     * the size of the MIME-container of the response (sum of the SOAP response message and attachments data size in bytes);
     * the number of attachments of the response;
     * the indication of successful/unsuccessful request mediation (boolean; mandatory);
+    * the id to distinguish X-Road request/response pairs; (client and provider)
     * SOAP fault code;
     * SOAP fault reason.
 

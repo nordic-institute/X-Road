@@ -29,9 +29,12 @@ java_import Java::ee.ria.xroad.common.conf.serverconf.model.AccessRightType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.DescriptionType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServiceType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.DescriptionType
 java_import Java::ee.ria.xroad.common.identifier.SecurityCategoryId
 java_import Java::ee.ria.xroad.proxyui.InternalServerTestUtil
 java_import Java::ee.ria.xroad.proxyui.WSDLParser
+
 
 module Clients::Services
 
@@ -50,14 +53,23 @@ module Clients::Services
   end
 
   def servicedescription_add
+    if "OPENAPI3" == params[:service_type]
+      servicedescription_openapi3_add(params)
+    elsif "WSDL" == params[:service_type]
+      servicedescription_wsdl_add(params)
+    end
+  end
+
+  def servicedescription_wsdl_add(params)
     audit_log("Add service description", audit_log_data = {})
 
     authorize!(:add_wsdl)
 
     validate_params({
-      :client_id => [:required],
-      :wsdl_add_url => [:required]
-    })
+                      :client_id => [:required],
+                      :wsdl_add_url => [:required],
+                      :service_type => [:required]
+                  })
 
     client = get_client(params[:client_id])
 
@@ -82,6 +94,49 @@ module Clients::Services
     serverconf_save
 
     render_json(read_services(client))
+  end
+
+  def servicedescription_openapi3_add(params)
+      audit_log("Add service description", audit_log_data = {})
+
+      authorize!(:add_openapi3)
+      validate_params({
+                          :client_id => [:required],
+                          :openapi3_add_url => [:required],
+                          :openapi3_service_code => [:required],
+                          :service_type => [:required]
+                      })
+
+      client = get_client(params[:client_id])
+
+      servicedescription = ServiceDescriptionType.new
+      servicedescription.url = params[:openapi3_add_url]
+      servicedescription.disabled = true
+      servicedescription.disabledNotice = t('clients.default_disabled_service_notice')
+      servicedescription.refreshedDate = Date.new
+      servicedescription.client = client
+      servicedescription.type = DescriptionType::OPENAPI3
+
+      audit_log_data[:clientIdentifier] = client.identifier
+      audit_log_data[:wsdlUrl] = servicedescription.url
+      audit_log_data[:disabled] = servicedescription.disabled
+      audit_log_data[:refreshedDate] =
+          Time.at(servicedescription.refreshedDate.getTime / 1000).iso8601
+
+      service = ServiceType.new
+      service.serviceCode = params[:openapi3_service_code]
+      service.serviceVersion = nil
+      service.title = nil
+      service.url = params[:openapi3_add_url]
+      service.timeout = DEFAULT_SERVICE_TIMEOUT
+      service.serviceDescription = servicedescription
+      servicedescription.service.add(service)
+
+      client.serviceDescription.add(servicedescription)
+
+      serverconf_save
+
+      render_json(read_services(client))
   end
 
   def servicedescription_disable
@@ -126,17 +181,65 @@ module Clients::Services
   end
 
   def servicedescription_edit
-    audit_log("Edit service description", audit_log_data = {})
+      if "OPENAPI3" == params[:service_type]
+          servicedescription_openapi3_edit(params)
+      elsif "WSDL" == params[:service_type]
+          servicedescription_wsdl_edit(params)
+      end
+  end
+
+  def servicedescription_openapi3_edit(params)
+      audit_log("Edit openapi3 service description", audit_log_data = {})
+
+      authorize!(:refresh_openapi3)
+
+      validate_params({
+        :client_id => [:required],
+        :wsdl_id => [:required],
+        :openapi3_old_service_code => [:required],
+        :openapi3_new_url => [:required],
+        :openapi3_new_service_code => [:required],
+        :service_type => [:required]
+      })
+
+      client = get_client(params[:client_id])
+
+      audit_log_data[:clientIdentifier] = client.identifier
+
+      servicedescription = client.serviceDescription.detect { |servicedescription| DescriptionType::OPENAPI3 == servicedescription.type && servicedescription.url == params[:wsdl_id] }
+      client.serviceDescription.remove(servicedescription)
+
+      servicedescription.url = params[:openapi3_new_url]
+      servicedescription.service.first.url = params[:openapi3_new_url]
+      servicedescription.service.first.service_code = params[:openapi3_new_service_code]
+      client.serviceDescription.add(servicedescription)
+
+      acl = client.acl.detect { |item| params[:openapi3_old_service_code] == item.serviceCode }
+      if @acl
+        client.acl.remove(acl)
+        acl.serviceCode = params[:openapi3_new_service_code]
+        client.acl.add(acl)
+      end
+
+      serverconf_save
+
+      render_json(read_services(client))
+
+  end
+
+  def servicedescription_wsdl_edit(params)
+    audit_log("Edit wsdl service description", audit_log_data = {})
 
     authorize!(:refresh_wsdl)
 
     validate_params({
       :client_id => [:required],
       :wsdl_id => [:required],
-      :new_url => [:required]
+      :new_url => [:required],
+      :service_type => [:required]
     })
-
     client = get_client(params[:client_id])
+
     audit_log_data[:clientIdentifier] = client.identifier
 
     client.serviceDescription.each do |servicedescription|
@@ -358,6 +461,7 @@ module Clients::Services
 
     audit_log_data[:clientIdentifier] = client.identifier
     audit_log_data[:serviceCode] = params[:service_code]
+    audit_log_data[:serviceCode] = params[:service_code]
     audit_log_data[:subjectIds] = []
 
     now = Date.new
@@ -431,7 +535,7 @@ module Clients::Services
     services = []
 
     client.serviceDescription.each do |servicedescription|
-      name = t('clients.wsdl')
+      name = DescriptionType::WSDL == servicedescription.type ? t('clients.wsdl') : t('clients.openapi3')
       name += " " + t('clients.wsdl_disabled') if servicedescription.disabled
 
       services << {
@@ -446,7 +550,8 @@ module Clients::Services
         :sslauth => nil,
         :last_refreshed => format_time(servicedescription.refreshedDate),
         :disabled => servicedescription.disabled,
-        :disabled_notice => servicedescription.disabledNotice
+        :disabled_notice => servicedescription.disabledNotice,
+        :openapi3_service_code => DescriptionType::OPENAPI3 == servicedescription.type ? servicedescription.service.first.serviceCode : nil
       }
 
       servicedescription.service.each do |service|

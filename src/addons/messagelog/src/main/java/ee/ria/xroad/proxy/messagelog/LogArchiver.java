@@ -69,7 +69,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 public class LogArchiver extends UntypedActor {
 
     private static final int MAX_RECORDS_IN_ARCHIVE = 10;
-    private static final int MAX_RECORDS_IN_PATCHS = 360;
+    private static final int MAX_RECORDS_IN_BATCH = 360;
     private static final String PROPERTY_NAME_ARCHIVED = "archived";
 
     public static final String START_ARCHIVING = "doArchive";
@@ -194,7 +194,7 @@ public class LogArchiver extends UntypedActor {
         List<LogRecord> recordsToArchive = new ArrayList<>();
         safeTransactionBatch = false;
         int allowedInArchiveCount = MAX_RECORDS_IN_ARCHIVE;
-        for (TimestampRecord ts : getNonArchivedTimestampRecords(session, MAX_RECORDS_IN_PATCHS, maxTimestampId)) {
+        for (TimestampRecord ts : getNonArchivedTimestampRecords(session, MAX_RECORDS_IN_BATCH, maxTimestampId)) {
             List<MessageRecord> messages =
                     getNonArchivedMessageRecords(session, ts.getId(),
                             allowedInArchiveCount);

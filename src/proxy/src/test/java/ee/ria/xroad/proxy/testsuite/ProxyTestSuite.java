@@ -157,9 +157,9 @@ public final class ProxyTestSuite {
     }
 
     private static void setUp() throws Exception {
-        KeyConf.reload(new TestKeyConf());
-        ServerConf.reload(new TestServerConf());
-        GlobalConf.reload(new TestGlobalConf());
+        KeyConf.reload(new TestSuiteKeyConf());
+        ServerConf.reload(new TestSuiteServerConf());
+        GlobalConf.reload(new TestSuiteGlobalConf());
 
         System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
         System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
@@ -232,8 +232,6 @@ public final class ProxyTestSuite {
 
             log.info(s.getClass().getSimpleName() + " started");
         }
-
-        Thread.sleep(2000); // give time to start up
 
         try {
             runTestCases(tc);

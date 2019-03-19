@@ -268,6 +268,8 @@ public class ClientProxy implements StartStop {
         List<Handler> handlers = new ArrayList<>();
         String handlerClassNames = System.getProperty(CLIENTPROXY_HANDLERS);
 
+        handlers.add(new ClientRestMessageHandler(client));
+
         if (!StringUtils.isBlank(handlerClassNames)) {
             for (String handlerClassName : handlerClassNames.split(",")) {
                 try {
@@ -281,7 +283,6 @@ public class ClientProxy implements StartStop {
         }
 
         log.trace("Loading default client handler");
-
         handlers.add(new ClientMessageHandler(client)); // default handler
 
         return handlers;

@@ -33,8 +33,8 @@ import ee.ria.xroad.common.metadata.CentralServiceListType;
 import ee.ria.xroad.common.metadata.ClientListType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.proxy.conf.KeyConf;
-import ee.ria.xroad.proxy.testsuite.TestGlobalConf;
-import ee.ria.xroad.proxy.testsuite.TestKeyConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteKeyConf;
 import ee.ria.xroad.proxy.util.MetaserviceTestUtil;
 
 import org.junit.Before;
@@ -103,8 +103,8 @@ public class MetadataClientRequestProcessorTest {
     @Before
     public void init() throws IOException {
 
-        GlobalConf.reload(new TestGlobalConf());
-        KeyConf.reload(new TestKeyConf());
+        GlobalConf.reload(new TestSuiteGlobalConf());
+        KeyConf.reload(new TestSuiteKeyConf());
 
         mockRequest = mock(HttpServletRequest.class);
         mockResponse = mock(HttpServletResponse.class);
@@ -176,7 +176,7 @@ public class MetadataClientRequestProcessorTest {
                 createMember("anothermemeber", "somesub"),
                 createMember("thirdmember", null));
 
-        GlobalConf.reload(new TestGlobalConf() {
+        GlobalConf.reload(new TestSuiteGlobalConf() {
 
             @Override
             public List<MemberInfo> getMembers(String... instanceIdentifier) {
@@ -218,7 +218,7 @@ public class MetadataClientRequestProcessorTest {
                 create(EXPECTED_XR_INSTANCE, "someService"),
                 create(EXPECTED_XR_INSTANCE, "getRandom"));
 
-        GlobalConf.reload(new TestGlobalConf() {
+        GlobalConf.reload(new TestSuiteGlobalConf() {
 
             @Override
             public List<CentralServiceId> getCentralServices(String instanceIdentifier) {

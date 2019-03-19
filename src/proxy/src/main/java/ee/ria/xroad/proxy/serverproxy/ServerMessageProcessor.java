@@ -100,6 +100,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_SOAP_ACTION;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
@@ -116,6 +117,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private ServiceId requestServiceId;
     private SoapMessageImpl responseSoap;
     private SoapFault responseFault;
+    private String xRequestId;
 
     private ProxyMessageDecoder decoder;
     private ProxyMessageEncoder encoder;
@@ -141,6 +143,9 @@ class ServerMessageProcessor extends MessageProcessorBase {
     public void process() throws Exception {
         log.info("process({})", servletRequest.getContentType());
 
+        xRequestId = servletRequest.getHeader(HEADER_REQUEST_ID);
+
+        opMonitoringData.setXRequestId(xRequestId);
         updateOpMonitoringClientSecurityServerAddress();
         updateOpMonitoringServiceSecurityServerAddress();
 
@@ -411,14 +416,14 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private void logRequestMessage() throws Exception {
         log.trace("logRequestMessage()");
 
-        MessageLog.log(requestMessage.getSoap(), requestMessage.getSignature(), false);
+        MessageLog.log(requestMessage.getSoap(), requestMessage.getSignature(), false, xRequestId);
     }
 
     private void logResponseMessage() throws Exception {
         if (responseSoap != null && encoder != null) {
             log.trace("logResponseMessage()");
 
-            MessageLog.log(responseSoap, encoder.getSignature(), false);
+            MessageLog.log(responseSoap, encoder.getSignature(), false, xRequestId);
         }
     }
 

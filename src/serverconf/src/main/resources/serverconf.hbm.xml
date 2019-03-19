@@ -144,9 +144,7 @@
         <id name="id" type="long" access="field">
             <generator class="native"/>
         </id>
-
-        <property name="data" access="field"
-            type="org.hibernate.type.MaterializedBlobType"/>
+        <property name="data" access="field"/>
     </class>
 
     <class name="AccessRightType" table="ACCESSRIGHT">

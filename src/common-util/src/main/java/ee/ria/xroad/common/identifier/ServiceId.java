@@ -111,7 +111,7 @@ public class ServiceId extends XRoadId {
     }
 
     @Override
-    protected String[] getFieldsForStringFormat() {
+    public String[] getFieldsForStringFormat() {
         return new String[] {
                 memberClass, memberCode, subsystemCode, serviceCode,
                 serviceVersion };

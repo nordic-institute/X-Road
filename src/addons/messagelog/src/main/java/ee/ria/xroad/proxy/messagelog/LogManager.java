@@ -32,13 +32,14 @@ import ee.ria.xroad.common.DiagnosticsUtils;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
-import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
+import ee.ria.xroad.common.messagelog.LogMessage;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
+import ee.ria.xroad.common.messagelog.RestLogMessage;
+import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
-import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.MessageSendingJob;
 
@@ -50,6 +51,7 @@ import akka.actor.UntypedActor;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.input.BoundedInputStream;
 import org.joda.time.DateTime;
 import org.quartz.JobDataMap;
 import org.quartz.SchedulerException;
@@ -62,6 +64,7 @@ import java.time.LocalTime;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import static ee.ria.xroad.common.ErrorCodes.X_LOGGING_FAILED_X;
 import static ee.ria.xroad.common.ErrorCodes.X_MLOG_TIMESTAMPER_FAILED;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getAcceptableTimestampFailurePeriodSeconds;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveInterval;
@@ -90,6 +93,9 @@ public class LogManager extends AbstractLogManager {
     static final String ARCHIVER_NAME = "RequestLogArchiver";
     static final String CLEANER_NAME = "RequestLogCleaner";
 
+    static final long MAX_LOGGABLE_BODY_SIZE = MessageLogProperties.getMaxLoggableBodySize();
+    static final boolean TRUNCATED_BODY_ALLOWED = MessageLogProperties.isTruncatedBodyAllowed();
+
     // Date at which a time-stamping first failed.
     private DateTime timestampFailed;
 
@@ -104,9 +110,9 @@ public class LogManager extends AbstractLogManager {
         super(jobManager);
 
         taskQueueRef = createTaskQueue();
-        timestamper  = createTimestamper();
-        logArchiver  = createArchiver(jobManager);
-        logCleaner   = createCleaner(jobManager);
+        timestamper = createTimestamper();
+        logArchiver = createArchiver(jobManager);
+        logCleaner = createCleaner(jobManager);
     }
 
     private ActorRef createTaskQueue() {
@@ -143,12 +149,18 @@ public class LogManager extends AbstractLogManager {
     // ------------------------------------------------------------------------
 
     @Override
-    protected void log(SoapMessageImpl message, SignatureData signature, boolean clientSide) throws Exception {
+    protected void log(LogMessage message) throws Exception {
         boolean shouldTimestampImmediately = shouldTimestampImmediately();
 
         verifyCanLogMessage(shouldTimestampImmediately);
 
-        MessageRecord logRecord = saveMessageRecord(message, signature, clientSide);
+        MessageRecord logRecord;
+        if (message instanceof SoapLogMessage) {
+            logRecord = createMessageRecord((SoapLogMessage) message);
+        } else {
+            logRecord = createMessageRecord((RestLogMessage) message);
+        }
+        logRecord = saveMessageRecord(logRecord);
 
         if (shouldTimestampImmediately) {
             timestampImmediately(logRecord);
@@ -240,38 +252,64 @@ public class LogManager extends AbstractLogManager {
         }
     }
 
-    private MessageRecord saveMessageRecord(SoapMessageImpl message, SignatureData signature, boolean clientSide)
-            throws Exception {
-        log.trace("saveMessageRecord()");
-
-        return saveMessageRecord(createMessageRecord(message, signature, clientSide));
-    }
-
-    private static MessageRecord createMessageRecord(SoapMessageImpl message, SignatureData signature,
-                                                     boolean clientSide) throws Exception {
+    private static MessageRecord createMessageRecord(SoapLogMessage message) throws Exception {
         log.trace("createMessageRecord()");
 
-        String loggedMessage = new SoapMessageBodyManipulator().getLoggableMessageText(message, clientSide);
+        String loggedMessage = new MessageBodyManipulator().getLoggableMessageText(message);
 
-        MessageRecord messageRecord = new MessageRecord(message.getQueryId(), loggedMessage,
-                signature.getSignatureXml(), message.isResponse(),
-                clientSide ? message.getClient() : message.getService().getClientId());
+        MessageRecord messageRecord = new MessageRecord(
+                message.getQueryId(),
+                loggedMessage,
+                message.getSignature().getSignatureXml(),
+                message.isResponse(),
+                message.isClientSide() ? message.getClient() : message.getService().getClientId(),
+                message.getXRequestId());
 
         messageRecord.setTime(new Date().getTime());
 
-        if (signature.isBatchSignature()) {
-            messageRecord.setHashChainResult(signature.getHashChainResult());
-            messageRecord.setHashChain(signature.getHashChain());
+        if (message.getSignature().isBatchSignature()) {
+            messageRecord.setHashChainResult(message.getSignature().getHashChainResult());
+            messageRecord.setHashChain(message.getSignature().getHashChain());
         }
 
-        messageRecord.setSignatureHash(signatureHash(signature.getSignatureXml()));
+        messageRecord.setSignatureHash(signatureHash(message.getSignature().getSignatureXml()));
+        return messageRecord;
+    }
 
+    private static MessageRecord createMessageRecord(RestLogMessage message) throws Exception {
+        log.trace("createMessageRecord()");
+
+        final MessageBodyManipulator manipulator = new MessageBodyManipulator();
+        MessageRecord messageRecord = new MessageRecord(
+                message.getQueryId(),
+                manipulator.getLoggableMessageText(message),
+                message.getSignature().getSignatureXml(),
+                message.isResponse(),
+                message.isClientSide() ? message.getClient() : message.getService().getClientId(),
+                message.getXRequestId());
+
+        messageRecord.setTime(new Date().getTime());
+
+        if (message.getBody() != null && MAX_LOGGABLE_BODY_SIZE > 0 && manipulator.isBodyLogged(message)) {
+            if (message.getBody().size() > MAX_LOGGABLE_BODY_SIZE && !TRUNCATED_BODY_ALLOWED) {
+                throw new CodedException(X_LOGGING_FAILED_X, "Message size exceeds maximum loggable size");
+            }
+            final BoundedInputStream body = new BoundedInputStream(message.getBody(), MAX_LOGGABLE_BODY_SIZE);
+            body.setPropagateClose(false);
+            messageRecord.setAttachmentStream(body, Math.min(message.getBody().size(), MAX_LOGGABLE_BODY_SIZE));
+        }
+
+        if (message.getSignature().isBatchSignature()) {
+            messageRecord.setHashChainResult(message.getSignature().getHashChainResult());
+            messageRecord.setHashChain(message.getSignature().getHashChain());
+        }
+
+        messageRecord.setSignatureHash(signatureHash(message.getSignature().getSignatureXml()));
         return messageRecord;
     }
 
     protected MessageRecord saveMessageRecord(MessageRecord messageRecord) throws Exception {
         LogRecordManager.saveMessageRecord(messageRecord);
-
         return messageRecord;
     }
 

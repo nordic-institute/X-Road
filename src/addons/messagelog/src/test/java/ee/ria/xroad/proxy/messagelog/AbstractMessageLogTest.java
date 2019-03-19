@@ -28,6 +28,7 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
+import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.JobManager;
@@ -153,7 +154,12 @@ abstract class AbstractMessageLogTest {
     }
 
     protected void log(SoapMessageImpl message, SignatureData signature) throws Exception {
-        logManager.log(message, signature, true);
+        logManager.log(new SoapLogMessage(message, signature, true));
+    }
+
+    protected void log(SoapMessageImpl message, SignatureData signature, String xRequestId)
+            throws Exception {
+        logManager.log(new SoapLogMessage(message, signature, true, xRequestId));
     }
 
     TimestampRecord timestamp(MessageRecord record) throws Exception {

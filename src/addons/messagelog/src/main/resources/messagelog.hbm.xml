@@ -33,6 +33,8 @@
 
             <property name="timestampHashChain" access="field" type="text"/>
             <property name="response" access="field" type="boolean"/>
+            <property name="attachment" access="field" lazy="true" type="blob"/>
+            <property name="xRequestId" access="field" type="string"/>
         </subclass>
 
         <subclass name="ee.ria.xroad.common.messagelog.TimestampRecord" discriminator-value="t">
