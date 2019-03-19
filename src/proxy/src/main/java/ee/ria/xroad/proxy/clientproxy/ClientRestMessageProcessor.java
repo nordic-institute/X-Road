@@ -55,6 +55,7 @@ import org.apache.http.message.BasicHeader;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.util.io.TeeInputStream;
+import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 
 import javax.servlet.http.HttpServletRequest;
@@ -66,10 +67,10 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_RESPONSE;
 import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
@@ -377,17 +378,11 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     }
 
     private List<Header> headers(HttpServletRequest req) {
-        final ArrayList<Header> tmp = new ArrayList<>();
-        final Enumeration<String> names = req.getHeaderNames();
-        while (names.hasMoreElements()) {
-            final String header = names.nextElement();
-            final Enumeration<String> headers = req.getHeaders(header);
-            while (headers.hasMoreElements()) {
-                final String value = headers.nextElement();
-                tmp.add(new BasicHeader(header, value));
-            }
-        }
-        return tmp;
+        //Use jetty request to keep the original order
+        Request jrq = (Request)req;
+        return jrq.getHttpFields().stream()
+                .map(f -> new BasicHeader(f.getName(), f.getValue()))
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
 }
