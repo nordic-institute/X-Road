@@ -22,14 +22,14 @@ export const userGetters: GetterTree<UserState, RootState> = {
     return state.authenticated;
   },
   allowedTabs(state) {
-    const ret = _.filter(mainTabs, (o: any) => {
-
-      if (!o || !o.permission) {
+    // Returns all the tabs that the user has permission for
+    const ret = _.filter(mainTabs, (tab: any) => {
+      if (!tab || !tab.permission) {
         // Tab does not have set permission (permission is not needed)
         return true;
       }
 
-      if (state.permissions.includes(o.permission)) {
+      if (state.permissions.includes(tab.permission)) {
         return true;
       }
       return false;
