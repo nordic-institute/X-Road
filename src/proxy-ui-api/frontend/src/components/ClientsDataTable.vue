@@ -34,6 +34,7 @@
         <tr @click="props.expanded = !props.expanded">
           <!-- Name -->
           <td class="td-name px-2">
+            <!-- Name - Owner member -->
             <template v-if="props.item.type == 'owner'">
               <v-icon color="grey darken-2" class="pl-1" small>fas fa-folder-open</v-icon>
               <span
@@ -41,15 +42,12 @@
                 @click="openClient(props.item)"
               >{{props.item.name}} (Owner)</span>
             </template>
-
+            <!-- Name - member -->
             <template v-else-if="props.item.type == 'client'">
               <v-icon color="grey darken-2" class="pl-1" small>far fa-folder-open</v-icon>
-              <span
-                class="font-weight-bold name"
-                @click="openClient(props.item)"
-              >{{props.item.name}}</span>
+              <span class="font-weight-bold name-member">{{props.item.name}}</span>
             </template>
-
+            <!-- Name - Subsystem -->
             <template v-else>
               <v-icon
                 color="grey darken-2"
@@ -306,10 +304,17 @@ export default Vue.extend({
 .name {
   text-decoration: underline;
   margin-left: 14px;
-  font-smargin-top: auto;
+  margin-top: auto;
   margin-bottom: auto;
   text-align: center;
   cursor: pointer;
+}
+
+.name-member {
+  margin-left: 14px;
+  margin-top: auto;
+  margin-bottom: auto;
+  text-align: center;
 }
 
 .status-wrapper {
