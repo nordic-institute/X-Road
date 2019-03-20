@@ -15,7 +15,7 @@ export default Vue.extend({
   data: () => ({}),
 
   methods: {
-    fetchCities() {
+    fetchClients() {
       this.$store.dispatch('fetchClients').then(
         (response) => {
           this.$bus.$emit('show-success', 'Great success!');
@@ -27,7 +27,7 @@ export default Vue.extend({
     },
   },
   created() {
-    this.fetchCities();
+    this.fetchClients();
   },
 });
 </script>
