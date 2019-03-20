@@ -12,37 +12,7 @@
     <v-tabs-items v-model="tab">
       <v-tab-item key="details">
         <v-card flat>
-          <table class="detail-table">
-            <tr>
-              <td>Member Name</td>
-              <td>{{member.name}}</td>
-            </tr>
-            <tr>
-              <td>Member Class</td>
-              <td>{{member.class}}</td>
-            </tr>
-            <tr>
-              <td>Member Code</td>
-              <td>{{member.code}}</td>
-            </tr>
-          </table>
-        </v-card>
-
-        <v-card flat>
-          <table class="certificate-table">
-            <tr>
-              <th>Certificate</th>
-              <th>Serial Number</th>
-              <th>State</th>
-              <th>Expires</th>
-            </tr>
-            <tr>
-              <td>{{certificate.name}}</td>
-              <td>{{certificate.serialNumber}}</td>
-              <td>{{certificate.state}}</td>
-              <td>{{certificate.expires}}</td>
-            </tr>
-          </table>
+          <clientDetails/>
         </v-card>
       </v-tab-item>
       <v-tab-item key="internalServers">
@@ -56,22 +26,15 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import ClientDetails from '@/components/ClientDetails.vue';
 
 export default Vue.extend({
+  components: {
+    ClientDetails,
+  },
   data() {
     return {
       tab: null,
-      member: {
-        name: 'NIIS',
-        class: 'Org',
-        code: '1111',
-      },
-      certificate: {
-        name: 'XRoad Test CA CN',
-        serialNumber: '4',
-        state: 'in use',
-        expires: '2033-06-02',
-      },
     };
   },
 });

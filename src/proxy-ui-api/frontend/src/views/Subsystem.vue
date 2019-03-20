@@ -14,43 +14,7 @@
 
     <v-tabs-items v-model="tab">
       <v-tab-item key="details">
-        <v-card flat>
-          <table class="detail-table">
-            <tr>
-              <td>Member Name</td>
-              <td>{{subsystem.name}}</td>
-            </tr>
-            <tr>
-              <td>Member Class</td>
-              <td>{{subsystem.class}}</td>
-            </tr>
-            <tr>
-              <td>Member Code</td>
-              <td>{{subsystem.memberCode}}</td>
-            </tr>
-            <tr>
-              <td>Subsystem Code</td>
-              <td>{{subsystem.subsystemCode}}</td>
-            </tr>
-          </table>
-        </v-card>
-
-        <v-card flat>
-          <table class="certificate-table">
-            <tr>
-              <th>Certificate</th>
-              <th>Serial Number</th>
-              <th>State</th>
-              <th>Expires</th>
-            </tr>
-            <tr>
-              <td>{{certificate.name}}</td>
-              <td>{{certificate.serialNumber}}</td>
-              <td>{{certificate.state}}</td>
-              <td>{{certificate.expires}}</td>
-            </tr>
-          </table>
-        </v-card>
+        <clientDetails/>
       </v-tab-item>
       <v-tab-item key="serviceClients">
         <v-card flat>
@@ -80,39 +44,24 @@
   </div>
 </template>
 
+
+
 <script lang="ts">
 import Vue from 'vue';
 
+import { mapGetters } from 'vuex';
+import ClientDetails from '@/components/ClientDetails.vue';
+
 export default Vue.extend({
+  components: {
+    ClientDetails,
+  },
   data() {
     return {
       tab: null,
-      subsystem: {
-        name: 'NIIS',
-        class: 'Org',
-        memberCode: '1111',
-        subsystemCode: 'Library',
-      },
-      certificate: {
-        name: 'XRoad Test CA CN',
-        serialNumber: '4',
-        state: 'in use',
-        expires: '2033-06-02',
-      },
     };
   },
 });
 </script>
 
-<style lang="scss" >
-@import '../assets/tables';
-
-.xr-tabs {
-  border-bottom: #9b9b9b solid 1px;
-}
-
-.content {
-  width: 100%;
-}
-</style>
 
