@@ -78,9 +78,25 @@ task runProxyMain(type: JavaExec) {
 
 apply plugin: "jacoco"
 
+test {
+    useJUnit {
+        excludeCategories 'ee.ria.xroad.proxy.testutil.IntegrationTest'
+    }
+}
+
+task integrationTest(type: Test) {
+    description = 'Runs integration tests.'
+    group = 'verification'
+    shouldRunAfter test
+
+    useJUnit {
+        includeCategories 'ee.ria.xroad.proxy.testutil.IntegrationTest'
+    }
+}
+
 task runProxyTest(type: JavaExec) {
     group = "verification"
-    shouldRunAfter test
+    shouldRunAfter integrationTest
 
     jvmArgs '-Xmx2g',
         '-Dxroad.proxy.ocspCachePath=build/ocsp-cache',
@@ -108,7 +124,7 @@ runProxyTest.jacoco.append=false
 task mergedJacoco(dependsOn: 'runProxyTest', type: JacocoMerge) {
     // merge jacoco results from normal tests and runProxyTest
     destinationFile = file("$buildDir/jacoco/test.exec")
-    executionData test, runProxyTest
+    executionData test, integrationTest, runProxyTest
 }
 
 runProxyTest.doLast {
@@ -125,22 +141,6 @@ task runBatchSigner(type: JavaExec) {
 
     main = 'ee.ria.xroad.common.signature.BatchSigner'
     classpath = sourceSets.test.runtimeClasspath
-}
-
-test {
-    useJUnit {
-        excludeCategories 'ee.ria.xroad.proxy.testutil.IntegrationTest'
-    }
-}
-
-task integrationTest(type: Test) {
-    description = 'Runs integration tests.'
-    group = 'verification'
-    shouldRunAfter test
-
-    useJUnit {
-        includeCategories 'ee.ria.xroad.proxy.testutil.IntegrationTest'
-    }
 }
 
 check.dependsOn integrationTest
