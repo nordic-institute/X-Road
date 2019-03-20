@@ -320,8 +320,8 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                     int count = in.read(buf);
                     if (count >= 0) {
                         final CachingStream cache = new CachingStream();
-                        cache.write(buf, 0, count);
                         try (TeeInputStream tee = new TeeInputStream(in, cache)) {
+                            cache.write(buf, 0, count);
                             enc.restBody(buf, count, tee);
                             enc.sign(KeyConf.getSigningCtx(senderId));
                             MessageLog.log(restRequest, enc.getSignature(), cache.getCachedContents(), true,
