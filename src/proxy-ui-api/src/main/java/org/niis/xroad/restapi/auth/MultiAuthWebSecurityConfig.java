@@ -325,7 +325,8 @@ public class MultiAuthWebSecurityConfig {
                             "/index.html",
                             "/img/**",
                             "/css/**",
-                            "/js/**")
+                            "/js/**",
+                            "/fonts/**")
                     .and()
                 .authorizeRequests()
                     .anyRequest()
