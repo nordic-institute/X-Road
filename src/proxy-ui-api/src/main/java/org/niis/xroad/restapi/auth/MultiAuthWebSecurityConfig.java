@@ -108,12 +108,6 @@ public class MultiAuthWebSecurityConfig {
                     .antMatchers("/error").permitAll()
                     .antMatchers("/login").permitAll()
                     .antMatchers("/logout").fullyAuthenticated()
-//CHECKSTYLE.OFF: TodoComment - need this todo and still want builds to succeed
-                    // TODO: must change in actual implementation
-//CHECKSTYLE.ON: TodoComment
-                    // actuator endpoints are open to public, and
-                    // even allow shutdown - so do not use this for production
-                    .antMatchers("/actuator/**").permitAll()
                     .antMatchers("/api/**").denyAll()
                     .anyRequest().denyAll()
                     .and()

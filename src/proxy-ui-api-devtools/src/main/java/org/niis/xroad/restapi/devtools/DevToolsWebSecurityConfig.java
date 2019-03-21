@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.auth;
+package org.niis.xroad.restapi.devtools;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -33,6 +33,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 
 /**
  * Configuration that allows devtools remote hot deploy in development
+ * and actuator endpoint
+ * TO DO : move to a separate module
+ * TO DO: check if correct profile is enough??
  */
 @Configuration
 @Profile("development")
@@ -43,9 +46,12 @@ public class DevToolsWebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-            .antMatcher("/.~~spring-boot!~/**")
+            .requestMatchers()
+                .antMatchers("/actuator/**",
+                        "/.~~spring-boot!~/**")
+                .and()
             .authorizeRequests()
-                .antMatchers("/.~~spring-boot!~/**")
+                .anyRequest()
                 .permitAll()
                 .and()
             .sessionManagement()
