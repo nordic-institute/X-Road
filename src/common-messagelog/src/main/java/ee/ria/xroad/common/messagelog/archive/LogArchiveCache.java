@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Supplier;
+import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -109,6 +110,7 @@ class LogArchiveCache implements Closeable {
         tempArchive = File.createTempFile(
                 "xroad-log-archive-zip", ".tmp", workingDir.toFile());
         try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(tempArchive))) {
+            out.setLevel(Deflater.NO_COMPRESSION); //Asic containers are already compressed
             addAsicContainersToArchive(out);
             addLinkingInfoToArchive(out);
         } catch (Exception e) {
