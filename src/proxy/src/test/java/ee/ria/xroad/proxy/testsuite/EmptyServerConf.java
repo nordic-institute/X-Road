@@ -28,6 +28,7 @@ import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -106,6 +107,11 @@ public class EmptyServerConf implements ServerConfProvider {
     @Override
     public List<String> getTspUrl() {
         return emptyList();
+    }
+
+    @Override
+    public DescriptionType getDescriptionType(ServiceId service) {
+        return null;
     }
 
     @Override

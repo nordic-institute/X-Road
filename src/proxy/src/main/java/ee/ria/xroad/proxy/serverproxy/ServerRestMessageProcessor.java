@@ -31,6 +31,7 @@ import ee.ria.xroad.common.cert.CertHelper;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestRequest;
@@ -85,6 +86,7 @@ import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SERVICE_TYPE;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_DISABLED;
@@ -275,6 +277,12 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
         if (!ServerConf.serviceExists(requestServiceId)) {
             throw new CodedException(X_UNKNOWN_SERVICE, "Unknown service: %s", requestServiceId);
+        }
+
+        DescriptionType descriptionType = ServerConf.getDescriptionType(requestServiceId);
+        if (descriptionType != null && descriptionType != DescriptionType.OPENAPI3) {
+            throw new CodedException(X_INVALID_SERVICE_TYPE,
+                    "Service is a SOAP service and cannot be called using REST interface");
         }
 
         if (!ServerConf.isQueryAllowed(requestMessage.getRest().getClientId(), requestServiceId)) {
