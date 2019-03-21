@@ -302,11 +302,10 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         log.trace("processRequest({})", requestServiceId);
         String address = ServerConf.getServiceAddress(requestServiceId);
         if (address == null || address.isEmpty()) {
-            throw new CodedException(X_SERVICE_MISSING_URL, "Service address not specified for '%s'",
-                    requestServiceId);
+            throw new CodedException(X_SERVICE_MISSING_URL, "Service address not specified for '%s'", requestServiceId);
         }
 
-        address += requestMessage.getRest().getServicePath();
+        address = concatPath(address, requestMessage.getRest().getServicePath());
         final String query = requestMessage.getRest().getQuery();
         if (query != null) {
             address += "?" + query;
@@ -395,6 +394,14 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
 
         opMonitoringData.setResponseRestSize(restResponse.getMessageBytes().length + encoder.getAttachmentsByteCount());
+    }
+
+    private String concatPath(String address, String path) {
+        if (path == null || path.isEmpty()) return address;
+        if (address.endsWith("/") && path.startsWith("/")) {
+            return address.concat(path.substring(1));
+        }
+        return address.concat(path);
     }
 
     private void logRequestMessage() {
