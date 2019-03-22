@@ -198,6 +198,10 @@ public class MultiAuthWebSecurityConfig {
                     .and()
                 .anonymous()
                     .disable()
+                .headers()
+                    .contentSecurityPolicy("default-src 'none'")
+                    .and()
+                    .and()
                 .csrf()
                     .disable();
 
@@ -258,6 +262,10 @@ public class MultiAuthWebSecurityConfig {
                     .and()
                 .anonymous()
                     .disable()
+                .headers()
+                    .contentSecurityPolicy("default-src 'none'")
+                    .and()
+                    .and()
                 .formLogin()
                     .disable();
         }
@@ -328,8 +336,8 @@ public class MultiAuthWebSecurityConfig {
                     .and()
                 .sessionManagement()
                     .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                    .csrf()
+                    .and()
+                .csrf()
                     .disable();
         }
     }
