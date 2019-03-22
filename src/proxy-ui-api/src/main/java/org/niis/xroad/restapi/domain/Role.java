@@ -46,18 +46,18 @@ public enum Role {
     XROAD_SECURITYSERVER_OBSERVER(5, "xroad-securityserver-observer");
 
     /**
-     * Some unfortunate extra boilerplate, since role names in @RolesAllowed
+     * Some unfortunate extra boilerplate, since role names in e.g. @RolesAllowed
      * annotations need to be constants. Keep this in sync with the actual
      * enum values.
      * Alternative is to use approach like https://stackoverflow.com/a/54289956/1469083
      * and non-standard annotations
      */
     public final class Names {
-        public static final String XROAD_SECURITY_OFFICER = "ROLE_XROAD_SECURITY_OFFICER";
-        public static final String XROAD_REGISTRATION_OFFICER = "ROLE_XROAD_REGISTRATION_OFFICER";
-        public static final String XROAD_SERVICE_ADMINISTRATOR = "ROLE_XROAD_SERVICE_ADMINISTRATOR";
-        public static final String XROAD_SYSTEM_ADMINISTRATOR = "ROLE_XROAD_SYSTEM_ADMINISTRATOR";
-        public static final String XROAD_SECURITYSERVER_OBSERVER = "ROLE_XROAD_SECURITYSERVER_OBSERVER";
+        public static final String XROAD_SECURITY_OFFICER = "XROAD_SECURITY_OFFICER";
+        public static final String XROAD_REGISTRATION_OFFICER = "XROAD_REGISTRATION_OFFICER";
+        public static final String XROAD_SERVICE_ADMINISTRATOR = "XROAD_SERVICE_ADMINISTRATOR";
+        public static final String XROAD_SYSTEM_ADMINISTRATOR = "XROAD_SYSTEM_ADMINISTRATOR";
+        public static final String XROAD_SECURITYSERVER_OBSERVER = "XROAD_SECURITYSERVER_OBSERVER";
         private Names() {
         }
     }
