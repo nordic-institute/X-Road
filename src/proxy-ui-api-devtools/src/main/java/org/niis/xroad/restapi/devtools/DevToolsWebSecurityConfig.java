@@ -34,8 +34,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 /**
  * Configuration that allows devtools remote hot deploy in development
  * and actuator endpoint
- * TO DO : move to a separate module
- * TO DO: check if correct profile is enough??
  */
 @Configuration
 @Profile("development")
