@@ -141,6 +141,24 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
         stream.close();
     }
 
+    @Test
+    public void shouldNotFollow302Redirects() {
+        final String location = "/r0/EE/BUSINESS/producer/sub/notexists";
+        service.setHandler((target, request, response) -> {
+            response.setStatus(302);
+            response.setHeader("Location", location);
+        });
+        given()
+                .baseUri("http://127.0.0.1")
+                .port(proxyClientPort)
+                .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
+                .redirects().follow(false)
+                .get("/r0/EE/BUSINESS/producer/sub/service")
+                .then()
+                .statusCode(302)
+                .header("Location", location);
+    }
+
     private static final TestService.Handler LARGE_OBJECT_HANDLER = (target, request, response) -> {
         response.setStatus(200);
         response.setContentType("application/octet-stream");
@@ -157,5 +175,4 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
         output.write(buf, 0, i);
         output.close();
     };
-
 }

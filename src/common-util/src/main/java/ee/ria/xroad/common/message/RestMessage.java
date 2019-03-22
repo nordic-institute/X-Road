@@ -213,7 +213,6 @@ public abstract class RestMessage {
         tmp.add("trailer");
         tmp.add("upgrade");
         tmp.add("connection");
-        tmp.add("pragma");
         tmp.add("user-agent");
         tmp.add("host");
         tmp.add("content-length");
