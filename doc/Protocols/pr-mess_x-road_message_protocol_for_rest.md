@@ -54,7 +54,6 @@ Doc. ID: PR-REST
   * [6.5 DELETE Request and Response](#65-delete-request-and-response)
   * [6.6 POST Request with Attachments and Response](#66-post-request-with-attachments-and-response)
 - [Appendix 1 Example Service Definition](#appendix-1-example-service-definition)
-- [Appendix 2 Document Change History](#appendix-2-document-change-history)
 
 ## 1 Introduction
 ### 1.1 Overview
