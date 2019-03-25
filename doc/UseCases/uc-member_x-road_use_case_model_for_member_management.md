@@ -2721,7 +2721,7 @@ Figure 1. Use case diagram for member management
 
 2.  System displays the list structure of clients Member (Owner), Members and related Subsystems. The following information is displayed for each client in the view.
 
-    -   The name of the client. A clear structured list defines with the help of icons the hierarchy of the clients. The Name of the client opens a view of the details of the desired client: [2.4.2](#242-uc-member_45-view-the-details-of-a-security-server-client);
+    -   The name of the client. A clear structured list defines with the help of icons the hierarchy of the clients. The Name of the client opens a view of the details of the desired client. Note: administrators can not view details of the mebers not owned by the Security Server.
     
     -   The X-Road identifier of the Member (Owner) and all Subsystems ("Member or Subsystem":"Instance":"Member Class":"Server code":"Client name")
     
@@ -2746,7 +2746,7 @@ Figure 1. Use case diagram for member management
 -   The security server client state machine model is described in the document “Security Server User Guide” \[[UG-SS](#Ref_UG-SS)\].
 
 
-#### 2.4.2 UC MEMBER\_45: View the Details of a Security Server Client
+#### 2.4.2 UC MEMBER\_45: View the Details of the Member Owner
 
 **System**: Security server
 
@@ -2756,17 +2756,60 @@ Figure 1. Use case diagram for member management
 
 **Actor**: SS administrator
 
-**Brief Description**: SS administrator views the details of a security server client.
+**Brief Description**: SS administrator views the details of the Member Owner.
 
 **Preconditions**: -
 
-**Postconditions**: The details of a security server client have been displayed to SS administrator.
+**Postconditions**: The details of the Member Owner have been displayed to SS administrator.
 
 **Trigger**: -
 
 **Main Success Scenario**:
 
-1.  SS administrator selects to view the details of a security server client.
+1.  SS administrator selects to view the details of the Member Owner.
+
+2.  System displays the following information.
+
+    -   The name of the Member Owner.
+
+    -   The member class, member code.
+
+    -   The list of signature certificates saved in the system configuration for the security server client. The following information is displayed for each certificate:
+
+        -   the name of the CA that issued the certificate;
+
+        -   the serial number of the certificate;
+
+        -   the status of the certificate (either *in use* or *disabled*);
+
+        -   the expiry date of the certificate.
+
+**Extensions**: -
+
+**Related information**: -
+
+
+#### 2.4.25 UC MEMBER\_45: View the Details of a security Server client
+
+**System**: Security server
+
+**Level**: User task
+
+**Component:** Security server
+
+**Actor**: SS administrator
+
+**Brief Description**: SS administrator views the details of a Security Server client.
+
+**Preconditions**: -
+
+**Postconditions**: The details of the Member Owner have been displayed to SS administrator.
+
+**Trigger**: -
+
+**Main Success Scenario**:
+
+1.  SS administrator selects to view the details the Member Owner.
 
 2.  System displays the following information.
 
@@ -2797,7 +2840,50 @@ Figure 1. Use case diagram for member management
 **Related information**: -
 
 
-#### 2.4.3 UC MEMBER\_46: View the Internal Server Settings of a Security Server Client
+#### 2.4.3 UC MEMBER\_46: View the Internal Server Settings of the Member Owner
+
+**System**: Security server
+
+**Level**: User task
+
+**Component:** Security server
+
+**Actor**: SS administrator
+
+**Brief Description**: SS administrator view the settings for the internal servers of the Member Owner.
+
+**Preconditions**: -
+
+**Postconditions**: The settings for the internal servers of the Member Owner have been displayed to SS administrator.
+
+**Trigger**: -
+
+**Main Success Scenario**:
+
+1.  SS administrator selects to view the settings for the internal servers of the Member Owner.
+
+2.  System displays the following information:
+
+    -   the connection type for the Member Owner's internal servers that act as service clients (for security server owner the connection type is set to HTTPS by default);
+
+    -   the list of internal TLS certificates saved for the Member Owner. The SHA-1 hash value of the certificate is displayed for each certificate.
+
+    The following user action options are displayed:
+
+    -   change the connection type for the security server owner or security server client's internal servers that act as service clients: [2.4.6](#246-uc-member_49-change-a-security-server-clients-internal-server-connection-type);
+
+    -   view the details of an internal TLS certificate: [2.5.2](#252-uc-member_55-view-certificate-details);
+
+    -   add an internal TLS certificate: [2.4.7](#247-uc-member_50-add-a-security-server-clients-internal-tls-certificate);
+
+    -   delete an internal TLS certificate: [2.4.8](#248-uc-member_51-delete-a-security-server-clients-internal-tls-certificate);
+
+**Extensions**: -
+
+**Related information**: -
+
+
+#### 2.4.35 UC MEMBER\_46: View the Internal Server Settings of a Security Server Client
 
 **System**: Security server
 
@@ -2994,7 +3080,7 @@ Figure 1. Use case diagram for member management
 
 **Actor**: SS administrator
 
-**Brief Description**: SS administrator changes the connection type for a security server owner or a security server client's internal servers that act as service clients.
+**Brief Description**: SS administrator changes the connection type for a security server Member Owner or a security server client's internal servers that act as service clients.
 
 **Preconditions**: -
 
@@ -3033,7 +3119,7 @@ Figure 1. Use case diagram for member management
 
 **Actor**: SS administrator
 
-**Brief Description**: SS administrator uploads an internal TLS certificate for a security server owner or a security server client.
+**Brief Description**: SS administrator uploads an internal TLS certificate for a security server Member Owner or a security server client.
 
 **Preconditions**: -
 
@@ -3043,7 +3129,7 @@ Figure 1. Use case diagram for member management
 
 **Main Success Scenario**:
 
-1.  SS administrator selects to add an internal TLS certificate for a security server owner or a security server client.
+1.  SS administrator selects to add an internal TLS certificate for a security server Member Owner or a security server client.
 
 2.  SS administrator selects and uploads a certificate file from the local file system.
 
@@ -3092,7 +3178,7 @@ Figure 1. Use case diagram for member management
 
 **Actor**: SS administrator
 
-**Brief Description**: SS administrator deletes a security server owner or a security server client's internal TLS certificate.
+**Brief Description**: SS administrator deletes a security server Member Owner or a security server client's internal TLS certificate.
 
 **Preconditions**: -
 
