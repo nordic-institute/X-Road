@@ -64,8 +64,17 @@ public class ApiKeyRepositoryIntegrationTest {
                 Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"))
                 .getKey();
         assertEquals(1, apiKeyRepository.listAll().size());
+        PersistentApiKeyType apiKey = apiKeyRepository.get(plainKey);
+        assertEquals(2, apiKey.getRoles().size());
+
+        // after remove, listall should be 0 and get(key) should fail
         apiKeyRepository.remove(plainKey);
         assertEquals(0, apiKeyRepository.listAll().size());
+        try {
+            apiKey = apiKeyRepository.get(plainKey);
+            fail("should throw exception");
+        } catch (NotFoundException expected) {
+        }
         try {
             apiKeyRepository.remove(plainKey);
             fail("should throw exception");
