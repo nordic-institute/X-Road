@@ -16,7 +16,7 @@ Index of X-Road Documentation
 - [\[ARC-ENVMON\] Environmental Monitoring Architecture](EnvironmentalMonitoring/Monitoring-architecture.md)
 
 ### Protocols
-- [\[PR-REST\] Message Protocol for REST](Protocols/pr-mess_x-road_message_protocol_for_rest.md)
+- [\[PR-REST\] Message Protocol for REST](Protocols/pr-rest_x-road_message_protocol_for_rest.md)
 - [\[PR-MESS\] Message Protocol](Protocols/pr-mess_x-road_message_protocol.md)
 - [\[PR-MESSTRANSP\] Message Transport Protocol](Protocols/pr-messtransp_x-road_message_transport_protocol_2.2_Y-743-4.docx)
 - [\[PR-MSERV\] Protocol for Management Services](Protocols/pr-mserv_x-road_protocol_for_management_services.md)
