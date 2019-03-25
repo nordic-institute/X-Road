@@ -26,7 +26,7 @@ package org.niis.xroad.restapi.auth;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.MessageDigestPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
@@ -35,7 +35,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Configuration
 public class PasswordEncoderConfig {
     @Bean
+    // we use SHA-256 instead of recommended and default BCrypt to guarantee that
+    // even with heavy REST API usage, hashing does consume large amount of resources.
+    // We are not encoding passwords, but random numbers / UUIDs, so
+    // dictionary attacks or other weaknesses of SHA-256 in relation to
+    // password encoding are not relevant.
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new MessageDigestPasswordEncoder("SHA-256");
     }
 }
