@@ -16,13 +16,17 @@ that is being served from webpack development server.
 
 Parameter `activate-devtools-do-not-use-in-production` can be used to build a jar that contains spring
 devtools, which enable remote hot deployment of code. In this case, jar needs to be started with spring
-profile `development`
+profile `development`.
+
 ```
 ../gradlew clean build -Pactivate-devtools-do-not-use-in-production
 ```
 ```
 java -jar proxy-ui-api-1.0.jar --spring.profiles.active=development
 ```
+`activate-devtools-do-not-use-in-production` also makes it possible to use development login
+with hard coded users. This is activated with profile `dev-test-auth`.
+
 # Running
 ```
 ../gradlew bootRun --console plain
@@ -115,24 +119,22 @@ $ curl --header "Authorization: X-Road-ApiKey token=481e50de-a93f-46d8-9748-1bca
 [{"id":"XRD2:GOV:M1:SUB1","member_name":"member1","member_class":"GOV","member_code":"M1","subsystem_code":"SUB1","status":"saved"},{"id":"XRD2:GOV:M4:SS1","member_name":"member4","member_class":"GOV","member_code":"M4","subsystem_code":"SS1","status":"registered"},{"id":"XRD2:GOV:M4","member_name":"member4","member_class":"GOV","member_code":"M4","subsystem_code":null,"status":"registered"}]
 ```
 
-# PAM login
+# Authentication
 
-PAM login is active by default. You can use dummy in-memory authentication with parameter `proto.pam=false`:
+There is two possible authentication mechanims
+- PAM authentication
+- Development authentication with static users
 
-```
-../gradlew bootRun --console plain -Pargs=--proto.pam=false
-```
+## PAM login
 
-Logins for dummy in-memory authentication: 
-- user/password
-- admin/password etc
+PAM login is active by default.
 
 PAM login is done using unix user and password. There's some requirements
 - application has to be run as user who can read `/etc/shadow`
-- roles are granted using linux groups `xroad-security-officer`, 
+- roles are granted using linux groups `xroad-security-officer`,
 `xroad-registration-officer`,
 `xroad-service-administrator`,
-`xroad-system-administrator`, and 
+`xroad-system-administrator`, and
 `xroad-securityserver-observer` as in old implementation.
 
 To set some test users up
@@ -157,6 +159,24 @@ sudo usermod -a -G xroad-registration-officer,xroad-service-administrator,xroad-
 sudo passwd xrd-full-user
 sudo passwd xrd-system-admin
 ```
+
+## Development authentication
+
+You can use dummy in-memory authentication by building a development tools -enabled version
+with `activate-devtools-do-not-use-in-production` parameter and then activating
+profile `dev-test-auth`.
+
+Logins for development authentication:
+- u: security-officer p: password
+- u: registration-officer p: password
+- u: service-admin p: password
+- u: system-admin p: password
+- u: observer p: password
+- u: full-admin p: password
+- u: roleless p: password
+
+All these have a single role matching the username, except `full-admin` has all roles
+and `roleless` has none.
 
 # CSRF protection
 

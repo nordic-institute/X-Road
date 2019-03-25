@@ -30,6 +30,7 @@ import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;
 import org.niis.xroad.restapi.domain.Role;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -53,6 +54,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
+@Profile("!dev-test-auth")
 public class PamAuthenticationProvider implements AuthenticationProvider {
 
     // from PAMLoginModule

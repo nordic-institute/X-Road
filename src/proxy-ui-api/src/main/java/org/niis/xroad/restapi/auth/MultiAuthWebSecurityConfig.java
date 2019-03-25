@@ -27,10 +27,10 @@ package org.niis.xroad.restapi.auth;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.domain.Role;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -94,15 +94,11 @@ public class MultiAuthWebSecurityConfig {
     @Configuration
     public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
-        @Value("${proto.pam}")
-        private boolean pam;
-
         @Autowired
-        private PamAuthenticationProvider pamAuthenticationProvider;
+        private AuthenticationProvider authenticationProvider;
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {
-            log.debug("***** configuring security, pam = {}", pam);
             http
                 .authorizeRequests()
                     .antMatchers("/error").permitAll()
@@ -129,11 +125,7 @@ public class MultiAuthWebSecurityConfig {
 
         @Override
         protected void configure(AuthenticationManagerBuilder builder) throws Exception {
-            if (pam) {
-                builder.authenticationProvider(pamAuthenticationProvider);
-            } else {
-                super.configure(builder);
-            }
+            builder.authenticationProvider(authenticationProvider);
         }
     }
 
@@ -176,11 +168,9 @@ public class MultiAuthWebSecurityConfig {
     @Configuration
     @Order(1)
     public static class ManageApiKeysWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
-        @Value("${proto.pam}")
-        private boolean pam;
 
         @Autowired
-        private PamAuthenticationProvider pamAuthenticationProvider;
+        private AuthenticationProvider authenticationProvider;
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {
@@ -209,14 +199,7 @@ public class MultiAuthWebSecurityConfig {
 
         @Override
         protected void configure(AuthenticationManagerBuilder builder) throws Exception {
-//CHECKSTYLE.OFF: TodoComment - need this todo and still want builds to succeed
-            // TODO: remove non-pam authentication
-//CHECKSTYLE.ON: TodoComment
-            if (pam) {
-                builder.authenticationProvider(pamAuthenticationProvider);
-            } else {
-                super.configure(builder);
-            }
+            builder.authenticationProvider(authenticationProvider);
         }
     }
 
