@@ -32,6 +32,8 @@ import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.exceptions.InvalidParametersException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,7 +49,8 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * API key repository which stores encoded keys in DB
+ * API key repository which stores encoded keys in DB.
+ * Uses simple caching, using ConcurrentHashMaps in memory.
  */
 @Slf4j
 @Repository
@@ -76,6 +79,7 @@ public class ApiKeyRepository {
     /**
      * create api key with one role
      */
+    @CacheEvict(allEntries = true, cacheNames = {"all-apikeys", "apikey-by-keys"})
     public Map.Entry<String, PersistentApiKeyType> create(String roleName) {
         return create(Collections.singletonList(roleName));
     }
@@ -84,11 +88,11 @@ public class ApiKeyRepository {
      * create api key with collection of roles
      * @return Map.Entry with key = plaintext key, value = PersistentApiKeyType
      */
+    @CacheEvict(allEntries = true, cacheNames = {"all-apikeys", "apikey-by-keys"})
     public Map.Entry<String, PersistentApiKeyType> create(Collection<String> roleNames) {
         if (roleNames.isEmpty()) {
             throw new InvalidParametersException("missing roles");
         }
-
         Set<Role> roles = Role.getForNames(roleNames);
         String plainKey = createApiKey();
         String encodedKey = encode(plainKey);
@@ -105,17 +109,12 @@ public class ApiKeyRepository {
     }
 
     /**
-     * this scales linearly for key number.
-     * Options:
-     * - add "username"
-     * - accept slowness, will not have millions of api keys
-     * - get rid of encoding
-     * *** Chosen path, TO DO:
-     * - get rid of salting, use a fast hashing algorithm
+     * get matching key
      * @param key
      * @return
      * @throws NotFoundException if api key was not found
      */
+    @Cacheable("apikey-by-key")
     public PersistentApiKeyType get(String key) throws NotFoundException {
         List<PersistentApiKeyType> keys = new PersistentApiKeyDAOImpl().findAll(getCurrentSession());
         for (PersistentApiKeyType apiKeyType : keys) {
@@ -133,6 +132,7 @@ public class ApiKeyRepository {
      * @param key
      * @throws NotFoundException if api key was not found
      */
+    @CacheEvict(allEntries = true, cacheNames = {"all-apikeys", "apikey-by-keys"})
     public void remove(String key) throws NotFoundException {
         PersistentApiKeyType apiKeyType = get(key);
         new PersistentApiKeyDAOImpl().delete(getCurrentSession(), apiKeyType);
@@ -143,6 +143,7 @@ public class ApiKeyRepository {
      * @param id
      * @throws NotFoundException if api key was not found
      */
+    @CacheEvict(allEntries = true, cacheNames = {"all-apikeys", "apikey-by-keys"})
     public void removeById(long id) throws NotFoundException {
         PersistentApiKeyDAOImpl dao = new PersistentApiKeyDAOImpl();
         PersistentApiKeyType apiKeyType = dao.findById(getCurrentSession(), id);
@@ -156,6 +157,7 @@ public class ApiKeyRepository {
      * List all keys
      * @return
      */
+    @Cacheable("all-apikeys")
     public List<PersistentApiKeyType> listAll() {
         return new PersistentApiKeyDAOImpl().findAll(getCurrentSession());
     }
