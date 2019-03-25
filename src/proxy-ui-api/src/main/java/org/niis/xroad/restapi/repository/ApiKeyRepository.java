@@ -122,11 +122,10 @@ public class ApiKeyRepository {
      */
     @Cacheable(GET_KEY_CACHE)
     public PersistentApiKeyType get(String key) throws NotFoundException {
+        String encodedKey = passwordEncoder.encode(key);
         List<PersistentApiKeyType> keys = new PersistentApiKeyDAOImpl().findAll(getCurrentSession());
         for (PersistentApiKeyType apiKeyType : keys) {
-            // TO DO: without random salting, no need to use matches,
-            // could encode once and compare encoded values
-            if (passwordEncoder.matches(key, apiKeyType.getEncodedKey())) {
+            if (apiKeyType.getEncodedKey().equals(encodedKey)) {
                 return apiKeyType;
             }
         }
