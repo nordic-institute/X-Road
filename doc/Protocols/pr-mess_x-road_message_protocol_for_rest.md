@@ -6,16 +6,22 @@
 **Technical Specification**
 
 Version: 0.9.0  
-22.03.2019
+22.03.2019  
+Doc. ID: PR-REST
 
 ---
 
 ## Version history
 
-|Date       | Version | Description                                                                                                         | Author         |
-|:----------|:--------|:--------------------------------------------------------------------------------------------------------------------|:---------------|
-|22.03.2019 | 0.9.0	  | Initial Markdown documentation (see [Appendix 2](#appendix-2-document-change-history) for earlier document history) | Caro Hautamäki |
- 
+|Date       | Version | Description                                                             | Author         |
+|:----------|:--------|:------------------------------------------------------------------------|:---------------|
+|02.10.2018 | 0.1.0	  | Initial draft version                                                   | Ilkka Seppälä  |
+|30.10.2018 | 0.2.0	  | <ul><li>Multiple phrasing improvements</li><li>Protocol version format changed to 'r1' from 'v1'</li><li>Introduced serviceId concept</li><li>Image updated</li><li>Improved error handling</li><li>Introduced security section</li><li>Clarified REST interface section</li><li>Add default content-type</li><li>Clarified optional X-Road headers</li><li>Clarified error handling</li></ul> | Ilkka Seppälä <br /> Petteri Kivimäki <br /> Jarkko Hyöty |
+|11.01.2019 | 0.3.0	  | <ul><li>Remove constant prefix `/rest` from the protocol</li><li>Consumer ID is specified with HTTP headers instead of encoding it to the request URL</li><li>Clarified service id and client id encoding (percent-encoded UTF-8)</li><li>Changes to "Use of HTTP Headers" section <br /> - Clarified user defined headers rules <br /> - Added filtered headers section <br /> - Added cache headers section <br /> - Added cross-origin resource sharing section <br /> - Clarified Content-Type header <br /> - Added explanation of specially handled headers </li><li>Added HTTP version to "Scope and Requirements" chapter</li><li>Use OpenAPI 3.0 service description</li><li>Updated the examples according to REST guidelines</li><li>Added section about HTTP redirections</li></ul> | Ilkka Seppälä <br /> Petteri Kivimäki <br /> Jarkko Hyöty <br /> Janne Mattila <br /> Lauri Koutaniemi |
+|21.02.2019 | 0.4.0	  | <ul><li>Added chapter 1.2 containing general description about REST architectural style</li><li>Clarified 3.2 objectives</li><li>Clarified 'X-Road-UserId' header</li><li>Added 4.3 request hash header</li><li>Added 4.6 example 5 about tracking the source of error</li><li>Clarified 2.3 protocol versioning</li><li>Minor grammar changes to 4.1</li><li>Added a warning to 4.4 about following redirects</li><li>Fixed 4.6 example 2 -> X-Road-Error header added</li><li>Clarified 4.6 user defined headers</li><li>Clarified 5.1 what is the role of OpenAPI 3</li><li>Updated the response body format in 4.6 error handling</li><li>Added X-Road-Security-Server header to 4.3 to make it possible to call monitoring via REST</li></ul> | Ilkka Seppälä <br /> Petteri Kivimäki <br /> Jarkko Hyöty |
+|22.03.2019 | 0.5.0	  | <ul><li>Clarified 1.1 overview</li><li>Clarified 3.2 objectives</li><li>Added to 4.3 chapter "X-Road specific headers returned in the response"</li><li>Clarified the use of X-Road-Id in 4.3</li><li>Removed chapter 5.2 where it was recommended to use \[REST-BEST-PRACTISES\]</li><li>Updated examples in chapters 4.6 and 6</li><li>Updated request hash description in 4.3</li></ul> | Ilkka Seppälä <br /> Petteri Kivimäki <br /> Jarkko Hyöty |
+|22.03.2019 | 0.9.0	  | Initial Markdown documentation | Caro Hautamäki |
+
 ## Table of Contents  
 
 <!-- toc -->
@@ -1378,13 +1384,3 @@ components:
         message:
           type: string
 ```
-
-## Appendix 2 Document Change History
-
-|Date       | Version | Description                                                             | Author         |
-|:----------|:--------|:------------------------------------------------------------------------|:---------------|
-|02.10.2018 | 0.1.0	  | Initial draft version                                                   | Ilkka Seppälä  |
-|30.10.2018 | 0.2.0	  | <ul><li>Multiple phrasing improvements</li><li>Protocol version format changed to 'r1' from 'v1'</li><li>Introduced serviceId concept</li><li>Image updated</li><li>Improved error handling</li><li>Introduced security section</li><li>Clarified REST interface section</li><li>Add default content-type</li><li>Clarified optional X-Road headers</li><li>Clarified error handling</li></ul> | Ilkka Seppälä <br /> Petteri Kivimäki <br /> Jarkko Hyöty |
-|11.01.2019 | 0.3.0	  | <ul><li>Remove constant prefix `/rest` from the protocol</li><li>Consumer ID is specified with HTTP headers instead of encoding it to the request URL</li><li>Clarified service id and client id encoding (percent-encoded UTF-8)</li><li>Changes to "Use of HTTP Headers" section <br /> - Clarified user defined headers rules <br /> - Added filtered headers section <br /> - Added cache headers section <br /> - Added cross-origin resource sharing section <br /> - Clarified Content-Type header <br /> - Added explanation of specially handled headers </li><li>Added HTTP version to "Scope and Requirements" chapter</li><li>Use OpenAPI 3.0 service description</li><li>Updated the examples according to REST guidelines</li><li>Added section about HTTP redirections</li></ul> | Ilkka Seppälä <br /> Petteri Kivimäki <br /> Jarkko Hyöty <br /> Janne Mattila <br /> Lauri Koutaniemi |
-|21.02.2019 | 0.4.0	  | <ul><li>Added chapter 1.2 containing general description about REST architectural style</li><li>Clarified 3.2 objectives</li><li>Clarified 'X-Road-UserId' header</li><li>Added 4.3 request hash header</li><li>Added 4.6 example 5 about tracking the source of error</li><li>Clarified 2.3 protocol versioning</li><li>Minor grammar changes to 4.1</li><li>Added a warning to 4.4 about following redirects</li><li>Fixed 4.6 example 2 -> X-Road-Error header added</li><li>Clarified 4.6 user defined headers</li><li>Clarified 5.1 what is the role of OpenAPI 3</li><li>Updated the response body format in 4.6 error handling</li><li>Added X-Road-Security-Server header to 4.3 to make it possible to call monitoring via REST</li></ul> | Ilkka Seppälä <br /> Petteri Kivimäki <br /> Jarkko Hyöty |
-|22.03.2019 | 0.5.0	  | <ul><li>Clarified 1.1 overview</li><li>Clarified 3.2 objectives</li><li>Added to 4.3 chapter "X-Road specific headers returned in the response"</li><li>Clarified the use of X-Road-Id in 4.3</li><li>Removed chapter 5.2 where it was recommended to use \[REST-BEST-PRACTISES\]</li><li>Updated examples in chapters 4.6 and 6</li><li>Updated request hash description in 4.3</li></ul> | Ilkka Seppälä |
