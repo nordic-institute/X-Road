@@ -1889,6 +1889,8 @@ operations are executed).
 
 ### 19.2 Executing REST calls
 
+**Access rights:** Depends on the API.
+
 Once a valid API key has been created, it is used by providing an `Authorization: X-Road-ApiKey token=<api key>` HTTP
 header in the REST calls. For example
 
