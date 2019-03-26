@@ -25,8 +25,12 @@
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
 /**
  * Security configuration follows https://spring.io/guides/gs/securing-web/
@@ -51,15 +55,29 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
  * - ApiWebSecurityConfigurerAdapter, @Order(2), matches /api/**
  * - StaticAssetsWebSecurityConfig, @Order(3), matches static asset paths such as /js/**
  * - FormLoginWebSecurityConfigurerAdapter, @Order(100), matches any URL (denies /api/**)
+ * - and finally, this configurer defines global constants for configuration order and
+ * sets up shared configuration such as web security debugging
  */
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-@EnableWebSecurity(debug = true)
+@EnableWebSecurity
 @EnableGlobalMethodSecurity(proxyTargetClass = true, prePostEnabled = true)
 @Slf4j
-public class MultiAuthWebSecurityConfig {
+@Order(MultiAuthWebSecurityConfig.GLOBAL_CONFIGURATION_SECURITY_ORDER)
+public class MultiAuthWebSecurityConfig extends WebSecurityConfigurerAdapter {
     public static final int API_KEY_MANAGEMENT_SECURITY_ORDER = 1;
     public static final int API_SECURITY_ORDER = 2;
     public static final int STATIC_ASSETS_SECURITY_ORDER = 3;
     public static final int FORM_LOGIN_SECURITY_ORDER = 100;
+    public static final int GLOBAL_CONFIGURATION_SECURITY_ORDER = 200;
 
+    @Value("${web.security.debug:false}")
+    private Boolean isWebSecurityDebugEnabled;
+
+    /**
+     * Toggle debugging based on property value
+     * @param web
+     * @throws Exception
+     */
+    public void configure(WebSecurity web) throws Exception {
+        web.debug(isWebSecurityDebugEnabled);
+    }
 }

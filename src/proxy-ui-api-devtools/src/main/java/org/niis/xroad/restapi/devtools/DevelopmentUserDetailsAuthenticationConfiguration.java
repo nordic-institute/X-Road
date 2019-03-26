@@ -41,7 +41,7 @@ import java.util.Collection;
  * Development time authentication provider, which uses hard coded users
  */
 @Configuration
-@Profile("dev-test-auth")
+@Profile("devtools-test-auth")
 public class DevelopmentUserDetailsAuthenticationConfiguration {
 
     /**

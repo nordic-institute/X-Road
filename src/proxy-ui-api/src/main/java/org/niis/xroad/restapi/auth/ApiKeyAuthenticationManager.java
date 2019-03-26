@@ -65,7 +65,6 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
                 new PreAuthenticatedAuthenticationToken(authentication.getPrincipal(),
                         authentication.getCredentials(),
                         permissionMapper.getAuthorities(key.getRoles()));
-        log.debug("authentication: {}", authenticationWithGrants);
         return authenticationWithGrants;
     }
 }

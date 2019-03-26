@@ -16,23 +16,37 @@ that is being served from webpack development server.
 
 Parameter `activate-devtools-do-not-use-in-production` can be used to build a jar that contains spring
 devtools, which enable remote hot deployment of code. In this case, jar needs to be started with spring
-profile `development`.
+profile `devtools`.
 
 ```
 ../gradlew clean build -Pactivate-devtools-do-not-use-in-production
 ```
 ```
-java -jar proxy-ui-api-1.0.jar --spring.profiles.active=development
+java -jar proxy-ui-api-1.0.jar --spring.profiles.active=devtools
 ```
 `activate-devtools-do-not-use-in-production` also makes it possible to use development login
-with hard coded users. This is activated with profile `dev-test-auth`.
+with hard coded users. This is activated with profile `devtools-test-auth`.
 
 # Running
+
+For example
 ```
 ../gradlew bootRun --console plain
 ```
 
 browser: `https://localhost:8553`
+
+# Development profiles
+
+Different development aspects are activated using several Spring profiles:
+
+- `development` profile toggles some "safe" development aspects. Mostly enables more logging.
+This profile is always available.
+- `devtools` activates Spring devtools support and enables for example remote code deployment.
+This profile can be used only if jar was built using `activate-devtools-do-not-use-in-production` parameter.
+This profile currently disables SSL and runs application in port 8080, since devtools does not work with SSL.
+- `devtools-test-auth` activates development authentication, see "Development authentication".
+This profile can be used only if jar was built using `activate-devtools-do-not-use-in-production` parameter.
 
 # Api key database tables
 
@@ -163,7 +177,7 @@ sudo passwd xrd-system-admin
 
 You can use dummy in-memory authentication by building a development tools -enabled version
 with `activate-devtools-do-not-use-in-production` parameter and then activating
-profile `dev-test-auth`.
+profile `devtools-test-auth`.
 
 Logins for development authentication:
 - u: security-officer p: password

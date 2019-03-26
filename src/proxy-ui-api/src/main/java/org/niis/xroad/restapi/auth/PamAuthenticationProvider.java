@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
-@Profile("!dev-test-auth")
+@Profile("!devtools-test-auth")
 public class PamAuthenticationProvider implements AuthenticationProvider {
 
     // from PAMLoginModule
