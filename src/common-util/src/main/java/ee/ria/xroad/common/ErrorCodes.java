@@ -195,6 +195,7 @@ public final class ErrorCodes {
     /**
      * Translates technical exceptions to proxy exceptions with
      * the appropriate error code.
+     *
      * @param ex the exception
      * @return translated CodedException
      */
@@ -234,8 +235,9 @@ public final class ErrorCodes {
      * Translates technical exceptions to proxy exceptions with
      * the appropriate error code. It also prepends the prefix
      * in front of error code.
+     *
      * @param prefix the prefix
-     * @param ex the exception
+     * @param ex     the exception
      * @return translated exception with prefix
      */
     public static CodedException translateWithPrefix(String prefix,

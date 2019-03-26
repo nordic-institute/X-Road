@@ -111,7 +111,8 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                     servletRequest.getMethod(),
                     servletRequest.getRequestURI(),
                     servletRequest.getQueryString(),
-                    headers(servletRequest)
+                    headers(servletRequest),
+                    xRequestId
             );
 
             senderId = restRequest.getClientId();
@@ -234,6 +235,10 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         }
         if (!Arrays.equals(restRequest.getHash(), response.getRestResponse().getRequestHash())) {
             throw new CodedException(X_INCONSISTENT_RESPONSE, "Response message hash does not match request message");
+        }
+        if (!Objects.equals(restRequest.getXRequestId(), response.getRestResponse().getXRequestId())) {
+            throw new CodedException(X_INCONSISTENT_RESPONSE,
+                    "Response message x-request-id does not match request message");
         }
     }
 
