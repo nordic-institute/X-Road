@@ -22,23 +22,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.auth.securityconfigurer;
 
-import lombok.Data;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 
 /**
- * data for rest api error responses
+ * Static assets should be open to everyone
  */
-@Data
-public class ErrorInfo {
-    private int status;
-    private String errorCode;
+@Configuration
+@Order(MultiAuthWebSecurityConfig.STATIC_ASSETS_SECURITY_ORDER)
+public class StaticAssetsWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    public ErrorInfo(int status) {
-        this.status = status;
-    }
-    public ErrorInfo(int status, String errorCode) {
-        this.status = status;
-        this.errorCode = errorCode;
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+            .requestMatchers()
+                .antMatchers("/favicon.ico",
+                        "/",
+                        "/index.html",
+                        "/img/**",
+                        "/css/**",
+                        "/js/**",
+                        "/fonts/**")
+                .and()
+            .authorizeRequests()
+                .anyRequest()
+                .permitAll()
+                .and()
+            .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+            .csrf()
+                .disable();
     }
 }

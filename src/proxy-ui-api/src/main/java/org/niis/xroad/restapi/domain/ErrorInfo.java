@@ -22,37 +22,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.domain;
 
-import org.niis.xroad.restapi.domain.ErrorInfo;
-import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import lombok.Data;
 
 /**
- * Translate exceptions to ResponseEntities
+ * data for rest api error responses
  */
-@Component
-public class ExceptionTranslator {
+@Data
+public class ErrorInfo {
+    private int status;
+    private String errorCode;
 
-    /**
-     * Create ResponseEntity<ErrorInfo> from an Exception.
-     * Use provided status or override it with value from
-     * Exception's ResponseStatus annotation if one exists
-     * @param e
-     * @return
-     */
-    public ResponseEntity<ErrorInfo> toResponseEntity(Exception e, HttpStatus defaultStatus) {
-        HttpStatus status = defaultStatus;
-        ResponseStatus statusAnnotation = AnnotationUtils.findAnnotation(
-                e.getClass(), ResponseStatus.class);
-        if (statusAnnotation != null) {
-            // take status from exception annotation
-            status = statusAnnotation.value();
-        }
-        ErrorInfo errorDto = new ErrorInfo(status.value());
-        return new ResponseEntity<ErrorInfo>(errorDto, status);
+    public ErrorInfo(int status) {
+        this.status = status;
+    }
+    public ErrorInfo(int status, String errorCode) {
+        this.status = status;
+        this.errorCode = errorCode;
     }
 }
