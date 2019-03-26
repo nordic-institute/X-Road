@@ -684,7 +684,7 @@ client.
 -   The system parameters are described in document “X-Road: System
     Parameters” \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
-#### 3.1.10 UC SERVICE\_09: Edit the Address of a WSDL
+#### 3.1.10 UC SERVICE\_09: Edit the Address of a WSDL or REST
 
 **System**: Security server
 
@@ -807,7 +807,7 @@ given URL and reads the service descriptions from the WSDL or REST file.
 
 **Related** **information**: -
 
-#### 3.1.12 UC SERVICE\_44: Validate a WSDL (or REST)
+#### 3.1.12 UC SERVICE\_44: Validate a WSDL or REST
 
 **System**: Security server
 
@@ -908,7 +908,7 @@ that the input is well formatted.
 
 **Related** **information**: -
 
-#### 3.1.14 UC SERVICE\_12: Enable a WSDL  or REST
+#### 3.1.14 UC SERVICE\_12: Enable a WSDL or REST
 
 **System**: Security server
 
@@ -1107,7 +1107,7 @@ reloads the WSDL file from the WSDL or REST address.
 -   The system parameters are described in document “X-Road: System
     Parameters” \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
-#### 3.1.17 UC SERVICE\_15: Delete a WSDL or REST or REST
+#### 3.1.17 UC SERVICE\_15: Delete a WSDL or REST
 
 **System**: Security server
 
