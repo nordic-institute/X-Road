@@ -34,7 +34,19 @@ For example
 ../gradlew bootRun --console plain
 ```
 
-browser: `https://localhost:8553`
+browser: `https://localhost:4000`
+
+## Coexisting with old API
+
+Old UI also runs in port 4000, so it will clash with the REST API. There are two ways to avoid this:
+
+1. Shut down old UI (nginx which listens to 4000): `service nginx stop`
+2. Move old UI to port 5000: `nano /etc/xroad/nginx/default-xroad.conf` -> ```server {
+                                                                                      listen 5000;
+``` -> ```server {
+               listen 5000;
+``` -> `service nginx restart`
+
 
 # Development profiles
 
@@ -66,7 +78,7 @@ $ su -c "psql -d serverconf -a -f /create_apikey_tables.sql" postgres
 
 # TLS
 
-Application listens to https in port 8553.
+Application listens to https in port 4000.
 
 Since it uses a self-signed certificate (currently in `nginx.p12`
 keystore embedded in the build), clients need to trust this certificate. In browser access this means manually allow exception for
@@ -86,7 +98,7 @@ Request body should contain list of roles as array of strings.
 Response contains the key. The key is not stored and can not be retrieved after this.
 
 ```
-$ curl -X POST -u <username>:<password> https://localhost:8553/api/api-key --data '["XROAD_SERVICE_ADMINISTRATOR","XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
+$ curl -X POST -u <username>:<password> https://localhost:4000/api/api-key --data '["XROAD_SERVICE_ADMINISTRATOR","XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
 {
   "roles": [
     "XROAD_SECURITYSERVER_OBSERVER",
@@ -100,7 +112,7 @@ $ curl -X POST -u <username>:<password> https://localhost:8553/api/api-key --dat
 List all api keys with a GET request to `/api/api-key`.
 
 ```
-$ curl -u <username>:<password> https://localhost:8553/api/api-key -k
+$ curl -u <username>:<password> https://localhost:4000/api/api-key -k
 [
 ...
   {
@@ -115,7 +127,7 @@ $ curl -u <username>:<password> https://localhost:8553/api/api-key -k
 ```
 Delete a key with a DELETE request to `/api/api-key/<id>`.
 ```
-$ curl -X DELETE -u <username>:<password> https://localhost:8553/api/api-key/27 -k
+$ curl -X DELETE -u <username>:<password> https://localhost:4000/api/api-key/27 -k
 {
   "status": 200,
   "errorCode": null
@@ -128,7 +140,7 @@ $ curl -X DELETE -u <username>:<password> https://localhost:8553/api/api-key/27 
 Provide api key with `Authorization: X-Road-ApiKey token=<api key>` header.
 
 ```
-$ curl --header "Authorization: X-Road-ApiKey token=481e50de-a93f-46d8-9748-1bca86eea454" "https://docker-ss.local:8553/api/clients" -k
+$ curl --header "Authorization: X-Road-ApiKey token=481e50de-a93f-46d8-9748-1bca86eea454" "https://docker-ss.local:4000/api/clients" -k
 [{"id":"XRD2:GOV:M1:SUB1","member_name":"member1","member_class":"GOV","member_code":"M1","subsystem_code":"SUB1","status":"saved"},{"id":"XRD2:GOV:M4:SS1","member_name":"member4","member_class":"GOV","member_code":"M4","subsystem_code":"SS1","status":"registered"},{"id":"XRD2:GOV:M4","member_name":"member4","member_class":"GOV","member_code":"M4","subsystem_code":null,"status":"registered"}]
 ```
 
@@ -218,37 +230,37 @@ Examples:
 
 Login
 ```
-curl -X POST -k -d "username=admin&password=password" -D - https://localhost:8553/login
+curl -X POST -k -d "username=admin&password=password" -D - https://localhost:4000/login
 HTTP/1.1 200 
 Set-Cookie: XSRF-TOKEN=45eeef1e-3d0a-4dea-9a65-b84f9a505335; Path=/
 Set-Cookie: JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4; Path=/; HttpOnly
 ```
 Using the cookies and CSRF header correctly
 ```
-curl -D -k - https://localhost:8553/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=45eeef1e-3d0a-4dea-9a65-b84f9a505335" --header "X-XSRF-TOKEN: 45eeef1e-3d0a-4dea-9a65-b84f9a505335"
+curl -D -k - https://localhost:4000/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=45eeef1e-3d0a-4dea-9a65-b84f9a505335" --header "X-XSRF-TOKEN: 45eeef1e-3d0a-4dea-9a65-b84f9a505335"
 HTTP/1.1 200 
 [{"id":999,"name":"Admincity, from a method which requires 'ADMIN' role"},{"id":1,"name":"Tampere"},{"id":2,"name":"Ylojarvi"},{"id":3,"name":"Helsinki"},{"id":4,"name":"Vantaa"},{"id":5,"name":"Nurmes"}]
 ```
 
 Actual CSRF token value does not matter
 ```
-curl -D - -k https://localhost:8553/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo" --header "X-XSRF-TOKEN: foo"
+curl -D - -k https://localhost:4000/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo" --header "X-XSRF-TOKEN: foo"
 HTTP/1.1 200 
 [{"id":999,"name":"Admincity, from a method which requires 'ADMIN' role"},{"id":1,"name":"Tampere"},{"id":2,"name":"Ylojarvi"},{"id":3,"name":"Helsinki"},{"id":4,"name":"Vantaa"},{"id":5,"name":"Nurmes"}]
 ```
 
 But it needs to exist and match the value from cookie
 ```
-curl -D - -k https://localhost:8553/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo" --header "X-XSRF-TOKEN: bar"
+curl -D - -k https://localhost:4000/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo" --header "X-XSRF-TOKEN: bar"
 HTTP/1.1 403 
 ```
 
 ```
-curl -D - -k https://localhost:8553/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo"
+curl -D - -k https://localhost:4000/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo"
 HTTP/1.1 403 
 ```
 
 ```
-curl -D - -k https://localhost:8553/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4" --header "X-XSRF-TOKEN: 45eeef1e-3d0a-4dea-9a65-b84f9a505335"
+curl -D - -k https://localhost:4000/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4" --header "X-XSRF-TOKEN: 45eeef1e-3d0a-4dea-9a65-b84f9a505335"
 HTTP/1.1 403 
 ```
