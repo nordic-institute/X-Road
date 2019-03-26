@@ -1,6 +1,6 @@
 CREATE TABLE apikey (
   id BIGINT PRIMARY KEY,
-  encodedkey VARCHAR(255)
+  encodedkey VARCHAR(255) NOT NULL
 );
 
 -- -- use same convention (bigserial id) as service_securitycategories
