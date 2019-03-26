@@ -33,7 +33,7 @@ Doc. ID: DM-SS
 		- [2.1.2 Attributes](#212-attributes)
 	- [2.2 APIKEY](#22-apikey)
 		- [2.2.1 Attributes](#221-attributes)
-	- [2.3 APIKEY_ROLES](#23-apikeyroles)
+	- [2.3 APIKEY_ROLES](#23-apikey_roles)
 		- [2.3.1 Indexes](#231-indexes)
 		- [2.3.2 Attributes](#232-attributes)
 	- [2.4 CERTIFICATE](#24-certificate)
