@@ -126,6 +126,7 @@ public final class ErrorCodes {
     public static final String X_INVALID_CLIENT_IDENTIFIER =
             "InvalidClientIdentifier";
     public static final String X_INVALID_SERVICE_TYPE = "ServiceType";
+    public static final String X_INCONSISTENT_XREQUEST_ID = "InconsistentXRequestId";
 
     // ASiC container related errors
 

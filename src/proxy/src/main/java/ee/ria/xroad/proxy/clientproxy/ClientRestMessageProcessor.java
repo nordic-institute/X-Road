@@ -68,11 +68,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_RESPONSE;
-import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_REST;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
+import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_MESSAGE_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
@@ -235,6 +231,9 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         }
         if (!Arrays.equals(restRequest.getHash(), response.getRestResponse().getRequestHash())) {
             throw new CodedException(X_INCONSISTENT_RESPONSE, "Response message hash does not match request message");
+        }
+        if(!Objects.equals(restRequest.getXRequestId(), response.getRestResponse().getXRequestId())) {
+            throw new CodedException(X_INCONSISTENT_XREQUEST_ID, "Response message x-request-id does not match request message");
         }
     }
 
