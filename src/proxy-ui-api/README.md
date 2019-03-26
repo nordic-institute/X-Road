@@ -36,7 +36,7 @@ For example
 
 browser: `https://localhost:4000`
 
-## Coexisting with old API
+## Coexisting with old UI
 
 Old UI also runs in port 4000, so it will clash with the REST API. There are two ways to avoid this:
 
