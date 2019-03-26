@@ -41,11 +41,17 @@ browser: `https://localhost:4000`
 Old UI also runs in port 4000, so it will clash with the REST API. There are two ways to avoid this:
 
 1. Shut down old UI (nginx which listens to 4000): `service nginx stop`
-2. Move old UI to port 5000: `nano /etc/xroad/nginx/default-xroad.conf` -> ```server {
-                                                                                      listen 5000;
-``` -> ```server {
-               listen 5000;
-``` -> `service nginx restart`
+2. Move old UI to port 5000: `nano /etc/xroad/nginx/default-xroad.conf` ->
+```
+server {
+    listen 4000;
+```
+->
+```
+server {
+    listen 5000;
+```
+-> `service nginx restart`
 
 
 # Development profiles
