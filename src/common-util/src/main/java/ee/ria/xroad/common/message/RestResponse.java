@@ -57,7 +57,7 @@ public class RestResponse extends RestMessage {
     private final byte[] requestHash;
     private final ServiceId serviceId;
     private final ClientId clientId;
-
+    private final String xRequestId;
 
     /**
      * create response from raw messageBytes
@@ -65,7 +65,7 @@ public class RestResponse extends RestMessage {
      * @param messageBytes
      */
     private RestResponse(byte[] messageBytes, ClientId clientId, String queryId, byte[] requestHash,
-            ServiceId serviceId, int code, String reason, List<Header> headers) {
+            ServiceId serviceId, int code, String reason, List<Header> headers, String xRequestId) {
         this.messageBytes = messageBytes;
         this.clientId = clientId;
         this.queryId = queryId;
@@ -74,29 +74,33 @@ public class RestResponse extends RestMessage {
         this.reason = reason;
         this.headers = headers;
         this.serviceId = serviceId;
+        this.xRequestId = xRequestId;
     }
 
     /**
      * create response from data
      */
     public RestResponse(ClientId clientId, String queryId, byte[] requestHash, ServiceId serviceId, int code,
-            String reason, List<Header> headers) {
+            String reason, List<Header> headers, String xRequestId) {
         this.responseCode = code;
         this.reason = reason;
         this.queryId = queryId;
         this.requestHash = requestHash;
         this.serviceId = serviceId;
         this.clientId = clientId;
+        this.xRequestId = xRequestId;
         final ArrayList<Header> tmp = headers.stream()
                 .filter(h -> !SKIPPED_HEADERS.contains(h.getName().toLowerCase()))
                 .filter(h -> !h.getName().equalsIgnoreCase(MimeUtils.HEADER_QUERY_ID)
                         && !h.getName().equalsIgnoreCase(MimeUtils.HEADER_REQUEST_HASH)
-                        && !h.getName().equalsIgnoreCase(MimeUtils.HEADER_CLIENT_ID))
+                        && !h.getName().equalsIgnoreCase(MimeUtils.HEADER_CLIENT_ID)
+                        && !h.getName().equalsIgnoreCase(MimeUtils.HEADER_REQUEST_ID))
                 .collect(Collectors.toCollection(ArrayList::new));
 
         tmp.add(new BasicHeader(MimeUtils.HEADER_QUERY_ID, queryId));
         tmp.add(new BasicHeader(MimeUtils.HEADER_CLIENT_ID, encodeXRoadId(clientId)));
         tmp.add(new BasicHeader(MimeUtils.HEADER_SERVICE_ID, encodeXRoadId(serviceId)));
+        tmp.add(new BasicHeader(MimeUtils.HEADER_REQUEST_ID, xRequestId));
         tmp.add(new BasicHeader(MimeUtils.HEADER_REQUEST_HASH, CryptoUtils.encodeBase64(requestHash)));
         this.headers = tmp;
     }
@@ -160,6 +164,7 @@ public class RestResponse extends RestMessage {
         byte[] requestHash = null;
         ServiceId serviceId = null;
         ClientId clientId = null;
+        String xRequestId = null;
 
         for (Header h : headers) {
             if (h.getName().equalsIgnoreCase(MimeUtils.HEADER_QUERY_ID)) {
@@ -176,13 +181,17 @@ public class RestResponse extends RestMessage {
             if (h.getName().equalsIgnoreCase(MimeUtils.HEADER_CLIENT_ID)) {
                 clientId = decodeClientId(h.getValue());
             }
+
+            if (h.getName().equalsIgnoreCase(MimeUtils.HEADER_REQUEST_ID)) {
+                xRequestId = h.getValue();
+            }
         }
 
         if (queryId == null || requestHash == null || queryId.isEmpty() || requestHash.length == 0) {
             throw new IllegalArgumentException("Invalid REST Response message");
         }
 
-        return new RestResponse(messageBytes, clientId, queryId, requestHash, serviceId, responseCode, reason, headers);
+        return new RestResponse(messageBytes, clientId, queryId, requestHash, serviceId, responseCode, reason, headers, xRequestId);
     }
 
     private static String encodeXRoadId(XRoadId xroadId) {

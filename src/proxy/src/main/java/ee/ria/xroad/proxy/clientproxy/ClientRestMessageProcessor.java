@@ -111,7 +111,8 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                     servletRequest.getMethod(),
                     servletRequest.getRequestURI(),
                     servletRequest.getQueryString(),
-                    headers(servletRequest)
+                    headers(servletRequest),
+                    xRequestId
             );
 
             senderId = restRequest.getClientId();

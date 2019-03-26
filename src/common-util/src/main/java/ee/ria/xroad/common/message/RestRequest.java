@@ -60,6 +60,7 @@ public class RestRequest extends RestMessage {
     private String servicePath;
     private SecurityServerId targetSecurityServer;
     private int version;
+    private String xRequestId;
 
     /**
      * Supported HTTP Verbs
@@ -91,13 +92,15 @@ public class RestRequest extends RestMessage {
     /**
      * Create RestRequest
      */
-    public RestRequest(String verb, String path, String query, List<Header> headers) {
+    public RestRequest(String verb, String path, String query, List<Header> headers, String xRequestId) {
         this.verb = Verb.valueOf(verb);
         this.headers = headers.stream()
                 .filter(h -> !SKIPPED_HEADERS.contains(h.getName().toLowerCase()))
                 .collect(Collectors.toCollection(ArrayList::new));
         this.requestPath = path;
         this.query = query;
+        this.xRequestId = xRequestId;
+        this.headers.add(new BasicHeader(MimeUtils.HEADER_REQUEST_ID, xRequestId));
         decodeIdentifiers();
     }
 
@@ -165,6 +168,8 @@ public class RestRequest extends RestMessage {
                 clientId = decodeClientId(h.getValue());
             } else if (MimeUtils.HEADER_QUERY_ID.equalsIgnoreCase(h.getName())) {
                 this.queryId = h.getValue();
+            } else if (MimeUtils.HEADER_REQUEST_ID.equals(h.getName())) {
+                this.xRequestId = h.getValue();
             }
             // Target security server
             if (MimeUtils.HEADER_SECURITY_SERVER.equalsIgnoreCase(h.getName()) && h.getValue() != null) {

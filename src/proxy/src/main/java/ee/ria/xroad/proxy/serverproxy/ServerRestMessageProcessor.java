@@ -366,7 +366,9 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                 requestServiceId,
                 statusLine.getStatusCode(),
                 statusLine.getReasonPhrase(),
-                Arrays.asList(response.getAllHeaders()));
+                Arrays.asList(response.getAllHeaders()),
+                xRequestId
+                );
         encoder.restResponse(restResponse);
 
         if (response.getEntity() != null) {
