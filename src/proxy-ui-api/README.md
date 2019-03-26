@@ -91,7 +91,6 @@ $ curl -u <username>:<password> https://localhost:8553/api/api-key -k
 ...
   {
     "id": 27,
-    "encodedKey": "$2a$10$LihaAGbyARvQSehF.DPa7uM63oRrwNSBZPuBYnsXTCfQ7pDgEBg2G",
     "roles": [
       "XROAD_SECURITYSERVER_OBSERVER",
       "XROAD_REGISTRATION_OFFICER",

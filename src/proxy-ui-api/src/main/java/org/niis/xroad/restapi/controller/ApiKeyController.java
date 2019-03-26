@@ -24,8 +24,11 @@
  */
 package org.niis.xroad.restapi.controller;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
+import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -43,6 +46,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Controller for rest apis for api key operations
@@ -70,13 +75,23 @@ public class ApiKeyController {
     }
 
     /**
-     * list api keys from db - just development time, remove
+     * list api keys from db
      */
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<Collection<PersistentApiKeyType>> list() {
+    public ResponseEntity<Collection<PublicKeyData>> list() {
         Collection<PersistentApiKeyType> keys = apiKeyRepository.listAll();
-        return new ResponseEntity<>(keys,
+        Collection<PublicKeyData> publicData = keys.stream()
+                .map(key -> new PublicKeyData(key.getId(), key.getRoles()))
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(publicData,
                 HttpStatus.OK);
+    }
+
+    @Data
+    @AllArgsConstructor
+    private class PublicKeyData {
+        private long id;
+        private Set<Role> roles;
     }
 
     /**
