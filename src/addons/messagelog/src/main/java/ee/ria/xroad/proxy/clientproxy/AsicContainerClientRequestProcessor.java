@@ -53,6 +53,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.Closeable;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -245,7 +246,11 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                     String type = record.isResponse() ? AsicContainerNameGenerator.TYPE_RESPONSE
                             : AsicContainerNameGenerator.TYPE_REQUEST;
                     zos.putNextEntry(new ZipEntry(nameGen.getArchiveFilename(queryId, type)));
-                    record.toAsicContainer(true).write(zos);
+
+                    try (EntryStream es = new EntryStream(zos)) {
+                        record.toAsicContainer().write(es);
+                    }
+
                     zos.closeEntry();
                 }
             } catch (CodedException ce) {
@@ -255,6 +260,27 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
             }
             return null;
         });
+    }
+
+    /**
+     * It seems that ZipOutputStream#finish is broken and leaks native memory. Therefore, we need to
+     * use ZipOutputStream#close and avoid closing the underlying stream; therefore this filter.
+     */
+    static class EntryStream extends FilterOutputStream {
+
+        EntryStream(OutputStream out) {
+            super(out);
+        }
+
+        @Override
+        public void write(byte[] b, int off, int len) throws IOException {
+            out.write(b, off, len);
+        }
+
+        @Override
+        public void close() {
+            //NOP
+        }
     }
 
     private void writeAsicContainer(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
@@ -273,7 +299,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                 if (record.getTimestampRecord() != null) {
                     throw new CodedException(X_INTERNAL_ERROR, MISSING_TIMESTAMP_FAULT_MESSAGE);
                 }
-                record.toAsicContainer(true).write(servletResponse.getOutputStream());
+                record.toAsicContainer().write(servletResponse.getOutputStream());
             } catch (CodedException ce) {
                 throw ce;
             } catch (Exception e) {

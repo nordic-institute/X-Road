@@ -29,18 +29,20 @@ import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
+import com.google.common.io.CountingOutputStream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.CountingOutputStream;
 
+import java.io.BufferedOutputStream;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -211,12 +213,15 @@ class LogArchiveCache implements Closeable {
 
         final MessageDigest digest = MessageDigest.getInstance(MessageLogProperties.getHashAlg());
         try (CountingOutputStream cos = new CountingOutputStream(
-                new DigestOutputStream(Files.newOutputStream(createTempAsicPath(archiveFilename)), digest))) {
-            record.toAsicContainer(true).write(cos);
-            final byte[] digestBytes = digest.digest();
-            archivesTotalSize += cos.getByteCount();
-            linkingInfoBuilder.addNextFile(archiveFilename, digestBytes);
+                new DigestOutputStream(Files.newOutputStream(createTempAsicPath(archiveFilename)), digest));
+             OutputStream bos = new BufferedOutputStream(cos)) {
+            // ZipOutputStream writing directly to a DigestOutputStream is extremely inefficient, hence the additional
+            // buffering. Digesting a stream instead of an in-memory buffer because the archive can be
+            // large (over 1GiB)
+            record.toAsicContainer().write(bos);
+            archivesTotalSize += cos.getCount();
         }
+        linkingInfoBuilder.addNextFile(archiveFilename, digest.digest());
     }
 
     private Path createTempAsicPath(String archiveFilename) {

@@ -51,7 +51,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.hexDigest;
 @Slf4j
 @ToString(callSuper = true, exclude = {"attachment"})
 @EqualsAndHashCode(callSuper = true, exclude = {"attachment"})
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MessageRecord extends AbstractLogRecord {
 
     @Getter
@@ -162,15 +162,6 @@ public class MessageRecord extends AbstractLogRecord {
      * @throws Exception in case of any errors
      */
     public AsicContainer toAsicContainer() throws Exception {
-        log.trace("toAsicContainer({})", queryId);
-        return toAsicContainer(false);
-    }
-
-    /**
-     * @return an ASiC container constructed from this message record
-     * @throws Exception in case of any errors
-     */
-    public AsicContainer toAsicContainer(boolean includeAttachment) throws Exception {
         SignatureData signatureData =
                 new SignatureData(signature, hashChainResult, hashChain);
 
@@ -184,7 +175,7 @@ public class MessageRecord extends AbstractLogRecord {
         }
 
         return new AsicContainer(message, signatureData, timestamp,
-                (includeAttachment && attachment != null) ? attachment.getBinaryStream() : null);
+                (attachment != null) ? attachment.getBinaryStream() : null);
     }
 
     public void setAttachmentStream(InputStream stream, long size) {

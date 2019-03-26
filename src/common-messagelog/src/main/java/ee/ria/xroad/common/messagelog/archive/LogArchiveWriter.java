@@ -259,6 +259,7 @@ public class LogArchiveWriter implements Closeable {
     }
 
     private static boolean filenameRandomUnique(String random) {
+
         String filenameEnd = String.format("-%s.zip", random);
 
         String[] fileNamesWithSameRandom = new File(getArchivePath())
