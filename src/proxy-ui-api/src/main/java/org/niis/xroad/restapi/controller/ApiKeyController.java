@@ -26,7 +26,6 @@ package org.niis.xroad.restapi.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
-import org.niis.xroad.restapi.exceptions.ErrorInfo;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -86,11 +85,9 @@ public class ApiKeyController {
      * @return
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    public ResponseEntity<ErrorInfo> revoke(@PathVariable("id") long id) {
+    public ResponseEntity revoke(@PathVariable("id") long id) {
         apiKeyRepository.removeById(id);
-        // TO DO: return something else than errorInfo
-        return new ResponseEntity<>(new ErrorInfo(HttpStatus.OK.value()),
-                HttpStatus.OK);
+        return new ResponseEntity(HttpStatus.OK);
     }
 
 }

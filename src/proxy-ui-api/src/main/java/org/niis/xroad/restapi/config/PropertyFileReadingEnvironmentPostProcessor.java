@@ -87,7 +87,6 @@ public abstract class PropertyFileReadingEnvironmentPostProcessor implements Env
                 for (String originalPropertyName: originalProperties.stringPropertyNames()) {
                     if (isSupported(originalPropertyName)) {
                         String value = originalProperties.getProperty(originalPropertyName);
-                        // TO DO: test how e.g. ciphers list works?
                         springPropertiesMap.put(
                                 mapToSprintPropertyName(originalPropertyName),
                                 value);
