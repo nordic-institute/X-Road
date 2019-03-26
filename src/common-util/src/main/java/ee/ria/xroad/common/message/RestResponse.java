@@ -191,7 +191,8 @@ public class RestResponse extends RestMessage {
             throw new IllegalArgumentException("Invalid REST Response message");
         }
 
-        return new RestResponse(messageBytes, clientId, queryId, requestHash, serviceId, responseCode, reason, headers, xRequestId);
+        return new RestResponse(messageBytes, clientId, queryId, requestHash, serviceId, responseCode, reason,
+                headers, xRequestId);
     }
 
     private static String encodeXRoadId(XRoadId xroadId) {
