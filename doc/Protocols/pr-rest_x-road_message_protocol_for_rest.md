@@ -266,13 +266,15 @@ The response contains some X-Road specific headers that are set by the provider 
 - **X-Road-Id**: Unique identifier for this message
 - **X-Road-Request-Hash**: For responses, this field contains sha-512 encoded hash of the request message
 - **X-Road-Error**: This header is provided in case there was an error processing the request and it occurred somewhere in X-Road (on the consumer or provider Security Server)
+- **X-Request-Id**: Unique identifier for the request
   ```
   X-Road-Client: INSTANCE/CLASS/MEMBER/SUBSYSTEM
   X-Road-Service: INSTANCE/CLASS/MEMBER/SUBSYSTEM/PETSTORE
   X-Road-Id: fa2e18a5-c2cb-4d09-b994-f57727f7c3fb
   X-Road-Request-Hash: 4c519cf0-0e5e-4ccf-b72b-8ed6fe289e6e
+  X-Request-Id: f92591a3-6bf0-49b1-987b-0dd78c034cc3
   ```
-
+ 
 **Request hash header**
 - **X-Road-Request-Hash**: For responses, this field SHALL contain the base-64 encoded SHA512(SHA512(headers)+SHA512(body)). If there is no body, then only the headers are included in the calculation i.e. the field contains the base-64 encoded SHA512(headers). This field is automatically filled in by the service provider's Security Server. The field is used to create a strong connection between a request and a response. Thus, it is possible to prove, for example, that a certain registry record is returned in response to a certain query.
 - The request hash header MUST be automatically created by the service provider's Security Server
@@ -424,6 +426,7 @@ Date: Thu, 21 Mar 2019 09:45:19 GMT
 x-road-id: 5ea48ae9-15c1-465a-be15-9b6ef2c7ef4a
 x-road-client: DEV/COM/222/TESTCLIENT
 x-road-service: DEV/COM/222/TESTSERVICE/petstore
+x-request-id: f92591a3-6bf0-49b1-987b-0dd78c034cc3
 x-road-request-hash: yFOLGuJ0zmLhZSgwp3ooSBQbR9ejSvTc6p6FvBmcSEB2tDD6bxpjiv8sHORxqz4MMgEADH7IcARNprLfEwudNw==
 Content-Length: 159
 ```
@@ -575,6 +578,7 @@ Date: Thu, 21 Mar 2019 12:36:39 GMT
 x-road-id: 29f4d011-ef17-4f2f-9bb1-0452ce17d3f5
 x-road-client: DEV/COM/222/TESTCLIENT
 x-road-service: DEV/COM/222/TESTSERVICE/petstore
+x-request-id: f92591a3-6bf0-49b1-987b-0dd78c034cc3
 x-road-request-hash: Xvx9V2U5c5RhDUiXpVLtW7L8vTd5cM2IOBU2n9efEk7/m3ECKyGAp7yTpJpTWpo6HcmwSaGO+cinxMVKjxJTOQ==
 Content-Length: 1148
 ```
@@ -630,6 +634,7 @@ Date: Thu, 21 Mar 2019 12:43:33 GMT
 x-road-id: acdb2c7a-c705-41c2-b595-4cd62e78316e
 x-road-client: DEV/COM/222/TESTCLIENT
 x-road-service: DEV/COM/222/TESTSERVICE/petstore
+x-request-id: f92591a3-6bf0-49b1-987b-0dd78c034cc3
 x-road-request-hash: MOEfTqBjdqYiX3db9hxJ6JvHvCpYqfA6t0Uhdv6g2I29fMY8ld4CbN8tslj6mUQPXoRaUdPm7NdZeAYTg6zi+A==
 Content-Length: 0
 ```
@@ -685,6 +690,7 @@ Date: Thu, 21 Mar 2019 12:49:38 GMT
 x-road-id: dcaaa3a2-a158-41e1-8775-309848052358
 x-road-client: DEV/COM/222/TESTCLIENT
 x-road-service: DEV/COM/222/TESTSERVICE/petstore
+x-request-id: f92591a3-6bf0-49b1-987b-0dd78c034cc3
 x-road-request-hash: VCNZdwTxl7m3XC6Mpfw1H6qJUtBcm3Y6tfCvg5b3W/fb2RRXsLF9wftR3u6ElclE+RFaiAN/OkSz02fAYbNKaw==
 Content-Length: 0
 ```
@@ -722,6 +728,7 @@ Date: Thu, 21 Mar 2019 12:49:38 GMT
 x-road-id: 6209d61b-6ab5-4443-a09a-b8d2a7c491b2
 x-road-client: DEV/COM/222/TESTCLIENT
 x-road-service: DEV/COM/222/TESTSERVICE/petstore
+x-request-id: f92591a3-6bf0-49b1-987b-0dd78c034cc3
 x-road-request-hash: lQBoldcyuI3BerjHfkleRQ45AyYoFlF7zXSN6yH/RwvTNWEcsTQM18EfqMxYfdkyGGB26oxAjAWv/AcfmZF7og==
 Content-Length: 0
 ```
@@ -765,6 +772,7 @@ Date: Thu, 21 Mar 2019 13:02:29 GMT
 x-road-id: 86e081a6-ec16-4b8d-b729-963f9659a80c
 x-road-client: DEV/COM/222/TESTCLIENT
 x-road-service: DEV/COM/222/TESTSERVICE/petstore
+x-request-id: f92591a3-6bf0-49b1-987b-0dd78c034cc3
 x-road-request-hash: EycIkZAz4WMvbKgnBvd0wUcN4A4w0RZMvugD36ZJ2PpwwGZuMGfxCoO4C0ZC3c4LBGF0rh61vunL3ssZV6TB3Q==
 Content-Length: 100
 ```
