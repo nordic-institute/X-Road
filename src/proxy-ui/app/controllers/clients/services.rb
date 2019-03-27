@@ -132,11 +132,20 @@ module Clients::Services
       service.serviceDescription = servicedescription
       servicedescription.service.add(service)
 
-      client.serviceDescription.add(servicedescription)
+      check_service_codes(servicedescription)
 
+      client.serviceDescription.add(servicedescription)
       serverconf_save
 
       render_json(read_services(client))
+  end
+
+  def check_service_codes(restservice)
+      restservice.client.serviceDescription.each do |other_service|
+          if DescriptionType::OPENAPI3 == other_service.type && restservice.service.first.service_code == other_service.service.first.service_code
+              raise t('clients.service_code_exists')
+          end
+      end
   end
 
   def servicedescription_disable

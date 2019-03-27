@@ -116,25 +116,12 @@
                         params.service_type = "OPENAPI3";
                         params.client_id = $("#details_client_id").val();
 
-                        var existingServices = oServices.fnGetData();
-                        var restServices = $.grep(existingServices, function(service) {
-                            return !service.wsdl && service.wsdl_id.indexOf(".wsdl") === -1;
-                        });
+                        $.post(action("servicedescription_add"), params, function(response) {
+                            oServices.fnReplaceData(response.data);
+                            enableActions();
 
-                        var serviceCodes = $.map(restServices, function(service) {
-                            return service.service_code;
-                        });
-
-                        if(serviceCodes.indexOf(params.openapi3_service_code) >= 0) {
-                            error(_("clients.service_params_dialog.duplicate_service_code"), null, function() {});
-                        } else {
-                            $.post(action("servicedescription_add"), params, function(response) {
-                                oServices.fnReplaceData(response.data);
-                                enableActions();
-
-                                $(dialog).dialog("close");
-                            }, "json").fail(showOutput);
-                        }
+                            $(dialog).dialog("close");
+                        }, "json").fail(showOutput);
 
                     }
                 },

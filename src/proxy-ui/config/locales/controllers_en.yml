@@ -84,6 +84,7 @@ en:
     cert_exists: "Certificate already exists"
     wsdl_exists: "WSDL address already exists."
     openapi3_exists: "REST address already exists."
+    service_code_exists: "Service code already exists."
     invalid_wsdl: "Incorrect file structure. WSDL URL must point to a WSDL file."
     malformed_wsdl_url: "Malformed URL. WSDL URL must point to a WSDL file."
     wsdl_download_failed: "Downloading WSDL failed. WSDL URL must point to a WSDL file."
