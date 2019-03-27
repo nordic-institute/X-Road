@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 
 /**
- * Load SSL properties from db.properties file.
+ * Load SSL properties from ssl.properties file.
  * Supported properties are ones starting with "server.ssl."
  */
 @Slf4j
