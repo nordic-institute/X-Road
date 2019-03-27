@@ -2924,7 +2924,7 @@ for authentication when executing REST API calls to update server configuration.
 - 1c. There is a problem when executing the operation
     - 1c.1. System responds with a HTTP status corresponding to the failure (documented in OpenAPI specification)
 
-**Related information:** -
+**Related information:** 
 
 The available REST APIs, and the details of them, are specified in more details in OpenAPI specification and
 REST API guidelines (TBD). Access rights for different REST APIs follow the same rules as the corresponding UI operations.
