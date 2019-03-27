@@ -251,7 +251,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 Note about `database-properties` file: Management REST API module uses the same database-properties file, but
 limits the configuration parameters usage:
 
-- `hibernate.dialect` cannot be changed, it is fixed to
+- `hibernate.dialect` cannot be changed, it is fixed to a custom PostgreSQL dialect.
 - out of `hibernate.connection.*` parameters, only `url`, `username` and `password` can be configured.
 
 This in practice limits configurability to different kinds of PostgreSQL database configurations, and it is not possible
