@@ -45,6 +45,7 @@ import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
 import akka.actor.ActorSystem;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -74,6 +75,9 @@ public abstract class AbstractProxyIntegrationTest {
     protected static int servicePort = getFreePort();
     protected static TestService service;
 
+    private static TestServerConf testServerConf = new TestServerConf(servicePort);
+    private static TestGlobalConf testGlobalConf = new TestGlobalConf();
+
     @Rule
     public final ExternalResource serviceResource = new ExternalResource() {
         @Override
@@ -84,8 +88,11 @@ public abstract class AbstractProxyIntegrationTest {
                     try {
                         before();
                         service.before();
-                        base.evaluate();
-                        service.assertOk();
+                        try {
+                            base.evaluate();
+                        } finally {
+                            service.assertOk();
+                        }
                     } finally {
                         after();
                     }
@@ -111,10 +118,9 @@ public abstract class AbstractProxyIntegrationTest {
         System.setProperty(SystemProperties.JETTY_OCSP_RESPONDER_CONFIGURATION_FILE, "src/test/ocsp-responder.xml");
         System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");
 
-        RestProxyTest.servicePort = getFreePort();
         KeyConf.reload(new TestKeyConf());
-        ServerConf.reload(new TestServerConf(RestProxyTest.servicePort));
-        GlobalConf.reload(new TestGlobalConf());
+        ServerConf.reload(testServerConf);
+        GlobalConf.reload(testGlobalConf);
 
         System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
         System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
@@ -152,6 +158,12 @@ public abstract class AbstractProxyIntegrationTest {
             svc.join();
         }
         actorSystem.terminate();
+    }
+
+    @After
+    public void after() {
+        ServerConf.reload(testServerConf);
+        GlobalConf.reload(testGlobalConf);
     }
 
     static int getFreePort() {

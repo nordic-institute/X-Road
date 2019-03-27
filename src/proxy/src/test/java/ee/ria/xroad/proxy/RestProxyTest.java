@@ -25,6 +25,7 @@
 package ee.ria.xroad.proxy;
 
 
+import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.testutil.TestService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -35,9 +36,11 @@ import javax.servlet.ServletOutputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * RestProxyTest
@@ -82,6 +85,50 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .then()
                 .statusCode(200)
                 .body("value", Matchers.equalTo(42));
+    }
+
+    @Test
+    public void shouldKeepQueryId() {
+        final String qid = UUID.randomUUID().toString();
+        service.setHandler((target, request, response) -> assertEquals(qid, request.getHeader("X-Road-Id")));
+
+        given()
+                .baseUri("http://127.0.0.1")
+                .port(proxyClientPort)
+                .header("Content-Type", "application/json")
+                .header("X-Road-Client", "EE/BUSINESS/consumer/sub")
+                .header("X-Road-Id", qid)
+                .body("{\"value\" : 42}")
+                .post("/r0/EE/BUSINESS/producer/sub/echo")
+                .then()
+                .statusCode(200)
+                .header("X-Road-Id", qid);
+
+    }
+
+    @Test
+    public void requestHashShouldBeUnique() {
+        final String qid = "queryid";
+        final String requestHash = given()
+                .baseUri("http://127.0.0.1")
+                .port(proxyClientPort)
+                .header("Content-Type", "application/json")
+                .header("X-Road-Client", "EE/BUSINESS/consumer/sub")
+                .header("X-Road-Id", qid)
+                .post("/r0/EE/BUSINESS/producer/sub/echo")
+                .header(MimeUtils.HEADER_REQUEST_HASH);
+
+        assertNotNull(requestHash);
+
+        given()
+                .baseUri("http://127.0.0.1")
+                .port(proxyClientPort)
+                .header("Content-Type", "application/json")
+                .header("X-Road-Client", "EE/BUSINESS/consumer/sub")
+                .header("X-Road-Id", qid)
+                .post("/r0/EE/BUSINESS/producer/sub/echo")
+                .then()
+                .header(MimeUtils.HEADER_REQUEST_HASH, Matchers.not(requestHash));
     }
 
     @Test
@@ -166,7 +213,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
         final ServletOutputStream output = response.getOutputStream();
         byte[] buf = new byte[8192];
         for (int i = 0; i < buf.length; i++) {
-            buf[i] = (byte) (bytes % 256);
+            buf[i] = (byte)(bytes % 256);
         }
         int i = bytes;
         for (; i > buf.length; i -= buf.length) {
