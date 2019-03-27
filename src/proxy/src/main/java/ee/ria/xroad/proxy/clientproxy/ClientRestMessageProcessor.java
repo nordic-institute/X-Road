@@ -238,6 +238,10 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         if (!Objects.equals(restRequest.getServiceId(), response.getRestResponse().getServiceId())) {
             throw new CodedException(X_INCONSISTENT_RESPONSE, "Response service id does not match request message");
         }
+        if (!Objects.equals(restRequest.getXRequestId(), response.getRestResponse().getXRequestId())) {
+            throw new CodedException(X_INCONSISTENT_RESPONSE,
+                    "Response message request id does not match request message");
+        }
 
         //calculate request hash
         byte[] requestDigest;
@@ -255,10 +259,6 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         if (!Arrays.equals(requestDigest, response.getRestResponse().getRequestHash())) {
             throw new CodedException(X_INCONSISTENT_RESPONSE, "Response message hash does not match request message");
         }
-        if (!Objects.equals(restRequest.getXRequestId(), response.getRestResponse().getXRequestId())) {
-            throw new CodedException(X_INCONSISTENT_RESPONSE,
-                    "Response message x-request-id does not match request message");
-        }
     }
 
     private void logResponseMessage() {
@@ -274,7 +274,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
         if (servletResponse instanceof Response) {
             // the standard API for setting reason and code is deprecated
-            ((Response) servletResponse).setStatusWithReason(
+            ((Response)servletResponse).setStatusWithReason(
                     rest.getResponseCode(),
                     rest.getReason());
         } else {

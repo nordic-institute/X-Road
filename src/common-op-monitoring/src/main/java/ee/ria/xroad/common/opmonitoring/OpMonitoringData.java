@@ -153,7 +153,7 @@ public class OpMonitoringData {
     /**
      * Constructor for creating an instance in code that handles incoming
      * XRoad requests.
-     * @param type security server type
+     * @param type        security server type
      * @param requestInTs the timestamp of handling the XRoad request
      */
     public OpMonitoringData(SecurityServerType type, long requestInTs) {
@@ -217,7 +217,6 @@ public class OpMonitoringData {
     /**
      * Sets the "response out" timestamp. In case the field assignResponseOutTsToResponseInTs is
      * true, the same value is assigned to the "response in" also.
-     *
      * @param timestamp Unix timestamp in milliseconds
      * @param overwrite if true, old value is overwritten, otherwise old value remains
      */
@@ -404,7 +403,7 @@ public class OpMonitoringData {
     }
 
     /**
-     * Sets x-request-id of the message.
+     * Sets x-road-request-id of the message.
      * @param xRequestId x-request-id
      */
     public void setXRequestId(String xRequestId) {

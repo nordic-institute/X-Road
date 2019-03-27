@@ -63,7 +63,7 @@ public final class MimeUtils {
     public static final String HEADER_CLIENT_ID = "x-road-client";
     public static final String HEADER_SERVICE_ID = "x-road-service";
     public static final String HEADER_REQUEST_HASH = "x-road-request-hash";
-    public static final String HEADER_REQUEST_ID = "x-request-id";
+    public static final String HEADER_REQUEST_ID = "x-road-request-id";
     public static final String HEADER_USER_ID = "x-road-userid";
     public static final String HEADER_ISSUE = "x-road-issue";
     public static final String HEADER_SECURITY_SERVER = "x-road-security-server";

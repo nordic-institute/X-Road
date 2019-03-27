@@ -215,7 +215,7 @@ The following describes the actions that the service client's security server mu
 
     a)	Add the following HTTP headers to the HTTP headers of the HTTP request:
 
-    * UUID (`x-request-id`). The id is shared between request/response pairs so one can easily find corresponding messages from logs if needed.
+    * UUID (`x-road-request-id`). The id is shared between request/response pairs so one can easily find corresponding messages from logs if needed.
 
     * Hash algorithm identifier (`x-hash-algorithm`). The hash algorithm is used by the other party to calculate the hashes of the message parts to be used during message verification.
 
