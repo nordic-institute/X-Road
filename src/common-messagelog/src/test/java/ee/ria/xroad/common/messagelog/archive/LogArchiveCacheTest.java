@@ -276,7 +276,7 @@ public class LogArchiveCacheTest {
             return null;
         }).when(container).write(any(OutputStream.class));
 
-        when(record.toAsicContainer(true)).thenReturn(container);
+        when(record.toAsicContainer()).thenReturn(container);
 
         return record;
     }

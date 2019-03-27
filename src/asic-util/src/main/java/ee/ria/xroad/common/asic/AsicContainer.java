@@ -222,14 +222,13 @@ public class AsicContainer {
 
     /**
      * Write this container to the given output stream in ZIP format.
-     * Does not close the output stream.
      * @param out the stream for writing container
      * @throws Exception if errors occurred when writing ZIP entries
      */
     public void write(OutputStream out) throws Exception {
-        ZipOutputStream zip = new ZipOutputStream(out);
-        AsicHelper.write(this, zip);
-        zip.finish();
+        try (ZipOutputStream zip = new ZipOutputStream(out)) {
+            AsicHelper.write(this, zip);
+        }
     }
 
     private void createManifests() throws Exception {

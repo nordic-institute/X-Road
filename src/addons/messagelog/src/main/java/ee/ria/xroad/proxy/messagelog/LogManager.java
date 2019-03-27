@@ -290,7 +290,10 @@ public class LogManager extends AbstractLogManager {
 
         messageRecord.setTime(new Date().getTime());
 
-        if (message.getBody() != null && MAX_LOGGABLE_BODY_SIZE > 0 && manipulator.isBodyLogged(message)) {
+        if (message.getBody() != null
+                && message.getBody().size() > 0
+                && MAX_LOGGABLE_BODY_SIZE > 0
+                && manipulator.isBodyLogged(message)) {
             if (message.getBody().size() > MAX_LOGGABLE_BODY_SIZE && !TRUNCATED_BODY_ALLOWED) {
                 throw new CodedException(X_LOGGING_FAILED_X, "Message size exceeds maximum loggable size");
             }
