@@ -4,8 +4,8 @@
 # X-Road: Use Case Model for Security Server Management
 **Analysis**
 
-Version: 1.7  
-06.03.2018
+Version: 1.8
+27.03.2019
 <!-- 49 pages -->
 Doc. ID: UC-SS
 
@@ -30,6 +30,7 @@ Date       | Version | Description                                              
 29.08.2017 | 1.5     | Changed documentation type from docx to md file |   Lasse Matikainen
 19.02.2018 | 1.6     | Updated the negative case extension for backing up the central server | Tatu Repo
 06.03.2018 | 1.7     | Moved terms to term doc, added term doc reference and link, added internal MD-doc links | Tatu Repo
+278.03.2019 | 1.8     | Added use cases related to REST APIs | Janne Mattila
 
 <!-- tocstop -->
 
@@ -2738,13 +2739,13 @@ for authentication when executing REST API calls to update server configuration.
     - 2.3 Accept REST API's self-signed SSL certificate
     - 2.4 Provide credentials of an SS administrator with role XROAD_SYSTEM_ADMINISTRATOR,
     using [basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication)
-    - 2.5 Provide roles to link to API key with message body containing role names in a JSON array of strings
-    - 2.6 Define correct content type with header `Content-Type: application/json`
-    - Example with `curl`: `curl -X POST -u <username>:<password> https://localhost:4000/api/api-key --data '["XROAD_SERVICE_ADMINISTRATOR","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k`
+    - 2.5 Provide roles to link to API key, with message body containing the role names in a JSON array of strings
+    - 2.6 Define correct content type with HTTP header `Content-Type: application/json`
+    - Example using "curl" command: `curl -X POST -u <username>:<password> https://localhost:4000/api/api-key --data '["XROAD_SERVICE_ADMINISTRATOR","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k`
 
 3.  System creates a new API key and responds with a JSON message containing details of the key:
     - 3.1 API key id with name `id`
-    - 3.2 Roles linked to key, with name `roles`, in array of strings
+    - 3.2 Roles linked to key, with name `roles`, in an array of strings
     - 3.3 Actual API key with name `key`
     - Example:
 
@@ -2763,7 +2764,7 @@ for authentication when executing REST API calls to update server configuration.
 
 **Extensions**:
 
-- 2a. SS administrator provides invalid credentials or credentials for user who does not have XROAD_SYSTEM_ADMINISTRATOR
+- 2a. SS administrator provides invalid credentials or credentials for a user who does not have XROAD_SYSTEM_ADMINISTRATOR
   role
     - 2a.1. System responds with HTTP 401 or HTTP 403
 - 2b. SS administrator sends request from a remote server
@@ -2791,18 +2792,18 @@ for authentication when executing REST API calls to update server configuration.
 
 **Main Success Scenario**:
 
-1.  SS administrator sends HTTP GET request to list a new API key. REST client should
+1.  SS administrator sends HTTP GET request to list all API keys. REST client should
     - 2.1 Send request locally from the security server, remote access is forbidden
     - 2.2 Send request to URL `https://localhost:4000/api/api-key`
     - 2.3 Accept REST API's self-signed SSL certificate
     - 2.4 Provide credentials of an SS administrator with role XROAD_SYSTEM_ADMINISTRATOR,
     using [basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication)
-    - Example with `curl`: `curl -X GET -u <username>:<password> https://localhost:4000/api/api-key -k`
+    - Example using "curl" command: `curl -X GET -u <username>:<password> https://localhost:4000/api/api-key -k`
 
-2.  System returns list of API keys in an JSON array containing number of items with details of the keys:
+2.  System returns list of API keys in an JSON array containing items with details of the keys:
     - 3.1 API key id with name `id`
     - 3.2 Roles linked to key, with name `roles`, in array of strings
-    - System does *not* return the actual API key
+    - System does *not* return the actual API keys
     - Example:
 
 ```
@@ -2827,7 +2828,7 @@ for authentication when executing REST API calls to update server configuration.
 
 **Extensions**:
 
-- 1a. SS administrator provides invalid credentials or credentials for user who does not have XROAD_SYSTEM_ADMINISTRATOR
+- 1a. SS administrator provides invalid credentials or credentials for a user who does not have XROAD_SYSTEM_ADMINISTRATOR
   role
     - 1a.1. System responds with HTTP 401 or HTTP 403
 - 1b. SS administrator sends request from a remote server
@@ -2851,7 +2852,7 @@ for authentication when executing REST API calls to update server configuration.
 
 **Postconditions**: -
 
-**Trigger**: SS administrator wants revoke an API key.
+**Trigger**: SS administrator wants to revoke an API key.
 
 **Main Success Scenario**:
 
@@ -2862,13 +2863,13 @@ for authentication when executing REST API calls to update server configuration.
     - 2.3 Accept REST API's self-signed SSL certificate
     - 2.4 Provide credentials of an SS administrator with role XROAD_SYSTEM_ADMINISTRATOR,
     using [basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication)
-    - Example with `curl`: `curl -X DELETE -u <username>:<password> https://localhost:4000/api/api-key/63 -k`
+    - Example using "curl" command: `curl -X DELETE -u <username>:<password> https://localhost:4000/api/api-key/63 -k`
 
 2.  System deletes the key and it cannot be used for authentication anymore. System responds with HTTP 200.
 
 **Extensions**:
 
-- 1a. SS administrator provides invalid credentials or credentials for user who does not have XROAD_SYSTEM_ADMINISTRATOR
+- 1a. SS administrator provides invalid credentials or credentials for a user who does not have XROAD_SYSTEM_ADMINISTRATOR
   role
     - 1a.1. System responds with HTTP 401 or HTTP 403
 - 1b. SS administrator sends request from a remote server
@@ -2899,17 +2900,17 @@ for authentication when executing REST API calls to update server configuration.
 **Main Success Scenario**:
 
 1.  SS administrator sends a REST request to perform some kind of configuration action. REST client should
-    - 2.1 Send request locally from anywhere, remote access is not forbidden
+    - 2.1 Send request from anywhere, remote access is not forbidden
     - 2.2 Send request to URL corresponding to the desired action,
      for example `https://<security-server-address>:4000/api/clients` to list clients.
     - 2.3 Use HTTP method corresponding to the desired action,
      for example HTTP GET to list clients.
     - 2.4 Accept REST API's self-signed SSL certificate
-    - 2.5 Provide API key (created in [UC SS\_43](#344-uc-ss_43-create-a-new-api-key) in HTTP header
+    - 2.5 Provide API key (created in [UC SS\_43](#344-uc-ss_43-create-a-new-api-key)) in HTTP header
     `Authorization: X-Road-ApiKey token=<api key>`
     - 2.6 Provide required message, if any, in HTTP body
     - 2.7 Specify correct content type for the body, if any, with HTTP header such as `Content-Type: application/json`
-    - Example with `curl`: `curl --header "Authorization: X-Road-apikey token=<api key>" "https://<security-server-address>:4000/api/clients" -k`
+    - Example using "curl" command: `curl --header "Authorization: X-Road-apikey token=<api key>" "https://<security-server-address>:4000/api/clients" -k`
 
 2.  System performs the desired action. System responds with HTTP 200. System returns the results of the operation,
     if any, in HTTP body
