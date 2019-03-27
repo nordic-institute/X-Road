@@ -52,21 +52,25 @@ import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.message.BasicHeader;
+import org.bouncycastle.operator.DigestCalculator;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.util.io.TeeInputStream;
+import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_RESPONSE;
 import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
@@ -91,6 +95,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     private ClientId senderId;
     private RestRequest restRequest;
     private String xRequestId;
+    private byte[] restBodyDigest;
 
     ClientRestMessageProcessor(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
             HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
@@ -162,9 +167,9 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         try (HttpSender httpSender = createHttpSender()) {
             sendRequest(httpSender);
             parseResponse(httpSender);
+            checkConsistency(getHashAlgoId(httpSender));
         }
 
-        checkConsistency();
         logResponseMessage();
     }
 
@@ -223,7 +228,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
-    private void checkConsistency() {
+    private void checkConsistency(String hashAlgoId) throws IOException, OperatorCreationException {
         if (!Objects.equals(restRequest.getClientId(), response.getRestResponse().getClientId())) {
             throw new CodedException(X_INCONSISTENT_RESPONSE, "Response client id does not match request message");
         }
@@ -233,7 +238,21 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         if (!Objects.equals(restRequest.getServiceId(), response.getRestResponse().getServiceId())) {
             throw new CodedException(X_INCONSISTENT_RESPONSE, "Response service id does not match request message");
         }
-        if (!Arrays.equals(restRequest.getHash(), response.getRestResponse().getRequestHash())) {
+
+        //calculate request hash
+        byte[] requestDigest;
+        if (restBodyDigest != null) {
+            final DigestCalculator dc = CryptoUtils.createDigestCalculator(hashAlgoId);
+            try (OutputStream out = dc.getOutputStream()) {
+                out.write(restRequest.getHash());
+                out.write(restBodyDigest);
+            }
+            requestDigest = dc.getDigest();
+        } else {
+            requestDigest = restRequest.getHash();
+        }
+
+        if (!Arrays.equals(requestDigest, response.getRestResponse().getRequestHash())) {
             throw new CodedException(X_INCONSISTENT_RESPONSE, "Response message hash does not match request message");
         }
         if (!Objects.equals(restRequest.getXRequestId(), response.getRestResponse().getXRequestId())) {
@@ -343,6 +362,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                 opMonitoringData.setRequestRestSize(restRequest.getMessageBytes().length
                         + enc.getAttachmentsByteCount());
 
+                restBodyDigest = enc.getRestBodyDigest();
                 enc.writeSignature();
                 enc.close();
 
@@ -358,17 +378,11 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     }
 
     private List<Header> headers(HttpServletRequest req) {
-        final ArrayList<Header> tmp = new ArrayList<>();
-        final Enumeration<String> names = req.getHeaderNames();
-        while (names.hasMoreElements()) {
-            final String header = names.nextElement();
-            final Enumeration<String> headers = req.getHeaders(header);
-            while (headers.hasMoreElements()) {
-                final String value = headers.nextElement();
-                tmp.add(new BasicHeader(header, value));
-            }
-        }
-        return tmp;
+        //Use jetty request to keep the original order
+        Request jrq = (Request)req;
+        return jrq.getHttpFields().stream()
+                .map(f -> new BasicHeader(f.getName(), f.getValue()))
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
 }

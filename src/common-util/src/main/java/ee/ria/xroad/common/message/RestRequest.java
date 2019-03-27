@@ -27,7 +27,6 @@ package ee.ria.xroad.common.message;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 
 import lombok.Getter;
@@ -86,7 +85,6 @@ public class RestRequest extends RestMessage {
                 .collect(Collectors.toList());
 
         decodeIdentifiers();
-        hash = CryptoUtils.calculateDigest(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID, messageBytes);
     }
 
     /**
@@ -121,9 +119,7 @@ public class RestRequest extends RestMessage {
             }
             bof.write(CRLF);
             serializeHeaders(headers, bof, h -> true);
-            final byte[] bytes = bof.toByteArray();
-            hash = CryptoUtils.calculateDigest(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID, bytes);
-            return bytes;
+            return bof.toByteArray();
         } catch (Exception io) {
             throw new IllegalStateException("Unable to serialize request", io);
         }
