@@ -361,7 +361,7 @@ Default values for the SSL properties are
 | server.ssl.enabled              | true                              | Whether to enable SSL support |
 | server.ssl.ciphers              | TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384  | Supported SSL ciphers |
 | server.ssl.protocol             | TLS                               | SSL protocol to use |
-| server.ssl.enabled-protocols    | TLSv1.                            | Enabled SSL protocols |
+| server.ssl.enabled-protocols    | TLSv1.2                           | Enabled SSL protocols |
 
 Management REST API module uses `database-properties` configuration from the [proxy parameters](#32-proxy-parameters-proxy),
 with some additional limitations on configurability (see details in proxy chapter).
