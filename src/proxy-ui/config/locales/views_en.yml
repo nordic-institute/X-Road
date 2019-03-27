@@ -128,6 +128,7 @@ en:
       required_sec_cat: "Required Security Category"
       sslauth: "Verify TLS Certificate"
       no_timeout: "A timeout value of zero is interpreted as an infinite timeout."
+      duplicate_service_code: "This service code already exists. Use another service code"
 
     service_acl_dialog:
       title: "ACL for service: {{code}}"
