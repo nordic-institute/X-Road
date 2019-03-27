@@ -34,6 +34,7 @@ import ee.ria.xroad.common.conf.serverconf.dao.ServiceDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServiceDescriptionDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
@@ -253,6 +254,18 @@ public class ServerConfImpl implements ServerConfProvider {
                 .map(tsp -> tsp.getUrl())
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toList()));
+    }
+
+    @Override
+    public DescriptionType getDescriptionType(ServiceId service) {
+        return tx(session -> {
+            ServiceType serviceType = getService(session, service);
+            if (serviceType != null && serviceType.getServiceDescription() != null) {
+                return serviceType.getServiceDescription().getType();
+            }
+
+            return null;
+        });
     }
 
     // ------------------------------------------------------------------------
