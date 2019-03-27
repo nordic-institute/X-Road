@@ -363,7 +363,7 @@ Default values for the SSL properties are
 | server.ssl.protocol             | TLS                               | SSL protocol to use |
 | server.ssl.enabled-protocols    | TLSv1.                            | Enabled SSL protocols |
 
-Management REST API module uses `database-properties` configuration from the [proxy parameters]`](#32-proxy-parameters-proxy),
+Management REST API module uses `database-properties` configuration from the [proxy parameters](#32-proxy-parameters-proxy),
 with some additional limitations on configurability (see details in proxy chapter).
 
 ## 4 Central Server System Parameters
