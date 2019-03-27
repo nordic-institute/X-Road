@@ -51,7 +51,7 @@ Doc. ID: UG-SYSPAR
 | 21.12.2018 | 2.39     | Add connector initial idle time parameters | Jarkko Hyöty |
 | 23.01.2019 | 2.40     | Added new Central Server parameter *auto-approve-auth-cert-reg-requests* | Petteri Kivimäki |
 | 03.02.2019 | 2.41     | Added new Central Server parameter *auto-approve-client-reg-requests* | Petteri Kivimäki |
-| 27.03.2019 | 2.42     | Added management REST API parameters | Petteri Kivimäki |
+| 27.03.2019 | 2.42     | Added management REST API parameters | Janne Mattila |
 
 ## Table of Contents
 
@@ -359,7 +359,7 @@ Default values for the SSL properties are
 | server.ssl.key-store            | classpath:nginx.p12               | Path to the key store that holds the SSL certificate (currently bundled in JAR, will be replaced by a package-installed keystore in XRDDEV-414)  |
 | server.ssl.key-store-password   | nginx                             | Password used to access the key store |
 | server.ssl.enabled              | true                              | Whether to enable SSL support |
-| server.ssl.ciphers              | TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384                                         | Supported SSL ciphers |
+| server.ssl.ciphers              | TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384  | Supported SSL ciphers |
 | server.ssl.protocol             | TLS                               | SSL protocol to use |
 | server.ssl.enabled-protocols    | TLSv1.                            | Enabled SSL protocols |
 
