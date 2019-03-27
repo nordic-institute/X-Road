@@ -84,16 +84,18 @@ This database assumes PostgreSQL version 9.3. Ubuntu 14.04/18.04 and RHEL7 defau
 ## 1.3 Creating, Backing Up and Restoring the Database
 
 This database is integrated into X-Road security server application. The database management functions are embedded into the application user interface.
-The database, the database user and the data model is created by the application's installer. The database updates are packaged as application updates and are applied when the application is upgraded. From the technical point of view, the database structure is created and updated using ![Liquibase](http://www.liquibase.org/) tool. The migration scripts can be found both in application source and in file system of the installed application.
+The database, the database user and the data model is created by the application's installer. The database updates are packaged as application updates and are applied when the application is upgraded. From the technical point of view, the database structure is created and updated using [Liquibase](http://www.liquibase.org/) tool. The migration scripts can be found both in application source and in file system of the installed application.
 Database backup functionality is built into the application. The backup operation can be invoked from the web-based user interface or from the command line. The backup contains dump of all the database structure and contents. When restoring the application, first the software is installed and then the configuration database is restored together with all the other necessary files. This produces a working security server. 
 Note: backing up of security server does not include message log that is managed using different tools.
 
 ## 1.4 Saving Database History
 
 This section describes a general mechanism for storing history of the database tables. All the history-aware tables have associated trigger update_history that records all the modifications to data. All the tables of security server database are history-aware, except for
+
     • history,
     • databasechangelog and
     • databasechangeloglock.
+
 When a row is created, updated or deleted in one of the history-aware tables, the trigger update_history is activated and invokes the stored procedure add_history_rows. For each changed column, add_history_rows inserts a row into the history table. The details of the stored procedures are described in section 1.6.
 
 ## 1.5 Entity-Relationship Diagram
@@ -152,6 +154,7 @@ For owner, the record is created when the administrator initializes the security
 The client record is deleted when the administrator removes the client in the user interface. The client record corresponding to the owner cannot be deleted.
 The client record is modified when administrator changes parameters in the user interface or when automatic status update occurs (see below).
 The field clientstatus shows the progress of registering in central server the connection between this security server client and this security server. Only in “registered” state can the security server exchange messages on behalf of this client.
+
     • “saved” -- initial state. Client enters it immediately after creation. From this state the administrator can send registration request to the central server.
     • “registration in progress” -- the administrator has successfully sent registration request to the central server. In this state the security server is waiting for approval of the client registration request. When the security server receives a global configuration that contains connection between the security server and the client, it enters the “registered” state.
     • “registered” -- the registration request sent to the central server is approved and the connection between the client and the security server is registered in the global configuration. In this state the security server can exchange messages on behalf of the client.
@@ -173,10 +176,7 @@ The field clientstatus shows the progress of registering in central server the c
 | conf_id [FK] | bigint |  | Identifies the serverconf. References id attribute of SERVERCONF entity. |
 | identifier [FK] | bigint |  | Identifies the security server client. References id attribute of IDENTIFIER entity. |
 | clientstatus | character varying(255) |  | Current status of the client. Possible values are “saved”, “registration in progress”, “registered”, “deletion in progress”, “global error” |
-| isauthentication | character varying(255) |  | Type of HTTPS authentication that is used with the client's information systems. Possible values are the following.
-    • “NOSSL” -- the client can connect with HTTP or HTTPS protocol. For HTTPS connection, no authentication is used.
-    • “SSLNOAUTH” -- the client can only connect with HTTPS protocol. No certificate-based authentication is used.
-    • “SSLAUTH” -- the client can only connect with HTTPS protocol. The client must authenticate the connection with certificate. |
+| isauthentication | character varying(255) |  | Type of HTTPS authentication that is used with the client's information systems. Possible values are the following <ul><li>“NOSSL” -- the client can connect with HTTP or HTTPS protocol. For HTTPS connection, no authentication is used.</li><li>“SSLNOAUTH” -- the client can only connect with HTTPS protocol. No certificate-based authentication is used.</li><li>“SSLAUTH” -- the client can only connect with HTTPS protocol. The client must authenticate the connection with certificate.</li></ul>|
 
 ## 2.4 DATABASECHANGELOG
 
@@ -261,8 +261,8 @@ Identifier that can be used to identify various objects on X-Road. An identifier
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
 | id [PK] | bigint | NOT NULL | Primary key. |
-| discriminator | character varying(255) | NOT NULL | Technical attribute, specifying the Java class to which the identifier is mapped. Possible values are C (ClientId), S (ServiceId), CS (CentralServiceId), GG (GlobalGroupId), LG (LocalGroupId), SC (SecurityCategoryId), SS (SecurityServerId). The corresponding Java classes are located in the ee.ria.xroad.common.identifier package. |
-| type | character varying(255) |  | Specifies the type of the object that the identifier identifies. Possible values, defined in enum ee.ria.xroad.common.identifier.XroadObjectType, are MEMBER, SUBSYSTEM, SERVICE, CENTRALSERVICE, GLOBALGROUP, LOCALGROUP, SERVER, SECURITYCATEGORY. |
+| discriminator | character varying(255) | NOT NULL | Technical attribute, specifying the Java class to which the identifier is mapped. Possible values are C (ClientId), S (ServiceId), CS (CentralServiceId), GG (GlobalGroupId), LG (LocalGroupId), SC (SecurityCategoryId), SS (SecurityServerId). The corresponding Java classes are located in the `ee.ria.xroad.common.identifier` package. |
+| type | character varying(255) |  | Specifies the type of the object that the identifier identifies. Possible values, defined in enum `ee.ria.xroad.common.identifier.XroadObjectType`, are MEMBER, SUBSYSTEM, SERVICE, CENTRALSERVICE, GLOBALGROUP, LOCALGROUP, SERVER, SECURITYCATEGORY. |
 | xroadinstance | character varying(255) |  | X-Road instance identifier. Present in identifiers of all types, except LOCALGROUP. |
 | memberclass | character varying(255) |   | Member class. Present in identifiers of MEMBER, SUBSYSTEM, SERVER and SERVICE type.  |
 | membercode | character varying(255) |   | Member code. Present in identifiers of MEMBER, SUBSYSTEM, SERVER and SERVICE type.  |
