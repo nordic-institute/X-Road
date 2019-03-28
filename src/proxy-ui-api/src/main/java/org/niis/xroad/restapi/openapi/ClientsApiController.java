@@ -29,6 +29,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.ClientConverter;
+import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,18 +91,15 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     }
 
     @Override
-    @PreAuthorize("hasAuthority('NO_ONE_HAS_THIS_PERMISSION_YET')")
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
     public ResponseEntity<Client> getClient(String id) {
-//CHECKSTYLE.OFF: TodoComment - need this todo and still want builds to succeed
-        // getClient is not yet implemented at this point,
-        // but keeping the work-in-progress version here anyway
         ClientId clientId = clientConverter.convertId(id);
         ClientType clientType = clientRepository.getClient(clientId);
+        if (clientType == null) {
+            throw new NotFoundException("client with id " + id + " not found");
+        }
         Client client = clientConverter.convert(clientType);
-        // TODO: 404 not working
         return new ResponseEntity<>(client, HttpStatus.OK);
-//CHECKSTYLE.ON: TodoComment
-
     }
 
     @Override
