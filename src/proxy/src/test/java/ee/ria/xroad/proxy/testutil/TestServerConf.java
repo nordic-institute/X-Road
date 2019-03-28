@@ -28,6 +28,7 @@ import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -87,5 +88,10 @@ public class TestServerConf extends EmptyServerConf {
     @Override
     public IsAuthentication getIsAuthentication(ClientId client) {
         return IsAuthentication.NOSSL;
+    }
+
+    @Override
+    public DescriptionType getDescriptionType(ServiceId service) {
+        return DescriptionType.OPENAPI3;
     }
 }

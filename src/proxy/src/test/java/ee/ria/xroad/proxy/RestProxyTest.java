@@ -25,7 +25,11 @@
 package ee.ria.xroad.proxy;
 
 
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
+import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.proxy.testutil.TestServerConf;
 import ee.ria.xroad.proxy.testutil.TestService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -205,6 +209,29 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .statusCode(302)
                 .header("Location", location);
     }
+
+    @Test
+    public void shouldNotAllowCallingWSDLServices() {
+        ServerConf.reload(new TestServerConf(servicePort) {
+            @Override
+            public DescriptionType getDescriptionType(ServiceId service) {
+                if ("wsdl".equals(service.getServiceCode())) {
+                    return DescriptionType.WSDL;
+                }
+                return DescriptionType.OPENAPI3;
+            }
+        });
+
+        given()
+                .baseUri("http://127.0.0.1")
+                .port(proxyClientPort)
+                .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
+                .get("/r0/EE/BUSINESS/producer/sub/wsdl")
+                .then()
+                .statusCode(500)
+                .header("X-Road-Error", "Server.ServerProxy.ServiceType");
+    }
+
 
     private static final TestService.Handler LARGE_OBJECT_HANDLER = (target, request, response) -> {
         response.setStatus(200);
