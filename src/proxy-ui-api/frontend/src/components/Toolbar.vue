@@ -31,13 +31,14 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { RouteName } from '@/global';
 
 export default Vue.extend({
   name: 'toolbar',
   methods: {
     logout(): void {
       this.$store.dispatch('logout');
-      this.$router.replace('/login');
+      this.$router.replace({ name: RouteName.Login });
     },
     demoLogout(): void {
       this.$store.dispatch('demoLogout');

@@ -62,6 +62,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { RouteName } from '@/global';
 
 export default Vue.extend({
   name: 'login',
@@ -140,7 +141,7 @@ export default Vue.extend({
         .dispatch('fetchUserData')
         .then(
           (response) => {
-            this.$router.replace('/');
+            this.$router.replace({ name: RouteName.Clients });
           },
           (error) => {
             // Display error
