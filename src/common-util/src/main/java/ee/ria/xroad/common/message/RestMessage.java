@@ -49,6 +49,8 @@ import static ee.ria.xroad.common.util.UriUtils.uriSegmentPercentDecode;
  * Base class for rest messages
  */
 public abstract class RestMessage {
+    public static final int PROTOCOL_VERSION = 1;
+
     protected static final Set<String> SKIPPED_HEADERS;
     protected static final byte[] CRLF = "\r\n".getBytes(StandardCharsets.UTF_8);
 

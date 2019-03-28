@@ -28,6 +28,7 @@ import org.apache.http.message.BasicHeader;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.junit.Assert.assertArrayEquals;
 
@@ -40,7 +41,7 @@ public class RestRequestTest {
     public void shouldParseRequest() throws Exception {
         final RestRequest req = new RestRequest(
                 "GET",
-                "/r1/Instance/Class/Member/SubSystem/ServiceCode",
+                String.format("/r%d/Instance/Class/Member/SubSystem/ServiceCode", RestMessage.PROTOCOL_VERSION),
                 "foo=bar",
                 Arrays.asList(
                         new BasicHeader("X-Road-Client", "Instance/Class/Member/SubSystem"),
@@ -51,6 +52,39 @@ public class RestRequestTest {
         final byte[] msg1 = req.toByteArray();
         final RestRequest req2 = new RestRequest(msg1);
         assertArrayEquals(msg1, req2.getMessageBytes());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldRejectWrongProtocolVersion() throws Exception {
+        final RestRequest req = new RestRequest(
+                "GET",
+                String.format("/r%d/Instance/Class/Member/SubSystem/ServiceCode", RestMessage.PROTOCOL_VERSION + 1),
+                "foo=bar",
+                Collections.emptyList(),
+                "xid"
+        );
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldRejectInvalidURL() {
+        RestRequest req = new RestRequest(
+                "GET",
+                "https://invalid.uri/",
+                null,
+                Collections.emptyList(),
+                "xid"
+        );
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldRejectInvalidVerb() {
+        RestRequest req = new RestRequest(
+                "INVALID",
+                String.format("/r%d/Instance/Class/Member/SubSystem/ServiceCode", RestMessage.PROTOCOL_VERSION),
+                "foo=bar",
+                Collections.emptyList(),
+                "xid"
+        );
     }
 
 }

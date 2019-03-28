@@ -28,6 +28,7 @@ package ee.ria.xroad.proxy;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.testutil.TestServerConf;
 import ee.ria.xroad.proxy.testutil.TestService;
@@ -52,13 +53,15 @@ import static org.junit.Assert.assertNotNull;
 @Slf4j
 public class RestProxyTest extends AbstractProxyIntegrationTest {
 
+    static final String PREFIX = "/r" + RestMessage.PROTOCOL_VERSION;
+
     @Test
     public void shouldFailIfClientHeaderMissing() throws IOException {
         given()
                 .baseUri("http://127.0.0.1")
                 .port(proxyClientPort)
                 .header("Content-Type", "application/json")
-                .get("/r0/EE/BUSINESS/producer/sub/echo")
+                .get(PREFIX + "/EE/BUSINESS/producer/sub/echo")
                 .then()
                 .statusCode(Matchers.is(500))
                 .header("X-Road-Error", Matchers.notNullValue());
@@ -71,7 +74,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .port(proxyClientPort)
                 .header("Content-Type", "application/json")
                 .header("X-Road-Client", "EE/BUSINESS/consumer/sub")
-                .get("/r0/invalid")
+                .get(PREFIX + "/invalid")
                 .then()
                 .statusCode(Matchers.is(500))
                 .header("X-Road-Error", Matchers.notNullValue());
@@ -85,7 +88,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .header("Content-Type", "application/json")
                 .header("X-Road-Client", "EE/BUSINESS/consumer/sub")
                 .body("{\"value\" : 42}")
-                .post("/r0/EE/BUSINESS/producer/sub/echo")
+                .post(PREFIX + "/EE/BUSINESS/producer/sub/echo")
                 .then()
                 .statusCode(200)
                 .body("value", Matchers.equalTo(42));
@@ -103,7 +106,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .header("X-Road-Client", "EE/BUSINESS/consumer/sub")
                 .header("X-Road-Id", qid)
                 .body("{\"value\" : 42}")
-                .post("/r0/EE/BUSINESS/producer/sub/echo")
+                .post(PREFIX + "/EE/BUSINESS/producer/sub/echo")
                 .then()
                 .statusCode(200)
                 .header("X-Road-Id", qid);
@@ -119,7 +122,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .header("Content-Type", "application/json")
                 .header("X-Road-Client", "EE/BUSINESS/consumer/sub")
                 .header("X-Road-Id", qid)
-                .post("/r0/EE/BUSINESS/producer/sub/echo")
+                .post(PREFIX + "/EE/BUSINESS/producer/sub/echo")
                 .header(MimeUtils.HEADER_REQUEST_HASH);
 
         assertNotNull(requestHash);
@@ -130,7 +133,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .header("Content-Type", "application/json")
                 .header("X-Road-Client", "EE/BUSINESS/consumer/sub")
                 .header("X-Road-Id", qid)
-                .post("/r0/EE/BUSINESS/producer/sub/echo")
+                .post(PREFIX + "/EE/BUSINESS/producer/sub/echo")
                 .then()
                 .header(MimeUtils.HEADER_REQUEST_HASH, Matchers.not(requestHash));
     }
@@ -143,7 +146,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .header("Content-Type", "application/json")
                 .header("X-Road-Client", "EE/BUSINESS/consumer/sub")
                 .body("{\"value\" : 42}")
-                .post("/r0/EE/BUSINESS/producer/sub/echo")
+                .post(PREFIX + "/EE/BUSINESS/producer/sub/echo")
                 .headers().getValues("Date").size());
     }
 
@@ -155,7 +158,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .port(proxyClientPort)
                 .header("X-Road-Client", "EE/BUSINESS/consumer/sub%2Fsystem")
                 .urlEncodingEnabled(false)
-                .get("/r0/EE/BUSINESS/producer/s%2Fub/%C3%B6%C3%A4%C3%A5/path%3B/")
+                .get(PREFIX + "/EE/BUSINESS/producer/s%2Fub/%C3%B6%C3%A4%C3%A5/path%3B/")
                 .then().statusCode(200);
     }
 
@@ -166,7 +169,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .baseUri("http://127.0.0.1")
                 .port(proxyClientPort)
                 .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
-                .get("/r0/EE/BUSINESS/producer/sub/service/");
+                .get(PREFIX + "/EE/BUSINESS/producer/sub/service/");
     }
 
     @Test
@@ -180,7 +183,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .header("Content-Type", "application/json")
                 .header("X-Road-Client", "EE/BUSINESS/consumer/sub")
                 .queryParam("bytes", requestedBytes)
-                .get("/r0/EE/BUSINESS/producer/sub/test").asInputStream();
+                .get(PREFIX + "/EE/BUSINESS/producer/sub/test").asInputStream();
 
         long c = 0;
         int r;
@@ -194,7 +197,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
 
     @Test
     public void shouldNotFollow302Redirects() {
-        final String location = "/r0/EE/BUSINESS/producer/sub/notexists";
+        final String location = PREFIX + "/EE/BUSINESS/producer/sub/notexists";
         service.setHandler((target, request, response) -> {
             response.setStatus(302);
             response.setHeader("Location", location);
@@ -204,7 +207,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .port(proxyClientPort)
                 .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
                 .redirects().follow(false)
-                .get("/r0/EE/BUSINESS/producer/sub/service")
+                .get(PREFIX + "/EE/BUSINESS/producer/sub/service")
                 .then()
                 .statusCode(302)
                 .header("Location", location);
@@ -226,7 +229,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .baseUri("http://127.0.0.1")
                 .port(proxyClientPort)
                 .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
-                .get("/r0/EE/BUSINESS/producer/sub/wsdl")
+                .get(PREFIX + "/EE/BUSINESS/producer/sub/wsdl")
                 .then()
                 .statusCode(500)
                 .header("X-Road-Error", "Server.ServerProxy.ServiceType");

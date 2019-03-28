@@ -77,6 +77,11 @@ public class RestRequest extends RestMessage {
 
         verb = Verb.valueOf(reader.readLine());
         final URI uri = new URI(reader.readLine());
+
+        if (uri.getScheme() != null || uri.getAuthority() != null) {
+            throw new IllegalArgumentException("Invalid request URI");
+        }
+
         requestPath = uri.getRawPath();
         query = uri.getRawQuery();
         headers = reader.lines()
@@ -93,7 +98,9 @@ public class RestRequest extends RestMessage {
     public RestRequest(String verb, String path, String query, List<Header> headers, String xRequestId) {
         this.verb = Verb.valueOf(verb);
         this.headers = headers.stream()
-                .filter(h -> !SKIPPED_HEADERS.contains(h.getName().toLowerCase()))
+                .filter(h -> !SKIPPED_HEADERS.contains(h.getName().toLowerCase())
+                        && !MimeUtils.HEADER_REQUEST_ID.equalsIgnoreCase(h.getName())
+                        && !MimeUtils.HEADER_REQUEST_HASH.equalsIgnoreCase(h.getName()))
                 .collect(Collectors.toCollection(ArrayList::new));
         this.requestPath = path;
         this.query = query;
@@ -104,7 +111,6 @@ public class RestRequest extends RestMessage {
 
     /**
      * serialize
-     *
      * @return
      */
     @Override
@@ -127,7 +133,6 @@ public class RestRequest extends RestMessage {
 
     /**
      * serialize
-     *
      * @return
      */
     @Override
@@ -159,30 +164,6 @@ public class RestRequest extends RestMessage {
             throw new IllegalArgumentException("Request uri must not be null");
         }
 
-        for (Header h : headers) {
-            if (MimeUtils.HEADER_CLIENT_ID.equalsIgnoreCase(h.getName()) && h.getValue() != null) {
-                clientId = decodeClientId(h.getValue());
-            } else if (MimeUtils.HEADER_QUERY_ID.equalsIgnoreCase(h.getName())) {
-                this.queryId = h.getValue();
-            } else if (MimeUtils.HEADER_REQUEST_ID.equals(h.getName())) {
-                this.xRequestId = h.getValue();
-            }
-            // Target security server
-            if (MimeUtils.HEADER_SECURITY_SERVER.equalsIgnoreCase(h.getName()) && h.getValue() != null) {
-                final String[] parts = h.getValue().split("/", 5);
-                if (parts.length != 4) {
-                    throw new IllegalArgumentException("Invalid SecurityServer Id");
-                }
-                targetSecurityServer = SecurityServerId.create(
-                        uriSegmentPercentDecode(parts[0]),
-                        uriSegmentPercentDecode(parts[1]),
-                        uriSegmentPercentDecode(parts[2]),
-                        uriSegmentPercentDecode(parts[3])
-                );
-            }
-            //TBD more optional header values
-        }
-
         final String[] parts = requestPath.split("/", 8);
         if (parts.length < 7) {
             throw new IllegalArgumentException("Invalid request URI");
@@ -192,8 +173,12 @@ public class RestRequest extends RestMessage {
         if (parts[1].length() == 2 && parts[1].charAt(0) == 'r'
                 && (digit = Character.digit(parts[1].charAt(1), 10)) != -1) {
             version = digit;
+
+            if (version != PROTOCOL_VERSION) {
+                throw new IllegalArgumentException("Unsupported protocol version " + version);
+            }
         } else {
-            throw new IllegalArgumentException("Invalid version");
+            throw new IllegalArgumentException("Invalid protocol version " + parts[1]);
         }
 
         serviceId = ServiceId.create(
@@ -208,5 +193,31 @@ public class RestRequest extends RestMessage {
         } else {
             servicePath = "";
         }
+
+        for (Header h : headers) {
+            if (MimeUtils.HEADER_CLIENT_ID.equalsIgnoreCase(h.getName()) && h.getValue() != null) {
+                clientId = decodeClientId(h.getValue());
+            } else if (MimeUtils.HEADER_QUERY_ID.equalsIgnoreCase(h.getName())) {
+                this.queryId = h.getValue();
+            } else if (MimeUtils.HEADER_REQUEST_ID.equals(h.getName())) {
+                this.xRequestId = h.getValue();
+            } else if (MimeUtils.HEADER_SECURITY_SERVER.equalsIgnoreCase(h.getName()) && h.getValue() != null) {
+                targetSecurityServer = decodeServerId(h.getValue());
+            }
+        }
+    }
+
+    @SuppressWarnings(value = {"checkstyle:magicnumber"})
+    private static SecurityServerId decodeServerId(String value) {
+        final String[] parts = value.split("/", 5);
+        if (parts.length != 4) {
+            throw new IllegalArgumentException("Invalid SecurityServer Id");
+        }
+        return SecurityServerId.create(
+                uriSegmentPercentDecode(parts[0]),
+                uriSegmentPercentDecode(parts[1]),
+                uriSegmentPercentDecode(parts[2]),
+                uriSegmentPercentDecode(parts[3])
+        );
     }
 }

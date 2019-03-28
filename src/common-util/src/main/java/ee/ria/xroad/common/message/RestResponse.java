@@ -61,7 +61,6 @@ public class RestResponse extends RestMessage {
 
     /**
      * create response from raw messageBytes
-     *
      * @param messageBytes
      */
     private RestResponse(byte[] messageBytes, ClientId clientId, String queryId, byte[] requestHash,
@@ -90,8 +89,8 @@ public class RestResponse extends RestMessage {
         this.clientId = clientId;
         this.xRequestId = xRequestId;
         final ArrayList<Header> tmp = headers.stream()
-                .filter(h -> !SKIPPED_HEADERS.contains(h.getName().toLowerCase()))
-                .filter(h -> !h.getName().equalsIgnoreCase(MimeUtils.HEADER_QUERY_ID)
+                .filter(h -> !SKIPPED_HEADERS.contains(h.getName().toLowerCase())
+                        && !h.getName().equalsIgnoreCase(MimeUtils.HEADER_QUERY_ID)
                         && !h.getName().equalsIgnoreCase(MimeUtils.HEADER_REQUEST_HASH)
                         && !h.getName().equalsIgnoreCase(MimeUtils.HEADER_CLIENT_ID)
                         && !h.getName().equalsIgnoreCase(MimeUtils.HEADER_REQUEST_ID))
@@ -123,7 +122,6 @@ public class RestResponse extends RestMessage {
 
     /**
      * serialize
-     *
      * @return
      */
     @Override

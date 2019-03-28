@@ -28,6 +28,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
@@ -62,7 +63,7 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
             HttpServletRequest request, HttpServletResponse response,
             OpMonitoringData opMonitoringData) throws Exception {
 
-        if (target != null && target.startsWith("/r0/")) {
+        if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
             verifyCanProcess();
             return new ClientRestMessageProcessor(request, response, client,
                     getIsAuthenticationData(request), opMonitoringData);
