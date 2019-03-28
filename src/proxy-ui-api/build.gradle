@@ -90,7 +90,7 @@ clean.delete << file('frontend/dist')
 
 openApiGenerate {
     generatorName = "spring"
-    inputSpec = "$projectDir/src/main/resources/openapi-definition.json".toString()
+    inputSpec = "$projectDir/src/main/resources/openapi-definition.yaml".toString()
     outputDir = "$buildDir/generated-sources".toString()
     apiPackage = "org.niis.xroad.restapi.openapi"
     modelPackage = "org.niis.xroad.restapi.openapi.model"
