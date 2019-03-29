@@ -2746,7 +2746,7 @@ Figure 1. Use case diagram for member management
 -   The security server client state machine model is described in the document “Security Server User Guide” \[[UG-SS](#Ref_UG-SS)\].
 
 
-#### 2.4.2 UC MEMBER\_45: View the Details of the Member Owner
+#### 2.4.2 UC MEMBER\_45: View the Details of the Owner Member
 
 **System**: Security server
 
@@ -2756,21 +2756,21 @@ Figure 1. Use case diagram for member management
 
 **Actor**: SS administrator
 
-**Brief Description**: SS administrator views the details of the Member Owner.
+**Brief Description**: SS administrator views the details of the Owner Member.
 
 **Preconditions**: -
 
-**Postconditions**: The details of the Member Owner have been displayed to SS administrator.
+**Postconditions**: The details of the Owner Member have been displayed to SS administrator.
 
 **Trigger**: -
 
 **Main Success Scenario**:
 
-1.  SS administrator selects to view the details of the Member Owner.
+1.  SS administrator selects to view the details of the Owner Member.
 
 2.  System displays the following information.
 
-    -   The name of the Member Owner.
+    -   The name of the Owner Member.
 
     -   The member class, member code.
 
