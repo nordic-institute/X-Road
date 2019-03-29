@@ -2817,7 +2817,7 @@ Figure 1. Use case diagram for member management
 
     -   The member class, member code and subsystem code of the security server client.
 
-    Depwnding on the status of the client, the following user action options are displayed:
+    Depending on the status of the client, the following user action options are displayed:
 
     -   start the registration process for the security server client by sending a security server client registration request to the central server: [2.4.5](#245-uc-member_48-register-a-security-server-client);
 
@@ -2830,7 +2830,7 @@ Figure 1. Use case diagram for member management
 **Related information**: -
 
 
-#### 2.4.3 UC MEMBER\_46: View the Internal Server Settings of the Member Owner or the security Server client
+#### 2.4.3 UC MEMBER\_46: View the Internal Server Settings of the Owner Member or the security Server client
 
 **System**: Security server
 
@@ -2840,23 +2840,23 @@ Figure 1. Use case diagram for member management
 
 **Actor**: SS administrator
 
-**Brief Description**: SS administrator view the settings for the internal servers of the Member Owner.
+**Brief Description**: SS administrator view the settings for the internal servers of the Owner Member.
 
 **Preconditions**: -
 
-**Postconditions**: The settings for the internal servers of the Member Owner or the security Server client have been displayed to SS administrator.
+**Postconditions**: The settings for the internal servers of the Owner Member or the security Server client have been displayed to SS administrator.
 
 **Trigger**: -
 
 **Main Success Scenario**:
 
-1.  SS administrator selects to view the settings for the internal servers of the Member Owner or the security Server client.
+1.  SS administrator selects to view the settings for the internal servers of the Owner Member or the security Server client.
 
 2.  System displays the following information:
 
     -   the connection type for the internal servers that act as service clients (for security server owner the connection type is set to HTTPS by default);
 
-    -   the list of internal TLS certificates saved for the Member Owner or the security Server client. The SHA-1 hash value of the certificate is displayed for each certificate.
+    -   the list of internal TLS certificates saved for the Owner Member or the security Server client. The SHA-1 hash value of the certificate is displayed for each certificate.
     
     -   the Security Server certificate
 
