@@ -24,6 +24,9 @@
  */
 package org.niis.xroad.restapi.config;
 
+import ee.ria.xroad.commonui.UIServices;
+import ee.ria.xroad.signer.protocol.SignerClient;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationStartingEvent;
 import org.springframework.context.ApplicationEvent;
@@ -42,20 +45,37 @@ import org.springframework.context.event.ContextClosedEvent;
 @Slf4j
 public class StartStopListener implements ApplicationListener {
 
-    private void stop() {
+    private static UIServices uiApiActorSystem;
+
+    private void stop() throws Exception {
         log.debug("stop");
+
+        if (uiApiActorSystem != null) {
+            uiApiActorSystem.stop();
+        }
     }
 
-    private void start() {
+    private void start() throws Exception {
         log.debug("start");
+        if (uiApiActorSystem == null) {
+            uiApiActorSystem = new UIServices("ProxyUIApi", "proxyuiapi");
+        }
+
+        SignerClient.init(uiApiActorSystem.getActorSystem());
+//        SignerClient.init(uiApiActorSystem.getActorSystem(),
+//                "10.140.8.110");
     }
 
     @Override
     public void onApplicationEvent(ApplicationEvent event) {
-        if (event instanceof ContextClosedEvent) {
-            stop();
-        } else if (event instanceof ApplicationStartingEvent) {
-            start();
+        try {
+            if (event instanceof ContextClosedEvent) {
+                stop();
+            } else if (event instanceof ApplicationStartingEvent) {
+                start();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 }

@@ -26,10 +26,13 @@ package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.commonui.SignerProxy;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.openapi.model.Certificate;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +46,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.NativeWebRequest;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -93,13 +97,36 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
     public ResponseEntity<Client> getClient(String id) {
-        ClientId clientId = clientConverter.convertId(id);
-        ClientType clientType = clientRepository.getClient(clientId);
-        if (clientType == null) {
-            throw new NotFoundException("client with id " + id + " not found");
-        }
+        ClientType clientType = getClientType(id);
         Client client = clientConverter.convert(clientType);
         return new ResponseEntity<>(client, HttpStatus.OK);
+    }
+
+    /**
+     * Read one client from DB, throw NotFoundException or
+     * BadRequestException is needed
+     */
+    private ClientType getClientType(String encodedId) {
+        ClientId clientId = clientConverter.convertId(encodedId);
+        ClientType clientType = clientRepository.getClient(clientId);
+        if (clientType == null) {
+            throw new NotFoundException("client with id " + encodedId + " not found");
+        }
+        return clientType;
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
+    public ResponseEntity<List<Certificate>> getClientCertificates(String id) {
+        ClientType clientType = getClientType(id);
+        try {
+            List<TokenInfo> tokenInfos = SignerProxy.getTokens();
+            Certificate certificate = new Certificate();
+            certificate.setName("listed certificates: " + tokenInfos);
+            return new ResponseEntity<>(Arrays.asList(certificate), HttpStatus.OK);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
