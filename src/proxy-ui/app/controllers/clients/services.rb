@@ -34,6 +34,7 @@ java_import Java::ee.ria.xroad.common.conf.serverconf.model.DescriptionType
 java_import Java::ee.ria.xroad.common.identifier.SecurityCategoryId
 java_import Java::ee.ria.xroad.proxyui.InternalServerTestUtil
 java_import Java::ee.ria.xroad.proxyui.WSDLParser
+java_import Java::java.net.URL
 
 
 module Clients::Services
@@ -88,6 +89,7 @@ module Clients::Services
       Time.at(servicedescription.refreshedDate.getTime / 1000).iso8601
 
     parse_and_check_services(servicedescription)
+    check_duplicate_service_codes(servicedescription)
 
     client.serviceDescription.add(servicedescription)
 
@@ -132,8 +134,11 @@ module Clients::Services
       service.serviceDescription = servicedescription
       servicedescription.service.add(service)
 
-      client.serviceDescription.add(servicedescription)
+      check_openapi3_url(servicedescription.url)
+      check_duplicate_url(servicedescription)
+      check_duplicate_service_codes(servicedescription)
 
+      client.serviceDescription.add(servicedescription)
       serverconf_save
 
       render_json(read_services(client))
@@ -212,6 +217,11 @@ module Clients::Services
       servicedescription.url = params[:openapi3_new_url]
       servicedescription.service.first.url = params[:openapi3_new_url]
       servicedescription.service.first.service_code = params[:openapi3_new_service_code]
+
+      check_openapi3_url(servicedescription.url)
+      check_duplicate_url(servicedescription)
+      check_duplicate_service_codes(servicedescription)
+
       client.serviceDescription.add(servicedescription)
 
       acl = client.acl.detect { |item| params[:openapi3_old_service_code] == item.serviceCode }
@@ -253,6 +263,7 @@ module Clients::Services
     servicedescriptions[0].refreshedDate = Date.new
 
     added_objs, added, deleted = parse_servicedescriptions(client, servicedescriptions)
+
     update_servicedescriptions(client, added_objs, deleted)
 
     serverconf_save
@@ -696,6 +707,39 @@ module Clients::Services
     end
 
     clean_service_acls(client, deleted_codes, nil)
+  end
+
+
+  def check_openapi3_url(uri)
+    begin
+      uri = URL.new(uri)
+      scheme = uri.getProtocol()
+      if uri.getHost().to_s.empty? || scheme.empty? || !(scheme == "http" || scheme == "https")
+        raise t('clients.malformed_openapi3_url')
+      end
+    rescue Java::java.net.MalformedURLException
+      raise t('clients.malformed_openapi3_url')
+    end
+  end
+
+  def check_duplicate_url(reviewedService)
+    reviewedService.client.serviceDescription.each do |other_servicedescription|
+      if reviewedService.url == other_servicedescription.url
+        raise t('clients.url_exists')
+      end
+    end
+  end
+
+  def check_duplicate_service_codes(reviewedService)
+    reviewedService.client.serviceDescription.each do |other_service|
+      reviewedService.service.each do |reviewedItem|
+        other_service.service.each do |otherItem|
+          if reviewedItem.service_code == otherItem.service_code
+            raise t('clients.service_code_exists')
+          end
+        end
+      end
+    end
   end
 
   def parse_and_check_services(wsdl)
