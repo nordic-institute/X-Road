@@ -2721,7 +2721,7 @@ Figure 1. Use case diagram for member management
 
 2.  System displays the list structure of clients Member (Owner), Members and related Subsystems. The following information is displayed for each client in the view.
 
-    -   The name of the client. A clear structured list defines with the help of icons the hierarchy of the clients. The Name of the client opens a view of the details of the desired client. Note: SS administrators can not view details of the mebers not owned by the Security Server.
+    -   The name of the client. A clear structured list defines with the help of icons the hierarchy of the clients. The Name of the client opens a view of the details of the desired client. Note: SS administrators can not view details of the members not owned by the Security Server.
     
     -   The X-Road identifier of the Member (Owner) and all Subsystems ("Member or Subsystem":"Instance":"Member Class":"Server code":"Client name")
     
