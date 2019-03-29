@@ -45,9 +45,21 @@
             $("#wsdl_enable").show();
         }
 
+        // disabled refresh if enabled rest service
         if($(".rest.row_selected").length > 0) {
             $("#wsdl_refresh").disable();
         }
+
+        // disabled refresh & edit if disabled rest service
+        $(".wsdl.disabled.row_selected td").each(function() {
+            if($(this).text().indexOf("REST DISABLED") === 0) {
+                $("#wsdl_refresh").disable();
+                $("#service_params").disable();
+            }
+        });
+
+
+
     }
 
     function wsdlParams() {

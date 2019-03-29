@@ -134,8 +134,9 @@ module Clients::Services
       service.serviceDescription = servicedescription
       servicedescription.service.add(service)
 
-      check_duplicate_service_codes(servicedescription)
       check_openapi3_url(servicedescription.url)
+      check_duplicate_url(servicedescription)
+      check_duplicate_service_codes(servicedescription)
 
       client.serviceDescription.add(servicedescription)
       serverconf_save
@@ -217,8 +218,9 @@ module Clients::Services
       servicedescription.service.first.url = params[:openapi3_new_url]
       servicedescription.service.first.service_code = params[:openapi3_new_service_code]
 
-      check_duplicate_service_codes(servicedescription)
       check_openapi3_url(servicedescription.url)
+      check_duplicate_url(servicedescription)
+      check_duplicate_service_codes(servicedescription)
 
       client.serviceDescription.add(servicedescription)
 
@@ -711,12 +713,20 @@ module Clients::Services
   def check_openapi3_url(uri)
     begin
       uri = URL.new(uri)
-      scheme = uri.toURI().getScheme().to_s
-      if ! uri.toURI().isAbsolute() || uri.getHost().to_s.empty? || scheme.empty? || !(scheme == "http" || scheme == "https")
+      scheme = uri.getProtocol()
+      if uri.getHost().to_s.empty? || scheme.empty? || !(scheme == "http" || scheme == "https")
         raise t('clients.malformed_openapi3_url')
       end
     rescue Java::java.net.MalformedURLException
       raise t('clients.malformed_openapi3_url')
+    end
+  end
+
+  def check_duplicate_url(reviewedService)
+    reviewedService.client.serviceDescription.each do |other_servicedescription|
+      if reviewedService.url == other_servicedescription.url
+        raise t('clients.url_exists')
+      end
     end
   end
 
