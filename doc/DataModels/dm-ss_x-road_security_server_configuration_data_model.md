@@ -1,6 +1,6 @@
 # X-Road: Security Server Configuration Data Model
 
-Version: 1.3  
+Version: 1.4
 Doc. ID: DM-SS
 
 | Date       | Version | Description                                             | Author             |

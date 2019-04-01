@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.41  
+Version: 2.42
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
