@@ -1,7 +1,7 @@
 <template>
-  <div class="content">
+  <div class="xr-tab-max-width">
     <v-flex mb-4>
-      <h1 class="display-1 mb-3">Name (subsystem)</h1>
+      <h1 v-if="client" class="display-1 mb-3">{{client.subsystem_code}} (subsystem)</h1>
     </v-flex>
     <v-tabs slot="extension" v-model="tab" class="xr-tabs" color="white" grow>
       <v-tabs-slider color="secondary"></v-tabs-slider>
@@ -14,7 +14,7 @@
 
     <v-tabs-items v-model="tab">
       <v-tab-item key="details">
-        <clientDetails/>
+        <clientDetails :id="$route.query.id"/>
       </v-tab-item>
       <v-tab-item key="serviceClients">
         <v-card flat>
@@ -44,8 +44,6 @@
   </div>
 </template>
 
-
-
 <script lang="ts">
 import Vue from 'vue';
 
@@ -53,6 +51,9 @@ import { mapGetters } from 'vuex';
 import ClientDetails from '@/components/ClientDetails.vue';
 
 export default Vue.extend({
+  computed: {
+    ...mapGetters(['client']),
+  },
   components: {
     ClientDetails,
   },

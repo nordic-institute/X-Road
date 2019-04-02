@@ -1,7 +1,7 @@
 <template>
-  <div class="content">
+  <div class="xr-tab-max-width">
     <v-flex mb-4>
-      <h1 class="display-1 mb-3">Name (Member)</h1>
+      <h1 v-if="client" class="display-1 mb-3">{{client.member_name}} (Owner)</h1>
     </v-flex>
     <v-tabs slot="extension" v-model="tab" class="xr-tabs" color="white" grow>
       <v-tabs-slider color="secondary"></v-tabs-slider>
@@ -12,12 +12,12 @@
     <v-tabs-items v-model="tab">
       <v-tab-item key="details">
         <v-card flat>
-          <clientDetails/>
+          <clientDetails :id="$route.query.id"/>
         </v-card>
       </v-tab-item>
       <v-tab-item key="internalServers">
         <v-card flat>
-          <v-card-text>Internal servers placeholder</v-card-text>
+          <internalServers :id="$route.query.id"/>
         </v-card>
       </v-tab-item>
     </v-tabs-items>
@@ -26,11 +26,18 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { mapGetters } from 'vuex';
 import ClientDetails from '@/components/ClientDetails.vue';
+import InternalServers from '@/components/InternalServers.vue';
 
 export default Vue.extend({
+  props: {},
+  computed: {
+    ...mapGetters(['client']),
+  },
   components: {
     ClientDetails,
+    InternalServers,
   },
   data() {
     return {
@@ -45,10 +52,6 @@ export default Vue.extend({
 
 .xr-tabs {
   border-bottom: #9b9b9b solid 1px;
-}
-
-.content {
-  width: 100%;
 }
 </style>
 

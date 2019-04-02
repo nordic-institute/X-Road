@@ -107,7 +107,7 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { getObjectValueByPath, getNestedValue } from '@/util/helpers';
-import { Permissions } from '@/global';
+import { Permissions, RouteName } from '@/global';
 
 export default Vue.extend({
   data: () => ({
@@ -191,21 +191,30 @@ export default Vue.extend({
       }
     },
 
-    openClient(item: object): void {
-      console.log('edit');
-      this.$router.push('/client');
+    openClient(item: any): void {
+      this.$router.push({
+        name: RouteName.Client,
+        query: { id: item.id },
+      });
     },
 
-    openSubsystem(item: object): void {
-      this.$router.push('/subsystem');
+    openSubsystem(item: any): void {
+      this.$router.push({
+        name: RouteName.Subsystem,
+        query: { id: item.id },
+      });
     },
 
     addClient(): void {
-      this.$router.push('/add-client');
+      this.$router.push({
+        name: RouteName.AddClient,
+      });
     },
 
     addSubsystem(item: any) {
-      this.$router.push('/add-subsystem');
+      this.$router.push({
+        name: RouteName.AddSubsystem,
+      });
     },
 
     customFilter: (items: any, search: any, filter: any, headers: any[]) => {

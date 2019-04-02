@@ -12,6 +12,7 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.8.1",
     "axios": "^0.18.0",
+    "file-saver": "^2.0.1",
     "lodash": "^4.17.11",
     "roboto-fontface": "*",
     "vee-validate": "^2.2.0",
@@ -23,6 +24,7 @@
     "vuex-router-sync": "^5.0.0"
   },
   "devDependencies": {
+    "@types/file-saver": "^2.0.0",
     "@types/jest": "^24.0.11",
     "@types/lodash": "^4.14.123",
     "@vue/cli-plugin-babel": "^3.5.1",
