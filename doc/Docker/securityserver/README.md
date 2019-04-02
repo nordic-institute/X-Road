@@ -20,14 +20,6 @@ docker run --name my-ss niis/xroad-security-server
 docker run --name my-ss niis/xroad-security-server:bionic-6.20.0
 ```
 
-## Running an ephemeral container, storing state in named volumes (experimental)
-```
-docker run --name my-ss --rm \
--v my-ss-etc-xroad:/etc/xroad \
--v my-ss-db:/var/lib/postgresql/10/main \
-niis/xroad-security-server
-```
-
 ## Accessing the container
 
 #####Running a single security server (Linux/Windows/MacOS)
@@ -36,7 +28,7 @@ niis/xroad-security-server
 docker run -p 4000:4000 -p 4001:80 --name my-ss niis/xroad-security-server
 ```
 
-##### Direct access
+##### Direct accessd
 ###### Linux
 
 ```
@@ -69,7 +61,13 @@ docker run -p 4000:4000 -p 4001:80 --network x-road-network --network-alias --na
 docker run -p 4100:4000 -p 4101:80 --network x-road-network --network-alias --name my-ss2 niis/xroad-security-server
 ```
 
-##### 
+## Running an ephemeral container, storing state in named volumes (experimental)
+```
+docker run --name my-ss --rm \
+-v my-ss-etc-xroad:/etc/xroad \
+-v my-ss-db:/var/lib/postgresql/10/main \
+niis/xroad-security-server
+```
 
 ## Notes
 xroad-autologin is installed, but there is no default PIN set, so the following error at startup is normal:
