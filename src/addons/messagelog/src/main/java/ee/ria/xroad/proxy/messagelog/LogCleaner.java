@@ -28,11 +28,10 @@ import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
 import akka.actor.UntypedActor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Session;
+import org.hibernate.Query;
 import org.joda.time.DateTime;
 
 import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
-
 
 
 /**
@@ -42,36 +41,44 @@ import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransactio
 public class LogCleaner extends UntypedActor {
 
     public static final String START_CLEANING = "doClean";
+    public static final int CLEAN_BATCH_LIMIT = MessageLogProperties.getCleanTransactionBatchSize();
 
     @Override
-    public void onReceive(Object message) throws Exception {
+    public void onReceive(Object message) {
         log.trace("onReceive({})", message);
 
         if (message.equals(START_CLEANING)) {
             try {
-                doInTransaction(session -> {
-                    handleClean(session);
-                    return null;
-                });
+                log.info("Removing archived records from database...");
+                final long removed = handleClean();
+                if (removed == 0) {
+                    log.info("No archived records to remove from database");
+                } else {
+                    log.info("Removed {} archived records from database", removed);
+                }
             } catch (Exception e) {
-                log.error("Failed to clean archived records from database", e);
+                log.error("Error when cleaning archived records from database", e);
             }
         } else {
             unhandled(message);
         }
     }
 
-    protected void handleClean(Session session) {
-        DateTime date = new DateTime();
-        date = date.minusDays(MessageLogProperties.getKeepRecordsForDays());
+    protected long handleClean() throws Exception {
 
-        String hql = "delete AbstractLogRecord r where r.archived = true and "
-                + "r.time <= " + date.getMillis();
-        int removed = session.createQuery(hql).executeUpdate();
-        if (removed == 0) {
-            log.info("No archived records to remove from database");
-        } else {
-            log.info("Removed {} archived records from database", removed);
-        }
+        final Long time = new DateTime().minusDays(MessageLogProperties.getKeepRecordsForDays()).getMillis();
+        long count = 0;
+        int removed;
+        do {
+            removed = doInTransaction(session -> {
+                final Query query = session.getNamedQuery("delete-logrecords");
+                query.setLong("time", time);
+                query.setInteger("limit", CLEAN_BATCH_LIMIT);
+                return query.executeUpdate();
+            });
+            log.debug("Removed {} archived records", removed);
+            count += removed;
+        } while (removed > 0);
+        return count;
     }
 }
