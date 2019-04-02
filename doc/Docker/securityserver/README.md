@@ -14,7 +14,7 @@ Admin UI credentials: xrd/secret
 ## Running
 ```
 # Simple example 
-docker run --name my-ss x-road-security-server
+docker run --name my-ss xroad-security-server
 ```
 
 ## Running an ephemeral container, storing state in named volumes (experimental)
@@ -22,7 +22,7 @@ docker run --name my-ss x-road-security-server
 docker run --name my-ss --rm \
 -v my-ss-etc-xroad:/etc/xroad \
 -v my-ss-db:/var/lib/postgresql/10/main \
-x-road-security-server
+xroad-security-server
 ```
 
 ## Accessing the container
@@ -30,7 +30,7 @@ x-road-security-server
 #####Running a single security server (Linux/Windows/MacOS)
 ```
 # Publish the container ports (80 and/or 443, 4000, and optionally 5500 and 5577) e.g. to localhost (loopback address).
-docker run -p 4000:4000 -p 4001:80 --name my-ss x-road-security-server
+docker run -p 4000:4000 -p 4001:80 --name my-ss xroad-security-server
 ```
 
 ##### Direct access
@@ -38,7 +38,7 @@ docker run -p 4000:4000 -p 4001:80 --name my-ss x-road-security-server
 
 ```
 # Works on Windows and Linux (can use any address from 127.0.0.0/8).
-docker run -p 127.42.1.1:4000:4000 -p 127.42.1.1:80:80 --name my-ss x-road-security-server
+docker run -p 127.42.1.1:4000:4000 -p 127.42.1.1:80:80 --name my-ss xroad-security-server
 ```
 On a Linux host, it is also possible to access the container(s) directly since the virtual network bridge created by docker can be accessed from the host (`docker inspect my-ss` shows the container IP address).
 
@@ -46,7 +46,7 @@ On a Linux host, it is also possible to access the container(s) directly since t
 
 ```
 # Works on Windows and Linux (can use any address from 127.0.0.0/8).
-docker run -p 127.42.1.1:4000:4000 -p 127.42.1.1:80:80 --name my-ss x-road-security-server
+docker run -p 127.42.1.1:4000:4000 -p 127.42.1.1:80:80 --name my-ss xroad-security-server
 ```
 On Windows, direct access does not work by default. See https://stackoverflow.com/questions/39154408/connecting-to-containers-ip-address-is-impossible-in-docker-for-windows for a possible solution.
 
@@ -63,8 +63,8 @@ Accessing admin-ui of a server from the same domain will break session on other 
 docker network create -d bridge x-road-network
 
 # Create more than one security server containers and (optionally) assign them a network-alias for easier reference
-docker run -p 4000:4000 -p 4001:80 --network x-road-network --network-alias --name my-ss1 x-road-security-server
-docker run -p 4100:4000 -p 4101:80 --network x-road-network --network-alias --name my-ss2 x-road-security-server
+docker run -p 4000:4000 -p 4001:80 --network x-road-network --network-alias --name my-ss1 xroad-security-server
+docker run -p 4100:4000 -p 4101:80 --network x-road-network --network-alias --name my-ss2 xroad-security-server
 ```
 
 ##### 
