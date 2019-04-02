@@ -28,21 +28,22 @@ import ee.ria.xroad.commonui.UIServices;
 import ee.ria.xroad.signer.protocol.SignerClient;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.event.ApplicationStartingEvent;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.stereotype.Component;
 
 /**
  * Listener which can be used to bootstrap Akka.
  * See ProxyUIServices in old proxy-ui.
  * System properties bootstrapping is done with SystemPropertiesInitializer
- *
- * Not a spring bean, and does not use @EventListener annotation,
- * since it listens to events that occur before or after
- * ApplicationContext is available
  */
 @Slf4j
+@Component
+//@Configuration
 public class StartStopListener implements ApplicationListener {
 
     private static UIServices uiApiActorSystem;
@@ -55,24 +56,36 @@ public class StartStopListener implements ApplicationListener {
         }
     }
 
+    @Autowired
+    @Qualifier("signer-ip")
+    private String signerIp;
+
+    /**
+     * Maybe be called multiple times since ContextRefreshedEvent can happen multiple times
+     * @throws Exception
+     */
     private void start() throws Exception {
         log.debug("start");
         if (uiApiActorSystem == null) {
             uiApiActorSystem = new UIServices("ProxyUIApi", "proxyuiapi");
         }
 
-        SignerClient.init(uiApiActorSystem.getActorSystem());
-//        SignerClient.init(uiApiActorSystem.getActorSystem(),
-//                "10.140.8.110");
+        SignerClient.init(uiApiActorSystem.getActorSystem(), signerIp);
     }
+
 
     @Override
     public void onApplicationEvent(ApplicationEvent event) {
         try {
             if (event instanceof ContextClosedEvent) {
                 stop();
-            } else if (event instanceof ApplicationStartingEvent) {
-                start();
+            } else if (event instanceof ApplicationReadyEvent) {
+                if (signerIp != null) {
+                    // ApplicationReadyEvent happens twice, first has not injected
+                    // beans such as signerIp (should always have value), second has
+                    // only start the second time
+                    start();
+                }
             }
         } catch (Exception e) {
             throw new RuntimeException(e);

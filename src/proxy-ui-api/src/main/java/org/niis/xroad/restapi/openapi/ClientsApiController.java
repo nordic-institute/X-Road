@@ -26,7 +26,10 @@ package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.CertUtils;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.commonui.SignerProxy;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
@@ -45,10 +48,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.NativeWebRequest;
 
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * clients api
@@ -121,12 +126,26 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
         ClientType clientType = getClientType(id);
         try {
             List<TokenInfo> tokenInfos = SignerProxy.getTokens();
-            Certificate certificate = new Certificate();
-            certificate.setName("listed certificates: " + tokenInfos);
-            return new ResponseEntity<>(Arrays.asList(certificate), HttpStatus.OK);
+            return new ResponseEntity<>(tokenInfos.stream()
+                    .flatMap(tokenInfo -> tokenInfo.getKeyInfo().stream())
+                    .flatMap(keyInfo -> keyInfo.getCerts().stream())
+                    .filter(certificateInfo -> clientType.getIdentifier().memberEquals(certificateInfo.getMemberId()))
+                    .map(this::convert)
+                    .collect(toList()), HttpStatus.OK);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * TO DO: refactor to converters etc
+     * @param certificateInfo
+     */
+    private Certificate convert(CertificateInfo certificateInfo) {
+        Certificate certificate = new Certificate();
+        X509Certificate x509Certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
+        certificate.setCsp(CertUtils.getIssuerCommonName(x509Certificate));
+        return certificate;
     }
 
     @Override
