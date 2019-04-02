@@ -1,0 +1,148 @@
+<template>
+  <div class="wrapper">
+    <div class="new-content">
+      <div class="cert-dialog-header">
+        <span class="cert-headline">Certificate</span>
+        <v-spacer></v-spacer>
+        <i @click="close()" id="close-x"></i>
+      </div>
+
+      <template v-if="certificate">
+        <div class="cert-hash">
+          {{certificate.hash}}
+          <v-btn
+            outline
+            round
+            color="primary"
+            class="text-capitalize table-button rounded-button"
+            type="file"
+            @click="deleteCertificate()"
+          >Delete</v-btn>
+        </div>
+
+        <div>{{certificate.details}}</div>
+      </template>
+    </div>
+    THEME: {{$route.params.certificate}}
+    <v-dialog v-model="confirm" persistent max-width="290">
+      <v-card>
+        <v-card-title class="headline">Delete certificate?</v-card-title>
+        <v-card-text>Are you sure that you want to delete this certificate?</v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="darken-1" flat @click="confirm = false">Cancel</v-btn>
+          <v-btn color="darken-1" flat @click="doDeleteCertificate()">Yes</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </div>
+</template>
+
+<script lang="ts">
+import Vue from 'vue';
+
+export default Vue.extend({
+  data() {
+    return {
+      confirm: false,
+    };
+  },
+  computed: {
+    certificate(): any {
+      return this.$route.params.certificate;
+    },
+  },
+
+  methods: {
+    close() {
+      //this.$emit('close');
+      this.$router.go(-1);
+    },
+    deleteCertificate() {
+      this.confirm = true;
+    },
+    doDeleteCertificate() {
+      console.log('delete cert');
+      this.confirm = false;
+
+      const clientId = this.$store.getters.client.id;
+      this.$store
+        .dispatch('deleteTlsCertificate', {
+          clientId,
+          hash: this.certificate.hash,
+        })
+        .then(
+          (response) => {
+            this.$bus.$emit('show-success', 'Certificate deleted');
+          },
+          (error) => {
+            this.$bus.$emit('show-error', error.message);
+          },
+        )
+        .finally(() => {
+          this.close();
+        });
+    },
+  },
+});
+</script>
+
+<style lang="scss" scoped>
+.wrapper {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  padding-top: 60px;
+
+  max-width: 850px;
+  height: 100%;
+  width: 100%;
+}
+
+.content {
+  max-width: 850px;
+  width: 400px;
+  border: 1px black solid;
+}
+
+.cert-dialog-header {
+  display: flex;
+  justify-content: center;
+  border-bottom: 1px solid #9b9b9b;
+  color: #4a4a4a;
+  font-family: Roboto;
+  font-size: 34px;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+  line-height: 51px;
+}
+
+#close-x {
+  cursor: pointer;
+  font-style: normal;
+  font-size: 50px;
+  color: #979797;
+}
+
+#close-x:before {
+  content: '\00d7';
+}
+
+.cert-hash {
+  margin-top: 30px;
+  display: flex;
+  justify-content: space-between;
+  color: #202020;
+  font-family: Roboto;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  line-height: 30px;
+}
+
+.new-content {
+  max-width: 850px;
+  width: 100%;
+}
+</style>
+

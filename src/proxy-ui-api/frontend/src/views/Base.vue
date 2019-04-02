@@ -1,19 +1,12 @@
 <template>
   <div>
     <toolbar/>
-    <v-layout class="main-content" align-center justify-center column>
-      <v-tabs v-model="tab" class="main-tabs" color="white" grow mb-10>
-        <v-tabs-slider color="secondary" class="xr-main-tabs-slider"></v-tabs-slider>
+    <router-view name="top"/>
 
-        <template v-for="tab in allowedTabs">
-          <v-tab v-bind:key="tab.key" :to="tab.to">{{tab.name}}</v-tab>
-        </template>
-      </v-tabs>
-      <v-layout mt-5 class="full-width">
-        <transition name="fade" mode="out-in">
-          <router-view/>
-        </transition>
-      </v-layout>
+    <v-layout mt-5 class="full-width">
+      <transition name="fade" mode="out-in">
+        <router-view/>
+      </transition>
     </v-layout>
   </div>
 </template>
@@ -81,6 +74,8 @@ export default Vue.extend({
 .full-width {
   width: 100%;
   max-width: 1280px;
+  display: flex;
+  justify-content: center;
 }
 
 .fade-enter-active,

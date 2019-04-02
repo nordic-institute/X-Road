@@ -10,6 +10,7 @@ export enum RouteName {
   Subsystem = 'subsystem',
   Client = 'client',
   Login = 'login',
+  Certificate = 'certificate',
 }
 
 // A "single source of thuth" for permission strings

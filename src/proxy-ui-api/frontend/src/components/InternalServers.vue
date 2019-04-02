@@ -214,8 +214,14 @@ export default Vue.extend({
     },
 
     openCertificate(cert: any) {
+      this.$router.push({
+        name: RouteName.Certificate,
+        params: { certificate: cert },
+      });
+      /*
       this.selectedCertificate = cert;
       this.dialog = true;
+      */
     },
     closeDialog() {
       this.dialog = false;

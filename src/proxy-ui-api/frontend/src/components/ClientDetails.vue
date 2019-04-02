@@ -42,7 +42,7 @@
       </table>
     </v-card>
 
-    <certificateDetails :dialog="dialog" :certificate="certificate" @close="closeDialog()"/>
+    <certificateDialog :dialog="dialog" :certificate="certificate" @close="closeDialog()"/>
   </div>
 </template>
 
@@ -51,11 +51,11 @@ import Vue from 'vue';
 
 import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
-import CertificateDetails from '@/components/CertificateDetails.vue';
+import CertificateDialog from '@/components/CertificateDialog.vue';
 
 export default Vue.extend({
   components: {
-    CertificateDetails,
+    CertificateDialog,
   },
   props: {
     id: {

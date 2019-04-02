@@ -11,6 +11,8 @@ import AddSubsystem from './views/AddSubsystem.vue';
 import AddClient from './views/AddClient.vue';
 import Subsystem from './views/Subsystem.vue';
 import Client from './views/Client.vue';
+import TabsBase from '@/views/TabsBase.vue';
+import Certificate from '@/views/Certificate.vue';
 import store from './store';
 import { RouteName, Permissions } from '@/global';
 
@@ -25,45 +27,79 @@ const router = new Router({
         {
           name: RouteName.Keys,
           path: '/keys',
-          component: Keys,
+          components: {
+            default: Keys,
+            top: TabsBase
+          },
+
           meta: { permission: Permissions.VIEW_KEYS },
         },
         {
           name: RouteName.Diagnostics,
           path: '/diagnostics',
-          component: Diagnostics,
+          components: {
+            default: Diagnostics,
+            top: TabsBase
+          },
           meta: { permission: Permissions.DIAGNOSTICS },
         },
         {
           name: RouteName.Settings,
           path: '/settings',
-          component: Settings,
+          components: {
+            default: Settings,
+            top: TabsBase
+          },
         },
         {
           name: RouteName.AddSubsystem,
           path: '/add-subsystem',
-          component: AddSubsystem,
+          components: {
+            default: AddSubsystem,
+          },
         },
         {
           name: RouteName.AddClient,
           path: '/add-client',
-          component: AddClient,
+          components: {
+            default: AddClient,
+          },
         },
         {
           name: RouteName.Subsystem,
           path: '/subsystem',
-          component: Subsystem,
+          components: {
+            default: Subsystem,
+            top: TabsBase
+          },
         },
         {
           name: RouteName.Client,
           path: '/client',
-          component: Client,
+          components: {
+            default: Client,
+            top: TabsBase
+          },
+          children: [
+
+          ],
         },
         {
           name: RouteName.Clients,
           path: '',
-          component: Clients,
+          components: {
+            default: Clients,
+            top: TabsBase
+          },
           meta: { permission: Permissions.VIEW_CLIENTS },
+        },
+        {
+          name: RouteName.Certificate,
+          path: '/certificate',
+          components: {
+            default: Certificate,
+          },
+          props: true
         },
       ],
     },
