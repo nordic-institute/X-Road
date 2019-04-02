@@ -15,6 +15,9 @@ Admin UI credentials: xrd/secret
 ```
 # Simple example 
 docker run --name my-ss niis/xroad-security-server
+
+# Running exact version instead of the default latest version
+docker run --name my-ss niis/xroad-security-server:bionic-6.20.0
 ```
 
 ## Running an ephemeral container, storing state in named volumes (experimental)
@@ -51,8 +54,7 @@ docker run -p 127.42.1.1:4000:4000 -p 127.42.1.1:80:80 --name my-ss niis/xroad-s
 On Windows, direct access does not work by default. See https://stackoverflow.com/questions/39154408/connecting-to-containers-ip-address-is-impossible-in-docker-for-windows for a possible solution.
 
 ###### MacOS
-Directly accessing the container on macOS is possible but currently you have to use for example this tool from a private person (https://github.com/AlmirKadric-Published/docker-tuntap-osx). There is a long-standing feature request for the functionality: https://github.com/docker/for-mac/issues/155
-It might be better to use port mappings described below.
+Preferably use port mappings described above. Directly accessing the container on macOS is possible but currently you have to use for example this tool from a private person (https://github.com/AlmirKadric-Published/docker-tuntap-osx). There is a long-standing feature request for the functionality: https://github.com/docker/for-mac/issues/155
 
 ## Running multiple dockerized security servers
 If you are running multiple containers and map container ports to localhost, it is recommended that you use a separate loopback address for each container and create a x-road spesific network so that containers can communicate. 
