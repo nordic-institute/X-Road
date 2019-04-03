@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.42  
+Version: 2.43  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -52,6 +52,7 @@ Doc. ID: UG-SYSPAR
 | 23.01.2019 | 2.40     | Added new Central Server parameter *auto-approve-auth-cert-reg-requests* | Petteri Kivimäki |
 | 31.01.2019 | 2.41     | REST message log parameters | Jarkko Hyöty |
 | 03.02.2019 | 2.42     | Added new Central Server parameter *auto-approve-client-reg-requests* | Petteri Kivimäki |
+| 02.04.2019 | 2.43     | Added new message log parameter *clean-transaction-batch* | Jarkko Hyöty |
 
 ## Table of Contents
 
@@ -310,8 +311,9 @@ This chapter describes the system parameters used by the components of the X-Roa
 | timestamper-client-connect-timeout               | 20000                                      |   |   | The timestamper client connect timeout in milliseconds. A timeout of zero is interpreted as an infinite timeout. |
 | timestamper-client-read-timeout                  | 60000                                      |   |   | The timestamper client read timeout in milliseconds. A timeout of zero is interpreted as an infinite timeout. |
 | archive-transaction-batch                        | 10000                                      |   |   | Size of transaction batch for archiving messagelog. This size is not exact because it will always make sure that last archived batch includes timestamp also (this might mean that it will go over transaction size).
-| max-loggable-body-size                           | 1073741824 (1 GiB)                         |   |   | Maximum loggable REST message body size |
-| truncated-body-allowed                           | false                                      |   |   | If the REST message body exceeds the maximum loggable body size, truncate the body in the log (true) or reject the message (false) |
+| max-loggable-body-size                           | 10485760 (10 MiB)                          |   |   | Maximum loggable REST message body size |
+| truncated-body-allowed                           | false                                      |   |   | If the REST message body exceeds the maximum loggable body size, truncate the body in the log (true) or reject the message (false). |
+| clean-transaction-batch                          | 10000                                      |   |   | Maximun number of log records to remove in one transaction. |
 
 #### 3.7.1 Note on logged X-Road message headers
 If the messagelog add-on has the SOAP body logging disabled, only a preconfigured set of the SOAP headers will be included in the message log.

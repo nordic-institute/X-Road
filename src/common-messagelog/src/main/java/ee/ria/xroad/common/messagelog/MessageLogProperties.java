@@ -52,6 +52,7 @@ public final class MessageLogProperties {
     private static final int DEFAULT_TIMESTAMPER_CLIENT_READ_TIMEOUT = 60000;
 
     private static final int DEFAULT_ARCHIVE_TRANSACTION_BATCH_SIZE = 10000;
+    private static final int DEFAULT_CLEAN_TRANSACTION_BATCH_SIZE = 10000;
 
     private static final long DEFAULT_MAX_LOGGABLE_MESSAGE_BODY_SIZE = 10 * 1024 * 1024;
     private static final long MAX_LOGGABLE_MESSAGE_BODY_SIZE_LIMIT = 1024 * 1024 * 1024;
@@ -81,6 +82,8 @@ public final class MessageLogProperties {
     public static final String ARCHIVE_TRANSACTION_BATCH = PREFIX + "archive-transaction-batch";
 
     public static final String CLEAN_INTERVAL = PREFIX + "clean-interval";
+
+    private static final String CLEAN_TRANSACTION_BATCH = "clean-transaction-batch";
 
     public static final String HASH_ALGO_ID = PREFIX + "hash-algo-id";
 
@@ -275,6 +278,10 @@ public final class MessageLogProperties {
 
     public static boolean isTruncatedBodyAllowed() {
         return Boolean.getBoolean(REST_TRUNCATED_BODY_ALLOWED);
+    }
+
+    public static int getCleanTransactionBatchSize() {
+        return Integer.getInteger(CLEAN_TRANSACTION_BATCH, DEFAULT_CLEAN_TRANSACTION_BATCH_SIZE);
     }
 
     private static String getMessageBodyLoggingOverrideParameterName(boolean enable, boolean local) {
