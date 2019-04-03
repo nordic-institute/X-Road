@@ -60,7 +60,7 @@ public class ClientConverterTest {
         clientType.setIdentifier(ClientId.create("XRD2", "GOV", "M4", "SS1"));
         Client converted = clientConverter.convert(clientType);
         assertEquals("XRD2:GOV:M4:SS1", converted.getId());
-        assertEquals("registered", converted.getStatus());
+        assertEquals(Client.StatusEnum.REGISTERED, converted.getStatus());
         assertEquals("GOV", converted.getMemberClass());
         assertEquals("M4", converted.getMemberCode());
         assertEquals("SS1", converted.getSubsystemCode());

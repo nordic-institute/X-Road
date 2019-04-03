@@ -35,6 +35,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Converter Client related data between openapi and (jaxb) service classes
@@ -66,7 +67,8 @@ public class ClientConverter {
         client.setMemberCode(clientType.getIdentifier().getMemberCode());
         client.setSubsystemCode(clientType.getIdentifier().getSubsystemCode());
         client.setMemberName(globalConfWrapper.getMemberName(clientType.getIdentifier()));
-        client.setStatus(clientType.getClientStatus());
+        Optional<Client.StatusEnum> status = ClientStatusMapping.map(clientType.getClientStatus());
+        client.setStatus(status.get());
         return client;
     }
 

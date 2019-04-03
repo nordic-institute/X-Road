@@ -314,8 +314,6 @@ paths:
         schema:
           type: string
       responses:
-        202:
-          description: item accepted for deletion
         204:
           description: deletion was successful
         400:
@@ -345,8 +343,6 @@ paths:
         schema:
           type: string
       responses:
-        202:
-          description: item accepted
         204:
           description: request was successful
         400:
@@ -380,8 +376,6 @@ paths:
         schema:
           type: string
       responses:
-        202:
-          description: item accepted
         204:
           description: request was successful
         400:
@@ -415,8 +409,6 @@ paths:
         schema:
           type: string
       responses:
-        202:
-          description: item accepted
         204:
           description: request was successful
         400:
@@ -450,8 +442,6 @@ paths:
         schema:
           type: string
       responses:
-        202:
-          description: item accepted
         204:
           description: request was successful
         400:
@@ -511,8 +501,6 @@ paths:
       responses:
         201:
           description: item created
-        202:
-          description: item accepted
         400:
           description: request was invalid
         401:
@@ -585,20 +573,18 @@ paths:
         explode: true
         schema:
           type: string
-          default: https
+          default: HTTPS
           enum:
-          - http
-          - https
-          - https no auth
+          - HTTP
+          - HTTPS
+          - HTTPS_NO_AUTH
       responses:
-        201:
+        200:
           description: item modified
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Client'
-        202:
-          description: item accepted
         400:
           description: request was invalid
         401:
@@ -629,8 +615,6 @@ paths:
         schema:
           type: string
       responses:
-        202:
-          description: item accepted for deletion
         204:
           description: deletion was successful
         400:
@@ -741,8 +725,6 @@ paths:
       responses:
         201:
           description: item created
-        202:
-          description: item accepted
         400:
           description: request was invalid
         401:
@@ -774,8 +756,6 @@ paths:
         schema:
           type: string
       responses:
-        202:
-          description: item accepted
         204:
           description: request was successful
         400:
@@ -853,8 +833,6 @@ paths:
       responses:
         201:
           description: item created
-        202:
-          description: item accepted
         400:
           description: request was invalid
         401:
@@ -958,25 +936,16 @@ paths:
         explode: false
         schema:
           type: string
-      - name: file
-        in: query
-        description: certificate file
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
       requestBody:
         description: certificate to add
         content:
-          application/json:
+          application/*:
             schema:
-              $ref: '#/components/schemas/TlsCertificate'
+              type: string
+              format: base64
       responses:
         201:
           description: item created
-        202:
-          description: item accepted
         400:
           description: request was invalid
         401:
@@ -1016,8 +985,6 @@ paths:
         schema:
           type: string
       responses:
-        202:
-          description: item accepted for deletion
         204:
           description: deletion was successful
         400:
@@ -1047,8 +1014,6 @@ paths:
         schema:
           type: string
       responses:
-        202:
-          description: item accepted
         204:
           description: request was successful
         400:
@@ -1134,8 +1099,6 @@ paths:
       responses:
         201:
           description: item created
-        202:
-          description: item accepted
         400:
           description: request was invalid
         401:
@@ -1217,14 +1180,12 @@ paths:
         schema:
           type: string
       responses:
-        201:
+        200:
           description: item modified
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Group'
-        202:
-          description: item accepted
         400:
           description: request was invalid
         401:
@@ -1255,8 +1216,6 @@ paths:
         schema:
           type: string
       responses:
-        202:
-          description: item accepted for deletion
         204:
           description: deletion was successful
         400:
@@ -1294,8 +1253,6 @@ paths:
       responses:
         201:
           description: item created
-        202:
-          description: item accepted
         400:
           description: request was invalid
         401:
@@ -1335,8 +1292,6 @@ paths:
         schema:
           type: string
       responses:
-        202:
-          description: item accepted for deletion
         204:
           description: deletion was successful
         400:
@@ -1408,14 +1363,12 @@ paths:
         schema:
           type: string
       responses:
-        201:
+        200:
           description: item modified
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Key'
-        202:
-          description: item accepted
         400:
           description: request was invalid
         401:
@@ -1446,8 +1399,6 @@ paths:
         schema:
           type: string
       responses:
-        202:
-          description: item accepted for deletion
         204:
           description: deletion was successful
         400:
@@ -1494,8 +1445,6 @@ paths:
       responses:
         201:
           description: item created
-        202:
-          description: item accepted
         400:
           description: request was invalid
         401:
@@ -1552,7 +1501,8 @@ paths:
           type: string
       - name: member_id
         in: query
-        description: security server client the certificate will be issued for (only for signing certificates)
+        description: security server client the certificate will be issued for (only
+          for signing certificates)
         required: false
         style: form
         explode: true
@@ -1566,8 +1516,6 @@ paths:
               schema:
                 type: string
                 format: binary
-        202:
-          description: item accepted
         400:
           description: request was invalid
         401:
@@ -1599,8 +1547,6 @@ paths:
         schema:
           type: string
       responses:
-        202:
-          description: item accepted
         204:
           description: request was successful
         400:
@@ -1634,7 +1580,7 @@ paths:
         schema:
           type: string
       responses:
-        201:
+        200:
           description: language changed
           content:
             application/json:
@@ -1706,14 +1652,12 @@ paths:
         schema:
           type: string
       responses:
-        201:
+        200:
           description: item modified
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Service'
-        202:
-          description: item accepted
         400:
           description: request was invalid
         401:
@@ -1744,8 +1688,6 @@ paths:
         schema:
           type: string
       responses:
-        202:
-          description: item accepted for deletion
         204:
           description: deletion was successful
         400:
@@ -1828,8 +1770,6 @@ paths:
       responses:
         201:
           description: item created
-        202:
-          description: item accepted
         400:
           description: request was invalid
         401:
@@ -1869,8 +1809,6 @@ paths:
         schema:
           type: string
       responses:
-        202:
-          description: item accepted for deletion
         204:
           description: deletion was successful
         400:
@@ -1953,8 +1891,6 @@ paths:
       responses:
         201:
           description: item created
-        202:
-          description: item accepted
         400:
           description: request was invalid
         401:
@@ -1994,8 +1930,6 @@ paths:
         schema:
           type: string
       responses:
-        202:
-          description: item accepted for deletion
         204:
           description: deletion was successful
         400:
@@ -2077,14 +2011,12 @@ paths:
       description: SS administrator updates configuration anchor information.
       operationId: updateAnchor
       responses:
-        201:
+        200:
           description: item modified
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Anchor'
-        202:
-          description: item accepted
         400:
           description: request was invalid
         401:
@@ -2114,8 +2046,6 @@ paths:
       responses:
         201:
           description: item created
-        202:
-          description: item accepted
         400:
           description: request was invalid
         401:
@@ -2250,8 +2180,6 @@ paths:
       responses:
         201:
           description: item created
-        202:
-          description: item accepted
         400:
           description: request was invalid
         401:
@@ -2273,8 +2201,6 @@ paths:
       description: SS administrator removes timestamping service.
       operationId: deleteTimestamping
       responses:
-        202:
-          description: item accepted for deletion
         204:
           description: deletion was successful
         400:
@@ -2395,8 +2321,6 @@ paths:
       responses:
         201:
           description: item created
-        202:
-          description: item accepted
         400:
           description: request was invalid
         401:
@@ -2470,14 +2394,12 @@ paths:
         schema:
           type: string
       responses:
-        201:
+        200:
           description: item modified
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Token'
-        202:
-          description: item accepted
         400:
           description: request was invalid
         401:
@@ -2508,8 +2430,6 @@ paths:
         schema:
           type: string
       responses:
-        202:
-          description: item accepted for deletion
         204:
           description: deletion was successful
         400:
@@ -2555,8 +2475,6 @@ paths:
       responses:
         201:
           description: item created
-        202:
-          description: item accepted
         400:
           description: request was invalid
         401:
@@ -2596,8 +2514,6 @@ paths:
       responses:
         201:
           description: item created
-        202:
-          description: item accepted
         400:
           description: request was invalid
         401:
@@ -2629,8 +2545,6 @@ paths:
         schema:
           type: string
       responses:
-        202:
-          description: item accepted for deletion
         204:
           description: deletion was successful
         400:
@@ -2668,14 +2582,12 @@ paths:
         schema:
           type: string
       responses:
-        201:
+        200:
           description: item modified
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Wsdl'
-        202:
-          description: item accepted
         400:
           description: request was invalid
         401:
@@ -2706,8 +2618,6 @@ paths:
         schema:
           type: string
       responses:
-        202:
-          description: item accepted for deletion
         204:
           description: deletion was successful
         400:
@@ -2737,8 +2647,6 @@ paths:
         schema:
           type: string
       responses:
-        202:
-          description: item accepted
         204:
           description: request was successful
         400:
@@ -2772,8 +2680,6 @@ paths:
         schema:
           type: string
       responses:
-        202:
-          description: item accepted
         204:
           description: request was successful
         400:
@@ -2908,16 +2814,12 @@ components:
     Certificate:
       required:
       - csp
+      - details
       - expires
-      - name
       - serial
       - state
       type: object
       properties:
-        name:
-          type: string
-          description: certificate name
-          example: X-Road Test CA CN
         csp:
           type: string
           description: certificate service provider
@@ -2929,14 +2831,20 @@ components:
         state:
           type: string
           description: certificate state
-          example: in use
+          example: IN_USE
+          enum:
+          - IN_USE
+          - DISABLED
         expires:
           type: string
           description: certificate expiration date
-          format: date
+          format: date-time
+        details:
+          type: string
+          description: certificate details
     Client:
       required:
-      - connectiontype
+      - connection_type
       - id
       - member_class
       - member_code
@@ -2960,13 +2868,23 @@ components:
         subsystem_code:
           type: string
           example: ABC
-        connectiontype:
+        connection_type:
           type: string
           description: connection type
-          example: https
+          example: HTTPS
+          enum:
+          - HTTP
+          - HTTPS
+          - HTTPS_NO_AUTH
         status:
           type: string
-          example: registered
+          example: REGISTERED
+          enum:
+          - REGISTERED
+          - SAVED
+          - GLOBAL_ERROR
+          - REGISTRATION_IN_PROGRESS
+          - DELETION_IN_PROGRESS
     Group:
       required:
       - client_id
@@ -3018,7 +2936,10 @@ components:
           example: AUTH
         status:
           type: string
-          example: Registered
+          description: key status
+          example: REGISTERED
+          enum:
+          - REGISTERED
     Language:
       required:
       - id

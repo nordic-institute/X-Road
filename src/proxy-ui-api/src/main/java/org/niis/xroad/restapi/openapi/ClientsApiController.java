@@ -49,7 +49,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.NativeWebRequest;
 
 import java.security.cert.X509Certificate;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -147,14 +147,13 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
         X509Certificate x509Certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
         certificate.setCsp(CertUtils.getIssuerCommonName(x509Certificate));
         certificate.setSerial(x509Certificate.getSerialNumber().toString());
-        // TO DO: enum, with latest api
         if (certificateInfo.isActive()) {
-            certificate.setState("IN_USE");
+            certificate.setState(Certificate.StateEnum.IN_USE);
         } else {
-            certificate.setState("DISABLED");
+            certificate.setState(Certificate.StateEnum.DISABLED);
         }
         certificate.setExpires(x509Certificate.getNotAfter().toInstant()
-                .atZone(ZoneId.systemDefault()).toLocalDate());
+                .atOffset(ZoneOffset.UTC));
         return certificate;
     }
 
