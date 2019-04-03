@@ -41,14 +41,6 @@ docker run -p 4000:4000 -p 4001:80 --network x-road-network --name my-ss1 niis/x
 docker run -p 4100:4000 -p 4101:80 --network x-road-network --name my-ss2 niis/xroad-security-server
 ```
 
-## Running an ephemeral container, storing state in named volumes (experimental)
-```
-docker run --name my-ss --rm \
--v my-ss-etc-xroad:/etc/xroad \
--v my-ss-db:/var/lib/postgresql/10/main \
-niis/xroad-security-server
-```
-
 ## Notes
 xroad-autologin is installed, but there is no default PIN set, so the following error at startup is normal:
 ```
