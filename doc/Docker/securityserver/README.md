@@ -22,13 +22,13 @@ docker run --name my-ss niis/xroad-security-server:bionic-6.20.0
 
 ## Accessing the container
 
-#####Running a single security server (Linux/Windows/MacOS)
+##### Running a single security server (Linux/Windows/MacOS)
 ```
 # Publish the container ports (80 and/or 443, 4000, and optionally 5500 and 5577) e.g. to localhost (loopback address).
 docker run -p 4000:4000 -p 4001:80 --name my-ss niis/xroad-security-server
 ```
 
-##### Direct accessd
+##### Direct access
 ###### Linux
 
 ```
