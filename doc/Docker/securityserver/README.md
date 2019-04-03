@@ -28,26 +28,6 @@ docker run --name my-ss niis/xroad-security-server:bionic-6.20.0
 docker run -p 4000:4000 -p 4001:80 --name my-ss niis/xroad-security-server
 ```
 
-##### Direct access
-###### Linux
-
-```
-# Works on Windows and Linux (can use any address from 127.0.0.0/8).
-docker run -p 127.42.1.1:4000:4000 -p 127.42.1.1:80:80 --name my-ss niis/xroad-security-server
-```
-On a Linux host, it is also possible to access the container(s) directly since the virtual network bridge created by docker can be accessed from the host (`docker inspect my-ss` shows the container IP address).
-
-###### Windows
-
-```
-# Works on Windows and Linux (can use any address from 127.0.0.0/8).
-docker run -p 127.42.1.1:4000:4000 -p 127.42.1.1:80:80 --name my-ss niis/xroad-security-server
-```
-On Windows, direct access does not work by default. See https://stackoverflow.com/questions/39154408/connecting-to-containers-ip-address-is-impossible-in-docker-for-windows for a possible solution.
-
-###### MacOS
-Preferably use port mappings described above. Directly accessing the container on macOS is possible but currently you have to use for example this tool from a private person (https://github.com/AlmirKadric-Published/docker-tuntap-osx). There is a long-standing feature request for the functionality: https://github.com/docker/for-mac/issues/155
-
 ## Running multiple dockerized security servers
 If you are running multiple containers and map container ports to localhost, it is recommended that you use a separate loopback address for each container and create a x-road spesific network so that containers can communicate. 
 Accessing admin-ui of a server from the same domain will break session on other servers. You can get over this by setting multiple mappings to localhost in hosts-file.
