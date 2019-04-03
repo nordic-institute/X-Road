@@ -57,8 +57,8 @@ Accessing admin-ui of a server from the same domain will break session on other 
 docker network create -d bridge x-road-network
 
 # Create more than one security server containers and (optionally) assign them a network-alias for easier reference
-docker run -p 4000:4000 -p 4001:80 --network x-road-network --network-alias --name my-ss1 niis/xroad-security-server
-docker run -p 4100:4000 -p 4101:80 --network x-road-network --network-alias --name my-ss2 niis/xroad-security-server
+docker run -p 4000:4000 -p 4001:80 --network x-road-network --name my-ss1 niis/xroad-security-server
+docker run -p 4100:4000 -p 4101:80 --network x-road-network --name my-ss2 niis/xroad-security-server
 ```
 
 ## Running an ephemeral container, storing state in named volumes (experimental)
