@@ -5,22 +5,11 @@
     </v-flex>
     <v-tabs slot="extension" v-model="tab" class="xr-tabs" color="white" grow>
       <v-tabs-slider color="secondary"></v-tabs-slider>
-      <v-tab key="details">Details</v-tab>
-      <v-tab key="internalServers">Internal Servers</v-tab>
+      <v-tab key="details" :to="detailsRoute">Details</v-tab>
+      <v-tab key="internalServers" :to="serversRoute">Internal Servers</v-tab>
     </v-tabs>
 
-    <v-tabs-items v-model="tab">
-      <v-tab-item key="details">
-        <v-card flat>
-          <clientDetails :id="$route.query.id"/>
-        </v-card>
-      </v-tab-item>
-      <v-tab-item key="internalServers">
-        <v-card flat>
-          <internalServers :id="$route.query.id"/>
-        </v-card>
-      </v-tab-item>
-    </v-tabs-items>
+    <router-view/>
   </div>
 </template>
 
@@ -29,12 +18,10 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import ClientDetails from '@/components/ClientDetails.vue';
 import InternalServers from '@/components/InternalServers.vue';
+import { Permissions, RouteName } from '@/global';
 
 export default Vue.extend({
   props: {},
-  computed: {
-    ...mapGetters(['client']),
-  },
   components: {
     ClientDetails,
     InternalServers,
@@ -43,6 +30,34 @@ export default Vue.extend({
     return {
       tab: null,
     };
+  },
+  computed: {
+    ...mapGetters(['client']),
+    detailsRoute(): object {
+      return {
+        name: RouteName.MemberDetails,
+        query: { id: this.$route.query.id },
+      };
+    },
+    serversRoute(): object {
+      return {
+        name: RouteName.MemberServers,
+        query: { id: this.$route.query.id },
+      };
+    },
+  },
+  created() {
+    this.fetchClient(this.$route.query.id as string);
+  },
+  methods: {
+    fetchClient(id: string) {
+      this.$store.dispatch('fetchClient', id).then(
+        (response) => {},
+        (error) => {
+          this.$bus.$emit('show-error', error.message);
+        },
+      );
+    },
   },
 });
 </script>

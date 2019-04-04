@@ -18,7 +18,6 @@ export default Vue.extend({
     fetchClients() {
       this.$store.dispatch('fetchClients').then(
         (response) => {
-          this.$bus.$emit('show-success', 'Great success!');
         },
         (error) => {
           this.$bus.$emit('show-error', error.message);

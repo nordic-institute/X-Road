@@ -57,12 +57,6 @@ export default Vue.extend({
   components: {
     CertificateDialog,
   },
-  props: {
-    id: {
-      type: String,
-      // required: true,
-    },
-  },
   data() {
     return {
       dialog: false,
@@ -73,9 +67,7 @@ export default Vue.extend({
     ...mapGetters(['client', 'certificates']),
   },
   created() {
-    this.$store.commit('clearAll');
-    this.fetchClient(this.id);
-    this.fetchCertificates(this.id);
+    this.fetchCertificates(this.$route.query.id as string);
   },
   methods: {
     viewCertificate(cert: any) {
@@ -85,14 +77,11 @@ export default Vue.extend({
       this.dialog = true;
     },
     closeDialog() {
-      console.log('udufuf8838838');
       this.dialog = false;
     },
     fetchClient(id: string) {
       this.$store.dispatch('fetchClient', id).then(
-        (response) => {
-          this.$bus.$emit('show-success', 'Great success!');
-        },
+        (response) => {},
         (error) => {
           this.$bus.$emit('show-error', error.message);
         },
@@ -100,9 +89,7 @@ export default Vue.extend({
     },
     fetchCertificates(id: string) {
       this.$store.dispatch('fetchCertificates', id).then(
-        (response) => {
-          this.$bus.$emit('show-success', 'Great success!');
-        },
+        (response) => {},
         (error) => {
           this.$bus.$emit('show-error', error.message);
         },
@@ -115,17 +102,9 @@ export default Vue.extend({
 <style lang="scss" >
 @import '../assets/tables';
 
-.xr-tabs {
-  border-bottom: #9b9b9b solid 1px;
-}
-
 .cert-name {
   text-decoration: underline;
   cursor: pointer;
-}
-
-.content {
-  width: 100%;
 }
 
 .details-certificates {

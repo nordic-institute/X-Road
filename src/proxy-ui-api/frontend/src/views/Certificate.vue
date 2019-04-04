@@ -23,7 +23,6 @@
         <div>{{certificate.details}}</div>
       </template>
     </div>
-    THEME: {{$route.params.certificate}}
     <v-dialog v-model="confirm" persistent max-width="290">
       <v-card>
         <v-card-title class="headline">Delete certificate?</v-card-title>
@@ -40,36 +39,45 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { mapGetters } from 'vuex';
+import { Permissions } from '@/global';
 
 export default Vue.extend({
   data() {
     return {
       confirm: false,
+      certificate: null,
     };
   },
   computed: {
-    certificate(): any {
-      return this.$route.params.certificate;
-    },
+    ...mapGetters(['tlsCertificates']),
   },
-
   methods: {
     close() {
-      //this.$emit('close');
       this.$router.go(-1);
+    },
+    fetchData(clientId: string, hash: string) {
+      this.$store.dispatch('fetchTlsCertificates', clientId).then(
+        (response) => {
+          this.certificate = this.$store.getters.tlsCertificates.find(
+            (cert: any) => cert.hash === hash,
+          );
+        },
+        (error) => {
+          this.$bus.$emit('show-error', error.message);
+        },
+      );
     },
     deleteCertificate() {
       this.confirm = true;
     },
     doDeleteCertificate() {
-      console.log('delete cert');
       this.confirm = false;
 
-      const clientId = this.$store.getters.client.id;
       this.$store
         .dispatch('deleteTlsCertificate', {
-          clientId,
-          hash: this.certificate.hash,
+          clientId: this.$route.query.id,
+          hash: this.$route.query.hash,
         })
         .then(
           (response) => {
@@ -83,6 +91,12 @@ export default Vue.extend({
           this.close();
         });
     },
+  },
+  created() {
+    this.fetchData(
+      this.$route.query.id as string,
+      this.$route.query.hash as string,
+    );
   },
 });
 </script>

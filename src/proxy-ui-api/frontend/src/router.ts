@@ -13,6 +13,9 @@ import Subsystem from './views/Subsystem.vue';
 import Client from './views/Client.vue';
 import TabsBase from '@/views/TabsBase.vue';
 import Certificate from '@/views/Certificate.vue';
+import ClientDetails from '@/components/ClientDetails.vue';
+import InternalServers from '@/components/InternalServers.vue';
+import Frame from '@/views/Frame.vue';
 import store from './store';
 import { RouteName, Permissions } from '@/global';
 
@@ -68,20 +71,47 @@ const router = new Router({
         {
           name: RouteName.Subsystem,
           path: '/subsystem',
+          redirect: '/subsystem/details',
           components: {
             default: Subsystem,
             top: TabsBase
           },
+          children: [
+            {
+              name: RouteName.SubsystemDetails,
+              path: '/subsystem/details',
+              component: ClientDetails,
+              props: true
+            },
+            {
+              name: RouteName.SubsystemServers,
+              path: '/subsystem/internalservers',
+              component: InternalServers,
+              props: true
+            },
+          ],
         },
         {
           name: RouteName.Client,
           path: '/client',
+          redirect: '/client/details',
           components: {
             default: Client,
             top: TabsBase
           },
           children: [
-
+            {
+              name: RouteName.MemberDetails,
+              path: '/client/details',
+              component: ClientDetails,
+              props: true
+            },
+            {
+              name: RouteName.MemberServers,
+              path: '/client/internalservers',
+              component: InternalServers,
+              props: true
+            },
           ],
         },
         {

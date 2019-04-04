@@ -80,9 +80,7 @@ export default Vue.extend({
           hash: this.certificate.hash,
         })
         .then(
-          (response) => {
-            this.$bus.$emit('show-success', 'Great success!');
-          },
+          (response) => {},
           (error) => {
             this.$bus.$emit('show-error', error.message);
           },

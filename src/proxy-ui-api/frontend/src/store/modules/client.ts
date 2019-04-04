@@ -91,7 +91,6 @@ export const actions: ActionTree<ClientState, RootState> = {
 
     return axios.get(`/clients/${id}`)
       .then((res) => {
-        console.log(res);
         commit('storeClient', res.data);
       })
       .catch((error) => {

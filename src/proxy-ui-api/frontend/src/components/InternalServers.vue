@@ -94,12 +94,6 @@ export default Vue.extend({
     CertificateDetailsFull,
     CertificateIcon,
   },
-  props: {
-    id: {
-      type: String,
-      required: true,
-    },
-  },
   data() {
     return {
       connectionTypes: ['http', 'https', 'https no auth'],
@@ -109,7 +103,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['server', 'tlsCertificates', 'ssCertificate']),
+    ...mapGetters(['tlsCertificates', 'ssCertificate']),
 
     connectionType: {
       get(): string | undefined {
@@ -117,9 +111,7 @@ export default Vue.extend({
       },
       set(value: string) {
         this.$store.dispatch('saveConnectionType', value).then(
-          (response) => {
-            // this.$bus.$emit('show-success', 'Great success!');
-          },
+          (response) => {},
           (error) => {
             this.revertHack += 1;
 
@@ -127,21 +119,12 @@ export default Vue.extend({
             this.$bus.$emit('show-error', error.message);
           },
         );
-
-        /*try {
-          this.$store.dispatch('saveConnectionType', value);
-        } catch (error) {
-          alert('ajd');
-          this.revertHack = +1;
-        } */
-
-        //this.$store.commit('updateMessage', value)
       },
     },
   },
   created() {
-    this.fetchSSCertificate(this.id);
-    this.fetchTlsCertificates(this.id);
+    this.fetchSSCertificate(this.$route.query.id as string);
+    this.fetchTlsCertificates(this.$route.query.id as string);
   },
   methods: {
     onFileChange(e: any) {
@@ -169,9 +152,7 @@ export default Vue.extend({
 
     fetchServer(id: string) {
       this.$store.dispatch('fetchServer').then(
-        (response) => {
-          // this.$bus.$emit('show-success', 'Great success!');
-        },
+        (response) => {},
         (error) => {
           this.$bus.$emit('show-error', error.message);
         },
@@ -180,9 +161,7 @@ export default Vue.extend({
 
     fetchTlsCertificates(id: string) {
       this.$store.dispatch('fetchTlsCertificates', id).then(
-        (response) => {
-          // this.$bus.$emit('show-success', 'Great success!');
-        },
+        (response) => {},
         (error) => {
           this.$bus.$emit('show-error', error.message);
         },
@@ -204,9 +183,7 @@ export default Vue.extend({
 
     fetchSSCertificate(id: string) {
       this.$store.dispatch('fetchSSCertificate', id).then(
-        (response) => {
-          // this.$bus.$emit('show-success', 'Great success!');
-        },
+        (response) => {},
         (error) => {
           this.$bus.$emit('show-error', error.message);
         },
@@ -216,12 +193,11 @@ export default Vue.extend({
     openCertificate(cert: any) {
       this.$router.push({
         name: RouteName.Certificate,
-        params: { certificate: cert },
+        query: {
+          id: this.$route.query.id,
+          hash: cert.hash,
+        },
       });
-      /*
-      this.selectedCertificate = cert;
-      this.dialog = true;
-      */
     },
     closeDialog() {
       this.dialog = false;
@@ -234,16 +210,8 @@ export default Vue.extend({
 @import '../assets/tables';
 @import '../assets/colors';
 
-.xr-tabs {
-  border-bottom: #9b9b9b solid 1px;
-}
-
 .select-connection {
   max-width: 240px;
-}
-
-.content {
-  width: 100%;
 }
 
 .tls-title-wrap {
