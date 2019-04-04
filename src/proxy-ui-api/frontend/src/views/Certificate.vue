@@ -1,12 +1,7 @@
 <template>
   <div class="wrapper">
     <div class="new-content">
-      <div class="cert-dialog-header">
-        <span class="cert-headline">Certificate</span>
-        <v-spacer></v-spacer>
-        <i @click="close()" id="close-x"></i>
-      </div>
-
+      <subViewTitle title="Certificate" @close="close"/>
       <template v-if="certificate">
         <div class="cert-hash">
           {{certificate.hash}}
@@ -41,8 +36,12 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
+import SubViewTitle from '@/components/SubViewTitle.vue';
 
 export default Vue.extend({
+  components: {
+    SubViewTitle,
+  },
   data() {
     return {
       confirm: false,
@@ -107,7 +106,6 @@ export default Vue.extend({
   justify-content: center;
   flex-direction: column;
   padding-top: 60px;
-
   max-width: 850px;
   height: 100%;
   width: 100%;
