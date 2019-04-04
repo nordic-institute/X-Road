@@ -33,7 +33,7 @@
 
             <property name="timestampHashChain" access="field" type="text"/>
             <property name="response" access="field" type="boolean"/>
-            <property name="attachment" access="field" lazy="true" type="blob"/>
+            <property name="attachment" access="field" lazy="true" type="blob" update="false"/>
             <property name="xRequestId" access="field" type="string"/>
         </subclass>
 
