@@ -69,6 +69,9 @@ public class ClientConverter {
         client.setMemberName(globalConfWrapper.getMemberName(clientType.getIdentifier()));
         Optional<Client.StatusEnum> status = ClientStatusMapping.map(clientType.getClientStatus());
         client.setStatus(status.get());
+        Optional<Client.ConnectionTypeEnum> connectionTypeEnum =
+                ConnectionTypeMapping.map(clientType.getIsAuthentication());
+        client.setConnectionType(connectionTypeEnum.get());
         return client;
     }
 

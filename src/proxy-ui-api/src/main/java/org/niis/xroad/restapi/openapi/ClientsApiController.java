@@ -26,18 +26,16 @@ package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.util.CertUtils;
-import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.commonui.SignerProxy;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.CertificateConverter;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.Certificate;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.repository.ClientRepository;
+import org.niis.xroad.restapi.repository.TokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,8 +46,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.NativeWebRequest;
 
-import java.security.cert.X509Certificate;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -72,7 +68,13 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     private ClientRepository clientRepository;
 
     @Autowired
+    private TokenRepository tokenRepository;
+
+    @Autowired
     private ClientConverter clientConverter;
+
+    @Autowired
+    private CertificateConverter certificateConverter;
 
     @Autowired
     public ClientsApiController(NativeWebRequest request) {
@@ -126,35 +128,17 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     public ResponseEntity<List<Certificate>> getClientCertificates(String id) {
         ClientType clientType = getClientType(id);
         try {
-            List<TokenInfo> tokenInfos = SignerProxy.getTokens();
+            // TO DO: should be in service, really
+            List<TokenInfo> tokenInfos = tokenRepository.getTokens();
             return new ResponseEntity<>(tokenInfos.stream()
                     .flatMap(tokenInfo -> tokenInfo.getKeyInfo().stream())
                     .flatMap(keyInfo -> keyInfo.getCerts().stream())
                     .filter(certificateInfo -> clientType.getIdentifier().memberEquals(certificateInfo.getMemberId()))
-                    .map(this::convert)
+                    .map(certificateConverter::convert)
                     .collect(toList()), HttpStatus.OK);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    /**
-     * TO DO: refactor to converters etc
-     * @param certificateInfo
-     */
-    private Certificate convert(CertificateInfo certificateInfo) {
-        Certificate certificate = new Certificate();
-        X509Certificate x509Certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
-        certificate.setCsp(CertUtils.getIssuerCommonName(x509Certificate));
-        certificate.setSerial(x509Certificate.getSerialNumber().toString());
-        if (certificateInfo.isActive()) {
-            certificate.setState(Certificate.StateEnum.IN_USE);
-        } else {
-            certificate.setState(Certificate.StateEnum.DISABLED);
-        }
-        certificate.setExpires(x509Certificate.getNotAfter().toInstant()
-                .atOffset(ZoneOffset.UTC));
-        return certificate;
     }
 
     @Override
