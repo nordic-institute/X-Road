@@ -26,4 +26,13 @@ else
     echo "WARN: Installed version ($INSTALLED_VERSION) does not match packaged version ($PACKAGED_VERSION)" >&2
 fi
 
+if [  -z "${XROAD_AUTOLOGIN_PIN}" ]
+then
+    echo "WARN: XROAD_AUTOLOGIN_PIN variable is not set"
+else
+    echo "XROAD_AUTOLOGIN_PIN variable set, writing to /etc/xroad/autologin"
+    echo ${XROAD_AUTOLOGIN_PIN} > /etc/xroad/autologin
+    unset XROAD_AUTOLOGIN_PIN
+fi
+
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
