@@ -71,7 +71,6 @@ export default Vue.extend({
   },
   methods: {
     viewCertificate(cert: any) {
-      Object.entries(cert).forEach(([key, value]) => console.log(key, value));
       this.certificate = cert;
       this.dialog = true;
     },
