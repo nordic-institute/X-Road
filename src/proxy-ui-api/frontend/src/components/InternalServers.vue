@@ -73,12 +73,6 @@
         </template>
       </table>
     </v-card>
-
-    <certificateDetailsFull
-      :dialog="dialog"
-      :certificate="selectedCertificate"
-      @close="closeDialog()"
-    />
   </div>
 </template>
 
@@ -87,11 +81,9 @@ import Vue from 'vue';
 
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
-import CertificateDetailsFull from '@/components/CertificateDetailsFull.vue';
 import CertificateIcon from '@/components/CertificateIcon.vue';
 export default Vue.extend({
   components: {
-    CertificateDetailsFull,
     CertificateIcon,
   },
   data() {
