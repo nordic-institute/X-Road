@@ -22,7 +22,7 @@ const store: StoreOptions<RootState> = {
     user,
     mockDataModule,
     clientsModule,
-    clientModule
+    clientModule,
   },
   plugins: [vuexLocal.plugin],
 };

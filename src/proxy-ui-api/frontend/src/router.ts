@@ -15,7 +15,6 @@ import TabsBase from '@/views/TabsBase.vue';
 import Certificate from '@/views/Certificate.vue';
 import ClientDetails from '@/components/ClientDetails.vue';
 import InternalServers from '@/components/InternalServers.vue';
-import Frame from '@/views/Frame.vue';
 import store from './store';
 import { RouteName, Permissions } from '@/global';
 
@@ -32,7 +31,7 @@ const router = new Router({
           path: '/keys',
           components: {
             default: Keys,
-            top: TabsBase
+            top: TabsBase,
           },
 
           meta: { permission: Permissions.VIEW_KEYS },
@@ -42,7 +41,7 @@ const router = new Router({
           path: '/diagnostics',
           components: {
             default: Diagnostics,
-            top: TabsBase
+            top: TabsBase,
           },
           meta: { permission: Permissions.DIAGNOSTICS },
         },
@@ -51,7 +50,7 @@ const router = new Router({
           path: '/settings',
           components: {
             default: Settings,
-            top: TabsBase
+            top: TabsBase,
           },
         },
         {
@@ -74,20 +73,20 @@ const router = new Router({
           redirect: '/subsystem/details',
           components: {
             default: Subsystem,
-            top: TabsBase
+            top: TabsBase,
           },
           children: [
             {
               name: RouteName.SubsystemDetails,
               path: '/subsystem/details',
               component: ClientDetails,
-              props: true
+              props: true,
             },
             {
               name: RouteName.SubsystemServers,
               path: '/subsystem/internalservers',
               component: InternalServers,
-              props: true
+              props: true,
             },
           ],
         },
@@ -97,20 +96,20 @@ const router = new Router({
           redirect: '/client/details',
           components: {
             default: Client,
-            top: TabsBase
+            top: TabsBase,
           },
           children: [
             {
               name: RouteName.MemberDetails,
               path: '/client/details',
               component: ClientDetails,
-              props: true
+              props: true,
             },
             {
               name: RouteName.MemberServers,
               path: '/client/internalservers',
               component: InternalServers,
-              props: true
+              props: true,
             },
           ],
         },
@@ -119,7 +118,7 @@ const router = new Router({
           path: '',
           components: {
             default: Clients,
-            top: TabsBase
+            top: TabsBase,
           },
           meta: { permission: Permissions.VIEW_CLIENTS },
         },
@@ -129,7 +128,7 @@ const router = new Router({
           components: {
             default: Certificate,
           },
-          props: true
+          props: true,
         },
       ],
     },

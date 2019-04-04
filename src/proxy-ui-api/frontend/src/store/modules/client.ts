@@ -1,6 +1,6 @@
 import axios from 'axios';
 import _ from 'lodash';
-var FileSaver = require('file-saver');
+import FileSaver from 'file-saver';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 
@@ -77,14 +77,14 @@ export const mutations: MutationTree<ClientState> = {
     state.ssCertificate = null;
     state.tlsCertificates = [];
     state.certificates = [];
-  }
+  },
 };
 
 export const actions: ActionTree<ClientState, RootState> = {
   fetchClient({ commit, rootGetters }, id: string) {
 
     if (!id) {
-      throw "Missing client id";
+      throw new Error('Missing client id');
     }
 
     commit('setLoading', true);
@@ -106,7 +106,7 @@ export const actions: ActionTree<ClientState, RootState> = {
     commit('setLoading', true);
 
     if (!id) {
-      throw "Missing id";
+      throw new Error('Missing id');
     }
 
     return axios.get(`/clients/${id}/certificates`)
@@ -127,7 +127,7 @@ export const actions: ActionTree<ClientState, RootState> = {
     commit('setLoading', true);
 
     if (!id) {
-      throw "Missing id";
+      throw new Error('Missing id');
     }
 
     return axios.get(`/clients/${id}/tlscertificates`)
@@ -147,7 +147,7 @@ export const actions: ActionTree<ClientState, RootState> = {
   fetchSSCertificate({ commit, rootGetters }, id: string) {
 
     if (!id) {
-      throw "Missing id";
+      throw new Error('Missing id');
     }
 
     return axios.get(`/system/certificate`)
@@ -180,20 +180,20 @@ export const actions: ActionTree<ClientState, RootState> = {
     axios.get(`/download`, { responseType: 'blob' }).then((response) => {
 
       // Log somewhat to show that the browser actually exposes the custom HTTP header
-      //const fileNameHeader = "x-suggested-filename";
-      const fileNameHeader = "content-disposition";
+      // const fileNameHeader = "x-suggested-filename";
+      const fileNameHeader = 'content-disposition';
       const suggestedFileName = response.headers[fileNameHeader].filename;
       console.log(response.headers[fileNameHeader]);
-      const effectiveFileName = (suggestedFileName === undefined ? "random_name.cert" : suggestedFileName);
+      const effectiveFileName = (suggestedFileName === undefined ? 'random_name.cert' : suggestedFileName);
 
-      console.log("Received header [" + fileNameHeader + "]: " + suggestedFileName
-        + ", effective fileName: " + effectiveFileName);
+      console.log('Received header [' + fileNameHeader + ']: ' + suggestedFileName
+        + ', effective fileName: ' + effectiveFileName);
 
       // Let the user save the file.
       FileSaver.saveAs(response.data, effectiveFileName);
 
     }).catch((response) => {
-      console.error("Could not Download the Excel report from the backend.", response);
+      console.error('Could not Download the Excel report from the backend.', response);
     });
 
   },
@@ -215,7 +215,7 @@ export const actions: ActionTree<ClientState, RootState> = {
 
     // Bail if there is no client for some reason
     if (!state.client) {
-      throw 'Client does not exist';
+      throw new Error('Client does not exist');
     }
 
     const id = state.client.id;
@@ -229,7 +229,7 @@ export const actions: ActionTree<ClientState, RootState> = {
         if (res.data) {
           commit('storeClient', res.data);
         } else {
-          console.error("no data");
+          console.error('no data');
         }
       })
       .catch((error) => {

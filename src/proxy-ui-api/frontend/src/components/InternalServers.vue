@@ -110,15 +110,12 @@ export default Vue.extend({
         return this.$store.getters.connectionType;
       },
       set(value: string) {
-        this.$store.dispatch('saveConnectionType', value).then(
-          (response) => {},
-          (error) => {
-            this.revertHack += 1;
+        this.$store.dispatch('saveConnectionType', value).catch((error) => {
+          this.revertHack += 1;
 
-            console.log(this.revertHack);
-            this.$bus.$emit('show-error', error.message);
-          },
-        );
+          console.log(this.revertHack);
+          this.$bus.$emit('show-error', error.message);
+        });
       },
     },
   },
@@ -128,9 +125,11 @@ export default Vue.extend({
   },
   methods: {
     onFileChange(e: any) {
-      var fileList = e.target.files || e.dataTransfer.files;
-      if (!fileList.length) return;
-      //this.createImage(files[0]);
+      const fileList = e.target.files || e.dataTransfer.files;
+      if (!fileList.length) {
+        return;
+      }
+      // this.createImage(files[0]);
 
       const formData = new FormData();
       // append the files to FormData
@@ -151,21 +150,15 @@ export default Vue.extend({
     },
 
     fetchServer(id: string) {
-      this.$store.dispatch('fetchServer').then(
-        (response) => {},
-        (error) => {
-          this.$bus.$emit('show-error', error.message);
-        },
-      );
+      this.$store.dispatch('fetchServer').catch((error) => {
+        this.$bus.$emit('show-error', error.message);
+      });
     },
 
     fetchTlsCertificates(id: string) {
-      this.$store.dispatch('fetchTlsCertificates', id).then(
-        (response) => {},
-        (error) => {
-          this.$bus.$emit('show-error', error.message);
-        },
-      );
+      this.$store.dispatch('fetchTlsCertificates', id).catch((error) => {
+        this.$bus.$emit('show-error', error.message);
+      });
     },
 
     exportSSCertificate(hash: string) {
@@ -182,12 +175,9 @@ export default Vue.extend({
     },
 
     fetchSSCertificate(id: string) {
-      this.$store.dispatch('fetchSSCertificate', id).then(
-        (response) => {},
-        (error) => {
-          this.$bus.$emit('show-error', error.message);
-        },
-      );
+      this.$store.dispatch('fetchSSCertificate', id).catch((error) => {
+        this.$bus.$emit('show-error', error.message);
+      });
     },
 
     openCertificate(cert: any) {

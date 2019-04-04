@@ -72,7 +72,6 @@ export default Vue.extend({
   methods: {
     viewCertificate(cert: any) {
       Object.entries(cert).forEach(([key, value]) => console.log(key, value));
-
       this.certificate = cert;
       this.dialog = true;
     },
@@ -80,20 +79,14 @@ export default Vue.extend({
       this.dialog = false;
     },
     fetchClient(id: string) {
-      this.$store.dispatch('fetchClient', id).then(
-        (response) => {},
-        (error) => {
-          this.$bus.$emit('show-error', error.message);
-        },
-      );
+      this.$store.dispatch('fetchClient', id).catch((error) => {
+        this.$bus.$emit('show-error', error.message);
+      });
     },
     fetchCertificates(id: string) {
-      this.$store.dispatch('fetchCertificates', id).then(
-        (response) => {},
-        (error) => {
-          this.$bus.$emit('show-error', error.message);
-        },
-      );
+      this.$store.dispatch('fetchCertificates', id).catch((error) => {
+        this.$bus.$emit('show-error', error.message);
+      });
     },
   },
 });
