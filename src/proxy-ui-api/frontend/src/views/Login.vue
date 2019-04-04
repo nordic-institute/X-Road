@@ -21,7 +21,8 @@
               <v-card-text>
                 <v-form>
                   <v-text-field
-                    name="login"
+                    id="username"
+                    name="username"
                     label="Username"
                     type="text"
                     v-model="username"
@@ -44,6 +45,7 @@
               <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn
+                  id="submit-button"
                   color="primary"
                   class="rounded-button"
                   @click="submit"
