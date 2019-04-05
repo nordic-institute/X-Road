@@ -2813,21 +2813,64 @@ components:
           format: date-time
     Certificate:
       required:
-      - csp
-      - details
-      - expires
+      - issuer-distinguished-name
+      - issuer-common-name
+      - subject-distinguished-name
+      - subject-common-name
+      - not_before
+      - not_after
       - serial
+      - version
+      - signature_algorithm
+      - key_algorithm
+      - hash
       - state
       type: object
       properties:
-        csp:
+        issuer_distinguished_name:
           type: string
-          description: certificate service provider
-          example: globalsign
+          description: certificate issuer distinguished name
+          example:
+        issuer_common_name:
+            type: string
+            description: certificate issuer common name
+            example:
+        subject_distinguished_name:
+            type: string
+            description: certificate subject distinguished name
+            example:
+        subject_common_name:
+            type: string
+            description: certificate subject common name
+            example:
+        not_before:
+            type: string
+            description: certificate validity not before
+            format: date-time
+        not_after:
+            type: string
+            description: certificate validity not after
+            format: date-time
         serial:
           type: string
           description: serial number
           example: "4"
+        version:
+            type: integer
+            description: version
+            example: 3
+        signature_algorithm:
+            type: string
+            description: certificate signature algorithm
+            example: sha256WithRSAEncryption
+        key_algorithm:
+            type: string
+            description: certificate key algorithm
+            example: sha256WithRSAEncryption
+        hash:
+            type: string
+            description: certificate hash
+            example: 12:34:56:78:90:AB:CD:EF
         state:
           type: string
           description: certificate state
@@ -2835,13 +2878,6 @@ components:
           enum:
           - IN_USE
           - DISABLED
-        expires:
-          type: string
-          description: certificate expiration date
-          format: date-time
-        details:
-          type: string
-          description: certificate details
     Client:
       required:
       - connection_type

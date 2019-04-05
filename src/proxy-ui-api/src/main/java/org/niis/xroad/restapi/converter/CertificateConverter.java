@@ -31,7 +31,9 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Date;
 
 /**
  * Converter Certificate related data between openapi and (jaxb) service classes
@@ -45,20 +47,37 @@ public class CertificateConverter {
      * @return
      */
     public org.niis.xroad.restapi.openapi.model.Certificate convert(CertificateInfo certificateInfo) {
-        org.niis.xroad.restapi.openapi.model.Certificate certificate = new org.niis.xroad.restapi.openapi.model.Certificate();
-        // readCertificate wants to have a DER-encoded cert
+        org.niis.xroad.restapi.openapi.model.Certificate certificate =
+                new org.niis.xroad.restapi.openapi.model.Certificate();
+
         X509Certificate x509Certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
-        certificate.setCsp(CertUtils.getIssuerCommonName(x509Certificate));
+        certificate.setIssuerCommonName(CertUtils.getIssuerCommonName(x509Certificate));
+        certificate.setIssuerDistinguishedName(x509Certificate.getIssuerDN().getName());
+        certificate.setSubjectCommonName(CertUtils.getSubjectCommonName(x509Certificate));
+        certificate.setSubjectDistinguishedName(x509Certificate.getSubjectDN().getName());
+
         certificate.setSerial(x509Certificate.getSerialNumber().toString());
+        certificate.setVersion(x509Certificate.getVersion());
+
+        certificate.setSignatureAlgorithm(x509Certificate.getSigAlgName());
+        certificate.setKeyAlgorithm(x509Certificate.getPublicKey().getAlgorithm());
+
         if (certificateInfo.isActive()) {
             certificate.setState(org.niis.xroad.restapi.openapi.model.Certificate.StateEnum.IN_USE);
         } else {
             certificate.setState(org.niis.xroad.restapi.openapi.model.Certificate.StateEnum.DISABLED);
         }
-        certificate.setExpires(x509Certificate.getNotAfter().toInstant()
-                .atOffset(ZoneOffset.UTC));
+        certificate.setNotBefore(asOffsetDateTime(x509Certificate.getNotBefore()));
+        certificate.setNotAfter(asOffsetDateTime(x509Certificate.getNotAfter()));
+        try {
+            certificate.setHash(CryptoUtils.calculateCertHexHash(certificateInfo.getCertificateBytes()).toUpperCase());
+        } catch (Exception ex) {
+            throw new IllegalStateException("cannot calculate cert hash", ex);
+        }
         return certificate;
     }
 
-
+    private OffsetDateTime asOffsetDateTime(Date notBefore) {
+        return notBefore.toInstant().atOffset(ZoneOffset.UTC);
+    }
 }

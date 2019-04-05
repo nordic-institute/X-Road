@@ -83,16 +83,17 @@ public class ClientsApiControllerIntegrationTest {
      *             Not After : Jan  1 00:00:00 2038 GMT
      *         Subject: CN=N/A
      */
-        private static byte[] certBytes = CryptoUtils.decodeBase64("MIICqTCCAZGgAwIBAgIBATANBgkqhkiG9w0BAQ0FADAOMQwwCgYDVQQDDANOL0EwHhcNN\n" +
-            "zAwMTAxMDAwMDAwWhcNMzgwMTAxMDAwMDAwWjAOMQwwCgYDVQQDDANOL0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK\n" +
-            "AoIBAQCdiI++CJsyo19Y0810Q80lOJmJ264CvGGqQuB9VYha4YFsHUhltAp3LIcEpxNPuh8k7Mn+pFoetIXtBh6p5cYGf3n\n" +
-            "S0i07xSLaAAkQdGqzI6aiSNiGDhQGL5NdyM/cdthtdheQq3WquN7kNkmXo1c5RM2ZcK4SRy6Q44d+KdzC5O42mUgDdxyY2+\n" +
-            "3xpSqcAJq1/2DuDPVzAIkWH/iU2+dgnaPACcNqCgnL8g0ALu2e9vHm/ZYhYpS3+e2xLXEOwRvxlprsGcE1aIjKeFupwoZ4n\n" +
-            "nkqmHOA2AYS4wVVpcrmF0lDmemXAfi0gDqWCkyjqo9aWdo952uHVQpJarMBGothAgMBAAGjEjAQMA4GA1UdDwEB/wQEAwIG\n" +
-            "QDANBgkqhkiG9w0BAQ0FAAOCAQEAMUt6UKCam3QyJnGeEMDJ0m8WbjSzD5NyUVbpR2EVrO+Kqbu8Kd/vjF8vdQN+TCNabqT\n" +
-            "ynnrrmqkc4xBBIXHMJ+xS6SijHQ5+IJ6D/VSx+C3D6XrJbzCby4t+ESqGsqB6ShxiiKOSQ5A6MDaE4Doi00GMB5NymknQrn\n" +
-            "wREOMPwTZy68CZEaEQyE4M9KezCeVJMCXmnJt1I9oudsw3xPDjq+aYzRORW74RvNFf+sztBjPGhkqFnkl+glbEK6otefyJP\n" +
-            "n5vVwjz/+ywyqzx8YJM0vPkD/PghmJxunsJObbvif9FNZaxOaEzI9QDw0nWzbgvsCAqdcHqRjMEQwtU75fzfg==");
+    private static byte[] certBytes =
+            CryptoUtils.decodeBase64("MIICqTCCAZGgAwIBAgIBATANBgkqhkiG9w0BAQ0FADAOMQwwCgYDVQQDDANOL0EwHhcNN\n"
+            + "zAwMTAxMDAwMDAwWhcNMzgwMTAxMDAwMDAwWjAOMQwwCgYDVQQDDANOL0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK\n"
+            + "AoIBAQCdiI++CJsyo19Y0810Q80lOJmJ264CvGGqQuB9VYha4YFsHUhltAp3LIcEpxNPuh8k7Mn+pFoetIXtBh6p5cYGf3n\n"
+            + "S0i07xSLaAAkQdGqzI6aiSNiGDhQGL5NdyM/cdthtdheQq3WquN7kNkmXo1c5RM2ZcK4SRy6Q44d+KdzC5O42mUgDdxyY2+\n"
+            + "3xpSqcAJq1/2DuDPVzAIkWH/iU2+dgnaPACcNqCgnL8g0ALu2e9vHm/ZYhYpS3+e2xLXEOwRvxlprsGcE1aIjKeFupwoZ4n\n"
+            + "nkqmHOA2AYS4wVVpcrmF0lDmemXAfi0gDqWCkyjqo9aWdo952uHVQpJarMBGothAgMBAAGjEjAQMA4GA1UdDwEB/wQEAwIG\n"
+            + "QDANBgkqhkiG9w0BAQ0FAAOCAQEAMUt6UKCam3QyJnGeEMDJ0m8WbjSzD5NyUVbpR2EVrO+Kqbu8Kd/vjF8vdQN+TCNabqT\n"
+            + "ynnrrmqkc4xBBIXHMJ+xS6SijHQ5+IJ6D/VSx+C3D6XrJbzCby4t+ESqGsqB6ShxiiKOSQ5A6MDaE4Doi00GMB5NymknQrn\n"
+            + "wREOMPwTZy68CZEaEQyE4M9KezCeVJMCXmnJt1I9oudsw3xPDjq+aYzRORW74RvNFf+sztBjPGhkqFnkl+glbEK6otefyJP\n"
+            + "n5vVwjz/+ywyqzx8YJM0vPkD/PghmJxunsJObbvif9FNZaxOaEzI9QDw0nWzbgvsCAqdcHqRjMEQwtU75fzfg==");
 
     @MockBean
     private GlobalConfWrapper globalConfWrapper;
@@ -106,30 +107,6 @@ public class ClientsApiControllerIntegrationTest {
 
         List<TokenInfo> mockTokens = createMockTokenInfos(null);
         when(tokenRepository.getTokens()).thenReturn(mockTokens);
-    }
-
-    /**
-     * @param certificateInfo one certificate to put inside this tokenInfo
-     *                        structure
-     * @return
-     */
-    private List<TokenInfo> createMockTokenInfos(CertificateInfo certificateInfo) {
-        List<TokenInfo> mockTokens = new ArrayList<>();
-        List<CertificateInfo> certificates = new ArrayList<>();
-        if (certificateInfo != null) {
-            certificates.add(certificateInfo);
-        }
-        KeyInfo keyInfo = new KeyInfo(false, null,
-                "friendlyName", "id", "label", "publicKey",
-                certificates, new ArrayList<CertRequestInfo>(),
-                "signMecchanismName");
-        TokenInfo tokenInfo = new TokenInfo("type",
-                "friendlyName", "id",
-                false, false, false,
-                "serialNumber", "label", -1,
-                null, Arrays.asList(keyInfo), null);
-        mockTokens.add(tokenInfo);
-        return mockTokens;
     }
 
     @Autowired
@@ -192,16 +169,21 @@ public class ClientsApiControllerIntegrationTest {
         CertificateInfo mockCertificate = new CertificateInfo(
                 ClientId.create("FI", "GOV", "M1"),
                 true, true, CertificateInfo.STATUS_REGISTERED,
-        "id", certBytes, null);
+                    "id", certBytes, null);
         when(tokenRepository.getTokens()).thenReturn(createMockTokenInfos(mockCertificate));
         certificates = clientsApiController.getClientCertificates("FI:GOV:M1");
         assertEquals(HttpStatus.OK, certificates.getStatusCode());
         assertEquals(1, certificates.getBody().size());
 
         org.niis.xroad.restapi.openapi.model.Certificate onlyCertificate = certificates.getBody().get(0);
-        assertEquals("N/A", onlyCertificate.getCsp());
-        assertEquals(OffsetDateTime.parse("2038-01-01T00:00:00Z"), onlyCertificate.getExpires());
+        assertEquals("N/A", onlyCertificate.getIssuerCommonName());
+        assertEquals(OffsetDateTime.parse("1970-01-01T00:00:00Z"), onlyCertificate.getNotBefore());
+        assertEquals(OffsetDateTime.parse("2038-01-01T00:00:00Z"), onlyCertificate.getNotAfter());
         assertEquals("1", onlyCertificate.getSerial());
+        assertEquals(new Integer(3), onlyCertificate.getVersion());
+        assertEquals("SHA512withRSA", onlyCertificate.getSignatureAlgorithm());
+        assertEquals("RSA", onlyCertificate.getKeyAlgorithm());
+        assertEquals("A2293825AA82A5429EC32803847E2152A303969C", onlyCertificate.getHash());
         assertEquals(org.niis.xroad.restapi.openapi.model.Certificate.StateEnum.IN_USE, onlyCertificate.getState());
 
         try {
@@ -220,5 +202,31 @@ public class ClientsApiControllerIntegrationTest {
             fail("should throw AccessDeniedException");
         } catch (AccessDeniedException expected) { }
     }
+
+
+    /**
+     * @param certificateInfo one certificate to put inside this tokenInfo
+     *                        structure
+     * @return
+     */
+    private List<TokenInfo> createMockTokenInfos(CertificateInfo certificateInfo) {
+        List<TokenInfo> mockTokens = new ArrayList<>();
+        List<CertificateInfo> certificates = new ArrayList<>();
+        if (certificateInfo != null) {
+            certificates.add(certificateInfo);
+        }
+        KeyInfo keyInfo = new KeyInfo(false, null,
+                "friendlyName", "id", "label", "publicKey",
+                certificates, new ArrayList<CertRequestInfo>(),
+                "signMecchanismName");
+        TokenInfo tokenInfo = new TokenInfo("type",
+                "friendlyName", "id",
+                false, false, false,
+                "serialNumber", "label", -1,
+                null, Arrays.asList(keyInfo), null);
+        mockTokens.add(tokenInfo);
+        return mockTokens;
+    }
+
 
 }
