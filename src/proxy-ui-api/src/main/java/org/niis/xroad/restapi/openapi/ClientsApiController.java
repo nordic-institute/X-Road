@@ -26,7 +26,6 @@ package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.CertificateConverter;
@@ -34,8 +33,8 @@ import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.Certificate;
 import org.niis.xroad.restapi.openapi.model.Client;
-import org.niis.xroad.restapi.repository.ClientRepository;
-import org.niis.xroad.restapi.repository.TokenRepository;
+import org.niis.xroad.restapi.service.ClientService;
+import org.niis.xroad.restapi.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -65,10 +64,10 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     private final NativeWebRequest request;
 
     @Autowired
-    private ClientRepository clientRepository;
+    private ClientService clientService;
 
     @Autowired
-    private TokenRepository tokenRepository;
+    private TokenService tokenService;
 
     @Autowired
     private ClientConverter clientConverter;
@@ -92,9 +91,8 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     }
 
     @Override
-    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public ResponseEntity<List<Client>> getClients() {
-        List<ClientType> clientTypes = clientRepository.getAllClients();
+        List<ClientType> clientTypes = clientService.getAllClients();
         List<Client> clients = new ArrayList<>();
         for (ClientType clientType : clientTypes) {
             clients.add(clientConverter.convert(clientType));
@@ -116,7 +114,7 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
      */
     private ClientType getClientType(String encodedId) {
         ClientId clientId = clientConverter.convertId(encodedId);
-        ClientType clientType = clientRepository.getClient(clientId);
+        ClientType clientType = clientService.getClient(clientId);
         if (clientType == null) {
             throw new NotFoundException("client with id " + encodedId + " not found");
         }
@@ -125,17 +123,14 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
-    public ResponseEntity<List<Certificate>> getClientCertificates(String id) {
-        ClientType clientType = getClientType(id);
+    public ResponseEntity<List<Certificate>> getClientCertificates(String encodedId) {
+        ClientType clientType = getClientType(encodedId);
         try {
-            // TO DO: should be in service, really
-            List<TokenInfo> tokenInfos = tokenRepository.getTokens();
-            return new ResponseEntity<>(tokenInfos.stream()
-                    .flatMap(tokenInfo -> tokenInfo.getKeyInfo().stream())
-                    .flatMap(keyInfo -> keyInfo.getCerts().stream())
-                    .filter(certificateInfo -> clientType.getIdentifier().memberEquals(certificateInfo.getMemberId()))
+            List<Certificate> certificates = tokenService.getAllTokens(clientType)
+                    .stream()
                     .map(certificateConverter::convert)
-                    .collect(toList()), HttpStatus.OK);
+                    .collect(toList());
+            return new ResponseEntity<>(certificates, HttpStatus.OK);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
