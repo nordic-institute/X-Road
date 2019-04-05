@@ -17,7 +17,6 @@ export default Vue.extend({
       type: String,
     },
   },
-
   data() {
     return {};
   },
@@ -28,7 +27,6 @@ export default Vue.extend({
   },
 });
 </script>
-
 
 <style lang="scss" scoped>
 .new-content {

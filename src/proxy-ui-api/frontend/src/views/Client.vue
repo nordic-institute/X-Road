@@ -21,10 +21,15 @@ import InternalServers from '@/components/InternalServers.vue';
 import { Permissions, RouteName } from '@/global';
 
 export default Vue.extend({
-  props: {},
   components: {
     ClientDetails,
     InternalServers,
+  },
+  props: {
+    id: {
+      type: String,
+      required: true,
+    },
   },
   data() {
     return {
@@ -36,18 +41,18 @@ export default Vue.extend({
     detailsRoute(): object {
       return {
         name: RouteName.MemberDetails,
-        params: { id: this.$route.params.id },
+        params: { id: this.id },
       };
     },
     serversRoute(): object {
       return {
         name: RouteName.MemberServers,
-        params: { id: this.$route.params.id },
+        params: { id: this.id },
       };
     },
   },
   created() {
-    this.fetchClient(this.$route.params.id as string);
+    this.fetchClient(this.id);
   },
   methods: {
     fetchClient(id: string) {

@@ -86,6 +86,12 @@ export default Vue.extend({
   components: {
     CertificateIcon,
   },
+  props: {
+    id: {
+      type: String,
+      required: true,
+    },
+  },
   data() {
     return {
       connectionTypes: ['http', 'https', 'https no auth'],
@@ -112,8 +118,8 @@ export default Vue.extend({
     },
   },
   created() {
-    this.fetchSSCertificate(this.$route.params.id as string);
-    this.fetchTlsCertificates(this.$route.params.id as string);
+    this.fetchSSCertificate(this.id);
+    this.fetchTlsCertificates(this.id);
   },
   methods: {
     onFileChange(e: any) {
@@ -176,7 +182,7 @@ export default Vue.extend({
       this.$router.push({
         name: RouteName.Certificate,
         params: {
-          id: this.$route.params.id,
+          id: this.id,
           hash: cert.hash,
         },
       });

@@ -53,7 +53,7 @@ const router = new Router({
             default: Settings,
             top: TabsBase,
           },
-          props: true,
+          props: { default: true, top: false },
         },
         {
           name: RouteName.AddSubsystem,
@@ -77,16 +77,21 @@ const router = new Router({
             default: Subsystem,
             top: TabsBase,
           },
+          props: {
+            default: true
+          },
           children: [
             {
               name: RouteName.SubsystemDetails,
               path: '/subsystem/details/:id',
               component: ClientDetails,
+              props: true
             },
             {
               name: RouteName.SubsystemServers,
               path: '/subsystem/internalservers/:id',
               component: InternalServers,
+              props: true
             },
           ],
         },
@@ -98,6 +103,7 @@ const router = new Router({
             default: Client,
             top: TabsBase,
           },
+          props: { default: true },
           children: [
             {
               name: RouteName.MemberDetails,
@@ -128,7 +134,7 @@ const router = new Router({
           components: {
             default: Certificate,
           },
-          props: true,
+          props: { default: true },
         },
       ],
     },

@@ -42,6 +42,16 @@ export default Vue.extend({
   components: {
     SubViewTitle,
   },
+  props: {
+    id: {
+      type: String,
+      required: true,
+    },
+    hash: {
+      type: String,
+      required: true,
+    },
+  },
   data() {
     return {
       confirm: false,
@@ -75,8 +85,8 @@ export default Vue.extend({
 
       this.$store
         .dispatch('deleteTlsCertificate', {
-          clientId: this.$route.params.id,
-          hash: this.$route.params.hash,
+          clientId: this.id,
+          hash: this.hash,
         })
         .then(
           (response) => {
@@ -92,10 +102,7 @@ export default Vue.extend({
     },
   },
   created() {
-    this.fetchData(
-      this.$route.params.id as string,
-      this.$route.params.hash as string,
-    );
+    this.fetchData(this.id, this.hash);
   },
 });
 </script>

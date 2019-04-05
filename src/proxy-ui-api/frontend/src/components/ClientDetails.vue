@@ -57,6 +57,12 @@ export default Vue.extend({
   components: {
     CertificateDialog,
   },
+  props: {
+    id: {
+      type: String,
+      required: true,
+    },
+  },
   data() {
     return {
       dialog: false,
@@ -67,7 +73,7 @@ export default Vue.extend({
     ...mapGetters(['client', 'certificates']),
   },
   created() {
-    this.fetchCertificates(this.$route.params.id as string);
+    this.fetchCertificates(this.id);
   },
   methods: {
     viewCertificate(cert: any) {
