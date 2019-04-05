@@ -51,6 +51,7 @@ public final class SignerClient {
 
     private static final int TIMEOUT_MILLIS =
             SystemProperties.getSignerClientTimeout();
+    public static final String LOCALHOST_IP = "127.0.0.1";
 
     private static ActorSystem actorSystem;
     private static ActorSelection requestProcessor;
@@ -64,7 +65,7 @@ public final class SignerClient {
      * @throws Exception if an error occurs
      */
     public static void init(ActorSystem system) throws Exception {
-        init(system,"127.0.0.1");
+        init(system, LOCALHOST_IP);
     }
 
     /**
