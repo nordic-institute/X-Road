@@ -194,14 +194,14 @@ export default Vue.extend({
     openClient(item: any): void {
       this.$router.push({
         name: RouteName.Client,
-        query: { id: item.id },
+        params: { id: item.id },
       });
     },
 
     openSubsystem(item: any): void {
       this.$router.push({
         name: RouteName.Subsystem,
-        query: { id: item.id },
+        params: { id: item.id },
       });
     },
 

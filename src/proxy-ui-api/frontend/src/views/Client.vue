@@ -36,18 +36,18 @@ export default Vue.extend({
     detailsRoute(): object {
       return {
         name: RouteName.MemberDetails,
-        query: { id: this.$route.query.id },
+        params: { id: this.$route.params.id },
       };
     },
     serversRoute(): object {
       return {
         name: RouteName.MemberServers,
-        query: { id: this.$route.query.id },
+        params: { id: this.$route.params.id },
       };
     },
   },
   created() {
-    this.fetchClient(this.$route.query.id as string);
+    this.fetchClient(this.$route.params.id as string);
   },
   methods: {
     fetchClient(id: string) {

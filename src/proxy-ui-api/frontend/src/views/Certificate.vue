@@ -75,8 +75,8 @@ export default Vue.extend({
 
       this.$store
         .dispatch('deleteTlsCertificate', {
-          clientId: this.$route.query.id,
-          hash: this.$route.query.hash,
+          clientId: this.$route.params.id,
+          hash: this.$route.params.hash,
         })
         .then(
           (response) => {
@@ -93,8 +93,8 @@ export default Vue.extend({
   },
   created() {
     this.fetchData(
-      this.$route.query.id as string,
-      this.$route.query.hash as string,
+      this.$route.params.id as string,
+      this.$route.params.hash as string,
     );
   },
 });

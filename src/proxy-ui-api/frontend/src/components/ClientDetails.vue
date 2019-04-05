@@ -67,7 +67,7 @@ export default Vue.extend({
     ...mapGetters(['client', 'certificates']),
   },
   created() {
-    this.fetchCertificates(this.$route.query.id as string);
+    this.fetchCertificates(this.$route.params.id as string);
   },
   methods: {
     viewCertificate(cert: any) {

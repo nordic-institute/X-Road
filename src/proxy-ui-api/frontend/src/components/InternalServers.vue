@@ -112,8 +112,8 @@ export default Vue.extend({
     },
   },
   created() {
-    this.fetchSSCertificate(this.$route.query.id as string);
-    this.fetchTlsCertificates(this.$route.query.id as string);
+    this.fetchSSCertificate(this.$route.params.id as string);
+    this.fetchTlsCertificates(this.$route.params.id as string);
   },
   methods: {
     onFileChange(e: any) {
@@ -175,8 +175,8 @@ export default Vue.extend({
     openCertificate(cert: any) {
       this.$router.push({
         name: RouteName.Certificate,
-        query: {
-          id: this.$route.query.id,
+        params: {
+          id: this.$route.params.id,
           hash: cert.hash,
         },
       });

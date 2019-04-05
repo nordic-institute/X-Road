@@ -13,6 +13,7 @@ import Subsystem from './views/Subsystem.vue';
 import Client from './views/Client.vue';
 import TabsBase from '@/views/TabsBase.vue';
 import Certificate from '@/views/Certificate.vue';
+import Error from '@/views/Error.vue';
 import ClientDetails from '@/components/ClientDetails.vue';
 import InternalServers from '@/components/InternalServers.vue';
 import store from './store';
@@ -47,11 +48,12 @@ const router = new Router({
         },
         {
           name: RouteName.Settings,
-          path: '/settings',
+          path: '/settings/:clientId',
           components: {
             default: Settings,
             top: TabsBase,
           },
+          props: true,
         },
         {
           name: RouteName.AddSubsystem,
@@ -70,7 +72,7 @@ const router = new Router({
         {
           name: RouteName.Subsystem,
           path: '/subsystem',
-          redirect: '/subsystem/details',
+          redirect: '/subsystem/details/:id',
           components: {
             default: Subsystem,
             top: TabsBase,
@@ -78,22 +80,20 @@ const router = new Router({
           children: [
             {
               name: RouteName.SubsystemDetails,
-              path: '/subsystem/details',
+              path: '/subsystem/details/:id',
               component: ClientDetails,
-              props: true,
             },
             {
               name: RouteName.SubsystemServers,
-              path: '/subsystem/internalservers',
+              path: '/subsystem/internalservers/:id',
               component: InternalServers,
-              props: true,
             },
           ],
         },
         {
           name: RouteName.Client,
           path: '/client',
-          redirect: '/client/details',
+          redirect: '/client/details/:id',
           components: {
             default: Client,
             top: TabsBase,
@@ -101,13 +101,13 @@ const router = new Router({
           children: [
             {
               name: RouteName.MemberDetails,
-              path: '/client/details',
+              path: '/client/details/:id',
               component: ClientDetails,
               props: true,
             },
             {
               name: RouteName.MemberServers,
-              path: '/client/internalservers',
+              path: '/client/internalservers/:id',
               component: InternalServers,
               props: true,
             },
@@ -124,7 +124,7 @@ const router = new Router({
         },
         {
           name: RouteName.Certificate,
-          path: '/certificate',
+          path: '/certificate/:id/:hash',
           components: {
             default: Certificate,
           },
@@ -136,6 +136,10 @@ const router = new Router({
       path: '/login',
       name: RouteName.Login,
       component: Login,
+    },
+    {
+      path: '*',
+      component: Error
     },
   ],
 });
