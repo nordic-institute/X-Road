@@ -91,6 +91,7 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     }
 
     @Override
+    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public ResponseEntity<List<Client>> getClients() {
         List<ClientType> clientTypes = clientService.getAllClients();
         List<Client> clients = new ArrayList<>();
