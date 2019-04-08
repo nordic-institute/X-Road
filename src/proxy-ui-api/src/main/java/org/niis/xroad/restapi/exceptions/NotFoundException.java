@@ -24,21 +24,28 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
-import lombok.Data;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * data for rest api error responses
+ * Thrown if item was not found.
+ * Results in http 404 NOT_FOUND
  */
-@Data
-public class ErrorInfo {
-    private int status;
-    private String errorCode;
+@ResponseStatus(value = HttpStatus.NOT_FOUND)
+public class NotFoundException extends RuntimeException {
+    public NotFoundException() {
+    }
 
-    public ErrorInfo(int status) {
-        this.status = status;
+    public NotFoundException(String msg) {
+        super(msg);
     }
-    public ErrorInfo(int status, String errorCode) {
-        this.status = status;
-        this.errorCode = errorCode;
+
+    public NotFoundException(String msg, Throwable t) {
+        super(msg, t);
     }
+
+    public NotFoundException(Throwable t) {
+        super(t);
+    }
+
 }

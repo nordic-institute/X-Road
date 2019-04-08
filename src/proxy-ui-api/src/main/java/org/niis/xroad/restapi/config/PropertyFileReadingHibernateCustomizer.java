@@ -57,7 +57,7 @@ public class PropertyFileReadingHibernateCustomizer implements HibernateProperti
         }
 
         for (String propertyName: dbProperties.stringPropertyNames()) {
-            // for now we have just one datasource, and convert
+            // currently we have just one datasource, and convert
             // e.g. serverconf.hibernate.jdbc.use_streams_for_binary
             // into hibernate.jdbc.use_streams_for_binary
             if (isServerConfProperty(propertyName)

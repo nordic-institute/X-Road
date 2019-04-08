@@ -24,37 +24,85 @@
  */
 package org.niis.xroad.restapi.controller;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.domain.ApiKey;
+import org.niis.xroad.restapi.domain.PersistentApiKeyType;
+import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Controller for rest apis for api key operations
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/api-key")
 @Slf4j
+@PreAuthorize("hasRole('XROAD_SYSTEM_ADMINISTRATOR')")
 public class ApiKeyController {
 
     @Autowired
     private ApiKeyRepository apiKeyRepository;
 
     /**
-     * create api keys
+     * create a new api key
      */
-    @PostMapping(value = "/create-api-key", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ApiKey createKey(@RequestBody List<String> roles) {
-        if (roles.isEmpty()) throw new NullPointerException();
-        ApiKey key = apiKeyRepository.create(roles);
-        log.debug("created api key " + key.getKey());
-        return key;
+    @PostMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Map<String, Object> createKey(@RequestBody List<String> roles) {
+        Map.Entry<String, PersistentApiKeyType> createdKeyData = apiKeyRepository.create(roles);
+        Map<String, Object> result = new HashMap();
+        result.put("key", createdKeyData.getKey());
+        result.put("roles", createdKeyData.getValue().getRoles());
+        result.put("id", createdKeyData.getValue().getId());
+        return result;
     }
+
+    /**
+     * list api keys from db
+     */
+    @RequestMapping(method = RequestMethod.GET)
+    public ResponseEntity<Collection<PublicKeyData>> list() {
+        Collection<PersistentApiKeyType> keys = apiKeyRepository.listAll();
+        Collection<PublicKeyData> publicData = keys.stream()
+                .map(key -> new PublicKeyData(key.getId(), key.getRoles()))
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(publicData,
+                HttpStatus.OK);
+    }
+
+    @Data
+    @AllArgsConstructor
+    private class PublicKeyData {
+        private long id;
+        private Set<Role> roles;
+    }
+
+    /**
+     * revoke key
+     * @param id
+     * @return
+     */
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    public ResponseEntity revoke(@PathVariable("id") long id) {
+        apiKeyRepository.removeById(id);
+        return new ResponseEntity(HttpStatus.OK);
+    }
+
 }

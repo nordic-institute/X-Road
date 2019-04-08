@@ -28,11 +28,11 @@ configurations {
 ext.excludeDevToolsSetting = project.hasProperty('activate-devtools-do-not-use-in-production') ? false : true
 
 if (!excludeDevToolsSetting) {
-    ant.input(message: 'Are you sure you want to activate devtools for jar packages?\n'
-        + 'Devtools must not be used in non-development environments', validargs: 'y,n', addproperty: 'confirmation')
+    ant.input(message: 'Are you sure you want to include development tool dependencies in built jar?\n'
+        + 'Development tools must not be included in non-development environments', validargs: 'y,n', addproperty: 'confirmation')
 
     if(ant.confirmation != 'y') {
-        throw new GradleException('Stopped build since devtools should not be activated for non-development\n'
+        throw new GradleException('Stopped build since not building development version\n'
         + 'environments')
     }
 }
@@ -131,11 +131,13 @@ licenseTest.dependsOn licenseTestJava
 
 dependencies {
     implementation project(':serverconf')
+
     implementation('org.springframework.boot:spring-boot-starter-security')
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation('org.springframework.boot:spring-boot-starter-thymeleaf')
     implementation('org.springframework.boot:spring-boot-starter-actuator')
     implementation('org.springframework.boot:spring-boot-starter-data-jpa')
+    implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation('org.kohsuke:libpam4j:1.11')
     implementation('org.postgresql:postgresql:42.2.5')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
@@ -143,6 +145,9 @@ dependencies {
     testImplementation('org.hsqldb:hsqldb')
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
+    if (!excludeDevToolsSetting) {
+        developmentOnly project(':proxy-ui-api-devtools')
+    }
     // openapi-generator related
     implementation('io.springfox:springfox-swagger2:2.8.0')
     implementation('io.springfox:springfox-swagger-ui:2.8.0')

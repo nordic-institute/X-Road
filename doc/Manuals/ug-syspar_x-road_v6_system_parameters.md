@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.43  
+Version: 2.44
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -52,7 +52,8 @@ Doc. ID: UG-SYSPAR
 | 23.01.2019 | 2.40     | Added new Central Server parameter *auto-approve-auth-cert-reg-requests* | Petteri Kivimäki |
 | 31.01.2019 | 2.41     | REST message log parameters | Jarkko Hyöty |
 | 03.02.2019 | 2.42     | Added new Central Server parameter *auto-approve-client-reg-requests* | Petteri Kivimäki |
-| 02.04.2019 | 2.43     | Added new message log parameter *clean-transaction-batch* | Jarkko Hyöty |
+| 27.03.2019 | 2.43     | Added management REST API parameters | Janne Mattila |
+| 02.04.2019 | 2.44     | Added new message log parameter *clean-transaction-batch* | Jarkko Hyöty |
 
 ## Table of Contents
 
@@ -79,6 +80,7 @@ Doc. ID: UG-SYSPAR
     - [3.7 Message log add-on parameters: `[message-log]`](#37-message-log-add-on-parameters-message-log)
       - [3.7.1 Note on logged X-Road message headers](#371-note-on-logged-x-road-message-headers)
     - [3.8 Environmental monitoring add-on configuration parameters: `[env-monitor]`](#38-environmental-monitoring-add-on-configuration-parameters-env-monitor)
+    - [3.9 Management REST API parameters: `[rest-api]`](#39-management-rest-api-parameters-rest-api)
   - [4 Central Server System Parameters](#4-central-server-system-parameters)
     - [4.1 System Parameters in the Configuration File](#41-system-parameters-in-the-configuration-file)
       - [4.1.1 Common parameters: `[common]`](#411-common-parameters-common)
@@ -248,6 +250,15 @@ This chapter describes the system parameters used by the components of the X-Roa
 | actorsystem-port                                 | 5567                                       |   |   | The (localhost) port where the proxy actorsystem binds to. Used for communicating with xroad-signer and xroad-monitor. |
 | allow-get-wsdl-request                           | false                                      |   |   | Whether to allow getWsdl metaservice to be called with HTTP/HTTPS GET method. |
 
+Note about `database-properties` file: Management REST API module uses the same database-properties file, but
+limits the configuration parameters usage:
+
+- `hibernate.dialect` cannot be changed, it is fixed to a custom PostgreSQL dialect.
+- out of `hibernate.connection.*` parameters, only `url`, `username` and `password` can be configured.
+
+This in practice limits configurability to different kinds of PostgreSQL database configurations, and it is not possible
+to use for example MySQL as a data store for REST API module.
+
 ### 3.3 Proxy User Interface parameters: `[proxy-ui]`
 
 | **Parameter**                                    | **Vanilla value**                          | **Description** |
@@ -333,6 +344,33 @@ extension's [XML schema](http://x-road.eu/xsd/representation.xsd). The security 
 | exec-listing-sensor-interval                     | 60                                         | Interval of exec listing sensor in seconds. How often sensor data using external command are collected.|
 | certificate-info-sensor-interval                 | 86400                                      | Interval of certificate information sensor in seconds. How often certificate data is collected. The first collection is always done after a delay of 10 seconds. |
 | limit-remote-data-set                            | false                                      | On/Off switch for filtering out optional monitoring data. With flag set to true, only security server owner can request and get full data set. |
+
+### 3.9 Management REST API parameters: `[rest-api]`
+
+| **Parameter**                                    | **Vanilla value**                          | **Description** |
+|--------------------------------------------------|--------------------------------------------|-----------------|
+| ssl-properties                                   | /etc/xroad/ssl.properties                  | Absolute path to file which overrides the default properties of the SSL connections to REST APIs. |
+
+Configurable SSL parameters are those
+[Spring Boot's common application properties](.https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html)
+that start with `server.ssl`.
+
+ssl.properties can be used to override any `server.ssl.*` property, also those that do not have default values. However, the result of merging default properties
+and overridden / new properties needs to be a functional combination.
+
+Default values for the SSL properties are
+
+| **SSL Property**                                    | **Default value**                          | **Description** |
+|--------------------------------------------------|--------------------------------------------|-----------------|
+| server.ssl.key-store            | classpath:nginx.p12               | Path to the key store that holds the SSL certificate (currently bundled in JAR, will be replaced by a package-installed keystore in XRDDEV-414)  |
+| server.ssl.key-store-password   | nginx                             | Password used to access the key store |
+| server.ssl.enabled              | true                              | Whether to enable SSL support |
+| server.ssl.ciphers              | TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384  | Supported SSL ciphers |
+| server.ssl.protocol             | TLS                               | SSL protocol to use |
+| server.ssl.enabled-protocols    | TLSv1.2                           | Enabled SSL protocols |
+
+Management REST API module uses `database-properties` configuration from the [proxy parameters](#32-proxy-parameters-proxy),
+with some additional limitations on configurability (see details in proxy chapter).
 
 ## 4 Central Server System Parameters
 

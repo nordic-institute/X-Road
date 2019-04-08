@@ -16,59 +16,103 @@ that is being served from webpack development server.
 
 Parameter `activate-devtools-do-not-use-in-production` can be used to build a jar that contains spring
 devtools, which enable remote hot deployment of code. In this case, jar needs to be started with spring
-profile `development`
+profile `devtools`.
+
 ```
 ../gradlew clean build -Pactivate-devtools-do-not-use-in-production
 ```
 ```
-java -jar proxy-ui-api-1.0.jar --spring.profiles.active=development
+java -jar proxy-ui-api-1.0.jar --spring.profiles.active=devtools
 ```
+`activate-devtools-do-not-use-in-production` also makes it possible to use development login
+with hard coded users. This is activated with profile `devtools-test-auth`.
+
 # Running
+
+For example
 ```
 ../gradlew bootRun --console plain
 ```
 
-browser: `http://localhost:8020`
+browser: `https://localhost:4000`
 
-# Api auth examples
+## Coexisting with old UI
+
+Old UI also runs in port 4000, so it will clash with the REST API. There are two ways to avoid this:
+
+1. Shut down old UI (nginx which listens to 4000): `service nginx stop`
+2. Move old UI to port 5000: `nano /etc/xroad/nginx/default-xroad.conf` ->
 ```
-$ curl --header "Authorization: X-Road-ApiKey token=naive-api-key-1" localhost:8020/api/cities
-{"timestamp":"2018-11-27T07:09:03.991+0000","status":500,"error":"Internal Server Error","message":"The API key was not found or not the expected value.","path":"/api/adminCities"}
+server {
+    listen 4000;
+```
+->
+```
+server {
+    listen 5000;
+```
+-> `service nginx restart`
 
-$ curl -X POST -u admin:password docker-ss.local:8020/api/create-api-key --data '["XROAD_SECURITY_OFFICER"]' --header "Content-Type: application/json"
-{"key":"naive-api-key-1","roles":["XROAD_SECURITY_OFFICER"]}
 
-$ curl -X POST -u admin:password docker-ss.local:8020/api/create-api-key --data '["XROAD_SYSTEM_ADMINISTRATOR"]' --header "Content-Type: application/json"
-{"key":"naive-api-key-2","roles":["XROAD_SYSTEM_ADMINISTRATOR"]}
+# Development profiles
 
-$ curl -X POST -u admin:password docker-ss.local:8020/api/create-api-key --data '["XROAD_SECURITY_OFFICER", "XROAD_SYSTEM_ADMINISTRATOR"]' --header "Content-Type: application/json"
-{"key":"naive-api-key-3","roles":["XROAD_SECURITY_OFFICER","XROAD_SYSTEM_ADMINISTRATOR"]}
+Different development aspects are activated using several Spring profiles:
 
-$ curl --header "Authorization: X-Road-ApiKey token=naive-api-key-1" "docker-ss.local:8020/api/clients"
-[{"id":"XRD2:GOV:M1:SUB1","member_name":"member1","member_class":"GOV","member_code":"M1","subsystem_code":"SUB1","status":"saved"},{"id":"XRD2:GOV:M4:SS1","member_name":"member4","member_class":"GOV","member_code":"M4","subsystem_code":"SS1","status":"registered"},{"id":"XRD2:GOV:M4","member_name":"member4","member_class":"GOV","member_code":"M4","subsystem_code":null,"status":"registered"}]
+- `development` profile toggles some "safe" development aspects. Mostly enables more logging.
+This profile is always available.
+- `devtools` activates Spring devtools support and enables for example remote code deployment.
+This profile can be used only if jar was built using `activate-devtools-do-not-use-in-production` parameter.
+This profile currently disables SSL and runs application in port 8080, since devtools does not work with SSL.
+- `devtools-test-auth` activates development authentication, see "Development authentication".
+This profile can be used only if jar was built using `activate-devtools-do-not-use-in-production` parameter.
 
-$ curl --header "Authorization: X-Road-ApiKey token=naive-api-key-2" "docker-ss.local:8020/api/clients"
-{"timestamp":"2018-11-27T07:08:22.398+0000","status":403,"error":"Forbidden","message":"Forbidden","path":"/api/clients"}
+# Api key database tables
+
+To prepare `serverconf` database to store API keys, execute one sql file.
+Executing SQL file by hand is a temporary solution, and will be replaced when
+packaging is implemented.
+
+Copy sql script to target, in this example a docker container:
+
+```
+$ docker cp src/main/resources/create_apikey_tables.sql <docker-container-name>:/
+```
+Execute sql script, in this example inside docker container, as `root`:
+```
+$ su -c "psql -d serverconf -a -f /create_apikey_tables.sql" postgres
 ```
 
-# PAM login
+# TLS
 
-PAM login is active by default. You can use dummy in-memory authentication with parameter `proto.pam=false`:
+Application listens to https in port 4000.
 
-```
-../gradlew bootRun --console plain -Pargs=--proto.pam=false
-```
+Since it uses a self-signed certificate (currently in `nginx.p12`
+keystore embedded in the build), clients need to trust this certificate. In browser access this means manually allow exception for
+"your connection is not secure" warning. For `curl` commands this means `-k` parameter (which you can see used in the examples).
 
-Logins for dummy in-memory authentication: 
-- user/password
-- admin/password etc
+# Api key administration
+
+Api keys can be created, listed and revoked through an administration API. 
+
+For details and example commands, see
+[Security server user guide](https://github.com/nordic-institute/X-Road-REST-UI/blob/XRDDEV-237/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#19-management-rest-apis)
+
+# Authentication
+
+There is two possible authentication mechanims
+- PAM authentication
+- Development authentication with static users
+
+## PAM login
+
+PAM login is active by default.
 
 PAM login is done using unix user and password. There's some requirements
 - application has to be run as user who can read `/etc/shadow`
-- roles are granted using linux groups `xroad-security-officer`, 
+- roles are granted using linux groups `xroad-security-officer`,
 `xroad-registration-officer`,
 `xroad-service-administrator`,
-`xroad-system-administrator`, and 
+`xroad-system-administrator`, and
 `xroad-securityserver-observer` as in old implementation.
 
 To set some test users up
@@ -90,9 +134,27 @@ sudo useradd -G xroad-security-officer xrd-full-user --shell=/bin/false
 sudo useradd -G xroad-system-administrator xrd-system-admin --shell=/bin/false
 sudo usermod -a -G xroad-registration-officer,xroad-service-administrator,xroad-system-administrator,xroad-securityserver-observer xrd-full-user
 
-sudo passwd xroad-admin-user
-sudo passwd xroad-admin
+sudo passwd xrd-full-user
+sudo passwd xrd-system-admin
 ```
+
+## Development authentication
+
+You can use dummy in-memory authentication by building a development tools -enabled version
+with `activate-devtools-do-not-use-in-production` parameter and then activating
+profile `devtools-test-auth`.
+
+Logins for development authentication:
+- u: security-officer p: password
+- u: registration-officer p: password
+- u: service-admin p: password
+- u: system-admin p: password
+- u: observer p: password
+- u: full-admin p: password
+- u: roleless p: password
+
+All these have a single role matching the username, except `full-admin` has all roles
+and `roleless` has none.
 
 # CSRF protection
 
@@ -121,37 +183,37 @@ Examples:
 
 Login
 ```
-curl -X POST -d "username=admin&password=password" -D - localhost:8020/login
+curl -X POST -k -d "username=admin&password=password" -D - https://localhost:4000/login
 HTTP/1.1 200 
 Set-Cookie: XSRF-TOKEN=45eeef1e-3d0a-4dea-9a65-b84f9a505335; Path=/
 Set-Cookie: JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4; Path=/; HttpOnly
 ```
 Using the cookies and CSRF header correctly
 ```
-curl -D - localhost:8020/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=45eeef1e-3d0a-4dea-9a65-b84f9a505335" --header "X-XSRF-TOKEN: 45eeef1e-3d0a-4dea-9a65-b84f9a505335"
+curl -D -k - https://localhost:4000/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=45eeef1e-3d0a-4dea-9a65-b84f9a505335" --header "X-XSRF-TOKEN: 45eeef1e-3d0a-4dea-9a65-b84f9a505335"
 HTTP/1.1 200 
 [{"id":999,"name":"Admincity, from a method which requires 'ADMIN' role"},{"id":1,"name":"Tampere"},{"id":2,"name":"Ylojarvi"},{"id":3,"name":"Helsinki"},{"id":4,"name":"Vantaa"},{"id":5,"name":"Nurmes"}]
 ```
 
 Actual CSRF token value does not matter
 ```
-curl -D - localhost:8020/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo" --header "X-XSRF-TOKEN: foo"
+curl -D - -k https://localhost:4000/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo" --header "X-XSRF-TOKEN: foo"
 HTTP/1.1 200 
 [{"id":999,"name":"Admincity, from a method which requires 'ADMIN' role"},{"id":1,"name":"Tampere"},{"id":2,"name":"Ylojarvi"},{"id":3,"name":"Helsinki"},{"id":4,"name":"Vantaa"},{"id":5,"name":"Nurmes"}]
 ```
 
 But it needs to exist and match the value from cookie
 ```
-curl -D - localhost:8020/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo" --header "X-XSRF-TOKEN: bar"
+curl -D - -k https://localhost:4000/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo" --header "X-XSRF-TOKEN: bar"
 HTTP/1.1 403 
 ```
 
 ```
-curl -D - localhost:8020/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo"
+curl -D - -k https://localhost:4000/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo"
 HTTP/1.1 403 
 ```
 
 ```
-curl -D - localhost:8020/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4" --header "X-XSRF-TOKEN: 45eeef1e-3d0a-4dea-9a65-b84f9a505335"
+curl -D - -k https://localhost:4000/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4" --header "X-XSRF-TOKEN: 45eeef1e-3d0a-4dea-9a65-b84f9a505335"
 HTTP/1.1 403 
 ```

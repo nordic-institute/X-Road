@@ -22,30 +22,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.domain;
+package org.niis.xroad.restapi.auth.securityconfigurer;
 
-import lombok.Getter;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 
 /**
- * WIP api key
+ * Static assets should be open to everyone
  */
-@Getter
-public class ApiKey {
-    private String key;
-    private Set<String> roles;
+@Configuration
+@Order(MultiAuthWebSecurityConfig.STATIC_ASSETS_SECURITY_ORDER)
+public class StaticAssetsWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    /**
-     * Create api key
-     * @param key
-     * @param roles
-     */
-    public ApiKey(String key, Collection<String> roles) {
-        this.key = key;
-        this.roles = new HashSet<>();
-        this.roles.addAll(roles);
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+            .requestMatchers()
+                .antMatchers("/favicon.ico",
+                        "/",
+                        "/index.html",
+                        "/img/**",
+                        "/css/**",
+                        "/js/**",
+                        "/fonts/**")
+                .and()
+            .authorizeRequests()
+                .anyRequest()
+                .permitAll()
+                .and()
+            .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+            .csrf()
+                .disable();
     }
 }

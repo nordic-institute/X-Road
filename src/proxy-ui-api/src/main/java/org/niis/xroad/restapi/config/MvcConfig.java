@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi;
+package org.niis.xroad.restapi.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -30,7 +30,7 @@ import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * MVC configuration for some test / development pages
+ * MVC configuration for static resources
  */
 @Configuration
 public class MvcConfig implements WebMvcConfigurer {
@@ -65,6 +65,7 @@ public class MvcConfig implements WebMvcConfigurer {
         addResourceLocationMapping(registry, "/css/**", RESOURCE_ROOT + "css/");
         addResourceLocationMapping(registry, "/img/**", RESOURCE_ROOT + "img/");
         addResourceLocationMapping(registry, "/js/**", RESOURCE_ROOT + "js/");
+        addResourceLocationMapping(registry, "/fonts/**", RESOURCE_ROOT + "fonts/");
     }
 
 }

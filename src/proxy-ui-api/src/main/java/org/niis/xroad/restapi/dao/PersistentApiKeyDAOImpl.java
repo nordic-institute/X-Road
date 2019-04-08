@@ -22,36 +22,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.auth;
+package org.niis.xroad.restapi.dao;
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
-import org.springframework.core.annotation.Order;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.niis.xroad.restapi.domain.PersistentApiKeyType;
+
+import java.util.List;
 
 /**
- * Configuration that allows devtools remote hot deploy in development
+ * API key data access object implementation.
  */
-@Configuration
-@Profile("development")
-@Order(DevToolsWebSecurityConfig.AFTER_STATIC_ASSETS)
-public class DevToolsWebSecurityConfig extends WebSecurityConfigurerAdapter {
-    public static final int AFTER_STATIC_ASSETS = 10;
+public class PersistentApiKeyDAOImpl {
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-            .antMatcher("/.~~spring-boot!~/**")
-            .authorizeRequests()
-                .antMatchers("/.~~spring-boot!~/**")
-                .permitAll()
-                .and()
-            .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-            .csrf()
-                .disable();
+    public PersistentApiKeyType findById(Session session, Long id) {
+        return (PersistentApiKeyType) session.get(PersistentApiKeyType.class, id);
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<PersistentApiKeyType> findAll(Session session) {
+        Query query = session.createQuery("from " + PersistentApiKeyType.class.getName());
+        return query.list();
+    }
+
+    public void insert(Session session, PersistentApiKeyType apiKeyType) {
+        session.persist(apiKeyType);
+    }
+
+    public void delete(Session session, PersistentApiKeyType apiKeyType) {
+        session.delete(apiKeyType);
     }
 }

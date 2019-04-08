@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.exceptions;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.domain.ErrorInfo;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

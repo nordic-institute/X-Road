@@ -114,4 +114,5 @@ public class UserApiController implements org.niis.xroad.restapi.openapi.UserApi
                 .collect(Collectors.toSet());
         return roles;
     }
+
 }

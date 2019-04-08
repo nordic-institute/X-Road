@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.24  
+Version: 2.26
 Doc. ID: UG-SS
 
 ---
@@ -58,6 +58,7 @@ Doc. ID: UG-SS
  15.11.2018 | 2.23    | Minor updates for Ubuntu 18.04 | Jarkko Hyöty
  06.02.2019 | 2.24    | Minor updates on security server client registration in Chapters [4.3](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client) and [4.4](#44-registering-a-security-server-client-in-the-x-road-governing-authority). | Petteri Kivimäki
  15.03.2019 | 2.25    | Update documentation to cover REST service usage in chapter [6]
+ 26.03.2019 | 2.26    | Added chapter on API keys [19](#19-management-rest-apis) | Janne Mattila
 
 ## Table of Contents
 
@@ -161,6 +162,13 @@ Doc. ID: UG-SS
   * [17.2 Logging configuration](#172-logging-configuration)
   * [17.3 Fault Detail UUID](#173-fault-detail-uuid)
 * [18 Federation](#18-federation)
+* [19 Management REST APIs](#19-management-rest-apis)
+  * [19.1 API key management operations](#191-api-key-management-operations)
+    * [19.1.1 Creating new API keys](#1911-creating-new-api-keys)
+    * [19.1.2 Listing API keys](#1912-listing-api-keys)
+    * [19.1.3 Revoking API keys](#1913-revoking-api-keys)
+    * [19.1.4 API key caching](#1914-api-key-caching)
+  * [19.2 Executing REST calls](#192-executing-rest-calls)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -1806,3 +1814,111 @@ And the following will allow none:
 [configuration-client]
 allowed-federations=xe-test, all, none, ee-test
 ```
+
+## 19 Management REST APIs
+
+Security server has REST APIs that can be used to do all the same server configuration operations that can be done
+using the web UI.
+
+Management REST APIs are protected with an API key based authentication. To execute REST calls, API keys need to be created.
+
+All REST APIs are protected by TLS. Since server uses self signed certificate, the caller needs to accept this (for example
+with `curl` you need to use `--insecure` or `-k` option.
+
+### 19.1 API key management operations
+
+**Access rights:** [System Administrator](#xroad-system-administrator)
+
+An API key is linked to a role or roles, and grants access to the operations that are allowed for that role/roles.
+A separate REST api exists for API key management.
+Access to API key management is limited to localhost (`127.0.0.1`).
+API key management API is authenticated to with [HTTP basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication) (username and password).
+
+### 19.1.1 Creating new API keys
+
+A new API key is created with a `POST` request to `/api/api-key`. Message body must contain the roles to be
+associated with the key. Server responds with data that contains the actual API key. After this point the key
+cannot be retrieved, as it is not stored in plaintext.
+
+```
+curl -X POST -u <user>:<password> https://localhost:4000/api/api-key --data '["XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
+{
+  "roles": [
+    "XROAD_REGISTRATION_OFFICER",
+    "XROAD_SECURITYSERVER_OBSERVER"
+  ],
+  "id": 61,
+  "key": "23bc57cd-b1ba-4702-9657-8d53e335c843"
+}
+
+```
+
+In this example the created key was `23bc57cd-b1ba-4702-9657-8d53e335c843`.
+
+### 19.1.2 Listing API keys
+
+Existing API keys can be listed with a `GET` request to `/api/api-key`. This lists all keys, regardless of who has created them.
+
+```
+curl -X GET -u <user>:<password> https://localhost:4000/api/api-key -k
+[
+  {
+    "id": 59,
+    "roles": [
+      "XROAD_REGISTRATION_OFFICER",
+      "XROAD_SECURITYSERVER_OBSERVER",
+      "XROAD_SERVICE_ADMINISTRATOR"
+    ]
+  },
+  {
+    "id": 60,
+...
+
+```
+
+### 19.1.3 Revoking API keys
+
+An API key can be revoked with a `DELETE` request to `/api/api-key/{id}`. Server responds with `HTTP 200` if
+revocation was successful and `HTTP 404` if key did not exist.
+
+```
+curl -X DELETE -u <user>:<password> https://localhost:4000/api/api-key/60  -k
+
+```
+
+### 19.1.4 API key caching
+
+API keys are cached in memory. In typical security server configurations this does not create problems.
+However, if you have configured a setup where multiple security servers share the same `serverconf` database,
+and use multiple nodes to access REST APIs and execute API key management operations, the caches of different nodes
+can become out of sync.
+
+For example, you may revoke an API key from node 1 but node 2 is not aware of this, and still grants access to
+REST APIs with this API key.
+
+If you operate such a configuration, you need to target all REST API operations to the same security server node,
+or otherwise ensure that caching will not create problems (for example, always restart REST API modules when API key
+operations are executed).
+
+### 19.2 Executing REST calls
+
+**Access rights:** Depends on the API.
+
+Once a valid API key has been created, it is used by providing an `Authorization: X-Road-ApiKey token=<api key>` HTTP
+header in the REST calls. For example
+
+```
+curl --header "Authorization: X-Road-apikey token=ff6f55a8-cc63-4e83-aa4c-55f99dc77bbf" "https://localhost:4000/api/clients" -k
+[
+  {
+    "id": "XRD2:GOV:999:foobar",
+    "member_name": Foo Name,
+    "member_class": "GOV",
+    "member_code": "999",
+    "subsystem_code": "SUBS_1",
+    "status": "saved
+...
+```
+
+The available APIs are documented in OpenAPI specification (TBD). Access rights for different APIs follow the same rules
+as the corresponding UI operations.
