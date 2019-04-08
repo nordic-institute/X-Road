@@ -2824,6 +2824,7 @@ components:
       - signature_algorithm
       - key_algorithm
       - hash
+      - key_usages
       - state
       type: object
       properties:
@@ -2871,6 +2872,22 @@ components:
             type: string
             description: certificate hash
             example: 12:34:56:78:90:AB:CD:EF
+        key_usages:
+            type: array
+            items:
+                type: string
+                description: certificate key usages
+                example: NON_REPUDIATION
+                enum:
+                    - DIGITAL_SIGNATURE
+                    - NON_REPUDIATION
+                    - KEY_ENCIPHERMENT
+                    - DATA_ENCIPHERMENT
+                    - KEY_AGREEMENT
+                    - KEY_CERT_SIGN
+                    - CRL_SIGN
+                    - ENCIPHER_ONLY
+                    - DECIPHER_ONLY
         state:
           type: string
           description: certificate state

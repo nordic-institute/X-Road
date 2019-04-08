@@ -28,11 +28,13 @@ import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Date;
 
 /**
@@ -40,6 +42,9 @@ import java.util.Date;
  */
 @Component
 public class CertificateConverter {
+
+    @Autowired
+    private KeyUsageConverter keyUsageConverter;
 
     /**
      * convert CertificateInfo into openapi Certificate class
@@ -61,6 +66,8 @@ public class CertificateConverter {
 
         certificate.setSignatureAlgorithm(x509Certificate.getSigAlgName());
         certificate.setKeyAlgorithm(x509Certificate.getPublicKey().getAlgorithm());
+
+        certificate.setKeyUsages(new ArrayList<>(keyUsageConverter.convert(x509Certificate.getKeyUsage())));
 
         if (certificateInfo.isActive()) {
             certificate.setState(org.niis.xroad.restapi.openapi.model.Certificate.StateEnum.IN_USE);
