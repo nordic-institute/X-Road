@@ -28,7 +28,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
-import ee.ria.xroad.proxy.testsuite.TestGlobalConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -53,7 +53,7 @@ public class SslSelectFastestProxyNoConnections extends SslMessageTestCase {
     protected void startUp() throws Exception {
         super.startUp();
 
-        GlobalConf.reload(new TestGlobalConf() {
+        GlobalConf.reload(new TestSuiteGlobalConf() {
             @Override
             public Collection<String> getProviderAddress(ClientId provider) {
                 return Arrays.asList("foo.invalid.", "bar.invalid.", "baz.invalid.");

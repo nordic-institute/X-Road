@@ -91,10 +91,8 @@ rm -rf %{buildroot}
 %pre
 
 %post
+/usr/share/xroad/scripts/xroad-opmonitor-initdb.sh
 %systemd_post xroad-opmonitor.service
-if [ $1 -eq 1 ] ; then
-    /usr/share/xroad/scripts/xroad-opmonitor-initdb.sh
-fi
 
 %preun
 %systemd_preun xroad-opmonitor.service

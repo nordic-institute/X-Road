@@ -70,6 +70,13 @@ public final class SystemProperties {
     private static final String MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION =
             PREFIX + "configuration-proxy.minimum-global-configuration-version";
 
+    // REST API ---------------------------------------------------------------
+
+    /** Property name of the REST API's ssl configuration file. */
+    public static final String REST_API_SSL_PROPERTIES =
+            PREFIX + "rest-api.ssl-properties";
+
+
 
     // Proxy ------------------------------------------------------------------
 
@@ -651,6 +658,13 @@ public final class SystemProperties {
      */
     public static String getDatabasePropertiesFile() {
         return System.getProperty(DATABASE_PROPERTIES, getConfPath() + DefaultFilepaths.SERVER_DATABASE_PROPERTIES);
+    }
+
+    /**
+     * @return path to the proxy database configuration file, '/etc/xroad/db.properties' by default.
+     */
+    public static String getSslPropertiesFile() {
+        return System.getProperty(REST_API_SSL_PROPERTIES, getConfPath() + DefaultFilepaths.REST_API_SSL_PROPERTIES);
     }
 
     /**
@@ -1278,11 +1292,15 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the so_linger value in seconds that should be set for server proxy connector, 0 by default
+     * @return the so_linger value in milliseconds that should be set for server proxy connector, -1 (disabled) by
+     * default
      */
+    @SuppressWarnings("checkstyle:magicnumber")
     public static int getServerProxyConnectorSoLinger() {
-        return Integer.parseInt(System.getProperty(SERVERPROXY_CONNECTOR_SO_LINGER,
+        final int linger = Integer.parseInt(System.getProperty(SERVERPROXY_CONNECTOR_SO_LINGER,
                 DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER));
+        if (linger >= 0) return linger * 1000;
+        return -1;
     }
 
     /**

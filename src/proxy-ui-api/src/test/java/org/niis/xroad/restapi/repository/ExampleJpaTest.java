@@ -60,7 +60,6 @@ public class ExampleJpaTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-
     @Test
     public void testTestEntityManager() {
         ServerConfType conf2 = new ServerConfType();

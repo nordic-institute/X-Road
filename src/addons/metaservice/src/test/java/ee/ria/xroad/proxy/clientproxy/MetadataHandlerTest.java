@@ -27,8 +27,8 @@ package ee.ria.xroad.proxy.clientproxy;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.proxy.conf.KeyConf;
-import ee.ria.xroad.proxy.testsuite.TestGlobalConf;
-import ee.ria.xroad.proxy.testsuite.TestKeyConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteKeyConf;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import org.apache.http.client.HttpClient;
@@ -70,8 +70,8 @@ public class MetadataHandlerTest {
      */
     @Before
     public void init() {
-        GlobalConf.reload(new TestGlobalConf());
-        KeyConf.reload(new TestKeyConf());
+        GlobalConf.reload(new TestSuiteGlobalConf());
+        KeyConf.reload(new TestSuiteKeyConf());
 
         httpClientMock = mock(HttpClient.class);
         mockRequest = mock(HttpServletRequest.class);

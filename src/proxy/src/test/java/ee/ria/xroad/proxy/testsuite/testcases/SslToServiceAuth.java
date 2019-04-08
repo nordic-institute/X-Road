@@ -31,7 +31,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.ProxyTestSuite;
 import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
-import ee.ria.xroad.proxy.testsuite.TestServerConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -55,7 +55,7 @@ public class SslToServiceAuth extends SslMessageTestCase {
     protected void startUp() throws Exception {
         super.startUp();
 
-        ServerConf.reload(new TestServerConf() {
+        ServerConf.reload(new TestSuiteServerConf() {
             @Override
             public boolean isSslAuthentication(ServiceId service) {
                 return true;

@@ -26,6 +26,8 @@ package org.niis.xroad.restapi;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.annotation.PropertySource;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -34,6 +36,8 @@ import java.util.HashSet;
  * main spring boot application.
  */
 @SpringBootApplication
+@PropertySource("classpath:/common-application.properties")
+@EnableCaching
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class RestApiApplication {
     /**

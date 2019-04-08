@@ -106,6 +106,7 @@ public final class KeyConf {
 
     /**
      * Reloads the configuration with given configuration instance.
+     *
      * @param conf the new key configuration provider
      */
     public static void reload(KeyConfProvider conf) {
@@ -115,8 +116,8 @@ public final class KeyConf {
     }
 
     /**
-     * @return signing context for given member
      * @param memberId the member client ID
+     * @return signing context for given member
      */
     public static SigningCtx getSigningCtx(ClientId memberId) {
         LOG.trace("getSigningCtx({})", memberId);
@@ -134,9 +135,9 @@ public final class KeyConf {
     }
 
     /**
+     * @param certHash hash of the certificate
      * @return the OCSP server response for the given certificate,
      * or null, if no response is available for that certificate
-     * @param certHash hash of the certificate
      * @throws Exception in case of any errors
      */
     public static OCSPResp getOcspResponse(String certHash)
@@ -147,9 +148,9 @@ public final class KeyConf {
     }
 
     /**
+     * @param cert the certificate
      * @return the OCSP server response for the given certificate,
      * or null, if no response is available for that certificate
-     * @param cert the certificate
      * @throws Exception in case of any errors
      */
     public static OCSPResp getOcspResponse(X509Certificate cert)
@@ -161,8 +162,8 @@ public final class KeyConf {
     }
 
     /**
-     * @return OCSP responses for all given certificates.
      * @param certs list of certificates
+     * @return OCSP responses for all given certificates.
      * @throws Exception if OCSP response could not be found for at least one certificate
      */
     public static List<OCSPResp> getAllOcspResponses(
@@ -180,16 +181,16 @@ public final class KeyConf {
         if (!missingResponses.isEmpty()) {
             throw new CodedException(X_CANNOT_CREATE_SIGNATURE,
                     "Could not get OCSP responses for certificates (%s)",
-                        missingResponses);
+                    missingResponses);
         }
 
         return responses;
     }
 
     /**
+     * @param certs list of certificates
      * @return OCSP responses for given certificates. For OCSP responses that
      * could not be found, the list contains null values
-     * @param certs list of certificates
      * @throws Exception in case of any errors
      */
     public static List<OCSPResp> getOcspResponses(List<X509Certificate> certs)
@@ -202,7 +203,8 @@ public final class KeyConf {
     /**
      * Updates the existing OCSP response or stores the OCSP response,
      * if it does not exist for the given certificate.
-     * @param certs list of certificates
+     *
+     * @param certs     list of certificates
      * @param responses list of OCSP responses
      * @throws Exception in case of any errors
      */

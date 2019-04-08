@@ -97,7 +97,7 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
 
     @Override
     public boolean shouldLogSignature() {
-        return false;
+        return true;
     }
 
     @Override

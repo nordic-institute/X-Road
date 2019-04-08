@@ -28,6 +28,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.dao.ServiceDescriptionDAOImpl;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.JaxbUtils;
@@ -90,6 +91,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SERVICE_TYPE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 import static ee.ria.xroad.common.metadata.MetadataRequests.ALLOWED_METHODS;
 import static ee.ria.xroad.common.metadata.MetadataRequests.GET_WSDL;
@@ -272,10 +274,13 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
     // ------------------------------------------------------------------------
 
     private String getWsdlUrl(ServiceId service) throws Exception {
-        return ServerConfDatabaseCtx.doInTransaction(session -> {
-            ServiceDescriptionType wsdl = new ServiceDescriptionDAOImpl().getServiceDescription(session, service);
-            return wsdl != null ? wsdl.getUrl() : null;
-        });
+        ServiceDescriptionType wsdl = ServerConfDatabaseCtx.doInTransaction(
+                session -> new ServiceDescriptionDAOImpl().getServiceDescription(session, service));
+        if (wsdl != null && wsdl.getType() == DescriptionType.OPENAPI3) {
+            throw new CodedException(X_INVALID_SERVICE_TYPE,
+                    "Service is a REST service and does not have a WSDL");
+        }
+        return wsdl != null ? wsdl.getUrl() : null;
     }
 
     private static SoapMessageImpl createMethodListResponse(
@@ -283,12 +288,12 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
             final JAXBElement<MethodListType> methodList) throws Exception {
         SoapMessageImpl responseMessage = SoapUtils.toResponse(requestMessage,
                 new SOAPCallback() {
-                @Override
-                public void call(SOAPMessage soap) throws Exception {
-                    soap.getSOAPBody().removeContents();
-                    marshal(methodList, soap.getSOAPBody());
-                }
-            });
+                    @Override
+                    public void call(SOAPMessage soap) throws Exception {
+                        soap.getSOAPBody().removeContents();
+                        marshal(methodList, soap.getSOAPBody());
+                    }
+                });
 
         return responseMessage;
     }
@@ -315,10 +320,12 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
      */
     private static class CommentsHandler extends DefaultHandler2 {
         private LexicalHandler serializer;
+
         protected CommentsHandler(LexicalHandler serializer) {
             super();
             this.serializer = serializer;
         }
+
         @Override
         public void comment(char[] ch, int start, int length) throws SAXException {
             serializer.comment(ch, start, length);
@@ -327,6 +334,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
 
     /**
      * reads a WSDL from input stream, modifies it and returns input stream to the result
+     *
      * @param wsdl
      * @return
      */

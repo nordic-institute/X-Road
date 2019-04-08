@@ -15,6 +15,7 @@ Doc. ID: PR-OPMON
 | 23.01.2017 | 0.3 | Added license text, table of contents and version history | Sami Kallio |
 | 05.03.2018 | 0.4 | Added terms and abbreviations reference | Tatu Repo |
 | 04.12.2018 | 0.5 | More detailed descriptions for *[request/response][In/Out]Ts* fields | Cybernetica AS |
+| 18.02.2019 | 0.6 | Example response updated: added xRequestId | Caro Hautamäki |
 
 ## Table of Contents
 
@@ -1271,7 +1272,8 @@ content-id: <operational-monitoring-data.json.gz>
       "serviceSubsystemCode": "subsystem1",
       "serviceVersion": "v1",
       "serviceXRoadInstance": "EE",
-      "succeeded": true
+      "succeeded": true,
+      "xRequestId": "fd83f20e-bc19-4eb4-9602-e37f94c09fbe"
     }
   ]
 }

@@ -29,7 +29,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.ProxyTestSuite;
 import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
-import ee.ria.xroad.proxy.testsuite.TestServerConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
@@ -55,7 +55,7 @@ public class SslToServiceNoISCerts extends SslMessageTestCase {
     protected void startUp() throws Exception {
         super.startUp();
 
-        ServerConf.reload(new TestServerConf() {
+        ServerConf.reload(new TestSuiteServerConf() {
             @Override
             public boolean isSslAuthentication(ServiceId service) {
                 return true;
