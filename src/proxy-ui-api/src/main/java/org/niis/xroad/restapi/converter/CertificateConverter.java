@@ -31,7 +31,9 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.security.PublicKey;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.RSAPublicKey;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -43,6 +45,7 @@ import java.util.Date;
 @Component
 public class CertificateConverter {
 
+    public static final int RADIX_FOR_HEX = 16;
     @Autowired
     private KeyUsageConverter keyUsageConverter;
 
@@ -65,9 +68,18 @@ public class CertificateConverter {
         certificate.setVersion(x509Certificate.getVersion());
 
         certificate.setSignatureAlgorithm(x509Certificate.getSigAlgName());
-        certificate.setKeyAlgorithm(x509Certificate.getPublicKey().getAlgorithm());
+        certificate.setPublicKeyAlgorithm(x509Certificate.getPublicKey().getAlgorithm());
 
         certificate.setKeyUsages(new ArrayList<>(keyUsageConverter.convert(x509Certificate.getKeyUsage())));
+
+        PublicKey publicKey = x509Certificate.getPublicKey();
+        if (publicKey instanceof RSAPublicKey) {
+            RSAPublicKey rsaPublicKey = (RSAPublicKey) publicKey;
+            certificate.setRsaPublicKeyExponent(rsaPublicKey.getPublicExponent().toString());
+            certificate.setRsaPublicKeyModulus(rsaPublicKey.getModulus().toString(RADIX_FOR_HEX));
+        }
+
+        certificate.setSignature(CryptoUtils.encodeHex(x509Certificate.getSignature()));
 
         if (certificateInfo.isActive()) {
             certificate.setState(org.niis.xroad.restapi.openapi.model.Certificate.StateEnum.IN_USE);

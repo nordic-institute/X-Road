@@ -2822,7 +2822,10 @@ components:
       - serial
       - version
       - signature_algorithm
-      - key_algorithm
+      - signature
+      - public_key_algorithm
+      - rsa_public_key_modulus
+      - rsa_public_key_exponent
       - hash
       - key_usages
       - state
@@ -2864,14 +2867,26 @@ components:
             type: string
             description: certificate signature algorithm
             example: sha256WithRSAEncryption
-        key_algorithm:
+        signature:
             type: string
-            description: certificate key algorithm
+            description: hex encoded certificate signature
+            example: 30af2fdc1780...
+        public_key_algorithm:
+            type: string
+            description: certificate public key algorithm
             example: sha256WithRSAEncryption
+        rsa_public_key_modulus:
+            type: string
+            description: hex encoded RSA public key modulus (if RSA key)
+            example: c44421d601...
+        rsa_public_key_exponent:
+            type: string
+            description: RSA public key exponent (if RSA key) as an integer
+            example: 65537
         hash:
             type: string
-            description: certificate hash
-            example: 12:34:56:78:90:AB:CD:EF
+            description: certificate SHA-1 hash
+            example: 1234567890ABCDEF
         key_usages:
             type: array
             items:
