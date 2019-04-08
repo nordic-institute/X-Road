@@ -78,20 +78,20 @@ const router = new Router({
             top: TabsBase,
           },
           props: {
-            default: true
+            default: true,
           },
           children: [
             {
               name: RouteName.SubsystemDetails,
               path: '/subsystem/details/:id',
               component: ClientDetails,
-              props: true
+              props: true,
             },
             {
               name: RouteName.SubsystemServers,
               path: '/subsystem/internalservers/:id',
               component: InternalServers,
-              props: true
+              props: true,
             },
           ],
         },
@@ -145,7 +145,7 @@ const router = new Router({
     },
     {
       path: '*',
-      component: Error
+      component: Error,
     },
   ],
 });
