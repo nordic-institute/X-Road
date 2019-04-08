@@ -62,9 +62,9 @@ public enum Role {
         }
     }
 
-    private String linuxGroupName;
+    private final String linuxGroupName;
     // primary key in db
-    private int key;
+    private final int key;
 
     Role(int key, String linuxGroupName) {
         this.key = key;
