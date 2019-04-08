@@ -92,63 +92,10 @@ keystore embedded in the build), clients need to trust this certificate. In brow
 
 # Api key administration
 
-Api keys can be created, listed and revoked through an administration API. Administration API access
-has restrictions:
+Api keys can be created, listed and revoked through an administration API. 
 
-- user needs to have role `XROAD_SYSTEM_ADMINISTRATOR`
-- access is allowed only from localhost
-- authentication is done with basic auth (username & password)
-
-Create a new key with a POST request to `/api/api-key`.
-Request body should contain list of roles as array of strings.
-Response contains the key. The key is not stored and can not be retrieved after this.
-
-```
-$ curl -X POST -u <username>:<password> https://localhost:4000/api/api-key --data '["XROAD_SERVICE_ADMINISTRATOR","XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
-{
-  "roles": [
-    "XROAD_SECURITYSERVER_OBSERVER",
-    "XROAD_REGISTRATION_OFFICER",
-    "XROAD_SERVICE_ADMINISTRATOR"
-  ],
-  "id": 27,
-  "key": "40ddbdd1-ee46-4b0c-b812-a736a409cc32"
-}
-```
-List all api keys with a GET request to `/api/api-key`.
-
-```
-$ curl -u <username>:<password> https://localhost:4000/api/api-key -k
-[
-...
-  {
-    "id": 27,
-    "roles": [
-      "XROAD_SECURITYSERVER_OBSERVER",
-      "XROAD_REGISTRATION_OFFICER",
-      "XROAD_SERVICE_ADMINISTRATOR"
-    ]
-  }
-]
-```
-Delete a key with a DELETE request to `/api/api-key/<id>`.
-```
-$ curl -X DELETE -u <username>:<password> https://localhost:4000/api/api-key/27 -k
-{
-  "status": 200,
-  "errorCode": null
-}
-```
-
-
-# Example of using API key
-
-Provide api key with `Authorization: X-Road-ApiKey token=<api key>` header.
-
-```
-$ curl --header "Authorization: X-Road-ApiKey token=481e50de-a93f-46d8-9748-1bca86eea454" "https://docker-ss.local:4000/api/clients" -k
-[{"id":"XRD2:GOV:M1:SUB1","member_name":"member1","member_class":"GOV","member_code":"M1","subsystem_code":"SUB1","status":"saved"},{"id":"XRD2:GOV:M4:SS1","member_name":"member4","member_class":"GOV","member_code":"M4","subsystem_code":"SS1","status":"registered"},{"id":"XRD2:GOV:M4","member_name":"member4","member_class":"GOV","member_code":"M4","subsystem_code":null,"status":"registered"}]
-```
+For details and example commands, see
+[Security server user guide](https://github.com/nordic-institute/X-Road-REST-UI/blob/XRDDEV-237/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#19-management-rest-apis)
 
 # Authentication
 
