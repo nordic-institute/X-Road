@@ -70,7 +70,7 @@ public final class AsicContainerEntries {
             stripSlash(MessageFileNames.TS_HASH_CHAIN);
 
     /** The part of the name of the attachment entry. */
-    public static final String ENTRY_ATTACHMENT = "-attachment";
+    public static final String ENTRY_ATTACHMENT = "attachment";
 
     /** The name of the manifest file. */
     public static final String ENTRY_MANIFEST =

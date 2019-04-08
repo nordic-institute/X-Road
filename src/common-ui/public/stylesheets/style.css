@@ -1485,3 +1485,27 @@ body.wait *, body.wait {
 .mh35 {
 	max-height: 35px;
 }
+
+@media (max-width:40em) {
+	.xs-hide {
+		display: none;
+	}
+}
+
+@media (min-width: 40em) and (max-width: 54em) {
+	.sm-hide {
+		display: none;
+	}
+}
+
+@media (min-width: 54em) and (max-width: 76em) {
+	.md-hide {
+		display: none;
+	}
+}
+
+@media (min-width: 76em) {
+	.lg-hide {
+		display: none;
+	}
+}

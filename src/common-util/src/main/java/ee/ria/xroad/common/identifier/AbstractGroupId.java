@@ -51,7 +51,7 @@ public abstract class AbstractGroupId extends XRoadId {
     }
 
     @Override
-    protected String[] getFieldsForStringFormat() {
+    public String[] getFieldsForStringFormat() {
         return new String[] {groupCode};
     }
 }

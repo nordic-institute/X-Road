@@ -24,6 +24,8 @@
  */
 package ee.ria.xroad.proxy.protocol;
 
+import ee.ria.xroad.common.message.RestRequest;
+import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
@@ -49,6 +51,33 @@ public interface ProxyMessageConsumer {
      */
     void soap(SoapMessageImpl message, Map<String, String> additionalHeaders)
             throws Exception;
+
+    /**
+     * Called when REST message is parsed.
+     * @param message the SOAP message
+     * @throws Exception if an error occurs
+     */
+    default void rest(RestRequest message)
+            throws Exception {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Called when REST message is parsed.
+     * @param message the SOAP message
+     * @throws Exception if an error occurs
+     */
+    default void rest(RestResponse message)
+            throws Exception {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Called when REST body is parsed
+     * @param content
+     * @throws Exception
+     */
+    void restBody(InputStream content) throws Exception;
 
     /**
      * Called when an attachment is received.

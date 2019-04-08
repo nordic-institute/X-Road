@@ -29,8 +29,8 @@ import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
-import ee.ria.xroad.proxy.testsuite.TestGlobalConf;
-import ee.ria.xroad.proxy.testsuite.TestServerConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 
 import java.security.cert.X509Certificate;
 
@@ -56,8 +56,8 @@ public class SslClientCertVerificationError extends SslMessageTestCase {
 
     @Override
     protected void startUp() throws Exception {
-        ServerConf.reload(new TestServerConf());
-        GlobalConf.reload(new TestGlobalConf() {
+        ServerConf.reload(new TestSuiteServerConf());
+        GlobalConf.reload(new TestSuiteGlobalConf() {
             @Override
             public boolean authCertMatchesMember(X509Certificate cert,
                     ClientId member) {

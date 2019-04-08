@@ -53,7 +53,7 @@ public final class SecurityCategoryId extends XRoadId {
     }
 
     @Override
-    protected String[] getFieldsForStringFormat() {
+    public String[] getFieldsForStringFormat() {
         return new String[] {securityCategory};
     }
 

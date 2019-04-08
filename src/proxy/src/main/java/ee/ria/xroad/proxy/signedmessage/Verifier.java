@@ -61,6 +61,16 @@ public class Verifier {
 
     }
 
+    /** Adds new hash to be verified.
+     * @param name name of the file in the BDOC container.
+     * @param hashMethod identifier of the algorithm used to calculate the hash.
+     * @param data hash value.
+     */
+    public void addPart(String name, String hashMethod, byte[] data, byte[] message) {
+        parts.add(new MessagePart(name, hashMethod, data, message));
+
+    }
+
     /**
      * Adds the message part to be signed.
      * @param hashMethod identifier of the algorithm used to calculate the hash

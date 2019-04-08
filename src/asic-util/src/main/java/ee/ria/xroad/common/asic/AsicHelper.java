@@ -26,8 +26,10 @@ package ee.ria.xroad.common.asic;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.signature.Signature;
+import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.apache.commons.io.IOUtils;
+import org.bouncycastle.operator.DigestCalculator;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,6 +50,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_ASIC_MIME_TYPE_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_ASIC_SIGNATURE_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_ASIC_TIMESTAMP_NOT_FOUND;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_ASIC_MANIFEST;
+import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_ATTACHMENT;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_MANIFEST;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_MESSAGE;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_MIMETYPE;
@@ -74,6 +77,7 @@ final class AsicHelper {
         Map<String, String> entries = new HashMap<>();
         ZipInputStream zip = new ZipInputStream(is);
         ZipEntry zipEntry;
+        byte[] attachmentDigest = null;
 
         while ((zipEntry = zip.getNextEntry()) != null) {
             for (Object expectedEntry : AsicContainerEntries.getALL_ENTRIES()) {
@@ -89,11 +93,17 @@ final class AsicHelper {
                     entries.put(zipEntry.getName(), data);
 
                     break;
+                } else if (matches(ENTRY_ATTACHMENT + "1", zipEntry.getName())) {
+                    final DigestCalculator digest =
+                            CryptoUtils.createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
+                    IOUtils.copy(zip, digest.getOutputStream());
+                    attachmentDigest = digest.getDigest();
+                    break;
                 }
             }
         }
 
-        return new AsicContainer(entries);
+        return new AsicContainer(entries, attachmentDigest);
     }
 
     static void write(AsicContainer asic, ZipOutputStream zip) throws Exception {
@@ -123,6 +133,14 @@ final class AsicHelper {
                 } else {
                     addEntry(zip, name, data);
                 }
+            }
+        }
+
+        if (asic.getAttachment() != null) {
+            try (InputStream is = asic.getAttachment()) {
+                zip.putNextEntry(new ZipEntry(ENTRY_ATTACHMENT + "1"));
+                IOUtils.copy(is, zip);
+                zip.closeEntry();
             }
         }
     }

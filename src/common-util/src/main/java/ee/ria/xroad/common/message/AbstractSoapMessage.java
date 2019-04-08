@@ -29,6 +29,8 @@ import lombok.RequiredArgsConstructor;
 
 import javax.xml.soap.SOAPMessage;
 
+import java.io.UnsupportedEncodingException;
+
 /**
  * Base class for SOAP messages.
  * @param <T> generic type of the SOAP message header.
@@ -59,7 +61,7 @@ public abstract class AbstractSoapMessage<T> implements SoapMessage {
     }
 
     @Override
-    public String getXml() throws Exception {
+    public String getXml() throws UnsupportedEncodingException {
         return new String(bytes, charset);
     }
 }

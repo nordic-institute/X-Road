@@ -24,17 +24,25 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 /**
  * Digest with respective fileName.
  */
-@Data
+@Getter
+@EqualsAndHashCode
 public class DigestEntry {
     private Long id;
+    private String digest;
+    private String fileName;
 
-    private final String digest;
-    private final String fileName;
+    protected DigestEntry() { }
+
+    public DigestEntry(String digest, String fileName) {
+        this.digest = digest;
+        this.fileName = fileName;
+    }
 
     String toLinkingInfoEntry() {
         return String.format("%s %s", digest, fileName);

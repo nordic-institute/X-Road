@@ -26,6 +26,7 @@ package ee.ria.xroad.proxy.protocol;
 
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
@@ -326,6 +327,16 @@ public class ProxyMessageDecoderTest {
         public void soap(SoapMessageImpl soap,
                 Map<String, String> additionalHeaders) throws Exception {
             this.soapMessage = soap;
+        }
+
+        @Override
+        public void rest(RestRequest message) throws Exception {
+
+        }
+
+        @Override
+        public void restBody(InputStream content) throws Exception {
+
         }
 
         @Override

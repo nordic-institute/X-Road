@@ -39,7 +39,6 @@ import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -142,7 +141,8 @@ public class HttpClientCreator {
         cb.setConnectionManager(connectionManager);
 
         // Disable request retry
-        cb.setRetryHandler(new DefaultHttpRequestRetryHandler(0, false));
+        cb.disableAutomaticRetries();
+        cb.disableRedirectHandling();
 
         httpClient = cb.build();
     }

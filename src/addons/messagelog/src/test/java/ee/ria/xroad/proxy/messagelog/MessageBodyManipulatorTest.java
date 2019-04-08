@@ -28,6 +28,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParserImpl;
+import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.XmlUtils;
 
@@ -59,14 +60,14 @@ import static org.junit.Assert.assertTrue;
  * Tests for SOAP message body manipulation
  */
 @Slf4j
-public class SoapMessageBodyManipulatorTest {
+public class MessageBodyManipulatorTest {
 
     public static final String QUERY_DIR = "../../proxy/src/test/queries/";
 
     @Getter
     @Setter
-    private class TestableSoapMessageBodyManipulator extends SoapMessageBodyManipulator {
-        TestableSoapMessageBodyManipulator(boolean globalBodyLogging,
+    private class TestableMessageBodyManipulator extends MessageBodyManipulator {
+        TestableMessageBodyManipulator(boolean globalBodyLogging,
                                            Collection<ClientId> localOverrides,
                                            Collection<ClientId> remoteOverrides) {
             setConfigurator(new Configurator() {
@@ -79,12 +80,12 @@ public class SoapMessageBodyManipulatorTest {
                     return remoteOverrides;
                 }
                 @Override
-                public boolean isSoapBodyLoggingEnabled() {
+                public boolean isMessageBodyLoggingEnabled() {
                     return globalBodyLogging;
                 }
             });
         }
-        TestableSoapMessageBodyManipulator(boolean globalBodyLogging) {
+        TestableMessageBodyManipulator(boolean globalBodyLogging) {
             this (globalBodyLogging, new ArrayList<ClientId>(), new ArrayList<ClientId>());
         }
     }
@@ -190,8 +191,8 @@ public class SoapMessageBodyManipulatorTest {
                                                      boolean clientSide,
                                                      String elementName,
                                                      boolean keepBody) throws Exception {
-        String loggableMessage = new TestableSoapMessageBodyManipulator(keepBody)
-                .getLoggableMessageText(query, clientSide);
+        String loggableMessage = new TestableMessageBodyManipulator(keepBody)
+                .getLoggableMessageText(new SoapLogMessage(query, null, clientSide));
         log.debug("loggable message with body"
                 + (keepBody ? " intact: " : " removed: ")
                 + loggableMessage);
@@ -226,7 +227,7 @@ public class SoapMessageBodyManipulatorTest {
      */
     @Test
     public void clientIdSearching() throws Exception {
-        SoapMessageBodyManipulator manipulator = new SoapMessageBodyManipulator();
+        MessageBodyManipulator manipulator = new MessageBodyManipulator();
         ClientId ss1 = ClientId.create("instance", "memberclass", "membercode", "ss1");
         ClientId cmember = ClientId.create("instance", "memberclass", "membercode", null);
         ClientId ss2 = ClientId.create("instance", "memberclass", "membercode", "ss2");
