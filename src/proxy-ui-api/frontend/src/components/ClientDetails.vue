@@ -24,7 +24,7 @@
     <v-card flat>
       <table class="certificate-table details-certificates">
         <tr>
-          <th>Certificate</th>
+          <th>Sign Certificate</th>
           <th>Serial Number</th>
           <th>State</th>
           <th>Expires</th>
