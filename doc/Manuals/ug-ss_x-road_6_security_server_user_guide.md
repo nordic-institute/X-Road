@@ -1844,7 +1844,7 @@ In this example the created key was `23bc57cd-b1ba-4702-9657-8d53e335c843`.
 
 ### 19.1.2 Listing API keys
 
-Existing API keys can be listed with a `GET` request to `/api/api-key`.
+Existing API keys can be listed with a `GET` request to `/api/api-key`. This lists all keys, regardless of who has created them.
 
 ```
 curl -X GET -u <user>:<password> https://localhost:4000/api/api-key -k
@@ -1865,7 +1865,7 @@ curl -X GET -u <user>:<password> https://localhost:4000/api/api-key -k
 
 ### 19.1.3 Revoking API keys
 
-An API keys can be revoked with a `DELETE` request to `/api/api-key/{id}`. Server responds with `HTTP 200` if
+An API key can be revoked with a `DELETE` request to `/api/api-key/{id}`. Server responds with `HTTP 200` if
 revocation was successful and `HTTP 404` if key did not exist.
 
 ```
