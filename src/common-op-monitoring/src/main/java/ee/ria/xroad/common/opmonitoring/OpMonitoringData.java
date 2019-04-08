@@ -88,13 +88,17 @@ public class OpMonitoringData {
     private static final String MESSAGE_PROTOCOL_VERSION =
             "messageProtocolVersion";
 
+    private static final String X_REQUEST_ID = "xRequestId";
     private static final String REQUEST_SOAP_SIZE = "requestSoapSize";
     private static final String REQUEST_MIME_SIZE = "requestMimeSize";
+    private static final String REQUEST_REST_SIZE = "requestRestSize";
+
     private static final String REQUEST_ATTACHMENT_COUNT =
             "requestAttachmentCount";
 
     private static final String RESPONSE_SOAP_SIZE = "responseSoapSize";
     private static final String RESPONSE_MIME_SIZE = "responseMimeSize";
+    private static final String RESPONSE_REST_SIZE = "responseRestSize";
     private static final String RESPONSE_ATTACHMENT_COUNT =
             "responseAttachmentCount";
 
@@ -149,7 +153,7 @@ public class OpMonitoringData {
     /**
      * Constructor for creating an instance in code that handles incoming
      * XRoad requests.
-     * @param type security server type
+     * @param type        security server type
      * @param requestInTs the timestamp of handling the XRoad request
      */
     public OpMonitoringData(SecurityServerType type, long requestInTs) {
@@ -213,7 +217,6 @@ public class OpMonitoringData {
     /**
      * Sets the "response out" timestamp. In case the field assignResponseOutTsToResponseInTs is
      * true, the same value is assigned to the "response in" also.
-     *
      * @param timestamp Unix timestamp in milliseconds
      * @param overwrite if true, old value is overwritten, otherwise old value remains
      */
@@ -317,6 +320,14 @@ public class OpMonitoringData {
     }
 
     /**
+     * Sets request REST size.
+     * @param size REST size
+     */
+    public void setRequestRestSize(long size) {
+        data.put(REQUEST_REST_SIZE, size);
+    }
+
+    /**
      * Sets request SOAP size.
      * @param size SOAP size
      */
@@ -346,6 +357,14 @@ public class OpMonitoringData {
      */
     public void setResponseSoapSize(long size) {
         data.put(RESPONSE_SOAP_SIZE, size);
+    }
+
+    /**
+     * Sets response REST size.
+     * @param size REST size
+     */
+    public void setResponseRestSize(long size) {
+        data.put(RESPONSE_REST_SIZE, size);
     }
 
     /**
@@ -381,5 +400,13 @@ public class OpMonitoringData {
             data.put(SOAP_FAULT_CODE, e.getFaultCode());
             data.put(SOAP_FAULT_STRING, e.getFaultString());
         }
+    }
+
+    /**
+     * Sets x-road-request-id of the message.
+     * @param xRequestId x-request-id
+     */
+    public void setXRequestId(String xRequestId) {
+        data.put(X_REQUEST_ID, xRequestId);
     }
 }

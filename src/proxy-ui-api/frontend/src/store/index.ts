@@ -5,12 +5,12 @@ import VuexPersistence from 'vuex-persist';
 import { RootState } from './types';
 import { mockDataModule } from './modules/mockData';
 import { clientsModule } from './modules/clients';
-import { auth } from './modules/auth';
+import { user } from './modules/user';
 
 Vue.use(Vuex);
 const vuexLocal = new VuexPersistence({
   storage: window.localStorage,
-  modules: ['auth'],
+  modules: ['user'],
 });
 
 const store: StoreOptions<RootState> = {
@@ -18,7 +18,7 @@ const store: StoreOptions<RootState> = {
     version: '1.0.0', // a simple property
   },
   modules: {
-    auth,
+    user,
     mockDataModule,
     clientsModule,
   },

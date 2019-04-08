@@ -4,10 +4,10 @@
     <v-layout class="main-content" align-center justify-center column>
       <v-tabs v-model="tab" class="main-tabs" color="white" grow mb-10>
         <v-tabs-slider color="secondary" class="xr-main-tabs-slider"></v-tabs-slider>
-        <v-tab to="/" key="clients">clients</v-tab>
-        <v-tab to="/keys" key="keys">keys and certificates</v-tab>
-        <v-tab to="/diagnostics" key="diagnostics">diagnostics</v-tab>
-        <v-tab to="/settings" key="settings">settings</v-tab>
+
+        <template v-for="tab in allowedTabs">
+          <v-tab v-bind:key="tab.key" :to="tab.to">{{tab.name}}</v-tab>
+        </template>
       </v-tabs>
       <v-layout mt-5 class="full-width">
         <transition name="fade" mode="out-in">
@@ -20,6 +20,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { mapGetters } from 'vuex';
 
 import TabContent from '../components/TabContent.vue';
 import Toolbar from '../components/Toolbar.vue';
@@ -33,6 +34,9 @@ export default Vue.extend({
     return {
       tab: null,
     };
+  },
+  computed: {
+    ...mapGetters(['allowedTabs']),
   },
   methods: {
     fetchCities() {

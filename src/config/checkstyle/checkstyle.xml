@@ -1,6 +1,7 @@
 <?xml version="1.0"?><!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.3//EN"
     "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
 <module name="Checker">
+    <module name="SuppressWarningsFilter" />
     <!-- Checks whether files end with a new line.                        -->
     <!-- See http://checkstyle.sf.net/config_misc.html#NewlineAtEndOfFile -->
     <module name="NewlineAtEndOfFile"/>
@@ -119,6 +120,7 @@
         <module name="EqualsHashCode"/>
         <module name="HiddenField">
             <property name="ignoreConstructorParameter" value="true"/>
+            <property name="ignoreSetter" value="true"/>
         </module>
         <module name="InnerAssignment"/>
         <module name="MagicNumber">

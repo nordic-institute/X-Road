@@ -82,7 +82,7 @@ public final class SecurityServerId extends XRoadId {
     }
 
     @Override
-    protected String[] getFieldsForStringFormat() {
+    public String[] getFieldsForStringFormat() {
         return new String[] {memberClass, memberCode, serverCode};
     }
 

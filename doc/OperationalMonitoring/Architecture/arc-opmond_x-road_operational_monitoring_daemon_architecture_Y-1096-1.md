@@ -13,6 +13,7 @@ Document ID: ARC-OPMOND
 | 23.01.2017 | 0.6       | Added license text, table of contents and version history | Sami Kallio |
 | 02.02.2018 | 0.7       | Technology matrix moved to the ARC-TEC-file               | Antti Luoma |
 | 05.03.2018 | 0.8       | Added terms and abbreviations reference and moved terms to term doc | Tatu Repo   |
+| 18.02.2019 | 0.9       | New optional field: xRequestId (string) | Caro Hautamäki   |
 
 ## Table of Contents
 
@@ -194,7 +195,8 @@ The first record of the store request reflects successfully mediated request, th
       "serviceSubsystemCode": "subsystem1",
       "serviceVersion": "v1",
       "serviceXRoadInstance": "EE",
-      "succeeded": true
+      "succeeded": true,
+      "xRequestId": "8df57952-792f-497d-8c3b-c0e930750644"
     },
     {
       "clientMemberClass": "GOV",
@@ -223,7 +225,8 @@ The first record of the store request reflects successfully mediated request, th
       "soapFaultCode": "Server.ServerProxy.UnknownService",
       "soapFaultString": "Unknown service:
           SERVICE:EE/GOV/00000000/subsystem2/xroadGetDate/v1",
-      "succeeded": false
+      "succeeded": false,
+      "xRequestId": "233f4d78-358a-4776-90ae-42c42a9f06ff"
     }
   ]
 }

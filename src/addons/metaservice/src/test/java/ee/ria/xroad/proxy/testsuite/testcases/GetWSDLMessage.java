@@ -38,7 +38,7 @@ import ee.ria.xroad.common.util.AbstractHttpSender;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
-import ee.ria.xroad.proxy.testsuite.TestServerConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -154,7 +154,7 @@ public class GetWSDLMessage extends SslMessageTestCase {
     @Override
     protected void startUp() throws Exception {
         super.startUp();
-        ServerConf.reload(new TestServerConf() {
+        ServerConf.reload(new TestSuiteServerConf() {
             @Override
             public IsAuthentication getIsAuthentication(ClientId client) {
                 return  IsAuthentication.SSLAUTH;

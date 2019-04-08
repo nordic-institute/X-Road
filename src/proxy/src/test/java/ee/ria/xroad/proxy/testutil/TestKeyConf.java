@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.testsuite;
+package ee.ria.xroad.proxy.testutil;
 
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.OcspTestUtils;
@@ -35,6 +35,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.proxy.conf.SigningCtx;
+import ee.ria.xroad.proxy.testsuite.EmptyKeyConf;
 import ee.ria.xroad.proxy.util.TestUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -62,23 +63,16 @@ public class TestKeyConf extends EmptyKeyConf {
     @Override
     public SigningCtx getSigningCtx(ClientId clientId) {
         String orgName = clientId.getMemberCode();
-        SigningCtx ctx = currentTestCase().getSigningCtx(orgName);
-        if (ctx != null) {
-            return ctx;
-        }
-
         if (!signingCtx.containsKey(orgName)) {
             signingCtx.put(orgName, TestUtil.getSigningCtx(orgName));
         }
-
         return signingCtx.get(orgName);
     }
 
     @Override
     public AuthKey getAuthKey() {
         PKCS12 consumer = TestCertUtil.getConsumer();
-        return new AuthKey(CertChain.create("EE", consumer.certChain[0], null),
-                consumer.key);
+        return new AuthKey(CertChain.create("EE", consumer.certChain[0], null), consumer.key);
     }
 
     @Override
@@ -113,10 +107,6 @@ public class TestKeyConf extends EmptyKeyConf {
         }
 
         return ocspResponses.get(certHash);
-    }
-
-    private static MessageTestCase currentTestCase() {
-        return ProxyTestSuite.currentTestCase;
     }
 
     private X509Certificate getOcspSignerCert() throws Exception {

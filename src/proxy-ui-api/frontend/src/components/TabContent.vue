@@ -39,12 +39,8 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import DataTable from './DataTable.vue';
 
 export default Vue.extend({
-  components: {
-    DataTable,
-  },
   data() {
     return {
       tab: null,

@@ -27,10 +27,12 @@ package ee.ria.xroad.proxy.util;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
+import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 
 import org.apache.http.client.HttpClient;
@@ -129,6 +131,22 @@ public abstract class MessageProcessorBase {
             opMonitoringData.setRequestSoapSize(soapMessage.getBytes().length);
         }
     }
+
+    /**
+     * Update operational monitoring data with REST message header data
+     *
+     */
+    protected void updateOpMonitoringDataByRestRequest(OpMonitoringData opMonitoringData, RestRequest request) {
+        if (opMonitoringData != null && request != null) {
+            opMonitoringData.setClientId(request.getSender());
+            opMonitoringData.setServiceId(request.getServiceId());
+            opMonitoringData.setMessageId(request.getQueryId());
+            opMonitoringData.setMessageUserId(request.findHeaderValueByName(MimeUtils.HEADER_USER_ID));
+            opMonitoringData.setMessageIssue(request.findHeaderValueByName(MimeUtils.HEADER_ISSUE));
+            opMonitoringData.setMessageProtocolVersion(String.valueOf(request.getVersion()));
+        }
+    }
+
 
     protected static String getSecurityServerAddress() {
         return GlobalConf.getSecurityServerAddress(ServerConf.getIdentifier());

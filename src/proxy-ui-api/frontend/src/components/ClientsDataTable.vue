@@ -5,6 +5,7 @@
         <v-icon slot="append" small>fas fa-search</v-icon>
       </v-text-field>
       <v-btn
+        v-if="showAddClient()"
         color="primary"
         @click="addClient"
         elevation-0
@@ -78,12 +79,12 @@
           <td class="layout px-2">
             <v-spacer></v-spacer>
             <v-btn
-              v-if="props.item.type == 'client' || props.item.type == 'owner'"
+              v-if="(props.item.type == 'client' || props.item.type == 'owner') && showAddClient()"
               small
               outline
               round
               color="primary"
-              class="text-capitalize table-button"
+              class="text-capitalize table-button xr-small-button"
               @click="addSubsystem(props.item)"
             >Add Subsystem</v-btn>
           </td>
@@ -107,8 +108,8 @@
  */
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-
-import { getObjectValueByPath, getNestedValue } from '../util/helpers';
+import { getObjectValueByPath, getNestedValue } from '@/util/helpers';
+import { Permissions } from '@/global';
 
 export default Vue.extend({
   data: () => ({
@@ -154,6 +155,9 @@ export default Vue.extend({
   },
 
   methods: {
+    showAddClient(): boolean {
+      return this.$store.getters.hasPermission(Permissions.ADD_CLIENT);
+    },
     getClientIcon(type: string) {
       if (!type) {
         return '';
@@ -295,9 +299,6 @@ export default Vue.extend({
 }
 
 .table-button {
-  height: 24px;
-  border-radius: 6px;
-  margin-right: 4px;
   margin-top: auto;
   margin-bottom: auto;
 }

@@ -6,6 +6,9 @@
   <% if can?(:add_wsdl) %>
     <button id="wsdl_add"><%= t '.add_wsdl' %></button>
   <% end %>
+  <% if can?(:add_openapi3) %>
+    <button id="openapi3_add"><%= t '.add_openapi3' %></button>
+  <% end %>
   <% if can?(:enable_disable_wsdl) %>
   <button id="wsdl_enable"><%= t 'common.enable' %></button>
   <button id="wsdl_disable"><%= t 'common.disable' %></button>
@@ -50,6 +53,21 @@
   <% end %>
 <% end %>
 
+<%= dialog "openapi3_add_dialog" do %>
+  <%= form_tag do %>
+    <table class="details">
+      <tr>
+        <td><%= t '.url' %></td>
+        <td><%= text_field_tag "openapi3_add_url", nil, :style => "width: 90%" %></td>
+      </tr>
+      <tr>
+        <td><%= t '.service_code' %></td>
+        <td><%= text_field_tag "openapi3_service_code", nil, :style => "width: 90%" %></td>
+      </tr>
+    </table>
+  <% end %>
+<% end %>
+
 <%= dialog "wsdl_disable_dialog", t('.disable_wsdl') do %>
   <%= form_tag do %>
     <table class="details">
@@ -69,6 +87,21 @@
       <tr>
         <td><%= t '.url' %></td>
         <td><%= text_field_tag "params_wsdl_url", nil %></td>
+      </tr>
+    </table>
+  <% end %>
+<% end %>
+
+<%= dialog "openapi3_params_dialog", t('.edit_openapi3_parameters') do %>
+  <%= form_tag do %>
+    <table class="details">
+      <tr>
+        <td><%= t '.url' %></td>
+        <td><%= text_field_tag "params_openapi3_url", nil %></td>
+      </tr>
+      <tr>
+        <td><%= t '.service_code' %></td>
+        <td><%= text_field_tag "params_openapi3_service_code", nil %></td>
       </tr>
     </table>
   <% end %>

@@ -22,9 +22,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.testsuite;
+package ee.ria.xroad.proxy.testutil;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
@@ -45,9 +44,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singleton;
-
 /**
  * Test globalconf implementation.
  */
@@ -60,24 +56,12 @@ public class TestGlobalConf extends EmptyGlobalConf {
 
     @Override
     public Collection<String> getProviderAddress(ClientId provider) {
-        if (currentTestCase() == null || provider == null) {
-            return singleton("http://127.0.0.1:"
-                    + SystemProperties.getServerProxyPort());
-        }
-
-        String addr = currentTestCase().getProviderAddress(
-                provider.getMemberCode());
-        if (addr == null) {
-            return emptySet();
-        } else {
-            return singleton(addr);
-        }
+        return Collections.singleton("127.0.0.1");
     }
 
     @Override
-    public Set<SecurityCategoryId> getProvidedCategories(
-            X509Certificate authCert) {
-        return currentTestCase().getProvidedCategories();
+    public Set<SecurityCategoryId> getProvidedCategories(X509Certificate authCert) {
+        return Collections.emptySet();
     }
 
     @Override
@@ -94,43 +78,34 @@ public class TestGlobalConf extends EmptyGlobalConf {
         return new X509Certificate[] {TestCertUtil.getCaCert()};
     }
 
-    private MessageTestCase currentTestCase() {
-        return ProxyTestSuite.currentTestCase;
-    }
-
     @Override
-    public X509Certificate getCaCert(String instanceIdentifier,
-            X509Certificate org) throws Exception {
+    public X509Certificate getCaCert(String instanceIdentifier, X509Certificate org) throws Exception {
         return TestCertUtil.getCaCert();
     }
 
     @Override
-    public CertChain getCertChain(String instanceIdentifier,
-            X509Certificate subject) throws Exception {
+    public CertChain getCertChain(String instanceIdentifier, X509Certificate subject) throws Exception {
         return CertChain.create(instanceIdentifier, subject, null);
     }
 
     @Override
-    public List<X509Certificate> getTspCertificates()
-            throws CertificateException {
+    public List<X509Certificate> getTspCertificates() throws CertificateException {
         return Arrays.asList(TestCertUtil.getTspCert());
     }
 
     @Override
-    public boolean authCertMatchesMember(X509Certificate cert, ClientId memberId)
-            throws Exception {
+    public boolean authCertMatchesMember(X509Certificate cert, ClientId memberId) throws Exception {
         return true;
     }
 
     @Override
     public ServiceId getServiceId(CentralServiceId serviceId) {
-        return ServiceId.create(serviceId.getXRoadInstance(),
-                "BUSINESS", "producer", null, serviceId.getServiceCode(), null);
+        return ServiceId.create(serviceId.getXRoadInstance(), "BUSINESS", "producer", null,
+                serviceId.getServiceCode(), null);
     }
 
     @Override
-    public SignCertificateProfileInfo getSignCertificateProfileInfo(
-            SignCertificateProfileInfo.Parameters parameters,
+    public SignCertificateProfileInfo getSignCertificateProfileInfo(SignCertificateProfileInfo.Parameters parameters,
             X509Certificate cert) throws Exception {
         return new EjbcaSignCertificateProfileInfo(parameters) {
             @Override
@@ -140,17 +115,16 @@ public class TestGlobalConf extends EmptyGlobalConf {
                 // new certificate.
                 ClientId id = super.getSubjectIdentifier(certificate);
                 return ClientId.create(
-                    id.getXRoadInstance(),
-                    "BUSINESS",
-                    id.getMemberCode()
+                        id.getXRoadInstance(),
+                        "BUSINESS",
+                        id.getMemberCode()
                 );
             }
         };
     }
 
     @Override
-    public AuthCertificateProfileInfo getAuthCertificateProfileInfo(
-            AuthCertificateProfileInfo.Parameters parameters,
+    public AuthCertificateProfileInfo getAuthCertificateProfileInfo(AuthCertificateProfileInfo.Parameters parameters,
             X509Certificate cert) throws Exception {
         return null;
     }

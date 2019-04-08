@@ -51,11 +51,8 @@ public class IdleConnectionMonitorThread extends Thread {
     @Setter
     private int connectionIdleTimeMilliseconds = DEFAULT_IDLE_TIMEOUT;
 
-
     void closeNow() {
-        connectionManager.closeExpiredConnections();
-        connectionManager.closeIdleConnections(connectionIdleTimeMilliseconds,
-                TimeUnit.MILLISECONDS);
+        connectionManager.closeIdleConnections(connectionIdleTimeMilliseconds, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -65,7 +62,7 @@ public class IdleConnectionMonitorThread extends Thread {
                 sleep(intervalMilliseconds);
                 closeNow();
             } catch (InterruptedException ex) {
-                log.warn("InterruptedException occurred: {}", ex);
+                //ignored (stopping controlled by shutdown)
             }
         }
     }

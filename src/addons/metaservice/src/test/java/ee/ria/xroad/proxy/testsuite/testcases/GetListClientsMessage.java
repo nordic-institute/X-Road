@@ -35,7 +35,7 @@ import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.util.AbstractHttpSender;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
-import ee.ria.xroad.proxy.testsuite.TestGlobalConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
 import ee.ria.xroad.proxy.util.MetaserviceTestUtil;
 
 import org.apache.http.client.utils.URIBuilder;
@@ -126,7 +126,7 @@ public class GetListClientsMessage extends MessageTestCase {
     protected void startUp() throws Exception {
         super.startUp();
 
-        GlobalConf.reload(new TestGlobalConf() {
+        GlobalConf.reload(new TestSuiteGlobalConf() {
 
             @Override
             public List<MemberInfo> getMembers(String... instanceIdentifier) {
