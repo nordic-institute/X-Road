@@ -19,6 +19,7 @@
     "roboto-fontface": "*",
     "vee-validate": "^2.2.0",
     "vue": "^2.6.10",
+    "vue-i18n": "^8.0.0",
     "vue-router": "^3.0.1",
     "vuetify": "^1.5.9",
     "vuex": "^3.0.1",
@@ -42,6 +43,7 @@
     "stylus-loader": "^3.0.1",
     "ts-jest": "^24.0.2",
     "typescript": "3.4.2",
+    "vue-cli-plugin-i18n": "^0.5.2",
     "vue-cli-plugin-vuetify": "^0.4.6",
     "vue-template-compiler": "^2.6.10",
     "vuetify-loader": "^1.2.1"
