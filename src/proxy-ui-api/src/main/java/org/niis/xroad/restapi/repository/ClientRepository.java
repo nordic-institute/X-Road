@@ -56,6 +56,15 @@ public class ClientRepository {
     }
 
     /**
+     * Executes a Hibernate saveOrUpdate(client)
+     * @param clientType
+     * @return
+     */
+    public void saveOrUpdate(ClientType clientType) {
+        getCurrentSession().saveOrUpdate(clientType);
+    }
+
+    /**
      * return one client
      * @param id
      */

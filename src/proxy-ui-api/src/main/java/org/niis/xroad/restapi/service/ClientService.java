@@ -24,10 +24,12 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -66,5 +68,26 @@ public class ClientService {
         return clientRepository.getClient(id);
     }
 
+    /**
+     * Update connection type of an existing client
+     * @param id
+     * @param connectionType
+     * @return
+     * @throws org.niis.xroad.restapi.exceptions.NotFoundException if
+     * client was not found
+     * @throws IllegalArgumentException if connectionType was not supported value
+     */
+    @PreAuthorize("hasAuthority('EDIT_CLIENT_INTERNAL_CONNECTION_TYPE')")
+    public ClientType updateConnectionType(ClientId id, String connectionType) {
+        ClientType clientType = clientRepository.getClient(id);
+        if (clientType == null) {
+            throw new NotFoundException(("client with id " + id + " not found"));
+        }
+        // validate connectionType param by creating enum out of it
+        IsAuthentication enumValue = IsAuthentication.valueOf(connectionType);
+        clientType.setIsAuthentication(connectionType);
+        clientRepository.saveOrUpdate(clientType);
+        return clientType;
+    }
 
 }

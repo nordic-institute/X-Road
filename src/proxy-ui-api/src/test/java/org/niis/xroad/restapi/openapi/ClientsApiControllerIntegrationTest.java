@@ -133,7 +133,7 @@ public class ClientsApiControllerIntegrationTest {
                 clientsApiController.getClient("FI:GOV:M1");
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Client client = response.getBody();
-        assertEquals(Client.ConnectionTypeEnum.HTTP, client.getConnectionType());
+        assertEquals(org.niis.xroad.restapi.openapi.model.ConnectionType.HTTP, client.getConnectionType());
         assertEquals(Client.StatusEnum.REGISTERED, client.getStatus());
         assertEquals("test-member-name", client.getMemberName());
         assertEquals("GOV", client.getMemberClass());
@@ -144,7 +144,7 @@ public class ClientsApiControllerIntegrationTest {
         response = clientsApiController.getClient("FI:GOV:M1:SS1");
         assertEquals(HttpStatus.OK, response.getStatusCode());
         client = response.getBody();
-        assertEquals(Client.ConnectionTypeEnum.HTTPS_NO_AUTH, client.getConnectionType());
+        assertEquals(org.niis.xroad.restapi.openapi.model.ConnectionType.HTTPS_NO_AUTH, client.getConnectionType());
         assertEquals(Client.StatusEnum.REGISTERED, client.getStatus());
         assertEquals("test-member-name", client.getMemberName());
         assertEquals("GOV", client.getMemberClass());

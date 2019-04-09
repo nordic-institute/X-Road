@@ -572,12 +572,7 @@ paths:
         style: form
         explode: true
         schema:
-          type: string
-          default: HTTPS
-          enum:
-          - HTTP
-          - HTTPS
-          - HTTPS_NO_AUTH
+          $ref: '#/components/schemas/ConnectionType'
       responses:
         200:
           description: item modified
@@ -961,6 +956,48 @@ paths:
         500:
           description: internal server error
   /clients/{id}/tlscertificates/{cid}:
+    get:
+      tags:
+      - security server
+      summary: get TLS certificate
+      description: SS administrator gets the TLS certificate for the selected client.
+      operationId: getClientTlsCertificate
+      parameters:
+      - name: id
+        in: path
+        description: id of the client
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: cid
+        in: path
+        description: id of the certificate
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        200:
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TlsCertificate'
+        400:
+          description: request was invalid
+        401:
+          description: authentication credentials are missing
+        403:
+          description: request has been refused
+        404:
+          description: resource requested does not exists
+        406:
+          description: request specified an invalid format
+        500:
+          description: internal server error
     delete:
       tags:
       - security server
@@ -2937,13 +2974,7 @@ components:
           type: string
           example: ABC
         connection_type:
-          type: string
-          description: connection type
-          example: HTTPS
-          enum:
-          - HTTP
-          - HTTPS
-          - HTTPS_NO_AUTH
+            $ref: '#/components/schemas/ConnectionType'
         status:
           type: string
           example: REGISTERED
@@ -3149,8 +3180,8 @@ components:
           example: http://dev.xroad.rocks:123
     User:
       required:
-      - roles
       - permissions
+      - roles
       - username
       type: object
       properties:
@@ -3158,13 +3189,13 @@ components:
           type: string
           example: Guest
         roles:
-            type: array
-            items:
-                type: string
+          type: array
+          items:
+            type: string
         permissions:
-            type: array
-            items:
-                type: string
+          type: array
+          items:
+            type: string
     Wsdl:
       required:
       - client_id
@@ -3190,6 +3221,12 @@ components:
           type: string
           format: boolean
           example: "false"
+    ConnectionType:
+        type: string
+        enum:
+            - HTTP
+            - HTTPS
+            - HTTPS_NO_AUTH
   securitySchemes:
     cookieAuth:
       type: apiKey
