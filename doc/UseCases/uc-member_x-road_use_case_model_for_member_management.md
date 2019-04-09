@@ -2956,6 +2956,13 @@ Figure 1. Use case diagram for member management
 
 **Extensions**:
 
+2a. SS administrator selected to add new subsystem to an existing member. _Member details are prefilled and are not editable_
+
+  - 2a.1. SS administrator inputs the subsystem code OR
+
+  - 2a.2. SS administrator selects the subsystem code by searching form existing subsystems
+
+
 3a. The parsing of the user input terminated with an error.
 
   - 3a.1. System displays the termination message of the parsing process.
@@ -2991,6 +2998,7 @@ Figure 1. Use case diagram for member management
 -   The audit log is located at `/var/log/xroad/audit.log`. The data set of audit log records is described in the document “X-Road: Audit Log Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The security server client state machine model is described in the document “Security Server User Guide” \[[UG-SS](#Ref_UG-SS)\].
+
 
 
 #### 2.4.5 UC MEMBER\_48: Register a Security Server Client
