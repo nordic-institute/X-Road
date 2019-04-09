@@ -36,9 +36,9 @@ import ee.ria.xroad.monitor.common.dto.MetricSetDto;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
-import ee.ria.xroad.proxy.testsuite.TestGlobalConf;
-import ee.ria.xroad.proxy.testsuite.TestKeyConf;
-import ee.ria.xroad.proxy.testsuite.TestServerConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteKeyConf;
+import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 import ee.ria.xroad.proxy.util.MetaserviceTestUtil;
 import ee.ria.xroad.proxymonitor.message.GetSecurityServerMetricsResponse;
 import ee.ria.xroad.proxymonitor.message.HistogramMetricType;
@@ -147,14 +147,14 @@ public class SecurityServerMetricsMessage extends MessageTestCase {
     protected void startUp() throws Exception {
         super.startUp();
 
-        GlobalConf.reload(new TestGlobalConf() {
+        GlobalConf.reload(new TestSuiteGlobalConf() {
             @Override
             public String getInstanceIdentifier() {
                 return EXPECTED_XR_INSTANCE;
             }
         });
-        KeyConf.reload(new TestKeyConf());
-        ServerConf.reload(new TestServerConf() {
+        KeyConf.reload(new TestSuiteKeyConf());
+        ServerConf.reload(new TestSuiteServerConf() {
             @Override
             public SecurityServerId getIdentifier() {
                 return DEFAULT_OWNER_SERVER;

@@ -25,6 +25,7 @@
 package ee.ria.xroad.common.conf.serverconf;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -99,8 +100,10 @@ public interface ServerConfProvider {
     List<X509Certificate> getIsCerts(ClientId client) throws Exception;
 
 
-    /** List all known certificates that are allowed to be used to authenticate
-     * the client information system. */
+    /**
+     * List all known certificates that are allowed to be used to authenticate
+     * the client information system.
+     */
     List<X509Certificate> getAllIsCerts();
 
     /**
@@ -146,4 +149,10 @@ public interface ServerConfProvider {
      * in this security server.
      */
     List<String> getTspUrl();
+
+    /**
+     * @param service the service identifier
+     * @return the type of the service as {@link DescriptionType}
+     */
+    DescriptionType getDescriptionType(ServiceId service);
 }

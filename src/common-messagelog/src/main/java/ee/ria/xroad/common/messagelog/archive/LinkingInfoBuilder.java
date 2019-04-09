@@ -61,8 +61,8 @@ class LinkingInfoBuilder {
         this.lastDigest = lastArchive.getDigest();
     }
 
-    void addNextFile(String fileName, byte[] fileBytes) {
-        String combinedDigests = lastDigest + hexDigest(fileBytes);
+    void addNextFile(String fileName, byte[] digest) {
+        String combinedDigests = lastDigest + CryptoUtils.encodeHex(digest);
         String currentDigest =
                 hexDigest(combinedDigests.getBytes(StandardCharsets.UTF_8));
 
@@ -89,7 +89,7 @@ class LinkingInfoBuilder {
                 .append(hashAlgoId).append('\n');
 
         digestsForFiles.forEach(each ->
-            builder.append(each.toLinkingInfoEntry()).append('\n')
+                builder.append(each.toLinkingInfoEntry()).append('\n')
         );
 
         return builder.toString().getBytes(StandardCharsets.UTF_8);

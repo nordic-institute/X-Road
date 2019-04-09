@@ -25,6 +25,7 @@
 package ee.ria.xroad.common.conf.serverconf;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -249,5 +250,15 @@ public class ServerConf {
         log.trace("getIsAuthentication({})", client);
 
         return getInstance().getIsAuthentication(client);
+    }
+
+    /**
+     * @param service the service identifier
+     * @return the type of the service as {@link DescriptionType}
+     */
+    public static DescriptionType getDescriptionType(ServiceId service) {
+        log.trace("getServiceAddress({})", service);
+
+        return getInstance().getDescriptionType(service);
     }
 }

@@ -127,6 +127,8 @@ fi
 chown xroad:xroad ${db_properties}
 chmod 640 ${db_properties}
 
+su postgres -c 'psql messagelog -tAc "CREATE EXTENSION IF NOT EXISTS lo"'
+
 echo "running ${db_name} database migrations"
 cd /usr/share/xroad/db/
 /usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml --password=${db_passwd} --username=${db_user}  update || die "Connection to database has failed, please check database availability and configuration ad ${db_properties} file"

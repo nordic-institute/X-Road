@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+    <changeSet author="ch" id="3-restsizes">
+        <addColumn tableName="operational_data">
+            <column name="request_rest_size" type="bigint"/>
+        </addColumn>
+        <addColumn tableName="operational_data">
+            <column name="response_rest_size" type="bigint"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

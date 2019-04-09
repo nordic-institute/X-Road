@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.auth;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.domain.Role;
 import org.springframework.beans.factory.config.YamlMapFactoryBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.core.GrantedAuthority;
@@ -47,7 +48,7 @@ public class GrantedAuthorityMapper {
 
     private static final String YAML_PERMISSIONS_RESOURCE = "permissions.yml";
 
-    private Map<String, Set<String>> rolesToPermissions;
+    private Map<Role, Set<String>> rolesToPermissions;
 
     /**
      * constructor
@@ -60,7 +61,7 @@ public class GrantedAuthorityMapper {
      * Read yaml permissions
      * @param res
      */
-    private Map<String, Set<String>> parseYamlPermissions(String res) {
+    private Map<Role, Set<String>> parseYamlPermissions(String res) {
 
         YamlMapFactoryBean yamlMapFactoryBean = new YamlMapFactoryBean();
         yamlMapFactoryBean.setResources(new ClassPathResource(res));
@@ -69,15 +70,15 @@ public class GrantedAuthorityMapper {
                 (Collection<Map<String, Collection<String>>>) parsedYamlPermissions.get("document");
 
 
-        Map<String, Set<String>> rolePermissionMappings = new HashMap<>();
+        Map<Role, Set<String>> rolePermissionMappings = new HashMap<>();
         for (Map<String, Collection<String>> permissionsToRoles: permissionsToRolesList) {
             for (String permissionName: permissionsToRoles.keySet()) {
                 for (String roleName: permissionsToRoles.get(permissionName)) {
                     Role role = Role.valueOf(roleName.toUpperCase());
-                    if (!rolePermissionMappings.containsKey(role.name())) {
-                        rolePermissionMappings.put(role.name(), new HashSet<>());
+                    if (!rolePermissionMappings.containsKey(role)) {
+                        rolePermissionMappings.put(role, new HashSet<>());
                     }
-                    rolePermissionMappings.get(role.name()).add(permissionName);
+                    rolePermissionMappings.get(role).add(permissionName);
                 }
             }
         }
@@ -87,24 +88,24 @@ public class GrantedAuthorityMapper {
     }
 
     /**
-     * Return granted authorities for given roles.
+     * Return granted authorities for given Roles.
      * Result contains
      * - SimpleGrantedAuthority for each xroad role, named using standard "ROLE_" + rolename
      * convention
      * - SimpleGrantedAuthority for permissions that are granted for the xroad roles
-     * @param roleNames roles, xroad authentication related or others
+     * @param roles roles, xroad authentication related or others
      * @return
      */
-    public Set<GrantedAuthority> getAuthorities(Collection<String> roleNames) {
+    public Set<GrantedAuthority> getAuthorities(Collection<Role> roles) {
         Set<GrantedAuthority> auths = new HashSet<>();
-        auths.addAll(getPermissionGrants(roleNames));
-        auths.addAll(getRoleGrants(roleNames));
+        auths.addAll(getPermissionGrants(roles));
+        auths.addAll(getRoleGrants(roles));
         return auths;
     }
 
-    private Set<SimpleGrantedAuthority> getPermissionGrants(Collection<String> rolenames) {
+    private Set<SimpleGrantedAuthority> getPermissionGrants(Collection<Role> roles) {
         Set<String> permissions = new HashSet<>();
-        for (String role: rolenames) {
+        for (Role role: roles) {
             permissions.addAll(rolesToPermissions.get(role));
         }
         return permissions
@@ -113,9 +114,9 @@ public class GrantedAuthorityMapper {
                 .collect(Collectors.toSet());
     }
 
-    private Set<SimpleGrantedAuthority> getRoleGrants(Collection<String> rolenames) {
-        return rolenames.stream()
-                .map(name -> new SimpleGrantedAuthority("ROLE_" + name.toUpperCase()))
+    private Set<SimpleGrantedAuthority> getRoleGrants(Collection<Role> roles) {
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority(role.getGrantedAuthorityName()))
                 .collect(Collectors.toSet());
     }
 
