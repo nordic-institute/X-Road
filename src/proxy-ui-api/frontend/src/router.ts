@@ -48,12 +48,11 @@ const router = new Router({
         },
         {
           name: RouteName.Settings,
-          path: '/settings/:clientId',
+          path: '/settings',
           components: {
             default: Settings,
             top: TabsBase,
           },
-          props: { default: true, top: false },
         },
         {
           name: RouteName.AddSubsystem,
