@@ -63,7 +63,6 @@ import static java.util.stream.Collectors.toList;
 @RequestMapping("/api")
 @Slf4j
 @PreAuthorize("denyAll")
-@Transactional // TO DO: should not be transactional?
 public class ClientsApiController implements org.niis.xroad.restapi.openapi.ClientsApi {
 
     private final NativeWebRequest request;

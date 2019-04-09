@@ -40,7 +40,6 @@ import java.util.Optional;
 @RequestMapping("/api")
 @Slf4j
 @PreAuthorize("denyAll")
-@Transactional
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class BackupsApiController implements org.niis.xroad.restapi.openapi.BackupsApi {
 
