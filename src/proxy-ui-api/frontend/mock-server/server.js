@@ -4,7 +4,7 @@ var bodyParser = require('body-parser');
 const formidable = require('formidable');
 var app = express();
 
-
+const port = 6069;
 const SLEEP_TIME = 200;
 
 
@@ -274,6 +274,7 @@ app.get('/api/user', function (req, res) {
 
 
 app.post('/login', function (req, res) {
+  console.log("Login");
 
   var loginData = req.body;
   console.log(loginData);
@@ -299,9 +300,10 @@ app.get('*', function (req, res) {
 
   // Some waiting here to "simulate" real backend and show spinners/progressbars etc. in UI
   setTimeout(function () {
-    res.send(cities);
+    res.send('ok');
     //res.status(501).send("Oh noes!");
   }, 2000);
 });
 
-app.listen(6069);
+app.listen(port, () => console.log(`Mock server listening on port ${port}`))
+
