@@ -40,7 +40,7 @@
               <span
                 class="font-weight-bold name"
                 @click="openClient(props.item)"
-              >{{props.item.name}} (Owner)</span>
+              >{{props.item.name}} ({{ $t("client.owner") }})</span>
             </template>
             <!-- Name - member -->
             <template v-else-if="props.item.type == 'client'">

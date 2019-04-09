@@ -5,7 +5,7 @@
     </v-flex>
     <v-tabs slot="extension" v-model="tab" class="xr-tabs" color="white" grow>
       <v-tabs-slider color="secondary"></v-tabs-slider>
-      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">{{tab.name}}</v-tab>
+      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">{{ $t(tab.name) }}</v-tab>
     </v-tabs>
 
     <router-view/>
@@ -42,7 +42,7 @@ export default Vue.extend({
       return [
         {
           key: 'details',
-          name: 'Details',
+          name: 'tab.client.details',
           to: {
             name: RouteName.SubsystemDetails,
             params: { id: this.id },
@@ -50,7 +50,7 @@ export default Vue.extend({
         },
         {
           key: 'serviceClients',
-          name: 'Service Clients',
+          name: 'tab.client.serviceClients',
           to: {
             name: RouteName.SubsystemDetails,
             params: { id: this.id },
@@ -58,7 +58,7 @@ export default Vue.extend({
         },
         {
           key: 'services',
-          name: 'Services',
+          name: 'tab.client.services',
           to: {
             name: RouteName.SubsystemDetails,
             params: { id: this.id },
@@ -66,7 +66,7 @@ export default Vue.extend({
         },
         {
           key: 'internalServers',
-          name: 'Internal Servers',
+          name: 'tab.client.internalServers',
           to: {
             name: RouteName.SubsystemServers,
             params: { id: this.id },
@@ -74,7 +74,7 @@ export default Vue.extend({
         },
         {
           key: 'localGroups',
-          name: 'Local Groups',
+          name: 'tab.client.localGroups',
           to: {
             name: RouteName.SubsystemServers,
             params: { id: this.id },

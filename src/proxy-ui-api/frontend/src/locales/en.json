@@ -1,3 +1,21 @@
 {
-  "message": "hello i18n !!"
+  "message": "hello i18n !!",
+  "tab": {
+    "main": {
+      "clients": "Clients",
+      "keys": "Keys and certificates",
+      "diagnostics": "Diagnostics",
+      "settings": "Settings"
+    },
+    "client": {
+      "details": "details",
+      "serviceClients": "service clients",
+      "services": "services",
+      "internalServers": "internal servers",
+      "localGroups": "local groups"
+    }
+  },
+  "client": {
+    "owner": "Owner"
+  }
 }

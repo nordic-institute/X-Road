@@ -1,12 +1,12 @@
 <template>
   <div class="xr-tab-max-width">
     <v-flex mb-4>
-      <h1 v-if="client" class="display-1 mb-3">{{client.member_name}} (Owner)</h1>
+      <h1 v-if="client" class="display-1 mb-3">{{client.member_name}} ({{ $t("client.owner") }})</h1>
     </v-flex>
     <v-tabs slot="extension" v-model="tab" class="xr-tabs" color="white" grow>
       <v-tabs-slider color="secondary"></v-tabs-slider>
-      <v-tab key="details" :to="detailsRoute">Details</v-tab>
-      <v-tab key="internalServers" :to="serversRoute">Internal Servers</v-tab>
+      <v-tab key="details" :to="detailsRoute">{{ $t("tab.client.details") }}</v-tab>
+      <v-tab key="internalServers" :to="serversRoute">{{ $t("tab.client.internalServers") }}</v-tab>
     </v-tabs>
 
     <router-view/>

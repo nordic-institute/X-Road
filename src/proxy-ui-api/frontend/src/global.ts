@@ -94,24 +94,24 @@ export const mainTabs = [
   {
     to: { name: RouteName.Clients },
     key: 'clients',
-    name: 'clients',
+    name: 'tab.main.clients',
     permission: Permissions.VIEW_CLIENTS,
   },
   {
     to: { name: RouteName.Keys },
     key: 'keys',
-    name: 'keys and certificates',
+    name: 'tab.main.keys',
     permission: Permissions.VIEW_KEYS,
   },
   {
     to: { name: RouteName.Diagnostics },
     key: 'diagnostics',
-    name: 'diagnostics',
+    name: 'tab.main.diagnostics',
     permission: Permissions.DIAGNOSTICS,
   },
   {
     to: { name: RouteName.Settings },
     key: 'settings',
-    name: 'settings',
+    name: 'tab.main.settings',
   },
 ];
