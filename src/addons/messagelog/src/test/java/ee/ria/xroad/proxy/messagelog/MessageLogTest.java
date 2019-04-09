@@ -59,6 +59,7 @@ import java.io.FileFilter;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -166,6 +167,17 @@ public class MessageLogTest extends AbstractMessageLogTest {
         assertEquals(0, getDeadLetters().size());
 
         log.info("dead letters: " + getDeadLetters());
+    }
+
+    /**
+     * Log message with xRequestId
+     * @throws Exception in case of any unexpected errors
+     */
+    @Test
+    public void logMessageWithXRequestId() throws Exception {
+        log.trace("logMessageWithXRequestId())");
+
+        log(createMessage(), createSignature(), UUID.randomUUID().toString());
     }
 
     /**
@@ -463,6 +475,12 @@ public class MessageLogTest extends AbstractMessageLogTest {
     protected void log(String atDate, SoapMessageImpl message, SignatureData signature) throws Exception {
         logRecordTime = getDate(atDate);
         log(message, signature);
+    }
+
+    protected void log(String atDate, SoapMessageImpl message, SignatureData signature, String xRequestId)
+            throws Exception {
+        logRecordTime = getDate(atDate);
+        log(message, signature, xRequestId);
     }
 
     protected LogRecord findByQueryId(String queryId, String startTime, String endTime) throws Exception {

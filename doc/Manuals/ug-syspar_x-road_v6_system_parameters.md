@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.41  
+Version: 2.44
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -50,7 +50,10 @@ Doc. ID: UG-SYSPAR
 | 19.12.2018 | 2.38     | Fixed the default value of trusted-anchors-allowed | Ilkka Seppälä |
 | 21.12.2018 | 2.39     | Add connector initial idle time parameters | Jarkko Hyöty |
 | 23.01.2019 | 2.40     | Added new Central Server parameter *auto-approve-auth-cert-reg-requests* | Petteri Kivimäki |
-| 03.02.2019 | 2.41     | Added new Central Server parameter *auto-approve-client-reg-requests* | Petteri Kivimäki |
+| 31.01.2019 | 2.41     | REST message log parameters | Jarkko Hyöty |
+| 03.02.2019 | 2.42     | Added new Central Server parameter *auto-approve-client-reg-requests* | Petteri Kivimäki |
+| 27.03.2019 | 2.43     | Added management REST API parameters | Janne Mattila |
+| 02.04.2019 | 2.44     | Added new message log parameter *clean-transaction-batch* | Jarkko Hyöty |
 
 ## Table of Contents
 
@@ -77,6 +80,7 @@ Doc. ID: UG-SYSPAR
     - [3.7 Message log add-on parameters: `[message-log]`](#37-message-log-add-on-parameters-message-log)
       - [3.7.1 Note on logged X-Road message headers](#371-note-on-logged-x-road-message-headers)
     - [3.8 Environmental monitoring add-on configuration parameters: `[env-monitor]`](#38-environmental-monitoring-add-on-configuration-parameters-env-monitor)
+    - [3.9 Management REST API parameters: `[rest-api]`](#39-management-rest-api-parameters-rest-api)
   - [4 Central Server System Parameters](#4-central-server-system-parameters)
     - [4.1 System Parameters in the Configuration File](#41-system-parameters-in-the-configuration-file)
       - [4.1.1 Common parameters: `[common]`](#411-common-parameters-common)
@@ -246,6 +250,15 @@ This chapter describes the system parameters used by the components of the X-Roa
 | actorsystem-port                                 | 5567                                       |   |   | The (localhost) port where the proxy actorsystem binds to. Used for communicating with xroad-signer and xroad-monitor. |
 | allow-get-wsdl-request                           | false                                      |   |   | Whether to allow getWsdl metaservice to be called with HTTP/HTTPS GET method. |
 
+Note about `database-properties` file: Management REST API module uses the same database-properties file, but
+limits the configuration parameters usage:
+
+- `hibernate.dialect` cannot be changed, it is fixed to a custom PostgreSQL dialect.
+- out of `hibernate.connection.*` parameters, only `url`, `username` and `password` can be configured.
+
+This in practice limits configurability to different kinds of PostgreSQL database configurations, and it is not possible
+to use for example MySQL as a data store for REST API module.
+
 ### 3.3 Proxy User Interface parameters: `[proxy-ui]`
 
 | **Parameter**                                    | **Vanilla value**                          | **Description** |
@@ -291,7 +304,8 @@ This chapter describes the system parameters used by the components of the X-Roa
 
 | **Parameter**                                    | **Vanilla value**                          | **FI-package value** | **EE-package value** | **Description** |
 |--------------------------------------------------|--------------------------------------------|----------------------|----------------------|-----------------|
-| soap-body-logging                                | true                                       | false  |   | Whether SOAP body of the messages should be logged or not.<br/><br/>If *true*, the SOAP messages are logged in their original form. If *false*, the SOAP body is cleared of its contents and only has an empty child element inside it. In addition, the SOAP header will only have specific set of elements logged, see [Note on logged X-Road message headers](#note-on-logged-x-road-message-headers) . As a side effect, details such as formatting and namespace labels of the xml message can be changed and new elements may be introduced for default values in SOAP header.<br/><br/>Removal of SOAP body is usually done for confidentiality reasons (body contains data that we do not want to have in the logs).<br/><br/>Note that changing the message this way prevents verifying its signature with the asicverifier tool. |
+| message-body-logging                             | true                                       | false  |   | Whether message body should be logged or not.<br/><br/>If *true*, the messages are logged in their original form. If *false*, the message body is cleared of its contents (SOAP body will have an empty child element inside it). In addition, the SOAP/REST header will only have specific set of elements logged, see [Note on logged X-Road message headers](#note-on-logged-x-road-message-headers) . As a side effect, details such as formatting and namespace labels of the xml message can be changed and new elements may be introduced for default values in SOAP header.<br/><br/>Removal of message body is usually done for confidentiality reasons (body contains data that we do not want to have in the logs).<br/><br/>Note that changing the message this way prevents verifying its signature with the asicverifier tool. |
+| soap-body-logging                                | true                                       | false  |   | (deprecated, see message-body-logging) | 
 | enabled-body-logging-local-producer-subsystems   |                                            |   |   | Subsystem-specific overrides for SOAP body logging when soap-body-logging = false.<br/><br/>This parameter defines logging for **local producer** subsystems, that is, our subsystems that produce some service which external clients use.<br/><br/>Comma-separated list of client identifiers for which SOAP body logging is enabled. For example FI/ORG/1710128-9/SUBSYSTEM\_A1, FI/ORG/1710128-9/SUBSYSTEM\_A2 where<br/>-   FI = x-road instance<br/>-   ORG = member class<br/>-   1710128-9 = member code<br/>-   SUBSYSTEM\_A1 = subsystem code<br/><br/>This parameter can only be used on subsystem-level, it is not possible to configure SOAP body logging per member.<br/><br/>If a subsystem has forward slashes “/” in for example subsystem code, those subsystems can’t be configured with this parameter. |
 | enabled-body-logging-remote-producer-subsystems  |                                            |   |   | Subsystem-specific overrides for **remote producer** subsystems, that is, remote subsystems that produce services which we use.<br/><br/>Parameter is used when soap-body-logging = false. |
 | disabled-body-logging-local-producer-subsystems  |                                            |   |   | Same as enabled-body-logging-local-producer-subsystems, but this parameter is used when soap-body-logging = true. |
@@ -308,6 +322,9 @@ This chapter describes the system parameters used by the components of the X-Roa
 | timestamper-client-connect-timeout               | 20000                                      |   |   | The timestamper client connect timeout in milliseconds. A timeout of zero is interpreted as an infinite timeout. |
 | timestamper-client-read-timeout                  | 60000                                      |   |   | The timestamper client read timeout in milliseconds. A timeout of zero is interpreted as an infinite timeout. |
 | archive-transaction-batch                        | 10000                                      |   |   | Size of transaction batch for archiving messagelog. This size is not exact because it will always make sure that last archived batch includes timestamp also (this might mean that it will go over transaction size).
+| max-loggable-body-size                           | 10485760 (10 MiB)                          |   |   | Maximum loggable REST message body size |
+| truncated-body-allowed                           | false                                      |   |   | If the REST message body exceeds the maximum loggable body size, truncate the body in the log (true) or reject the message (false). |
+| clean-transaction-batch                          | 10000                                      |   |   | Maximun number of log records to remove in one transaction. |
 
 #### 3.7.1 Note on logged X-Road message headers
 If the messagelog add-on has the SOAP body logging disabled, only a preconfigured set of the SOAP headers will be included in the message log.
@@ -327,6 +344,33 @@ extension's [XML schema](http://x-road.eu/xsd/representation.xsd). The security 
 | exec-listing-sensor-interval                     | 60                                         | Interval of exec listing sensor in seconds. How often sensor data using external command are collected.|
 | certificate-info-sensor-interval                 | 86400                                      | Interval of certificate information sensor in seconds. How often certificate data is collected. The first collection is always done after a delay of 10 seconds. |
 | limit-remote-data-set                            | false                                      | On/Off switch for filtering out optional monitoring data. With flag set to true, only security server owner can request and get full data set. |
+
+### 3.9 Management REST API parameters: `[rest-api]`
+
+| **Parameter**                                    | **Vanilla value**                          | **Description** |
+|--------------------------------------------------|--------------------------------------------|-----------------|
+| ssl-properties                                   | /etc/xroad/ssl.properties                  | Absolute path to file which overrides the default properties of the SSL connections to REST APIs. |
+
+Configurable SSL parameters are those
+[Spring Boot's common application properties](.https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html)
+that start with `server.ssl`.
+
+ssl.properties can be used to override any `server.ssl.*` property, also those that do not have default values. However, the result of merging default properties
+and overridden / new properties needs to be a functional combination.
+
+Default values for the SSL properties are
+
+| **SSL Property**                                    | **Default value**                          | **Description** |
+|--------------------------------------------------|--------------------------------------------|-----------------|
+| server.ssl.key-store            | classpath:nginx.p12               | Path to the key store that holds the SSL certificate (currently bundled in JAR, will be replaced by a package-installed keystore in XRDDEV-414)  |
+| server.ssl.key-store-password   | nginx                             | Password used to access the key store |
+| server.ssl.enabled              | true                              | Whether to enable SSL support |
+| server.ssl.ciphers              | TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384  | Supported SSL ciphers |
+| server.ssl.protocol             | TLS                               | SSL protocol to use |
+| server.ssl.enabled-protocols    | TLSv1.2                           | Enabled SSL protocols |
+
+Management REST API module uses `database-properties` configuration from the [proxy parameters](#32-proxy-parameters-proxy),
+with some additional limitations on configurability (see details in proxy chapter).
 
 ## 4 Central Server System Parameters
 

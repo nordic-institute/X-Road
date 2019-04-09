@@ -26,6 +26,7 @@ package org.niis.xroad.restapi.auth;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.restapi.domain.Role;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collections;
@@ -51,7 +52,7 @@ public class GrantedAuthorityMapperTest {
     public void simpleMapping() {
         String roleName = "XROAD_REGISTRATION_OFFICER";
         Set<GrantedAuthority> authorities = mapper.getAuthorities(
-                Collections.singletonList(roleName));
+                Collections.singletonList(Role.valueOf(roleName)));
         assertTrue(authorities.size() > 1);
         Set<String> authStrings = authorities.stream().map(
                 auth -> auth.getAuthority())
@@ -65,7 +66,7 @@ public class GrantedAuthorityMapperTest {
     public void simpleMappingSystemAdmin() {
         String roleName = "XROAD_SYSTEM_ADMINISTRATOR";
         Set<GrantedAuthority> authorities = mapper.getAuthorities(
-                Collections.singletonList(roleName));
+                Collections.singletonList(Role.valueOf(roleName)));
         Set<String> authStrings = authorities.stream().map(
                 auth -> auth.getAuthority())
                 .collect(Collectors.toSet());

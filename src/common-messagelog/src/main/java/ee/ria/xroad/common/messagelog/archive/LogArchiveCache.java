@@ -26,13 +26,16 @@ package ee.ria.xroad.common.messagelog.archive;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
+import com.google.common.io.CountingOutputStream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
+import java.io.BufferedOutputStream;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,12 +46,15 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.DigestOutputStream;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Supplier;
+import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -83,8 +89,8 @@ class LogArchiveCache implements Closeable {
     private long archivesTotalSize;
 
     LogArchiveCache(Supplier<String> randomGenerator,
-                    LinkingInfoBuilder linkingInfoBuilder,
-                    Path workingDir) {
+            LinkingInfoBuilder linkingInfoBuilder,
+            Path workingDir) {
         this.randomGenerator = randomGenerator;
         this.linkingInfoBuilder = linkingInfoBuilder;
         this.workingDir = workingDir;
@@ -106,6 +112,7 @@ class LogArchiveCache implements Closeable {
         tempArchive = File.createTempFile(
                 "xroad-log-archive-zip", ".tmp", workingDir.toFile());
         try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(tempArchive))) {
+            out.setLevel(Deflater.NO_COMPRESSION); //Asic containers are already compressed
             addAsicContainersToArchive(out);
             addLinkingInfoToArchive(out);
         } catch (Exception e) {
@@ -130,7 +137,7 @@ class LogArchiveCache implements Closeable {
             zipOut.putNextEntry(entry);
 
             try (InputStream archiveInput =
-                    Files.newInputStream(createTempAsicPath(eachName))) {
+                         Files.newInputStream(createTempAsicPath(eachName))) {
                 IOUtils.copy(archiveInput, zipOut);
             }
 
@@ -197,21 +204,24 @@ class LogArchiveCache implements Closeable {
     }
 
     private void addContainerToArchive(MessageRecord record) throws Exception {
-        byte[] containerBytes = record.toAsicContainer().getBytes();
-
         String archiveFilename =
                 nameGenerator.getArchiveFilename(record.getQueryId(),
                         record.isResponse() ? AsicContainerNameGenerator.TYPE_RESPONSE
                                 : AsicContainerNameGenerator.TYPE_REQUEST);
 
-        linkingInfoBuilder.addNextFile(archiveFilename, containerBytes);
         archiveFileNames.add(archiveFilename);
-        archivesTotalSize += containerBytes.length;
 
-        try (OutputStream os =
-                Files.newOutputStream(createTempAsicPath(archiveFilename))) {
-            os.write(containerBytes);
+        final MessageDigest digest = MessageDigest.getInstance(MessageLogProperties.getHashAlg());
+        try (CountingOutputStream cos = new CountingOutputStream(
+                new DigestOutputStream(Files.newOutputStream(createTempAsicPath(archiveFilename)), digest));
+             OutputStream bos = new BufferedOutputStream(cos)) {
+            // ZipOutputStream writing directly to a DigestOutputStream is extremely inefficient, hence the additional
+            // buffering. Digesting a stream instead of an in-memory buffer because the archive can be
+            // large (over 1GiB)
+            record.toAsicContainer().write(bos);
+            archivesTotalSize += cos.getCount();
         }
+        linkingInfoBuilder.addNextFile(archiveFilename, digest.digest());
     }
 
     private Path createTempAsicPath(String archiveFilename) {
@@ -233,9 +243,9 @@ class LogArchiveCache implements Closeable {
         deleteArchiveArtifacts();
 
         archiveContentDir = Files.createTempDirectory(
-                    workingDir,
-                    "xroad-log-archive"
-                ).toFile();
+                workingDir,
+                "xroad-log-archive"
+        ).toFile();
     }
 
     private void deleteArchiveArtifacts() {
@@ -249,6 +259,6 @@ class LogArchiveCache implements Closeable {
         archivesTotalSize = 0;
 
         nameGenerator = new AsicContainerNameGenerator(randomGenerator,
-                        MAX_RANDOM_GEN_ATTEMPTS);
+                MAX_RANDOM_GEN_ATTEMPTS);
     }
 }

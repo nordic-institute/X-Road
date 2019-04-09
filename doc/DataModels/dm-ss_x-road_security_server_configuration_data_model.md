@@ -1,6 +1,6 @@
 # X-Road: Security Server Configuration Data Model
 
-Version: 1.3  
+Version: 1.4
 Doc. ID: DM-SS
 
 | Date       | Version | Description                                             | Author             |
@@ -12,6 +12,7 @@ Doc. ID: DM-SS
 | 19.10.2015 | 1.1     | Indexes added                                           | Martin Lind        |
 | 11.12.2015 | 1.2     | Small fixes                                             | Siim Annuk         |
 | 28.01.2019 | 1.3     | Wsdl changes to servicedescription. Document converted to Markdown.  | Ilkka Seppälä      |
+| 26.03.2019 | 1.4     | Added tables for API keys                                            | Janne Mattila      |
 
 ## Table of Contents
 
@@ -30,42 +31,47 @@ Doc. ID: DM-SS
 	- [2.1 ACCESSRIGHT](#21-accessright)
 		- [2.1.1 Indexes](#211-indexes)
 		- [2.1.2 Attributes](#212-attributes)
-	- [2.2 CERTIFICATE](#22-certificate)
+	- [2.2 APIKEY](#22-apikey)
 		- [2.2.1 Attributes](#221-attributes)
-	- [2.3 CLIENT](#23-client)
+	- [2.3 APIKEY_ROLES](#23-apikey_roles)
 		- [2.3.1 Indexes](#231-indexes)
 		- [2.3.2 Attributes](#232-attributes)
-	- [2.4 DATABASECHANGELOG](#24-databasechangelog)
+	- [2.4 CERTIFICATE](#24-certificate)
 		- [2.4.1 Attributes](#241-attributes)
-	- [2.5 DATABASECHANGELOGLOCK](#25-databasechangeloglock)
-		- [2.5.1 Attributes](#251-attributes)
-	- [2.6 GROUPMEMBER](#26-groupmember)
-		- [2.6.1 Indexes](#261-indexes)
-		- [2.6.2 Attributes](#262-attributes)
-	- [2.7 HISTORY](#27-history)
+	- [2.5 CLIENT](#25-client)
+		- [2.5.1 Indexes](#251-indexes)
+		- [2.5.2 Attributes](#252-attributes)
+	- [2.6 DATABASECHANGELOG](#26-databasechangelog)
+		- [2.6.1 Attributes](#261-attributes)
+	- [2.7 DATABASECHANGELOGLOCK](#27-databasechangeloglock)
 		- [2.7.1 Attributes](#271-attributes)
-	- [2.8 IDENTIFIER](#28-identifier)
-		- [2.8.1 Attributes](#281-attributes)
-	- [2.9 LOCALGROUP](#29-localgroup)
-		- [2.9.1 Indexes](#291-indexes)
-		- [2.9.2 Attributes](#292-attributes)
-	- [2.10 SERVERCONF](#210-serverconf)
-		- [2.10.1 Indexes](#2101-indexes)
-		- [2.10.2 Attributes](#2102-attributes)
-	- [2.11 SERVICE](#211-service)
+	- [2.8 GROUPMEMBER](#28-groupmember)
+		- [2.8.1 Indexes](#281-indexes)
+		- [2.8.2 Attributes](#282-attributes)
+	- [2.9 HISTORY](#29-history)
+		- [2.9.1 Attributes](#291-attributes)
+	- [2.10 IDENTIFIER](#210-identifier)
+		- [2.10.1 Attributes](#2101-attributes)
+	- [2.11 LOCALGROUP](#211-localgroup)
 		- [2.11.1 Indexes](#2111-indexes)
 		- [2.11.2 Attributes](#2112-attributes)
-	- [2.12 SERVICE_SECURITYCATEGORIES](#212-servicesecuritycategories)
+	- [2.12 SERVERCONF](#212-serverconf)
 		- [2.12.1 Indexes](#2121-indexes)
 		- [2.12.2 Attributes](#2122-attributes)
-	- [2.13 TSP](#213-tsp)
+	- [2.13 SERVICE](#211-service)
 		- [2.13.1 Indexes](#2131-indexes)
 		- [2.13.2 Attributes](#2132-attributes)
-	- [2.14 UIUSER](#214-uiuser)
-		- [2.14.1 Attributes](#2141-attributes)
-	- [2.15 SERVICEDESCRIPTION](#215-servicedescription)
+	- [2.14 SERVICE_SECURITYCATEGORIES](#214-servicesecuritycategories)
+		- [2.14.1 Indexes](#2141-indexes)
+		- [2.14.2 Attributes](#2142-attributes)
+	- [2.15 TSP](#215-tsp)
 		- [2.15.1 Indexes](#2151-indexes)
 		- [2.15.2 Attributes](#2152-attributes)
+	- [2.16 UIUSER](#216-uiuser)
+		- [2.16.1 Attributes](#2161-attributes)
+	- [2.17 SERVICEDESCRIPTION](#217-servicedescription)
+		- [2.17.1 Indexes](#2171-indexes)
+		- [2.17.2 Attributes](#2172-attributes)
 
 ## License
 
@@ -84,16 +90,18 @@ This database assumes PostgreSQL version 9.3. Ubuntu 14.04/18.04 and RHEL7 defau
 ## 1.3 Creating, Backing Up and Restoring the Database
 
 This database is integrated into X-Road security server application. The database management functions are embedded into the application user interface.
-The database, the database user and the data model is created by the application's installer. The database updates are packaged as application updates and are applied when the application is upgraded. From the technical point of view, the database structure is created and updated using ![Liquibase](http://www.liquibase.org/) tool. The migration scripts can be found both in application source and in file system of the installed application.
+The database, the database user and the data model is created by the application's installer. The database updates are packaged as application updates and are applied when the application is upgraded. From the technical point of view, the database structure is created and updated using [Liquibase](http://www.liquibase.org/) tool. The migration scripts can be found both in application source and in file system of the installed application.
 Database backup functionality is built into the application. The backup operation can be invoked from the web-based user interface or from the command line. The backup contains dump of all the database structure and contents. When restoring the application, first the software is installed and then the configuration database is restored together with all the other necessary files. This produces a working security server. 
 Note: backing up of security server does not include message log that is managed using different tools.
 
 ## 1.4 Saving Database History
 
 This section describes a general mechanism for storing history of the database tables. All the history-aware tables have associated trigger update_history that records all the modifications to data. All the tables of security server database are history-aware, except for
+
     • history,
     • databasechangelog and
     • databasechangeloglock.
+
 When a row is created, updated or deleted in one of the history-aware tables, the trigger update_history is activated and invokes the stored procedure add_history_rows. For each changed column, add_history_rows inserts a row into the history table. The details of the stored procedures are described in section 1.6.
 
 ## 1.5 Entity-Relationship Diagram
@@ -133,11 +141,40 @@ Access right of a security server client or a group of clients to use a particul
 | servicecode | character varying(255) | NOT NULL | The service code part of the service identifier. |
 | client_id [FK]     | bigint         |         | The security server client who provides the service. References id attribute of CLIENT entity.          |
 
-## 2.2 CERTIFICATE
+## 2.2 APIKEY
+
+API key which grants access to REST API operations.
+
+### 2.2.1 Attributes
+
+| Name        | Type           | Modifiers        | Description          |
+|:----------- |:--------------:|:----------------:|:--------------------:|
+| id [PK]     | bigint         | NOT NULL         | Primary key          |
+| encodedkey | character varying(255) | NOT NULL | Encoded API key |
+
+## 2.3 APIKEY_ROLES
+
+Roles linked to one API key.
+
+### 2.3.1 Indexes
+
+| Name        | Columns           |
+|:----------- |:-----------------:|
+| unique_apikey_role | apikey_id, role |
+
+### 2.3.2 Attributes
+
+| Name        | Type           | Modifiers        | Description          |
+|:----------- |:--------------:|:----------------:|:--------------------:|
+| id [PK]     | bigint         | NOT NULL         | Primary key          |
+| apikey_id [FK]     | bigint         | NOT NULL         | Links one role to an API key          |
+| role | character varying(255) | NOT NULL | Role name. Check constraint `valid_role` limits value to valid ones. |
+
+## 2.4 CERTIFICATE
 
 Trusted authentication certificate associated with an information system belonging to a particular security server client. A certificate record is created when a certificate is uploaded for a security server client. The record is deleted when the certificate is deleted from the system configuration. The record is never modified.
 
-### 2.2.1 Attributes
+### 2.4.1 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -145,27 +182,28 @@ Trusted authentication certificate associated with an information system belongi
 | data | oid |  | X.509 public key certificate in binary DER form. |
 | client_id [FK] | bigint | | The security server client whose information system server uses this authentication certificate. References id attribute of CLIENT entity. |
 
-## 2.3 CLIENT
+## 2.5 CLIENT
 
 Member or subsystem that is using this security server. The security server owner is also registered as a client.
 For owner, the record is created when the administrator initializes the security server. For security server users, the record is created when the administrator adds new client in the user interface.
 The client record is deleted when the administrator removes the client in the user interface. The client record corresponding to the owner cannot be deleted.
 The client record is modified when administrator changes parameters in the user interface or when automatic status update occurs (see below).
 The field clientstatus shows the progress of registering in central server the connection between this security server client and this security server. Only in “registered” state can the security server exchange messages on behalf of this client.
+
     • “saved” -- initial state. Client enters it immediately after creation. From this state the administrator can send registration request to the central server.
     • “registration in progress” -- the administrator has successfully sent registration request to the central server. In this state the security server is waiting for approval of the client registration request. When the security server receives a global configuration that contains connection between the security server and the client, it enters the “registered” state.
     • “registered” -- the registration request sent to the central server is approved and the connection between the client and the security server is registered in the global configuration. In this state the security server can exchange messages on behalf of the client.
     • “deletion in progress” -- the security server has successfully sent client deletion request to the central server. From this state, the only possible action is to delete the client from security server configuration.
     • “global error” -- the client was in state “registered”, but the connection between the client and the security server has been deleted from the global configuration. From this state the administrator can either wait for updated global configuration (in case the deletion was caused by an error), contact the systems administrator of the central server or delete the client.
 
-### 2.3.1 Indexes
+### 2.5.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
 | CLIENT_CONF_ID_fkey | conf_id   |
 | CLIENT_IDENTIFIER_fkey | identifier |
 
-### 2.3.2 Attributes
+### 2.5.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -173,16 +211,13 @@ The field clientstatus shows the progress of registering in central server the c
 | conf_id [FK] | bigint |  | Identifies the serverconf. References id attribute of SERVERCONF entity. |
 | identifier [FK] | bigint |  | Identifies the security server client. References id attribute of IDENTIFIER entity. |
 | clientstatus | character varying(255) |  | Current status of the client. Possible values are “saved”, “registration in progress”, “registered”, “deletion in progress”, “global error” |
-| isauthentication | character varying(255) |  | Type of HTTPS authentication that is used with the client's information systems. Possible values are the following.
-    • “NOSSL” -- the client can connect with HTTP or HTTPS protocol. For HTTPS connection, no authentication is used.
-    • “SSLNOAUTH” -- the client can only connect with HTTPS protocol. No certificate-based authentication is used.
-    • “SSLAUTH” -- the client can only connect with HTTPS protocol. The client must authenticate the connection with certificate. |
+| isauthentication | character varying(255) |  | Type of HTTPS authentication that is used with the client's information systems. Possible values are the following <ul><li>“NOSSL” -- the client can connect with HTTP or HTTPS protocol. For HTTPS connection, no authentication is used.</li><li>“SSLNOAUTH” -- the client can only connect with HTTPS protocol. No certificate-based authentication is used.</li><li>“SSLAUTH” -- the client can only connect with HTTPS protocol. The client must authenticate the connection with certificate.</li></ul>|
 
-## 2.4 DATABASECHANGELOG
+## 2.6 DATABASECHANGELOG
 
 Liquibase migration of the database. A record is created when the administrator updates the software package containing this database and the database structure needs to be modified. The record is never modified or deleted. This table has a technical nature and is not managed by X-Road application software.
 
-### 2.4.1 Attributes
+### 2.6.1 Attributes
 
 | Name        | Columns           | Name        | Columns           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -201,11 +236,11 @@ Liquibase migration of the database. A record is created when the administrator 
 | labels | character varying(255) |  | Labels of the migration. |
 | deployment_id | character varying(10) |  | Deployment id of the migration. |
 
-## 2.5 DATABASECHANGELOGLOCK
+## 2.7 DATABASECHANGELOGLOCK
 
 Lock used by Liquibase to allow only one migration of the database to run at a time. This table has a technical nature and is not managed by X-Road application software.
 
-### 2.5.1 Attributes
+### 2.7.1 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -214,18 +249,18 @@ Lock used by Liquibase to allow only one migration of the database to run at a t
 | lockgranted | timestamp with time zone |  | Date and time when the lock was granted. |
 | lockedby | character varying(255) |  | Human-readable description of who the lock was granted to. |
 
-## 2.6 GROUPMEMBER
+## 2.8 GROUPMEMBER
 
 Member of a local group. A group membership record is created when the administrator adds a new subsystem to a local group. The record is deleted when the administrator removes the subsystem from the local group. The record is never modified. 
 
-### 2.6.1 Indexes
+### 2.8.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
 | GROUPMEMBER_GROUPMEMBERID_fkey | groupmemberid |
 | GROUPMEMBER_LOCALGROUP_ID_fkey | localgroup_id |
 
-### 2.6.2 Attributes
+### 2.8.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -234,11 +269,11 @@ Member of a local group. A group membership record is created when the administr
 | added | timestamp with time zone | NOT NULL | The time when the group member  was added. |
 | localgroup_id [FK] | bigint |  | The local group. References id attribute of LOCALGROUP entity. |
 
-## 2.7 HISTORY
+## 2.9 HISTORY
 
 Operations (insertions, updates and deletions of records) on the tables of this database, for the purpose of auditing. Each record corresponds to the change of a single field. The record is created in the manner described in section 1.4. The record is never modified or deleted.
 
-### 2.7.1 Attributes
+### 2.9.1 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -252,17 +287,17 @@ Operations (insertions, updates and deletions of records) on the tables of this 
 | user_name   | character varying(255) | NOT NULL | Name of either the logged in user of the UI or the database user behind the connection, that initiated the operation. |
 | timestamp  | timestamp without time zone | NOT NULL | Date and time of the operation.  |
 
-## 2.8 IDENTIFIER
+## 2.10 IDENTIFIER
 
 Identifier that can be used to identify various objects on X-Road. An identifier record is only created together with records of other entities and only one record of each identifier is ever created. For example, if a security server client record is created and its identifier is not found among identifier records, new one is created. The record is never modified or deleted.
 
-### 2.8.1 Attributes
+### 2.10.1 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
 | id [PK] | bigint | NOT NULL | Primary key. |
-| discriminator | character varying(255) | NOT NULL | Technical attribute, specifying the Java class to which the identifier is mapped. Possible values are C (ClientId), S (ServiceId), CS (CentralServiceId), GG (GlobalGroupId), LG (LocalGroupId), SC (SecurityCategoryId), SS (SecurityServerId). The corresponding Java classes are located in the ee.ria.xroad.common.identifier package. |
-| type | character varying(255) |  | Specifies the type of the object that the identifier identifies. Possible values, defined in enum ee.ria.xroad.common.identifier.XroadObjectType, are MEMBER, SUBSYSTEM, SERVICE, CENTRALSERVICE, GLOBALGROUP, LOCALGROUP, SERVER, SECURITYCATEGORY. |
+| discriminator | character varying(255) | NOT NULL | Technical attribute, specifying the Java class to which the identifier is mapped. Possible values are C (ClientId), S (ServiceId), CS (CentralServiceId), GG (GlobalGroupId), LG (LocalGroupId), SC (SecurityCategoryId), SS (SecurityServerId). The corresponding Java classes are located in the `ee.ria.xroad.common.identifier` package. |
+| type | character varying(255) |  | Specifies the type of the object that the identifier identifies. Possible values, defined in enum `ee.ria.xroad.common.identifier.XroadObjectType`, are MEMBER, SUBSYSTEM, SERVICE, CENTRALSERVICE, GLOBALGROUP, LOCALGROUP, SERVER, SECURITYCATEGORY. |
 | xroadinstance | character varying(255) |  | X-Road instance identifier. Present in identifiers of all types, except LOCALGROUP. |
 | memberclass | character varying(255) |   | Member class. Present in identifiers of MEMBER, SUBSYSTEM, SERVER and SERVICE type.  |
 | membercode | character varying(255) |   | Member code. Present in identifiers of MEMBER, SUBSYSTEM, SERVER and SERVICE type.  |
@@ -273,17 +308,17 @@ Identifier that can be used to identify various objects on X-Road. An identifier
 | securitycategory | character varying(255) |   | Security category. Present in identifiers of SECURITYCATEGORY type.  |
 | servercode | character varying(255) |   | Security server code. Present in identifiers of SERVER type.  |
 
-## 2.9 LOCALGROUP
+## 2.11 LOCALGROUP
 
 Group of members and/or subsystems. The group is local to a security server client and is used in access rights management. Local groups are connected to a security server client and can only be used for services belonging to that client. A local group record is created when the administrator adds a new local group to a security server client. The record is modified when the administrator changes the description of the group. The record is deleted when the administrator deletes the group or the security server client for whom the group is defined.
 
-### 2.9.1 Indexes
+### 2.11.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
 | LOCALGROUP_CLIENT_ID_fkey | client_id |
 
-### 2.9.2 Attributes
+### 2.11.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -293,17 +328,17 @@ Group of members and/or subsystems. The group is local to a security server clie
 | updated | timestamp with time zone | NOT NULL | The time when the description of the group was last updated. |
 | client_id [FK] | bigint |  | The security server client for whom the local group is defined. References id attribute of CLIENT entity. |
 
-## 2.10 SERVERCONF
+## 2.12 SERVERCONF
 
 The top-level configuration of the security server, specifying the owner and the code of this security server. This table contains only one record that is created when the security server is initialized. The record is never modified or deleted.
 
-### 2.10.1 Indexes
+### 2.12.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
 | SERVERCONF_OWNER_fkey | owner |
 
-### 2.10.2 Attributes
+### 2.12.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -311,17 +346,17 @@ The top-level configuration of the security server, specifying the owner and the
 | servercode  | character varying(255) |  | The code of this security server.  |
 | owner [FK]  | bigint |  | The security server client who is the owner of this security server. References id attribute of CLIENT entity. |
 
-## 2.11 SERVICE
+## 2.13 SERVICE
 
 Service provided by a security server client. A service record is created when the administrator adds or refreshes a WSDL of a security server client, and a new service description is found in the WSDL. The record is modified if the administrator edits the service parameters in the user interface. The record is deleted when the administrator deletes the WSDL containing the service description or when the administrator deletes the security server client owning the WSDL.
 
-### 2.11.1 Indexes
+### 2.13.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
 | SERVICE_WSDL_ID_fkey | wsdl_id |
 
-### 2.11.2 Attributes
+### 2.13.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -334,11 +369,11 @@ Service provided by a security server client. A service record is created when t
 | timeout | integer |  | The maximum time in seconds that the service provider can  take to respond to a query. |
 | servicedescription_id [FK] | bigint |  | The servicedescription of which this service is part of. References id attribute of SERVICEDESCRIPTION entity. |
 
-## 2.12 SERVICE_SECURITYCATEGORIES
+## 2.14 SERVICE_SECURITYCATEGORIES
 
 Security category of a service. Currently security categories is a disabled feature and services cannot be assigned security categories.
 
-### 2.12.1 Indexes
+### 2.14.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
@@ -346,7 +381,7 @@ Security category of a service. Currently security categories is a disabled feat
 | SERVICE_SECURITYCATEGORIES_SERVICE_ID_fkey | service_id |
 | service_securitycategories_id_key | id |
 
-### 2.12.2 Attributes
+### 2.14.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -354,17 +389,17 @@ Security category of a service. Currently security categories is a disabled feat
 | service_id [FK] | bigint | NOT NULL | The service for which the security category is assigned. References id attribute of SERVICE entity. |
 | security_cat_id [FK] | bigint | NOT NULL | The identifier of the security category. References id attribute of IDENTIFIER entity. |
 
-## 2.13 TSP
+## 2.15 TSP
 
 Timestamping service provider (TSP) that is used by the security server to time-stamp messages stored in the message log. Only connection parameters to the TSP are included. The data needed for verifying time stamps is read from the global configuration. A TSP record is created when the administrator adds a new TSP in the user interface. The record is deleted when the administrator deletes the TSP in the user interface. The record is never modified. 
 
-### 2.13.1 Indexes
+### 2.15.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
 | TSP_CONF_ID_fkey | conf_id |
 
-### 2.13.2 Attributes
+### 2.15.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -373,11 +408,11 @@ Timestamping service provider (TSP) that is used by the security server to time-
 | name  | character varying(255) |  | The name of the TSP. Used for displaying in the user interface. |
 | url  | character varying(255) | NOT NULL | The URL of the TSP. The security server will send time-stamping request using HTTP POST method.  |
 
-## 2.14 UIUSER
+## 2.16 UIUSER
 
 Preferences of the user interface user. A record is created when the user changes the user interface language for the first time. The record is modified on later changes to the language. The record is never deleted.
 
-### 2.14.1 Attributes
+### 2.16.1 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -385,17 +420,17 @@ Preferences of the user interface user. A record is created when the user change
 | username | character varying(255) | NOT NULL | Name of the user who has customized their user interface language. |
 | locale | character varying(255) |  | The preferred language code. Valid values are 'en' for English, and 'et' for Estonian. |
 
-## 2.15 SERVICEDESCRIPTION
+## 2.17 SERVICEDESCRIPTION
 
 Pointer to a SERVICEDESCRIPTION containing the descriptions of services provided by a security server client. A SERVICEDESCRIPTION record is created when the administrator adds a new service description to a security server client in the user interface. The record is modified when the administrator refreshes, enables or disables the service description. The record is deleted when the administrator deletes the service description or the security server client owning the service description.
 
-### 2.15.1 Indexes
+### 2.17.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
 | WSDL_CLIENT_ID_fkey | client_id |
 
-### 2.15.2 Attributes
+### 2.17.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|

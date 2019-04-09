@@ -25,8 +25,6 @@
 package ee.ria.xroad.common.messagelog;
 
 import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.JobManager;
 
 import akka.actor.UntypedActor;
@@ -57,8 +55,7 @@ public abstract class AbstractLogManager extends UntypedActor {
         try {
             if (message instanceof LogMessage) {
                 LogMessage m = (LogMessage) message;
-                log(m.getMessage(), m.getSignature(), m.isClientSide());
-
+                log(m);
                 getSender().tell(new Object(), getSelf());
             } else if (message instanceof FindByQueryId) {
                 FindByQueryId f = (FindByQueryId) message;
@@ -87,7 +84,7 @@ public abstract class AbstractLogManager extends UntypedActor {
         }
     }
 
-    protected abstract void log(SoapMessageImpl message, SignatureData signature, boolean clientSide) throws Exception;
+    protected abstract void log(LogMessage message) throws Exception;
 
     protected abstract LogRecord findByQueryId(String queryId, Date startTime, Date endTime) throws Exception;
 

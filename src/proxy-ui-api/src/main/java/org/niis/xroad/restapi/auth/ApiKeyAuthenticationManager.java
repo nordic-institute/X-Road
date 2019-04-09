@@ -25,7 +25,8 @@
 package org.niis.xroad.restapi.auth;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.domain.ApiKey;
+import org.niis.xroad.restapi.domain.PersistentApiKeyType;
+import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -57,15 +58,18 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String encodedAuthenticationHeader = (String) authentication.getPrincipal();
         String apiKeyValue = authenticationHeaderDecoder.decodeApiKey(encodedAuthenticationHeader);
-        ApiKey key = apiKeyRepository.get(apiKeyValue);
-        if (key == null) {
+        PersistentApiKeyType key;
+
+        try {
+            key = apiKeyRepository.get(apiKeyValue);
+        } catch (NotFoundException notFound) {
             throw new BadCredentialsException("The API key was not found or not the expected value.");
         }
+
         PreAuthenticatedAuthenticationToken authenticationWithGrants =
                 new PreAuthenticatedAuthenticationToken(authentication.getPrincipal(),
                         authentication.getCredentials(),
                         permissionMapper.getAuthorities(key.getRoles()));
-        log.debug("authentication: {}", authenticationWithGrants);
         return authenticationWithGrants;
     }
 }

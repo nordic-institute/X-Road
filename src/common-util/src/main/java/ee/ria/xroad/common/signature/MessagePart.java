@@ -47,7 +47,7 @@ public final class MessagePart implements Serializable {
     private final byte[] data;
 
     /** Optionally holds the message if this is a message part */
-    private final byte[] soap;
+    private final byte[] message;
 
     /**
      * @return the raw data

@@ -42,7 +42,7 @@ public final class CentralServiceId extends ServiceId {
     }
 
     @Override
-    protected String[] getFieldsForStringFormat() {
+    public String[] getFieldsForStringFormat() {
         return new String[] {serviceCode};
     }
 

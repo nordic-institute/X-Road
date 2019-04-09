@@ -4,8 +4,8 @@
 # X-Road: Use Case Model for Security Server Management
 **Analysis**
 
-Version: 1.7  
-06.03.2018
+Version: 1.8
+27.03.2019
 <!-- 49 pages -->
 Doc. ID: UC-SS
 
@@ -30,6 +30,7 @@ Date       | Version | Description                                              
 29.08.2017 | 1.5     | Changed documentation type from docx to md file |   Lasse Matikainen
 19.02.2018 | 1.6     | Updated the negative case extension for backing up the central server | Tatu Repo
 06.03.2018 | 1.7     | Moved terms to term doc, added term doc reference and link, added internal MD-doc links | Tatu Repo
+278.03.2019 | 1.8     | Added use cases related to REST APIs | Janne Mattila
 
 <!-- tocstop -->
 
@@ -86,6 +87,10 @@ Date       | Version | Description                                              
   * [3.41 UC SS\_40: Delete a Certificate from Hardware Token](#341-uc-ss_40-delete-a-certificate-from-hardware-token)
   * [3.42 UC SS\_41: Parse User Input](#342-uc-ss_41-parse-user-input)
   * [3.43 UC SS\_42: Unregister an Authentication Certificate on Key Deletion](#343-uc-ss_42-unregister-an-authentication-certificate-on-key-deletion)
+  * [3.44 UC SS\_43: Create a new API key](#344-uc-ss_43-create-a-new-api-key)
+  * [3.45 UC SS\_44: List API keys](#345-uc-ss_44-list-api-keys)
+  * [3.46 UC SS\_45: Revoke an API key](#346-uc-ss_45-revoke-an-api-key)
+  * [3.47 UC SS\_46: Call a REST API](#347-uc-ss_46-call-a-rest-api)
 
 <!-- tocstop -->
 
@@ -2699,3 +2704,227 @@ certificate to “deletion in progress”.
     - 3a.1. Use case terminates with the received error message.
 
 **Related information:** -
+
+### 3.44 UC SS\_43: Create a new API key
+
+**System**: Security server
+
+**Level**: User task
+
+**Component:** Security server
+
+**Actors**: SS administrator
+
+**Brief Description**: Administrator creates a new API key, to be used
+for authentication when executing REST API calls to update server configuration.
+
+**Preconditions**: -
+
+**Postconditions**: -
+
+**Trigger**: SS administrator wants to create a new API key.
+
+**Main Success Scenario**:
+
+1.  SS administrator decides which roles the new API key should be linked to. Possible roles are
+    - XROAD_SECURITY_OFFICER
+    - XROAD_REGISTRATION_OFFICER
+    - XROAD_SERVICE_ADMINISTRATOR
+    - XROAD_SYSTEM_ADMINISTRATOR
+    - XROAD_SECURITYSERVER_OBSERVER
+
+2.  SS administrator sends HTTP POST request to create a new API key. REST client should
+    - 2.1 Send request locally from the security server, remote access is forbidden
+    - 2.2 Send request to URL `https://localhost:4000/api/api-key`
+    - 2.3 Accept REST API's self-signed SSL certificate
+    - 2.4 Provide credentials of an SS administrator with role XROAD_SYSTEM_ADMINISTRATOR,
+    using [basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication)
+    - 2.5 Provide roles to link to API key, with message body containing the role names in a JSON array of strings
+    - 2.6 Define correct content type with HTTP header `Content-Type: application/json`
+    - Example using "curl" command: `curl -X POST -u <username>:<password> https://localhost:4000/api/api-key --data '["XROAD_SERVICE_ADMINISTRATOR","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k`
+
+3.  System creates a new API key and responds with a JSON message containing details of the key:
+    - 3.1 API key id with name `id`
+    - 3.2 Roles linked to key, with name `roles`, in an array of strings
+    - 3.3 Actual API key with name `key`
+    - Example:
+
+```
+{
+  "roles": [
+    "XROAD_REGISTRATION_OFFICER",
+    "XROAD_SERVICE_ADMINISTRATOR"
+  ],
+  "id": 63,
+  "key": "4366c766-cfd0-423f-84d5-ae1932d00b6a"
+}
+```
+4.  SS administrator stores the API key in safe place. Key is shown only in this response, and cannot be retrieved
+    later. API key should be kept safe, as it provides access to all REST API users who know the key.
+
+**Extensions**:
+
+- 2a. SS administrator provides invalid credentials or credentials for a user who does not have XROAD_SYSTEM_ADMINISTRATOR
+  role
+    - 2a.1. System responds with HTTP 401 or HTTP 403
+- 2b. SS administrator sends request from a remote server
+    - 2b.1. System responds with HTTP 403
+
+**Related information:** -
+
+### 3.45 UC SS\_44: List API keys
+
+**System**: Security server
+
+**Level**: User task
+
+**Component:** Security server
+
+**Actors**: SS administrator
+
+**Brief Description**: Administrator lists existing API keys using a REST API.
+
+**Preconditions**: -
+
+**Postconditions**: -
+
+**Trigger**: SS administrator wants to list existing new API keys.
+
+**Main Success Scenario**:
+
+1.  SS administrator sends HTTP GET request to list all API keys. REST client should
+    - 2.1 Send request locally from the security server, remote access is forbidden
+    - 2.2 Send request to URL `https://localhost:4000/api/api-key`
+    - 2.3 Accept REST API's self-signed SSL certificate
+    - 2.4 Provide credentials of an SS administrator with role XROAD_SYSTEM_ADMINISTRATOR,
+    using [basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication)
+    - Example using "curl" command: `curl -X GET -u <username>:<password> https://localhost:4000/api/api-key -k`
+
+2.  System returns list of API keys in an JSON array containing items with details of the keys:
+    - 3.1 API key id with name `id`
+    - 3.2 Roles linked to key, with name `roles`, in array of strings
+    - System does *not* return the actual API keys
+    - Example:
+
+```
+[
+  {
+    "id": 62,
+    "roles": [
+      "XROAD_REGISTRATION_OFFICER",
+      "XROAD_SECURITYSERVER_OBSERVER",
+      "XROAD_SERVICE_ADMINISTRATOR"
+    ]
+  },
+  {
+    "id": 63,
+    "roles": [
+      "XROAD_REGISTRATION_OFFICER",
+      "XROAD_SERVICE_ADMINISTRATOR"
+    ]
+  }
+]
+```
+
+**Extensions**:
+
+- 1a. SS administrator provides invalid credentials or credentials for a user who does not have XROAD_SYSTEM_ADMINISTRATOR
+  role
+    - 1a.1. System responds with HTTP 401 or HTTP 403
+- 1b. SS administrator sends request from a remote server
+    - 1b.1. System responds with HTTP 403
+
+**Related information:** -
+
+### 3.46 UC SS\_45: Revoke an API key
+
+**System**: Security server
+
+**Level**: User task
+
+**Component:** Security server
+
+**Actors**: SS administrator
+
+**Brief Description**: Administrator revokes an existing API key using a REST API.
+
+**Preconditions**: -
+
+**Postconditions**: -
+
+**Trigger**: SS administrator wants to revoke an API key.
+
+**Main Success Scenario**:
+
+1.  SS administrator sends HTTP DELETE request to delete one API key. REST client should
+    - 2.1 Send request locally from the security server, remote access is forbidden
+    - 2.2 Send request to URL `https://localhost:4000/api/api-key/{id}`,
+    where `{id}` is the id of the key to be deleted.
+    - 2.3 Accept REST API's self-signed SSL certificate
+    - 2.4 Provide credentials of an SS administrator with role XROAD_SYSTEM_ADMINISTRATOR,
+    using [basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication)
+    - Example using "curl" command: `curl -X DELETE -u <username>:<password> https://localhost:4000/api/api-key/63 -k`
+
+2.  System deletes the key and it cannot be used for authentication anymore. System responds with HTTP 200.
+
+**Extensions**:
+
+- 1a. SS administrator provides invalid credentials or credentials for a user who does not have XROAD_SYSTEM_ADMINISTRATOR
+  role
+    - 1a.1. System responds with HTTP 401 or HTTP 403
+- 1b. SS administrator sends request from a remote server
+    - 1b.1. System responds with HTTP 403
+- 1c. SS administrator tries to revoke a key that does not exist
+    - 1c.1. System responds with HTTP 404
+
+**Related information:** -
+
+### 3.47 UC SS\_46: Call a REST API
+
+**System**: Security server
+
+**Level**: User task
+
+**Component:** Security server
+
+**Actors**: SS administrator
+
+**Brief Description**: Administrator performs a configuration action using a REST API.
+
+**Preconditions**: -
+
+**Postconditions**: -
+
+**Trigger**: SS administrator wants to read or update configuration using a REST API.
+
+**Main Success Scenario**:
+
+1.  SS administrator sends a REST request to perform some kind of configuration action. REST client should
+    - 2.1 Send request from anywhere, remote access is not forbidden
+    - 2.2 Send request to URL corresponding to the desired action,
+     for example `https://<security-server-address>:4000/api/clients` to list clients.
+    - 2.3 Use HTTP method corresponding to the desired action,
+     for example HTTP GET to list clients.
+    - 2.4 Accept REST API's self-signed SSL certificate
+    - 2.5 Provide API key (created in [UC SS\_43](#344-uc-ss_43-create-a-new-api-key)) in HTTP header
+    `Authorization: X-Road-ApiKey token=<api key>`
+    - 2.6 Provide required message, if any, in HTTP body
+    - 2.7 Specify correct content type for the body, if any, with HTTP header such as `Content-Type: application/json`
+    - Example using "curl" command: `curl --header "Authorization: X-Road-apikey token=<api key>" "https://<security-server-address>:4000/api/clients" -k`
+
+2.  System performs the desired action. System responds with HTTP 200. System returns the results of the operation,
+    if any, in HTTP body
+
+**Extensions**:
+
+- 1a. SS administrator provides an invalid or revoked API key
+    - 1a.1. System responds with HTTP 401
+- 1b. SS administrator provides an API key which is not linked to roles that are required to execute the operation
+    - 1b.1. System responds with HTTP 403
+- 1c. There is a problem when executing the operation
+    - 1c.1. System responds with a HTTP status corresponding to the failure (documented in OpenAPI specification)
+
+**Related information:**
+
+The available REST APIs, and the details of them, are specified in more details in OpenAPI specification and
+REST API guidelines (TBD). Access rights for different REST APIs follow the same rules as the corresponding UI operations.

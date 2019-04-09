@@ -35,6 +35,7 @@ import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.PerformanceLogger;
 import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
+import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -53,6 +54,8 @@ import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SecurityServerType.PRODUCER;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_MESSAGE_TYPE;
+import static ee.ria.xroad.common.util.MimeUtils.VALUE_MESSAGE_TYPE_REST;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
@@ -90,10 +93,9 @@ class ServerProxyHandler extends HandlerBase {
             GlobalConf.verifyValidity();
 
             logProxyVersion(request);
-
             baseRequest.getHttpChannel().setIdleTimeout(idleTimeout);
-            ServerMessageProcessor processor = createRequestProcessor(request, response, start, opMonitoringData);
-            processor.process();
+            createRequestProcessor(request, response, start, opMonitoringData).process();
+
         } catch (Throwable e) { // We want to catch serious errors as well
             CodedException cex = translateWithPrefix(SERVER_SERVERPROXY_X, e);
 
@@ -113,18 +115,30 @@ class ServerProxyHandler extends HandlerBase {
         }
     }
 
-    private ServerMessageProcessor createRequestProcessor(HttpServletRequest request, HttpServletResponse response,
+    private MessageProcessorBase createRequestProcessor(HttpServletRequest request, HttpServletResponse response,
             final long start, OpMonitoringData opMonitoringData) throws Exception {
-        return new ServerMessageProcessor(request, response, client, getClientSslCertChain(request), opMonitorClient,
-                opMonitoringData) {
-            @Override
-            protected void postprocess() throws Exception {
-                super.postprocess();
 
-                MessageInfo messageInfo = createRequestMessageInfo();
-                MonitorAgent.success(messageInfo, new Date(start), new Date());
-            }
-        };
+        if (VALUE_MESSAGE_TYPE_REST.equals(request.getHeader(HEADER_MESSAGE_TYPE))) {
+            return new ServerRestMessageProcessor(request, response, client, getClientSslCertChain(request),
+                    opMonitoringData) {
+                @Override
+                protected void postprocess() throws Exception {
+                    super.postprocess();
+                    MessageInfo messageInfo = createRequestMessageInfo();
+                    MonitorAgent.success(messageInfo, new Date(start), new Date());
+                }
+            };
+        } else {
+            return new ServerMessageProcessor(request, response, client, getClientSslCertChain(request),
+                    opMonitorClient, opMonitoringData) {
+                @Override
+                protected void postprocess() throws Exception {
+                    super.postprocess();
+                    MessageInfo messageInfo = createRequestMessageInfo();
+                    MonitorAgent.success(messageInfo, new Date(start), new Date());
+                }
+            };
+        }
     }
 
     @Override

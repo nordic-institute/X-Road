@@ -24,19 +24,37 @@
  */
 package ee.ria.xroad.common.messagelog;
 
-import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.signature.SignatureData;
 
-import lombok.Value;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Message for logging the contained SOAP message and signature data.
  */
-@Value
-public class LogMessage {
 
-    private final SoapMessageImpl message;
+@Getter
+@RequiredArgsConstructor
+public abstract class LogMessage {
+
     private final SignatureData signature;
     private final boolean clientSide;
+    private final String xRequestId;
 
+    public abstract String getQueryId();
+    public abstract ClientId getClient();
+    public abstract ServiceId getService();
+
+    /**
+     * Constructs a new LogMessage without x-request-id header.
+     * @param signature signature of the message
+     * @param clientSide whether this message is logged by the client proxy
+     */
+    public LogMessage(SignatureData signature, boolean clientSide) {
+        this.signature = signature;
+        this.clientSide = clientSide;
+        this.xRequestId = null;
+    }
 }

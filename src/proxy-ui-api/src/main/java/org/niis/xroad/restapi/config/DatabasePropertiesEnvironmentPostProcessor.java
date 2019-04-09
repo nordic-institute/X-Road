@@ -27,20 +27,10 @@ package org.niis.xroad.restapi.config;
 import ee.ria.xroad.common.SystemProperties;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.env.EnvironmentPostProcessor;
-import org.springframework.boot.env.PropertiesPropertySourceLoader;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.MapPropertySource;
-import org.springframework.core.env.Profiles;
-import org.springframework.core.env.PropertySource;
-import org.springframework.core.io.FileSystemResource;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * Load datasource properties from db.properties file.
@@ -48,7 +38,7 @@ import java.util.Properties;
  */
 @Slf4j
 @Profile("!test")
-public class DatabasePropertiesEnvironmentPostProcessor implements EnvironmentPostProcessor {
+public class DatabasePropertiesEnvironmentPostProcessor extends PropertyFileReadingEnvironmentPostProcessor {
 
     private static final Map<String, String> DB_PROPERTY_NAMES_TO_SPRING_PROPERTIES =
             new HashMap<>();
@@ -61,43 +51,23 @@ public class DatabasePropertiesEnvironmentPostProcessor implements EnvironmentPo
                 .put("serverconf.hibernate.connection.url", "spring.datasource.url");
     }
 
+    @Override
+    String getPropertySourceName() {
+        return "fromDbPropertiesFile";
+    }
 
     @Override
-    public void postProcessEnvironment(ConfigurableEnvironment environment,
-                                       SpringApplication application) {
-        // we read db.properties only if not testing
-        if (environment.acceptsProfiles(Profiles.of("!test"))) {
-            // called twice since IntelliJ tests load the class twice
-            SystemPropertiesInitializer.initialize();
-            try {
-                List<PropertySource<?>> sources = new PropertiesPropertySourceLoader().load(
-                        "xroad-db-properties",
-                        new FileSystemResource(SystemProperties.getDatabasePropertiesFile()));
-                if (sources.size() > 1) {
-                    throw new IllegalStateException("expected max 1 db properties file source, "
-                            + sources.size());
-                }
-                PropertySource<?> source = sources.get(0);
-                Map<String, Object> springDatasourcePropertiesMap = new HashMap<>();
-                Properties systemProperties = System.getProperties();
-                for (String dbPropertyName: DB_PROPERTY_NAMES_TO_SPRING_PROPERTIES.keySet()) {
-                    String springPropertyName = DB_PROPERTY_NAMES_TO_SPRING_PROPERTIES.get(dbPropertyName);
-                    Object propertyValue = source.getProperty(dbPropertyName);
-                    log.debug("mapping db property {} to spring property {}",
-                            dbPropertyName, springPropertyName);
-                    if (systemProperties.contains(dbPropertyName)) {
-                        log.debug("overriding db property {} with value from system property",
-                                dbPropertyName);
-                        propertyValue = systemProperties.getProperty(dbPropertyName);
-                    }
-                    springDatasourcePropertiesMap.put(springPropertyName, propertyValue);
-                }
-                environment.getPropertySources().addLast(new MapPropertySource(
-                        "fromDbPropertiesFile", springDatasourcePropertiesMap));
+    String getPropertyFilePath() {
+        return SystemProperties.getDatabasePropertiesFile();
+    }
 
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+    @Override
+    boolean isSupported(String propertyName) {
+        return DB_PROPERTY_NAMES_TO_SPRING_PROPERTIES.containsKey(propertyName);
+    }
+
+    @Override
+    String mapToSprintPropertyName(String originalPropertyName) {
+        return DB_PROPERTY_NAMES_TO_SPRING_PROPERTIES.get(originalPropertyName);
     }
 }
