@@ -1,5 +1,5 @@
 <template>
-  <v-layout align-center justify-center column fill-height elevation-0 class="full-width">
+  <v-layout align-center justify-center column fill-height elevation-0 class="data-table-wrapper">
     <div class="table-toolbar">
       <v-text-field
         v-model="search"
@@ -303,15 +303,12 @@ export default Vue.extend({
   max-width: 300px;
 }
 
-.data-table {
+.data-table-wrapper {
   width: 100%;
 }
 
-.full-width {
+.data-table {
   width: 100%;
-  max-width: 1280px;
-  padding-left: 20px;
-  padding-right: 20px;
 }
 
 .table-button {

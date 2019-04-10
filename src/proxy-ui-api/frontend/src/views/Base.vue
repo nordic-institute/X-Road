@@ -2,11 +2,12 @@
   <div>
     <toolbar/>
     <router-view name="top"/>
-
-    <v-layout mt-5 class="full-width">
-      <transition name="fade" mode="out-in">
-        <router-view/>
-      </transition>
+    <v-layout align-center justify-center>
+      <v-layout mt-5 align-center justify-center class="base-full-width">
+        <transition name="fade" mode="out-in">
+          <router-view/>
+        </transition>
+      </v-layout>
     </v-layout>
   </div>
 </template>
@@ -25,11 +26,11 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-.full-width {
+
+.base-full-width {
   width: 100%;
-  max-width: 1280px;
-  display: flex;
-  justify-content: center;
+  max-width: 1280px;  
+  margin: 10px;
 }
 
 .fade-enter-active,
