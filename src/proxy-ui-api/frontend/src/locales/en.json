@@ -16,6 +16,42 @@
     }
   },
   "client": {
-    "owner": "Owner"
+    "name": "Name",
+    "id": "ID",
+    "status": "Status",
+    "owner": "Owner",
+    "memberName": "Member Name",
+    "memberClass": "Member Class",
+    "memberCode": "Member Code",
+    "subsystemCode": "Subsystem Code",
+    "connType": "Connection type",
+    "connTypeInfo": "Connection type for servers in service provider role is set in the Services tab by the service URL (http/https)",
+    "saved": "Saved",
+    "globalError": "Global error",
+    "registered": "Registered",
+    "registrationInProgress": "Registration in progress",
+    "deletionInProgress": "Deletion in progress"
+  },
+  "cert": {
+    "signCertificate": "Sign Certificate",
+    "serialNumber": "Serial Number",
+    "state": "State",
+    "expires": "Expires",
+    "certificateHash": "Certificate Hash (SHA/1)",
+    "infoSystem": "Information System TLS certificate"
+  },
+  "action": {
+    "addSubsystem": "add subsystem",
+    "addClient": "add client",
+    "search": "Search",
+    "add": "Add",
+    "export": "Export",
+    "emptySearch": "Your search for {msg} found no results."
+  },
+  "login": {
+    "username": "Username",
+    "password": "Password",
+    "logIn": "Log in",
+    "logout": "Log out"
   }
 }

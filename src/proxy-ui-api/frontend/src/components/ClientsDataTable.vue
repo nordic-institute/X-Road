@@ -1,7 +1,13 @@
 <template>
   <v-layout align-center justify-center column fill-height elevation-0 class="full-width">
     <div class="table-toolbar">
-      <v-text-field v-model="search" label="Search" single-line hide-details class="search-input">
+      <v-text-field
+        v-model="search"
+        :label="$t('action.search')"
+        single-line
+        hide-details
+        class="search-input"
+      >
         <v-icon slot="append" small>fas fa-search</v-icon>
       </v-text-field>
       <v-btn
@@ -94,7 +100,7 @@
         slot="no-results"
         :value="true"
         color="error"
-      >Your search for "{{ search }}" found no results.</v-alert>
+      >{{ $t('action.emptySearch', { msg: search }) }}</v-alert>
     </v-data-table>
   </v-layout>
 </template>
@@ -116,31 +122,11 @@ export default Vue.extend({
       sortBy: 'sortNameAsc',
       rowsPerPage: -1,
     },
-    headers: [
-      {
-        text: 'Name',
-        align: 'left',
-        value: 'sortNameAsc',
-        class: 'xr-table-header',
-      },
-      { text: 'ID', align: 'left', value: 'id', class: 'xr-table-header' },
-      {
-        text: 'Status',
-        align: 'left',
-        value: 'status',
-        class: 'xr-table-header',
-      },
-      { text: '', value: '', sortable: false, class: 'xr-table-header' },
-    ],
-
     editedIndex: -1,
   }),
 
   computed: {
     ...mapGetters(['clients', 'loading']),
-    formTitle(): string {
-      return this.editedIndex === -1 ? 'New Item' : 'Edit Item';
-    },
     treeMode(): boolean {
       // Switch between the "tree" view and the "flat" view
       if (this.search) {
@@ -149,6 +135,29 @@ export default Vue.extend({
         return false;
       }
       return true;
+    },
+    headers(): any {
+      return [
+        {
+          text: this.$t('client.name'),
+          align: 'left',
+          value: 'sortNameAsc',
+          class: 'xr-table-header',
+        },
+        {
+          text: this.$t('client.id'),
+          align: 'left',
+          value: 'id',
+          class: 'xr-table-header',
+        },
+        {
+          text: this.$t('client.status'),
+          align: 'left',
+          value: 'status',
+          class: 'xr-table-header',
+        },
+        { text: '', value: '', sortable: false, class: 'xr-table-header' },
+      ];
     },
   },
 
