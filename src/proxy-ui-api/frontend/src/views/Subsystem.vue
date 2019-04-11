@@ -52,7 +52,7 @@ export default Vue.extend({
           key: 'serviceClients',
           name: 'tab.client.serviceClients',
           to: {
-            name: RouteName.SubsystemDetails,
+            name: RouteName.SubsystemServiceClients,
             params: { id: this.id },
           },
         },
@@ -60,7 +60,7 @@ export default Vue.extend({
           key: 'services',
           name: 'tab.client.services',
           to: {
-            name: RouteName.SubsystemDetails,
+            name: RouteName.SubsystemServices,
             params: { id: this.id },
           },
         },
@@ -76,7 +76,7 @@ export default Vue.extend({
           key: 'localGroups',
           name: 'tab.client.localGroups',
           to: {
-            name: RouteName.SubsystemServers,
+            name: RouteName.SubsystemLocalGroups,
             params: { id: this.id },
           },
         },
