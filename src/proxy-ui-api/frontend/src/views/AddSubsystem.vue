@@ -1,6 +1,6 @@
 <template>
-  <v-container>
-    <v-layout text-xs-center wrap column class="outer-wrapper">
+  <v-container class="xr-tab-max-width">
+    <v-layout text-xs-center wrap column>
       <v-flex mb-4>
         <h1 class="display-1 font-weight-bold mb-3">Add a Subsystem</h1>
         <p
@@ -59,17 +59,13 @@ export default Vue.extend({
       console.log('add subsystem');
     },
     cancel() {
-      this.$router.replace('{ name: RouteName.Clients }');
+      this.$router.replace({ name: RouteName.Clients });
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-.outer-wrapper {
-  max-width: 980px;
-}
-
 .input-title {
   max-width: 160px;
   text-align: left;
