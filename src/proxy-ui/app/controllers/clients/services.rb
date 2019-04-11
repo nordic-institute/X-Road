@@ -224,15 +224,14 @@ module Clients::Services
 
       client.serviceDescription.add(servicedescription)
 
-      acl = client.acl.detect { |item| params[:openapi3_old_service_code] == item.serviceCode }
-      if @acl
-        client.acl.remove(acl)
-        acl.serviceCode = params[:openapi3_new_service_code]
-        client.acl.add(acl)
+      client.acl.each do |item|
+        if params[:openapi3_old_service_code] == item.serviceCode
+          item.serviceCode = params[:openapi3_new_service_code]
+
+        end
       end
 
       serverconf_save
-
       render_json(read_services(client))
 
   end
