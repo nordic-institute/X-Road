@@ -16,6 +16,9 @@ import Certificate from '@/views/Certificate.vue';
 import Error from '@/views/Error.vue';
 import ClientDetails from '@/components/ClientDetails.vue';
 import InternalServers from '@/components/InternalServers.vue';
+import LocalGroups from '@/components/LocalGroups.vue';
+import Services from '@/components/Services.vue';
+import ServiceClients from '@/components/ServiceClients.vue';
 import store from './store';
 import { RouteName, Permissions } from '@/global';
 
@@ -87,9 +90,27 @@ const router = new Router({
               props: true,
             },
             {
+              name: RouteName.SubsystemServiceClients,
+              path: '/subsystem/clients/:id',
+              component: ServiceClients,
+              props: true,
+            },
+            {
+              name: RouteName.SubsystemServices,
+              path: '/subsystem/services/:id',
+              component: Services,
+              props: true,
+            },
+            {
               name: RouteName.SubsystemServers,
               path: '/subsystem/internalservers/:id',
               component: InternalServers,
+              props: true,
+            },
+            {
+              name: RouteName.SubsystemLocalGroups,
+              path: '/subsystem/groups/:id',
+              component: LocalGroups,
               props: true,
             },
           ],
