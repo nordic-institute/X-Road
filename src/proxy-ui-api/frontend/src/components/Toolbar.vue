@@ -6,6 +6,8 @@
       width="128"
       max-height="64"
       max-width="128"
+      @click="home()"
+      class="xr-logo"
     ></v-img>
     <div class="separator"></div>
     <div class="server-type">Security Server</div>
@@ -36,6 +38,9 @@ import { RouteName } from '@/global';
 export default Vue.extend({
   name: 'toolbar',
   methods: {
+    home(): void {
+      this.$router.replace({ name: RouteName.Clients });
+    },
     logout(): void {
       this.$store.dispatch('logout');
       this.$router.replace({ name: RouteName.Login });
@@ -58,6 +63,10 @@ export default Vue.extend({
   height: 24px;
   margin-left: 6px;
   background-color: white;
+}
+
+.xr-logo {
+  cursor: pointer;
 }
 
 .server-type {
