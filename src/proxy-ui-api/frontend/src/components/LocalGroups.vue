@@ -28,7 +28,6 @@ export default Vue.extend({
   computed: {
     ...mapGetters(['client']),
   },
-  created() {},
   methods: {},
 });
 </script>
