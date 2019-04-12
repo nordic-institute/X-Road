@@ -196,6 +196,38 @@ app.get('/api/clients/:id/tlscertificates', function (req, res) {
 });
 
 
+app.post('/api/clients/:id/tlscertificates', function (req, res) {
+  console.log("POST TLS cert");
+
+  if (!req.params.id) {
+    res.status(400).send('missing parameter');
+    return;
+  }
+
+  console.log(req.body);
+  var form = new formidable.IncomingForm().parse(req)
+    .on('field', (name, field) => {
+      console.log('Field', name, field)
+    })
+    .on('file', (name, file) => {
+      console.log('Uploaded file', name, file)
+    })
+    .on('aborted', () => {
+      console.error('Request aborted by the user')
+    })
+    .on('error', (err) => {
+      console.error('Error', err)
+      throw err
+    })
+    .on('end', () => {
+      res.end()
+    })
+
+
+});
+
+
+
 app.delete('/api/clients/:id/tlscertificates/:hash', function (req, res) {
   console.log("DELETE TLS cert");
 

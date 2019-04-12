@@ -137,14 +137,16 @@ export default Vue.extend({
 
       // save it
 
-      this.$store.dispatch('uploadTlsCertificate', formData).then(
-        (response) => {
-          this.$bus.$emit('show-success', 'WOW!');
-        },
-        (error) => {
-          this.$bus.$emit('show-error', error.message);
-        },
-      );
+      this.$store
+        .dispatch('uploadTlsCertificate', { id: this.id, data: formData })
+        .then(
+          (response) => {
+            this.$bus.$emit('show-success', 'Updload done');
+          },
+          (error) => {
+            this.$bus.$emit('show-error', error.message);
+          },
+        );
     },
 
     fetchServer(id: string) {
