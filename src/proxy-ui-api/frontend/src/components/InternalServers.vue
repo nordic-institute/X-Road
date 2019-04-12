@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-card flat class="xr-card">
+    <v-card flat class="xr-card" v-if="showConnectionType">
       <v-flex>
         <h1 class="title mb-3">Connection type</h1>
         <v-select
@@ -8,6 +8,8 @@
           :items="connectionTypes"
           class="select-connection"
           :key="revertHack"
+          :disabled="!canEditConnectionType"
+          :readonly="!canEditConnectionType"
         ></v-select>
       </v-flex>
       <div
@@ -19,6 +21,7 @@
       <div class="tls-title-wrap">
         <h1 class="title mb-3">Information System TLS certificate</h1>
         <v-btn
+          v-if="canAddTlsCert"
           outline
           round
           color="primary"
@@ -37,16 +40,18 @@
             </td>
             <td>
               <span
+                v-if="canViewTlsCertDetails"
                 @click="openCertificate(certificate)"
                 class="certificate-link"
               >{{certificate.hash}}</span>
+              <span v-else>{{certificate.hash}}</span>
             </td>
           </tr>
         </template>
       </table>
     </v-card>
 
-    <v-card flat class="xr-card">
+    <v-card v-if="canViewSSCert" flat class="xr-card">
       <h1 class="title mb-3">Security Server certificate</h1>
       <div class="cert-table-title">Certificate Hash (SHA/1)</div>
       <table class="certificate-table server-certificates">
@@ -61,6 +66,7 @@
 
             <td class="column-button">
               <v-btn
+                v-if="canExportSSCert"
                 small
                 outline
                 round
@@ -115,6 +121,37 @@ export default Vue.extend({
           this.$bus.$emit('show-error', error.message);
         });
       },
+    },
+
+    showConnectionType(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.VIEW_CLIENT_INTERNAL_CONNECTION_TYPE,
+      );
+    },
+    canEditConnectionType(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.EDIT_CLIENT_INTERNAL_CONNECTION_TYPE,
+      );
+    },
+    canViewTlsCertDetails(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.VIEW_CLIENT_INTERNAL_CERT_DETAILS,
+      );
+    },
+    canAddTlsCert(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.ADD_CLIENT_INTERNAL_CERT,
+      );
+    },
+    canViewSSCert(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.VIEW_INTERNAL_SSL_CERT,
+      );
+    },
+    canExportSSCert(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.EXPORT_INTERNAL_SSL_CERT,
+      );
     },
   },
   created() {

@@ -14,10 +14,8 @@
 
 <script lang="ts">
 import Vue from 'vue';
-
 import { mapGetters } from 'vuex';
 import ClientDetails from '@/components/ClientDetails.vue';
-
 import InternalServers from '@/components/InternalServers.vue';
 import { Permissions, RouteName } from '@/global';
 
@@ -38,8 +36,8 @@ export default Vue.extend({
   },
   computed: {
     ...mapGetters(['client']),
-    tabs(): any {
-      return [
+    tabs(): any[] {
+      const allTabs = [
         {
           key: 'details',
           name: 'tab.client.details',
@@ -55,6 +53,7 @@ export default Vue.extend({
             name: RouteName.SubsystemServiceClients,
             params: { id: this.id },
           },
+          permission: Permissions.VIEW_CLIENT_ACL_SUBJECTS,
         },
         {
           key: 'services',
@@ -63,6 +62,7 @@ export default Vue.extend({
             name: RouteName.SubsystemServices,
             params: { id: this.id },
           },
+          permission: Permissions.VIEW_CLIENT_SERVICES,
         },
         {
           key: 'internalServers',
@@ -71,6 +71,7 @@ export default Vue.extend({
             name: RouteName.SubsystemServers,
             params: { id: this.id },
           },
+          permission: Permissions.VIEW_CLIENT_INTERNAL_CERTS,
         },
         {
           key: 'localGroups',
@@ -79,15 +80,18 @@ export default Vue.extend({
             name: RouteName.SubsystemLocalGroups,
             params: { id: this.id },
           },
+          permission: Permissions.VIEW_CLIENT_LOCAL_GROUPS,
         },
       ];
+
+      return this.$store.getters.getAllowedTabs(allTabs);
     },
   },
   created() {
     this.fetchClient(this.id);
   },
   methods: {
-    fetchClient(id: string) {
+    fetchClient(id: string): void {
       this.$store.dispatch('fetchClient', id).catch((error) => {
         this.$bus.$emit('show-error', error.message);
       });

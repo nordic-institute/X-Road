@@ -6,6 +6,7 @@
         <div class="cert-hash">
           {{certificate.hash}}
           <v-btn
+            v-if="showDeleteButton"
             outline
             round
             color="primary"
@@ -60,12 +61,17 @@ export default Vue.extend({
   },
   computed: {
     ...mapGetters(['tlsCertificates']),
+    showDeleteButton(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.DELETE_CLIENT_INTERNAL_CERT,
+      );
+    },
   },
   methods: {
-    close() {
+    close(): void {
       this.$router.go(-1);
     },
-    fetchData(clientId: string, hash: string) {
+    fetchData(clientId: string, hash: string): void {
       this.$store.dispatch('fetchTlsCertificates', clientId).then(
         (response) => {
           this.certificate = this.$store.getters.tlsCertificates.find(
@@ -77,10 +83,10 @@ export default Vue.extend({
         },
       );
     },
-    deleteCertificate() {
+    deleteCertificate(): void {
       this.confirm = true;
     },
-    doDeleteCertificate() {
+    doDeleteCertificate(): void {
       this.confirm = false;
 
       this.$store

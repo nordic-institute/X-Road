@@ -44,8 +44,14 @@
             <template v-if="props.item.type == 'owner'">
               <v-icon color="grey darken-2" class="pl-1" small>fas fa-folder-open</v-icon>
               <span
-                class="font-weight-bold name"
+                v-if="canOpenClient()"
+                class="font-weight-bold name clickable"
                 @click="openClient(props.item)"
+              >{{props.item.name}} ({{ $t("client.owner") }})</span>
+
+              <span
+                v-else
+                class="font-weight-bold name"
               >{{props.item.name}} ({{ $t("client.owner") }})</span>
             </template>
             <!-- Name - member -->
@@ -62,9 +68,11 @@
                 small
               >far fa-address-card</v-icon>
               <span
-                class="font-weight-bold name"
+                v-if="canOpenClient()"
+                class="font-weight-bold name clickable"
                 @click="openSubsystem(props.item)"
               >{{props.item.name}}</span>
+              <span v-else class="font-weight-bold name">{{props.item.name}}</span>
             </template>
           </td>
           <!-- Id -->
@@ -136,7 +144,7 @@ export default Vue.extend({
       }
       return true;
     },
-    headers(): any {
+    headers(): any[] {
       return [
         {
           text: this.$t('client.name'),
@@ -165,7 +173,12 @@ export default Vue.extend({
     showAddClient(): boolean {
       return this.$store.getters.hasPermission(Permissions.ADD_CLIENT);
     },
-    getClientIcon(type: string) {
+    canOpenClient(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.VIEW_CLIENT_DETAILS_DIALOG,
+      );
+    },
+    getClientIcon(type: string): string {
       if (!type) {
         return '';
       }
@@ -220,13 +233,18 @@ export default Vue.extend({
       });
     },
 
-    addSubsystem(item: any) {
+    addSubsystem(item: any): void {
       this.$router.push({
         name: RouteName.AddSubsystem,
       });
     },
 
-    customFilter: (items: any, search: any, filter: any, headers: any[]) => {
+    customFilter: (
+      items: any,
+      search: any,
+      filter: any,
+      headers: any[],
+    ): any => {
       // Override for the default filter function.
       // This is done to filter by the name (that is visible to user) instead of sortNameAsc or sortNameDesc.
       // base copied from here: https://github.com/vuetifyjs/vuetify/blob/master/packages/vuetify/src/components/VDataTable/VDataTable.js
@@ -248,7 +266,7 @@ export default Vue.extend({
       );
     },
 
-    customSort(items: any[], index: string, isDesc: boolean) {
+    customSort(items: any[], index: string, isDesc: boolean): any[] {
       // Override of the default sorting function for the Name column to use sortNameAsc or sortNameDesc instead.
       // This is needed to achieve the order where member is always over the subsystem regardless of the sort direction.
       items.sort((a, b) => {
@@ -317,12 +335,15 @@ export default Vue.extend({
 }
 
 .name {
-  text-decoration: underline;
   margin-left: 14px;
   margin-top: auto;
   margin-bottom: auto;
   text-align: center;
-  cursor: pointer;
+
+  &.clickable {
+    text-decoration: underline;
+    cursor: pointer;
+  }
 }
 
 .name-member {
