@@ -57,12 +57,7 @@ public enum ClientStatusMapping {
      * @return
      */
     public static Optional<Client.StatusEnum> map(String clientTypeStatus) {
-        Optional<ClientStatusMapping> mapping = getFor(clientTypeStatus);
-        if (mapping.isPresent()) {
-            return Optional.of(mapping.get().getStatusEnum());
-        } else {
-            return Optional.empty();
-        }
+        return getFor(clientTypeStatus).map(ClientStatusMapping::getStatusEnum);
     }
 
     /**
@@ -71,12 +66,7 @@ public enum ClientStatusMapping {
      * @return
      */
     public static Optional<String> map(Client.StatusEnum statusEnum) {
-        Optional<ClientStatusMapping> mapping = getFor(statusEnum);
-        if (mapping.isPresent()) {
-            return Optional.of(mapping.get().getClientTypeStatus());
-        } else {
-            return Optional.empty();
-        }
+        return getFor(statusEnum).map(ClientStatusMapping::getClientTypeStatus);
     }
 
     /**

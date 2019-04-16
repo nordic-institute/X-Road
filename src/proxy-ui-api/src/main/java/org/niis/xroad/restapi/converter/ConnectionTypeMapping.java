@@ -53,12 +53,7 @@ public enum ConnectionTypeMapping {
      * @return
      */
     public static Optional<Client.ConnectionTypeEnum> map(String isAuthentication) {
-        Optional<ConnectionTypeMapping> mapping = getFor(isAuthentication);
-        if (mapping.isPresent()) {
-            return Optional.of(mapping.get().getConnectionTypeEnum());
-        } else {
-            return Optional.empty();
-        }
+        return getFor(isAuthentication).map(ConnectionTypeMapping::getConnectionTypeEnum);
     }
 
     /**
@@ -67,12 +62,7 @@ public enum ConnectionTypeMapping {
      * @return
      */
     public static Optional<String> map(Client.ConnectionTypeEnum connectionTypeEnum) {
-        Optional<ConnectionTypeMapping> mapping = getFor(connectionTypeEnum);
-        if (mapping.isPresent()) {
-            return Optional.of(mapping.get().getIsAuthentication());
-        } else {
-            return Optional.empty();
-        }
+        return getFor(connectionTypeEnum).map(ConnectionTypeMapping::getIsAuthentication);
     }
 
     /**
