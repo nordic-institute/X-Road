@@ -43,8 +43,8 @@ public enum ClientStatusMapping {
     DELETION_IN_PROGRESS(ClientType.STATUS_DELINPROG, Client.StatusEnum.DELETION_IN_PROGRESS),
     GLOBAL_ERROR(ClientType.STATUS_GLOBALERR, Client.StatusEnum.GLOBAL_ERROR);
 
-    private String clientTypeStatus; // ClientType statuses
-    private Client.StatusEnum statusEnum;
+    private final String clientTypeStatus; // ClientType statuses
+    private final Client.StatusEnum statusEnum;
 
     ClientStatusMapping(String clientTypeStatus, Client.StatusEnum statusEnum) {
         this.clientTypeStatus = clientTypeStatus;
@@ -57,7 +57,7 @@ public enum ClientStatusMapping {
      * @return
      */
     public static Optional<Client.StatusEnum> map(String clientTypeStatus) {
-        Optional<ClientStatusMapping> mapping = getForClientTypeStatus(clientTypeStatus);
+        Optional<ClientStatusMapping> mapping = getFor(clientTypeStatus);
         if (mapping.isPresent()) {
             return Optional.of(mapping.get().getStatusEnum());
         } else {
@@ -71,7 +71,7 @@ public enum ClientStatusMapping {
      * @return
      */
     public static Optional<String> map(Client.StatusEnum statusEnum) {
-        Optional<ClientStatusMapping> mapping = getForStatusEnum(statusEnum);
+        Optional<ClientStatusMapping> mapping = getFor(statusEnum);
         if (mapping.isPresent()) {
             return Optional.of(mapping.get().getClientTypeStatus());
         } else {
@@ -84,7 +84,7 @@ public enum ClientStatusMapping {
      * @param clientTypeStatus
      * @return
      */
-    public static Optional<ClientStatusMapping> getForClientTypeStatus(String clientTypeStatus) {
+    public static Optional<ClientStatusMapping> getFor(String clientTypeStatus) {
         return Arrays.stream(values())
                 .filter(mapping -> mapping.clientTypeStatus.equals(clientTypeStatus))
                 .findFirst();
@@ -95,7 +95,7 @@ public enum ClientStatusMapping {
      * @param statusEnum
      * @return
      */
-    public static Optional<ClientStatusMapping> getForStatusEnum(Client.StatusEnum statusEnum) {
+    public static Optional<ClientStatusMapping> getFor(Client.StatusEnum statusEnum) {
         return Arrays.stream(values())
                 .filter(mapping -> mapping.statusEnum.equals(statusEnum))
                 .findFirst();
