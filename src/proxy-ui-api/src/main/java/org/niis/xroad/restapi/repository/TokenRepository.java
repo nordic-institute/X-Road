@@ -22,18 +22,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.protocol.message;
+package org.niis.xroad.restapi.repository;
 
-import lombok.Value;
+import ee.ria.xroad.commonui.SignerProxy;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
-import java.io.Serializable;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 /**
- * Signer API message.
+ * Repository that handles tokens (acts as a wrapper to SignerProxy)
  */
-@Value
-public class DeleteCert implements Serializable {
+@Slf4j
+@Repository
+public class TokenRepository {
 
-    private final String certId;
+    /**
+     * get all tokens
+     * @return
+     * @throws Exception
+     */
+    public List<TokenInfo> getTokens() throws Exception {
+        return SignerProxy.getTokens();
+    }
 
 }

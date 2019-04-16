@@ -22,18 +22,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.protocol.message;
+package org.niis.xroad.restapi.service;
 
-import lombok.Value;
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.identifier.ClientId;
 
-import java.io.Serializable;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.repository.ClientRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
- * Signer API message.
+ * client service
  */
-@Value
-public class DeleteCert implements Serializable {
+@Slf4j
+@Service
+@Transactional
+@PreAuthorize("denyAll")
+public class ClientService {
 
-    private final String certId;
+    @Autowired
+    private ClientRepository clientRepository;
+
+    /**
+     * return all clients
+     * @return
+     */
+    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
+    public List<ClientType> getAllClients() {
+        return clientRepository.getAllClients();
+    }
+
+    /**
+     * return one client
+     * @param id
+     */
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
+    public ClientType getClient(ClientId id) {
+        return clientRepository.getClient(id);
+    }
+
 
 }

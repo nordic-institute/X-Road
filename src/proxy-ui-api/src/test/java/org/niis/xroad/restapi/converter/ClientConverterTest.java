@@ -57,13 +57,15 @@ public class ClientConverterTest {
     public void convert() throws Exception {
         ClientType clientType = new ClientType();
         clientType.setClientStatus("registered");
+        clientType.setIsAuthentication("SSLNOAUTH");
         clientType.setIdentifier(ClientId.create("XRD2", "GOV", "M4", "SS1"));
         Client converted = clientConverter.convert(clientType);
         assertEquals("XRD2:GOV:M4:SS1", converted.getId());
-        assertEquals("registered", converted.getStatus());
+        assertEquals(Client.StatusEnum.REGISTERED, converted.getStatus());
         assertEquals("GOV", converted.getMemberClass());
         assertEquals("M4", converted.getMemberCode());
         assertEquals("SS1", converted.getSubsystemCode());
+        assertEquals(Client.ConnectionTypeEnum.HTTPS_NO_AUTH, converted.getConnectionType());
         assertEquals(MEMBER_NAME_PREFIX + "M4", converted.getMemberName());
     }
 

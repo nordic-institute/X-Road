@@ -22,18 +22,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.protocol.message;
+package org.niis.xroad.restapi.exceptions;
 
-import lombok.Value;
-
-import java.io.Serializable;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Signer API message.
+ * Thrown if client sent bad request.
+ * Results in http 400 BAD_REQUEST
  */
-@Value
-public class DeleteCert implements Serializable {
+@ResponseStatus(value = HttpStatus.BAD_REQUEST)
+public class BadRequestException extends RuntimeException {
+    public BadRequestException() {
+    }
 
-    private final String certId;
+    public BadRequestException(String msg) {
+        super(msg);
+    }
+
+    public BadRequestException(String msg, Throwable t) {
+        super(msg, t);
+    }
+
+    public BadRequestException(Throwable t) {
+        super(t);
+    }
 
 }

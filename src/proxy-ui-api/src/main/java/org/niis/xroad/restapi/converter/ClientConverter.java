@@ -28,12 +28,14 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.apache.commons.lang.StringUtils;
+import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Converter Client related data between openapi and (jaxb) service classes
@@ -65,7 +67,11 @@ public class ClientConverter {
         client.setMemberCode(clientType.getIdentifier().getMemberCode());
         client.setSubsystemCode(clientType.getIdentifier().getSubsystemCode());
         client.setMemberName(globalConfWrapper.getMemberName(clientType.getIdentifier()));
-        client.setStatus(clientType.getClientStatus());
+        Optional<Client.StatusEnum> status = ClientStatusMapping.map(clientType.getClientStatus());
+        client.setStatus(status.get());
+        Optional<Client.ConnectionTypeEnum> connectionTypeEnum =
+                ConnectionTypeMapping.map(clientType.getIsAuthentication());
+        client.setConnectionType(connectionTypeEnum.get());
         return client;
     }
 
@@ -91,12 +97,13 @@ public class ClientConverter {
     /**
      * Convert encoded member id into ClientId
      * @param encodedId
+     * @throws BadRequestException if encoded id could not be decoded
      * @return
      */
-    public ClientId convertId(String encodedId) {
+    public ClientId convertId(String encodedId) throws BadRequestException {
         int separators = countOccurences(encodedId, ENCODED_CLIENT_ID_SEPARATOR);
         if (separators != MEMBER_CODE_INDEX && separators != SUBSYSTEM_CODE_INDEX) {
-            throw new IllegalArgumentException("Invalid client id " + encodedId);
+            throw new BadRequestException("Invalid client id " + encodedId);
         }
         List<String> parts = Arrays.asList(encodedId.split(String.valueOf(ENCODED_CLIENT_ID_SEPARATOR)));
         String instance = parts.get(INSTANCE_INDEX);
@@ -105,7 +112,7 @@ public class ClientConverter {
         String subsystemCode = null;
         if (parts.size() != (MEMBER_CODE_INDEX + 1)
                 && parts.size() != (SUBSYSTEM_CODE_INDEX + 1)) {
-            throw new IllegalArgumentException("Invalid client id " + encodedId);
+            throw new BadRequestException("Invalid client id " + encodedId);
         }
         if (parts.size() == (SUBSYSTEM_CODE_INDEX + 1)) {
             subsystemCode = parts.get(SUBSYSTEM_CODE_INDEX);
