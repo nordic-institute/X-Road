@@ -39,8 +39,8 @@ public enum ConnectionTypeMapping {
     SSLNOAUTH("SSLNOAUTH", Client.ConnectionTypeEnum.HTTPS_NO_AUTH),
     SSLAUTH("SSLAUTH", Client.ConnectionTypeEnum.HTTPS);
 
-    private String isAuthentication; // ClientType isAuthentication values (from DB)
-    private Client.ConnectionTypeEnum connectionTypeEnum;
+    private final String isAuthentication; // ClientType isAuthentication values (from DB)
+    private final Client.ConnectionTypeEnum connectionTypeEnum;
 
     ConnectionTypeMapping(String isAuthentication, Client.ConnectionTypeEnum connectionTypeEnum) {
         this.isAuthentication = isAuthentication;
