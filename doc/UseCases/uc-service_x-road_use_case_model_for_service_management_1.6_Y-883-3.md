@@ -565,7 +565,7 @@ server client's services.
 
 **Related** **information**: -
 
-#### 3.1.9 UC SERVICE\_08: Add a WSDL to a Security Server Client
+#### 3.1.9 UC SERVICE\_08: Add a WSDL or REST to a Security Server Client
 
 **System**: Security server
 
@@ -626,8 +626,8 @@ client.
 
 - 3a. The process of parsing the user input terminated with an error message.
     - 3a.1. System displays the error message “X” (where “X” is the termination message from the parsing process).
-    - 3a.2. System logs the event “Add WSDL failed” to the audit log.
-    - 3a.3. SS administrator selects to reinsert the URL of the WSDL. Use case continues from step 3.
+    - 3a.2. System logs the event “Add WSDL failed” (or REST) to the audit log.
+    - 3a.3. SS administrator selects to reinsert the URL of the WSDL or REST. Use case continues from step 3.
         - 3a.3a. SS administrator selects to terminate the use case.
 
 - 4a. The inserted URL already exists.
@@ -713,16 +713,16 @@ client.
 4.  System verifies that the inserted URL does not already exist in the
     list of WSDL or REST URLs saved in the system configuration for this client.
 
-5.  System refreshes the WSDL: steps 2-6 of 3.1.16.
+5.  System refreshes the WSDL or REST: steps 2-6 of 3.1.16.
 
-6.  System logs the event “Edit WSDL” to the audit log.
+6.  System logs the event “Edit WSDL” (or REST) to the audit log.
 
 **Extensions**:
 
 - 3a. The process of parsing the user input terminated with an error message.
     - 3a.1. System displays the error message “X” (where “X” is the termination message from the parsing process).
-    - 3a.2. System logs the event “Edit WSDL failed” to the audit log.
-    - 3a.3. SS administrator selects to reinsert the URL of the WSDL. Use case continues from step 3.
+    - 3a.2. System logs the event “Edit WSDL failed” (or REST) to the audit log.
+    - 3a.3. SS administrator selects to reinsert the URL of the WSDL or REST. Use case continues from step 3.
     - 3a.3a. SS administrator selects to terminate the use case.
 
 - 4a. The inserted URL already exists.
@@ -770,7 +770,7 @@ given URL and reads the service descriptions from the WSDL or REST file.
 
 1.  System verifies that the URL is well-formed.
 
-2.  System verifies that the URL points to a valid XML file and
+2.  System verifies that the URL points to a valid XML or JSON file and
     downloads the file.
 
 3.  System verifies that the downloaded file is a valid WSDL or REST file.
@@ -799,7 +799,7 @@ given URL and reads the service descriptions from the WSDL or REST file.
 - 2a. Downloading of the WSDL or REST file failed.
     - 2a.1. Use case terminates with the error message “Downloading WSDL failed. WSDL or REST URL must point to a WSDL or REST file.”.
 
-- 2b. The URL points to data that is not a valid XML file.
+- 2b. The URL points to data that is not a valid XML or JSON file.
     - 2b.1. Use case terminates with the error message “Incorrect file structure. WSDL (or REST) URL must point to a WSDL (or REST) file.”.
 
 - 3a. The validation of the WSDL or REST failed.
@@ -1035,8 +1035,8 @@ reloads the WSDL file from the WSDL or REST address.
 2.  System downloads the WSDL file from the WSDL or REST URL and reads service
     information from the downloaded file: 3.1.11.
 
-3.  System verifies that the location of a WSDL validation program is
-    described by the system parameter *wsdl-validator-command* and
+3.  System verifies that the location of a WSDL or REST validation program is
+    described by the system parameter *wsdl-validator-command* or *rest-validator-command* and
     validates the WSDL or REST file using the validator: 3.1.12.
 
 4.  System verifies that none of the services described for this
@@ -1054,7 +1054,7 @@ reloads the WSDL file from the WSDL or REST address.
 
 **Extensions**:
 
-- 2a. The process of downloading and parsing the WSDL file terminated with an error message.
+- 2a. The process of downloading and parsing the WSDL or REST file terminated with an error message.
     - 2a.1. System displays the error message “X” (where “X” is the termination message from the downloading and parsing process).
     - 2a.2. System logs the event “Refresh WSDL (or REST) failed” to the audit log.
         - 2a.2a. The process of refreshing the WSDL or REST was triggered from the use case 3.1.10. Use case terminates.
