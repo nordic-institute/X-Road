@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.24  
+Version: 2.26  
 Doc. ID: UG-SS
 
 ---
@@ -57,7 +57,8 @@ Doc. ID: UG-SS
  25.05.2018 | 2.22    | Update system parameters documentation. | Jarkko Hyöty
  15.11.2018 | 2.23    | Minor updates for Ubuntu 18.04 | Jarkko Hyöty
  06.02.2019 | 2.24    | Minor updates on security server client registration in Chapters [4.3](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client) and [4.4](#44-registering-a-security-server-client-in-the-x-road-governing-authority). | Petteri Kivimäki
- 15.03.2019 | 2.25    | Update documentation to cover REST service usage in chapter [6]
+ 15.03.2019 | 2.25    | Update documentation to cover REST service usage in chapter [6] | Jarkko Hyöty
+ 16.04.2019 | 2.26    | Minor updates regarding REST services in chapter [6] | Petteri Kivimäki
 
 ## Table of Contents
 
@@ -107,6 +108,8 @@ Doc. ID: UG-SS
   * [5.7 Deleting a Key](#57-deleting-a-key)
 * [6 X-Road Services](#6-x-road-services)
   * [6.1 Adding a service description](#61-adding-a-service-description)
+      * [6.1.1 SOAP](#611-soap)
+      * [6.1.2 REST](#612-rest)
   * [6.2 Refreshing a service description](#62-refreshing-a-service-description)
   * [6.3 Enabling and Disabling a service description](#63-enabling-and-disabling-a-service-description)
   * [6.4 Changing the Address of a service description](#64-changing-the-address-of-a-service-description)
@@ -814,35 +817,40 @@ To delete a key, follow these steps.
 
 ## 6 X-Road Services
 
-The services are managed on two levels:
+X-Road supports both SOAP and REST services. The services are managed on two levels:
 
--   the addition, deletion, and deactivation of services is carried out on the WSDL/REST level;
+-   the addition, deletion, and deactivation of services is carried out on the WSDL / REST API level;
 
--   the service address, internal network connection method, and the service timeout values are configured at the service level. However, for WSDL, it is easy to extend the configuration of one service to all the other services.
+-   the service address, internal network connection method, and the service timeout values are configured at the service level for SOAP services and at the API level for REST services. In addition, for SOAP / WSDL, it is easy to extend the configuration of one service to all the other services.
 
 
 ### 6.1 Adding a service description
 
 **Access rights:** [Service Administrator](#xroad-service-administrator)
 
+### 6.1.1 SOAP
+
 When a new WSDL file is added, the security server reads service information from it and displays the information in the table of services. The service code, title and address are read from the WSDL.
-When a new REST service is added, the security server displays url and service code provided.
 
 **To add a WSDL**, follow these steps.
 
 1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Services** icon on that row.
 
-2.  Click **ADD WSDL**, enter the WSDL address in the window that opens and click **OK**. The WSDL and the information about the services it contains are added to the table. By default, the WSDL is added in disabled state (see [6.3](#63-enabling-and-disabling-a-wsdl)).
+2.  Click **ADD WSDL**, enter the WSDL address in the window that opens and click **OK**. The WSDL and the information about the services it contains are added to the table. By default, the WSDL is added in disabled state (see [6.3](#63-enabling-and-disabling-a-service-description)).
 
 **To see a list of services contained in the WSDL**
 
 -   click the “**+**” symbol in front of the WSDL row to expand the list.
 
+### 6.1.2 REST
+
+When a new REST service is added, the security server displays url and service code provided.
+
 **To add a REST service**, follow these steps.
 
 1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Services** icon on that row.
 
-2.  Click **ADD REST**, enter the url and service code in the window that opens and click **OK**.  
+2.  Click **ADD REST**, enter the url and service code in the window that opens and click **OK**. The url and the service code are added to the table. By default, the REST API is added in disabled state (see [6.3](#63-enabling-and-disabling-a-service-description)).
 
 **To see the service the REST service**
 
@@ -902,7 +910,7 @@ To change the service description address, follow these steps.
 
 2.  Select from the table a service description whose information you wish to change and click **Edit**.
 
-3.  In the window that opens, edit the WSDL address for WSDL and url and service code for REST and click **OK**. The service information updates accordingly (see section [6.2](#62-refreshing-a-wsdl)).
+3.  In the window that opens, edit the WSDL address for WSDL, and url and service code for REST and click **OK**. The service information updates accordingly (see section [6.2](#62-refreshing-a-wsdl)).
 
 
 ### 6.5 Deleting a service description
