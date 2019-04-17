@@ -89,8 +89,8 @@ import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SERVICE_TYPE;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_REST;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_DISABLED;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_MISSING_URL;
@@ -231,9 +231,9 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                 + decoder.getAttachmentsByteCount());
     }
 
-    private void checkRequest() throws Exception {
+    private void checkRequest() {
         if (requestMessage.getRest() == null) {
-            throw new CodedException(X_MISSING_SOAP, "Request does not have REST message");
+            throw new CodedException(X_MISSING_REST, "Request does not have REST message");
         }
 
         if (requestMessage.getSignature() == null) {
@@ -464,7 +464,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     private void monitorAgentNotifyFailure(CodedException ex) {
         MessageInfo info = null;
 
-        boolean requestIsComplete = requestMessage != null && requestMessage.getSoap() != null
+        boolean requestIsComplete = requestMessage != null && requestMessage.getRest() != null
                 && requestMessage.getSignature() != null;
 
         // Include the request message only if the error was caused while
@@ -482,7 +482,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             return null;
         }
         final RestRequest rest = requestMessage.getRest();
-        return new MessageInfo(Origin.SERVER_PROXY, rest.getClientId(), requestServiceId, null, null);
+        return new MessageInfo(Origin.SERVER_PROXY, rest.getClientId(), requestServiceId, null, rest.getQueryId());
     }
 
     private X509Certificate getClientAuthCert() {
