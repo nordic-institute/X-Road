@@ -24,25 +24,27 @@
  */
 package org.niis.xroad.restapi.converter;
 
+import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
+
 import lombok.Getter;
-import org.niis.xroad.restapi.openapi.model.Client;
+import org.niis.xroad.restapi.openapi.model.ConnectionType;
 
 import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Mapping between client connectionType in api (enum) and model (string)
+ * Mapping between ConnectionType in api (enum) and model (string)
  */
 @Getter
 public enum ConnectionTypeMapping {
-    NOSSL("NOSSL", Client.ConnectionTypeEnum.HTTP),
-    SSLNOAUTH("SSLNOAUTH", Client.ConnectionTypeEnum.HTTPS_NO_AUTH),
-    SSLAUTH("SSLAUTH", Client.ConnectionTypeEnum.HTTPS);
+    NOSSL(IsAuthentication.NOSSL.name(), ConnectionType.HTTP),
+    SSLNOAUTH(IsAuthentication.SSLNOAUTH.name(), ConnectionType.HTTPS_NO_AUTH),
+    SSLAUTH(IsAuthentication.SSLAUTH.name(), ConnectionType.HTTPS);
 
     private final String isAuthentication; // ClientType isAuthentication values (from DB)
-    private final Client.ConnectionTypeEnum connectionTypeEnum;
+    private final ConnectionType connectionTypeEnum;
 
-    ConnectionTypeMapping(String isAuthentication, Client.ConnectionTypeEnum connectionTypeEnum) {
+    ConnectionTypeMapping(String isAuthentication, ConnectionType connectionTypeEnum) {
         this.isAuthentication = isAuthentication;
         this.connectionTypeEnum = connectionTypeEnum;
     }
@@ -52,7 +54,7 @@ public enum ConnectionTypeMapping {
      * @param isAuthentication
      * @return
      */
-    public static Optional<Client.ConnectionTypeEnum> map(String isAuthentication) {
+    public static Optional<ConnectionType> map(String isAuthentication) {
         return getFor(isAuthentication).map(ConnectionTypeMapping::getConnectionTypeEnum);
     }
 
@@ -61,7 +63,7 @@ public enum ConnectionTypeMapping {
      * @param connectionTypeEnum
      * @return
      */
-    public static Optional<String> map(Client.ConnectionTypeEnum connectionTypeEnum) {
+    public static Optional<String> map(ConnectionType connectionTypeEnum) {
         return getFor(connectionTypeEnum).map(ConnectionTypeMapping::getIsAuthentication);
     }
 
@@ -81,7 +83,7 @@ public enum ConnectionTypeMapping {
      * @param connectionTypeEnum
      * @return
      */
-    public static Optional<ConnectionTypeMapping> getFor(Client.ConnectionTypeEnum connectionTypeEnum) {
+    public static Optional<ConnectionTypeMapping> getFor(ConnectionType connectionTypeEnum) {
         return Arrays.stream(values())
                 .filter(mapping -> mapping.connectionTypeEnum.equals(connectionTypeEnum))
                 .findFirst();

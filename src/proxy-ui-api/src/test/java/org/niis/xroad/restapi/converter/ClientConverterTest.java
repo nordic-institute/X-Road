@@ -65,7 +65,7 @@ public class ClientConverterTest {
         assertEquals("GOV", converted.getMemberClass());
         assertEquals("M4", converted.getMemberCode());
         assertEquals("SS1", converted.getSubsystemCode());
-        assertEquals(Client.ConnectionTypeEnum.HTTPS_NO_AUTH, converted.getConnectionType());
+        assertEquals(org.niis.xroad.restapi.openapi.model.ConnectionType.HTTPS_NO_AUTH, converted.getConnectionType());
         assertEquals(MEMBER_NAME_PREFIX + "M4", converted.getMemberName());
     }
 

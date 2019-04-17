@@ -36,7 +36,7 @@ import org.springframework.context.annotation.Profile;
 @Configuration
 public class SignerIpAddressConfiguration {
 
-    @Value("${custom.ip:127.0.0.1}")
+    @Value("${custom.signer.ip:127.0.0.1}")
     private String customIp;
 
     @Bean(name = "signer-ip")

@@ -39,6 +39,7 @@ import org.niis.xroad.restapi.converter.GlobalConfWrapper;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.Certificate;
 import org.niis.xroad.restapi.openapi.model.Client;
+import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.repository.TokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -133,7 +134,7 @@ public class ClientsApiControllerIntegrationTest {
                 clientsApiController.getClient("FI:GOV:M1");
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Client client = response.getBody();
-        assertEquals(Client.ConnectionTypeEnum.HTTP, client.getConnectionType());
+        assertEquals(org.niis.xroad.restapi.openapi.model.ConnectionType.HTTP, client.getConnectionType());
         assertEquals(Client.StatusEnum.REGISTERED, client.getStatus());
         assertEquals("test-member-name", client.getMemberName());
         assertEquals("GOV", client.getMemberClass());
@@ -144,7 +145,7 @@ public class ClientsApiControllerIntegrationTest {
         response = clientsApiController.getClient("FI:GOV:M1:SS1");
         assertEquals(HttpStatus.OK, response.getStatusCode());
         client = response.getBody();
-        assertEquals(Client.ConnectionTypeEnum.HTTPS_NO_AUTH, client.getConnectionType());
+        assertEquals(org.niis.xroad.restapi.openapi.model.ConnectionType.HTTPS_NO_AUTH, client.getConnectionType());
         assertEquals(Client.StatusEnum.REGISTERED, client.getStatus());
         assertEquals("test-member-name", client.getMemberName());
         assertEquals("GOV", client.getMemberClass());
@@ -159,6 +160,21 @@ public class ClientsApiControllerIntegrationTest {
         }
     }
 
+    @Test
+    @WithMockUser(authorities = { "EDIT_CLIENT_INTERNAL_CONNECTION_TYPE",
+            "VIEW_CLIENT_DETAILS" })
+    public void updateClient() throws Exception {
+        ResponseEntity<org.niis.xroad.restapi.openapi.model.Client> response =
+                clientsApiController.getClient("FI:GOV:M1:SS1");
+        assertEquals(ConnectionType.HTTPS_NO_AUTH, response.getBody().getConnectionType());
+
+        response = clientsApiController.updateClient("FI:GOV:M1:SS1", ConnectionType.HTTP);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(ConnectionType.HTTP, response.getBody().getConnectionType());
+
+        response = clientsApiController.getClient("FI:GOV:M1:SS1");
+        assertEquals(ConnectionType.HTTP, response.getBody().getConnectionType());
+    }
 
     @Test
     @WithMockUser(authorities = "VIEW_CLIENT_DETAILS")

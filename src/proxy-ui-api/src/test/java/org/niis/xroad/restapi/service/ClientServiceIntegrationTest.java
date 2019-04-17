@@ -22,66 +22,55 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
-import org.hibernate.Session;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
-
-import java.util.List;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
- * client repository
+ * test client service
  */
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureTestDatabase
 @Slf4j
-@Repository
 @Transactional
-public class ClientRepository {
+public class ClientServiceIntegrationTest {
 
     @Autowired
-    private EntityManager entityManager;
+    private ClientService clientService;
 
-    private Session getCurrentSession() {
-        return entityManager.unwrap(Session.class);
-    }
+    @Test
+    @WithMockUser(authorities = { "EDIT_CLIENT_INTERNAL_CONNECTION_TYPE",
+            "VIEW_CLIENT_DETAILS" })
+    public void updateConnectionType() {
+        ClientId id = ClientId.create("FI", "GOV", "M1", "SS1");
+        ClientType clientType = clientService.getClient(id);
+        assertEquals("SSLNOAUTH", clientType.getIsAuthentication());
+        assertEquals(2, clientType.getLocalGroup().size());
 
-    /**
-     * Executes a Hibernate saveOrUpdate(client)
-     * @param clientType
-     * @return
-     */
-    public void saveOrUpdate(ClientType clientType) {
-        getCurrentSession().saveOrUpdate(clientType);
-    }
+        try {
+            clientService.updateConnectionType(id, "FUBAR");
+            fail("should throw IllegalArgumentException");
+        } catch (IllegalArgumentException expected) {
+        }
 
-    /**
-     * return one client
-     * @param id
-     */
-    public ClientType getClient(ClientId id) {
-        ClientDAOImpl clientDAO = new ClientDAOImpl();
-        return clientDAO.getClient(getCurrentSession(), id);
-    }
-
-    /**
-     * return all clients
-     * @return
-     */
-    public List<ClientType> getAllClients() {
-        ServerConfDAOImpl serverConf = new ServerConfDAOImpl();
-        List<ClientType> clientTypes = serverConf.getConf(getCurrentSession()).getClient();
-        Hibernate.initialize(clientTypes);
-        return clientTypes;
+        clientService.updateConnectionType(id, "NOSSL");
+        clientType = clientService.getClient(id);
+        assertEquals("NOSSL", clientType.getIsAuthentication());
+        assertEquals(2, clientType.getLocalGroup().size());
     }
 }
-

@@ -33,7 +33,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.context.request.NativeWebRequest;
 
@@ -50,7 +49,6 @@ import java.util.stream.Collectors;
 @RequestMapping("/api")
 @Slf4j
 @PreAuthorize("denyAll")
-@Transactional
 public class UserApiController implements org.niis.xroad.restapi.openapi.UserApi {
 
     private final NativeWebRequest request;
