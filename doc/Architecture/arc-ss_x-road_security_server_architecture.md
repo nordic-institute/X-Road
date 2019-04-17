@@ -6,8 +6,8 @@
 
 **Technical Specification**
 
-Version: 1.6  
-02.03.2018
+Version: 1.7  
+17.04.2019
 <!-- 15 pages -->
 Doc. ID: ARC-SS
 
@@ -32,7 +32,8 @@ Doc. ID: ARC-SS
  20.02.2017 | 1.4     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
  19.01.2018 | 1.5     | Matrix of technologies moved to ARC-TEC-file and chapters reordered | Antti Luoma 
  02.03.2018 | 1.6     | Moved terms and abbreviations to terms document, added terms reference and document links | Tatu Repo
- 
+ 17.04.2019 | 1.7     | Added X-Road Message Protocol for REST                      | Petteri Kivimäki
+  
 ## Table of Contents
 
 <!-- toc -->
@@ -127,7 +128,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 10. <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Profile of Messages. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md).
 
-11. <a id="Ref_PR-MESSTRANSP" class="anchor"></a>\[PR-MESSTRANSP\] Cybernetica AS. X-Road: Message Transport Protocol. Document ID: [PR-MESSTRANSP](../Protocols/pr-messtransp_x-road_message_transport_protocol_2.2_Y-743-4.docx).
+11. <a id="Ref_PR-MESSTRANSP" class="anchor"></a>\[PR-MESSTRANSP\] Cybernetica AS. X-Road: Message Transport Protocol. Document ID: [PR-MESSTRANSP](../Protocols/pr-messtransp_x-road_message_transport_protocol.md).
 
 12. <a id="Ref_PR-META" class="anchor"></a>\[PR-META\] Cybernetica AS. X-Road: Service Metadata Protocol. Document ID: [PR-META](../Protocols/pr-meta_x-road_service_metadata_protocol.md).
 
@@ -145,6 +146,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 19. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
+10. <a id="Ref_PR-MESS" class="anchor"></a>\[PR-REST\] X-Road Message Protocol for REST. Document ID: [PR-REST](../Protocols/pr-rest_x-road_message_protocol_for_rest.md).
 ## 2 Component View
 
 [Figure 1](#Ref_Security_server_component_diagram) shows the main components and interfaces of the X-Road security server. The components and the interfaces are described in detail in the following sections.
@@ -286,9 +288,9 @@ The interface is described in more detail in \[[ARC-G](#Ref_ARC-G)\], \[[PR-GCON
 
 The X-Road Message Protocol is used by service client and service provider information systems for communicating with the X-Road security server.
 
-The protocol is synchronous RPC style protocol that is initiated by the client IS or by the service provider's security server.
+X-Road has supports two message protocols: message protocol for SOAP and message protocol for REST. Both protocols are synchronous, and they're initiated by the client IS or by the service provider's security server.
 
-The interface is described in more detail in \[[ARC-G](#Ref_ARC-G)\], \[[PR-MESS](#Ref_PR-MESS)\].
+The interface is described in more detail in \[[ARC-G](#Ref_ARC-G)\], \[[PR-MESS](#Ref_PR-MESS)\], \[[PR-REST](#Ref_PR-REST)\].
 
 
 ### 3.4 Message Transport Protocol
