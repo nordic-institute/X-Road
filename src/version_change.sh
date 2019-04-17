@@ -30,17 +30,16 @@ function downgrade {
 # Params: changelog location, version, message
 function add_dch_entry {
     sed -i "1s/\-0/\-1/" $1
-    dch -v "$2-0" -c $1 ""
-    dch -a -c $1 $3
+    dch -v "$2-0" -c $1 $3
 }
 
 function release_current {
-    dch -r -c "$DEB_CHANGELOG" ""
+    dch -r --distribution stable -c "$DEB_CHANGELOG" ""
     sed -i "1s/\-0/\-1/" "$DEB_CHANGELOG"
-    dch -r -c "$DEBJ9_CHANGELOG" ""
+    dch -r --distribution stable -c "$DEBJ9_CHANGELOG" ""
     sed -i "1s/\-0/\-1/" "$DEBJ9_CHANGELOG"
     CURRENT_DATE=`date +%Y-%m-%d`
-    sed -i "s/ - XXXX-XX-XX$/ - $CURRENT_DATE/" ../CHANGELOG.md
+    sed -i "0,/ - UNRELEASED$/ s// - $CURRENT_DATE/" ../CHANGELOG.md
 }
 
 for i in "$@"; do
@@ -97,14 +96,14 @@ done
 
 if [[ $DOWNGRADE == true ]]; then
     downgrade "2" "$VERSION" "../CHANGELOG.md"
-    sed -i "s/## $VERSION.*$/## $VERSION - XXXX-XX-XX/" ../CHANGELOG.md
+    sed -i "s/## $VERSION.*$/## $VERSION - UNRELEASED/" ../CHANGELOG.md
     downgrade "1" "$VERSION" "$DEB_CHANGELOG" "1"
     sed -i "1s/\-1/\-0/" $DEB_CHANGELOG
     downgrade "1" "$VERSION" "$DEBJ9_CHANGELOG" "1"
     sed -i "1s/\-1/\-0/" $DEBJ9_CHANGELOG
 else
     release_current
-    sed -i "2a## $VERSION - XXXX-XX-XX\n" ../CHANGELOG.md
+    sed -i "2a## $VERSION - UNRELEASED\n" ../CHANGELOG.md
     add_dch_entry "$DEB_CHANGELOG" "$VERSION" "Change history is found at /usr/share/doc/xroad-common/CHANGELOG.md.gz"
     add_dch_entry "$DEBJ9_CHANGELOG" "$VERSION" "Version bump"
 fi

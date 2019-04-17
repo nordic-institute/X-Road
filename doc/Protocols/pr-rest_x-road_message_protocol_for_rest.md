@@ -266,13 +266,13 @@ The response contains some X-Road specific headers that are set by the provider 
 - **X-Road-Id**: Unique identifier for this message
 - **X-Road-Request-Hash**: For responses, this field contains sha-512 encoded hash of the request message
 - **X-Road-Error**: This header is provided in case there was an error processing the request and it occurred somewhere in X-Road (on the consumer or provider Security Server)
-- **X-Request-Id**: Unique identifier for the request
+- **X-Road-Request-Id**: Unique identifier for the request
   ```
   X-Road-Client: INSTANCE/CLASS/MEMBER/SUBSYSTEM
   X-Road-Service: INSTANCE/CLASS/MEMBER/SUBSYSTEM/PETSTORE
   X-Road-Id: fa2e18a5-c2cb-4d09-b994-f57727f7c3fb
   X-Road-Request-Hash: 4c519cf0-0e5e-4ccf-b72b-8ed6fe289e6e
-  X-Request-Id: f92591a3-6bf0-49b1-987b-0dd78c034cc3
+  X-Road-Request-Id: f92591a3-6bf0-49b1-987b-0dd78c034cc3
   ```
  
 **Request hash header**
