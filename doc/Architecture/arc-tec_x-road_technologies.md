@@ -70,7 +70,7 @@ Table 1. Technology matrix of the X-Road
  Logback            | X                   | X                  | X                       | X
  Akka 2.X           | X                   | X                  | X                       | X
  Jetty 9            | X                   | X                  |                         |
- JRuby 1.7          | X                   | X                  |                         |
+ JRuby 9.X          | X                   | X                  |                         |
  Ubuntu 14.04       | X                   | X                  | X                       | X
  Ubuntu 18.04       | X                   | X                  | X                       | X
  Red Hat Enterprise Linux 7 (RHEL7)       | X                   |                    |                         | X
@@ -106,7 +106,7 @@ Table 2. Technology matrix of the central server
  Logback        | X          |                |                    | X                       |              | X                  |
  Akka 2.X       | X          |                |                    | X                       |              | X                  |
  Jetty 9        |            |                |                    |                         |              |                    | X
- JRuby 1.7      |            |                |                    |                         |              | X                  |
+ JRuby 9.X      |            |                |                    |                         |              | X                  |
  Javascript     |            |                |                    |                         |              | X                  |
  PostgreSQL 9.4 |            |                |                    |                         | X\[[1](#Ref_1)\]         |                    |                  
  PostgreSQL 10  |            |                |                    |                         | X            |                    |
@@ -153,7 +153,7 @@ Table 4. Technology matrix of the security server
  Logback            | X   | X   |     | X   | X   |     | X   | X   |     |     | X   | X   | X
  Akka 2.X           | X   | X   |     | X   |     |     |     | X   |     | X   | X   | X   |
  Jetty 9            |     |     |     |     |     |     |     |     | X   |     |     |     |
- JRuby 1.7          |     |     |     |     |     |     |     | X   |     |     |     |     |
+ JRuby 9.X          |     |     |     |     |     |     |     | X   |     |     |     |     |
  Javascript         |     |     |     |     |     |     |     | X   |     |     |     |     |
  PostgreSQL 10      |     |     |     |     |     | X   |     |     |     |     |     |     |
  PAM                |     |     |     |     |     |     |     |     | X   |     |     |     |
