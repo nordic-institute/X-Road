@@ -910,7 +910,7 @@ To change the service description address, follow these steps.
 
 2.  Select from the table a service description whose information you wish to change and click **Edit**.
 
-3.  In the window that opens, edit the WSDL address for WSDL, and url and service code for REST and click **OK**. The service information updates accordingly (see section [6.2](#62-refreshing-a-wsdl)).
+3.  In the window that opens, edit the WSDL address for WSDL, and url and/or service code for REST, and click **OK**. The service information updates accordingly (see section [6.2](#62-refreshing-a-service-description)).
 
 
 ### 6.5 Deleting a service description
