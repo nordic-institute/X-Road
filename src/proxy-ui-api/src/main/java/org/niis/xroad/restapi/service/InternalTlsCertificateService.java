@@ -87,15 +87,8 @@ public class InternalTlsCertificateService {
         ) {
             ByteArrayOutputStream pemStream = new ByteArrayOutputStream();
             CryptoUtils.writeCertificatePem(certificate.getEncoded(), pemStream);
-            byte[] pemBytes = pemStream.toByteArray();
-            TarArchiveEntry pemEntry = new TarArchiveEntry(CERT_PEM_FILENAME);
-            pemEntry.setSize(pemBytes.length);
-            writeArchiveEntry(tarOutputStream, pemBytes, pemEntry);
-
-            TarArchiveEntry derEntry = new TarArchiveEntry(CERT_CER_FILENAME);
-            byte[] derBytes = certificate.getEncoded();
-            derEntry.setSize(derBytes.length);
-            writeArchiveEntry(tarOutputStream, derBytes, derEntry);
+            writeFileToArchive(tarOutputStream, pemStream.toByteArray(), CERT_PEM_FILENAME);
+            writeFileToArchive(tarOutputStream, certificate.getEncoded(), CERT_CER_FILENAME);
 
         } catch (IOException | CertificateEncodingException e) {
             log.error("writing certificate file failed", e);
@@ -104,10 +97,15 @@ public class InternalTlsCertificateService {
         return byteArrayOutputStream.toByteArray();
     }
 
-    private void writeArchiveEntry(TarArchiveOutputStream tarOutputStream,
-                                   byte[] pemBytes, TarArchiveEntry pemEntry) throws IOException {
-        tarOutputStream.putArchiveEntry(pemEntry);
-        tarOutputStream.write(pemBytes);
+    /**
+     * create a file inside the tar container
+     */
+    private void writeFileToArchive(TarArchiveOutputStream tarOutputStream, byte[] fileBytes, String fileName)
+            throws IOException {
+        TarArchiveEntry archiveEntry = new TarArchiveEntry(fileName);
+        archiveEntry.setSize(fileBytes.length);
+        tarOutputStream.putArchiveEntry(archiveEntry);
+        tarOutputStream.write(fileBytes);
         tarOutputStream.closeArchiveEntry();
     }
 }

@@ -46,7 +46,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * test token service
+ * test InternalTlsCertificateService
  */
 public class InternalTlsCertificateServiceTest {
 

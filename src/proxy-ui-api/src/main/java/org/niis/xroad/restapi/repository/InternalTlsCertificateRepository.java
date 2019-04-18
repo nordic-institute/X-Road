@@ -47,12 +47,6 @@ public class InternalTlsCertificateRepository {
      * reads internal tls certificate from file
      */
     public X509Certificate getInternalTlsCertificate() {
-        /**
-         *     if File.exists?(INTERNAL_SSL_CERT_PATH)
-         *       File.open(INTERNAL_SSL_CERT_PATH, 'rb') do |f|
-         *         cert = OpenSSL::X509::Certificate.new(f)
-         *       end
-         */
         try (FileInputStream fileInputStream = new FileInputStream(INTERNAL_TLS_CERT_PATH)) {
             return CryptoUtils.readCertificate(fileInputStream);
         } catch (IOException ioe) {
@@ -60,6 +54,4 @@ public class InternalTlsCertificateRepository {
             throw new RuntimeException(ioe);
         }
     }
-
-
 }
