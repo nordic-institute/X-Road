@@ -69,14 +69,14 @@ public class TokenServiceTest {
 
     @Test
     public void getExportedInternalTlsCertificate() throws Exception {
-        byte[] certFileData = tokenService.getExportedInternalTlsCertificate();
+        byte[] certFileData = tokenService.exportInternalTlsCertificate();
         assertTrue(certFileData.length > 100);
 
         // compare certs.tar.gz exported from old UI to the one from service
         InputStream exportedTarStream = getClass().getClassLoader()
                 .getResourceAsStream("exported-example-certs.tar.gz");
         Map<String, byte[]> exportedExampleFiles = extractTarGZ(IOUtils.toByteArray(exportedTarStream));
-        Map<String, byte[]> filesFromService = extractTarGZ(tokenService.getExportedInternalTlsCertificate());
+        Map<String, byte[]> filesFromService = extractTarGZ(tokenService.exportInternalTlsCertificate());
         assertEquals(exportedExampleFiles.size(), filesFromService.size());
         // check that we have same file names, and file bytes
         for (String fileName: exportedExampleFiles.keySet()) {

@@ -93,6 +93,12 @@ public class TokenService {
                 .collect(toList());
     }
 
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
+    public X509Certificate getInternalTlsCertificate() {
+        return tokenRepository.getInternalTlsCertificate();
+    }
+
+
     /**
      * TO DO: correct permissions
      * Builds a tar.gz package which contains internal tls certificate as
@@ -103,7 +109,7 @@ public class TokenService {
      * @return stream that contains the exported cert.tar.gz
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
-    public byte[] getExportedInternalTlsCertificate() {
+    public byte[] exportInternalTlsCertificate() {
         X509Certificate certificate = tokenRepository.getInternalTlsCertificate();
 
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
