@@ -25,16 +25,29 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.niis.xroad.restapi.repository.TokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
@@ -76,6 +89,44 @@ public class TokenService {
                 .flatMap(keyInfo -> keyInfo.getCerts().stream())
                 .filter(certificateInfo -> clientType.getIdentifier().memberEquals(certificateInfo.getMemberId()))
                 .collect(toList());
+    }
+
+    /**
+     * TO DO: correct permissions
+     * @return stream that contains the exported cert.tar.gz
+     */
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
+    public InputStream getExportedInternalTlsCertificate() {
+        X509Certificate certificate = tokenRepository.getInternalTlsCertificate();
+
+        PipedInputStream pipedInputStream = new PipedInputStream();
+        new Thread(new Runnable() {
+            public void run() {
+                try (
+                        PipedOutputStream pipedOutputStream = new PipedOutputStream(pipedInputStream);
+                        GzipCompressorOutputStream gzipCompressorOutputStream =
+                                new GzipCompressorOutputStream(pipedOutputStream);
+                        OutputStream bufferedOutputStream = new BufferedOutputStream(gzipCompressorOutputStream);
+                        TarArchiveOutputStream tarOutputStream = new TarArchiveOutputStream(bufferedOutputStream)
+                ) {
+                    // TO DO: read documenation. Do we need setSize()?
+                    ByteArrayOutputStream pemStream = new ByteArrayOutputStream();
+                    CryptoUtils.writeCertificatePem(certificate.getEncoded(), pemStream);
+                    byte[] pemBytes = pemStream.toByteArray();
+                    TarArchiveEntry pemEntry = new TarArchiveEntry("cert.pem");
+                    pemEntry.setSize(pemBytes.length);
+                    tarOutputStream.putArchiveEntry(pemEntry);
+                    tarOutputStream.write(pemBytes);
+                    tarOutputStream.closeArchiveEntry();
+
+                } catch (IOException | CertificateEncodingException e) {
+                    log.error("writing certificate file failed", e);
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        ).start();
+        return pipedInputStream;
     }
 
 }

@@ -24,12 +24,16 @@
  */
 package org.niis.xroad.restapi.repository;
 
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.commonui.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.security.cert.X509Certificate;
 import java.util.List;
 
 /**
@@ -46,6 +50,26 @@ public class TokenRepository {
      */
     public List<TokenInfo> getTokens() throws Exception {
         return SignerProxy.getTokens();
+    }
+
+    // as in application_controller.rb
+    private static final String INTERNAL_TLS_CERT_PATH = "/etc/xroad/ssl/internal.crt";
+    /**
+     * asd
+     */
+    public X509Certificate getInternalTlsCertificate() {
+        /**
+         *     if File.exists?(INTERNAL_SSL_CERT_PATH)
+         *       File.open(INTERNAL_SSL_CERT_PATH, 'rb') do |f|
+         *         cert = OpenSSL::X509::Certificate.new(f)
+         *       end
+         */
+        try (FileInputStream fileInputStream = new FileInputStream(INTERNAL_TLS_CERT_PATH)) {
+            return CryptoUtils.readCertificate(fileInputStream);
+        } catch (IOException ioe) {
+            log.error("cant read internal tls cert");
+            throw new RuntimeException(ioe);
+        }
     }
 
 }
