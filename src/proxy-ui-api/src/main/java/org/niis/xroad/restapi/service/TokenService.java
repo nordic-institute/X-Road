@@ -29,6 +29,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
@@ -42,10 +43,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -61,14 +58,16 @@ import static java.util.stream.Collectors.toList;
 @PreAuthorize("denyAll")
 public class TokenService {
 
-    private static final String CERT_PEM_FILENAME = "cert.pem";
-    private static final String CERT_CER_FILENAME = "cert.cer";
+    private static final String CERT_PEM_FILENAME = "./cert.pem";
+    private static final String CERT_CER_FILENAME = "./cert.cer";
 
     @Autowired
+    @Setter
     private TokenRepository tokenRepository;
 
     /**
      * get all tokens
+     *
      * @return
      * @throws Exception
      */
@@ -100,49 +99,45 @@ public class TokenService {
      * two files:
      * - cert.pem PEM encoded certificate
      * - cert.cer DER encoded certificate
+     *
      * @return stream that contains the exported cert.tar.gz
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
-    public InputStream getExportedInternalTlsCertificate() {
+    public byte[] getExportedInternalTlsCertificate() {
         X509Certificate certificate = tokenRepository.getInternalTlsCertificate();
 
-        PipedInputStream pipedInputStream = new PipedInputStream();
-        new Thread(new Runnable() {
-            public void run() {
-                try (
-                        PipedOutputStream pipedOutputStream = new PipedOutputStream(pipedInputStream);
-                        GzipCompressorOutputStream gzipCompressorOutputStream =
-                                new GzipCompressorOutputStream(pipedOutputStream);
-                        OutputStream bufferedOutputStream = new BufferedOutputStream(gzipCompressorOutputStream);
-                        TarArchiveOutputStream tarOutputStream = new TarArchiveOutputStream(bufferedOutputStream)
-                ) {
-                    ByteArrayOutputStream pemStream = new ByteArrayOutputStream();
-                    CryptoUtils.writeCertificatePem(certificate.getEncoded(), pemStream);
-                    byte[] pemBytes = pemStream.toByteArray();
-                    TarArchiveEntry pemEntry = new TarArchiveEntry(CERT_PEM_FILENAME);
-                    pemEntry.setSize(pemBytes.length);
-                    writeArchiveEntry(tarOutputStream, pemBytes, pemEntry);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        try (
+                GzipCompressorOutputStream gzipCompressorOutputStream =
+                        new GzipCompressorOutputStream(byteArrayOutputStream);
+                BufferedOutputStream bufferedOutputStream =
+                        new BufferedOutputStream(gzipCompressorOutputStream);
+                TarArchiveOutputStream tarOutputStream =
+                        new TarArchiveOutputStream(bufferedOutputStream)
+        ) {
+            ByteArrayOutputStream pemStream = new ByteArrayOutputStream();
+            CryptoUtils.writeCertificatePem(certificate.getEncoded(), pemStream);
+            byte[] pemBytes = pemStream.toByteArray();
+            TarArchiveEntry pemEntry = new TarArchiveEntry(CERT_PEM_FILENAME);
+            pemEntry.setSize(pemBytes.length);
+            writeArchiveEntry(tarOutputStream, pemBytes, pemEntry);
 
-                    TarArchiveEntry derEntry = new TarArchiveEntry(CERT_CER_FILENAME);
-                    byte[] derBytes = certificate.getEncoded();
-                    derEntry.setSize(derBytes.length);
-                    writeArchiveEntry(tarOutputStream, derBytes, derEntry);
+            TarArchiveEntry derEntry = new TarArchiveEntry(CERT_CER_FILENAME);
+            byte[] derBytes = certificate.getEncoded();
+            derEntry.setSize(derBytes.length);
+            writeArchiveEntry(tarOutputStream, derBytes, derEntry);
 
-                } catch (IOException | CertificateEncodingException e) {
-                    log.error("writing certificate file failed", e);
-                    throw new RuntimeException(e);
-                }
-            }
-
-            private void writeArchiveEntry(TarArchiveOutputStream tarOutputStream,
-                                           byte[] pemBytes, TarArchiveEntry pemEntry) throws IOException {
-                tarOutputStream.putArchiveEntry(pemEntry);
-                tarOutputStream.write(pemBytes);
-                tarOutputStream.closeArchiveEntry();
-            }
+        } catch (IOException | CertificateEncodingException e) {
+            log.error("writing certificate file failed", e);
+            throw new RuntimeException(e);
         }
-        ).start();
-        return pipedInputStream;
+        return byteArrayOutputStream.toByteArray();
     }
 
+    private void writeArchiveEntry(TarArchiveOutputStream tarOutputStream,
+                                   byte[] pemBytes, TarArchiveEntry pemEntry) throws IOException {
+        tarOutputStream.putArchiveEntry(pemEntry);
+        tarOutputStream.write(pemBytes);
+        tarOutputStream.closeArchiveEntry();
+    }
 }

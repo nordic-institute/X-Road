@@ -27,7 +27,7 @@ package org.niis.xroad.restapi.openapi;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +36,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.context.request.NativeWebRequest;
 
-import java.io.InputStream;
 import java.util.Optional;
 
 /**
@@ -66,9 +65,9 @@ public class SystemApiController implements org.niis.xroad.restapi.openapi.Syste
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
     public ResponseEntity<Resource> downloadSystemCertificate() {
-        InputStream certificateExportStream = tokenService.getExportedInternalTlsCertificate();
+        byte[] certificateTar = tokenService.getExportedInternalTlsCertificate();
         // spring closes the nested stream
-        Resource resource = new InputStreamResource(certificateExportStream);
+        Resource resource = new ByteArrayResource(certificateTar);
         return new ResponseEntity<>(resource, HttpStatus.OK);
     }
 
