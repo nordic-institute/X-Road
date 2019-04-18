@@ -32,7 +32,7 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.restapi.repository.TokenRepository;
+import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -48,14 +48,14 @@ import static org.junit.Assert.assertTrue;
 /**
  * test token service
  */
-public class TokenServiceTest {
+public class InternalTlsCertificateServiceTest {
 
-    TokenService tokenService;
+    InternalTlsCertificateService internalTlsCertificateService;
 
     @Before
     public void setup() throws Exception {
-        tokenService = new TokenService();
-        tokenService.setTokenRepository(new TokenRepository() {
+        internalTlsCertificateService = new InternalTlsCertificateService();
+        internalTlsCertificateService.setInternalTlsCertificateRepository(new InternalTlsCertificateRepository() {
             @Override
             public X509Certificate getInternalTlsCertificate() {
                 try (InputStream stream = getClass().getClassLoader().getResourceAsStream("internal.crt")) {
@@ -69,14 +69,15 @@ public class TokenServiceTest {
 
     @Test
     public void getExportedInternalTlsCertificate() throws Exception {
-        byte[] certFileData = tokenService.exportInternalTlsCertificate();
+        byte[] certFileData = internalTlsCertificateService.exportInternalTlsCertificate();
         assertTrue(certFileData.length > 100);
 
         // compare certs.tar.gz exported from old UI to the one from service
         InputStream exportedTarStream = getClass().getClassLoader()
                 .getResourceAsStream("exported-example-certs.tar.gz");
         Map<String, byte[]> exportedExampleFiles = extractTarGZ(IOUtils.toByteArray(exportedTarStream));
-        Map<String, byte[]> filesFromService = extractTarGZ(tokenService.exportInternalTlsCertificate());
+        Map<String, byte[]> filesFromService = extractTarGZ(
+                internalTlsCertificateService.exportInternalTlsCertificate());
         assertEquals(exportedExampleFiles.size(), filesFromService.size());
         // check that we have same file names, and file bytes
         for (String fileName: exportedExampleFiles.keySet()) {

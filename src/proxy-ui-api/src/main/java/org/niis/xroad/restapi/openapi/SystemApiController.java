@@ -27,7 +27,7 @@ package org.niis.xroad.restapi.openapi;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.CertificateConverter;
 import org.niis.xroad.restapi.openapi.model.Certificate;
-import org.niis.xroad.restapi.service.TokenService;
+import org.niis.xroad.restapi.service.InternalTlsCertificateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -53,7 +53,7 @@ public class SystemApiController implements org.niis.xroad.restapi.openapi.Syste
     private final NativeWebRequest request;
 
     @Autowired
-    private TokenService tokenService;
+    private InternalTlsCertificateService internalTlsCertificateService;
 
     @Autowired
     private CertificateConverter certificateConverter;
@@ -69,17 +69,17 @@ public class SystemApiController implements org.niis.xroad.restapi.openapi.Syste
     }
 
     @Override
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
+    @PreAuthorize("hasAuthority('EXPORT_PROXY_INTERNAL_CERT')")
     public ResponseEntity<Resource> downloadSystemCertificate() {
-        byte[] certificateTar = tokenService.exportInternalTlsCertificate();
+        byte[] certificateTar = internalTlsCertificateService.exportInternalTlsCertificate();
         Resource resource = new ByteArrayResource(certificateTar);
         return new ResponseEntity<>(resource, HttpStatus.OK);
     }
 
     @Override
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
+    @PreAuthorize("hasAuthority('VIEW_PROXY_INTERNAL_CERT')")
     public ResponseEntity<Certificate> getSystemCertificate() {
-        X509Certificate x509Certificate = tokenService.getInternalTlsCertificate();
+        X509Certificate x509Certificate = internalTlsCertificateService.getInternalTlsCertificate();
         Certificate certificate = certificateConverter.convert(x509Certificate);
         return new ResponseEntity<>(certificate, HttpStatus.OK);
     }

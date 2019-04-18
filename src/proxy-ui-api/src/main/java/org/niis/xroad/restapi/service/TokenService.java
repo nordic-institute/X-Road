@@ -25,41 +25,29 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.niis.xroad.restapi.repository.TokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.X509Certificate;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 
 /**
- * client service
+ * token related service
  */
 @Slf4j
 @Service
 @Transactional
 @PreAuthorize("denyAll")
 public class TokenService {
-
-    private static final String CERT_PEM_FILENAME = "./cert.pem";
-    private static final String CERT_CER_FILENAME = "./cert.cer";
 
     @Autowired
     @Setter
@@ -91,59 +79,5 @@ public class TokenService {
                 .flatMap(keyInfo -> keyInfo.getCerts().stream())
                 .filter(certificateInfo -> clientType.getIdentifier().memberEquals(certificateInfo.getMemberId()))
                 .collect(toList());
-    }
-
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
-    public X509Certificate getInternalTlsCertificate() {
-        return tokenRepository.getInternalTlsCertificate();
-    }
-
-
-    /**
-     * TO DO: correct permissions
-     * Builds a tar.gz package which contains internal tls certificate as
-     * two files:
-     * - cert.pem PEM encoded certificate
-     * - cert.cer DER encoded certificate
-     *
-     * @return stream that contains the exported cert.tar.gz
-     */
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
-    public byte[] exportInternalTlsCertificate() {
-        X509Certificate certificate = tokenRepository.getInternalTlsCertificate();
-
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        try (
-                GzipCompressorOutputStream gzipCompressorOutputStream =
-                        new GzipCompressorOutputStream(byteArrayOutputStream);
-                BufferedOutputStream bufferedOutputStream =
-                        new BufferedOutputStream(gzipCompressorOutputStream);
-                TarArchiveOutputStream tarOutputStream =
-                        new TarArchiveOutputStream(bufferedOutputStream)
-        ) {
-            ByteArrayOutputStream pemStream = new ByteArrayOutputStream();
-            CryptoUtils.writeCertificatePem(certificate.getEncoded(), pemStream);
-            byte[] pemBytes = pemStream.toByteArray();
-            TarArchiveEntry pemEntry = new TarArchiveEntry(CERT_PEM_FILENAME);
-            pemEntry.setSize(pemBytes.length);
-            writeArchiveEntry(tarOutputStream, pemBytes, pemEntry);
-
-            TarArchiveEntry derEntry = new TarArchiveEntry(CERT_CER_FILENAME);
-            byte[] derBytes = certificate.getEncoded();
-            derEntry.setSize(derBytes.length);
-            writeArchiveEntry(tarOutputStream, derBytes, derEntry);
-
-        } catch (IOException | CertificateEncodingException e) {
-            log.error("writing certificate file failed", e);
-            throw new RuntimeException(e);
-        }
-        return byteArrayOutputStream.toByteArray();
-    }
-
-    private void writeArchiveEntry(TarArchiveOutputStream tarOutputStream,
-                                   byte[] pemBytes, TarArchiveEntry pemEntry) throws IOException {
-        tarOutputStream.putArchiveEntry(pemEntry);
-        tarOutputStream.write(pemBytes);
-        tarOutputStream.closeArchiveEntry();
     }
 }
