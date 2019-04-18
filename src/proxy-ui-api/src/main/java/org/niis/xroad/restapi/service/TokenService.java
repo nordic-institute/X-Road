@@ -61,6 +61,9 @@ import static java.util.stream.Collectors.toList;
 @PreAuthorize("denyAll")
 public class TokenService {
 
+    private static final String CERT_PEM_FILENAME = "cert.pem";
+    private static final String CERT_CER_FILENAME = "cert.cer";
+
     @Autowired
     private TokenRepository tokenRepository;
 
@@ -93,6 +96,10 @@ public class TokenService {
 
     /**
      * TO DO: correct permissions
+     * Builds a tar.gz package which contains internal tls certificate as
+     * two files:
+     * - cert.pem PEM encoded certificate
+     * - cert.cer DER encoded certificate
      * @return stream that contains the exported cert.tar.gz
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
@@ -109,20 +116,29 @@ public class TokenService {
                         OutputStream bufferedOutputStream = new BufferedOutputStream(gzipCompressorOutputStream);
                         TarArchiveOutputStream tarOutputStream = new TarArchiveOutputStream(bufferedOutputStream)
                 ) {
-                    // TO DO: read documenation. Do we need setSize()?
                     ByteArrayOutputStream pemStream = new ByteArrayOutputStream();
                     CryptoUtils.writeCertificatePem(certificate.getEncoded(), pemStream);
                     byte[] pemBytes = pemStream.toByteArray();
-                    TarArchiveEntry pemEntry = new TarArchiveEntry("cert.pem");
+                    TarArchiveEntry pemEntry = new TarArchiveEntry(CERT_PEM_FILENAME);
                     pemEntry.setSize(pemBytes.length);
-                    tarOutputStream.putArchiveEntry(pemEntry);
-                    tarOutputStream.write(pemBytes);
-                    tarOutputStream.closeArchiveEntry();
+                    writeArchiveEntry(tarOutputStream, pemBytes, pemEntry);
+
+                    TarArchiveEntry derEntry = new TarArchiveEntry(CERT_CER_FILENAME);
+                    byte[] derBytes = certificate.getEncoded();
+                    derEntry.setSize(derBytes.length);
+                    writeArchiveEntry(tarOutputStream, derBytes, derEntry);
 
                 } catch (IOException | CertificateEncodingException e) {
                     log.error("writing certificate file failed", e);
                     throw new RuntimeException(e);
                 }
+            }
+
+            private void writeArchiveEntry(TarArchiveOutputStream tarOutputStream,
+                                           byte[] pemBytes, TarArchiveEntry pemEntry) throws IOException {
+                tarOutputStream.putArchiveEntry(pemEntry);
+                tarOutputStream.write(pemBytes);
+                tarOutputStream.closeArchiveEntry();
             }
         }
         ).start();
