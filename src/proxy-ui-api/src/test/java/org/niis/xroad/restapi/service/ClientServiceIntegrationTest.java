@@ -26,10 +26,16 @@ package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.exceptions.ConflictException;
+import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,7 +43,12 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.cert.X509Certificate;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -53,11 +64,24 @@ public class ClientServiceIntegrationTest {
     @Autowired
     private ClientService clientService;
 
+    private byte[] pemBytes;
+    private byte[] derBytes;
+
+    @Before
+    public void setup() throws Exception {
+        pemBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
+                getResourceAsStream("google-cert.pem"));
+        derBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
+                getResourceAsStream("google-cert.der"));
+        assertTrue(pemBytes.length > 1);
+        assertTrue(derBytes.length > 1);
+    }
+
     @Test
     @WithMockUser(authorities = { "EDIT_CLIENT_INTERNAL_CONNECTION_TYPE",
             "VIEW_CLIENT_DETAILS" })
     public void updateConnectionType() {
-        ClientId id = ClientId.create("FI", "GOV", "M1", "SS1");
+        ClientId id = getM1Ss1ClientId();
         ClientType clientType = clientService.getClient(id);
         assertEquals("SSLNOAUTH", clientType.getIsAuthentication());
         assertEquals(2, clientType.getLocalGroup().size());
@@ -73,4 +97,81 @@ public class ClientServiceIntegrationTest {
         assertEquals("NOSSL", clientType.getIsAuthentication());
         assertEquals(2, clientType.getLocalGroup().size());
     }
+
+    private ClientId getM1Ss1ClientId() {
+        return ClientId.create("FI", "GOV", "M1", "SS1");
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_CLIENT_INTERNAL_CERT" })
+    public void addCertificatePem() throws Exception {
+
+        ClientId id = getM1Ss1ClientId();
+        ClientType clientType = clientService.getClient(id);
+        assertEquals(0, clientType.getIsCert().size());
+
+        clientService.addTlsCertificate(id, pemBytes);
+
+        clientType = clientService.getClient(id);
+        assertEquals(1, clientType.getIsCert().size());
+        assertEquals(derBytes, clientType.getIsCert().get(0).getData());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_CLIENT_INTERNAL_CERT" })
+    public void addCertificateDer() throws Exception {
+
+        ClientId id = getM1Ss1ClientId();
+        ClientType clientType = clientService.getClient(id);
+        assertEquals(0, clientType.getIsCert().size());
+
+        clientService.addTlsCertificate(id, derBytes);
+
+        clientType = clientService.getClient(id);
+        assertEquals(1, clientType.getIsCert().size());
+        assertEquals(derBytes, clientType.getIsCert().get(0).getData());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_CLIENT_INTERNAL_CERT" })
+    public void addDuplicate() throws Exception {
+
+        ClientId id = getM1Ss1ClientId();
+        ClientType clientType = clientService.getClient(id);
+        assertEquals(0, clientType.getIsCert().size());
+
+        clientService.addTlsCertificate(id, derBytes);
+
+        try {
+            clientService.addTlsCertificate(id, pemBytes);
+            fail("should have thrown ConflictException");
+        } catch (ConflictException expected) {
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_CLIENT_INTERNAL_CERT",
+            "DELETE_CLIENT_INTERNAL_CERT" })
+    public void deleteCertificate() throws Exception {
+
+        ClientId id = getM1Ss1ClientId();
+        ClientType clientType = clientService.getClient(id);
+        assertEquals(0, clientType.getIsCert().size());
+
+        clientService.addTlsCertificate(id, derBytes);
+        String hash = CryptoUtils.calculateCertHexHash(derBytes);
+
+        try {
+            clientService.deleteTlsCertificate(id, "wrong hash");
+            fail("should have thrown NotFoundException");
+        } catch (NotFoundException expected) {
+        }
+        clientType = clientService.getClient(id);
+        assertEquals(1, clientType.getIsCert().size());
+
+        clientService.deleteTlsCertificate(id, hash);
+        clientType = clientService.getClient(id);
+        assertEquals(0, clientType.getIsCert().size());
+    }
+
 }

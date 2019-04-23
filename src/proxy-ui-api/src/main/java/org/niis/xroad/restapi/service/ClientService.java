@@ -90,4 +90,20 @@ public class ClientService {
         return clientType;
     }
 
+    /**
+     * @param id
+     * @param derBytes DER-encoded certificate
+     * @return
+     */
+    @PreAuthorize("hasAuthority('ADD_CLIENT_INTERNAL_CERT')")
+    public ClientType addTlsCertificate(ClientId id, byte[] derBytes) {
+        return null;
+    }
+
+
+    @PreAuthorize("hasAuthority('DELETE_CLIENT_INTERNAL_CERT')")
+    public ClientType deleteTlsCertificate(ClientId id, String certificateHash) {
+        return null;
+    }
+
 }
