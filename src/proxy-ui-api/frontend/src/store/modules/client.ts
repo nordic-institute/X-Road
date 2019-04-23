@@ -177,10 +177,12 @@ export const actions: ActionTree<ClientState, RootState> = {
 
   downloadSSCertificate({ commit, state }, { hash }) {
 
-    axios.get(`/download`, { responseType: 'blob' }).then((response) => {
+    axios.get(`/system/export`, { responseType: 'arraybuffer' }).then((response) => {
 
       // Log somewhat to show that the browser actually exposes the custom HTTP header
       // const fileNameHeader = "x-suggested-filename";
+
+      /*
       const fileNameHeader = 'content-disposition';
       const suggestedFileName = response.headers[fileNameHeader].filename;
       console.log(response.headers[fileNameHeader]);
@@ -191,6 +193,32 @@ export const actions: ActionTree<ClientState, RootState> = {
 
       // Let the user save the file.
       FileSaver.saveAs(response.data, effectiveFileName);
+*/
+
+      /*
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'file.cert');
+            document.body.appendChild(link);
+            link.click();
+            */
+
+
+      const fileNameHeader = 'content-disposition';
+      const suggestedFileName = response.headers[fileNameHeader].filename;
+      console.log(response.headers[fileNameHeader]);
+      const effectiveFileName = (suggestedFileName === undefined ? 'random_name.txt' : suggestedFileName);
+
+
+      // const url = window.URL.createObjectURL(new Blob([response.data]));
+      // let blob = new Blob([response.data], { type: response.headers.get('content-type') });
+      let blob = new Blob([response.data]);
+      let link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.setAttribute('download', effectiveFileName);
+      document.body.appendChild(link);
+      link.click();
 
     }).catch((response) => {
       console.error('Could not Download the Excel report from the backend.', response);

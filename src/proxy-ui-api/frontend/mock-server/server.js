@@ -117,9 +117,9 @@ app.put('/api/clients/:id', function (req, res) {
 
 
 
-app.get('/api/download', function (req, res) {
+app.get('/api/system/export', function (req, res) {
   var file = __dirname + '/upload/fake.cer';
-  res.download(file); // Set disposition and send it.
+  res.download(file, 'mock_cert.cer'); // Set disposition and send it.
 });
 
 
