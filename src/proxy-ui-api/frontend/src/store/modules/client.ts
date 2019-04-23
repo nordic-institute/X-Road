@@ -1,6 +1,5 @@
 import axios from 'axios';
 import _ from 'lodash';
-import FileSaver from 'file-saver';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 
@@ -178,43 +177,13 @@ export const actions: ActionTree<ClientState, RootState> = {
   downloadSSCertificate({ commit, state }, { hash }) {
 
     axios.get(`/system/export`, { responseType: 'arraybuffer' }).then((response) => {
-
-      // Log somewhat to show that the browser actually exposes the custom HTTP header
-      // const fileNameHeader = "x-suggested-filename";
-
-      /*
       const fileNameHeader = 'content-disposition';
       const suggestedFileName = response.headers[fileNameHeader].filename;
-      console.log(response.headers[fileNameHeader]);
-      const effectiveFileName = (suggestedFileName === undefined ? 'random_name.cert' : suggestedFileName);
+      const effectiveFileName = (suggestedFileName === undefined ? 'certs' : suggestedFileName);
+      // If there is need the "content-type" can be obtained from the headers also
 
-      console.log('Received header [' + fileNameHeader + ']: ' + suggestedFileName
-        + ', effective fileName: ' + effectiveFileName);
-
-      // Let the user save the file.
-      FileSaver.saveAs(response.data, effectiveFileName);
-*/
-
-      /*
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', 'file.cert');
-            document.body.appendChild(link);
-            link.click();
-            */
-
-
-      const fileNameHeader = 'content-disposition';
-      const suggestedFileName = response.headers[fileNameHeader].filename;
-      console.log(response.headers[fileNameHeader]);
-      const effectiveFileName = (suggestedFileName === undefined ? 'random_name.txt' : suggestedFileName);
-
-
-      // const url = window.URL.createObjectURL(new Blob([response.data]));
-      // let blob = new Blob([response.data], { type: response.headers.get('content-type') });
-      let blob = new Blob([response.data]);
-      let link = document.createElement('a');
+      const blob = new Blob([response.data]);
+      const link = document.createElement('a');
       link.href = window.URL.createObjectURL(blob);
       link.setAttribute('download', effectiveFileName);
       document.body.appendChild(link);
@@ -223,7 +192,6 @@ export const actions: ActionTree<ClientState, RootState> = {
     }).catch((response) => {
       console.error('Could not Download the Excel report from the backend.', response);
     });
-
   },
 
   uploadTlsCertificate({ commit, state }, { clientId, file }) {
