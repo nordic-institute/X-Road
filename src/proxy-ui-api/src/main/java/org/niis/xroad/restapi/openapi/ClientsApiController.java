@@ -164,13 +164,19 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
     @PreAuthorize("hasAuthority('ADD_CLIENT_INTERNAL_CERT')")
     public ResponseEntity<Void> addClientTlsCertificate(String encodedId, @Valid String body) {
         // TO DO: API should not transfer base64 encoded files, Lauri will change API
-        byte[] decodedBody = Base64.getDecoder().decode(body);
+        byte[] decodedBody;
+        try {
+            decodedBody = Base64.getDecoder().decode(body);
+        } catch (Exception ex) {
+            throw new BadRequestException("cannot base64 decode", ex);
+        }
         ClientId clientId = clientConverter.convertId(encodedId);
         try {
             clientService.addTlsCertificate(clientId, decodedBody);
         } catch (CertificateException c) {
             throw new BadRequestException(c);
         }
+
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
