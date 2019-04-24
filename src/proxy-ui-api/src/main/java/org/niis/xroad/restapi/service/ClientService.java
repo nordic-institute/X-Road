@@ -25,10 +25,13 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
+import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +39,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.List;
 
 /**
@@ -91,13 +97,61 @@ public class ClientService {
     }
 
     /**
+     * TO DO: check old error codes, do we provide enough information to show those?
      * @param id
-     * @param derBytes DER-encoded certificate
+     * @param certBytes either PEM or DER -encoded certificate
      * @return
+     * @throws CertificateException if certBytes was not a valid PEM or DER encoded certificate
      */
     @PreAuthorize("hasAuthority('ADD_CLIENT_INTERNAL_CERT')")
-    public ClientType addTlsCertificate(ClientId id, byte[] derBytes) {
-        return null;
+    public ClientType addTlsCertificate(ClientId id, byte[] certBytes) throws CertificateException {
+        X509Certificate x509Certificate;
+        try {
+            x509Certificate = CryptoUtils.readCertificate(certBytes);
+        } catch (Exception e) {
+            throw new CertificateException("cannot convert bytes to certificate", e);
+        }
+        String hash = calculateCertHexHash(x509Certificate);
+        ClientType clientType = clientRepository.getClient(id);
+        if (clientType == null) {
+            throw new NotFoundException(("client with id " + id + " not found"));
+        }
+        clientType.getIsCert().stream()
+                .filter(cert -> hash.equals(calculateCertHexHash(cert.getData())))
+                .findAny()
+                .ifPresent(a -> { throw new ConflictException("clients.cert_exists"); });
+
+        CertificateType certificateType = new CertificateType();
+        try {
+            certificateType.setData(x509Certificate.getEncoded());
+        } catch (CertificateEncodingException ex) {
+            throw new RuntimeException(ex);
+        }
+        clientType.getIsCert().add(certificateType);
+        clientRepository.saveOrUpdate(clientType);
+        return clientType;
+    }
+
+    /**
+     * Convenience / cleanness wrapper
+     */
+    private String calculateCertHexHash(X509Certificate cert) {
+        try {
+            return CryptoUtils.calculateCertHexHash(cert);
+        } catch (Exception e) {
+            throw new RuntimeException("hash calculation failed", e);
+        }
+    }
+
+    /**
+     * Convenience / cleanness wrapper
+     */
+    private String calculateCertHexHash(byte[] certBytes) {
+        try {
+            return CryptoUtils.calculateCertHexHash(certBytes);
+        } catch (Exception e) {
+            throw new RuntimeException("hash calculation failed", e);
+        }
     }
 
 

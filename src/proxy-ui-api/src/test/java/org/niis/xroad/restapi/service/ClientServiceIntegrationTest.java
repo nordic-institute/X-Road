@@ -33,6 +33,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
@@ -45,7 +46,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -66,6 +69,7 @@ public class ClientServiceIntegrationTest {
 
     private byte[] pemBytes;
     private byte[] derBytes;
+    private byte[] sqlFileBytes;
 
     @Before
     public void setup() throws Exception {
@@ -73,8 +77,11 @@ public class ClientServiceIntegrationTest {
                 getResourceAsStream("google-cert.pem"));
         derBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
                 getResourceAsStream("google-cert.der"));
+        sqlFileBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
+                getResourceAsStream("data.sql"));
         assertTrue(pemBytes.length > 1);
         assertTrue(derBytes.length > 1);
+        assertTrue(sqlFileBytes.length > 1);
     }
 
     @Test
@@ -114,7 +121,22 @@ public class ClientServiceIntegrationTest {
 
         clientType = clientService.getClient(id);
         assertEquals(1, clientType.getIsCert().size());
-        assertEquals(derBytes, clientType.getIsCert().get(0).getData());
+        assertTrue(Arrays.equals(derBytes, clientType.getIsCert().get(0).getData()));
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_CLIENT_INTERNAL_CERT" })
+    public void addInvalidCertificate() throws Exception {
+
+        ClientId id = getM1Ss1ClientId();
+        ClientType clientType = clientService.getClient(id);
+        assertEquals(0, clientType.getIsCert().size());
+
+        try {
+            clientService.addTlsCertificate(id, sqlFileBytes);
+            fail("should have thrown CertificateException");
+        } catch (CertificateException expected) {
+        }
     }
 
     @Test
@@ -129,7 +151,7 @@ public class ClientServiceIntegrationTest {
 
         clientType = clientService.getClient(id);
         assertEquals(1, clientType.getIsCert().size());
-        assertEquals(derBytes, clientType.getIsCert().get(0).getData());
+        assertTrue(Arrays.equals(derBytes, clientType.getIsCert().get(0).getData()));
     }
 
     @Test
