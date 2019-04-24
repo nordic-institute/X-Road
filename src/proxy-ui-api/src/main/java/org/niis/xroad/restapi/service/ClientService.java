@@ -98,6 +98,7 @@ public class ClientService {
 
     /**
      * TO DO: check old error codes, do we provide enough information to show those?
+     * TO DO: must check that the old code still works after hbm.xml change
      * @param id
      * @param certBytes either PEM or DER -encoded certificate
      * @return
@@ -119,7 +120,8 @@ public class ClientService {
         clientType.getIsCert().stream()
                 .filter(cert -> hash.equals(calculateCertHexHash(cert.getData())))
                 .findAny()
-                .ifPresent(a -> { throw new ConflictException("clients.cert_exists"); });
+                .ifPresent(a -> {
+                    throw new ConflictException("clients.cert_exists"); });
 
         CertificateType certificateType = new CertificateType();
         try {
@@ -155,9 +157,28 @@ public class ClientService {
     }
 
 
+    /**
+     * Deletes one (and should be the only) certificate with
+     * matching hash
+     * @param id
+     * @param certificateHash
+     * @return
+     * @throws NotFoundException if client of certificate was not found
+     * TO DO: error code distinguishing between the two
+     */
     @PreAuthorize("hasAuthority('DELETE_CLIENT_INTERNAL_CERT')")
     public ClientType deleteTlsCertificate(ClientId id, String certificateHash) {
-        return null;
+        ClientType clientType = clientRepository.getClient(id);
+        if (clientType == null) {
+            throw new NotFoundException(("client with id " + id + " not found"));
+        }
+        CertificateType certificateType = clientType.getIsCert().stream()
+                .filter(certificate -> calculateCertHexHash(certificate.getData()).equals(certificateHash))
+                .findAny()
+                .orElseThrow(() -> new NotFoundException("certificate with hash " + certificateHash + " not found"));
+        clientType.getIsCert().remove(certificateType);
+        clientRepository.saveOrUpdate(clientType);
+        return clientType;
     }
 
 }
