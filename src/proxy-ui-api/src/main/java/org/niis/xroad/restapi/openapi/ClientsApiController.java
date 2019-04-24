@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.CertificateConverter;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.ConnectionTypeMapping;
+import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.Certificate;
 import org.niis.xroad.restapi.openapi.model.Client;
@@ -49,7 +50,9 @@ import org.springframework.web.context.request.NativeWebRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -155,6 +158,28 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
         ClientType changed = clientService.updateConnectionType(clientId, connectionTypeString);
         Client result = clientConverter.convert(changed);
         return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('ADD_CLIENT_INTERNAL_CERT')")
+    public ResponseEntity<Void> addClientTlsCertificate(String encodedId, @Valid String body) {
+        // TO DO: API should not transfer base64 encoded files, Lauri will change API
+        byte[] decodedBody = Base64.getDecoder().decode(body);
+        ClientId clientId = clientConverter.convertId(encodedId);
+        try {
+            clientService.addTlsCertificate(clientId, decodedBody);
+        } catch (CertificateException c) {
+            throw new BadRequestException(c);
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DELETE_CLIENT_INTERNAL_CERT')")
+    public ResponseEntity<Void> deleteClientTlsCertificate(String encodedId, String hash) {
+        ClientId clientId = clientConverter.convertId(encodedId);
+        clientService.deleteTlsCertificate(clientId, hash);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @Override
