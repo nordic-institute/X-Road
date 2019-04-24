@@ -101,3 +101,5 @@ Consultation services for deploying independent X-Road instances should be obtai
 * [Roksnet Solutions OÜ](https://roksnet.com)
 
 No support for X-Road deployment is provided here.
+
+
