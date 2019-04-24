@@ -836,7 +836,7 @@ When a new WSDL file is added, the security server reads service information fro
 
 1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Services** icon on that row.
 
-2.  Click **ADD WSDL**, enter the WSDL address in the window that opens and click **OK**. The WSDL and the information about the services it contains are added to the table. By default, the WSDL is added in disabled state (see [6.3](#63-enabling-and-disabling-a-service-description)).
+2.  Click **ADD WSDL**, enter the WSDL address in the window that opens and click **OK**. Once the window is closed, the WSDL and the information about the services it contains are added to the table. By default, the WSDL is added in disabled state (see [6.3](#63-enabling-and-disabling-a-service-description)).
 
 **To see a list of services contained in the WSDL**
 
