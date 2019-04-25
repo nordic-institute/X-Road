@@ -12,7 +12,6 @@ pipeline {
                 dockerfile {
                     dir 'src/packages/docker-compile'
                     additionalBuildArgs '--build-arg uid=$(id -u) --build-arg gid=$(id -g)'
-                    args '-itv cache-gradle:/mnt/gradle-cache -v cache-rvm:/home/builder/.rvm'
                     reuseNode true
                 }
             }
