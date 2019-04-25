@@ -245,6 +245,10 @@ public final class SystemProperties {
 
     private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = "false";
 
+    private static final String DEFAULT_CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = "false";
+
+    private static final String DEFAULT_CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS = "false";
+
     private static final String DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
 
     private static final String DEFAULT_PROXY_CONNECTOR_INITIAL_IDLE_TIME = "30000";
@@ -419,6 +423,14 @@ public final class SystemProperties {
     /** Property name of the path where conf backups are created. */
     public static final String CONF_BACKUP_PATH =
             PREFIX + "center.conf-backup-path";
+
+    /** Property name of enabling automatic approval of auth cert registration requests. */
+    public static final String CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS =
+            PREFIX + "center.auto-approve-auth-cert-reg-requests";
+
+    /** Property name of enabling automatic approval of client registration requests. */
+    public static final String CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS =
+            PREFIX + "center.auto-approve-client-reg-requests";
 
     // Misc -------------------------------------------------------------------
 
@@ -958,6 +970,22 @@ public final class SystemProperties {
     }
 
     /**
+     * @return whether automatic approval of auth cert registration requests is enabled, 'false' by default.
+     */
+    public static boolean getCenterAutoApproveAuthCertRegRequests() {
+        return Boolean.parseBoolean(System.getProperty(CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS,
+                DEFAULT_CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS));
+    }
+
+    /**
+     * @return whether automatic approval of client registration requests is enabled, 'false' by default.
+     */
+    public static boolean getCenterAutoApproveClientRegRequests() {
+        return Boolean.parseBoolean(System.getProperty(CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS,
+                DEFAULT_CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS));
+    }
+
+    /**
      * @return the HTTP port on which the monitor agent listens for administrative commands, '5588' by default.
      */
     public static int getMonitorAgentAdminPort() {
@@ -1250,11 +1278,15 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the so_linger value in seconds that should be set for server proxy connector, 0 by default
+     * @return the so_linger value in milliseconds that should be set for server proxy connector, -1 (disabled) by
+     * default
      */
+    @SuppressWarnings("checkstyle:magicnumber")
     public static int getServerProxyConnectorSoLinger() {
-        return Integer.parseInt(System.getProperty(SERVERPROXY_CONNECTOR_SO_LINGER,
+        final int linger = Integer.parseInt(System.getProperty(SERVERPROXY_CONNECTOR_SO_LINGER,
                 DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER));
+        if (linger >= 0) return linger * 1000;
+        return -1;
     }
 
     /**

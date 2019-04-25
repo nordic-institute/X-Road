@@ -380,8 +380,8 @@ public class SignatureVerifier {
                 case MessageFileNames.MESSAGE:
                     MessagePart part = getPart(MessageFileNames.MESSAGE);
 
-                    if (part != null && part.getSoap() != null) {
-                        return new XMLSignatureInput(part.getSoap());
+                    if (part != null && part.getMessage() != null) {
+                        return new XMLSignatureInput(part.getMessage());
                     }
 
                     break;

@@ -31,6 +31,7 @@ import ee.ria.xroad.common.cert.CertHelper;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -82,6 +83,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_MESSAGE;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SECURITY_SERVER;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SERVICE_TYPE;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
 import static ee.ria.xroad.common.ErrorCodes.X_SECURITY_CATEGORY;
@@ -100,6 +102,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_SOAP_ACTION;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
@@ -116,6 +119,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private ServiceId requestServiceId;
     private SoapMessageImpl responseSoap;
     private SoapFault responseFault;
+    private String xRequestId;
 
     private ProxyMessageDecoder decoder;
     private ProxyMessageEncoder encoder;
@@ -141,6 +145,9 @@ class ServerMessageProcessor extends MessageProcessorBase {
     public void process() throws Exception {
         log.info("process({})", servletRequest.getContentType());
 
+        xRequestId = servletRequest.getHeader(HEADER_REQUEST_ID);
+
+        opMonitoringData.setXRequestId(xRequestId);
         updateOpMonitoringClientSecurityServerAddress();
         updateOpMonitoringServiceSecurityServerAddress();
 
@@ -367,6 +374,12 @@ class ServerMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_UNKNOWN_SERVICE, "Unknown service: %s", requestServiceId);
         }
 
+        DescriptionType descriptionType = ServerConf.getDescriptionType(requestServiceId);
+        if (descriptionType != null && descriptionType != DescriptionType.WSDL) {
+            throw new CodedException(X_INVALID_SERVICE_TYPE,
+                    "Service is a REST service and cannot be called using SOAP interface");
+        }
+
         verifySecurityCategory(requestServiceId);
 
         if (!ServerConf.isQueryAllowed(requestMessage.getSoap().getClient(), requestServiceId)) {
@@ -411,14 +424,14 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private void logRequestMessage() throws Exception {
         log.trace("logRequestMessage()");
 
-        MessageLog.log(requestMessage.getSoap(), requestMessage.getSignature(), false);
+        MessageLog.log(requestMessage.getSoap(), requestMessage.getSignature(), false, xRequestId);
     }
 
     private void logResponseMessage() throws Exception {
         if (responseSoap != null && encoder != null) {
             log.trace("logResponseMessage()");
 
-            MessageLog.log(responseSoap, encoder.getSignature(), false);
+            MessageLog.log(responseSoap, encoder.getSignature(), false, xRequestId);
         }
     }
 

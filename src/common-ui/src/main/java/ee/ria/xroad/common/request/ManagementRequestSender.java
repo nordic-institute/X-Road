@@ -128,7 +128,10 @@ public final class ManagementRequestSender {
      */
     public Integer sendClientRegRequest(SecurityServerId securityServer,
             ClientId clientId) throws Exception {
-        return sendToProxy(builder.buildClientRegRequest(securityServer, clientId));
+        try (HttpSender sender = ManagementRequestClient.createProxyHttpSender()) {
+            return send(sender, getSecurityServerURI(),
+                    new ClientRegRequest(clientId, builder.buildClientRegRequest(securityServer, clientId)));
+        }
     }
 
     /**

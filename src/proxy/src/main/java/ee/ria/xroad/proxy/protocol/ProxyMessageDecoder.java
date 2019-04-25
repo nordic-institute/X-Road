@@ -26,6 +26,8 @@ package ee.ria.xroad.proxy.protocol;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.message.RestRequest;
+import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapFault;
@@ -116,6 +118,9 @@ public class ProxyMessageDecoder {
     private long attachmentsByteCount = 0;
 
     private int attachmentNo = 0;
+
+    @Getter
+    private byte[] restBodyDigest;
 
     /**
      * Construct a message decoder.
@@ -210,11 +215,12 @@ public class ProxyMessageDecoder {
     }
 
     private enum NextPart {
-        OCSP, SOAP, ATTACHMENT, HASH_CHAIN_RESULT, HASH_CHAIN, SIGNATURE, NONE
+        OCSP, SOAP, REST, RESTBODY, ATTACHMENT, HASH_CHAIN_RESULT, HASH_CHAIN, SIGNATURE, NONE
     }
 
     private class ContentHandler extends AbstractContentHandler {
         private NextPart nextPart = NextPart.OCSP;
+        private boolean rest = false;
         private Map<String, String> headers;
         private String partContentType;
 
@@ -252,14 +258,33 @@ public class ProxyMessageDecoder {
                         break;
                     }
                     // $FALL-THROUGH$ OCSP response is only sent from CP to SP.
+                case REST:
+                    if ("application/x-road-rest-request".equalsIgnoreCase(bd.getMimeType())) {
+                        rest = true;
+                        nextPart = NextPart.RESTBODY;
+                        handleRest(bd, is);
+                        break;
+                    }
+                    if ("application/x-road-rest-response".equalsIgnoreCase(bd.getMimeType())) {
+                        rest = true;
+                        nextPart = NextPart.RESTBODY;
+                        handleRestResponse(bd, is);
+                        break;
+                    }
+                    // $FALL-THROUGH$ can be message instead
                 case SOAP:
                     handleSoap(bd, is, partContentType, headers);
-
                     nextPart = NextPart.ATTACHMENT;
                     break;
+                case RESTBODY:
+                    if ("application/x-road-rest-body".equalsIgnoreCase(bd.getMimeType())) {
+                        nextPart = NextPart.HASH_CHAIN_RESULT;
+                        handleRestBody(bd, is);
+                        break;
+                    }
+                    // $FALL-THROUGH$ perhaps hash chain result
                 case ATTACHMENT:
-                    if (MULTIPART_MIXED.equals(
-                            MimeUtils.getBaseContentType(bd.getMimeType()))) {
+                    if (!rest && MULTIPART_MIXED.equals(MimeUtils.getBaseContentType(bd.getMimeType()))) {
                         handleAttachments(bd, is);
 
                         nextPart = NextPart.HASH_CHAIN_RESULT;
@@ -335,6 +360,47 @@ public class ProxyMessageDecoder {
                 verifier.addMessagePart(getHashAlgoId(),
                         (SoapMessageImpl) soap);
             }
+        } catch (Exception ex) {
+            throw translateException(ex);
+        }
+    }
+
+    private void handleRest(BodyDescriptor bd, InputStream is) {
+        try {
+            //The request size is unbounded; should have a limit?
+            final byte[] request = IOUtils.toByteArray(is);
+            final byte[] digest = CryptoUtils.calculateDigest(getHashAlgoId(), request);
+            callback.rest(new RestRequest(request));
+            verifier.addPart(MessageFileNames.MESSAGE, getHashAlgoId(), digest, request);
+        } catch (Exception ex) {
+            throw translateException(ex);
+        }
+    }
+
+    private void handleRestResponse(BodyDescriptor bd, InputStream is) {
+        try {
+            //The response size is unbounded; should have a limit?
+            final byte[] request = IOUtils.toByteArray(is);
+            callback.rest(RestResponse.of(request));
+            verifier.addPart(MessageFileNames.MESSAGE,
+                    getHashAlgoId(),
+                    CryptoUtils.calculateDigest(getHashAlgoId(), request),
+                    request);
+        } catch (Exception ex) {
+            throw translateException(ex);
+        }
+    }
+
+    private void handleRestBody(BodyDescriptor bd, InputStream is) {
+        try {
+            final DigestCalculator dc = CryptoUtils.createDigestCalculator(getHashAlgoId());
+            final CountingOutputStream cos = new CountingOutputStream(dc.getOutputStream());
+            final TeeInputStream proxyIs = new TeeInputStream(is, cos, true);
+
+            callback.restBody(proxyIs);
+            attachmentsByteCount += cos.getByteCount();
+            restBodyDigest = dc.getDigest();
+            verifier.addPart(MessageFileNames.attachment(++attachmentNo), getHashAlgoId(), restBodyDigest);
         } catch (Exception ex) {
             throw translateException(ex);
         }

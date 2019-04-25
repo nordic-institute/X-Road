@@ -69,7 +69,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 public class LogArchiver extends UntypedActor {
 
     private static final int MAX_RECORDS_IN_ARCHIVE = 10;
-    private static final int MAX_RECORDS_IN_PATCHS = 360;
+    private static final int MAX_RECORDS_IN_BATCH = 360;
     private static final String PROPERTY_NAME_ARCHIVED = "archived";
 
     public static final String START_ARCHIVING = "doArchive";
@@ -86,7 +86,8 @@ public class LogArchiver extends UntypedActor {
             try {
                 Long maxTimestampId = doInTransaction(session -> getMaxTimestampId(session));
                 if (maxTimestampId != null) {
-                    while (handleArchive(maxTimestampId)) { }
+                    while (handleArchive(maxTimestampId)) {
+                    }
                 }
             } catch (Exception ex) {
                 log.error("Failed to archive log records", ex);
@@ -132,7 +133,7 @@ public class LogArchiver extends UntypedActor {
                 }
             } catch (Exception e) {
                 throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
-            }  finally {
+            } finally {
                 runTransferCommand(getArchiveTransferCommand());
             }
 
@@ -191,22 +192,22 @@ public class LogArchiver extends UntypedActor {
     }
 
     protected List<LogRecord> getRecordsToBeArchived(Session session, long maxTimestampId) {
+        /* Implementation note. Log cleaning assumes that the records are archived starting from the oldest
+          (smallest id). If this is changed, log cleaning must be changed accordingly. */
+
         List<LogRecord> recordsToArchive = new ArrayList<>();
         safeTransactionBatch = false;
         int allowedInArchiveCount = MAX_RECORDS_IN_ARCHIVE;
-        for (TimestampRecord ts : getNonArchivedTimestampRecords(session, MAX_RECORDS_IN_PATCHS, maxTimestampId)) {
+        for (TimestampRecord ts : getNonArchivedTimestampRecords(session, MAX_RECORDS_IN_BATCH, maxTimestampId)) {
             List<MessageRecord> messages =
                     getNonArchivedMessageRecords(session, ts.getId(),
                             allowedInArchiveCount);
             if (allTimestampMessagesArchived(session, ts.getId())) {
-                log.trace("Timestamp record #{} will be archived",
-                        ts.getId());
+                log.trace("Timestamp record #{} will be archived", ts.getId());
                 recordsToArchive.add(ts);
                 safeTransactionBatch = true;
             } else {
-                log.trace("Timestamp record #{} still related to"
-                                + " non-archived message records",
-                        ts.getId());
+                log.trace("Timestamp record #{} still related to non-archived message records", ts.getId());
             }
 
             recordsToArchive.addAll(messages);
@@ -266,11 +267,8 @@ public class LogArchiver extends UntypedActor {
             final Session session) throws Exception {
         if (lastArchive != null) {
             log.debug("Digest entry will be saved here...");
-
-            session.createQuery(
-                    "delete from " + DigestEntry.class.getName()
-                )
-                .executeUpdate();
+            session.createQuery("delete from " + DigestEntry.class.getName())
+                    .executeUpdate();
 
             session.save(lastArchive);
         }
@@ -314,9 +312,7 @@ public class LogArchiver extends UntypedActor {
                         standardErrorCollector.getStandardError());
             }
         } catch (Exception e) {
-            log.error(
-                    "Failed to execute archive transfer command '{}'",
-                    transferCommand, e);
+            log.error("Failed to execute archive transfer command '{}'", transferCommand, e);
         }
     }
 

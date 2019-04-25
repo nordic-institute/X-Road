@@ -31,3 +31,26 @@
     padding: 0;
 }
 
+@mixin xs {
+    @media (max-width:40em) {
+        @content;
+    }
+}
+
+@mixin sm {
+    @media (min-width: 40em) and (max-width: 54em) {
+        @content;
+    }
+}
+
+@mixin md {
+    @media (min-width: 54em) and (max-width: 76em) {
+        @content;
+    }
+}
+
+@mixin lg {
+    @media (min-width: 76em) {
+        @content;
+    }
+}

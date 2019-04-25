@@ -22,35 +22,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.serverconf.model;
+package ee.ria.xroad.common.messagelog;
+
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.signature.SignatureData;
 
 import lombok.Getter;
-import lombok.Setter;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 /**
- * Wsdl.
+ * LogMessage for SOAP
  */
-@Getter
-@Setter
-public class WsdlType {
+public final class SoapLogMessage extends LogMessage {
+    @Getter
+    private final SoapMessageImpl message;
+    /**
+     * Create a SOAP log message
+     */
+    public SoapLogMessage(SoapMessageImpl message, SignatureData signature, boolean clientSide) {
+        super(signature, clientSide);
+        this.message = message;
+    }
 
-    private final List<ServiceType> service = new ArrayList<>();
+    public SoapLogMessage(SoapMessageImpl message, SignatureData signature, boolean clientSide, String xRequestId) {
+        super(signature, clientSide, xRequestId);
+        this.message = message;
+    }
 
-    private Long id;
+    public String getQueryId() {
+        return message.getQueryId();
+    }
 
-    private ClientType client;
+    public ClientId getClient() {
+        return message.getClient();
+    }
 
-    private String url;
+    public ServiceId getService() {
+        return message.getService();
+    }
 
-    private String wsdlLocation;
-
-    private boolean disabled;
-
-    private String disabledNotice;
-
-    private Date refreshedDate;
+    public boolean isResponse() {
+        return message.isResponse();
+    }
 }

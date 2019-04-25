@@ -181,7 +181,7 @@ public class LogArchiveWriter implements Closeable {
         }
 
         try (InputStream input = logArchiveCache.getArchiveFile();
-             OutputStream output = Channels.newOutputStream(archiveOut)) {
+                OutputStream output = Channels.newOutputStream(archiveOut)) {
             IOUtils.copy(input, output);
         } catch (IOException e) {
             log.error("Failed to archive ASiC containers due to IO error", e);
@@ -259,6 +259,7 @@ public class LogArchiveWriter implements Closeable {
     }
 
     private static boolean filenameRandomUnique(String random) {
+
         String filenameEnd = String.format("-%s.zip", random);
 
         String[] fileNamesWithSameRandom = new File(getArchivePath())

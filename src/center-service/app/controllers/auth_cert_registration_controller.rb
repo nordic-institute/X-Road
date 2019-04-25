@@ -23,6 +23,7 @@
 
 require 'thread'
 
+java_import Java::ee.ria.xroad.common.SystemProperties
 java_import Java::ee.ria.xroad.common.request.ManagementRequestHandler
 java_import Java::ee.ria.xroad.common.request.ManagementRequestParser
 java_import Java::ee.ria.xroad.common.request.ManagementRequestUtil
@@ -33,39 +34,63 @@ java_import Java::ee.ria.xroad.common.ErrorCodes
 java_import Java::ee.ria.xroad.common.CodedException
 
 class AuthCertRegistrationController < ManagementRequestController
-  @@auth_cert_registration_mutex = Mutex.new
+    @@auth_cert_registration_mutex = Mutex.new
 
-  private
+    private
 
-  def handle_request
-    service = @request_soap.getService().getServiceCode()
-    case service
-    when ManagementRequests::AUTH_CERT_REG
-      handle_auth_cert_registration
-    else
-      raise "Unknown service code '#{service}'"
-    end
-  end
-
-  def handle_auth_cert_registration
-    req_type = ManagementRequestParser.parseAuthCertRegRequest(@request_soap)
-    security_server = security_server_id(req_type.getServer())
-
-    verify_xroad_instance(security_server)
-    verify_owner(security_server)
-
-    req = nil
-
-    @@auth_cert_registration_mutex.synchronize do
-      req = AuthCertRegRequest.new(
-        :security_server => security_server,
-        :auth_cert => String.from_java_bytes(req_type.getAuthCert()),
-        :address => req_type.getAddress(),
-        :origin => Request::SECURITY_SERVER)
-      req.register()
+    def handle_request
+        service = @request_soap.getService().getServiceCode()
+        case service
+            when ManagementRequests::AUTH_CERT_REG
+                handle_auth_cert_registration
+            else
+                raise "Unknown service code '#{service}'"
+        end
     end
 
-    req.id
-  end
+    def handle_auth_cert_registration
+        req_type = ManagementRequestParser.parseAuthCertRegRequest(@request_soap)
+        security_server = security_server_id(req_type.getServer())
+
+        verify_xroad_instance(security_server)
+        verify_owner(security_server)
+
+        req = nil
+        auth_cert_reg_request = nil
+
+        auth_cert_bytes = String.from_java_bytes(req_type.getAuthCert())
+
+        owner = member_id(req_type.getServer())
+        # Auto-approval must be enabled and Security Server owner must be registered on Central Server
+        auto_approve_and_owner_exists = auto_approve_auth_cert_reg_requests? && !SecurityServerClient.find_by_id(owner).nil?
+
+        @@auth_cert_registration_mutex.synchronize do
+            req = AuthCertRegRequest.new(
+                :security_server => security_server,
+                :auth_cert => auth_cert_bytes,
+                :address => req_type.getAddress(),
+                :origin => Request::SECURITY_SERVER)
+            req.register()
+
+            if auto_approve_and_owner_exists
+                auth_cert_reg_request = AuthCertRegRequest.new(
+                    :security_server => security_server,
+                    :auth_cert => auth_cert_bytes,
+                    :address => req_type.getAddress(),
+                    :origin => Request::CENTER)
+                auth_cert_reg_request.register()
+            end
+        end
+
+        if auto_approve_and_owner_exists
+            RequestWithProcessing.approve(auth_cert_reg_request.id)
+        end
+
+        req.id
+    end
+
+    def auto_approve_auth_cert_reg_requests?
+        Java::ee.ria.xroad.common.SystemProperties::getCenterAutoApproveAuthCertRegRequests
+    end
 
 end

@@ -1,8 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Database setup
 #
-
 init_postgres() {
     SERVICE_NAME=postgresql
 
@@ -10,15 +9,15 @@ init_postgres() {
     systemctl is-active $SERVICE_NAME && return 0
 
     # Copied from postgresql-setup. Determine default data directory
-    PGDATA=`systemctl show -p Environment "${SERVICE_NAME}.service" |
-    sed 's/^Environment=//' | tr ' ' '\n' |
-    sed -n 's/^PGDATA=//p' | tail -n 1`
+    PGDATA=$(systemctl show -p Environment "${SERVICE_NAME}.service" \
+        | sed 's/^Environment=//' | tr ' ' '\n' \
+        | sed -n 's/^PGDATA=//p' | tail -n 1)
     if [ x"$PGDATA" = x ]; then
         echo "failed to find PGDATA setting in ${SERVICE_NAME}.service"
         return 1
     fi
 
-    if ! postgresql-check-db-dir $PGDATA >/dev/null; then
+    if ! postgresql-check-db-dir "$PGDATA" >/dev/null; then
         PGSETUP_INITDB_OPTIONS="--auth-host=md5 -E UTF8" postgresql-setup initdb || return 1
     fi
 
@@ -37,69 +36,76 @@ db_admin_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
 db_properties=/etc/xroad/db.properties
 
 #is database connection configured?
-if  [[ -f ${db_properties}  && `crudini --get ${db_properties} '' op-monitor.hibernate.connection.url` != "" ]]
+if  [[ -f "${db_properties}"  && $(crudini --get "${db_properties}" '' op-monitor.hibernate.connection.url) != "" ]]
 then
-    exit 0
+    db_url=$(crudini --get ${db_properties} '' op-monitor.hibernate.connection.url)
+    db_user=$(crudini --get ${db_properties} '' op-monitor.hibernate.connection.username)
+    db_passwd=$(crudini --get ${db_properties} '' op-monitor.hibernate.connection.password)
+
+    su -l -c 'psql -q' postgres <<EOF
+ALTER ROLE ${db_admin} WITH PASSWORD '${db_admin_passwd}';
+ALTER DATABASE "${db_name}" OWNER TO ${db_admin};
+EOF
+
 else
     echo "no db settings detected, creating local db"
 
     init_postgres || exit 1
 
-    if ! netstat -na | grep -q :5432
-    then   
-        echo -e  "\n\nIs postgres running on port 5432 ?"
-        echo -e "Aborting installation! please fix issues and rerun\n\n"
-        exit 100
-    fi
-
-    if  ! su - postgres -c "psql --list -tAF ' '" | grep template1 | awk '{print $3}' | grep -q "UTF8"
-    then  
+    if  ! su -l postgres -c "psql --list -tAF ' '" | grep template1 | awk '{print $3}' | grep -q "UTF8"
+    then
         echo -e "\n\npostgreSQL is not UTF8 compatible."
         echo -e "Aborting installation! please fix issues and rerun\n\n"
         exit 101
     fi
 
-    if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='$db_admin'\" "` != "1" ]]
+    if [[ $(su -l postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='$db_admin'\" ") != "1" ]]
     then
-      echo "CREATE ROLE $db_admin LOGIN PASSWORD '${db_admin_passwd}';" | su - postgres -c psql postgres
+      echo "CREATE ROLE $db_admin LOGIN PASSWORD '${db_admin_passwd}';" | su - postgres -c "psql -q postgres"
     fi
 
-    if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='${db_user}'\" "` == "1" ]]
+    if [[ $(su -l postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='${db_user}'\" ") == "1" ]]
     then
         echo "$db_user user exists, skipping role creation"
-        echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
+        echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | su - postgres -c "psql -q postgres"
     else
-        echo "CREATE ROLE ${db_user} LOGIN PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
+        echo "CREATE ROLE ${db_user} LOGIN PASSWORD '${db_passwd}';" | su - postgres -c "psql -q postgres"
     fi
 
-    if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_database WHERE datname='${db_name}'\""`  == "1" ]]
+    if [[ $(su -l postgres -c "psql postgres -qtAc \"SELECT 1 FROM pg_database WHERE datname='${db_name}'\"")  == "1" ]]
     then
         echo "database ${db_name} exists"
     else
-        su - postgres -c "createdb ${db_name} -O ${db_user} -E UTF-8"
+        su -l postgres -c "createdb ${db_name} -O ${db_admin} -E UTF-8"
     fi
 
-    su - postgres -c "psql op-monitor -tAc \"CREATE EXTENSION IF NOT EXISTS hstore;\""
+    su -l postgres -c "psql op-monitor -qtAc \"CREATE EXTENSION IF NOT EXISTS hstore;\""
 
     touch ${db_properties}
     crudini --set ${db_properties} '' op-monitor.hibernate.jdbc.use_streams_for_binary true
     crudini --set ${db_properties} '' op-monitor.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.driver_class org.postgresql.Driver
-    crudini --set ${db_properties} '' op-monitor.hibernate.connection.url ${db_url}
-    crudini --set ${db_properties} '' op-monitor.hibernate.connection.username  ${db_user}
-    crudini --set ${db_properties} '' op-monitor.hibernate.connection.password ${db_passwd}
+    crudini --set ${db_properties} '' op-monitor.hibernate.connection.url "${db_url}"
+    crudini --set ${db_properties} '' op-monitor.hibernate.connection.username  "${db_user}"
+    crudini --set ${db_properties} '' op-monitor.hibernate.connection.password "${db_passwd}"
+
+    chown xroad:xroad ${db_properties}
+    chmod 640 ${db_properties}
 fi
 
-echo "ALTER ROLE ${db_admin} WITH PASSWORD '${db_admin_passwd}';" | su - postgres -c psql postgres
+cd /usr/share/xroad/db || exit 1
 
-chown xroad:xroad ${db_properties}
-chmod 640 ${db_properties}
+echo "Running ${db_name} database migrations"
+LIQUIBASE_HOME=/usr/share/xroad/db /usr/share/xroad/db/liquibase.sh \
+    --classpath=/usr/share/xroad/jlib/postgresql.jar:/usr/share/xroad/jlib/common-db.jar \
+    --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" \
+    --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml \
+    --username="${db_admin}" \
+    --password="${db_admin_passwd}" \
+    update \
+    || { echo "Connection to database has failed, please check database availability and configuration in ${db_properties} file"; exit 1; }
 
-echo "running ${db_name} database migrations"
-cd /usr/share/xroad/db/
-/usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/postgresql.jar:/usr/share/xroad/jlib/common-db.jar --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml --password=${db_admin_passwd} --username=${db_admin} update || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
-
-su - postgres -c "psql -d ${db_name}" << EOF
+su -l -c "psql -qd ${db_name}" postgres <<EOF
 grant usage on schema public to ${db_user};
 grant select, insert, update, delete on all tables in schema public to ${db_user};
 grant usage, select, update on all sequences in schema public to ${db_user};
@@ -107,4 +113,3 @@ grant execute on all functions in schema public to ${db_user};
 EOF
 
 exit 0
-

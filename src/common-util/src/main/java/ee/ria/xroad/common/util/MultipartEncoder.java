@@ -186,6 +186,17 @@ public class MultipartEncoder implements AutoCloseable {
     }
 
     /**
+     * Writes the given bytes into the encoder's output stream.
+     * @param content byte content to write
+     * @param offset offset to the buffer
+     * @param len length to write
+     * @throws IOException
+     */
+    public void write(byte[] content, int offset, int len) throws IOException {
+        out.write(content, offset, len);
+    }
+
+    /**
      * Writes the content of the given input stream into the encoder's output stream.
      * @param content input stream containing the content to write
      * @throws IOException in case an I/O error occurred

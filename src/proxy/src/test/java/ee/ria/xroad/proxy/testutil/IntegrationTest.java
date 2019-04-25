@@ -22,32 +22,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.serverconf.dao;
-
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
-import ee.ria.xroad.common.identifier.ServiceId;
-
-import org.hibernate.Session;
+package ee.ria.xroad.proxy.testutil;
 
 /**
- * Wsdl data access object implementation.
+ * JUnit category for integration tests
  */
-public class WsdlDAOImpl extends AbstractDAOImpl<WsdlType> {
-
-    /**
-     * Returns the WSDL of the given service identifier.
-     * @param session the session
-     * @param id the service identifier
-     * @return the WSDL of the given service identifier
-     */
-    public WsdlType getWsdl(Session session, ServiceId id) {
-        ServiceType service =
-                new ServiceDAOImpl().getService(session, id);
-        if (service != null) {
-            return service.getWsdl();
-        }
-
-        return null;
-    }
-}
+public interface IntegrationTest { }

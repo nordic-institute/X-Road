@@ -1,13 +1,10 @@
 ![](img/eu_regional_development_fund_horizontal_div_15.png "European Union | European Regional Development Fund | Investing in your future")
 
 ---
-
-
 # Signed Document Download and Verification Manual
 **X-ROAD 6**
 
-Version: 1.5  
-03.11.2018  
+Version: 1.7  
 Doc. ID: UG-SIGDOC
 
 ---
@@ -27,24 +24,27 @@ Doc. ID: UG-SIGDOC
  02.05.2016 | 1.4     | Signed documents are available by default 30 days.  | Kristo Heero
  03.11.2018 | 1.5     | Convert from Word to Markdown. Asicverifier supports extracting messages when verification fails | Petteri Kivimäki
  07.01.2019 | 1.6     | Asicverifier version option. Updated asicverifier usage and jar name | Caro Hautamäki
+ 07.03.2019 | 1.7     | REST support modifications | Jarkko Hyöty
 
 ## Table of Contents
 
 <!-- toc -->
+<!-- vim-markdown-toc GFM -->
 
-- [License](#license)
-- [1 Introduction](#1-introduction)
+* [License](#license)
+* [1 Introduction](#1-introduction)
   * [1.1 References](#11-references)
-- [2 Signed Document Download Service](#2-signed-document-download-service)
+* [2 Signed Document Download Service](#2-signed-document-download-service)
   * [2.1 Retrieving Signed Documents of the Entire Transaction](#21-retrieving-signed-documents-of-the-entire-transaction)
   * [2.2 Retrieving a Single Signed Document](#22-retrieving-a-single-signed-document)
   * [2.3 Forcing Missing Timestamps To Be Created](#23-forcing-missing-timestamps-to-be-created)
   * [2.4 Authentication](#24-authentication)
   * [2.5 Error Conditions](#25-error-conditions)
-- [3 Signed Document Verification Tool](#3-signed-document-verification-tool)
+* [3 Signed Document Verification Tool](#3-signed-document-verification-tool)
   * [3.1 Usage](#31-usage)
   * [3.2 Verification Configuration](#32-verification-configuration)
-  
+
+<!-- vim-markdown-toc -->
 <!-- tocstop -->
 
 ## License
@@ -192,7 +192,7 @@ If verification is successful the output will be similar to:
     Created file message.xml 
     Files successfully extracted.
 
-As can be seen from the example above, the asicverifier tool will optionally extract the signed files to the working directory.
+As can be seen from the example above, the asicverifier tool will optionally extract the signed files to the working directory. In the case of REST message, the request/response line and headers are in `message.xml` and the REST body (if logged) is present in a file `attachment1`.
 
 Should the verification fail, the reason for failure will be presented to the user in an error message. For example:
 
@@ -206,7 +206,7 @@ Should the verification fail, the reason for failure will be presented to the us
 
 In case of verification failure, the asicverifier tool will optionally extract the signed files to the working directory.
 
-Notice that when `messagelog.soap-body-logging` property is set to `false`, the verification always fails with the error message:
+Notice that when `messagelog.message-body-logging` property is set to `false`, the verification always fails with the error message:
 
     Verification failed: Signature is not valid
 

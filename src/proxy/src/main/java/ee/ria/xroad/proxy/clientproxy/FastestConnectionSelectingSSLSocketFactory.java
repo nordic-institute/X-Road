@@ -98,14 +98,18 @@ class FastestConnectionSelectingSSLSocketFactory
 
     @Override
     public Socket createSocket(HttpContext context) throws IOException {
-        // create dummy socket that will be discarded
+        // Create dummy socket that will be discarded.
         return new Socket();
     }
 
     @Override
-    public Socket connectSocket(int timeout, Socket socket, HttpHost host,
-            InetSocketAddress remoteAddress, InetSocketAddress localAddress,
-            HttpContext context) throws IOException {
+    public Socket connectSocket(int timeout, Socket socket, HttpHost host, InetSocketAddress remoteAddress,
+            InetSocketAddress localAddress, HttpContext context) throws IOException {
+        // Discard dummy socket.
+        if (socket != null) {
+            socket.close();
+        }
+
         // Read target addresses from the context.
         final URI[] addressesFromContext = getAddressesFromContext(context);
         final boolean useCache = (addressesFromContext.length > 1) && cachingEnabled;
@@ -120,14 +124,14 @@ class FastestConnectionSelectingSSLSocketFactory
                     Thread.currentThread().getId());
         }
 
-        /*
-        If URI cache is enabled, check for a previously selected host, avoiding the selection process.
-        */
+        // If URI cache is enabled, check for a previously selected host, avoiding the selection process.
         if (useCache) {
             cacheKey = new CacheKey(addresses);
             cachedURI = selectedHosts.getIfPresent(cacheKey);
+
             if (cachedURI != null) {
                 log.trace("Use cached URI {}", cachedURI);
+
                 addresses = new URI[] {cachedURI};
             }
         }
@@ -137,10 +141,14 @@ class FastestConnectionSelectingSSLSocketFactory
         if (selectedSocket == null) {
             if (cachedURI != null) {
                 log.trace("Could not connect to {}, removing from cache", cachedURI);
+
                 selectedHosts.invalidate(cacheKey);
                 cachedURI = null;
+
                 log.trace("Continue connecting to all providers {}", (Object) addressesFromContext);
+
                 selectedSocket = connect(addressesFromContext, context, timeout);
+
                 if (selectedSocket == null) {
                     throw couldNotConnectException(addresses);
                 }
@@ -164,6 +172,7 @@ class FastestConnectionSelectingSSLSocketFactory
 
         if (useCache && cachedURI == null) {
             log.trace("Store the fastest provider URI to cache {}", selectedSocket.getUri());
+
             selectedHosts.put(cacheKey, selectedSocket.getUri());
         }
 

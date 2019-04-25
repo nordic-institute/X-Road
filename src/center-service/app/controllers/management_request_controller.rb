@@ -23,6 +23,7 @@
 
 require 'thread'
 
+java_import Java::ee.ria.xroad.common.request.ClientRegRequestStatusWrapper
 java_import Java::ee.ria.xroad.common.request.ManagementRequestHandler
 java_import Java::ee.ria.xroad.common.request.ManagementRequestParser
 java_import Java::ee.ria.xroad.common.request.ManagementRequestUtil
@@ -34,70 +35,78 @@ java_import Java::ee.ria.xroad.common.CodedException
 
 class ManagementRequestController < ApplicationController
 
-  def create
-    begin
-      response.content_type = "text/xml"
+    def create
+        begin
+            response.content_type = "text/xml"
 
-      @xroad_instance = SystemParameter.instance_identifier
-      raise "X-Road instance must exist!" if @xroad_instance.blank?
+            @xroad_instance = SystemParameter.instance_identifier
+            raise "X-Road instance must exist!" if @xroad_instance.blank?
 
-      @request_soap = ManagementRequestHandler.readRequest(
-        request.headers["CONTENT_TYPE"],
-        StringIO.new(request.raw_post).to_inputstream)
+            @client_reg_request_status_wrapper = ClientRegRequestStatusWrapper.new
 
-      id = handle_request
-      logger.debug("Created request id: #{id}")
+            @request_soap = ManagementRequestHandler.readRequest(
+                request.headers["CONTENT_TYPE"],
+                StringIO.new(request.raw_post).to_inputstream,
+                @client_reg_request_status_wrapper)
 
-      # Simply convert request message to response message
-      response_soap = ManagementRequestUtil.toResponse(@request_soap, id)
+            id = handle_request
+            logger.debug("Created request id: #{id}")
 
-      render :text => response_soap.getXml()
-    rescue Java::java.lang.Exception => e
-      handle_error(ErrorCodes.translateException(e))
-    rescue Exception => e
-      handle_error(CodedException.new(ErrorCodes::X_INTERNAL_ERROR, e.message))
-      logger.error("Internal error: #{e.message}\n#{e.backtrace.join("\n\t")}")
+            # Simply convert request message to response message
+            response_soap = ManagementRequestUtil.toResponse(@request_soap, id)
+
+            render :text => response_soap.getXml()
+        rescue Java::java.lang.Exception => e
+            handle_error(ErrorCodes.translateException(e))
+        rescue Exception => e
+            handle_error(CodedException.new(ErrorCodes::X_INTERNAL_ERROR, e.message))
+            logger.error("Internal error: #{e.message}\n#{e.backtrace.join("\n\t")}")
+        end
     end
-  end
 
-  private
+    private
 
-  def handle_request
-      raise "Unknown service"
-  end
-
-  def handle_error(ex)
-    render :text => SoapFault.createFaultXml(ex)
-  end
-
-  def security_server_id(id_type)
-    SecurityServerId.from_parts(id_type.getXRoadInstance(),
-      id_type.getMemberClass(), id_type.getMemberCode(),
-      id_type.getServerCode())
-  end
-
-  def client_id(id_type)
-    ClientId.from_parts(id_type.getXRoadInstance(), id_type.getMemberClass(),
-      id_type.getMemberCode(), id_type.getSubsystemCode())
-  end
-
-  def verify_owner(security_server)
-    sender = client_id(@request_soap.getClient())
-    verify_xroad_instance(sender)
-
-    if not security_server.matches_client_id(sender)
-      raise I18n.t("request.server_id_not_match_owner",
-        :security_server => security_server.to_s,
-        :sec_serv_owner => sender.to_s)
+    def handle_request
+        raise "Unknown service"
     end
-  end
 
-  # xroad_id may be either ClientId or ServerId.
-  def verify_xroad_instance(xroad_id)
-    logger.debug("Instance verification: #{xroad_id}")
-
-    unless @xroad_instance.eql?(xroad_id.xroad_instance)
-      raise t("request.incorrect_instance")
+    def handle_error(ex)
+        render :text => SoapFault.createFaultXml(ex)
     end
-  end
+
+    def security_server_id(id_type)
+        SecurityServerId.from_parts(id_type.getXRoadInstance(),
+                                    id_type.getMemberClass(), id_type.getMemberCode(),
+                                    id_type.getServerCode())
+    end
+
+    def client_id(id_type)
+        ClientId.from_parts(id_type.getXRoadInstance(), id_type.getMemberClass(),
+                            id_type.getMemberCode(), id_type.getSubsystemCode())
+    end
+
+    def member_id(id_type)
+        ClientId.from_parts(id_type.getXRoadInstance(), id_type.getMemberClass(),
+                            id_type.getMemberCode())
+    end
+
+    def verify_owner(security_server)
+        sender = client_id(@request_soap.getClient())
+        verify_xroad_instance(sender)
+
+        if not security_server.matches_client_id(sender)
+            raise I18n.t("request.server_id_not_match_owner",
+                         :security_server => security_server.to_s,
+                         :sec_serv_owner => sender.to_s)
+        end
+    end
+
+    # xroad_id may be either ClientId or ServerId.
+    def verify_xroad_instance(xroad_id)
+        logger.debug("Instance verification: #{xroad_id}")
+
+        unless @xroad_instance.eql?(xroad_id.xroad_instance)
+            raise t("request.incorrect_instance")
+        end
+    end
 end
