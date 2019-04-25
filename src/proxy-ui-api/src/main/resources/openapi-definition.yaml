@@ -903,7 +903,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/TlsCertificate'
+                  $ref: '#/components/schemas/Certificate'
         400:
           description: request was invalid
         401:
@@ -985,7 +985,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TlsCertificate'
+                $ref: '#/components/schemas/Certificate'
         400:
           description: request was invalid
         401:

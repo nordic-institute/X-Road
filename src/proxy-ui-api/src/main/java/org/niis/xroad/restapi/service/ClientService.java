@@ -43,6 +43,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * client service
@@ -173,7 +174,7 @@ public class ClientService {
             throw new NotFoundException(("client with id " + id + " not found"));
         }
         CertificateType certificateType = clientType.getIsCert().stream()
-                .filter(certificate -> calculateCertHexHash(certificate.getData()).equals(certificateHash))
+                .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
                 .findAny()
                 .orElseThrow(() -> new NotFoundException("certificate with hash " + certificateHash + " not found"));
         clientType.getIsCert().remove(certificateType);
@@ -181,4 +182,18 @@ public class ClientService {
         return clientType;
     }
 
+    /**
+     * TO DO: permissions, refactor
+     */
+    @PreAuthorize("permitAll")
+    public Optional<CertificateType> getTlsCertificate(ClientId id, String certificateHash) {
+        ClientType clientType = clientRepository.getClient(id);
+        if (clientType == null) {
+            throw new NotFoundException(("client with id " + id + " not found"));
+        }
+        Optional<CertificateType> certificateType = clientType.getIsCert().stream()
+                .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
+                .findAny();
+        return certificateType;
+    }
 }

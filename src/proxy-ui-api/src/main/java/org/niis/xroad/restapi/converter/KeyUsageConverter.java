@@ -56,14 +56,19 @@ public class KeyUsageConverter {
      * Convert boolean array of key usage bits as returned by
      * https://docs.oracle.com/javase/8/docs/api/java/security/cert/X509Certificate.html#getKeyUsage--
      * into a Set of enums
+     *
+     *
+     *
      * @param keyUsageBits
      * @return
      */
     public Set<org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum> convert(boolean[] keyUsageBits) {
         Set<org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum> usages = new HashSet<>();
-        for (int i = 0; i < Math.min(BIT_TO_USAGE.size(), keyUsageBits.length); i++) {
-            if (keyUsageBits[i]) {
-                usages.add(BIT_TO_USAGE.get(i));
+        if (keyUsageBits != null) {
+            for (int i = 0; i < Math.min(BIT_TO_USAGE.size(), keyUsageBits.length); i++) {
+                if (keyUsageBits[i]) {
+                    usages.add(BIT_TO_USAGE.get(i));
+                }
             }
         }
         return usages;

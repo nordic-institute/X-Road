@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 
@@ -186,6 +187,36 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
         ClientId clientId = clientConverter.convertId(encodedId);
         clientService.deleteTlsCertificate(clientId, hash);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    /**
+     * TO DO: permissions
+     * TO DO: hash case sensitiveness (also elsewhere)
+     */
+    @Override
+    @PreAuthorize("permitAll")
+    public ResponseEntity<Certificate> getClientTlsCertificate(String encodedId, String certHash) {
+        ClientId clientId = clientConverter.convertId(encodedId);
+        Optional<CertificateType> certificateType = clientService.getTlsCertificate(clientId, certHash);
+        if (!certificateType.isPresent()) {
+            throw new NotFoundException("certificate with hash " + certHash
+                    + ", client id " + encodedId + " not found");
+        }
+        return new ResponseEntity<>(certificateConverter.convert(certificateType.get()), HttpStatus.OK);
+    }
+
+    /**
+     * TO DO: permissions
+     */
+    @Override
+    @PreAuthorize("permitAll")
+    public ResponseEntity<List<Certificate>> getClientTlsCertificates(String encodedId) {
+        ClientType clientType = getClientType(encodedId);
+        List<Certificate> certificates = clientType.getIsCert()
+                .stream()
+                .map(certificateConverter::convert)
+                .collect(toList());
+        return new ResponseEntity<>(certificates, HttpStatus.OK);
     }
 
     @Override

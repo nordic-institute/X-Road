@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.converter;
 
+import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -48,6 +49,16 @@ public class CertificateConverter {
     public static final int RADIX_FOR_HEX = 16;
     @Autowired
     private KeyUsageConverter keyUsageConverter;
+
+    /**
+     * convert CertificateType into openapi Certificate class
+     * @param certificateType
+     * @return
+     */
+    public org.niis.xroad.restapi.openapi.model.Certificate convert(CertificateType certificateType) {
+        X509Certificate x509Certificate = CryptoUtils.readCertificate(certificateType.getData());
+        return convert(x509Certificate);
+    }
 
     /**
      * convert CertificateInfo into openapi Certificate class
