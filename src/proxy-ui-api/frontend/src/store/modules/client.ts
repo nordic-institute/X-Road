@@ -176,10 +176,13 @@ export const actions: ActionTree<ClientState, RootState> = {
 
   downloadSSCertificate({ commit, state }, { hash }) {
 
-    axios.get(`/system/export`, { responseType: 'arraybuffer' }).then((response) => {
+    axios.get(`/system/certificate/export`, { responseType: 'arraybuffer' }).then((response) => {
       const fileNameHeader = 'content-disposition';
-      const suggestedFileName = response.headers[fileNameHeader].filename;
-      const effectiveFileName = (suggestedFileName === undefined ? 'certs' : suggestedFileName);
+      let suggestedFileName = undefined;
+      if (response.headers[fileNameHeader]) {
+        suggestedFileName = response.headers[fileNameHeader].filename;
+      }
+      const effectiveFileName = (suggestedFileName === undefined ? 'certs.tar.gz' : suggestedFileName);
       // If there is need the "content-type" can be obtained from the headers also
 
       const blob = new Blob([response.data]);
@@ -190,7 +193,7 @@ export const actions: ActionTree<ClientState, RootState> = {
       link.click();
 
     }).catch((response) => {
-      console.error('Could not Download the Excel report from the backend.', response);
+      console.error('Could not download the certificate', response);
     });
   },
 
