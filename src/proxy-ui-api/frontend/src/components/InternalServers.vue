@@ -110,8 +110,6 @@ export default Vue.extend({
       set(value: string) {
         this.$store.dispatch('saveConnectionType', value).catch((error) => {
           this.revertHack += 1;
-
-          console.log(this.revertHack);
           this.$bus.$emit('show-error', error.message);
         });
       },
@@ -127,7 +125,6 @@ export default Vue.extend({
       if (!fileList.length) {
         return;
       }
-      // this.createImage(files[0]);
 
       const formData = new FormData();
       // append the files to FormData
@@ -136,10 +133,9 @@ export default Vue.extend({
       });
 
       // save it
-
       this.$store.dispatch('uploadTlsCertificate', formData).then(
         (response) => {
-          this.$bus.$emit('show-success', 'WOW!');
+          this.$bus.$emit('show-success', 'Certificate added');
         },
         (error) => {
           this.$bus.$emit('show-error', error.message);
@@ -160,8 +156,6 @@ export default Vue.extend({
     },
 
     exportSSCertificate(hash: string) {
-      //     downloadSSCertificate
-
       this.$store.dispatch('downloadSSCertificate', hash).then(
         (response) => {
           this.$bus.$emit('show-success', 'Download ok!');

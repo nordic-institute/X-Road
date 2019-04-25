@@ -50,10 +50,6 @@ export const getters: GetterTree<ClientState, RootState> = {
   ssCertificate(state): any {
     return state.ssCertificate;
   },
-  /*
-  loading(state): boolean {
-    return state.loading;
-  }, */
 };
 
 export const mutations: MutationTree<ClientState> = {
@@ -94,7 +90,6 @@ export const actions: ActionTree<ClientState, RootState> = {
         commit('storeClient', res.data);
       })
       .catch((error) => {
-        console.log(error);
         throw error;
       })
       .finally(() => {
@@ -114,7 +109,6 @@ export const actions: ActionTree<ClientState, RootState> = {
         commit('storeCertificates', res.data);
       })
       .catch((error) => {
-        console.log(error);
         throw error;
       })
       .finally(() => {
@@ -132,11 +126,9 @@ export const actions: ActionTree<ClientState, RootState> = {
 
     return axios.get(`/clients/${id}/tlscertificates`)
       .then((res) => {
-        console.log(res);
         commit('storeTlsCertificates', res.data);
       })
       .catch((error) => {
-        console.log(error);
         throw error;
       })
       .finally(() => {
@@ -155,7 +147,6 @@ export const actions: ActionTree<ClientState, RootState> = {
         commit('storeSsCertificate', res.data);
       })
       .catch((error) => {
-        console.log(error);
         throw error;
       })
       .finally(() => {
@@ -165,14 +156,7 @@ export const actions: ActionTree<ClientState, RootState> = {
 
   deleteTlsCertificate({ commit, state }, { clientId, hash }) {
 
-    return axios.delete(`/clients/${clientId}/tlscertificates/${hash}`)
-      .then((res) => {
-        console.log(res);
-      })
-      .catch((error) => {
-        console.error(error);
-        throw error;
-      });
+    return axios.delete(`/clients/${clientId}/tlscertificates/${hash}`);
   },
 
   downloadSSCertificate({ commit, state }, { hash }) {
@@ -180,14 +164,10 @@ export const actions: ActionTree<ClientState, RootState> = {
     axios.get(`/download`, { responseType: 'blob' }).then((response) => {
 
       // Log somewhat to show that the browser actually exposes the custom HTTP header
-      // const fileNameHeader = "x-suggested-filename";
       const fileNameHeader = 'content-disposition';
       const suggestedFileName = response.headers[fileNameHeader].filename;
       console.log(response.headers[fileNameHeader]);
       const effectiveFileName = (suggestedFileName === undefined ? 'random_name.cert' : suggestedFileName);
-
-      console.log('Received header [' + fileNameHeader + ']: ' + suggestedFileName
-        + ', effective fileName: ' + effectiveFileName);
 
       // Let the user save the file.
       FileSaver.saveAs(response.data, effectiveFileName);
@@ -200,14 +180,7 @@ export const actions: ActionTree<ClientState, RootState> = {
 
   uploadTlsCertificate({ commit, state }, file) {
 
-    return axios.post(`/submit-form`, file)
-      .then((res) => {
-        console.log(res.data);
-      })
-      .catch((error) => {
-        console.error(error);
-        throw error;
-      });
+    return axios.post(`/submit-form`, file);
   },
 
 
@@ -224,7 +197,6 @@ export const actions: ActionTree<ClientState, RootState> = {
 
     return axios.put(`/clients/${id}`, clone)
       .then((res) => {
-        console.log(res);
 
         if (res.data) {
           commit('storeClient', res.data);
