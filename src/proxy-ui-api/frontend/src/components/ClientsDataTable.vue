@@ -174,9 +174,7 @@ export default Vue.extend({
       return this.$store.getters.hasPermission(Permissions.ADD_CLIENT);
     },
     canOpenClient(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.VIEW_CLIENT_DETAILS_DIALOG,
-      );
+      return this.$store.getters.hasPermission(Permissions.VIEW_CLIENT_DETAILS);
     },
     getClientIcon(type: string): string {
       if (!type) {

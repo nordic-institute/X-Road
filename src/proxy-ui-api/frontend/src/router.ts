@@ -74,7 +74,7 @@ const router = new Router({
         {
           name: RouteName.Subsystem,
           path: '/subsystem',
-          meta: { permission: Permissions.VIEW_CLIENT_DETAILS_DIALOG },
+          meta: { permission: Permissions.VIEW_CLIENT_DETAILS },
           redirect: '/subsystem/details/:id',
           components: {
             default: Subsystem,
@@ -89,7 +89,7 @@ const router = new Router({
               path: '/subsystem/details/:id',
               component: ClientDetails,
               props: true,
-              meta: { permission: Permissions.VIEW_CLIENT_DETAILS_DIALOG },
+              meta: { permission: Permissions.VIEW_CLIENT_DETAILS },
             },
             {
               name: RouteName.SubsystemServiceClients,
@@ -124,7 +124,7 @@ const router = new Router({
         {
           name: RouteName.Client,
           path: '/client',
-          meta: { permission: Permissions.VIEW_CLIENT_DETAILS_DIALOG },
+          meta: { permission: Permissions.VIEW_CLIENT_DETAILS },
           redirect: '/client/details/:id',
           components: {
             default: Client,
@@ -137,7 +137,7 @@ const router = new Router({
               path: '/client/details/:id',
               component: ClientDetails,
               props: true,
-              meta: { permission: Permissions.VIEW_CLIENT_DETAILS_DIALOG },
+              meta: { permission: Permissions.VIEW_CLIENT_DETAILS },
             },
             {
               name: RouteName.MemberServers,
