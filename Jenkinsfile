@@ -12,7 +12,6 @@ pipeline {
                 dockerfile {
                     dir 'src/packages/docker-compile'
                     additionalBuildArgs '--build-arg uid=$(id -u) --build-arg gid=$(id -g)'
-                    reuseNode true
                 }
             }
             steps {
@@ -25,7 +24,6 @@ pipeline {
                 dockerfile {
                     dir 'src/packages/docker-debbuild'
                     args '-v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=/tmp'
-                    reuseNode true
                 }
             }
             steps {
@@ -37,7 +35,6 @@ pipeline {
                 dockerfile {
                     dir 'src/packages/docker-rpmbuild'
                     args '-v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=/workspace/src/packages'
-                    reuseNode true
                 }
             }
             steps {
