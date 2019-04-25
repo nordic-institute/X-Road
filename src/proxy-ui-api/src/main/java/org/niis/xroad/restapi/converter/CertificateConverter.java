@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.converter;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -87,9 +88,19 @@ public class CertificateConverter {
         org.niis.xroad.restapi.openapi.model.Certificate certificate =
                 new org.niis.xroad.restapi.openapi.model.Certificate();
 
-        certificate.setIssuerCommonName(CertUtils.getIssuerCommonName(x509Certificate));
+        String issuerCommonName = null;
+        String subjectCommonName = null;
+        try {
+            issuerCommonName = CertUtils.getIssuerCommonName(x509Certificate);
+        } catch (CodedException didNotFindCommonName) {
+        }
+        try {
+            subjectCommonName = CertUtils.getSubjectCommonName(x509Certificate);
+        } catch (CodedException didNotFindCommonName) {
+        }
+        certificate.setIssuerCommonName(issuerCommonName);
         certificate.setIssuerDistinguishedName(x509Certificate.getIssuerDN().getName());
-        certificate.setSubjectCommonName(CertUtils.getSubjectCommonName(x509Certificate));
+        certificate.setSubjectCommonName(subjectCommonName);
         certificate.setSubjectDistinguishedName(x509Certificate.getSubjectDN().getName());
 
         certificate.setSerial(x509Certificate.getSerialNumber().toString());
