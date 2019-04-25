@@ -17,8 +17,8 @@
       </v-btn>
 
       <v-list>
-        <v-list-tile @click="logout">
-          <v-list-tile-title>Logout</v-list-tile-title>
+        <v-list-tile id="logout-list-tile" @click="logout">
+          <v-list-tile-title id="logout-title">Logout</v-list-tile-title>
         </v-list-tile>
 
         <v-list-tile @click="demoLogout">
@@ -31,13 +31,14 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { RouteName } from '@/global';
 
 export default Vue.extend({
   name: 'toolbar',
   methods: {
     logout(): void {
       this.$store.dispatch('logout');
-      this.$router.replace('/login');
+      this.$router.replace({ name: RouteName.Login });
     },
     demoLogout(): void {
       this.$store.dispatch('demoLogout');

@@ -38,7 +38,7 @@ module.exports = {
   url: process.env.VUE_DEV_SERVER_URL,
   commands: [loginCommands],
   elements: {
-    usernameInput: { selector: 'input[name=login]' },
+    usernameInput: { selector: 'input[id=username]' },
     passwordInput: { selector: 'input[id=password]' },
     loginButton: { selector: 'div.v-btn__content' }
 

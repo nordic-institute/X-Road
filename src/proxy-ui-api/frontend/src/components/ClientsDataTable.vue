@@ -34,6 +34,7 @@
         <tr @click="props.expanded = !props.expanded">
           <!-- Name -->
           <td class="td-name px-2">
+            <!-- Name - Owner member -->
             <template v-if="props.item.type == 'owner'">
               <v-icon color="grey darken-2" class="pl-1" small>fas fa-folder-open</v-icon>
               <span
@@ -41,15 +42,12 @@
                 @click="openClient(props.item)"
               >{{props.item.name}} (Owner)</span>
             </template>
-
+            <!-- Name - member -->
             <template v-else-if="props.item.type == 'client'">
               <v-icon color="grey darken-2" class="pl-1" small>far fa-folder-open</v-icon>
-              <span
-                class="font-weight-bold name"
-                @click="openClient(props.item)"
-              >{{props.item.name}}</span>
+              <span class="font-weight-bold name-member">{{props.item.name}}</span>
             </template>
-
+            <!-- Name - Subsystem -->
             <template v-else>
               <v-icon
                 color="grey darken-2"
@@ -109,7 +107,7 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { getObjectValueByPath, getNestedValue } from '@/util/helpers';
-import { Permissions } from '@/global';
+import { Permissions, RouteName } from '@/global';
 
 export default Vue.extend({
   data: () => ({
@@ -193,21 +191,30 @@ export default Vue.extend({
       }
     },
 
-    openClient(item: object): void {
-      console.log('edit');
-      this.$router.push('/client');
+    openClient(item: any): void {
+      this.$router.push({
+        name: RouteName.Client,
+        params: { id: item.id },
+      });
     },
 
-    openSubsystem(item: object): void {
-      this.$router.push('/subsystem');
+    openSubsystem(item: any): void {
+      this.$router.push({
+        name: RouteName.Subsystem,
+        params: { id: item.id },
+      });
     },
 
     addClient(): void {
-      this.$router.push('/add-client');
+      this.$router.push({
+        name: RouteName.AddClient,
+      });
     },
 
     addSubsystem(item: any) {
-      this.$router.push('/add-subsystem');
+      this.$router.push({
+        name: RouteName.AddSubsystem,
+      });
     },
 
     customFilter: (items: any, search: any, filter: any, headers: any[]) => {
@@ -306,10 +313,17 @@ export default Vue.extend({
 .name {
   text-decoration: underline;
   margin-left: 14px;
-  font-smargin-top: auto;
+  margin-top: auto;
   margin-bottom: auto;
   text-align: center;
   cursor: pointer;
+}
+
+.name-member {
+  margin-left: 14px;
+  margin-top: auto;
+  margin-bottom: auto;
+  text-align: center;
 }
 
 .status-wrapper {
