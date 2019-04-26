@@ -7,18 +7,18 @@ pipeline {
             checkout scm
           }
         }
-        // stage('Compile Code') {
-        //     agent {
-        //         dockerfile {
-        //             dir 'src/packages/docker-compile'
-        //             additionalBuildArgs '--build-arg uid=$(id -u) --build-arg gid=$(id -g)'
-        //         }
-        //     }
-        //     steps {
-        //         sh 'cd src && ./update_ruby_dependencies.sh'
-        //         sh 'cd src && ./compile_code.sh'
-        //     }
-        // }
+        stage('Compile Code') {
+            agent {
+                dockerfile {
+                    dir 'src/packages/docker-compile'
+                    additionalBuildArgs '--build-arg uid=$(id -u) --build-arg gid=$(id -g)'
+                }
+            }
+            steps {
+                sh 'cd src && ./update_ruby_dependencies.sh'
+                sh 'cd src && ./compile_code.sh'
+            }
+        }
         // stage('Debian build') {
         //     agent {
         //         dockerfile {
