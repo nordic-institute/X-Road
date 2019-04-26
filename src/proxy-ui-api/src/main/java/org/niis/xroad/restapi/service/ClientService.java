@@ -190,9 +190,12 @@ public class ClientService {
     }
 
     /**
-     * TO DO: permissions, refactor
+     * Returns a single client tls certificate that has matching hash
+     * @param id
+     * @param certificateHash
+     * @return
      */
-    @PreAuthorize("permitAll")
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_INTERNAL_CERT_DETAILS')")
     public Optional<CertificateType> getTlsCertificate(ClientId id, String certificateHash) {
         ClientType clientType = clientRepository.getClient(id);
         if (clientType == null) {

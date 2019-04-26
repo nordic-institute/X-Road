@@ -189,11 +189,8 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    /**
-     * TO DO: permissions
-     */
     @Override
-    @PreAuthorize("permitAll")
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_INTERNAL_CERT_DETAILS')")
     public ResponseEntity<Certificate> getClientTlsCertificate(String encodedId, String certHash) {
         ClientId clientId = clientConverter.convertId(encodedId);
         Optional<CertificateType> certificateType = clientService.getTlsCertificate(clientId, certHash);
@@ -204,11 +201,8 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
         return new ResponseEntity<>(certificateConverter.convert(certificateType.get()), HttpStatus.OK);
     }
 
-    /**
-     * TO DO: permissions
-     */
     @Override
-    @PreAuthorize("permitAll")
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_INTERNAL_CERTS')")
     public ResponseEntity<List<Certificate>> getClientTlsCertificates(String encodedId) {
         ClientType clientType = getClientType(encodedId);
         List<Certificate> certificates = clientType.getIsCert()
