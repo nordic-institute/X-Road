@@ -70,7 +70,7 @@ public class InternalTlsCertificateService {
      * - cert.pem PEM encoded certificate
      * - cert.cer DER encoded certificate
      *
-     * @return stream that contains the exported certs.tar.gz
+     * @return byte array that contains the exported certs.tar.gz
      */
     @PreAuthorize("hasAuthority('EXPORT_PROXY_INTERNAL_CERT')")
     public byte[] exportInternalTlsCertificate() {
