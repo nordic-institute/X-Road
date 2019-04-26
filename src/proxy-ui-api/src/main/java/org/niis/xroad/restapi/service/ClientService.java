@@ -103,6 +103,7 @@ public class ClientService {
 
     /**
      * TO DO: must check that the old code still works after hbm.xml change
+     * - doing the full build now, will then also install the jars and test old UI in practise
      * @param id
      * @param certBytes either PEM or DER -encoded certificate
      * @return
