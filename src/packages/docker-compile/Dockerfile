@@ -8,7 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN groupadd -g $gid builder && useradd -m -u $uid -g $gid builder
 
-RUN mkdir -p /mnt/gradle-cache && chown -R builder:builder /mnt/gradle-cache
+# RUN mkdir -p /mnt/gradle-cache && chown -R builder:builder /mnt/gradle-cache
 
 RUN apt-get -qq update && \
     apt-get -qq upgrade && \
@@ -26,6 +26,7 @@ RUN ~/.rvm/bin/rvm install jruby-$JRUBY_VERSION --binary --skip-gemsets && \
     gem-wrappers rubygems-bundler rake:12.0.0 rvm jruby-jars:$JRUBY_VERSION bundler:1.14.6 warbler:2.0.4 bundler-audit && \
     mkdir -p /var/tmp/xroad
 
-WORKDIR /mnt
+# WORKDIR /mnt
 
-ENV GRADLE_USER_HOME /mnt/gradle-cache
+# ENV GRADLE_USER_HOME /mnt/gradle-cache
+
