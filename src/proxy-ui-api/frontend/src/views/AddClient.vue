@@ -34,6 +34,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { RouteName } from '@/global';
 
 export default Vue.extend({
   data: () => ({
@@ -41,7 +42,7 @@ export default Vue.extend({
   }),
   methods: {
     cancel() {
-      this.$router.replace('/');
+      this.$router.replace({ name: RouteName.Clients });
     },
   },
 });

@@ -41,8 +41,8 @@ public enum ConnectionTypeMapping {
     SSLNOAUTH(IsAuthentication.SSLNOAUTH.name(), ConnectionType.HTTPS_NO_AUTH),
     SSLAUTH(IsAuthentication.SSLAUTH.name(), ConnectionType.HTTPS);
 
-    private String isAuthentication; // ClientType isAuthentication values (from DB)
-    private ConnectionType connectionTypeEnum;
+    private final String isAuthentication; // ClientType isAuthentication values (from DB)
+    private final ConnectionType connectionTypeEnum;
 
     ConnectionTypeMapping(String isAuthentication, ConnectionType connectionTypeEnum) {
         this.isAuthentication = isAuthentication;
@@ -55,12 +55,7 @@ public enum ConnectionTypeMapping {
      * @return
      */
     public static Optional<ConnectionType> map(String isAuthentication) {
-        Optional<ConnectionTypeMapping> mapping = getFor(isAuthentication);
-        if (mapping.isPresent()) {
-            return Optional.of(mapping.get().getConnectionTypeEnum());
-        } else {
-            return Optional.empty();
-        }
+        return getFor(isAuthentication).map(ConnectionTypeMapping::getConnectionTypeEnum);
     }
 
     /**
@@ -69,12 +64,7 @@ public enum ConnectionTypeMapping {
      * @return
      */
     public static Optional<String> map(ConnectionType connectionTypeEnum) {
-        Optional<ConnectionTypeMapping> mapping = getFor(connectionTypeEnum);
-        if (mapping.isPresent()) {
-            return Optional.of(mapping.get().getIsAuthentication());
-        } else {
-            return Optional.empty();
-        }
+        return getFor(connectionTypeEnum).map(ConnectionTypeMapping::getIsAuthentication);
     }
 
     /**

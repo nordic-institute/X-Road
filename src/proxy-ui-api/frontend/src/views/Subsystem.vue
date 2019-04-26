@@ -1,118 +1,99 @@
 <template>
-  <div class="content">
+  <div class="xr-tab-max-width">
     <v-flex mb-4>
-      <h1 class="display-1 mb-3">Name (subsystem)</h1>
+      <h1 v-if="client" class="display-1 mb-3">{{client.subsystem_code}} (subsystem)</h1>
     </v-flex>
     <v-tabs slot="extension" v-model="tab" class="xr-tabs" color="white" grow>
       <v-tabs-slider color="secondary"></v-tabs-slider>
-      <v-tab key="details">Details</v-tab>
-      <v-tab key="serviceClients">Service Clients</v-tab>
-      <v-tab key="services">Services</v-tab>
-      <v-tab key="internalServers">Internal Servers</v-tab>
-      <v-tab key="localGroups">Local Groups</v-tab>
+      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">{{tab.name}}</v-tab>
     </v-tabs>
 
-    <v-tabs-items v-model="tab">
-      <v-tab-item key="details">
-        <v-card flat>
-          <table class="detail-table">
-            <tr>
-              <td>Member Name</td>
-              <td>{{subsystem.name}}</td>
-            </tr>
-            <tr>
-              <td>Member Class</td>
-              <td>{{subsystem.class}}</td>
-            </tr>
-            <tr>
-              <td>Member Code</td>
-              <td>{{subsystem.memberCode}}</td>
-            </tr>
-            <tr>
-              <td>Subsystem Code</td>
-              <td>{{subsystem.subsystemCode}}</td>
-            </tr>
-          </table>
-        </v-card>
-
-        <v-card flat>
-          <table class="certificate-table">
-            <tr>
-              <th>Certificate</th>
-              <th>Serial Number</th>
-              <th>State</th>
-              <th>Expires</th>
-            </tr>
-            <tr>
-              <td>{{certificate.name}}</td>
-              <td>{{certificate.serialNumber}}</td>
-              <td>{{certificate.state}}</td>
-              <td>{{certificate.expires}}</td>
-            </tr>
-          </table>
-        </v-card>
-      </v-tab-item>
-      <v-tab-item key="serviceClients">
-        <v-card flat>
-          <v-card
-            class="mt-5 text-xs-center"
-            color="grey lighten-2"
-            height="250px"
-          >Service Clients placeholder</v-card>
-        </v-card>
-      </v-tab-item>
-      <v-tab-item key="services">
-        <v-card flat>
-          <v-card-text>Services placeholder</v-card-text>
-        </v-card>
-      </v-tab-item>
-      <v-tab-item key="internalServers">
-        <v-card flat>
-          <v-card-text>Internal servers placeholder</v-card-text>
-        </v-card>
-      </v-tab-item>
-      <v-tab-item key="localGroups">
-        <v-card flat>
-          <v-card-text>Local Groups placeholder</v-card-text>
-        </v-card>
-      </v-tab-item>
-    </v-tabs-items>
+    <router-view/>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 
+import { mapGetters } from 'vuex';
+import ClientDetails from '@/components/ClientDetails.vue';
+
+import InternalServers from '@/components/InternalServers.vue';
+import { Permissions, RouteName } from '@/global';
+
 export default Vue.extend({
+  components: {
+    ClientDetails,
+  },
+  props: {
+    id: {
+      type: String,
+      required: true,
+    },
+  },
   data() {
     return {
       tab: null,
-      subsystem: {
-        name: 'NIIS',
-        class: 'Org',
-        memberCode: '1111',
-        subsystemCode: 'Library',
-      },
-      certificate: {
-        name: 'XRoad Test CA CN',
-        serialNumber: '4',
-        state: 'in use',
-        expires: '2033-06-02',
-      },
     };
+  },
+  computed: {
+    ...mapGetters(['client']),
+    tabs(): any {
+      return [
+        {
+          key: 'details',
+          name: 'Details',
+          to: {
+            name: RouteName.SubsystemDetails,
+            params: { id: this.id },
+          },
+        },
+        {
+          key: 'serviceClients',
+          name: 'Service Clients',
+          to: {
+            name: RouteName.SubsystemDetails,
+            params: { id: this.id },
+          },
+        },
+        {
+          key: 'services',
+          name: 'Services',
+          to: {
+            name: RouteName.SubsystemDetails,
+            params: { id: this.id },
+          },
+        },
+        {
+          key: 'internalServers',
+          name: 'Internal Servers',
+          to: {
+            name: RouteName.SubsystemServers,
+            params: { id: this.id },
+          },
+        },
+        {
+          key: 'localGroups',
+          name: 'Local Groups',
+          to: {
+            name: RouteName.SubsystemServers,
+            params: { id: this.id },
+          },
+        },
+      ];
+    },
+  },
+  created() {
+    this.fetchClient(this.id);
+  },
+  methods: {
+    fetchClient(id: string) {
+      this.$store.dispatch('fetchClient', id).catch((error) => {
+        this.$bus.$emit('show-error', error.message);
+      });
+    },
   },
 });
 </script>
 
-<style lang="scss" >
-@import '../assets/tables';
-
-.xr-tabs {
-  border-bottom: #9b9b9b solid 1px;
-}
-
-.content {
-  width: 100%;
-}
-</style>
 
