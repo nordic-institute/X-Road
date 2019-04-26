@@ -32,6 +32,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ConflictException;
+import org.niis.xroad.restapi.exceptions.ErrorCode;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,9 @@ import java.util.Optional;
 @Transactional
 @PreAuthorize("denyAll")
 public class ClientService {
+
+    public static final String CLIENT_NOT_FOUND_ERROR_CODE = "client_not_found";
+    public static final String CERTIFICATE_NOT_FOUND_ERROR_CODE = "certificate_not_found";
 
     @Autowired
     private ClientRepository clientRepository;
@@ -165,18 +169,21 @@ public class ClientService {
      * @param certificateHash
      * @return
      * @throws NotFoundException if client of certificate was not found
-     * TO DO: error code distinguishing between the two
      */
     @PreAuthorize("hasAuthority('DELETE_CLIENT_INTERNAL_CERT')")
     public ClientType deleteTlsCertificate(ClientId id, String certificateHash) {
         ClientType clientType = clientRepository.getClient(id);
         if (clientType == null) {
-            throw new NotFoundException(("client with id " + id + " not found"));
+            throw new NotFoundException(("client with id " + id + " not found"),
+                    ErrorCode.of(CLIENT_NOT_FOUND_ERROR_CODE));
         }
         CertificateType certificateType = clientType.getIsCert().stream()
                 .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
                 .findAny()
-                .orElseThrow(() -> new NotFoundException("certificate with hash " + certificateHash + " not found"));
+                .orElseThrow(() ->
+                        new NotFoundException("certificate with hash " + certificateHash + " not found",
+                            ErrorCode.of(CERTIFICATE_NOT_FOUND_ERROR_CODE)));
+
         clientType.getIsCert().remove(certificateType);
         clientRepository.saveOrUpdate(clientType);
         return clientType;
