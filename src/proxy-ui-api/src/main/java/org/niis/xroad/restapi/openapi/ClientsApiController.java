@@ -191,7 +191,6 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
 
     /**
      * TO DO: permissions
-     * TO DO: hash case sensitiveness (also elsewhere)
      */
     @Override
     @PreAuthorize("permitAll")

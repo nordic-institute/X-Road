@@ -123,7 +123,7 @@ public class ClientService {
             throw new NotFoundException(("client with id " + id + " not found"));
         }
         clientType.getIsCert().stream()
-                .filter(cert -> hash.equals(calculateCertHexHash(cert.getData())))
+                .filter(cert -> hash.equalsIgnoreCase(calculateCertHexHash(cert.getData())))
                 .findAny()
                 .ifPresent(a -> {
                     throw new ConflictException("clients.cert_exists"); });
