@@ -102,12 +102,12 @@ public class ClientService {
     }
 
     /**
-     * TO DO: check old error codes, do we provide enough information to show those?
      * TO DO: must check that the old code still works after hbm.xml change
      * @param id
      * @param certBytes either PEM or DER -encoded certificate
      * @return
      * @throws CertificateException if certBytes was not a valid PEM or DER encoded certificate
+     * @throws ConflictException if the certificate already exists
      */
     @PreAuthorize("hasAuthority('ADD_CLIENT_INTERNAL_CERT')")
     public ClientType addTlsCertificate(ClientId id, byte[] certBytes) throws CertificateException {
@@ -126,7 +126,7 @@ public class ClientService {
                 .filter(cert -> hash.equalsIgnoreCase(calculateCertHexHash(cert.getData())))
                 .findAny()
                 .ifPresent(a -> {
-                    throw new ConflictException("clients.cert_exists"); });
+                    throw new ConflictException("certificate already exists"); });
 
         CertificateType certificateType = new CertificateType();
         try {

@@ -33,6 +33,7 @@ import org.niis.xroad.restapi.converter.CertificateConverter;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.ConnectionTypeMapping;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
+import org.niis.xroad.restapi.exceptions.ErrorCode;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.Certificate;
 import org.niis.xroad.restapi.openapi.model.Client;
@@ -161,6 +162,8 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
+    public static final String INVALID_CERT_ERROR_CODE = "invalid_cert";
+
     @Override
     @PreAuthorize("hasAuthority('ADD_CLIENT_INTERNAL_CERT')")
     public ResponseEntity<Void> addClientTlsCertificate(String encodedId, @Valid String body) {
@@ -169,13 +172,13 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
         try {
             decodedBody = Base64.getDecoder().decode(body);
         } catch (Exception ex) {
-            throw new BadRequestException("cannot base64 decode", ex);
+            throw new BadRequestException("cannot base64 decode", ex, ErrorCode.of(INVALID_CERT_ERROR_CODE));
         }
         ClientId clientId = clientConverter.convertId(encodedId);
         try {
             clientService.addTlsCertificate(clientId, decodedBody);
         } catch (CertificateException c) {
-            throw new BadRequestException(c);
+            throw new BadRequestException(c, ErrorCode.of(INVALID_CERT_ERROR_CODE));
         }
 
         return new ResponseEntity<>(HttpStatus.OK);
