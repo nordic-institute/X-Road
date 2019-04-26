@@ -95,7 +95,6 @@ paths:
           required: true
           schema:
             type: string
-            format: binary
             minLength: 1
             maxLength: 1000000
       security:
@@ -128,7 +127,7 @@ paths:
               minLength: 1
               maxLength: 1000000
         description: backup to add
-  /backups/{filename}:
+  /backups/{id}:
     get: # ok ? is this needed
       tags:
         - security server
@@ -137,8 +136,8 @@ paths:
       description: SS administrator views the backup details of the security server.
       parameters:
         - in: path
-          name: filename
-          description: filename of the backup
+          name: id
+          description: id of the backup
           required: true
           schema:
             type: string
@@ -173,8 +172,8 @@ paths:
       description: SS administrator deletes the backup of the security server.
       parameters:
         - in: path
-          name: filename
-          description: filename of the backup
+          name: id
+          description: id of the backup
           required: true
           schema:
             type: string
@@ -197,7 +196,7 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
-  /backups/{filename}/restore:
+  /backups/{id}/restore:
     put: # ok
       tags:
         - security server
@@ -206,8 +205,8 @@ paths:
       description: SS administrator restores the configuration from backup.
       parameters:
         - in: path
-          name: filename
-          description: filename of the backup
+          name: id
+          description: id of the backup
           required: true
           schema:
             type: string
@@ -232,7 +231,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /backups/{filename}/download:
+  /backups/{id}/download:
     get: # ok
       tags:
         - security server
@@ -241,8 +240,8 @@ paths:
       description: SS administrator downloads the backup of the security server.
       parameters:
         - in: path
-          name: filename
-          description: filename of the backup
+          name: id
+          description: id of the backup
           required: true
           schema:
             type: string
@@ -2328,6 +2327,8 @@ paths:
             application/zip:
               schema:
                 type: string
+                minLength: 1
+                maxLength: 1000000
                 format: binary
         '400':
           description: request was invalid
@@ -3036,6 +3037,8 @@ components:
           readOnly: true
         acl_id:
           type: integer
+          minimum: 1
+          maximum: 4294967295
           example: 123456
         client_id:
           type: string
@@ -3110,9 +3113,17 @@ components:
     Backup: # ok
       type: object
       required:
+        - id
         - filename
         - created
       properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 255
+          format: uuid
+          example: 123
+          readOnly: true
         filename:
           type: string
           minLength: 1
@@ -3523,21 +3534,21 @@ components:
     TlsCertificate: # ok
       required:
         - issuer-distinguished-name
-        - issuer-common-name
-        - subject-distinguished-name
-        - subject-common-name
-        - not_before
-        - not_after
-        - serial
-        - version
-        - signature_algorithm
-        - signature
-        - public_key_algorithm
-        - rsa_public_key_modulus
-        - rsa_public_key_exponent
-        - hash
-        - key_usages
-        - state
+      - issuer-common-name
+      - subject-distinguished-name
+      - subject-common-name
+      - not_before
+      - not_after
+      - serial
+      - version
+      - signature_algorithm
+      - signature
+      - public_key_algorithm
+      - rsa_public_key_modulus
+      - rsa_public_key_exponent
+      - hash
+      - key_usages
+      - state
       type: object
       properties:
         issuer_distinguished_name:
@@ -3647,6 +3658,7 @@ components:
           enum:
             - IN_USE
             - DISABLED
+      type: object
     Token: # ok
       type: object
       required:
@@ -3752,8 +3764,7 @@ components:
           example: true
         disabled_notice:
           type: string
-          minLength: 1
-          maxLength: 255
+          format: boolean
           example: default_disabled_service_notice
         refreshed_date:
           type: string
