@@ -18,7 +18,7 @@ Admin UI credentials: xrd/secret
 docker run --name my-ss niis/xroad-security-server
 
 # Simple example passing in the XROAD_AUTOLOGIN_PIN for autologin
-docker run --name my-ss niis/xroad-security-server -e XROAD_AUTOLOGIN_PIN="1234"
+docker run --name my-ss -e XROAD_AUTOLOGIN_PIN="1234" niis/xroad-security-server 
 
 # Running exact version instead of the default latest version
 docker run --name my-ss niis/xroad-security-server:bionic-6.20.0
