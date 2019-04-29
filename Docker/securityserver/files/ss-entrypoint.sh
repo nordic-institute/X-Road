@@ -28,7 +28,8 @@ fi
 
 if [  -z "${XROAD_AUTOLOGIN_PIN}" ]
 then
-    echo "WARN: XROAD_AUTOLOGIN_PIN variable is not set"
+    # Optional notification if we want to notify user of optional XROAD_AUTOLOGIN_PIN environment variable. Leaving blank for now.
+    echo ""
 else
     echo "XROAD_AUTOLOGIN_PIN variable set, writing to /etc/xroad/autologin"
     echo ${XROAD_AUTOLOGIN_PIN} > /etc/xroad/autologin
