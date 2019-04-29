@@ -22,6 +22,10 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
         sleep 1
         echo "$PACKAGED_VERSION" >/etc/xroad/version
     fi
+    if [ ! -f /home/ca/CA/.init ]; then
+        echo "Initializing TEST-CA"
+        su ca -c 'cd /home/ca/CA && ./init.sh'
+    fi
 else
     echo "WARN: Installed version ($INSTALLED_VERSION) does not match packaged version ($PACKAGED_VERSION)" >&2
 fi

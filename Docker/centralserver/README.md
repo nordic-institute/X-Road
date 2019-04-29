@@ -11,7 +11,14 @@ The installed central server is in uninitialized state.
 
 Admin UI credentials: xrd/secret
 
-Examples below use cs (or cs1/cs2) as the central server container name
+## Building centralserver image
+Run init_context.sh -script that will collect the necessary files for building the image to build -folder. After that you can create the image inside the newly created build-folder
+
+```shell
+
+# In build-folder
+docker build --build-arg DIST=bionic-current -t centralserver -f ../Dockerfile .
+```
 
 ## Running
 ```
