@@ -1,3 +1,10 @@
+xroad (6.22.0-0) stable; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-
+    common/CHANGELOG.md.gz
+
+ -- NIIS <info@niis.org>  Mon, 29 Apr 2019 12:14:56 +0300
+
 xroad (6.21.0-1) stable; urgency=medium
 
   * Change history is found at /usr/share/doc/xroad-common/CHANGELOG.md.gz

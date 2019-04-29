@@ -1,5 +1,7 @@
 # Change Log
 
+## 6.22.0 - UNRELEASED
+
 ## 6.21.0 - 2019-04-24
 - XRDDEV-263: Security Server data model extended to cover REST services.
 - XRDDEV-225: Add configuration option that allows auto-accepting auth cert registration requests on Central Server.
