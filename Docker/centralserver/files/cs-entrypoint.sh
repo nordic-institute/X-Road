@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Update X-Road configuration on startup, if necessary
-INSTALLED_VERSION=$(dpkg-query --showformat='${Version}' --show xroad-proxy)
+INSTALLED_VERSION=$(dpkg-query --showformat='${Version}' --show xroad-center)
 PACKAGED_VERSION="$(cat /root/VERSION)"
 
 if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
@@ -16,7 +16,7 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
         cp -a /root/etc/xroad/* /etc/xroad/
         pg_ctlcluster 10 main start
         pg_isready -t 10
-        dpkg-reconfigure xroad-proxy xroad-addon-messagelog
+        dpkg-reconfigure xroad-center
         pg_ctlcluster 10 main stop
         nginx -s stop
         sleep 1
