@@ -11,6 +11,8 @@ The installed central server is in uninitialized state.
 
 Admin UI credentials: xrd/secret
 
+Examples below use cs (or cs1/cs2) as the central server container name
+
 ## Running
 ```
 # Publish the container ports to localhost (loopback address).
@@ -34,22 +36,20 @@ docker run -p 4100:4000 -p 4101:80 -p 4102:9998 --network x-road-network --name 
 ```
 
 ## Initializing vanilla central server
-After creating vanilla central server you need create certificates. You might find it more convenient to copy the certificates to host machine with the commands below
+After creating vanilla central server you need create certificates. You might also find it more convenient to copy the certificates to host machine with the commands below.
 
 ```
-Create certificates
-docker exec -it $1 su ca -c 'cd /home/ca/CA && ./init.sh'
+# Create certificates
+docker exec -it cs su ca -c 'cd /home/ca/CA && ./init.sh'
 
-Copy the certificates to host machine
+# Copy the certificates to host machine
 docker cp cs:/home/ca/CA/certs/ca.cert.pem ~/niis/
 docker cp cs:/home/ca/CA/certs/ocsp.cert.pem ~/niis/
 docker cp cs:/home/ca/CA/certs/tsa.cert.pem ~/niis/
 ```
 
-## Signing certificates
+### Signing certificates
 There is a simple html-form you can use to sign certificates. To access the form from the host machine you must map port 9998 from central server container to local port (above examples include this step)
-
-## Notes
 
 ### OCSP
 Inside the container nginx maps the running OCSP to port 8888 so the OCSP responders can be set to http://[CONTAINER-IP]:8888
@@ -70,6 +70,6 @@ xroad-autologin is installed, but there is no default PIN set, so the following 
 One can create the autologin file by hand after initializing the central server:
 
 ```
-$ docker exec my-ss su -c 'echo 1234 >/etc/xroad/autologin' xroad
-$ docker exec my-ss supervisorctl start xroad-autologin
+$ docker exec cs su -c 'echo 1234 >/etc/xroad/autologin' xroad
+$ docker exec cs supervisorctl start xroad-autologin
 ```
