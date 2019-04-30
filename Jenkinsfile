@@ -67,28 +67,19 @@ pipeline {
                 }
             }
         }
-        // stage('Bionic build') {
-        //     agent {
-        //         dockerfile {
-        //             dir 'src/packages/docker/deb-bionic'
-        //             args '-v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=/tmp'
-        //             reuseNode true
-        //         }
-        //     }
-        //     environment {
-        //         DEBEMAIL = 'info@niis.org'
-        //         DEBFULLNAME = 'NIIS'
-        //     }
-        //     steps {
-        //         script {
-        //             if (params.BUILD_RELEASE_PACKAGES) {
-        //                 sh './src/packages/build-deb.sh bionic -release'
-        //             } else {
-        //                 sh './src/packages/build-deb.sh bionic'
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Bionic build') {
+            agent {
+                dockerfile {
+                    dir 'src/packages/docker/deb-bionic'
+                    args '-v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=/tmp'
+                }
+            }
+            steps {
+                script {
+                    sh './src/packages/build-deb.sh bionic'
+                }
+            }
+        }
         // stage('RedHat build') {
         //     agent {
         //         dockerfile {
