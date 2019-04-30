@@ -43,6 +43,7 @@ import java.security.cert.CertificateException;
 public final class ErrorCodes {
 
     // Error code prefixes
+
     public static final String SERVER_SERVERPROXY_X = "Server.ServerProxy";
     public static final String CLIENT_X = "Client";
     public static final String SERVER_CLIENTPROXY_X = "Server.ClientProxy";
@@ -51,6 +52,7 @@ public final class ErrorCodes {
             SERVER_SERVERPROXY_X + ".OpMonitor";
 
     // Generic errors.
+
     public static final String X_IO_ERROR = "IOError";
     public static final String X_NETWORK_ERROR = "NetworkError";
     public static final String X_INTERNAL_ERROR = "InternalError";
@@ -63,6 +65,7 @@ public final class ErrorCodes {
 
 
     // Verification errors
+
     public static final String X_CANNOT_CREATE_SIGNATURE =
             "CannotCreateSignature";
     public static final String X_CERT_VALIDATION = "CertValidation";
@@ -91,6 +94,7 @@ public final class ErrorCodes {
 
 
     // Message processing errors
+
     public static final String X_SSL_AUTH_FAILED = "SslAuthenticationFailed";
     public static final String X_LOGGING_FAILED_X = "LoggingFailed";
     public static final String X_TIMESTAMPING_FAILED_X = "TimestampingFailed";
@@ -124,6 +128,7 @@ public final class ErrorCodes {
     public static final String X_INVALID_SERVICE_TYPE = "ServiceType";
 
     // ASiC container related errors
+
     public static final String X_ASIC_INVALID_CONTAINER = "AsicInvalidContainer";
     public static final String X_ASIC_MIME_TYPE_NOT_FOUND = "AsicMimeTypeNotFound";
     public static final String X_ASIC_SIGNATURE_NOT_FOUND = "AsicSignatureNotFound";
@@ -140,6 +145,7 @@ public final class ErrorCodes {
 
 
     // Configuration errors
+
     public static final String X_UNKNOWN_MEMBER = "UnknownMember";
     public static final String X_MALFORMED_SERVERCONF = "MalformedServerConf";
     public static final String X_MALFORMED_KEYCONF = "MalformedKeyConf";
@@ -153,6 +159,7 @@ public final class ErrorCodes {
 
 
     // Signer Errors
+
     public static final String X_KEY_NOT_FOUND = "KeyNotFound";
     public static final String X_KEY_NOT_AVAILABLE = "KeyNotAvailable";
     public static final String X_CERT_NOT_FOUND = "CertNotFound";
