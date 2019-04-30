@@ -26,7 +26,7 @@ docker build --build-arg DIST=bionic-current -t centralserver -f ../Dockerfile .
 docker run -p 4000:4000 -p 4001:80 -p 4002:9998 --name cs niis/xroad-central-server
 
 # Running exact version instead of the default latest version
-docker run -p 4000:4000 -p 4001:80 -p 4002:9998 --name cs niis/xroad-central-server:bionic-6.20.0
+docker run -p 4000:4000 -p 4001:80 -p 4002:9998 --name cs niis/xroad-central-server:bionic-6.21.0
 ```
 
 ## Running multiple dockerized x-road (security/central) servers
@@ -56,7 +56,15 @@ docker cp cs:/home/ca/CA/certs/tsa.cert.pem ~/niis/
 ```
 
 ### Signing certificates
-There is a simple html-form you can use to sign certificates. To access the form from the host machine you must map port 9998 from central server container to local port (above examples include this step)
+There is a simple html-form you can use to sign certificates. To access the form from the host machine you must map port 9998 from central server container to local port (above examples include this step).
+
+Note that if you use this form to sign certs you will have to restart ocsp-service.
+
+```shell
+docker exec -it cs supervisorctl restart ocsp
+```
+
+You can also sign the certs manually with scripts in /home/ca/CA/
 
 ### OCSP
 Inside the container nginx maps the running OCSP to port 8888 so the OCSP responders can be set to http://[CONTAINER-IP]:8888
