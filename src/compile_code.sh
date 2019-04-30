@@ -14,7 +14,7 @@ case "$i" in
 esac
 done
 
-ARGUMENTS=("-PxroadBuildType=$RELEASE" --stacktrace --info --debug --no-daemon buildAll runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest)
+ARGUMENTS=("-PxroadBuildType=$RELEASE" --stacktrace --no-daemon buildAll runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest)
 
 if [[ -n "$SONAR" ]]; then
     ARGUMENTS+=(dependencyCheckAnalyze sonarqube)
