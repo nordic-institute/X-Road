@@ -7,41 +7,6 @@ pipeline {
             checkout scm
           }
         }
-        // stage('Compile Code') {
-        //     agent {
-        //         dockerfile {
-        //             dir 'src/packages/docker-compile'
-        //             additionalBuildArgs '--build-arg uid=$(id -u) --build-arg gid=$(id -g)'
-        //         }
-        //     }
-        //     environment {
-        //         GRADLE_OPTS = '-Dorg.gradle.daemon=false -Dsonar.host.url=https://sonarqube.niis.org'
-        //         JAVA_HOME = '/usr/lib/jvm/java-8-openjdk-amd64/'
-        //         BUILD_TYPE = "${params.BUILD_RELEASE_PACKAGES ? 'RELEASE':'SNAPSHOT'}"
-        //         BRANCH_NAME= "${params.BRANCH}"
-        //     }
-        //     steps {
-        //         withCredentials([usernamePassword(credentialsId: 'ee55b797-6abc-4b54-87fe-d414a0c0f303', passwordVariable: 'API_KEY', usernameVariable: 'API_USER')]) {
-        //             configFileProvider([configFile(fileId:'init_gradle', variable: 'GRADLE_INIT')]) {
-        //                 sh '~/.rvm/bin/rvm jruby-$(cat src/.jruby-version) do gem source -r https://rubygems.org/'
-        //                 sh '~/.rvm/bin/rvm jruby-$(cat src/.jruby-version) do gem source -a https://jenkins:$API_KEY@artifactory.niis.org/api/gems/rubygems/'
-        //                 sh '~/.rvm/bin/rvm jruby-$(cat src/.jruby-version) do bundle config mirror.https://rubygems.org/ https://jenkins:$API_KEY@artifactory.niis.org/api/gems/rubygems/'
-        //                 sh 'cd src && ./update_ruby_dependencies.sh'
-        //                 script {
-        //                     if (params.RUN_SONAR) {
-        //                         withCredentials([string(credentialsId: 'sonarqube-user-token-2', variable: 'SONAR_TOKEN')]) {
-        //                             sh 'cd src && ~/.rvm/bin/rvm jruby-$(cat .jruby-version) do ./gradlew -PxroadBuildType="$BUILD_TYPE" -Dsonar.login=$SONAR_TOKEN -Papiuser=jenkins -Papikey=$API_KEY -I $GRADLE_INIT --stacktrace buildAll runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest dependencyCheckAnalyze sonarqube'
-        //                         }
-        //                     } else {
-        //                         sh 'cd src && ~/.rvm/bin/rvm jruby-$(cat .jruby-version) do ./gradlew -PxroadBuildType="$BUILD_TYPE" -Papiuser=jenkins -Papikey=$API_KEY -I $GRADLE_INIT --stacktrace buildAll runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest'
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-
-
         stage('Compile Code') {
             agent {
                 dockerfile {
