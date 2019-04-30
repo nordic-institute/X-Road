@@ -80,48 +80,18 @@ pipeline {
                 }
             }
         }
-        // stage('RedHat build') {
-        //     agent {
-        //         dockerfile {
-        //             dir 'src/packages/docker/rpm'
-        //             args '-v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=/workspace/src/packages'
-        //             reuseNode true        stage("SCM") {
-
-        //         }
-        //     }
-        //     steps {
-        //         script {
-        //             if (params.BUILD_RELEASE_PACKAGES) {
-        //                 sh './src/packages/build-rpm.sh -release'
-        //             } else {
-        //                 sh './src/packages/build-rpm.sh'
-        //             }
-        //         }
-        //     }
-        // }
-
-
-        // stage('Debian build') {
-        //     agent {
-        //         dockerfile {
-        //             dir 'src/packages/docker-debbuild'
-        //             args '-v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=/tmp'
-        //         }
-        //     }
-        //     steps {
-        //         sh './src/deb-docker.sh'
-        //     }
-        // }
-        // stage('RedHat build') {
-        //     agent {
-        //         dockerfile {
-        //             dir 'src/packages/docker-rpmbuild'
-        //             args '-v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=/workspace/src/packages'
-        //         }
-        //     }
-        //     steps {
-        //         sh './src/rpm-docker.sh'
-        //     }
-        // }
+        stage('RedHat build') {
+            agent {
+                dockerfile {
+                    dir 'src/packages/docker/rpm'
+                    args '-v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=/workspace/src/packages'
+                }
+            }
+            steps {
+                script {
+                    sh './src/packages/build-rpm.sh'
+                }
+            }
+        }
     }
 }
