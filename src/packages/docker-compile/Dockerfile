@@ -29,4 +29,3 @@ RUN ~/.rvm/bin/rvm install jruby-$JRUBY_VERSION --binary --skip-gemsets && \
 WORKDIR /mnt
 
 ENV GRADLE_USER_HOME /mnt/gradle-cache
-
