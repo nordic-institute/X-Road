@@ -77,6 +77,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.proxy.messagelog.LogArchiver.START_ARCHIVING;
 import static ee.ria.xroad.proxy.messagelog.LogCleaner.START_CLEANING;
 import static ee.ria.xroad.proxy.messagelog.TaskQueue.START_TIMESTAMPING;
+import static ee.ria.xroad.proxy.messagelog.TaskQueue.START_TIMESTAMPING_RETRY_MODE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -438,10 +439,16 @@ public class LogManager extends AbstractLogManager {
             if (START_TIMESTAMPING.equals(message)) {
                 handle(message);
                 schedule(getNextDelay());
+            } else if (START_TIMESTAMPING_RETRY_MODE.equals(message)) {
+                handle(message);
+                schedule(getNextDelay(), message);
             } else if (SUCCESS.equals(message)) {
                 log.info("Batch time-stamping refresh cycle successfully completed, continuing with normal scheduling");
+                // Move back into normal state.
+                // Cancel next tick, run a batch immediately and schedule next one.
                 cancelNextTick();
                 retryMode = false;
+                handle(START_TIMESTAMPING);
                 schedule(getNextDelay());
             } else if (FAILED.equals(message)) {
                 log.info("Batch time-stamping failed, switching to retry backoff schedule");
@@ -450,7 +457,7 @@ public class LogManager extends AbstractLogManager {
                 // Cancel next tick and start backoff schedule.
                 cancelNextTick();
                 retryMode = true;
-                schedule(getNextDelay());
+                schedule(getNextDelay(), START_TIMESTAMPING_RETRY_MODE);
             } else {
                 unhandled(message);
             }
@@ -471,7 +478,11 @@ public class LogManager extends AbstractLogManager {
         }
 
         private void schedule(FiniteDuration delay) {
-            tick = getContext().system().scheduler().scheduleOnce(delay, getSelf(), START_TIMESTAMPING,
+            schedule(delay, START_TIMESTAMPING);
+        }
+
+        private void schedule(FiniteDuration delay, Object message) {
+            tick = getContext().system().scheduler().scheduleOnce(delay, getSelf(), message,
                     getContext().dispatcher(), ActorRef.noSender());
         }
 
