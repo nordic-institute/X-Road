@@ -70,6 +70,7 @@ import static ee.ria.xroad.common.messagelog.MessageLogProperties.getAcceptableT
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveInterval;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getCleanInterval;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getHashAlg;
+import static ee.ria.xroad.common.messagelog.MessageLogProperties.getTimestampRetryDelay;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.shouldTimestampImmediately;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
@@ -86,6 +87,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class LogManager extends AbstractLogManager {
 
     private static final Timeout TIMESTAMP_TIMEOUT = new Timeout(Duration.create(30, TimeUnit.SECONDS));
+    public static final String FAILED = "Failed";
+    public static final String SUCCESS = "Success";
 
     // Actor names of message log components
     static final String TASK_QUEUE_NAME = "RequestLogTaskQueue";
@@ -100,6 +103,7 @@ public class LogManager extends AbstractLogManager {
     private DateTime timestampFailed;
 
     private final ActorRef timestamper;
+    private final ActorRef timestamperJob;
 
     // package private for testing
     final ActorRef taskQueueRef;
@@ -111,6 +115,7 @@ public class LogManager extends AbstractLogManager {
 
         taskQueueRef = createTaskQueue();
         timestamper = createTimestamper();
+        timestamperJob = createTimestamperJob();
         logArchiver = createArchiver(jobManager);
         logCleaner = createCleaner(jobManager);
     }
@@ -121,7 +126,11 @@ public class LogManager extends AbstractLogManager {
 
     private ActorRef createTimestamper() {
         ActorRef ref = getContext().actorOf(getTimestamperImpl(), TIMESTAMPER_NAME);
-        getContext().actorOf(Props.create(TimestamperJob.class, getTimestamperJobInitialDelay()));
+        return ref;
+    }
+
+    private ActorRef createTimestamperJob() {
+        ActorRef ref = getContext().actorOf(Props.create(TimestamperJob.class, getTimestamperJobInitialDelay()));
         return ref;
     }
 
@@ -352,12 +361,16 @@ public class LogManager extends AbstractLogManager {
      * Only externally use this method from tests. Otherwise send message to this actor.
      */
     void setTimestampSucceeded() {
-        timestampFailed = null;
+        if (timestampFailed != null) {
+            timestampFailed = null;
+            this.timestamperJob.tell(SUCCESS, ActorRef.noSender());
+        }
     }
 
     void setTimestampFailed(DateTime atTime) {
         if (timestampFailed == null) {
             timestampFailed = atTime;
+            this.timestamperJob.tell(FAILED, ActorRef.noSender());
         }
     }
 
@@ -407,9 +420,12 @@ public class LogManager extends AbstractLogManager {
     public static class TimestamperJob extends UntypedActor {
         private static final int MIN_INTERVAL_SECONDS = 60;
         private static final int MAX_INTERVAL_SECONDS = 60 * 60 * 24;
+        private static final int TIMESTAMP_RETRY_DELAY_SECONDS = getTimestampRetryDelay();
 
         private FiniteDuration initialDelay;
         private Cancellable tick;
+        // Flag for indicating backoff retry state
+        private boolean retryMode = false;
 
         public TimestamperJob(FiniteDuration initialDelay) {
             this.initialDelay = initialDelay;
@@ -421,6 +437,19 @@ public class LogManager extends AbstractLogManager {
 
             if (START_TIMESTAMPING.equals(message)) {
                 handle(message);
+                schedule(getNextDelay());
+            } else if (SUCCESS.equals(message)) {
+                log.info("Batch time-stamping refresh cycle successfully completed, continuing with normal scheduling");
+                cancelNextTick();
+                retryMode = false;
+                schedule(getNextDelay());
+            } else if (FAILED.equals(message)) {
+                log.info("Batch time-stamping failed, switching to retry backoff schedule");
+                log.info("Time-stamping retry delay value is: {}s", TIMESTAMP_RETRY_DELAY_SECONDS);
+                // Move into recover-from-failed state.
+                // Cancel next tick and start backoff schedule.
+                cancelNextTick();
+                retryMode = true;
                 schedule(getNextDelay());
             } else {
                 unhandled(message);
@@ -438,9 +467,7 @@ public class LogManager extends AbstractLogManager {
 
         @Override
         public void postStop() {
-            if (tick != null) {
-                tick.cancel();
-            }
+            cancelNextTick();
         }
 
         private void schedule(FiniteDuration delay) {
@@ -450,6 +477,7 @@ public class LogManager extends AbstractLogManager {
 
         private FiniteDuration getNextDelay() {
             int actualInterval = MIN_INTERVAL_SECONDS;
+            log.debug("Use batch time-stamping retry backoff schedule: {}", retryMode);
 
             try {
                 actualInterval = GlobalConf.getTimestampingIntervalSeconds();
@@ -457,9 +485,24 @@ public class LogManager extends AbstractLogManager {
                 log.error("Failed to get timestamping interval", e);
             }
 
+            if (retryMode) {
+                actualInterval = (TIMESTAMP_RETRY_DELAY_SECONDS < actualInterval && TIMESTAMP_RETRY_DELAY_SECONDS > 0)
+                        ? TIMESTAMP_RETRY_DELAY_SECONDS : actualInterval;
+            }
+
             int intervalSeconds = Math.min(Math.max(actualInterval, MIN_INTERVAL_SECONDS), MAX_INTERVAL_SECONDS);
+            log.debug("Time-stamping interval is: {}s", intervalSeconds);
 
             return Duration.create(intervalSeconds, TimeUnit.SECONDS);
+        }
+
+        protected void cancelNextTick() {
+            if (tick != null) {
+                if (!tick.isCancelled()) {
+                    boolean result = tick.cancel();
+                    log.info("cancelNextTick called, cancel() return value: {}", result);
+                }
+            }
         }
     }
 }
