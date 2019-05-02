@@ -12,7 +12,7 @@ Please include a summary of the change
 
 - [ ] My code follows the style guidelines of this project
 - [ ] I have performed a self-review of my own code
-- [ ] My changes generate no new warnings or errors
+- [ ] My changes generate no new warnings or errors (e.g. Javascript console, Java stdout)
 - [ ] I have made corresponding changes to the documentation
 - [ ] The new code has sufficient test coverage
 - [ ] The build, unit and integration tests pass
