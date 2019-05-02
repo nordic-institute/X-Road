@@ -1,8 +1,5 @@
 pipeline {
     agent any
-    triggers { 
-        pollSCM('H/5 * * * 1-5') 
-    }
     stages {
         stage("SCM") {
           steps {
@@ -58,6 +55,30 @@ pipeline {
                 script {
                     sh './src/packages/build-rpm.sh'
                 }
+            }
+        }
+        stage('Run trusty test') {
+            steps {
+                build(job: 'xroad-install-test-pipeline', 
+                parameters: [
+                    string(name: 'VERSION', value: 'pull-request-test'), 
+                    string(name: 'UPGRADE_VERSION', value: ''), 
+                    string(name: 'EXPECTED_VERSION_NUMBER', value: ''), 
+                    string(name: 'STACK', value: 'pull-request-test'), 
+                    string(name: 'UBUNTU_VERSION', value: 'trusty'), 
+                    booleanParam(name: 'IS_DISCARDED', value: true)])
+            }
+        }
+        stage('Run bionic test') {
+            steps {
+                build(job: 'xroad-install-test-pipeline', 
+                parameters: [
+                    string(name: 'VERSION', value: 'pull-request-test'), 
+                    string(name: 'UPGRADE_VERSION', value: ''), 
+                    string(name: 'EXPECTED_VERSION_NUMBER', value: ''), 
+                    string(name: 'STACK', value: 'pull-request-test'), 
+                    string(name: 'UBUNTU_VERSION', value: 'bionic'), 
+                    booleanParam(name: 'IS_DISCARDED', value: true)])
             }
         }
     }
