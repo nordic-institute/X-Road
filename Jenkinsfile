@@ -15,7 +15,7 @@ pipeline {
             }
             steps {
                 sh 'cd src && ./update_ruby_dependencies.sh'
-                sh 'cd src && ./compile_code.sh'
+                sh 'cd src && ./compile_code.sh -nodaemon'
             }
         }
         stage('Trusty build') {
