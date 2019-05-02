@@ -1,6 +1,9 @@
 # X-Road Terms and Abbreviations
 
-Document ID: TA-TERMS
+**X-ROAD 6**
+
+Version: 0.6  
+Doc. ID:  TA-TERMS
 
 ## Version history
 
@@ -11,6 +14,7 @@ Document ID: TA-TERMS
  14.11.2017 | 0.3     | All the descriptions in Estonian language removed. Couple of new descriptions added | Antti Luoma
  06.03.2018 | 0.4     | Moved/merged terminology explanations from other X-Road repository MD-documents to this document | Tatu Repo |
  03.01.2019 | 0.5     | Minor changes - typos fixed. | Yamato Kataoka |
+ 16.04.2019 | 0.6     | Add description of REST services. | Petteri Kivimäki |
 
 ## Table of Contents
 
@@ -150,7 +154,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ### 6.3 X-Road external components
 
-**Adapter Service** – converts a request or response query (e.g. from REST) to required X-Road SOAP-protocol. 
+**Adapter Service** – converts a request or response query to X-Road Message Protocol for SOAP or X-Road Message Protocol for REST. 
 
 **Information system** – a system including technological as well as organizational information processing of a member of X-Road. The information system (IS) uses and/or provides services via the X-Road.
 
@@ -173,7 +177,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 **Management service** – services provided by the X-Road governing organization to manage security servers and security server clients. Management services are implemented as standard X-Road services following X-Road message protocol.
 
-**Message** – Data set meeting profile description and service description required by X-Road governing authority. Messages are divided into requests and responses. Message consists of headers and payload. Payload is a SOAP body that contains service specific content.
+**Message** – Data set meeting profile description and service description required by X-Road governing authority. Messages are divided into requests and responses. SOAP message consists of headers and a SOAP body that contains service specific content. REST message consists of HTTP verb, path, query parameters, HTTP headers and message body.
 
 **Metadata service** – services between members executed by X-Road governing authority, enabling members of X-Road to get an overview of X-Road (e.g. enabling to get an overview of completed services and access rights needed for the consumption of services). Generally, it shall meet the description of X-Road service.
 
@@ -187,7 +191,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 **Service client** – is an X-Road member, subsystem, local access rights group or global access rights group that has access rights to one or more services of a security server client.
 
-**X-Road service** – SOAP-based web service that is offered by an X-Road member or by a subsystem and that can be used by other X-Road members or subsystems.
+**X-Road service** – SOAP- or REST-based web service or API that is offered by an X-Road member or by a subsystem and that can be used by other X-Road members or subsystems.
 
 #### 6.4.2 Subsystems and access rights
 
@@ -315,6 +319,8 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ### 7.2 General software terminology
 
+**API** Application Programming Interface
+
 **CI** - Continuous Integration
 
 **DSL** - Domain Specific Language
@@ -334,6 +340,8 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 **MIME** - Multipurpose Internet Mail Extensions
 
 **RPC** – Remote Procedure Call
+
+**REST** - Representational State Transfer
 
 **SDK** - Software Development Kit
 
