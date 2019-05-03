@@ -37,7 +37,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.converter.GlobalConfWrapper;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
-import org.niis.xroad.restapi.openapi.model.Certificate;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.repository.TokenRepository;
@@ -135,7 +134,7 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Client client = response.getBody();
         assertEquals(org.niis.xroad.restapi.openapi.model.ConnectionType.HTTP, client.getConnectionType());
-        assertEquals(Client.StatusEnum.REGISTERED, client.getStatus());
+        assertEquals(org.niis.xroad.restapi.openapi.model.ClientStatus.REGISTERED, client.getStatus());
         assertEquals("test-member-name", client.getMemberName());
         assertEquals("GOV", client.getMemberClass());
         assertEquals("M1", client.getMemberCode());
@@ -146,7 +145,7 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         client = response.getBody();
         assertEquals(org.niis.xroad.restapi.openapi.model.ConnectionType.HTTPS_NO_AUTH, client.getConnectionType());
-        assertEquals(Client.StatusEnum.REGISTERED, client.getStatus());
+        assertEquals(org.niis.xroad.restapi.openapi.model.ClientStatus.REGISTERED, client.getStatus());
         assertEquals("test-member-name", client.getMemberName());
         assertEquals("GOV", client.getMemberClass());
         assertEquals("M1", client.getMemberCode());
@@ -202,11 +201,11 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals("SHA512withRSA", onlyCertificate.getSignatureAlgorithm());
         assertEquals("RSA", onlyCertificate.getPublicKeyAlgorithm());
         assertEquals("A2293825AA82A5429EC32803847E2152A303969C", onlyCertificate.getHash());
-        assertEquals(org.niis.xroad.restapi.openapi.model.Certificate.StateEnum.IN_USE, onlyCertificate.getState());
+        assertEquals(org.niis.xroad.restapi.openapi.model.State.IN_USE, onlyCertificate.getState());
         assertTrue(onlyCertificate.getSignature().startsWith("314b7a50a09a9b74322671"));
         assertTrue(onlyCertificate.getRsaPublicKeyModulus().startsWith("9d888fbe089b32a35f58"));
-        assertEquals("65537", onlyCertificate.getRsaPublicKeyExponent());
-        assertEquals(new ArrayList<>(Arrays.asList(Certificate.KeyUsagesEnum.NON_REPUDIATION)),
+        assertEquals(new Integer(65537), onlyCertificate.getRsaPublicKeyExponent());
+        assertEquals(new ArrayList<>(Arrays.asList(org.niis.xroad.restapi.openapi.model.KeyUsage.NON_REPUDIATION)),
                 new ArrayList<>(onlyCertificate.getKeyUsages()));
 
         try {

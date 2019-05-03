@@ -149,7 +149,7 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
      */
     @PreAuthorize("hasAuthority('EDIT_CLIENT_INTERNAL_CONNECTION_TYPE')")
     @Override
-    public ResponseEntity<Client> updateClient(String encodedId, @NotNull @Valid ConnectionType connectiontype) {
+    public ResponseEntity<Client> updateClient(String encodedId, ConnectionType connectiontype) {
         ClientId clientId = clientConverter.convertId(encodedId);
         String connectionTypeString = ConnectionTypeMapping.map(connectiontype).get();
         ClientType changed = clientService.updateConnectionType(clientId, connectionTypeString);
