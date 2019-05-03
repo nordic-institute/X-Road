@@ -1,2859 +1,3228 @@
 openapi: 3.0.0
+servers:
+  - description: X-Road API Design
+    url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
-  title: X-Road UI Based API
   description: X-Road UI Based API
+  version: "1.0.0"
+  title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
-  version: 1.0.0
-servers:
-- url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
-  description: X-Road API Design
-security:
-- cookieAuth: []
 tags:
-- name: security server
-  description: <br>Security Server operations and API calls
-- name: central server
-  description: <br>Central Server operations and API calls
+  - name: security server
+    description: <br>Security Server operations and API calls
+  - name: central server
+    description: <br>Central Server operations and API calls
 paths:
-  /backups:
+  /backups: # ok
     get:
       tags:
-      - security server
-      summary: search security server backups
-      description: SS administrator views or searches backups of the security server.
+        - security server
+      summary: get security server backups
       operationId: getBackups
-      parameters:
-      - name: term
-        in: query
-        description: pass an optional search string for looking up backups
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
+      description: SS administrator views backups of the security server.
+      security:
+        - ApiKeyAuth: []
       responses:
-        200:
-          description: search results matching criteria
+        '200':
+          description: list of backups
           content:
             application/json:
               schema:
                 type: array
+                uniqueItems: true
                 items:
                   $ref: '#/components/schemas/Backup'
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        500:
+        '500':
           description: internal server error
-    post:
+    post: # ok
       tags:
-      - security server
+        - security server
       summary: add new backup for the security server
-      description: Adds backup to the system
       operationId: addBackup
+      description: Adds backup to the system
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '201':
+          description: item created
+        '202':
+          description: item accepted
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
       requestBody:
-        description: backup to add
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Backup'
-      responses:
-        201:
-          description: item created
-        202:
-          description: item accepted
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
-          description: internal server error
+        description: backup to add
   /backups/upload:
     post:
       tags:
-      - security server
+        - security server
       summary: upload new backup for the security server
-      description: Uploads new backup to the system
       operationId: uploadBackup
+      description: Uploads new backup to the system
       parameters:
-      - name: file
-        in: query
-        description: optional backup file
-        required: true
-        style: form
-        explode: true
-        schema:
-          type: string
-      requestBody:
-        description: backup to add
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Backup'
+        - in: query
+          name: file
+          description: backup file
+          required: true
+          schema:
+            type: string
+            format: binary
+            minLength: 1
+            maxLength: 1000000
+      security:
+        - ApiKeyAuth: []
       responses:
-        201:
+        '201':
           description: item created
-        202:
+        '202':
           description: item accepted
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        409:
+        '409':
           description: an existing item already exists
-        500:
+        '500':
           description: internal server error
-  /backups/{id}:
-    get:
+      requestBody:
+        content:
+          application/gzip:
+            schema:
+              type: string
+              format: binary
+              minLength: 1
+              maxLength: 1000000
+        description: backup to add
+  /backups/{filename}:
+    get: # ok
       tags:
-      - security server
+        - security server
       summary: get security server backup information
-      description: SS administrator views the backup details of the security server.
       operationId: getBackup
+      description: SS administrator views the backup details of the security server.
       parameters:
-      - name: id
-        in: path
-        description: id of the backup
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: filename
+          description: filename of the backup
+          required: true
+          schema:
+            type: string
+            format: filename
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        200:
+        '200':
           description: ok
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Backup'
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        500:
+        '500':
           description: internal server error
-    delete:
+    delete: # ok
       tags:
-      - security server
+        - security server
       summary: delete security server backup
-      description: SS administrator deletes the backup of the security server.
       operationId: deleteBackup
+      description: SS administrator deletes the backup of the security server.
       parameters:
-      - name: id
-        in: path
-        description: id of the backup
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: filename
+          description: filename of the backup
+          required: true
+          schema:
+            type: string
+            format: filename
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        202:
+        '202':
           description: item accepted for deletion
-        204:
+        '204':
           description: deletion was successful
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        500:
+        '500':
           description: internal server error
-  /backups/{id}/restore:
-    put:
+  /backups/{filename}/restore:
+    put: # ok
       tags:
-      - security server
+        - security server
       summary: restore configuration from backup
-      description: SS administrator restores the configuration from backup.
       operationId: restoreBackup
+      description: SS administrator restores the configuration from backup.
       parameters:
-      - name: id
-        in: path
-        description: id of the backup
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: filename
+          description: filename of the backup
+          required: true
+          schema:
+            type: string
+            format: filename
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        202:
+        '202':
           description: item accepted
-        204:
+        '204':
           description: request was successful
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
+        '500':
           description: internal server error
-  /backups/{id}/download:
-    get:
+  /backups/{filename}/download:
+    get: # ok
       tags:
-      - security server
+        - security server
       summary: download security server backup
-      description: SS administrator downloads the backup of the security server.
       operationId: downloadBackup
+      description: SS administrator downloads the backup of the security server.
       parameters:
-      - name: id
-        in: path
-        description: id of the backup
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: filename
+          description: filename of the backup
+          required: true
+          schema:
+            type: string
+            format: filename
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        200:
-          description: ok
+        '200':
+          description: backup file
           content:
-            application/json:
+            application/gzip:
               schema:
-                $ref: '#/components/schemas/Backup'
-        400:
+                type: string
+                format: binary
+                minLength: 1
+                maxLength: 1000000
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        500:
+        '500':
           description: internal server error
-  /certificates/{id}:
-    get:
+  /certificates/{hash}:
+    get: # ok
       tags:
-      - security server
+        - security server
       summary: get certificate information
-      description: SS administrator views certificate details.
       operationId: getCertificate
+      description: SS administrator views certificate details.
       parameters:
-      - name: id
-        in: path
-        description: id of the certificate
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        200:
+        '200':
           description: ok
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Certificate'
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        500:
+        '500':
           description: internal server error
-    delete:
+    delete: # ok
       tags:
-      - security server
+        - security server
       summary: delete certificate
-      description: SS administrator deletes the certificate.
       operationId: deleteCertificate
+      description: SS administrator deletes the certificate.
       parameters:
-      - name: id
-        in: path
-        description: id of the certificate
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        204:
+        '204':
           description: deletion was successful
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        500:
+        '500':
           description: internal server error
-  /certificates/{id}/activate:
-    put:
+  /certificates/{hash}/activate:
+    put: # ok
       tags:
-      - security server
+        - security server
       summary: activate certificate
-      description: SS administrator activates selected certificate.
       operationId: activateCertificate
+      description: SS administrator activates selected certificate.
       parameters:
-      - name: id
-        in: path
-        description: id of the certificate
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        204:
+        '204':
           description: request was successful
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
+        '500':
           description: internal server error
-  /certificates/{id}/disable:
-    put:
+  /certificates/{hash}/disable:
+    put: # ok
       tags:
-      - security server
+        - security server
       summary: disable certificate
-      description: SS administrator disables selected certificate.
       operationId: disableCertificate
+      description: SS administrator disables selected certificate.
       parameters:
-      - name: id
-        in: path
-        description: id of the certificate
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        204:
+        '204':
           description: request was successful
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
+        '500':
           description: internal server error
-  /certificates/{id}/register:
-    put:
+  /certificates/{hash}/register:
+    put: # ok
       tags:
-      - security server
+        - security server
       summary: register certificate
-      description: SS administrator registers selected certificate.
       operationId: registerCertificate
+      description: SS administrator registers selected certificate.
       parameters:
-      - name: id
-        in: path
-        description: id of the certificate
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        204:
+        '204':
           description: request was successful
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
+        '500':
           description: internal server error
-  /certificates/{id}/unregister:
-    put:
+  /certificates/{hash}/unregister:
+    put: # ok
       tags:
-      - security server
+        - security server
       summary: unregister certificate
-      description: SS administrator unregisters selected certificate.
       operationId: unregisterCertificate
+      description: SS administrator unregisters selected certificate.
       parameters:
-      - name: id
-        in: path
-        description: id of the certificate
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        204:
+        '204':
           description: request was successful
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
+        '500':
           description: internal server error
   /clients:
-    get:
+    get: # ok
       tags:
-      - security server
-      summary: search security server clients
-      description: SS administrator views or search the clients of the security server.
+        - security server
+      summary: get security server clients
       operationId: getClients
+      description: SS administrator views the clients of the security server.
+      security:
+        - ApiKeyAuth: []
       responses:
-        200:
-          description: search results matching criteria
+        '200':
+          description: list of clients
           content:
             application/json:
               schema:
                 type: array
+                uniqueItems: true
                 items:
                   $ref: '#/components/schemas/Client'
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        500:
+        '500':
           description: internal server error
-    post:
+    post: # ok
       tags:
-      - security server
+        - security server
       summary: adds new client for security server
-      description: Adds an item to the system
       operationId: addClient
+      description: Adds an item to the system
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '201':
+          description: item created
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
       requestBody:
-        description: client to add
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Client'
-      responses:
-        201:
-          description: item created
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
-          description: internal server error
+        description: client to add
   /clients/{id}:
-    get:
+    get: # ok
       tags:
-      - security server
+        - security server
       summary: get security server client information
-      description: SS administrator views the client details of the security server.
       operationId: getClient
+      description: SS administrator views the client details of the security server.
       parameters:
-      - name: id
-        in: path
-        description: id of the client
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        200:
+        '200':
           description: ok
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Client'
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        500:
+        '500':
           description: internal server error
-    put:
+    put: # ok
       tags:
-      - security server
+        - security server
       summary: update security server client information
-      description: SS administrator updates the client information.
       operationId: updateClient
+      description: SS administrator updates the client information.
       parameters:
-      - name: id
-        in: path
-        description: id of the client
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: connectiontype
-        in: query
-        description: server connection type
-        required: true
-        style: form
-        explode: true
-        schema:
-          $ref: '#/components/schemas/ConnectionType'
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: connection_type
+          description: server connection type
+          required: true
+          schema:
+            $ref: '#/components/schemas/ConnectionType'
+      security:
+        - ApiKeyAuth: []
       responses:
-        200:
+        '200':
           description: item modified
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Client'
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
+        '500':
           description: internal server error
-    delete:
+    delete: # ok
       tags:
-      - security server
+        - security server
       summary: delete security server client
-      description: SS administrator deletes the client of the security server.
       operationId: deleteClient
+      description: SS administrator deletes the client of the security server.
       parameters:
-      - name: id
-        in: path
-        description: id of the client
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        204:
+        '204':
           description: deletion was successful
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        500:
+        '500':
           description: internal server error
   /clients/{id}/certificates:
-    get:
+    get: # ok
       tags:
-      - security server
+        - security server
       summary: get security server client certificates information
-      description: SS administrator views the certificates for the client.
       operationId: getClientCertificates
+      description: SS administrator views the certificates for the client.
       parameters:
-      - name: id
-        in: path
-        description: id of the client
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        200:
-          description: ok
+        '200':
+          description: list of certificates
           content:
             application/json:
               schema:
                 type: array
+                uniqueItems: true
                 items:
                   $ref: '#/components/schemas/Certificate'
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        500:
+        '500':
           description: internal server error
   /clients/{id}/groups:
-    get:
+    get: # ok
       tags:
-      - security server
+        - security server
       summary: get local groups for the selected client
-      description: SS administrator views the local groups for the client.
       operationId: getClientGroups
+      description: SS administrator views the local groups for the client.
       parameters:
-      - name: id
-        in: path
-        description: id of the client
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        200:
-          description: ok
+        '200':
+          description: list of local groups
           content:
             application/json:
               schema:
                 type: array
+                uniqueItems: true
                 items:
                   $ref: '#/components/schemas/Group'
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        500:
+        '500':
           description: internal server error
-    post:
+    post: # ok
       tags:
-      - security server
+        - security server
       summary: add new local group for the security server client
-      description: SS administrator adds a new local group for the client.
       operationId: addClientGroup
+      description: SS administrator adds a new local group for the client.
       parameters:
-      - name: id
-        in: path
-        description: id of the client
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '201':
+          description: item created
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
       requestBody:
-        description: group to add
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Group'
-      responses:
-        201:
-          description: item created
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
-          description: internal server error
+        description: group to add
   /clients/{id}/register:
-    put:
+    put: # ok
       tags:
-      - security server
+        - security server
       summary: register security server client
-      description: SS administrator registers client.
       operationId: registerClient
+      description: SS administrator registers client.
       parameters:
-      - name: id
-        in: path
-        description: id of the client
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        204:
+        '204':
           description: request was successful
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
+        '500':
           description: internal server error
   /clients/{id}/serviceclients:
-    get:
+    get: # ok
       tags:
-      - security server
+        - security server
       summary: get service clients for the selected client
-      description: SS administrator views the service clients for the client.
       operationId: getClientServiceclients
+      description: SS administrator views the service clients for the client.
       parameters:
-      - name: id
-        in: path
-        description: id of the client
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        200:
-          description: ok
+        '200':
+          description: list of service clients
           content:
             application/json:
               schema:
                 type: array
+                uniqueItems: true
                 items:
                   $ref: '#/components/schemas/ServiceClient'
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        500:
+        '500':
           description: internal server error
-    post:
+    post: # ok
       tags:
-      - security server
+        - security server
       summary: add new service client for the security server client
-      description: SS administrator adds a new service client for the client.
       operationId: addClientServiceclient
+      description: SS administrator adds a new service client for the client.
       parameters:
-      - name: id
-        in: path
-        description: id of the client
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        description: service client to add
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ServiceClient'
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: service_client_id
+          description: id of the service client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
       responses:
-        201:
+        '201':
           description: item created
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        409:
+        '409':
           description: an existing item already exists
-        500:
-          description: internal server error
-  /clients/{id}/services:
-    get:
-      tags:
-      - security server
-      summary: get security server client services
-      description: SS administrator views the services for the client.
-      operationId: getClientServices
-      parameters:
-      - name: id
-        in: path
-        description: id of the client
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        200:
-          description: ok
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Service'
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        500:
+        '500':
           description: internal server error
   /clients/{id}/tlscertificates:
-    get:
+    get: # ok
       tags:
-      - security server
+        - security server
       summary: get security server client TLS certificates information
-      description: SS administrator views the TLS certificates for the client.
       operationId: getClientTlsCertificates
+      description: SS administrator views the TLS certificates for the client.
       parameters:
-      - name: id
-        in: path
-        description: id of the client
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        200:
-          description: ok
+        '200':
+          description: list of tls certificates
           content:
             application/json:
               schema:
                 type: array
+                uniqueItems: true
                 items:
-                  $ref: '#/components/schemas/TlsCertificate'
-        400:
+                  $ref: '#/components/schemas/Certificate'
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        500:
+        '500':
           description: internal server error
-    post:
+    post: # ok
       tags:
-      - security server
+        - security server
       summary: add new certificate for the security server client
-      description: SS administrator adds a new certificate for the client.
       operationId: addClientTlsCertificate
+      description: SS administrator adds a new certificate for the client.
       parameters:
-      - name: id
-        in: path
-        description: id of the client
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: file
+          description: import file in DER or PEM format
+          required: true
+          schema:
+            type: string
+            oneOf:
+              - format: binary
+              - format: base64
+            minLength: 1
+            maxLength: 1000000
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '201':
+          description: item created
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
       requestBody:
-        description: certificate to add
         content:
           application/*:
             schema:
               type: string
-              format: base64
-      responses:
-        201:
-          description: item created
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
-          description: internal server error
-  /clients/{id}/tlscertificates/{cid}:
-    get:
+              minLength: 1
+              maxLength: 1000000
+              oneOf:
+                - format: binary
+                - format: base64
+        description: certificate to add
+  /clients/{id}/tlscertificates/{hash}:
+    get: # ok
       tags:
-      - security server
+        - security server
       summary: get TLS certificate
-      description: SS administrator gets the TLS certificate for the selected client.
       operationId: getClientTlsCertificate
+      description: SS administrator gets the TLS certificate for the selected client.
       parameters:
-      - name: id
-        in: path
-        description: id of the client
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: cid
-        in: path
-        description: id of the certificate
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        200:
+        '200':
           description: ok
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TlsCertificate'
-        400:
+                $ref: '#/components/schemas/Certificate'
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        500:
+        '500':
           description: internal server error
-    delete:
+    delete: # ok
       tags:
-      - security server
+        - security server
       summary: delete certificate
-      description: SS administrator deletes the certificate from selected client.
       operationId: deleteClientTlsCertificate
+      description: SS administrator deletes the certificate from selected client.
       parameters:
-      - name: id
-        in: path
-        description: id of the client
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: cid
-        in: path
-        description: id of the certificate
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        204:
+        '204':
           description: deletion was successful
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        500:
+        '500':
           description: internal server error
   /clients/{id}/unregister:
-    put:
+    put: # ok
       tags:
-      - security server
+        - security server
       summary: unregister security server client
-      description: SS administrator unregisters client.
       operationId: unregisterClient
+      description: SS administrator unregisters client.
       parameters:
-      - name: id
-        in: path
-        description: id of the client
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        204:
+        '204':
           description: request was successful
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
+        '500':
           description: internal server error
-  /clients/{id}/wsdls:
-    get:
+  /clients/{id}/services:
+    get: # ok
       tags:
-      - security server
-      summary: get security server client WSDL files
-      description: SS administrator views the WSDL files for the client.
-      operationId: getClientWsdls
+        - security server
+      summary: get security server client services
+      operationId: getClientServices
+      description: SS administrator views the services for the client.
       parameters:
-      - name: id
-        in: path
-        description: id of the client
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        200:
-          description: ok
+        '200':
+          description: list of services
           content:
             application/json:
               schema:
                 type: array
+                uniqueItems: true
                 items:
-                  $ref: '#/components/schemas/Wsdl'
-        400:
+                  $ref: '#/components/schemas/Service'
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        500:
+        '500':
           description: internal server error
-    post:
+    post: # ok
       tags:
-      - security server
-      summary: add new wsdl for the security server client
-      description: SS administrator adds a new wsdl for the client.
-      operationId: addClientWsdl
+        - security server
+      summary: add new service for the security server client
+      operationId: addClientService
+      description: SS administrator adds a new service for the client.
       parameters:
-      - name: id
-        in: path
-        description: id of the client
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: url
-        in: query
-        description: path for the wsdl file
-        required: true
-        style: form
-        explode: true
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: url
+          description: path for the service description file
+          required: true
+          schema:
+            type: string
+            format: url
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '201':
+          description: item created
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
       requestBody:
-        description: service client to add
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Wsdl'
-      responses:
-        201:
-          description: item created
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
-          description: internal server error
+              $ref: '#/components/schemas/Service'
+        description: service client to add
   /groups/{id}:
-    get:
+    get: # ok
       tags:
-      - security server
+        - security server
       summary: get local group information
-      description: SS administrator views local group details.
       operationId: getGroup
+      description: SS administrator views local group details.
       parameters:
-      - name: id
-        in: path
-        description: id of the local group
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the local group
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        200:
+        '200':
           description: ok
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Group'
-        400:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    format: text
+                    minLength: 1
+                    maxLength: 255
+                    example: groupcode
+                  description:
+                    type: string
+                    format: text
+                    minLength: 1
+                    maxLength: 255
+                    example: description
+                  member_count:
+                    type: integer
+                    format: int32
+                    example: 10
+                  updated:
+                    type: string
+                    minLength: 24
+                    maxLength: 24
+                    format: date-time
+                    example: '2018-12-15T00:00:00.001Z'
+                  members:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Member'
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        500:
+        '500':
           description: internal server error
-    put:
+    put: # ok
       tags:
-      - security server
+        - security server
       summary: update local group information
-      description: SS administrator updates the local group information.
       operationId: updateGroup
+      description: SS administrator updates the local group information.
       parameters:
-      - name: id
-        in: path
-        description: id of the local group
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: code
-        in: query
-        description: local group code
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: description
-        in: query
-        description: local group description
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the local group
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: description
+          description: local group description
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        200:
+        '200':
           description: item modified
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Group'
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
+        '500':
           description: internal server error
-    delete:
+    delete: # ok
       tags:
-      - security server
+        - security server
       summary: delete local group
-      description: SS administrator deletes the local group.
       operationId: deleteGroup
+      description: SS administrator deletes the local group.
       parameters:
-      - name: id
-        in: path
-        description: id of the local group
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the local group
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        204:
+        '204':
           description: deletion was successful
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        500:
+        '500':
           description: internal server error
   /groups/{id}/members:
-    post:
+    post: # ok
       tags:
-      - security server
+        - security server
       summary: add new member for the local group
-      description: SS administrator adds a new member for the local group.
       operationId: addGroupMember
+      description: SS administrator adds a new member for the local group.
       parameters:
-      - name: id
-        in: path
-        description: id of the client
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        description: member to add
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Member'
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: member_id
+          description: id of the member
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        201:
+        '201':
           description: item created
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        409:
+        '409':
           description: an existing item already exists
-        500:
+        '500':
           description: internal server error
   /groups/{id}/members/{mid}:
-    delete:
+    delete: # ok
       tags:
-      - security server
+        - security server
       summary: delete member from local group
-      description: SS administrator deletes the member from local group.
       operationId: deleteGroupMember
+      description: SS administrator deletes the member from local group.
       parameters:
-      - name: id
-        in: path
-        description: id of the group
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: mid
-        in: path
-        description: id of the member
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the group
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: path
+          name: mid
+          description: id of the member
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        204:
+        '204':
           description: deletion was successful
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        500:
+        '500':
           description: internal server error
   /keys/{id}:
-    get:
+    get: # ok
       tags:
-      - security server
+        - security server
       summary: get information for the selected key
-      description: SS administrator views key details.
       operationId: getKey
+      description: SS administrator views key details.
       parameters:
-      - name: id
-        in: path
-        description: id of the key
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the key
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
       responses:
-        200:
+        '200':
           description: ok
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Key'
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        500:
+        '500':
           description: internal server error
-    put:
+    put: # ok
       tags:
-      - security server
+        - security server
       summary: update key information
-      description: SS administrator updates the key information.
       operationId: updateKey
+      description: SS administrator updates the key information.
       parameters:
-      - name: id
-        in: path
-        description: id of the key
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: other
-        in: query
-        description: other parameters tbd
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the key
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: name
+          description: edit friendly name of the key
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        200:
+        '200':
           description: item modified
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Key'
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
+        '500':
           description: internal server error
-    delete:
+    delete: # ok
       tags:
-      - security server
+        - security server
       summary: delete key
-      description: SS administrator deletes the key.
       operationId: deleteKey
+      description: SS administrator deletes the key.
       parameters:
-      - name: id
-        in: path
-        description: id of the key
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the key
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        204:
+        '204':
           description: deletion was successful
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        500:
+        '500':
           description: internal server error
   /keys/{id}/certificates:
-    post:
+    post: # ok
       tags:
-      - security server
+        - security server
       summary: adds new certificate for selected key
-      description: Adds certificate to the system
       operationId: addCertificate
+      description: Adds certificate to the system
       parameters:
-      - name: id
-        in: path
-        description: id of the key
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: import
-        in: query
-        description: import file
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          default: "false"
-      requestBody:
-        description: Certificate to add
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Certificate'
+        - in: path
+          name: id
+          description: id of the key
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: file
+          description: import file in DER or PEM format
+          required: true
+          schema:
+            type: string
+            oneOf:
+              - format: binary
+              - format: base64
+            minLength: 1
+            maxLength: 1000000
+      security:
+        - ApiKeyAuth: []
       responses:
-        201:
+        '201':
           description: item created
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        409:
+        '409':
           description: an existing item already exists
-        500:
+        '500':
           description: internal server error
-  /keys/{id}/generatecsr:
-    put:
+      requestBody:
+        content:
+          application/*:
+            schema:
+              type: string
+              minLength: 1
+              maxLength: 1000000
+              oneOf:
+                - format: binary
+                - format: base64
+        description: certificate to add
+  /keys/{id}/generate-csr:
+    put: # ok
       tags:
-      - security server
+        - security server
       summary: generate csr for the selected key
-      description: SS administrator generates csr for the key.
       operationId: genrerateCsr
+      description: SS administrator generates csr for the key.
       parameters:
-      - name: id
-        in: path
-        description: id of the key
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: key_usage
-        in: query
-        description: inteded usage for the key (signing or authentication)
-        required: true
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: approved_ca
-        in: query
-        description: approved certification service
-        required: true
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: csr_format
-        in: query
-        description: format of the certificate signing request (PEM or DER)
-        required: true
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: member_id
-        in: query
-        description: security server client the certificate will be issued for (only
-          for signing certificates)
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the key
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: key_usage
+          description: inteded usage for the key (signing or authentication)
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: approved_ca
+          description: approved certification service
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: csr_format
+          description: format of the certificate signing request (PEM or DER)
+          required: false
+          schema:
+            $ref: '#/components/schemas/CsrFormat'
+        - in: query
+          name: member_id
+          description: security server client the certificate will be issued for (only for signing certificates)
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        201:
+        '201':
           description: item created
           content:
             application/pkcs10:
               schema:
                 type: string
                 format: binary
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
+        '500':
           description: internal server error
-  /keys/{id}/deletecsr:
-    put:
+  /keys/{id}/delete-csr:
+    put: # ok
       tags:
-      - security server
-      summary: generate csr for the selected key
-      description: SS administrator generates csr for the key.
+        - security server
+      summary: delete csr from the selected key
       operationId: deleteCsr
+      description: SS administrator deletes csr from the key.
       parameters:
-      - name: id
-        in: path
-        description: id of the key
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the key
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        204:
+        '204':
           description: request was successful
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
+        '500':
           description: internal server error
   /language:
-    put:
+    put: # ok
       tags:
-      - security server
+        - security server
       summary: change language
-      description: SS administrator changes the language for the UI.
       operationId: language
+      description: SS administrator changes the language for the UI.
       parameters:
-      - name: id
-        in: path
-        description: id of the language (language code)
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: code
+          description: code of the language (language code)
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 2
+            maxLength: 2
+      security:
+        - ApiKeyAuth: []
       responses:
-        200:
+        '200':
           description: language changed
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Language'
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        409:
+        '500':
+          description: internal server error
+  /login:
+    post: # ok
+      summary: Logs in and returns the authentication cookie
+      requestBody:
+        required: true
+        description: A JSON object containing the login and password.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      security:
+        - CookieAuth: []
+      responses:
+        '200':
+          description: >
+            Successfully authenticated.
+            The session ID is returned in a cookie named `JSESSIONID`. You need to include this cookie in subsequent requests.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                minLength: 1
+                maxLength: 255
+                example: JSESSIONID=abcde12345; Path=/;
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
           description: an existing item already exists
-        500:
+        '500':
+          description: internal server error
+  /logout:
+    delete: # ok
+      tags:
+        - security server
+      summary: logout from the UI
+      operationId: logout
+      description: SS administrator logs out from UI.
+      security:
+        - CookieAuth: []
+      responses:
+        '204':
+          description: deletion was successful
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '500':
           description: internal server error
   /user:
-    get:
+    get: # ok
       tags:
-      - security server
+        - security server
       summary: get user data for the logged user
-      description: SS administrator gets user data from backend.
       operationId: user
+      description: SS administrator gets user data from backend.
+      security:
+        - ApiKeyAuth: []
       responses:
-        200:
-          description: ok
+        '200':
+          description: user details
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        500:
+        '500':
           description: internal server error
-      security: []
-  /services/{id}:
-    put:
+  /operations/{id}:
+    put: # ok
       tags:
-      - security server
-      summary: update service information
-      description: SS administrator updates the service information.
-      operationId: updateService
+        - security server
+      summary: update operation
+      operationId: updateOperation
+      description: SS administrator updates the operation.
       parameters:
-      - name: id
-        in: path
-        description: id of the service
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: other
-        in: query
-        description: other parameters tbd
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the operation
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: url
+          description: operation url
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: url_all
+          description: operation url for all operations
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: timeout
+          description: operation timeout value
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: timeout_all
+          description: operation timeout value for all operations
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: security_category
+          description: operation security category value
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: security_category_all
+          description: operation security category value for all operations
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: ssl_auth
+          description: operation ssl authentication
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: ssl_auth_all
+          description: operation ssl authentication for all operations
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        200:
+        '200':
+          description: item modified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /operations/{id}/accessrights:
+    get: # ok
+      tags:
+        - security server
+      summary: get access rights for the selected operation
+      operationId: getOperationAccessrights
+      description: SS administrator views operation accessrights.
+      parameters:
+        - in: path
+          name: id
+          description: id of the operation
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: list of service client and access rights
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/ServiceClientAccessRight'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    post:
+      tags:
+        - security server
+      summary: adds new accessright for selected operation
+      operationId: addOperationAccessright
+      description: Adds accessright to the operation
+      parameters:
+        - in: path
+          name: id
+          description: id of the operation
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: code
+          description: service code of the operation
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+            default: code
+        - in: query
+          name: subject_ids
+          description: subject ids of the operation
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Subject'
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '201':
+          description: item created
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccessRight'
+        description: accessright to add
+  /operations/{id}/accessrights/{aid}:
+    delete: # ok ? different logic in old backend
+      tags:
+        - security server
+      summary: remove accessright
+      operationId: deleteOperationAccessright
+      description: SS administrator removes accessright from selected operation.
+      parameters:
+        - in: path
+          name: id
+          description: id of the operation
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: path
+          name: aid
+          description: id of the accessright
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '204':
+          description: deletion was successful
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '500':
+          description: internal server error
+  /serviceclients/{id}/accessrights:
+    get: # ok
+      tags:
+        - security server
+      summary: get access rights for the selected service client.
+      operationId: getServiceclientAccessrights
+      description: SS administrator views service client's accessrights.
+      parameters:
+        - in: path
+          name: id
+          description: id of the service client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: list of accessrights
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/AccessRight'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    post: # ok
+      tags:
+        - security server
+      summary: adds new accessright for selected service client
+      operationId: addServiceclientAccessright
+      description: Adds accessright to the service client.
+      parameters:
+        - in: path
+          name: id
+          description: id of the service client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: subject_ids
+          description: selected subject ids
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Subject'
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '201':
+          description: item created
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccessRight'
+        description: accessright to add
+  /serviceclients/{id}/accessrights/{aid}:
+    delete: # ok
+      tags:
+        - security server
+      summary: remove accessright
+      operationId: deleteServiceclientAccessright
+      description: SS administrator removes accessright from selected service client.
+      parameters:
+        - in: path
+          name: id
+          description: id of the service client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: path
+          name: aid
+          description: id of the accessright
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '204':
+          description: deletion was successful
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '500':
+          description: internal server error
+  /system: # ok
+    get:
+      tags:
+        - security server
+      summary: get system information
+      operationId: getSystem
+      description: SS administrator views the system information.
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: system information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/System'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /system/anchor:
+    get: # ok
+      tags:
+        - security server
+      summary: view the configuration anchor information
+      operationId: getAnchor
+      description: SS administrator views the configuration anchor information.
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: anchor information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Anchor'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    post: # ok
+      tags:
+        - security server
+      summary: upload a configuration anchor file
+      operationId: uploadAnchor
+      description: SS administrator uploads configuration anchor file
+      parameters:
+        - in: query
+          name: file
+          description: import file in XML format
+          required: true
+          schema:
+            type: string
+            format: ascii
+            minLength: 1
+            maxLength: 1000000
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '201':
+          description: item created
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
+      requestBody:
+        content:
+          application/xml:
+            schema:
+              type: string
+              format: ascii
+              minLength: 1
+              maxLength: 1000000
+        description: configuration anchor file
+  /system/anchor/download:
+    get: # ok
+      tags:
+        - security server
+      summary: download configuration anchor information
+      operationId: downloadAnchor
+      description: SS administrator downloads the configuration anchor information.
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: configuration anchor file
+          content:
+            application/xml:
+              schema:
+                type: string
+                format: ascii
+                minLength: 1
+                maxLength: 1000000
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /system/certificate:
+    get: # ok
+      tags:
+        - security server
+      summary: view the security server certificate information
+      operationId: getSystemCertificate
+      description: SS administrator views the security server TLS certificate information.
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: certificate information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Certificate'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /system/certificate/export:
+    get: # ok
+      tags:
+        - security server
+      summary: download the security server certificate as gzip compressed tar archive
+      operationId: downloadSystemCertificate
+      description: SS administrator downloads the security server TLS certificate.
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: information fetched successfully
+          content:
+            application/gzip:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /system/timestamping:
+    get: # ok
+      tags:
+        - security server
+      summary: view the timestamping service information
+      operationId: getTimestamping
+      description: SS administrator views the timestamping service information.
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: timestamping information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Timestamping'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    post: # ok
+      tags:
+        - security server
+      summary: add a timestamping service
+      operationId: addTimestamping
+      description: SS administrator selects new timestamping service
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '201':
+          description: item created
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Timestamping'
+        description: Timestamping service to add
+    delete: # ok
+      tags:
+        - security server
+      summary: delete timestamping service
+      operationId: deleteTimestamping
+      description: SS administrator removes timestamping service.
+      parameters:
+        - in: query
+          name: name
+          description: name of the timestamping service
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '204':
+          description: deletion was successful
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '500':
+          description: internal server error
+  /system/timestamping/services:
+    get: # ok
+      tags:
+        - security server
+      summary: view the timestamping services
+      operationId: getTimestampingServices
+      description: SS administrator views the timestamping services.
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: list of timestamping services
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/Timestamping'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /system/version:
+    get: # ok
+      tags:
+        - security server
+      summary: get information for the system version
+      operationId: systemVersion
+      description: SS administrator views key details.
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: system version information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Version'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /tokens:
+    get: # ok
+      tags:
+        - security server
+      summary: get security server tokens
+      operationId: getTokens
+      description: SS administrator views tokens of the security server.
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: list of tokens
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/Token'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    post: # ok ? do we need this
+      tags:
+        - security server
+      summary: adds new token for security server
+      operationId: addToken
+      description: Adds token to the system
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '201':
+          description: item created
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Token'
+        description: Token to add
+  /tokens/{id}:
+    get: # ok
+      tags:
+        - security server
+      summary: get security server token information
+      operationId: getToken
+      description: SS administrator views the token details of the security server.
+      parameters:
+        - in: path
+          name: id
+          description: id of the token
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    put: # ok
+      tags:
+        - security server
+      summary: update security server token information
+      operationId: updateToken
+      description: SS administrator updates the token information.
+      parameters:
+        - in: path
+          name: id
+          description: id of the token
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: name
+          description: friendly name of the token
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: item modified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    delete: # ok ? do we need this
+      tags:
+        - security server
+      summary: delete security server token
+      operationId: deleteToken
+      description: SS administrator deletes the token of the security server.
+      parameters:
+        - in: path
+          name: id
+          description: id of the token
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '204':
+          description: deletion was successful
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '500':
+          description: internal server error
+  /tokens/{id}/keys:
+    post: # ok
+      tags:
+        - security server
+      summary: adds new key
+      operationId: addKey
+      description: Adds key for selected token.
+      parameters:
+        - in: path
+          name: id
+          description: id of the token
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: label
+          description: label for the new key
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '201':
+          description: item created
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Key'
+        description: Key to add
+  /tokens/{id}/login:
+    post: # ok
+      tags:
+        - security server
+      summary: logins to token
+      operationId: loginToken
+      description: Login to token
+      parameters:
+        - in: path
+          name: id
+          description: id of the token
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '201':
+          description: item created
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Token'
+        description: Token to add
+  /tokens/{id}/logout:
+    delete: # ok
+      tags:
+        - security server
+      summary: logout from token
+      operationId: logoutToken
+      description: SS administrator logs out from token.
+      parameters:
+        - in: path
+          name: id
+          description: id of the token
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '204':
+          description: deletion was successful
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '500':
+          description: internal server error
+  /services/{id}:
+    put: # ok
+      tags:
+        - security server
+      summary: update url for the selected service
+      operationId: updateService
+      description: SS administrator updates the selected service.
+      parameters:
+        - in: path
+          name: id
+          description: id of the service
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: url
+          description: path for the service description file
+          required: true
+          schema:
+            type: string
+            format: url
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
           description: item modified
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Service'
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
+        '500':
           description: internal server error
-    delete:
+    delete: # ok
       tags:
-      - security server
+        - security server
       summary: delete service
-      description: SS administrator deletes the service.
       operationId: deleteService
+      description: SS administrator deletes the service.
       parameters:
-      - name: id
-        in: path
-        description: id of the service
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the service
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        204:
+        '204':
           description: deletion was successful
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        500:
+        '500':
           description: internal server error
-  /services/{id}/accessrights:
-    get:
+  /services/{id}/disable:
+    put: # ok
       tags:
-      - security server
-      summary: get access rights for the selected service
-      description: SS administrator views service accessrights.
-      operationId: getServiceAccessrights
+        - security server
+      summary: disable selected service
+      operationId: disableService
+      description: SS administrator disables service.
       parameters:
-      - name: id
-        in: path
-        description: id of the service
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the service
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: disabled_notice
+          description: disabled service notice
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        200:
-          description: ok
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Accessright'
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        500:
-          description: internal server error
-    post:
-      tags:
-      - security server
-      summary: adds new accessright for selected service
-      description: Adds accessright to the service
-      operationId: addServiceAccessright
-      parameters:
-      - name: id
-        in: path
-        description: id of the service
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: other
-        in: query
-        description: tbd
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          default: "false"
-      requestBody:
-        description: accessright to add
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Accessright'
-      responses:
-        201:
-          description: item created
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
-          description: internal server error
-  /services/{id}/accessrights/{aid}:
-    delete:
-      tags:
-      - security server
-      summary: remove accessright
-      description: SS administrator removes accessright from selected service.
-      operationId: deleteServiceAccessright
-      parameters:
-      - name: id
-        in: path
-        description: id of the service
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: aid
-        in: path
-        description: id of the accessright
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        204:
-          description: deletion was successful
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        500:
-          description: internal server error
-  /serviceclients/{id}/accessrights:
-    get:
-      tags:
-      - security server
-      summary: get access rights for the selected service client.
-      description: SS administrator views service client's accessrights.
-      operationId: getServiceclientAccessrights
-      parameters:
-      - name: id
-        in: path
-        description: id of the service client
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        200:
-          description: ok
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Accessright'
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        500:
-          description: internal server error
-    post:
-      tags:
-      - security server
-      summary: adds new accessright for selected service client
-      description: Adds accessright to the service client.
-      operationId: addServiceclientAccessright
-      parameters:
-      - name: id
-        in: path
-        description: id of the service
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: other
-        in: query
-        description: tbd
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          default: "false"
-      requestBody:
-        description: accessright to add
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Accessright'
-      responses:
-        201:
-          description: item created
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
-          description: internal server error
-  /serviceclients/{id}/accessrights/{aid}:
-    delete:
-      tags:
-      - security server
-      summary: remove accessright
-      description: SS administrator removes accessright from selected service client.
-      operationId: deleteServiceclientAccessright
-      parameters:
-      - name: id
-        in: path
-        description: id of the service client
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: aid
-        in: path
-        description: id of the accessright
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        204:
-          description: deletion was successful
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        500:
-          description: internal server error
-  /system:
-    get:
-      tags:
-      - security server
-      summary: get system information
-      description: SS administrator views the system information.
-      operationId: getSystem
-      responses:
-        200:
-          description: information fetched successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/System'
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        500:
-          description: internal server error
-  /system/anchor:
-    get:
-      tags:
-      - security server
-      summary: view the configuration anchor information
-      description: SS administrator views the configuration anchor information.
-      operationId: getAnchor
-      parameters:
-      - name: download
-        in: query
-        description: to be decided
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          default: "false"
-      responses:
-        200:
-          description: information fetched successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Anchor'
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        500:
-          description: internal server error
-    put:
-      tags:
-      - security server
-      summary: update configuration anchor
-      description: SS administrator updates configuration anchor information.
-      operationId: updateAnchor
-      responses:
-        200:
-          description: item modified
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Anchor'
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
-          description: internal server error
-    post:
-      tags:
-      - security server
-      summary: upload a configuration anchor file
-      description: SS administrator uploads configuration anchor file
-      operationId: uploadAnchor
-      requestBody:
-        description: Configuration to add
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Anchor'
-      responses:
-        201:
-          description: item created
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
-          description: internal server error
-  /system/anchor/download:
-    get:
-      tags:
-      - security server
-      summary: download configuration anchor information
-      description: SS administrator downloads the configuration anchor information.
-      operationId: downloadAnchor
-      responses:
-        200:
-          description: information fetched successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Anchor'
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        500:
-          description: internal server error
-  /system/certificate:
-    get:
-      tags:
-      - security server
-      summary: view the security server certificate information
-      description: SS administrator views the security server TLS certificate information.
-      operationId: getSystemCertificate
-      responses:
-        200:
-          description: information fetched successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Certificate'
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        500:
-          description: internal server error
-  /system/certificate/export:
-    get:
-      tags:
-      - security server
-      summary: download the security server certificate as zip package
-      description: SS administrator downloads the security server TLS certificate.
-      operationId: downloadSystemCertificate
-      responses:
-        200:
-          description: information fetched successfully
-          content:
-            application/zip:
-              schema:
-                type: string
-                format: binary
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        500:
-          description: internal server error
-  /system/timestamping:
-    get:
-      tags:
-      - security server
-      summary: view the timestamping service information
-      description: SS administrator views the timestamping service information.
-      operationId: getTimestamping
-      responses:
-        200:
-          description: information fetched successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Timestamping'
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        500:
-          description: internal server error
-    post:
-      tags:
-      - security server
-      summary: add a timestamping service
-      description: SS administrator adds new timestamping service
-      operationId: addTimestamping
-      requestBody:
-        description: Timestamping service to add
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Timestamping'
-      responses:
-        201:
-          description: item created
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
-          description: internal server error
-    delete:
-      tags:
-      - security server
-      summary: delete timestamping service
-      description: SS administrator removes timestamping service.
-      operationId: deleteTimestamping
-      responses:
-        204:
-          description: deletion was successful
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        500:
-          description: internal server error
-  /system/version:
-    get:
-      tags:
-      - security server
-      summary: get information for the system version
-      description: SS administrator views key details.
-      operationId: systemVersion
-      parameters:
-      - name: id
-        in: path
-        description: id of the key
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        200:
-          description: ok
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/System'
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        500:
-          description: internal server error
-  /tokens:
-    get:
-      tags:
-      - security server
-      summary: search security server tokens
-      description: SS administrator views or search the tokens of the security server.
-      operationId: getTokens
-      parameters:
-      - name: term
-        in: query
-        description: pass an optional search string for looking up tokens
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: offset
-        in: query
-        description: number of records to skip for pagination
-        required: false
-        style: form
-        explode: true
-        schema:
-          minimum: 0
-          type: integer
-          format: int32
-      - name: limit
-        in: query
-        description: maximum number of records to return
-        required: false
-        style: form
-        explode: true
-        schema:
-          maximum: 50
-          minimum: 0
-          type: integer
-          format: int32
-      responses:
-        200:
-          description: search results matching criteria
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Token'
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        500:
-          description: internal server error
-    post:
-      tags:
-      - security server
-      summary: adds new token for security server
-      description: Adds token to the system
-      operationId: addToken
-      requestBody:
-        description: Token to add
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Token'
-      responses:
-        201:
-          description: item created
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
-          description: internal server error
-  /tokens/{id}:
-    get:
-      tags:
-      - security server
-      summary: get security server token information
-      description: SS administrator views the token details of the security server.
-      operationId: getToken
-      parameters:
-      - name: id
-        in: path
-        description: id of the token
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        200:
-          description: ok
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Token'
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        500:
-          description: internal server error
-    put:
-      tags:
-      - security server
-      summary: update security server token information
-      description: SS administrator updates the token information.
-      operationId: updateToken
-      parameters:
-      - name: id
-        in: path
-        description: id of the token
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: other
-        in: query
-        description: other parameters tbd
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        200:
-          description: item modified
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Token'
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
-          description: internal server error
-    delete:
-      tags:
-      - security server
-      summary: delete security server token
-      description: SS administrator deletes the token of the security server.
-      operationId: deleteToken
-      parameters:
-      - name: id
-        in: path
-        description: id of the token
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        204:
-          description: deletion was successful
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        500:
-          description: internal server error
-  /tokens/{id}/keys:
-    post:
-      tags:
-      - security server
-      summary: adds new key
-      description: Adds key for selected token.
-      operationId: addKey
-      parameters:
-      - name: id
-        in: path
-        description: id of the token
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: label
-        in: query
-        description: label for the token
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      requestBody:
-        description: Key to add
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Key'
-      responses:
-        201:
-          description: item created
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
-          description: internal server error
-  /tokens/{id}/login:
-    post:
-      tags:
-      - security server
-      summary: logins to token
-      description: Login to token
-      operationId: loginToken
-      parameters:
-      - name: id
-        in: path
-        description: id of the token
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        description: Token to add
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Token'
-      responses:
-        201:
-          description: item created
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
-          description: internal server error
-  /tokens/{id}/logout:
-    delete:
-      tags:
-      - security server
-      summary: logout from token
-      description: SS administrator logs out from token.
-      operationId: logoutToken
-      parameters:
-      - name: id
-        in: path
-        description: id of the token
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        204:
-          description: deletion was successful
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        500:
-          description: internal server error
-  /wsdls/{id}:
-    put:
-      tags:
-      - security server
-      summary: update address or services for the selected wsdl
-      description: SS administrator updates the selected wsdl.
-      operationId: updateWsdl
-      parameters:
-      - name: id
-        in: path
-        description: id of the wsdl
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: url
-        in: query
-        description: path for the wsdl file
-        required: true
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        200:
-          description: item modified
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Wsdl'
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        406:
-          description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
-          description: internal server error
-    delete:
-      tags:
-      - security server
-      summary: delete wsdl
-      description: SS administrator deletes the wsdl.
-      operationId: deleteWsdl
-      parameters:
-      - name: id
-        in: path
-        description: id of the wsdl
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        204:
-          description: deletion was successful
-        400:
-          description: request was invalid
-        401:
-          description: authentication credentials are missing
-        403:
-          description: request has been refused
-        404:
-          description: resource requested does not exists
-        500:
-          description: internal server error
-  /wsdls/{id}/disable:
-    put:
-      tags:
-      - security server
-      summary: disable selected wsdl
-      description: SS administrator disables wsdl.
-      operationId: disableWsdl
-      parameters:
-      - name: id
-        in: path
-        description: id of the wsdl
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        204:
+        '204':
           description: request was successful
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
+        '500':
           description: internal server error
-  /wsdls/{id}/enable:
-    put:
+  /services/{id}/enable:
+    put: # ok
       tags:
-      - security server
-      summary: enable selected wsdl
-      description: SS administrator enables wsdl.
-      operationId: enableWsdl
+        - security server
+      summary: enable selected service
+      operationId: enableService
+      description: SS administrator enables service.
       parameters:
-      - name: id
-        in: path
-        description: id of the wsdl
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the service
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        204:
+        '204':
           description: request was successful
-        400:
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
+        '500':
           description: internal server error
-  /wsdls/{id}/refresh:
-    put:
+  /services/{id}/refresh:
+    put: # ok
       tags:
-      - security server
-      summary: refresh selected wsdl
-      description: SS administrator refreshes wsdl.
-      operationId: refreshWsdl
+        - security server
+      summary: refresh selected service
+      operationId: refreshService
+      description: SS administrator refreshes service.
       parameters:
-      - name: id
-        in: path
-        description: id of the wsdl
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+        - in: path
+          name: id
+          description: id of the service
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
       responses:
-        200:
+        '200':
           description: item refreshed
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Wsdl'
-        400:
+                $ref: '#/components/schemas/Service'
+        '400':
           description: request was invalid
-        401:
+        '401':
           description: authentication credentials are missing
-        403:
+        '403':
           description: request has been refused
-        404:
+        '404':
           description: resource requested does not exists
-        406:
+        '406':
           description: request specified an invalid format
-        409:
-          description: an existing item already exists
-        500:
+        '500':
+          description: internal server error
+  /services/{id}/operations:
+    get: # ok
+      tags:
+        - security server
+      summary: get operations for the selected service
+      operationId: getServiceOperations
+      description: SS administrator views the operations for the selected service.
+      parameters:
+        - in: path
+          name: id
+          description: id of the service
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/Operation'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
           description: internal server error
 components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: XROAD-API-KEY
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: JSESSIONID
   schemas:
-    Accessright:
+    AccessRight: # fix examples
       required:
-      - acl_id
-      - client_id
-      - id
-      - service_code
-      - subject_id
-      type: object
+        - id
+        - acl_id
+        - client_id
+        - subject_id
+        - service_code
       properties:
         id:
           type: string
-          example: "123"
+          format: text
+          example: 123
+          minLength: 1
+          maxLength: 255
+          readOnly: true
         acl_id:
-          type: string
-          example: "123"
+          type: integer
+          format: int32
+          example: 123456
         client_id:
           type: string
-          example: "123"
+          format: text
+          example: FI:GOV:123:ABC
+          minLength: 1
+          maxLength: 255
         subject_id:
           type: string
-          example: "123"
+          format: text
+          example: 123
+          minLength: 1
+          maxLength: 255
         service_code:
           type: string
-          example: "123"
-    Anchor:
-      required:
-      - created
-      - hash
-      - id
+          format: text
+          example: 123
+          minLength: 1
+          maxLength: 255
       type: object
+    Anchor: # ok
+      type: object
+      required:
+        - id
+        - hash
+        - created
       properties:
         id:
           type: string
-          example: "123"
+          format: text
+          example: 123
+          minLength: 1
+          maxLength: 255
+          readOnly: true
         hash:
           type: string
+          format: hash
           example: 42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3
+          minLength: 1
+          maxLength: 255
         created:
           type: string
           format: date-time
-    Authorities:
-      required:
-      - created
-      - id
-      - name
-      - response
+          example: '2018-12-15T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
+    Authorities: # ok
       type: object
+      required:
+        - id
+        - name
+        - response
+        - created
       properties:
         id:
           type: string
-          example: "123"
+          format: text
+          example: 123
+          minLength: 1
+          maxLength: 255
+          readOnly: true
         name:
           type: string
+          format: text
           example: Distinguished name
+          minLength: 1
+          maxLength: 255
         response:
           type: string
+          format: text
           example: N/A
+          minLength: 1
+          maxLength: 1000
         created:
           type: string
           format: date-time
-    Backup:
-      required:
-      - created
-      - filename
-      - id
+          example: '2018-12-15T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
+    Backup: # ok
       type: object
+      required:
+        - filename
+        - created
       properties:
-        id:
-          type: string
-          format: uuid
         filename:
           type: string
+          format: filename
           example: configuration_backup_20181224.tar
+          minLength: 1
+          maxLength: 255
         created:
           type: string
           format: date-time
-    Certificate:
+          example: '2018-12-15T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
+    Certificate: # ok
       required:
-      - issuer-distinguished-name
-      - issuer-common-name
-      - subject-distinguished-name
-      - subject-common-name
+      - issuer_distinguished_name
+      - issuer_common_name
+      - subject_distinguished_name
+      - subject_common_name
       - not_before
       - not_after
       - serial
@@ -2870,289 +3239,476 @@ components:
       properties:
         issuer_distinguished_name:
           type: string
+          format: text
+          example: issuer123
           description: certificate issuer distinguished name
-          example:
+          minLength: 1
+          maxLength: 255
         issuer_common_name:
-            type: string
-            description: certificate issuer common name
-            example:
+          type: string
+          format: text
+          example: domain.com
+          description: certificate issuer common name
+          minLength: 1
+          maxLength: 255
         subject_distinguished_name:
-            type: string
-            description: certificate subject distinguished name
-            example:
+          type: string
+          format: text
+          example: subject123
+          description: certificate subject distinguished name
+          minLength: 1
+          maxLength: 255
         subject_common_name:
-            type: string
-            description: certificate subject common name
-            example:
+          type: string
+          format: text
+          example: domain.com
+          description: certificate subject common name
+          minLength: 1
+          maxLength: 255
         not_before:
-            type: string
-            description: certificate validity not before
-            format: date-time
+          type: string
+          format: date-time
+          example: '2018-12-15T00:00:00.001Z'
+          description: certificate validity not before
+          minLength: 24
+          maxLength: 24
         not_after:
-            type: string
-            description: certificate validity not after
-            format: date-time
+          type: string
+          format: date-time
+          example: '2018-12-15T00:00:00.001Z'
+          description: certificate validity not after
+          minLength: 24
+          maxLength: 24
         serial:
           type: string
+          format: text
+          example: '123456789'
           description: serial number
-          example: "4"
+          minLength: 1
+          maxLength: 255
         version:
-            type: integer
-            description: version
-            example: 3
+          type: integer
+          format: int32
+          example: 3
+          description: version
         signature_algorithm:
-            type: string
-            description: certificate signature algorithm
-            example: sha256WithRSAEncryption
+          type: string
+          format: sha-256
+          example: sha256WithRSAEncryption
+          description: certificate signature algorithm
+          minLength: 1
+          maxLength: 255
         signature:
-            type: string
-            description: hex encoded certificate signature
-            example: 30af2fdc1780...
+          type: string
+          format: text
+          example: '30af2fdc1780...'
+          description: hex encoded certificate signature
+          minLength: 1
+          maxLength: 255
         public_key_algorithm:
-            type: string
-            description: certificate public key algorithm
-            example: sha256WithRSAEncryption
+          type: string
+          format: sha-256
+          example: 'sha256WithRSAEncryption'
+          description: certificate public key algorithm
+          minLength: 1
+          maxLength: 255
         rsa_public_key_modulus:
-            type: string
-            description: hex encoded RSA public key modulus (if RSA key)
-            example: c44421d601...
+          type: string
+          format: hex
+          example: c44421d601...
+          description: hex encoded RSA public key modulus (if RSA key)
+          minLength: 1
+          maxLength: 1000
         rsa_public_key_exponent:
-            type: string
-            description: RSA public key exponent (if RSA key) as an integer
-            example: 65537
+          type: integer
+          format: int32
+          example: 65537
+          description: RSA public key exponent (if RSA key) as an integer
+          minLength: 1
+          maxLength: 255
         hash:
-            type: string
-            description: certificate SHA-1 hash
-            example: 1234567890ABCDEF
+          type: string
+          format: text
+          example: 1234567890ABCDEF
+          description: certificate SHA-1 hash
+          minLength: 1
+          maxLength: 255
         key_usages:
             type: array
             items:
-                type: string
-                description: certificate key usages
-                example: NON_REPUDIATION
-                enum:
-                    - DIGITAL_SIGNATURE
-                    - NON_REPUDIATION
-                    - KEY_ENCIPHERMENT
-                    - DATA_ENCIPHERMENT
-                    - KEY_AGREEMENT
-                    - KEY_CERT_SIGN
-                    - CRL_SIGN
-                    - ENCIPHER_ONLY
-                    - DECIPHER_ONLY
+              $ref: '#/components/schemas/KeyUsage'
         state:
-          type: string
-          description: certificate state
-          example: IN_USE
-          enum:
-          - IN_USE
-          - DISABLED
-    Client:
-      required:
-      - connection_type
-      - id
-      - member_class
-      - member_code
-      - member_name
-      - status
-      - subsystem_code
+          $ref: '#/components/schemas/State'
+    Client: # ok
       type: object
+      required:
+        - id
+        - member_name
+        - member_class
+        - member_code
+        - subsystem_code
+        - connection_type
+        - status
       properties:
         id:
           type: string
+          format: text
           example: FI:GOV:123:ABC
+          minLength: 1
+          maxLength: 1023
+          readOnly: true
         member_name:
           type: string
+          format: text
           example: FI
+          minLength: 1
+          maxLength: 255
         member_class:
           type: string
+          format: text
           example: GOV
+          minLength: 1
+          maxLength: 255
         member_code:
           type: string
-          example: "123"
+          format: text
+          example: 123
+          minLength: 1
+          maxLength: 255
         subsystem_code:
           type: string
+          format: text
           example: ABC
+          minLength: 1
+          maxLength: 255
         connection_type:
-            $ref: '#/components/schemas/ConnectionType'
+          $ref: '#/components/schemas/ConnectionType'
         status:
-          type: string
-          example: REGISTERED
-          enum:
-          - REGISTERED
-          - SAVED
-          - GLOBAL_ERROR
-          - REGISTRATION_IN_PROGRESS
-          - DELETION_IN_PROGRESS
-    Group:
-      required:
-      - client_id
-      - code
-      - description
-      - id
-      - membercount
-      - updated
+          $ref: '#/components/schemas/ClientStatus'
+    ClientStatus: # ok
+      type: string
+      format: enum
+      example: REGISTERED
+      enum:
+        - REGISTERED
+        - SAVED
+        - GLOBAL_ERROR
+        - REGISTRATION_IN_PROGRESS
+        - DELETION_IN_PROGRESS
+    ConnectionType: # ok
+      type: string
+      format: enum
+      example: HTTP
+      default: HTTP
+      enum:
+        - HTTP
+        - HTTPS
+        - HTTPS_NO_AUTH
+    CsrFormat: # ok
+      type: string
+      format: enum
+      example: PEM
+      default: PEM
+      enum:
+        - PEM
+        - DER
+    Group: # ok
       type: object
+      required:
+        - code
+        - description
+        - member_count
+        - updated
       properties:
-        id:
-          type: string
-          example: "1"
-        client_id:
-          type: string
-          example: "1"
         code:
           type: string
+          format: text
           example: groupcode
+          minLength: 1
+          maxLength: 255
         description:
           type: string
+          format: text
           example: description
-        membercount:
-          type: string
-          example: "10"
+          minLength: 1
+          maxLength: 255
+        member_count:
+          type: integer
+          format: uint
+          minimum: 0
+          maximum: 1000000
+          example: 10
         updated:
           type: string
           format: date-time
-    Key:
-      required:
-      - id
-      - name
-      - status
-      - token_id
-      - type
+          example: '2018-12-15T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
+    Key: # ok
       type: object
+      required:
+        - id
+        - name
+        - label
+        - type
+        - status
+        - read_only
       properties:
         id:
           type: string
-          example: "123"
-        token_id:
-          type: string
-          example: "123"
+          format: text
+          example: 123
+          minLength: 1
+          maxLength: 255
+          readOnly: true
         name:
           type: string
-          example: Authentication key
+          format: text
+          example: friendly name
+          minLength: 1
+          maxLength: 255
+        label:
+          type: string
+          format: text
+          example: key label
+          minLength: 1
+          maxLength: 255
         type:
           type: string
+          format: text
           example: AUTH
+          minLength: 1
+          maxLength: 255
         status:
-          type: string
-          description: key status
-          example: REGISTERED
-          enum:
-          - REGISTERED
-    Language:
+          $ref: '#/components/schemas/KeyStatus'
+        read_only:
+          type: boolean
+          example: true
+    KeyStatus: # ok
+      type: string
+      format: enum
+      example: REGISTERED
+      description: key status
+      enum:
+        - SAVED
+        - REGISTERED
+    KeyUsage: # ok
+      type: string
+      format: enum
+      example: NON_REPUDIATION
+      description: certificate key usage
+      enum:
+        - DIGITAL_SIGNATURE
+        - NON_REPUDIATION
+        - KEY_ENCIPHERMENT
+        - DATA_ENCIPHERMENT
+        - KEY_AGREEMENT
+        - KEY_CERT_SIGN
+        - CRL_SIGN
+        - ENCIPHER_ONLY
+        - DECIPHER_ONLY
+    Language: # ok
       required:
-      - id
-      type: object
+        - code
       properties:
         id:
           type: string
-          format: uuid
-    Member:
-      required:
-      - created
-      - group_id
-      - id
+          format: text
+          example: en
+          minLength: 2
+          maxLength: 2
+          readOnly: true
       type: object
+    LoginRequest: # ok
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          format: text
+          example: username
+          minLength: 4
+          maxLength: 255
+        password:
+          type: string
+          format: password
+          example: Password123
+          minLength: 4
+          maxLength: 255
+      type: object
+    Member: # ok
+      required:
+        - id
+        - name
+        - created
       properties:
         id:
           type: string
-          example: "123"
-        group_id:
+          format: text
+          example: 123
+          minLength: 1
+          maxLength: 255
+        name:
           type: string
-          example: "123"
+          format: text
+          example: member name
+          minLength: 1
+          maxLength: 255
         created:
           type: string
           format: date-time
-    Service:
-      required:
-      - code
-      - id
-      - ssl
-      - timeout
-      - title
-      - url
-      - version
-      - wsdl_id
+          example: '2018-12-15T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
       type: object
+    Operation: # ok
+      required:
+        - url
+        - code
+        - timeout
+        - security_category
+        - ssl_auth
+        - service_id
       properties:
-        id:
-          type: string
-          example: "123"
-        wsdl_id:
-          type: string
-          example: "123"
-        code:
-          type: string
-          example: "123"
-        version:
-          type: string
-          example: "123"
-        title:
-          type: string
-          example: "123"
         url:
           type: string
-          example: "123"
-        ssl:
+          format: url
+          example: https://domain/service
+          minLength: 1
+          maxLength: 255
+        code:
           type: string
-          format: boolean
-          example: "true"
+          format: text
+          example: ClientReg
+          minLength: 1
+          maxLength: 255
         timeout:
-          type: string
+          type: integer
           format: uint
-          example: "123"
-    ServiceClient:
-      required:
-      - id
-      - name
+          example: 60
+          minimum: 0
+          maximum: 1000
+        security_category:
+          type: string
+          format: text
+          example: Title
+          minLength: 1
+          maxLength: 255
+        ssl_auth:
+          type: string
+          format: text
+          example: https://domain.com/service
+          minLength: 1
+          maxLength: 255
+        service_id:
+          type: string
+          format: text
+          example: https://domain.com/service
+          minLength: 1
+          maxLength: 255
       type: object
+    ServiceClient: # ok
+      required:
+        - id
+        - name
       properties:
         id:
           type: string
+          format: text
           example: GLOBALGROUP:DEV:security-server-owners
+          minLength: 1
+          maxLength: 1279
         name:
           type: string
+          format: text
           example: Security server owners
-    TlsCertificate:
-      required:
-      - details
-      - hash
+          minLength: 1
+          maxLength: 255
       type: object
-      properties:
-        hash:
-          type: string
-          description: certificate hash
-          example: 12:34:56:78:90:AB:CD:EF
-        details:
-          type: string
-          description: certificate details
-    Token:
+    ServiceClientAccessRight: # ok
       required:
-      - id
-      - name
-      - status
-      - type
-      type: object
+        - id
+        - name
+        - access_rights
       properties:
         id:
           type: string
-          example: "123"
+          format: text
+          example: GLOBALGROUP:DEV:security-server-owners
+          minLength: 1
+          maxLength: 255
+          readOnly: true
         name:
           type: string
+          format: text
+          example: Security server owners
+          minLength: 1
+          maxLength: 255
+        access_rights:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccessRight'
+      type: object
+    ServiceType: # ok
+      type: string
+      format: text
+      example: WSDL
+      description: service type
+      enum:
+        - WSDL
+        - REST
+    State: # ok
+      type: string
+      format: enum
+      example: IN_USE
+      description: certificate state
+      enum:
+        - IN_USE
+        - DISABLED
+    Subject: # ok
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: text
+          example: 123
+          readOnly: true
+      type: object
+    Token: # ok
+      type: object
+      required:
+        - name
+        - type
+        - status
+      properties:
+        name:
+          type: string
+          format: text
           example: softToken-0
+          minLength: 1
+          maxLength: 255
         type:
           type: string
+          format: text
           example: software
+          minLength: 1
+          maxLength: 255
         status:
           type: string
-          example: ok
-    System:
-      required:
-      - anchor
-      - authorities
-      - timestamping
-      - tlscertificate
+          format: text
+          example: LOGGED_IN
+          minLength: 1
+          maxLength: 255
+    System: # ok
       type: object
+      required:
+        - anchor
+        - timestamping
+        - authorities
+        - tlscertificate
+        - version
       properties:
         anchor:
           $ref: '#/components/schemas/Anchor'
@@ -3161,74 +3717,100 @@ components:
         authorities:
           $ref: '#/components/schemas/Authorities'
         tlscertificate:
-          $ref: '#/components/schemas/TlsCertificate'
-    Timestamping:
+          $ref: '#/components/schemas/Certificate'
+        version:
+          $ref: '#/components/schemas/Version'
+    Timestamping: # ok
       required:
-      - id
-      - name
-      - url
-      type: object
+        - name
+        - url
       properties:
-        id:
-          type: string
-          example: "123"
         name:
           type: string
+          format: text
           example: X-Road Test TSA CN
+          minLength: 1
+          maxLength: 255
         url:
           type: string
+          format: text
           example: http://dev.xroad.rocks:123
-    User:
-      required:
-      - permissions
-      - roles
-      - username
+          minLength: 1
+          maxLength: 255
       type: object
+    User: # ok
+      required:
+        - username
+        - roles
+        - permissions
       properties:
         username:
           type: string
+          format: text
           example: Guest
+          minLength: 1
+          maxLength: 255
         roles:
-          type: array
-          items:
-            type: string
+            type: array
+            items:
+                type: string
+                format: text
+                example:
         permissions:
-          type: array
-          items:
-            type: string
-    Wsdl:
-      required:
-      - client_id
-      - disabled
-      - id
-      - refresh
-      - url
+            type: array
+            items:
+                type: string
+                format: text
+                example:
       type: object
+    Version: # ok
+      required:
+        - info
       properties:
-        id:
+        info:
           type: string
-          example: "123"
-        client_id:
-          type: string
-          example: "123"
+          format: text
+          example: Security Server version 6.21.0-SNAPSHOT-20190411git32add470
+          minLength: 1
+          maxLength: 255
+    Service: # ok
+      required:
+        - url
+        - type
+        - disabled
+        - disabled_notice
+        - refreshed_date
+        - client_id
+      properties:
         url:
           type: string
+          format: url
           example: http://dev.xroad.rocks/services.wsdl
-        refresh:
+          minLength: 1
+          maxLength: 255
+        type:
+          $ref: '#/components/schemas/ServiceType'
+        disabled:
+          type: boolean
+          example: true
+        disabled_notice:
+          type: string
+          format: text
+          example: default_disabled_service_notice
+          minLength: 1
+          maxLength: 255
+        refreshed_date:
           type: string
           format: date-time
-        disabled:
+          example: "2018-12-15T00:00:00.001Z"
+          minLength: 24
+          maxLength: 24
+        client_id:
           type: string
-          format: boolean
-          example: "false"
-    ConnectionType:
-        type: string
-        enum:
-            - HTTP
-            - HTTPS
-            - HTTPS_NO_AUTH
-  securitySchemes:
-    cookieAuth:
-      type: apiKey
-      name: JSESSIONID
-      in: cookie
+          format: text
+          example: FI:GOV:123:ABC
+          minLength: 1
+          maxLength: 255
+      type: object
+security:
+  - ApiKeyAuth: []
