@@ -51,6 +51,9 @@ bootRun {
 
 bootJar {
     excludeDevtools = excludeDevToolsSetting
+    if (!excludeDevToolsSetting) {
+        appendix = "devtools"
+    }
     println 'excludeDevTools in bootJar=' + excludeDevToolsSetting
 }
 
