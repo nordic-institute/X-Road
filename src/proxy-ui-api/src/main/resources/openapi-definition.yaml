@@ -559,7 +559,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1023
       security:
         - ApiKeyAuth: []
       responses:
@@ -596,7 +596,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1023
         - in: query
           name: connection_type
           description: server connection type
@@ -639,7 +639,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1023
       security:
         - ApiKeyAuth: []
       responses:
@@ -671,7 +671,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1023
       security:
         - ApiKeyAuth: []
       responses:
@@ -712,7 +712,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1023
       security:
         - ApiKeyAuth: []
       responses:
@@ -752,7 +752,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1023
       security:
         - ApiKeyAuth: []
       responses:
@@ -794,7 +794,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1023
       security:
         - ApiKeyAuth: []
       responses:
@@ -828,7 +828,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1023
       security:
         - ApiKeyAuth: []
       responses:
@@ -868,7 +868,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1023
         - in: query
           name: service_client_id
           description: id of the service client
@@ -877,7 +877,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1279
       responses:
         '201':
           description: item created
@@ -911,7 +911,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1023
       security:
         - ApiKeyAuth: []
       responses:
@@ -951,16 +951,14 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1023
         - in: query
           name: file
-          description: import file in DER or PEM format
+          description: import file
           required: true
           schema:
             type: string
-            oneOf:
-              - format: binary
-              - format: base64
+            format: binary
             minLength: 1
             maxLength: 1000000
       security:
@@ -989,9 +987,7 @@ paths:
               type: string
               minLength: 1
               maxLength: 1000000
-              oneOf:
-                - format: binary
-                - format: base64
+              format: binary
         description: certificate to add
   /clients/{id}/tlscertificates/{hash}:
     get: # ok
@@ -1009,7 +1005,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1023
         - in: path
           name: hash
           description: SHA-1 hash of the certificate
@@ -1055,7 +1051,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1023
         - in: path
           name: hash
           description: SHA-1 hash of the certificate
@@ -1096,7 +1092,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1023
       security:
         - ApiKeyAuth: []
       responses:
@@ -1130,7 +1126,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1023
       security:
         - ApiKeyAuth: []
       responses:
@@ -1170,7 +1166,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1023
         - in: query
           name: url
           description: path for the service description file
@@ -1257,7 +1253,7 @@ paths:
                   members:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Member'
+                      $ref: '#/components/schemas/GroupMember'
         '400':
           description: request was invalid
         '401':
@@ -1357,7 +1353,7 @@ paths:
       parameters:
         - in: path
           name: id
-          description: id of the client
+          description: id of the group
           required: true
           schema:
             type: string
@@ -1565,13 +1561,11 @@ paths:
             maxLength: 255
         - in: query
           name: file
-          description: import file in DER or PEM format
+          description: import file
           required: true
           schema:
             type: string
-            oneOf:
-              - format: binary
-              - format: base64
+            format: binary
             minLength: 1
             maxLength: 1000000
       security:
@@ -1600,9 +1594,7 @@ paths:
               type: string
               minLength: 1
               maxLength: 1000000
-              oneOf:
-                - format: binary
-                - format: base64
+              format: binary
         description: certificate to add
   /keys/{id}/generate-csr:
     put: # ok
@@ -1806,6 +1798,62 @@ paths:
           description: request has been refused
         '404':
           description: resource requested does not exists
+        '500':
+          description: internal server error
+  /member-clients:
+    get: # ok
+      tags:
+        - security server
+      summary: get member clients
+      operationId: getMemberClients
+      description: SS administrator views the member clients.
+      parameters:
+        - in: query
+          name: term
+          description: pass an optional search string for looking up clients
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 0
+            maxLength: 255
+        - in: query
+          name: offset
+          description: number of records to skip for pagination
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          description: maximum number of records to return
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 50
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: list of clients
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/Client'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
         '500':
           description: internal server error
   /user:
@@ -2103,7 +2151,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1279
       security:
         - ApiKeyAuth: []
       responses:
@@ -2143,7 +2191,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1279
         - in: query
           name: subject_ids
           description: selected subject ids
@@ -2193,7 +2241,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1279
         - in: path
           name: aid
           description: id of the accessright
@@ -3353,6 +3401,7 @@ components:
         id:
           type: string
           format: text
+          description: <instance_id>:<member_class>:<member_code>:<subsystem>(optional)
           example: FI:GOV:123:ABC
           minLength: 1
           maxLength: 1023
@@ -3444,6 +3493,31 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
+    GroupMember: # ok
+      required:
+        - id
+        - name
+        - created
+      properties:
+        id:
+          type: string
+          format: text
+          example: 123
+          minLength: 1
+          maxLength: 255
+        name:
+          type: string
+          format: text
+          example: member name
+          minLength: 1
+          maxLength: 255
+        created:
+          type: string
+          format: date-time
+          example: '2018-12-15T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
+      type: object
     Key: # ok
       type: object
       required:
@@ -3537,31 +3611,6 @@ components:
           minLength: 4
           maxLength: 255
       type: object
-    Member: # ok
-      required:
-        - id
-        - name
-        - created
-      properties:
-        id:
-          type: string
-          format: text
-          example: 123
-          minLength: 1
-          maxLength: 255
-        name:
-          type: string
-          format: text
-          example: member name
-          minLength: 1
-          maxLength: 255
-        created:
-          type: string
-          format: date-time
-          example: '2018-12-15T00:00:00.001Z'
-          minLength: 24
-          maxLength: 24
-      type: object
     Operation: # ok
       required:
         - url
@@ -3616,6 +3665,7 @@ components:
         id:
           type: string
           format: text
+          description: <service_client_type>:<instance_identifier>:<other_params> other params can be security-server-owners (GLOBALGROUP) or xx:xx:xx for (SS)
           example: GLOBALGROUP:DEV:security-server-owners
           minLength: 1
           maxLength: 1279
