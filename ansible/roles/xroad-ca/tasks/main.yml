@@ -16,10 +16,6 @@
 - name: nginx-light
   apt: name=nginx-light state=present
 
-- name: instal incron
-  apt: name=incron state=present
-  when: ansible_distribution_release == "trusty"
-
 - name: group ca
   group:
     name: "ca"
