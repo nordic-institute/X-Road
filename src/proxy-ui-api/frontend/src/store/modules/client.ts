@@ -9,14 +9,14 @@ export interface Client {
   type?: string;
   status?: string;
   subsystem?: Client[];
-  connectiontype?: string;
+  connection_type?: string;
 }
 
 export interface ClientState {
   client: Client | null;
   certificates: any[];
   loading: boolean;
-  connectionType: string | null;
+  connection_type: string | null;
   tlsCertificates: any[];
   ssCertificate: any;
 }
@@ -25,7 +25,7 @@ export const clientState: ClientState = {
   client: null,
   loading: false,
   certificates: [],
-  connectionType: null,
+  connection_type: null,
   tlsCertificates: [],
   ssCertificate: null,
 };
@@ -39,7 +39,7 @@ export const getters: GetterTree<ClientState, RootState> = {
   },
   connectionType(state): string | null | undefined {
     if (state.client) {
-      return state.client.connectiontype;
+      return state.client.connection_type;
     }
     return null;
   },
@@ -225,7 +225,7 @@ export const actions: ActionTree<ClientState, RootState> = {
 
     const id = state.client.id;
     const clone = _.cloneDeep(state.client);
-    clone.connectiontype = connType;
+    clone.connection_type = connType;
 
     return axios.put(`/clients/${id}`, clone)
       .then((res) => {
