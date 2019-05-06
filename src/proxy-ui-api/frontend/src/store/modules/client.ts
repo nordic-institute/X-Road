@@ -162,6 +162,19 @@ export const actions: ActionTree<ClientState, RootState> = {
       });
   },
 
+  fetchTlsCertificate({ commit, rootGetters }, { clientId, hash }) {
+
+    if (!clientId) {
+      throw new Error('Missing id');
+    }
+
+    if (!hash) {
+      throw new Error('Missing certificate hash');
+    }
+
+    return axios.get(`/clients/${clientId}/tlscertificates/${hash}`);
+  },
+
   deleteTlsCertificate({ commit, state }, { clientId, hash }) {
 
     return axios.delete(`/clients/${clientId}/tlscertificates/${hash}`)
