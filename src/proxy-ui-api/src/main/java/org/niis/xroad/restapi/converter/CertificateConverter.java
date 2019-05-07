@@ -30,6 +30,7 @@ import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
+import org.niis.xroad.restapi.openapi.model.Certificate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -56,7 +57,7 @@ public class CertificateConverter {
      * @param certificateType
      * @return
      */
-    public org.niis.xroad.restapi.openapi.model.Certificate convert(CertificateType certificateType) {
+    public Certificate convert(CertificateType certificateType) {
         X509Certificate x509Certificate = CryptoUtils.readCertificate(certificateType.getData());
         return convert(x509Certificate);
     }
@@ -66,14 +67,14 @@ public class CertificateConverter {
      * @param certificateInfo
      * @return
      */
-    public org.niis.xroad.restapi.openapi.model.Certificate convert(CertificateInfo certificateInfo) {
+    public Certificate convert(CertificateInfo certificateInfo) {
         X509Certificate x509Certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
-        org.niis.xroad.restapi.openapi.model.Certificate certificate = convert(x509Certificate);
+        Certificate certificate = convert(x509Certificate);
 
         if (certificateInfo.isActive()) {
-            certificate.setState(org.niis.xroad.restapi.openapi.model.Certificate.StateEnum.IN_USE);
+            certificate.setState(Certificate.StateEnum.IN_USE);
         } else {
-            certificate.setState(org.niis.xroad.restapi.openapi.model.Certificate.StateEnum.DISABLED);
+            certificate.setState(Certificate.StateEnum.DISABLED);
         }
         return certificate;
     }
@@ -84,9 +85,8 @@ public class CertificateConverter {
      * @param x509Certificate
      * @return
      */
-    public org.niis.xroad.restapi.openapi.model.Certificate convert(X509Certificate x509Certificate) {
-        org.niis.xroad.restapi.openapi.model.Certificate certificate =
-                new org.niis.xroad.restapi.openapi.model.Certificate();
+    public Certificate convert(X509Certificate x509Certificate) {
+        Certificate certificate = new Certificate();
 
         String issuerCommonName = null;
         String subjectCommonName = null;

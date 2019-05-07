@@ -38,7 +38,6 @@ import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.Certificate;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
-import org.niis.xroad.restapi.openapi.model.Token;
 import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,9 +67,7 @@ import static java.util.stream.Collectors.toList;
 @RequestMapping("/api")
 @Slf4j
 @PreAuthorize("denyAll")
-public class ClientsApiController implements org.niis.xroad.restapi.openapi.ClientsApi {
-
-    private Token token;
+public class ClientsApiController implements ClientsApi {
 
     private final NativeWebRequest request;
 

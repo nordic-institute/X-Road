@@ -38,18 +38,18 @@ import java.util.Map;
 @SuppressWarnings("checkstyle:MagicNumber") // index numbers are most clear way here to represent the issue
 public class KeyUsageConverter {
     // maps a X509Certificate.getKeyUsage bit index to corresponding KeyUsagesEnum value
-    private static final Map<Integer, org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum> BIT_TO_USAGE =
+    private static final Map<Integer, Certificate.KeyUsagesEnum> BIT_TO_USAGE =
             new HashMap<>();
     static {
-        BIT_TO_USAGE.put(0, org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.DIGITAL_SIGNATURE);
-        BIT_TO_USAGE.put(1, org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.NON_REPUDIATION);
-        BIT_TO_USAGE.put(2, org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.KEY_ENCIPHERMENT);
-        BIT_TO_USAGE.put(3, org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.DATA_ENCIPHERMENT);
-        BIT_TO_USAGE.put(4, org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.KEY_AGREEMENT);
-        BIT_TO_USAGE.put(5, org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.KEY_CERT_SIGN);
-        BIT_TO_USAGE.put(6, org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.CRL_SIGN);
-        BIT_TO_USAGE.put(7, org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.ENCIPHER_ONLY);
-        BIT_TO_USAGE.put(8, org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.DECIPHER_ONLY);
+        BIT_TO_USAGE.put(0, Certificate.KeyUsagesEnum.DIGITAL_SIGNATURE);
+        BIT_TO_USAGE.put(1, Certificate.KeyUsagesEnum.NON_REPUDIATION);
+        BIT_TO_USAGE.put(2, Certificate.KeyUsagesEnum.KEY_ENCIPHERMENT);
+        BIT_TO_USAGE.put(3, Certificate.KeyUsagesEnum.DATA_ENCIPHERMENT);
+        BIT_TO_USAGE.put(4, Certificate.KeyUsagesEnum.KEY_AGREEMENT);
+        BIT_TO_USAGE.put(5, Certificate.KeyUsagesEnum.KEY_CERT_SIGN);
+        BIT_TO_USAGE.put(6, Certificate.KeyUsagesEnum.CRL_SIGN);
+        BIT_TO_USAGE.put(7, Certificate.KeyUsagesEnum.ENCIPHER_ONLY);
+        BIT_TO_USAGE.put(8, Certificate.KeyUsagesEnum.DECIPHER_ONLY);
     }
 
     /**

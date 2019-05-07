@@ -50,7 +50,7 @@ import java.util.Optional;
 @RequestMapping("/api")
 @Slf4j
 @PreAuthorize("denyAll")
-public class SystemApiController implements org.niis.xroad.restapi.openapi.SystemApi {
+public class SystemApiController implements SystemApi {
 
     private final NativeWebRequest request;
 
