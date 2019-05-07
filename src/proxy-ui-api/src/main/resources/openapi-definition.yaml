@@ -952,15 +952,6 @@ paths:
             format: text
             minLength: 1
             maxLength: 1023
-        - in: query
-          name: file
-          description: import file
-          required: true
-          schema:
-            type: string
-            format: binary
-            minLength: 1
-            maxLength: 1000000
       security:
         - ApiKeyAuth: []
       responses:
@@ -982,11 +973,9 @@ paths:
           description: internal server error
       requestBody:
         content:
-          application/*:
+          application/octet-stream:
             schema:
               type: string
-              minLength: 1
-              maxLength: 1000000
               format: binary
         description: certificate to add
   /clients/{id}/tlscertificates/{hash}:
@@ -1559,15 +1548,6 @@ paths:
             format: text
             minLength: 1
             maxLength: 255
-        - in: query
-          name: file
-          description: import file
-          required: true
-          schema:
-            type: string
-            format: binary
-            minLength: 1
-            maxLength: 1000000
       security:
         - ApiKeyAuth: []
       responses:
@@ -1589,11 +1569,9 @@ paths:
           description: internal server error
       requestBody:
         content:
-          application/*:
+          application/octet-stream:
             schema:
               type: string
-              minLength: 1
-              maxLength: 1000000
               format: binary
         description: certificate to add
   /keys/{id}/generate-csr:
