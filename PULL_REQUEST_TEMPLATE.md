@@ -12,6 +12,7 @@ Please include a summary of the change
 
 - [ ] My code follows the style guidelines of this project
 - [ ] I have performed a self-review of my own code
+- [ ] I have followed the agreed [Version Control Practices](https://confluence.niis.org/pages/viewpage.action?spaceKey=XRDDEV&title=Version+Control+Practices)
 - [ ] My changes generate no new warnings or errors (e.g. Javascript console, Java stdout)
 - [ ] I have made corresponding changes to the documentation
 - [ ] The new code has sufficient test coverage
