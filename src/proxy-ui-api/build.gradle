@@ -45,7 +45,8 @@ apply plugin: 'org.openapi.generator'
 bootRun {
     jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
     if (project.hasProperty('args')) {
-        args project.args.split(',')
+        def params = project.args.tokenize(',')
+        args = params
     }
 }
 
