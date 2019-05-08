@@ -27,7 +27,7 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 
 import lombok.Getter;
-import org.niis.xroad.restapi.openapi.model.Client;
+import org.niis.xroad.restapi.openapi.model.ClientStatus;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -37,16 +37,16 @@ import java.util.Optional;
  */
 @Getter
 public enum ClientStatusMapping {
-    SAVED(ClientType.STATUS_SAVED, Client.StatusEnum.SAVED),
-    REGISTRATION_IN_PROGRESS(ClientType.STATUS_REGINPROG, Client.StatusEnum.REGISTRATION_IN_PROGRESS),
-    REGISTERED(ClientType.STATUS_REGISTERED, Client.StatusEnum.REGISTERED),
-    DELETION_IN_PROGRESS(ClientType.STATUS_DELINPROG, Client.StatusEnum.DELETION_IN_PROGRESS),
-    GLOBAL_ERROR(ClientType.STATUS_GLOBALERR, Client.StatusEnum.GLOBAL_ERROR);
+    SAVED(ClientType.STATUS_SAVED, ClientStatus.SAVED),
+    REGISTRATION_IN_PROGRESS(ClientType.STATUS_REGINPROG, ClientStatus.REGISTRATION_IN_PROGRESS),
+    REGISTERED(ClientType.STATUS_REGISTERED, ClientStatus.REGISTERED),
+    DELETION_IN_PROGRESS(ClientType.STATUS_DELINPROG, ClientStatus.DELETION_IN_PROGRESS),
+    GLOBAL_ERROR(ClientType.STATUS_GLOBALERR, ClientStatus.GLOBAL_ERROR);
 
     private final String clientTypeStatus; // ClientType statuses
-    private final Client.StatusEnum statusEnum;
+    private final ClientStatus statusEnum;
 
-    ClientStatusMapping(String clientTypeStatus, Client.StatusEnum statusEnum) {
+    ClientStatusMapping(String clientTypeStatus, ClientStatus statusEnum) {
         this.clientTypeStatus = clientTypeStatus;
         this.statusEnum = statusEnum;
     }
@@ -56,7 +56,7 @@ public enum ClientStatusMapping {
      * @param clientTypeStatus
      * @return
      */
-    public static Optional<Client.StatusEnum> map(String clientTypeStatus) {
+    public static Optional<ClientStatus> map(String clientTypeStatus) {
         return getFor(clientTypeStatus).map(ClientStatusMapping::getStatusEnum);
     }
 
@@ -65,7 +65,7 @@ public enum ClientStatusMapping {
      * @param statusEnum
      * @return
      */
-    public static Optional<String> map(Client.StatusEnum statusEnum) {
+    public static Optional<String> map(ClientStatus statusEnum) {
         return getFor(statusEnum).map(ClientStatusMapping::getClientTypeStatus);
     }
 
@@ -85,7 +85,7 @@ public enum ClientStatusMapping {
      * @param statusEnum
      * @return
      */
-    public static Optional<ClientStatusMapping> getFor(Client.StatusEnum statusEnum) {
+    public static Optional<ClientStatusMapping> getFor(ClientStatus statusEnum) {
         return Arrays.stream(values())
                 .filter(mapping -> mapping.statusEnum.equals(statusEnum))
                 .findFirst();

@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.converter;
 
 import org.junit.Test;
+import org.niis.xroad.restapi.openapi.model.KeyUsage;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -43,30 +44,30 @@ public class KeyUsageConverterTest {
     public void convert() {
         boolean[] bits;
         bits = new boolean[] {false, false, false, false, false, false, false, false, false };
-        Set<org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum> usages = keyUsageConverter.convert(bits);
+        Set<KeyUsage> usages = keyUsageConverter.convert(bits);
         assertEquals(new HashSet<>(usages), new HashSet<>());
 
         bits = new boolean[] {true, false, false, false, false, false, false, false, true };
         usages = keyUsageConverter.convert(bits);
         assertEquals(new HashSet<>(usages), new HashSet<>(Arrays.asList(
-                org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.DIGITAL_SIGNATURE,
-                org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.DECIPHER_ONLY)));
+                KeyUsage.DIGITAL_SIGNATURE,
+                KeyUsage.DECIPHER_ONLY)));
 
         bits = new boolean[] {false, true, false, false, false, false, false, true, false };
         usages = keyUsageConverter.convert(bits);
         assertEquals(new HashSet<>(usages), new HashSet<>(Arrays.asList(
-                org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.NON_REPUDIATION,
-                org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.ENCIPHER_ONLY)));
+                KeyUsage.NON_REPUDIATION,
+                KeyUsage.ENCIPHER_ONLY)));
 
         bits = new boolean[] {false, false, false, false, true, false, false, false, false };
         usages = keyUsageConverter.convert(bits);
         assertEquals(new HashSet<>(usages), new HashSet<>(Arrays.asList(
-                org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.KEY_AGREEMENT)));
+                KeyUsage.KEY_AGREEMENT)));
 
         bits = new boolean[] {false, false, false, false, true };
         usages = keyUsageConverter.convert(bits);
         assertEquals(new HashSet<>(usages), new HashSet<>(Arrays.asList(
-                org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.KEY_AGREEMENT)));
+                KeyUsage.KEY_AGREEMENT)));
 
         bits = new boolean[] {};
         usages = keyUsageConverter.convert(bits);
@@ -75,6 +76,6 @@ public class KeyUsageConverterTest {
         bits = new boolean[] {false, false, false, false, false, false, false, false, true, true, true, true };
         usages = keyUsageConverter.convert(bits);
         assertEquals(new HashSet<>(usages), new HashSet<>(Arrays.asList(
-                org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.DECIPHER_ONLY)));
+                KeyUsage.DECIPHER_ONLY)));
     }
 }
