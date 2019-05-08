@@ -47,6 +47,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -57,6 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 
 import static junit.framework.TestCase.assertTrue;
@@ -138,7 +141,7 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Client client = response.getBody();
         assertEquals(org.niis.xroad.restapi.openapi.model.ConnectionType.HTTP, client.getConnectionType());
-        assertEquals(Client.StatusEnum.REGISTERED, client.getStatus());
+        assertEquals(org.niis.xroad.restapi.openapi.model.ClientStatus.REGISTERED, client.getStatus());
         assertEquals("test-member-name", client.getMemberName());
         assertEquals("GOV", client.getMemberClass());
         assertEquals("M1", client.getMemberCode());
@@ -149,7 +152,7 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         client = response.getBody();
         assertEquals(org.niis.xroad.restapi.openapi.model.ConnectionType.HTTPS_NO_AUTH, client.getConnectionType());
-        assertEquals(Client.StatusEnum.REGISTERED, client.getStatus());
+        assertEquals(org.niis.xroad.restapi.openapi.model.ClientStatus.REGISTERED, client.getStatus());
         assertEquals("test-member-name", client.getMemberName());
         assertEquals("GOV", client.getMemberClass());
         assertEquals("M1", client.getMemberCode());
@@ -205,11 +208,11 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals("SHA512withRSA", onlyCertificate.getSignatureAlgorithm());
         assertEquals("RSA", onlyCertificate.getPublicKeyAlgorithm());
         assertEquals("A2293825AA82A5429EC32803847E2152A303969C", onlyCertificate.getHash());
-        assertEquals(org.niis.xroad.restapi.openapi.model.Certificate.StateEnum.IN_USE, onlyCertificate.getState());
+        assertEquals(org.niis.xroad.restapi.openapi.model.State.IN_USE, onlyCertificate.getState());
         assertTrue(onlyCertificate.getSignature().startsWith("314b7a50a09a9b74322671"));
         assertTrue(onlyCertificate.getRsaPublicKeyModulus().startsWith("9d888fbe089b32a35f58"));
-        assertEquals("65537", onlyCertificate.getRsaPublicKeyExponent());
-        assertEquals(new ArrayList<>(Arrays.asList(Certificate.KeyUsagesEnum.NON_REPUDIATION)),
+        assertEquals(new Integer(65537), onlyCertificate.getRsaPublicKeyExponent());
+        assertEquals(new ArrayList<>(Arrays.asList(org.niis.xroad.restapi.openapi.model.KeyUsage.NON_REPUDIATION)),
                 new ArrayList<>(onlyCertificate.getKeyUsages()));
 
         try {
@@ -282,6 +285,14 @@ public class ClientsApiControllerIntegrationTest {
                     + "IDI0IDE2OjIxIG5vbi1jZXJ0CmRyd3hyd3hyLXggMiBqYW5uZSBqYW5uZSA0MDk2IGh1aHRpID"
                     + "I0IDE2OjIxIHRpbnkK";
 
+    /**
+     * Return a Resource for reading a cert, given as base64 encoded string param
+     */
+    private static Resource getResourceToCert(String cert) {
+        byte[] bytes = Base64.getDecoder().decode(cert);
+        return new ByteArrayResource(bytes);
+    }
+
     @Test
     @WithMockUser(authorities = { "ADD_CLIENT_INTERNAL_CERT",
             "VIEW_CLIENT_DETAILS",
@@ -292,13 +303,15 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(0, certs.getBody().size());
 
         ResponseEntity<Void> response =
-                clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1, VALID_CERT);
+                clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1,
+                        getResourceToCert(VALID_CERT));
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1).getBody().size());
 
         // cert already exists
         try {
-            response = clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1, VALID_CERT);
+            response = clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1,
+                    getResourceToCert(VALID_CERT));
             fail("should have thrown ConflictException");
         } catch (ConflictException expected) {
         }
@@ -306,7 +319,8 @@ public class ClientsApiControllerIntegrationTest {
 
         // cert is invalid
         try {
-            response = clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1, INVALID_CERT);
+            response = clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1,
+                    getResourceToCert(INVALID_CERT));
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
         }
@@ -321,7 +335,8 @@ public class ClientsApiControllerIntegrationTest {
     public void deleteTlsCert() throws Exception {
 
         ResponseEntity<Void> response =
-                clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1, VALID_CERT);
+                clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1,
+                        getResourceToCert(VALID_CERT));
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1).getBody().size());
 
@@ -349,7 +364,8 @@ public class ClientsApiControllerIntegrationTest {
     public void findTlsCert() throws Exception {
 
         ResponseEntity<Void> response =
-                clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1, VALID_CERT);
+                clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1,
+                        getResourceToCert(VALID_CERT));
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1).getBody().size());
 

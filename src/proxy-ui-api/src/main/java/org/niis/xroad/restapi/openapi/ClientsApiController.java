@@ -29,6 +29,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.niis.xroad.restapi.converter.CertificateConverter;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.ConnectionTypeMapping;
@@ -41,6 +42,7 @@ import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -49,12 +51,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.NativeWebRequest;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
+import java.io.IOException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -154,7 +153,7 @@ public class ClientsApiController implements ClientsApi {
      */
     @PreAuthorize("hasAuthority('EDIT_CLIENT_INTERNAL_CONNECTION_TYPE')")
     @Override
-    public ResponseEntity<Client> updateClient(String encodedId, @NotNull @Valid ConnectionType connectiontype) {
+    public ResponseEntity<Client> updateClient(String encodedId, ConnectionType connectiontype) {
         ClientId clientId = clientConverter.convertId(encodedId);
         String connectionTypeString = ConnectionTypeMapping.map(connectiontype).get();
         ClientType changed = clientService.updateConnectionType(clientId, connectionTypeString);
@@ -162,21 +161,22 @@ public class ClientsApiController implements ClientsApi {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
+    public static final String INVALID_UPLOAD_ERROR_CODE = "invalid_upload";
     public static final String INVALID_CERT_ERROR_CODE = "invalid_cert";
 
     @Override
     @PreAuthorize("hasAuthority('ADD_CLIENT_INTERNAL_CERT')")
-    public ResponseEntity<Void> addClientTlsCertificate(String encodedId, @Valid String body) {
-        // TO DO: API should not transfer base64 encoded files, Lauri will change API
-        byte[] decodedBody;
+    public ResponseEntity<Void> addClientTlsCertificate(String encodedId,
+                                                        Resource body) {
+        byte[] certificateBytes;
         try {
-            decodedBody = Base64.getDecoder().decode(body);
-        } catch (Exception ex) {
-            throw new BadRequestException("cannot base64 decode", ex, ErrorCode.of(INVALID_CERT_ERROR_CODE));
+            certificateBytes = IOUtils.toByteArray(body.getInputStream());
+        } catch (IOException ex) {
+            throw new BadRequestException("cannot read certificate data", ex, ErrorCode.of(INVALID_UPLOAD_ERROR_CODE));
         }
         ClientId clientId = clientConverter.convertId(encodedId);
         try {
-            clientService.addTlsCertificate(clientId, decodedBody);
+            clientService.addTlsCertificate(clientId, certificateBytes);
         } catch (CertificateException c) {
             throw new BadRequestException(c, ErrorCode.of(INVALID_CERT_ERROR_CODE));
         }

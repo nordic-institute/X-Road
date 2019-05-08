@@ -24,7 +24,7 @@
  */
 package org.niis.xroad.restapi.converter;
 
-import org.niis.xroad.restapi.openapi.model.Certificate;
+import org.niis.xroad.restapi.openapi.model.KeyUsage;
 import org.springframework.stereotype.Component;
 
 import java.util.EnumSet;
@@ -38,18 +38,18 @@ import java.util.Map;
 @SuppressWarnings("checkstyle:MagicNumber") // index numbers are most clear way here to represent the issue
 public class KeyUsageConverter {
     // maps a X509Certificate.getKeyUsage bit index to corresponding KeyUsagesEnum value
-    private static final Map<Integer, Certificate.KeyUsagesEnum> BIT_TO_USAGE =
+    private static final Map<Integer, KeyUsage> BIT_TO_USAGE =
             new HashMap<>();
     static {
-        BIT_TO_USAGE.put(0, Certificate.KeyUsagesEnum.DIGITAL_SIGNATURE);
-        BIT_TO_USAGE.put(1, Certificate.KeyUsagesEnum.NON_REPUDIATION);
-        BIT_TO_USAGE.put(2, Certificate.KeyUsagesEnum.KEY_ENCIPHERMENT);
-        BIT_TO_USAGE.put(3, Certificate.KeyUsagesEnum.DATA_ENCIPHERMENT);
-        BIT_TO_USAGE.put(4, Certificate.KeyUsagesEnum.KEY_AGREEMENT);
-        BIT_TO_USAGE.put(5, Certificate.KeyUsagesEnum.KEY_CERT_SIGN);
-        BIT_TO_USAGE.put(6, Certificate.KeyUsagesEnum.CRL_SIGN);
-        BIT_TO_USAGE.put(7, Certificate.KeyUsagesEnum.ENCIPHER_ONLY);
-        BIT_TO_USAGE.put(8, Certificate.KeyUsagesEnum.DECIPHER_ONLY);
+        BIT_TO_USAGE.put(0, KeyUsage.DIGITAL_SIGNATURE);
+        BIT_TO_USAGE.put(1, KeyUsage.NON_REPUDIATION);
+        BIT_TO_USAGE.put(2, KeyUsage.KEY_ENCIPHERMENT);
+        BIT_TO_USAGE.put(3, KeyUsage.DATA_ENCIPHERMENT);
+        BIT_TO_USAGE.put(4, KeyUsage.KEY_AGREEMENT);
+        BIT_TO_USAGE.put(5, KeyUsage.KEY_CERT_SIGN);
+        BIT_TO_USAGE.put(6, KeyUsage.CRL_SIGN);
+        BIT_TO_USAGE.put(7, KeyUsage.ENCIPHER_ONLY);
+        BIT_TO_USAGE.put(8, KeyUsage.DECIPHER_ONLY);
     }
 
     /**
@@ -59,8 +59,8 @@ public class KeyUsageConverter {
      * @param keyUsageBits
      * @return
      */
-    public EnumSet<Certificate.KeyUsagesEnum> convert(boolean[] keyUsageBits) {
-        EnumSet<Certificate.KeyUsagesEnum> usages = EnumSet.noneOf(Certificate.KeyUsagesEnum.class);
+    public EnumSet<KeyUsage> convert(boolean[] keyUsageBits) {
+        EnumSet<KeyUsage> usages = EnumSet.noneOf(KeyUsage.class);
         if (keyUsageBits != null) {
             for (int i = 0; i < Math.min(BIT_TO_USAGE.size(), keyUsageBits.length); i++) {
                 if (keyUsageBits[i]) {

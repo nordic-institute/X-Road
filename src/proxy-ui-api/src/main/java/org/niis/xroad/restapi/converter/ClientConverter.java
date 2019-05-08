@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.apache.commons.lang.StringUtils;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Client;
+import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -68,7 +69,7 @@ public class ClientConverter {
         client.setMemberCode(clientType.getIdentifier().getMemberCode());
         client.setSubsystemCode(clientType.getIdentifier().getSubsystemCode());
         client.setMemberName(globalConfWrapper.getMemberName(clientType.getIdentifier()));
-        Optional<Client.StatusEnum> status = ClientStatusMapping.map(clientType.getClientStatus());
+        Optional<ClientStatus> status = ClientStatusMapping.map(clientType.getClientStatus());
         client.setStatus(status.get());
         Optional<ConnectionType> connectionTypeEnum =
                 ConnectionTypeMapping.map(clientType.getIsAuthentication());

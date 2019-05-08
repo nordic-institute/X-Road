@@ -31,6 +31,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import org.niis.xroad.restapi.openapi.model.Certificate;
+import org.niis.xroad.restapi.openapi.model.State;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -72,9 +73,9 @@ public class CertificateConverter {
         Certificate certificate = convert(x509Certificate);
 
         if (certificateInfo.isActive()) {
-            certificate.setState(Certificate.StateEnum.IN_USE);
+            certificate.setState(State.IN_USE);
         } else {
-            certificate.setState(Certificate.StateEnum.DISABLED);
+            certificate.setState(State.DISABLED);
         }
         return certificate;
     }
@@ -114,7 +115,7 @@ public class CertificateConverter {
         PublicKey publicKey = x509Certificate.getPublicKey();
         if (publicKey instanceof RSAPublicKey) {
             RSAPublicKey rsaPublicKey = (RSAPublicKey) publicKey;
-            certificate.setRsaPublicKeyExponent(rsaPublicKey.getPublicExponent().toString());
+            certificate.setRsaPublicKeyExponent(rsaPublicKey.getPublicExponent().intValue());
             certificate.setRsaPublicKeyModulus(rsaPublicKey.getModulus().toString(RADIX_FOR_HEX));
         }
 

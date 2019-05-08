@@ -51,12 +51,16 @@ apply plugin: 'org.openapi.generator'
 bootRun {
     jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
     if (project.hasProperty('args')) {
-        args project.args.split(',')
+        def params = project.args.tokenize(',')
+        args = params
     }
 }
 
 bootJar {
     excludeDevtools = excludeDevToolsSetting
+    if (!excludeDevToolsSetting) {
+        appendix = "devtools"
+    }
     println 'excludeDevTools in bootJar=' + excludeDevToolsSetting
 }
 
