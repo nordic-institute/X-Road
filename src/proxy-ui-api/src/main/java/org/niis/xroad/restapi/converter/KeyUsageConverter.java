@@ -24,12 +24,12 @@
  */
 package org.niis.xroad.restapi.converter;
 
+import org.niis.xroad.restapi.openapi.model.KeyUsage;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
+import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Convert X598Certificate's public abstract boolean[] getKeyUsage()
@@ -37,30 +37,30 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 @SuppressWarnings("checkstyle:MagicNumber") // index numbers are most clear way here to represent the issue
 public class KeyUsageConverter {
-    private static final Map<Integer, org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum> BIT_TO_USAGE =
-            new ConcurrentHashMap<>();
+    // maps a X509Certificate.getKeyUsage bit index to corresponding KeyUsagesEnum value
+    private static final Map<Integer, KeyUsage> BIT_TO_USAGE =
+            new HashMap<>();
     static {
-        BIT_TO_USAGE.put(0, org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.DIGITAL_SIGNATURE);
-        BIT_TO_USAGE.put(1, org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.NON_REPUDIATION);
-        BIT_TO_USAGE.put(2, org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.KEY_ENCIPHERMENT);
-        BIT_TO_USAGE.put(3, org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.DATA_ENCIPHERMENT);
-        BIT_TO_USAGE.put(4, org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.KEY_AGREEMENT);
-        BIT_TO_USAGE.put(5, org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.KEY_CERT_SIGN);
-        BIT_TO_USAGE.put(6, org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.CRL_SIGN);
-        BIT_TO_USAGE.put(7, org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.ENCIPHER_ONLY);
-        BIT_TO_USAGE.put(8, org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum.DECIPHER_ONLY);
-
+        BIT_TO_USAGE.put(0, KeyUsage.DIGITAL_SIGNATURE);
+        BIT_TO_USAGE.put(1, KeyUsage.NON_REPUDIATION);
+        BIT_TO_USAGE.put(2, KeyUsage.KEY_ENCIPHERMENT);
+        BIT_TO_USAGE.put(3, KeyUsage.DATA_ENCIPHERMENT);
+        BIT_TO_USAGE.put(4, KeyUsage.KEY_AGREEMENT);
+        BIT_TO_USAGE.put(5, KeyUsage.KEY_CERT_SIGN);
+        BIT_TO_USAGE.put(6, KeyUsage.CRL_SIGN);
+        BIT_TO_USAGE.put(7, KeyUsage.ENCIPHER_ONLY);
+        BIT_TO_USAGE.put(8, KeyUsage.DECIPHER_ONLY);
     }
 
     /**
      * Convert boolean array of key usage bits as returned by
      * https://docs.oracle.com/javase/8/docs/api/java/security/cert/X509Certificate.html#getKeyUsage--
-     * into a Set of enums
+     * into an EnumSet
      * @param keyUsageBits
      * @return
      */
-    public Set<org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum> convert(boolean[] keyUsageBits) {
-        Set<org.niis.xroad.restapi.openapi.model.Certificate.KeyUsagesEnum> usages = new HashSet<>();
+    public EnumSet<KeyUsage> convert(boolean[] keyUsageBits) {
+        EnumSet<KeyUsage> usages = EnumSet.noneOf(KeyUsage.class);
         for (int i = 0; i < Math.min(BIT_TO_USAGE.size(), keyUsageBits.length); i++) {
             if (keyUsageBits[i]) {
                 usages.add(BIT_TO_USAGE.get(i));

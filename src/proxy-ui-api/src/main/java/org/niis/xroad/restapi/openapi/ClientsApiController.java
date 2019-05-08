@@ -46,9 +46,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.NativeWebRequest;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -149,7 +146,7 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
      */
     @PreAuthorize("hasAuthority('EDIT_CLIENT_INTERNAL_CONNECTION_TYPE')")
     @Override
-    public ResponseEntity<Client> updateClient(String encodedId, @NotNull @Valid ConnectionType connectiontype) {
+    public ResponseEntity<Client> updateClient(String encodedId, ConnectionType connectiontype) {
         ClientId clientId = clientConverter.convertId(encodedId);
         String connectionTypeString = ConnectionTypeMapping.map(connectiontype).get();
         ClientType changed = clientService.updateConnectionType(clientId, connectionTypeString);

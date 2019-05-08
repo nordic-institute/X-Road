@@ -1,13 +1,13 @@
 <template>
   <div>
-    <v-snackbar v-model="error" color="error" :timeout="timeout">
+    <v-snackbar id="error-snackbar" v-model="error" color="error" :timeout="timeout">
       {{ message }}
-      <v-btn flat @click="error = false">Close</v-btn>
+      <v-btn id="close-snackbar" flat @click="error = false">Close</v-btn>
     </v-snackbar>
 
-    <v-snackbar v-model="success" color="success" :timeout="timeout">
+    <v-snackbar id="success-snackbar" v-model="success" color="success" :timeout="timeout">
       {{ message }}
-      <v-btn flat @click="success = false">Close</v-btn>
+      <v-btn id="close-snackbar" flat @click="success = false">Close</v-btn>
     </v-snackbar>
   </div>
 </template>

@@ -11,6 +11,11 @@ import AddSubsystem from './views/AddSubsystem.vue';
 import AddClient from './views/AddClient.vue';
 import Subsystem from './views/Subsystem.vue';
 import Client from './views/Client.vue';
+import TabsBase from '@/views/TabsBase.vue';
+import Certificate from '@/views/Certificate.vue';
+import Error from '@/views/Error.vue';
+import ClientDetails from '@/components/ClientDetails.vue';
+import InternalServers from '@/components/InternalServers.vue';
 import store from './store';
 import { RouteName, Permissions } from '@/global';
 
@@ -25,45 +30,110 @@ const router = new Router({
         {
           name: RouteName.Keys,
           path: '/keys',
-          component: Keys,
+          components: {
+            default: Keys,
+            top: TabsBase,
+          },
+
           meta: { permission: Permissions.VIEW_KEYS },
         },
         {
           name: RouteName.Diagnostics,
           path: '/diagnostics',
-          component: Diagnostics,
+          components: {
+            default: Diagnostics,
+            top: TabsBase,
+          },
           meta: { permission: Permissions.DIAGNOSTICS },
         },
         {
           name: RouteName.Settings,
           path: '/settings',
-          component: Settings,
+          components: {
+            default: Settings,
+            top: TabsBase,
+          },
         },
         {
           name: RouteName.AddSubsystem,
           path: '/add-subsystem',
-          component: AddSubsystem,
+          components: {
+            default: AddSubsystem,
+          },
         },
         {
           name: RouteName.AddClient,
           path: '/add-client',
-          component: AddClient,
+          components: {
+            default: AddClient,
+          },
         },
         {
           name: RouteName.Subsystem,
           path: '/subsystem',
-          component: Subsystem,
+          redirect: '/subsystem/details/:id',
+          components: {
+            default: Subsystem,
+            top: TabsBase,
+          },
+          props: {
+            default: true,
+          },
+          children: [
+            {
+              name: RouteName.SubsystemDetails,
+              path: '/subsystem/details/:id',
+              component: ClientDetails,
+              props: true,
+            },
+            {
+              name: RouteName.SubsystemServers,
+              path: '/subsystem/internalservers/:id',
+              component: InternalServers,
+              props: true,
+            },
+          ],
         },
         {
           name: RouteName.Client,
           path: '/client',
-          component: Client,
+          redirect: '/client/details/:id',
+          components: {
+            default: Client,
+            top: TabsBase,
+          },
+          props: { default: true },
+          children: [
+            {
+              name: RouteName.MemberDetails,
+              path: '/client/details/:id',
+              component: ClientDetails,
+              props: true,
+            },
+            {
+              name: RouteName.MemberServers,
+              path: '/client/internalservers/:id',
+              component: InternalServers,
+              props: true,
+            },
+          ],
         },
         {
           name: RouteName.Clients,
           path: '',
-          component: Clients,
+          components: {
+            default: Clients,
+            top: TabsBase,
+          },
           meta: { permission: Permissions.VIEW_CLIENTS },
+        },
+        {
+          name: RouteName.Certificate,
+          path: '/certificate/:id/:hash',
+          components: {
+            default: Certificate,
+          },
+          props: { default: true },
         },
       ],
     },
@@ -71,6 +141,10 @@ const router = new Router({
       path: '/login',
       name: RouteName.Login,
       component: Login,
+    },
+    {
+      path: '*',
+      component: Error,
     },
   ],
 });

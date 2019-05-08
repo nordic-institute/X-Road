@@ -15,19 +15,14 @@ export default Vue.extend({
   data: () => ({}),
 
   methods: {
-    fetchCities() {
-      this.$store.dispatch('fetchClients').then(
-        (response) => {
-          this.$bus.$emit('show-success', 'Great success!');
-        },
-        (error) => {
-          this.$bus.$emit('show-error', error.message);
-        },
-      );
+    fetchClients() {
+      this.$store.dispatch('fetchClients').catch((error) => {
+        this.$bus.$emit('show-error', error.message);
+      });
     },
   },
   created() {
-    this.fetchCities();
+    this.fetchClients();
   },
 });
 </script>

@@ -59,9 +59,9 @@ public class CertificateConverter {
         org.niis.xroad.restapi.openapi.model.Certificate certificate = convert(x509Certificate);
 
         if (certificateInfo.isActive()) {
-            certificate.setState(org.niis.xroad.restapi.openapi.model.Certificate.StateEnum.IN_USE);
+            certificate.setState(org.niis.xroad.restapi.openapi.model.State.IN_USE);
         } else {
-            certificate.setState(org.niis.xroad.restapi.openapi.model.Certificate.StateEnum.DISABLED);
+            certificate.setState(org.niis.xroad.restapi.openapi.model.State.DISABLED);
         }
         return certificate;
     }
@@ -92,7 +92,7 @@ public class CertificateConverter {
         PublicKey publicKey = x509Certificate.getPublicKey();
         if (publicKey instanceof RSAPublicKey) {
             RSAPublicKey rsaPublicKey = (RSAPublicKey) publicKey;
-            certificate.setRsaPublicKeyExponent(rsaPublicKey.getPublicExponent().toString());
+            certificate.setRsaPublicKeyExponent(rsaPublicKey.getPublicExponent().intValue());
             certificate.setRsaPublicKeyModulus(rsaPublicKey.getModulus().toString(RADIX_FOR_HEX));
         }
 

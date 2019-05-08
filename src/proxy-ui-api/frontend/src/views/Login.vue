@@ -21,7 +21,8 @@
               <v-card-text>
                 <v-form>
                   <v-text-field
-                    name="login"
+                    id="username"
+                    name="username"
                     label="Username"
                     type="text"
                     v-model="username"
@@ -44,6 +45,7 @@
               <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn
+                  id="submit-button"
                   color="primary"
                   class="rounded-button"
                   @click="submit"
@@ -62,6 +64,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { RouteName } from '@/global';
 
 export default Vue.extend({
   name: 'login',
@@ -140,7 +143,7 @@ export default Vue.extend({
         .dispatch('fetchUserData')
         .then(
           (response) => {
-            this.$router.replace('/');
+            this.$router.replace({ name: RouteName.Clients });
           },
           (error) => {
             // Display error

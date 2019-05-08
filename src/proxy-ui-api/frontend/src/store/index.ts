@@ -5,6 +5,7 @@ import VuexPersistence from 'vuex-persist';
 import { RootState } from './types';
 import { mockDataModule } from './modules/mockData';
 import { clientsModule } from './modules/clients';
+import { clientModule } from './modules/client';
 import { user } from './modules/user';
 
 Vue.use(Vuex);
@@ -21,6 +22,7 @@ const store: StoreOptions<RootState> = {
     user,
     mockDataModule,
     clientsModule,
+    clientModule,
   },
   plugins: [vuexLocal.plugin],
 };

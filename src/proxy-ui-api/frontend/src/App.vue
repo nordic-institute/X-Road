@@ -13,6 +13,7 @@
 import Vue from 'vue';
 import axios from 'axios';
 import SnackbarMixin from './components/SnackbarMixin.vue';
+import { RouteName } from '@/global';
 
 export default Vue.extend({
   name: 'App',
@@ -31,7 +32,7 @@ export default Vue.extend({
         ) {
           // if you ever get an unauthorized, logout the user
           this.$store.dispatch('clearAuth');
-          this.$router.replace('/login');
+          this.$router.replace({ name: RouteName.Login });
         }
         // Do something with response error
         throw error;
