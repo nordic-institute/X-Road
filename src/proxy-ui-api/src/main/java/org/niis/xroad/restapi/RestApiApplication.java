@@ -29,9 +29,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.PropertySource;
 
-import java.util.Arrays;
-import java.util.HashSet;
-
 /**
  * main spring boot application.
  */
@@ -44,9 +41,6 @@ public class RestApiApplication {
      * start application
      */
     public static void main(String[] args) {
-        // bootRun seems to duplicate parameters in some situations
-        // with our gradle configuration
-        HashSet<String> filtered = new HashSet(Arrays.asList(args));
-        SpringApplication.run(RestApiApplication.class, filtered.toArray(new String[]{}));
+        SpringApplication.run(RestApiApplication.class, args);
     }
 }
