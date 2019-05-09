@@ -36,7 +36,6 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
-import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.internal.util.config.ConfigurationHelper;
 
 import java.io.FileInputStream;
@@ -190,7 +189,7 @@ public final class HibernateUtil {
      * @return batch size
      */
     public static int getConfiguredBatchSize(Session session, int defaultBatchSize) {
-        final Properties props = ((SessionFactoryImpl) session.getSessionFactory()).getProperties();
+        final Map<String, Object> props = session.getSessionFactory().getProperties();
         int configuredBatchSize = ConfigurationHelper.getInt(Environment.STATEMENT_BATCH_SIZE, props, defaultBatchSize);
 
         log.trace("Configured JDBC batch size is {}", configuredBatchSize);

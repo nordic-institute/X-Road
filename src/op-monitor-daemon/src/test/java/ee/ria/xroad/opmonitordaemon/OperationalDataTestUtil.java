@@ -30,7 +30,7 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.JsonUtils;
 
 import com.google.gson.Gson;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 
 import java.util.ArrayList;
 import java.util.Collections;
