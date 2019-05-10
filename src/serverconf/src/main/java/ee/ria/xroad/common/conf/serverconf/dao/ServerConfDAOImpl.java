@@ -31,11 +31,37 @@ import org.hibernate.Criteria;
 import org.hibernate.Session;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
+import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.get;
 
 /**
  * Server conf data access object implementation.
  */
 public class ServerConfDAOImpl {
+
+    /**
+     * For old UI compatibility
+     * @return true, if configuration exists in the database
+     * @throws Exception if an error occurs
+     */
+    @Deprecated
+    public boolean confExists() throws Exception {
+        return getFirst(ServerConfType.class) != null;
+    }
+
+    /**
+     * For old UI compatibility
+     * @return the server conf
+     */
+    @Deprecated
+    public ServerConfType getConf() {
+        ServerConfType confType = getFirst(ServerConfType.class);
+        if (confType == null) {
+            throw new CodedException(X_MALFORMED_SERVERCONF,
+                    "Server conf is not initialized!");
+        }
+        return confType;
+    }
+
 
     /**
      * @return the server conf
@@ -58,4 +84,15 @@ public class ServerConfDAOImpl {
         T t = (T) c.uniqueResult();
         return t;
     }
+
+    /**
+     * For old UI compatibility
+     */
+    @SuppressWarnings("unchecked")
+    @Deprecated
+    private <T> T getFirst(final Class<?> clazz) {
+        Session session = get().getSession();
+        return getFirst(session, clazz);
+    }
+
 }

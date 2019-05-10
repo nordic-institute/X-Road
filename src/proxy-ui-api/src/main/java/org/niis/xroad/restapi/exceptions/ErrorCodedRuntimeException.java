@@ -24,37 +24,50 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
 /**
- * Thrown if item was not found.
- * Results in http 404 NOT_FOUND
+ * RuntimeException that (possibly) carries error code
  */
-@ResponseStatus(value = HttpStatus.NOT_FOUND)
-public class NotFoundException extends ErrorCodedRuntimeException {
+public class ErrorCodedRuntimeException extends RuntimeException implements ErrorCodedException {
 
-    public NotFoundException() {
+    private String errorCode;
+
+    @Override
+    public String getErrorCode() {
+        return errorCode;
     }
 
-    public NotFoundException(String msg) {
+    public ErrorCodedRuntimeException() {
+    }
+
+    public ErrorCodedRuntimeException(String msg) {
         super(msg);
     }
 
-    public NotFoundException(ErrorCode errorCode) {
-        super(errorCode);
+    public ErrorCodedRuntimeException(ErrorCode errorCode) {
+        this.errorCode = errorCode.getValue();
     }
 
-    public NotFoundException(String msg, ErrorCode errorCode) {
-        super(msg, errorCode);
+    public ErrorCodedRuntimeException(String msg, ErrorCode errorCode) {
+        super(msg);
+        this.errorCode = errorCode.getValue();
     }
 
-    public NotFoundException(String msg, Throwable t) {
+    public ErrorCodedRuntimeException(String msg, Throwable t) {
         super(msg, t);
     }
 
-    public NotFoundException(Throwable t) {
+    public ErrorCodedRuntimeException(String msg, Throwable t, ErrorCode errorCode) {
+        super(msg, t);
+        this.errorCode = errorCode.getValue();
+    }
+
+    public ErrorCodedRuntimeException(Throwable t) {
         super(t);
+    }
+
+    public ErrorCodedRuntimeException(Throwable t, ErrorCode errorCode) {
+        super(t);
+        this.errorCode = errorCode.getValue();
     }
 
 }

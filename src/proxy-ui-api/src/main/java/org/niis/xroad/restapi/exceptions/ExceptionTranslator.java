@@ -53,6 +53,10 @@ public class ExceptionTranslator {
             status = statusAnnotation.value();
         }
         ErrorInfo errorDto = new ErrorInfo(status.value());
+        if (e instanceof ErrorCodedException) {
+            ErrorCodedException errorCodedException = (ErrorCodedException) e;
+            errorDto.setErrorCode(errorCodedException.getErrorCode());
+        }
         return new ResponseEntity<ErrorInfo>(errorDto, status);
     }
 }

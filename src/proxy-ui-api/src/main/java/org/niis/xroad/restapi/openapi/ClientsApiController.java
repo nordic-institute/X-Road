@@ -24,13 +24,17 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.niis.xroad.restapi.converter.CertificateConverter;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.ConnectionTypeMapping;
+import org.niis.xroad.restapi.exceptions.BadRequestException;
+import org.niis.xroad.restapi.exceptions.ErrorCode;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.Certificate;
 import org.niis.xroad.restapi.openapi.model.Client;
@@ -38,6 +42,7 @@ import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -46,6 +51,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.NativeWebRequest;
 
+import java.io.IOException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -59,7 +66,7 @@ import static java.util.stream.Collectors.toList;
 @RequestMapping("/api")
 @Slf4j
 @PreAuthorize("denyAll")
-public class ClientsApiController implements org.niis.xroad.restapi.openapi.ClientsApi {
+public class ClientsApiController implements ClientsApi {
 
     private final NativeWebRequest request;
 
@@ -152,6 +159,60 @@ public class ClientsApiController implements org.niis.xroad.restapi.openapi.Clie
         ClientType changed = clientService.updateConnectionType(clientId, connectionTypeString);
         Client result = clientConverter.convert(changed);
         return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    public static final String INVALID_UPLOAD_ERROR_CODE = "invalid_upload";
+    public static final String INVALID_CERT_ERROR_CODE = "invalid_cert";
+
+    @Override
+    @PreAuthorize("hasAuthority('ADD_CLIENT_INTERNAL_CERT')")
+    public ResponseEntity<Void> addClientTlsCertificate(String encodedId,
+                                                        Resource body) {
+        byte[] certificateBytes;
+        try {
+            certificateBytes = IOUtils.toByteArray(body.getInputStream());
+        } catch (IOException ex) {
+            throw new BadRequestException("cannot read certificate data", ex, ErrorCode.of(INVALID_UPLOAD_ERROR_CODE));
+        }
+        ClientId clientId = clientConverter.convertId(encodedId);
+        try {
+            clientService.addTlsCertificate(clientId, certificateBytes);
+        } catch (CertificateException c) {
+            throw new BadRequestException(c, ErrorCode.of(INVALID_CERT_ERROR_CODE));
+        }
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DELETE_CLIENT_INTERNAL_CERT')")
+    public ResponseEntity<Void> deleteClientTlsCertificate(String encodedId, String hash) {
+        ClientId clientId = clientConverter.convertId(encodedId);
+        clientService.deleteTlsCertificate(clientId, hash);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_INTERNAL_CERT_DETAILS')")
+    public ResponseEntity<Certificate> getClientTlsCertificate(String encodedId, String certHash) {
+        ClientId clientId = clientConverter.convertId(encodedId);
+        Optional<CertificateType> certificateType = clientService.getTlsCertificate(clientId, certHash);
+        if (!certificateType.isPresent()) {
+            throw new NotFoundException("certificate with hash " + certHash
+                    + ", client id " + encodedId + " not found");
+        }
+        return new ResponseEntity<>(certificateConverter.convert(certificateType.get()), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_INTERNAL_CERTS')")
+    public ResponseEntity<List<Certificate>> getClientTlsCertificates(String encodedId) {
+        ClientType clientType = getClientType(encodedId);
+        List<Certificate> certificates = clientType.getIsCert()
+                .stream()
+                .map(certificateConverter::convert)
+                .collect(toList());
+        return new ResponseEntity<>(certificates, HttpStatus.OK);
     }
 
     @Override
