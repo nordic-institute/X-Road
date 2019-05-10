@@ -144,6 +144,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation('org.kohsuke:libpam4j:1.11')
     implementation('org.postgresql:postgresql:42.2.5')
+    implementation('org.apache.commons:commons-compress:1.18')
+
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')
     testImplementation('org.hsqldb:hsqldb')
