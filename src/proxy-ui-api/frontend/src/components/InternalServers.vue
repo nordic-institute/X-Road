@@ -43,8 +43,8 @@
                 v-if="canViewTlsCertDetails"
                 @click="openCertificate(certificate)"
                 class="certificate-link"
-              >{{certificate.hash}}</span>
-              <span v-else>{{certificate.hash}}</span>
+              >{{certificate.hash | colonize}}</span>
+              <span v-else>{{certificate.hash | colonize}}</span>
             </td>
           </tr>
         </template>
@@ -61,7 +61,7 @@
               <certificateIcon/>
             </td>
             <td>
-              <span>{{ssCertificate.hash}}</span>
+              <span>{{ssCertificate.hash | colonize}}</span>
             </td>
 
             <td class="column-button">
