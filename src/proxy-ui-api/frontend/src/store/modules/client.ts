@@ -228,21 +228,10 @@ export const actions: ActionTree<ClientState, RootState> = {
       });
   },
 
+  saveConnectionType({ commit, state }, { clientId, connType }) {
 
-  saveConnectionType({ commit, state }, connType: string) {
-
-    // Bail if there is no client for some reason
-    if (!state.client) {
-      throw new Error('Client does not exist');
-    }
-
-    const id = state.client.id;
-    const clone = _.cloneDeep(state.client);
-    clone.connection_type = connType;
-
-    return axios.put(`/clients/${id}`, clone)
+    return axios.put(`/clients/${clientId}?connection_type=${connType}`)
       .then((res) => {
-        console.log(res);
 
         if (res.data) {
           commit('storeClient', res.data);
