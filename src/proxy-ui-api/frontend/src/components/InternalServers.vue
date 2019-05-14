@@ -29,7 +29,13 @@
           type="file"
           @click="$refs.inputUpload.click()"
         >Add</v-btn>
-        <input v-show="false" ref="inputUpload" type="file" @change="onFileChange">
+        <input
+          v-show="false"
+          ref="inputUpload"
+          type="file"
+          accept=".pem, .cer, .der"
+          @change="onFileChange"
+        >
       </div>
       <div class="cert-table-title">Certificate Hash (SHA/1)</div>
       <table class="certificate-table server-certificates">
@@ -100,7 +106,11 @@ export default Vue.extend({
   },
   data() {
     return {
-      connectionTypes: ['http', 'https', 'https no auth'],
+      connectionTypes: [
+        { text: 'HTTP', value: 'HTTP' },
+        { text: 'HTTPS', value: 'HTTPS' },
+        { text: 'HTTPS NO AUTH', value: 'HTTPS_NO_AUTH' },
+      ],
       dialog: false,
       selectedCertificate: null,
       revertHack: 0,
@@ -114,12 +124,15 @@ export default Vue.extend({
         return this.$store.getters.connectionType;
       },
       set(value: string) {
-        this.$store.dispatch('saveConnectionType', value).catch((error) => {
-          this.revertHack += 1;
-
-          console.log(this.revertHack);
-          this.$bus.$emit('show-error', error.message);
-        });
+        this.$store
+          .dispatch('saveConnectionType', {
+            clientId: this.id,
+            connType: value,
+          })
+          .catch((error) => {
+            this.revertHack += 1;
+            this.$bus.$emit('show-error', error.message);
+          });
       },
     },
 
@@ -164,26 +177,32 @@ export default Vue.extend({
       if (!fileList.length) {
         return;
       }
-      // this.createImage(files[0]);
 
-      const formData = new FormData();
-      // append the files to FormData
-      Array.from(Array(fileList.length).keys()).map((x) => {
-        formData.append('fieldName', fileList[x], fileList[x].name);
-      });
+      const reader = new FileReader();
 
-      // save it
+      // Upload file when it's loaded in FileReader
+      reader.onload = (e: any) => {
+        if (!e || !e.target || !e.target.result) {
+          return;
+        }
 
-      this.$store
-        .dispatch('uploadTlsCertificate', { id: this.id, data: formData })
-        .then(
-          (response) => {
-            this.$bus.$emit('show-success', 'Updload done');
-          },
-          (error) => {
-            this.$bus.$emit('show-error', error.message);
-          },
-        );
+        this.$store
+          .dispatch('uploadTlsCertificate', {
+            clientId: this.id,
+            fileData: e.target.result,
+          })
+          .then(
+            (response) => {
+              // Refresh the tls cert list
+              this.fetchTlsCertificates(this.id);
+            },
+            (error) => {
+              this.$bus.$emit('show-error', error.message);
+            },
+          );
+      };
+
+      reader.readAsArrayBuffer(fileList[0]);
     },
 
     fetchServer(id: string) {
@@ -199,16 +218,9 @@ export default Vue.extend({
     },
 
     exportSSCertificate(hash: string) {
-      //     downloadSSCertificate
-
-      this.$store.dispatch('downloadSSCertificate', hash).then(
-        (response) => {
-          this.$bus.$emit('show-success', 'Download ok!');
-        },
-        (error) => {
-          this.$bus.$emit('show-error', error.message);
-        },
-      );
+      this.$store.dispatch('downloadSSCertificate', hash).catch((error) => {
+        this.$bus.$emit('show-error', error.message);
+      });
     },
 
     fetchSSCertificate(id: string) {
@@ -257,7 +269,6 @@ export default Vue.extend({
 
 .cert-table-title {
   color: $XRoad-Grey60;
-  font-family: 'Helvetica Neue';
   font-size: 14px;
   font-weight: bold;
   margin: 5px;
