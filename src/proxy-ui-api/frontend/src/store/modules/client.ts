@@ -201,7 +201,7 @@ export const actions: ActionTree<ClientState, RootState> = {
         }
       }
 
-      const effectiveFileName = (suggestedFileName === undefined ? 'ceoorts.tar.gz' : suggestedFileName);
+      const effectiveFileName = (suggestedFileName === undefined ? 'certs.tar.gz' : suggestedFileName);
       const blob = new Blob([response.data]);
 
       // Create a link to DOM and click it. This will trigger the browser to start file download.
@@ -216,16 +216,12 @@ export const actions: ActionTree<ClientState, RootState> = {
     });
   },
 
-  uploadTlsCertificate({ commit, state }, { clientId, file }) {
-
-    return axios.post(`/clients/${clientId}/tlscertificates/`, file)
-      .then((res) => {
-        console.log(res.data);
-      })
-      .catch((error) => {
-        console.error(error);
-        throw error;
-      });
+  uploadTlsCertificate({ commit, state }, data) {
+    return axios.post(`/clients/${data.clientId}/tlscertificates/`, data.fileData, {
+      headers: {
+        'Content-Type': 'application/octet-stream',
+      },
+    });
   },
 
   saveConnectionType({ commit, state }, { clientId, connType }) {
