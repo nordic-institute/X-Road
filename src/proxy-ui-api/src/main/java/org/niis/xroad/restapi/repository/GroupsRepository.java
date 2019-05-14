@@ -24,62 +24,32 @@
  */
 package org.niis.xroad.restapi.repository;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.conf.serverconf.dao.LocalGroupDAOImpl;
+import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 /**
- * client repository
+ * groups repository
  */
 @Slf4j
 @Repository
 @Transactional
-public class ClientRepository {
+public class GroupsRepository {
 
     private final PersistenceUtils persistenceUtils;
 
     @Autowired
-    public ClientRepository(PersistenceUtils persistenceUtils) {
+    public GroupsRepository(PersistenceUtils persistenceUtils) {
         this.persistenceUtils = persistenceUtils;
     }
 
-    /**
-     * Executes a Hibernate saveOrUpdate(client)
-     * @param clientType
-     * @return
-     */
-    public void saveOrUpdate(ClientType clientType) {
-        persistenceUtils.getCurrentSession().saveOrUpdate(clientType);
-    }
-
-    /**
-     * return one client
-     * @param id
-     */
-    public ClientType getClient(ClientId id) {
-        ClientDAOImpl clientDAO = new ClientDAOImpl();
-        return clientDAO.getClient(persistenceUtils.getCurrentSession(), id);
-    }
-
-    /**
-     * return all clients
-     * @return
-     */
-    public List<ClientType> getAllClients() {
-        ServerConfDAOImpl serverConf = new ServerConfDAOImpl();
-        List<ClientType> clientTypes = serverConf.getConf(persistenceUtils.getCurrentSession()).getClient();
-        Hibernate.initialize(clientTypes);
-        return clientTypes;
+    public LocalGroupType getLocalGroupType(Long id) {
+        LocalGroupDAOImpl localGroupDAO = new LocalGroupDAOImpl();
+        return localGroupDAO.getLocalGroup(persistenceUtils.getCurrentSession(), id);
     }
 }
-

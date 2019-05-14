@@ -1215,34 +1215,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: string
-                    format: text
-                    minLength: 1
-                    maxLength: 255
-                    example: groupcode
-                  description:
-                    type: string
-                    format: text
-                    minLength: 1
-                    maxLength: 255
-                    example: description
-                  member_count:
-                    type: integer
-                    format: int32
-                    example: 10
-                  updated:
-                    type: string
-                    minLength: 24
-                    maxLength: 24
-                    format: date-time
-                    example: '2018-12-15T00:00:00.001Z'
-                  members:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/GroupMember'
+                $ref: '#/components/schemas/Group'
         '400':
           description: request was invalid
         '401':
@@ -3442,11 +3415,19 @@ components:
     Group: # ok
       type: object
       required:
+        - id
         - code
         - description
         - member_count
         - updated
       properties:
+        id:
+          type: string
+          format: text
+          example: group123
+          description: unique identifier
+          minLength: 1
+          maxLength: 255
         code:
           type: string
           format: text
@@ -3471,6 +3452,10 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupMember'
     GroupMember: # ok
       required:
         - id

@@ -22,64 +22,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
-import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.restapi.repository.GroupsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 /**
- * client repository
+ * groups service
  */
 @Slf4j
-@Repository
+@Service
 @Transactional
-public class ClientRepository {
+@PreAuthorize("denyAll")
+public class GroupsService {
 
-    private final PersistenceUtils persistenceUtils;
+    private final GroupsRepository groupsRepository;
 
     @Autowired
-    public ClientRepository(PersistenceUtils persistenceUtils) {
-        this.persistenceUtils = persistenceUtils;
+    public GroupsService(GroupsRepository groupsRepository) {
+        this.groupsRepository = groupsRepository;
     }
 
     /**
-     * Executes a Hibernate saveOrUpdate(client)
-     * @param clientType
-     * @return
-     */
-    public void saveOrUpdate(ClientType clientType) {
-        persistenceUtils.getCurrentSession().saveOrUpdate(clientType);
-    }
-
-    /**
-     * return one client
+     * return one LocalGroup
+     *
      * @param id
      */
-    public ClientType getClient(ClientId id) {
-        ClientDAOImpl clientDAO = new ClientDAOImpl();
-        return clientDAO.getClient(persistenceUtils.getCurrentSession(), id);
-    }
-
-    /**
-     * return all clients
-     * @return
-     */
-    public List<ClientType> getAllClients() {
-        ServerConfDAOImpl serverConf = new ServerConfDAOImpl();
-        List<ClientType> clientTypes = serverConf.getConf(persistenceUtils.getCurrentSession()).getClient();
-        Hibernate.initialize(clientTypes);
-        return clientTypes;
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
+    public LocalGroupType getLocalGroup(Long id) {
+        return groupsRepository.getLocalGroupType(id);
     }
 }
-
