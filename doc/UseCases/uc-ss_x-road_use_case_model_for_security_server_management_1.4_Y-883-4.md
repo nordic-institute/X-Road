@@ -581,7 +581,7 @@ certificate.
 -   See \[[X509](#Ref_X509)\] for detailed information on the contents of
     certificates.
 
-### 3.11 UC SS\_10: View the Internal TLS Certificate of the Security Server
+### 3.11 UC SS\_10: View the Security Server TLS Certificate
 
 **System**: Security server
 
@@ -591,38 +591,38 @@ certificate.
 
 **Actors:** SS administrator
 
-**Brief Description**: SS administrator views the information about the
-internal TLS certificate of the security server.
+**Brief Description**: SS administrator views the information about the the security server's TLS certificate.
 
 **Preconditions**: -
 
-**Postconditions**: The internal TLS certificate information has been
+**Postconditions**: The Security Server's TLS certificate information has been
 displayed to SS administrator.
 
-**Trigger**: SS administrator wants to view the internal TLS certificate
+**Trigger**: SS administrator wants to view the security server's TLS certificate
 information.
 
 **Main Success Scenario**:
 
-1.  SS administrator selects to view the internal TLS certificate of the
-    security server.
+1.  SS administrator selects to view the Security Server's TLS certificate.
 
-2.  System displays the SHA-1 hash value of the internal TLS
-    certificate. The SS administrator has a possibility to choose
-    amongst the following actions:
+2.  System displays the SHA-1 hash value of the Security Server's TLS certificate. The SS administrator has a possibility to choose amongst the following actions:
 
     -   generate a new TLS key and certificate for the security server:
         3.12 ;
+        
+    -   generate a new TLS certificate request: 3.12 ;
+  
+    -   import a TLS certificate request: 3.12 ;
 
-    -   view the details of the internal TLS certificate: 3.10 ;
+    -   view the details of the security server's TLS certificate: 3.10 ;
 
-    -   export the internal TLS certificate: 3.13 .
+    -   export the security server's TLS certificate: 3.13 .
 
 **Extensions**: -
 
 **Related information**: -
 
-### 3.12 UC SS\_11: Generate a New TLS Key and Certificate for the Security Server
+### 3.12 UC SS\_11: Generate a new TLS Key and Certificate for the Security Server
 
 **System**: Security server
 
@@ -632,7 +632,7 @@ information.
 
 **Actors:** SS administrator
 
-**Brief Description**: SS administrator generates an internal TLS key
+**Brief Description**: SS administrator generates a TLS key
 and respective self-signed certificate for the security server.
 
 **Preconditions**: -
@@ -659,6 +659,20 @@ used for TLS connections with the client information systems.
 
 6.  System logs the event “Generate new internal TLS key and
     certificate” to the audit log.
+    
+7.  SS administrator selects (optional) to generate a TLS certificate request
+
+8.  System prompts for defining a Distinguished name
+
+9.  SS administrator inserts a Distinguished name
+
+9.  System prompts a request to download the generated certificate
+
+10. SS administrator downloads and saves the certificate request file to the local file system
+
+11. The security server generates a certificate request using the current key and the provided Distinguished Name.
+
+11. After a Certification Authority has approved a TLS certificate, SS administrator imports and saves the certificate file to the local file system
 
 **Extensions**:
 
@@ -674,7 +688,7 @@ used for TLS connections with the client information systems.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.13 UC SS\_12: Export the Internal TLS Certificate of the Security Server
+### 3.13 UC SS\_12: Export the TLS Certificate of the Security Server
 
 **System**: Security server
 
