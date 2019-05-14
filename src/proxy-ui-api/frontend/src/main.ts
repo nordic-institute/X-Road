@@ -8,6 +8,7 @@ import router from './router';
 import store from './store';
 import 'roboto-fontface/css/roboto/roboto-fontface.css';
 import '@fortawesome/fontawesome-free/css/all.css';
+import 'material-design-icons-iconfont/dist/material-design-icons.css';
 import i18n from './i18n';
 
 Vue.config.productionTip = false;

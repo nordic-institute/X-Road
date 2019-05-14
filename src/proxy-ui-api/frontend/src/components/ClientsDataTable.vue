@@ -8,7 +8,7 @@
         hide-details
         class="search-input"
       >
-        <v-icon slot="append" small>fas fa-search</v-icon>
+        <v-icon slot="append">search</v-icon>
       </v-text-field>
       <v-btn
         v-if="showAddClient()"

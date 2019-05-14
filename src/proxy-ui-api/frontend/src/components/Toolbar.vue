@@ -15,7 +15,7 @@
     <v-spacer></v-spacer>Username?
     <v-menu bottom left>
       <v-btn slot="activator" dark icon>
-        <v-icon>fa-user-circle</v-icon>
+        <v-icon>person</v-icon>
       </v-btn>
 
       <v-list>
