@@ -35,7 +35,7 @@ import ee.ria.xroad.common.util.XmlUtils;
 
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
@@ -327,8 +327,7 @@ public final class MetaserviceTestUtil {
      */
     public static void cleanDB() throws Exception {
         doInTransaction(session -> {
-            Query q = session.createSQLQuery(
-                    "TRUNCATE SCHEMA public AND COMMIT");
+            Query q = session.createSQLQuery("TRUNCATE SCHEMA public AND COMMIT");
             q.executeUpdate();
             return null;
         });
