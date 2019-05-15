@@ -175,7 +175,6 @@ export default Vue.extend({
 .login-form-toolbar-title {
   margin-left: 0;
   color: #4a4a4a;
-  font-family: 'Helvetica Neue';
   font-size: 36px;
   font-weight: 300;
   line-height: 44px;

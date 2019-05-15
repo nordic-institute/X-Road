@@ -212,7 +212,6 @@ export default Vue.extend({
 
 .cert-table-title {
   color: $XRoad-Grey60;
-  font-family: 'Helvetica Neue';
   font-size: 14px;
   font-weight: bold;
   margin: 5px;
