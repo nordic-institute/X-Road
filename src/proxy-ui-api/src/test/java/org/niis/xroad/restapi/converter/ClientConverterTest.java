@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.openapi.model.Client;
+import org.niis.xroad.restapi.openapi.model.ClientStatus;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -57,13 +58,15 @@ public class ClientConverterTest {
     public void convert() throws Exception {
         ClientType clientType = new ClientType();
         clientType.setClientStatus("registered");
+        clientType.setIsAuthentication("SSLNOAUTH");
         clientType.setIdentifier(ClientId.create("XRD2", "GOV", "M4", "SS1"));
         Client converted = clientConverter.convert(clientType);
         assertEquals("XRD2:GOV:M4:SS1", converted.getId());
-        assertEquals("registered", converted.getStatus());
+        assertEquals(ClientStatus.REGISTERED, converted.getStatus());
         assertEquals("GOV", converted.getMemberClass());
         assertEquals("M4", converted.getMemberCode());
         assertEquals("SS1", converted.getSubsystemCode());
+        assertEquals(org.niis.xroad.restapi.openapi.model.ConnectionType.HTTPS_NO_AUTH, converted.getConnectionType());
         assertEquals(MEMBER_NAME_PREFIX + "M4", converted.getMemberName());
     }
 

@@ -22,39 +22,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.repository;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import ee.ria.xroad.common.util.CryptoUtils;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Repository;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.security.cert.X509Certificate;
 
 /**
- * Thrown if item was not found.
- * Results in http 404 NOT_FOUND
+ * internal tls certificate repository
  */
-@ResponseStatus(value = HttpStatus.NOT_FOUND)
-public class NotFoundException extends ErrorCodedRuntimeException {
+@Slf4j
+@Repository
+public class InternalTlsCertificateRepository {
 
-    public NotFoundException() {
+    // as in application_controller.rb
+    private static final String INTERNAL_TLS_CERT_PATH = "/etc/xroad/ssl/internal.crt";
+
+    /**
+     * reads internal tls certificate from file
+     */
+    public X509Certificate getInternalTlsCertificate() {
+        try (FileInputStream fileInputStream = new FileInputStream(INTERNAL_TLS_CERT_PATH)) {
+            return CryptoUtils.readCertificate(fileInputStream);
+        } catch (IOException ioe) {
+            log.error("cant read internal tls cert");
+            throw new RuntimeException(ioe);
+        }
     }
-
-    public NotFoundException(String msg) {
-        super(msg);
-    }
-
-    public NotFoundException(ErrorCode errorCode) {
-        super(errorCode);
-    }
-
-    public NotFoundException(String msg, ErrorCode errorCode) {
-        super(msg, errorCode);
-    }
-
-    public NotFoundException(String msg, Throwable t) {
-        super(msg, t);
-    }
-
-    public NotFoundException(Throwable t) {
-        super(t);
-    }
-
 }

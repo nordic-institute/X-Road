@@ -22,39 +22,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.config;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 /**
- * Thrown if item was not found.
- * Results in http 404 NOT_FOUND
+ * Enable customization of signer IP address when development profile is active.
+ * Otherwise use 127.0.0.1
  */
-@ResponseStatus(value = HttpStatus.NOT_FOUND)
-public class NotFoundException extends ErrorCodedRuntimeException {
+@Configuration
+public class SignerIpAddressConfiguration {
 
-    public NotFoundException() {
+    @Value("${custom.signer.ip:127.0.0.1}")
+    private String customIp;
+
+    @Bean(name = "signer-ip")
+    @Profile("!development")
+    public String defaultBean() {
+        return "127.0.0.1";
     }
 
-    public NotFoundException(String msg) {
-        super(msg);
-    }
-
-    public NotFoundException(ErrorCode errorCode) {
-        super(errorCode);
-    }
-
-    public NotFoundException(String msg, ErrorCode errorCode) {
-        super(msg, errorCode);
-    }
-
-    public NotFoundException(String msg, Throwable t) {
-        super(msg, t);
-    }
-
-    public NotFoundException(Throwable t) {
-        super(t);
+    @Bean(name = "signer-ip")
+    @Profile("development")
+    public String customBean() {
+        return customIp;
     }
 
 }

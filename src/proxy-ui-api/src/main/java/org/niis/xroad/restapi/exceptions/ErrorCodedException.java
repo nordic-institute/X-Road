@@ -24,37 +24,12 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
 /**
- * Thrown if item was not found.
- * Results in http 404 NOT_FOUND
+ * Exception which (possibly) knows the detailed error code to send in REST API response body
  */
-@ResponseStatus(value = HttpStatus.NOT_FOUND)
-public class NotFoundException extends ErrorCodedRuntimeException {
-
-    public NotFoundException() {
-    }
-
-    public NotFoundException(String msg) {
-        super(msg);
-    }
-
-    public NotFoundException(ErrorCode errorCode) {
-        super(errorCode);
-    }
-
-    public NotFoundException(String msg, ErrorCode errorCode) {
-        super(msg, errorCode);
-    }
-
-    public NotFoundException(String msg, Throwable t) {
-        super(msg, t);
-    }
-
-    public NotFoundException(Throwable t) {
-        super(t);
-    }
-
+public interface ErrorCodedException {
+    /**
+     * Return the error code, if any
+     */
+    String getErrorCode();
 }

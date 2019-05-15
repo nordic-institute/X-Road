@@ -125,10 +125,12 @@ export const actions: ActionTree<UserState, RootState> = {
     axiosAuth.post('/logout')
       .catch((error) => {
         console.error(error);
+      }).finally(() => {
+        // Reload the browser page to clean up the memory
+        location.reload(true);
       });
 
-    // Reload the browser page to clean up the memory
-    location.reload(true);
+
   },
   clearAuth({ commit }) {
     commit('clearAuthData');

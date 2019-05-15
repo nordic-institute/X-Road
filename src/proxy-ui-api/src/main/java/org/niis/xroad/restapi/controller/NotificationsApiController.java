@@ -22,35 +22,53 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi;
+package org.niis.xroad.restapi.controller;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.SessionTimeoutFilter;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Optional;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 /**
- * tokens controller
+ * Controller notifications that are polled.
+ * Requests to these endpoints do not cause session to stay alive.
+ * Session timeout management is implemented by
+ * {@link SessionTimeoutFilter}
  */
-@Controller
-@RequestMapping("/api")
+@RestController
+@RequestMapping(NotificationsApiController.NOTIFICATIONS_API_URL)
 @Slf4j
 @PreAuthorize("denyAll")
-public class TokensApiController implements TokensApi {
+public class NotificationsApiController {
 
-    private final NativeWebRequest request;
+    public static final String NOTIFICATIONS_API_URL = "/api/notifications";
 
-    @org.springframework.beans.factory.annotation.Autowired
-    public TokensApiController(NativeWebRequest request) {
-        this.request = request;
+    /**
+     * check if a HttpSession is currently alive
+     */
+    @PreAuthorize("permitAll")
+    @RequestMapping(value = "/session-status",
+            produces = { "application/json" },
+            method = RequestMethod.GET)
+    public ResponseEntity<StatusData> isSessionAlive(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        boolean isStillAlive = session != null;
+        return new ResponseEntity<>(new StatusData(isStillAlive),
+                HttpStatus.OK);
     }
 
-    @Override
-    public Optional<NativeWebRequest> getRequest() {
-        return Optional.ofNullable(request);
+    @Data
+    @AllArgsConstructor
+    private class StatusData {
+        private boolean valid;
     }
-
 }

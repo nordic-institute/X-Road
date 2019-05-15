@@ -27,7 +27,6 @@ package org.niis.xroad.restapi.openapi;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.context.request.NativeWebRequest;
 
@@ -40,9 +39,8 @@ import java.util.Optional;
 @RequestMapping("/api")
 @Slf4j
 @PreAuthorize("denyAll")
-@Transactional
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public class BackupsApiController implements org.niis.xroad.restapi.openapi.BackupsApi {
+public class BackupsApiController implements BackupsApi {
 
     public static final int MAX_FIFTY_ITEMS = 50;
 

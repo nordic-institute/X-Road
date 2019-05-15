@@ -144,7 +144,8 @@
         <id name="id" type="long" access="field">
             <generator class="native"/>
         </id>
-        <property name="data" access="field"/>
+        <!-- length is only for DDL when creating HSQLDB tables -->
+        <property name="data" access="field" length="4096"/>
     </class>
 
     <class name="AccessRightType" table="ACCESSRIGHT">

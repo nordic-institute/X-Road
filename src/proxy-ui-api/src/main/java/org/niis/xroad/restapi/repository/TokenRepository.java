@@ -22,39 +22,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.repository;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import ee.ria.xroad.commonui.SignerProxy;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 /**
- * Thrown if item was not found.
- * Results in http 404 NOT_FOUND
+ * Repository that handles tokens (acts as a wrapper to SignerProxy)
  */
-@ResponseStatus(value = HttpStatus.NOT_FOUND)
-public class NotFoundException extends ErrorCodedRuntimeException {
+@Slf4j
+@Repository
+public class TokenRepository {
 
-    public NotFoundException() {
-    }
-
-    public NotFoundException(String msg) {
-        super(msg);
-    }
-
-    public NotFoundException(ErrorCode errorCode) {
-        super(errorCode);
-    }
-
-    public NotFoundException(String msg, ErrorCode errorCode) {
-        super(msg, errorCode);
-    }
-
-    public NotFoundException(String msg, Throwable t) {
-        super(msg, t);
-    }
-
-    public NotFoundException(Throwable t) {
-        super(t);
+    /**
+     * get all tokens
+     * @return
+     * @throws Exception
+     */
+    public List<TokenInfo> getTokens() throws Exception {
+        return SignerProxy.getTokens();
     }
 
 }

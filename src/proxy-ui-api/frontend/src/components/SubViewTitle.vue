@@ -29,6 +29,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
+@import '../assets/colors';
+
 .new-content {
   max-width: 850px;
   width: 100%;
@@ -37,8 +39,8 @@ export default Vue.extend({
 .cert-dialog-header {
   display: flex;
   justify-content: center;
-  border-bottom: 1px solid #9b9b9b;
-  color: #4a4a4a;
+  border-bottom: 1px solid $XRoad-Grey40;
+  color: $XRoad-Grey60;
   font-family: Roboto;
   font-size: 34px;
   font-weight: 300;
@@ -50,7 +52,7 @@ export default Vue.extend({
   cursor: pointer;
   font-style: normal;
   font-size: 50px;
-  color: #979797;
+  color: $XRoad-Grey40;
 }
 
 #close-x:before {

@@ -49,10 +49,6 @@ export const getters: GetterTree<ClientState, RootState> = {
   ssCertificate(state): any {
     return state.ssCertificate;
   },
-  /*
-  loading(state): boolean {
-    return state.loading;
-  }, */
 };
 
 export const mutations: MutationTree<ClientState> = {
@@ -93,7 +89,6 @@ export const actions: ActionTree<ClientState, RootState> = {
         commit('storeClient', res.data);
       })
       .catch((error) => {
-        console.log(error);
         throw error;
       })
       .finally(() => {
@@ -113,7 +108,6 @@ export const actions: ActionTree<ClientState, RootState> = {
         commit('storeCertificates', res.data);
       })
       .catch((error) => {
-        console.log(error);
         throw error;
       })
       .finally(() => {
@@ -131,11 +125,9 @@ export const actions: ActionTree<ClientState, RootState> = {
 
     return axios.get(`/clients/${id}/tlscertificates`)
       .then((res) => {
-        console.log(res);
         commit('storeTlsCertificates', res.data);
       })
       .catch((error) => {
-        console.log(error);
         throw error;
       })
       .finally(() => {
@@ -154,7 +146,6 @@ export const actions: ActionTree<ClientState, RootState> = {
         commit('storeSsCertificate', res.data);
       })
       .catch((error) => {
-        console.log(error);
         throw error;
       })
       .finally(() => {
@@ -177,14 +168,7 @@ export const actions: ActionTree<ClientState, RootState> = {
 
   deleteTlsCertificate({ commit, state }, { clientId, hash }) {
 
-    return axios.delete(`/clients/${clientId}/tlscertificates/${hash}`)
-      .then((res) => {
-        console.log(res);
-      })
-      .catch((error) => {
-        console.error(error);
-        throw error;
-      });
+    return axios.delete(`/clients/${clientId}/tlscertificates/${hash}`);
   },
 
   downloadSSCertificate({ commit, state }, { hash }) {

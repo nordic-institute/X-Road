@@ -28,32 +28,23 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Thrown if item was not found.
- * Results in http 404 NOT_FOUND
+ * Thrown if there was a conflict, for example tried to add an item which already exists.
+ * Results in http 409 CONFLICT
  */
-@ResponseStatus(value = HttpStatus.NOT_FOUND)
-public class NotFoundException extends ErrorCodedRuntimeException {
-
-    public NotFoundException() {
+@ResponseStatus(value = HttpStatus.CONFLICT)
+public class ConflictException extends RuntimeException {
+    public ConflictException() {
     }
 
-    public NotFoundException(String msg) {
+    public ConflictException(String msg) {
         super(msg);
     }
 
-    public NotFoundException(ErrorCode errorCode) {
-        super(errorCode);
-    }
-
-    public NotFoundException(String msg, ErrorCode errorCode) {
-        super(msg, errorCode);
-    }
-
-    public NotFoundException(String msg, Throwable t) {
+    public ConflictException(String msg, Throwable t) {
         super(msg, t);
     }
 
-    public NotFoundException(Throwable t) {
+    public ConflictException(Throwable t) {
         super(t);
     }
 

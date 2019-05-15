@@ -28,33 +28,32 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Thrown if item was not found.
- * Results in http 404 NOT_FOUND
+ * Thrown if client sent bad request.
+ * Results in http 400 BAD_REQUEST
  */
-@ResponseStatus(value = HttpStatus.NOT_FOUND)
-public class NotFoundException extends ErrorCodedRuntimeException {
-
-    public NotFoundException() {
+@ResponseStatus(value = HttpStatus.BAD_REQUEST)
+public class BadRequestException extends ErrorCodedRuntimeException {
+    public BadRequestException() {
     }
 
-    public NotFoundException(String msg) {
+    public BadRequestException(String msg) {
         super(msg);
     }
 
-    public NotFoundException(ErrorCode errorCode) {
-        super(errorCode);
-    }
-
-    public NotFoundException(String msg, ErrorCode errorCode) {
-        super(msg, errorCode);
-    }
-
-    public NotFoundException(String msg, Throwable t) {
+    public BadRequestException(String msg, Throwable t) {
         super(msg, t);
     }
 
-    public NotFoundException(Throwable t) {
+    public BadRequestException(String msg, Throwable t, ErrorCode errorCode) {
+        super(msg, t, errorCode);
+    }
+
+    public BadRequestException(Throwable t) {
         super(t);
+    }
+
+    public BadRequestException(Throwable t, ErrorCode errorCode) {
+        super(t, errorCode);
     }
 
 }
