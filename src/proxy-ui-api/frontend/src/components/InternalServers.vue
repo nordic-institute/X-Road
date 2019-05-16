@@ -275,7 +275,7 @@ export default Vue.extend({
 }
 
 .server-certificates {
-  border-top: #9b9b9b solid 2px;
+  border-top: $XRoad-Grey40 solid 1px;
 }
 
 .cert-icon {
