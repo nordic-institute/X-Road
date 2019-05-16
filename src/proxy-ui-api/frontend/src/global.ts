@@ -25,7 +25,7 @@ export enum Permissions {
   ACTIVATE_DISABLE_AUTH_CERT = 'ACTIVATE_DISABLE_AUTH_CERT',
   ACTIVATE_DISABLE_SIGN_CERT = 'ACTIVATE_DISABLE_SIGN_CERT',
   ACTIVATE_TOKEN = 'ACTIVATE_TOKEN',
-  ADD_CLIENT = 'ADD_CLIENT', // clients > add client  
+  ADD_CLIENT = 'ADD_CLIENT', // clients > add client
   ADD_CLIENT_INTERNAL_CERT = 'ADD_CLIENT_INTERNAL_CERT',  // add TLS certificate in client "internal servers"
   ADD_LOCAL_GROUP = 'ADD_LOCAL_GROUP',
   ADD_TSP = 'ADD_TSP',

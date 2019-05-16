@@ -172,8 +172,8 @@ export default Vue.extend({
     this.fetchTlsCertificates(this.id);
   },
   methods: {
-    onFileChange(e: any) {
-      const fileList = e.target.files || e.dataTransfer.files;
+    onFileChange(event: any) {
+      const fileList = event.target.files || event.dataTransfer.files;
       if (!fileList.length) {
         return;
       }

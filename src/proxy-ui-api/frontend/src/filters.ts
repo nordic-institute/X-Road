@@ -11,7 +11,7 @@ Vue.filter('capitalize', (value: string) => {
 Vue.filter('colonize', (value: string) => {
   if (!value) { return ''; }
 
-  let colonized = value.replace(/(.{2})/g, "$1:");
+  const colonized = value.replace(/(.{2})/g, '$1:');
 
   if (colonized[colonized.length - 1] === ':') {
     return colonized.slice(0, -1);

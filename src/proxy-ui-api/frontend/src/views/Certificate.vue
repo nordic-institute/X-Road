@@ -45,7 +45,6 @@
         <certificate-line childKey="state" :sourceObject="certificate"/>
         <certificate-line childKey="key_usages" arrayType :sourceObject="certificate"/>
         <certificate-line childKey="signature" :sourceObject="certificate" chunk/>
-
       </template>
     </div>
     <v-dialog v-model="confirm" persistent max-width="290">
@@ -102,8 +101,6 @@ export default Vue.extend({
     pretty(value: any) {
       return JSON.stringify(JSON.parse(value), null, 2);
     },
-
-    prettyPair(value: string, sourceObject: any) {},
   },
   methods: {
     close(): void {

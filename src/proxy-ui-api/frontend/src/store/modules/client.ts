@@ -174,7 +174,7 @@ export const actions: ActionTree<ClientState, RootState> = {
   downloadSSCertificate({ commit, state }, { hash }) {
 
     axios.get(`/system/certificate/export`, { responseType: 'arraybuffer' }).then((response) => {
-      let suggestedFileName = undefined;
+      let suggestedFileName;
       const disposition = response.headers['content-disposition'];
 
       if (disposition && disposition.indexOf('attachment') !== -1) {

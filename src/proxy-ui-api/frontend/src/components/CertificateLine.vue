@@ -82,11 +82,11 @@ export default Vue.extend({
     },
 
     formatArray(arr: []) {
-      let translated: Array<string>;
+      let translated: string[];
       translated = [];
 
       arr.forEach((element) => {
-        // @ts-ignore: Vue has no call signature for l18n $t  
+        // @ts-ignore: Vue has no call signature for l18n $t
         translated.push(this.$t('cert.keyUsage.' + element) as string);
       });
 
