@@ -101,6 +101,7 @@ import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
+import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
 class ServerRestMessageProcessor extends MessageProcessorBase {
@@ -367,7 +368,9 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
         final HttpContext ctx = new BasicHttpContext();
         ctx.setAttribute(ServiceId.class.getName(), requestServiceId);
+        opMonitoringData.setRequestOutTs(getEpochMillisecond());
         final HttpResponse response = httpClient.execute(req, ctx);
+        opMonitoringData.setResponseInTs(getEpochMillisecond());
         final StatusLine statusLine = response.getStatusLine();
 
         //calculate request hash
