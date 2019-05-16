@@ -50,6 +50,12 @@ export default Vue.extend({
         params: { id: this.id },
       };
     },
+    localGroupsRoute(): object {
+      return {
+        name: RouteName.SubsystemLocalGroups,
+        params: { id: this.id },
+      };
+    },
   },
   created() {
     this.fetchClient(this.id);

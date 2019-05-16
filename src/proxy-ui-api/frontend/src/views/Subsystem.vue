@@ -16,15 +16,14 @@
 import Vue from 'vue';
 
 import { mapGetters } from 'vuex';
+/*
 import ClientDetails from '@/components/ClientDetails.vue';
-
 import InternalServers from '@/components/InternalServers.vue';
+import LocalGroups from '@/components/LocalGroups.vue';
+*/
 import { Permissions, RouteName } from '@/global';
 
 export default Vue.extend({
-  components: {
-    ClientDetails,
-  },
   props: {
     id: {
       type: String,
@@ -76,7 +75,7 @@ export default Vue.extend({
           key: 'localGroups',
           name: 'Local Groups',
           to: {
-            name: RouteName.SubsystemServers,
+            name: RouteName.SubsystemLocalGroups,
             params: { id: this.id },
           },
         },
