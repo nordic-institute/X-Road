@@ -26,10 +26,3 @@ export default Vue.extend({
   },
 });
 </script>
-
-<style lang="scss" scoped>
-.buttons {
-  width: 100%;
-  max-width: 1280px;
-}
-</style>

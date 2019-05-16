@@ -179,7 +179,6 @@ export const actions: ActionTree<ClientState, RootState> = {
   },
 
   uploadTlsCertificate({ commit, state }, file) {
-
     return axios.post(`/submit-form`, file);
   },
 

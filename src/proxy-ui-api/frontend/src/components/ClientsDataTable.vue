@@ -285,10 +285,6 @@ export default Vue.extend({
   padding-left: 24px;
   margin-bottom: 24px;
 }
-.expand-name {
-  width: 38%;
-  padding-left: 60px !important;
-}
 
 .search-input {
   max-width: 300px;
