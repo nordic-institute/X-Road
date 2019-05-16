@@ -25,8 +25,11 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
+import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.ClientConverter;
+import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.repository.GroupsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -43,19 +46,39 @@ import org.springframework.transaction.annotation.Transactional;
 public class GroupsService {
 
     private final GroupsRepository groupsRepository;
+    private final ClientConverter clientConverter;
 
     @Autowired
-    public GroupsService(GroupsRepository groupsRepository) {
+    public GroupsService(GroupsRepository groupsRepository, ClientConverter clientConverter) {
         this.groupsRepository = groupsRepository;
+        this.clientConverter = clientConverter;
     }
 
     /**
-     * return one LocalGroup
-     *
-     * @param id
+     * Return local group
+     * @param clientId
+     * @param groupCode
+     * @return LocaGroupType
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
-    public LocalGroupType getLocalGroup(Long id) {
-        return groupsRepository.getLocalGroupType(id);
+    public LocalGroupType getLocalGroup(String groupCode, ClientId clientId) {
+        return groupsRepository.getLocalGroupType(groupCode, clientId);
+    }
+
+    /**
+     * Edit local group description
+     * @param id
+     * @param groupCode
+     * @return LocaGroupType
+     */
+    @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_DESC')")
+    public LocalGroupType updateDescription(String id, String groupCode, String description) {
+        LocalGroupType localGroupType = getLocalGroup(groupCode, clientConverter.convertId(id));
+        if (localGroupType == null) {
+            throw new NotFoundException("LocalGroup with id " + id + " not found");
+        }
+        localGroupType.setDescription(description);
+        groupsRepository.saveOrUpdate(localGroupType);
+        return localGroupType;
     }
 }

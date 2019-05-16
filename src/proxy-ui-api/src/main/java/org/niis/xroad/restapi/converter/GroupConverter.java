@@ -58,12 +58,12 @@ public class GroupConverter {
         group.setId(localGroupType.getId().toString());
         group.setCode(localGroupType.getGroupCode());
         group.setDescription(localGroupType.getDescription());
-        group.setUpdated(FormatUtils.fromDateToOffsetDateTime(localGroupType.getUpdated()));
+        group.setUpdatedAt(FormatUtils.fromDateToOffsetDateTime(localGroupType.getUpdated()));
         group.setMemberCount(localGroupType.getGroupMember().size());
         group.setMembers(localGroupType.getGroupMember().stream().map(groupMemberType -> {
             GroupMember groupMember = new GroupMember();
             groupMember.setId(groupMemberType.getId().toString());
-            groupMember.setCreated(FormatUtils.fromDateToOffsetDateTime(groupMemberType.getAdded()));
+            groupMember.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(groupMemberType.getAdded()));
             groupMember.setName(clientConverter.convertId(groupMemberType.getGroupMemberId()));
             return groupMember;
         }).collect(Collectors.toList()));

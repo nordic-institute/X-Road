@@ -40,7 +40,9 @@ import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.Certificate;
+import org.niis.xroad.restapi.openapi.model.CertificateStatus;
 import org.niis.xroad.restapi.openapi.model.Client;
+import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.repository.TokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,9 +64,9 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
-import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -124,11 +126,11 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void getClients() {
-        ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Client>> response =
-                clientsApiController.getClients();
+        ResponseEntity<List<Client>> response =
+                clientsApiController.getClients(null, null, null, null, null, false, false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(2, response.getBody().size());
-        org.niis.xroad.restapi.openapi.model.Client client = response.getBody().get(0);
+        Client client = response.getBody().get(0);
         assertEquals("test-member-name", client.getMemberName());
         assertEquals("M1", client.getMemberCode());
     }
@@ -136,23 +138,23 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = "VIEW_CLIENT_DETAILS")
     public void getClient() {
-        ResponseEntity<org.niis.xroad.restapi.openapi.model.Client> response =
+        ResponseEntity<Client> response =
                 clientsApiController.getClient("FI:GOV:M1");
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Client client = response.getBody();
-        assertEquals(org.niis.xroad.restapi.openapi.model.ConnectionType.HTTP, client.getConnectionType());
-        assertEquals(org.niis.xroad.restapi.openapi.model.ClientStatus.REGISTERED, client.getStatus());
+        assertEquals(ConnectionType.HTTP, client.getConnectionType());
+        assertEquals(ClientStatus.REGISTERED, client.getStatus());
         assertEquals("test-member-name", client.getMemberName());
         assertEquals("GOV", client.getMemberClass());
         assertEquals("M1", client.getMemberCode());
         assertEquals("FI:GOV:M1", client.getId());
-        assertEquals(null, client.getSubsystemCode());
+        assertNull(client.getSubsystemCode());
 
         response = clientsApiController.getClient("FI:GOV:M1:SS1");
         assertEquals(HttpStatus.OK, response.getStatusCode());
         client = response.getBody();
-        assertEquals(org.niis.xroad.restapi.openapi.model.ConnectionType.HTTPS_NO_AUTH, client.getConnectionType());
-        assertEquals(org.niis.xroad.restapi.openapi.model.ClientStatus.REGISTERED, client.getStatus());
+        assertEquals(ConnectionType.HTTPS_NO_AUTH, client.getConnectionType());
+        assertEquals(ClientStatus.REGISTERED, client.getStatus());
         assertEquals("test-member-name", client.getMemberName());
         assertEquals("GOV", client.getMemberClass());
         assertEquals("M1", client.getMemberCode());
@@ -160,7 +162,7 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals("SS1", client.getSubsystemCode());
 
         try {
-            response = clientsApiController.getClient("FI:GOV:M1:SS2");
+            clientsApiController.getClient("FI:GOV:M1:SS2");
             fail("should throw NotFoundException to 404");
         } catch (NotFoundException expected) {
         }
@@ -170,7 +172,7 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "EDIT_CLIENT_INTERNAL_CONNECTION_TYPE",
             "VIEW_CLIENT_DETAILS" })
     public void updateClient() throws Exception {
-        ResponseEntity<org.niis.xroad.restapi.openapi.model.Client> response =
+        ResponseEntity<Client> response =
                 clientsApiController.getClient("FI:GOV:M1:SS1");
         assertEquals(ConnectionType.HTTPS_NO_AUTH, response.getBody().getConnectionType());
 
@@ -184,8 +186,8 @@ public class ClientsApiControllerIntegrationTest {
 
     @Test
     @WithMockUser(authorities = "VIEW_CLIENT_DETAILS")
-    public void getClientCertificates() throws Exception {
-        ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Certificate>> certificates =
+    public void getClientCertificate() throws Exception {
+        ResponseEntity<List<Certificate>> certificates =
                 clientsApiController.getClientCertificates("FI:GOV:M1");
         assertEquals(HttpStatus.OK, certificates.getStatusCode());
         assertEquals(0, certificates.getBody().size());
@@ -193,27 +195,17 @@ public class ClientsApiControllerIntegrationTest {
         CertificateInfo mockCertificate = new CertificateInfo(
                 ClientId.create("FI", "GOV", "M1"),
                 true, true, CertificateInfo.STATUS_REGISTERED,
-                    "id", certBytes, null);
+                "id", certBytes, null);
         when(tokenRepository.getTokens()).thenReturn(createMockTokenInfos(mockCertificate));
         certificates = clientsApiController.getClientCertificates("FI:GOV:M1");
         assertEquals(HttpStatus.OK, certificates.getStatusCode());
         assertEquals(1, certificates.getBody().size());
 
-        org.niis.xroad.restapi.openapi.model.Certificate onlyCertificate = certificates.getBody().get(0);
+        Certificate onlyCertificate = certificates.getBody().get(0);
         assertEquals("N/A", onlyCertificate.getIssuerCommonName());
-        assertEquals(OffsetDateTime.parse("1970-01-01T00:00:00Z"), onlyCertificate.getNotBefore());
         assertEquals(OffsetDateTime.parse("2038-01-01T00:00:00Z"), onlyCertificate.getNotAfter());
-        assertEquals("1", onlyCertificate.getSerial());
-        assertEquals(new Integer(3), onlyCertificate.getVersion());
-        assertEquals("SHA512withRSA", onlyCertificate.getSignatureAlgorithm());
-        assertEquals("RSA", onlyCertificate.getPublicKeyAlgorithm());
         assertEquals("A2293825AA82A5429EC32803847E2152A303969C", onlyCertificate.getHash());
-        assertEquals(org.niis.xroad.restapi.openapi.model.State.IN_USE, onlyCertificate.getState());
-        assertTrue(onlyCertificate.getSignature().startsWith("314b7a50a09a9b74322671"));
-        assertTrue(onlyCertificate.getRsaPublicKeyModulus().startsWith("9d888fbe089b32a35f58"));
-        assertEquals(new Integer(65537), onlyCertificate.getRsaPublicKeyExponent());
-        assertEquals(new ArrayList<>(Arrays.asList(org.niis.xroad.restapi.openapi.model.KeyUsage.NON_REPUDIATION)),
-                new ArrayList<>(onlyCertificate.getKeyUsages()));
+        assertEquals(CertificateStatus.IN_USE, onlyCertificate.getStatus());
 
         try {
             certificates = clientsApiController.getClientCertificates("FI:GOV:M2");
@@ -226,10 +218,11 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(roles = "WRONG_ROLE")
     public void forbidden() {
         try {
-            ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Client>> response =
-                    clientsApiController.getClients();
+            ResponseEntity<List<Client>> response = clientsApiController.getClients(null, null, null, null, null, null,
+                    null);
             fail("should throw AccessDeniedException");
-        } catch (AccessDeniedException expected) { }
+        } catch (AccessDeniedException expected) {
+        }
     }
 
 

@@ -26,6 +26,7 @@ package org.niis.xroad.restapi.repository;
 
 import ee.ria.xroad.common.conf.serverconf.dao.LocalGroupDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
+import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.util.PersistenceUtils;
@@ -48,8 +49,16 @@ public class GroupsRepository {
         this.persistenceUtils = persistenceUtils;
     }
 
-    public LocalGroupType getLocalGroupType(Long id) {
+    public LocalGroupType getLocalGroupType(String groupCode, ClientId clientId) {
         LocalGroupDAOImpl localGroupDAO = new LocalGroupDAOImpl();
-        return localGroupDAO.getLocalGroup(persistenceUtils.getCurrentSession(), id);
+        return localGroupDAO.findLocalGroup(persistenceUtils.getCurrentSession(), groupCode, clientId);
+    }
+
+    /**
+     * Executes a Hibernate saveOrUpdate(client)
+     * @param localGroupType
+     */
+    public void saveOrUpdate(LocalGroupType localGroupType) {
+        persistenceUtils.getCurrentSession().saveOrUpdate(localGroupType);
     }
 }

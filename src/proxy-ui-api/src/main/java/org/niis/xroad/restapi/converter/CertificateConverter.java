@@ -31,7 +31,8 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import org.niis.xroad.restapi.openapi.model.Certificate;
-import org.niis.xroad.restapi.openapi.model.State;
+import org.niis.xroad.restapi.openapi.model.CertificateDetails;
+import org.niis.xroad.restapi.openapi.model.CertificateStatus;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -50,6 +51,83 @@ public class CertificateConverter {
     public static final int RADIX_FOR_HEX = 16;
     @Autowired
     private KeyUsageConverter keyUsageConverter;
+
+    /**
+     * convert CertificateType into openapi CertificateDetails class
+     * @param certificateType
+     * @return
+     */
+    public CertificateDetails convertDetailed(CertificateType certificateType) {
+        X509Certificate x509Certificate = CryptoUtils.readCertificate(certificateType.getData());
+        return convertDetailed(x509Certificate);
+    }
+
+    /**
+     * convert CertificateInfo into openapi CertificateDetails class
+     * @param certificateInfo
+     * @return
+     */
+    public CertificateDetails convertDetailed(CertificateInfo certificateInfo) {
+        X509Certificate x509Certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
+        CertificateDetails certificate = convertDetailed(x509Certificate);
+
+        if (certificateInfo.isActive()) {
+            certificate.setStatus(CertificateStatus.IN_USE);
+        } else {
+            certificate.setStatus(CertificateStatus.DISABLED);
+        }
+        return certificate;
+    }
+
+    /**
+     * convert X509Certificate into openapi Certificate class.
+     * certificate.state will be null.
+     * @param x509Certificate
+     * @return
+     */
+    public CertificateDetails convertDetailed(X509Certificate x509Certificate) {
+        CertificateDetails certificateDetails = new CertificateDetails();
+
+        String issuerCommonName = null;
+        String subjectCommonName = null;
+        try {
+            issuerCommonName = CertUtils.getIssuerCommonName(x509Certificate);
+        } catch (CodedException didNotFindCommonName) {
+        }
+        try {
+            subjectCommonName = CertUtils.getSubjectCommonName(x509Certificate);
+        } catch (CodedException didNotFindCommonName) {
+        }
+        certificateDetails.setIssuerCommonName(issuerCommonName);
+        certificateDetails.setIssuerDistinguishedName(x509Certificate.getIssuerDN().getName());
+        certificateDetails.setSubjectCommonName(subjectCommonName);
+        certificateDetails.setSubjectDistinguishedName(x509Certificate.getSubjectDN().getName());
+
+        certificateDetails.setSerial(x509Certificate.getSerialNumber().toString());
+        certificateDetails.setVersion(x509Certificate.getVersion());
+
+        certificateDetails.setSignatureAlgorithm(x509Certificate.getSigAlgName());
+        certificateDetails.setPublicKeyAlgorithm(x509Certificate.getPublicKey().getAlgorithm());
+
+        certificateDetails.setKeyUsages(new ArrayList<>(keyUsageConverter.convert(x509Certificate.getKeyUsage())));
+
+        PublicKey publicKey = x509Certificate.getPublicKey();
+        if (publicKey instanceof RSAPublicKey) {
+            RSAPublicKey rsaPublicKey = (RSAPublicKey) publicKey;
+            certificateDetails.setRsaPublicKeyExponent(rsaPublicKey.getPublicExponent().intValue());
+            certificateDetails.setRsaPublicKeyModulus(rsaPublicKey.getModulus().toString(RADIX_FOR_HEX));
+        }
+
+        certificateDetails.setSignature(CryptoUtils.encodeHex(x509Certificate.getSignature()));
+        certificateDetails.setNotBefore(FormatUtils.fromDateToOffsetDateTime(x509Certificate.getNotBefore()));
+        certificateDetails.setNotAfter(FormatUtils.fromDateToOffsetDateTime(x509Certificate.getNotAfter()));
+        try {
+            certificateDetails.setHash(CryptoUtils.calculateCertHexHash(x509Certificate.getEncoded()).toUpperCase());
+        } catch (Exception ex) {
+            throw new IllegalStateException("cannot calculate cert hash", ex);
+        }
+        return certificateDetails;
+    }
 
     /**
      * convert CertificateType into openapi Certificate class
@@ -71,9 +149,9 @@ public class CertificateConverter {
         Certificate certificate = convert(x509Certificate);
 
         if (certificateInfo.isActive()) {
-            certificate.setState(State.IN_USE);
+            certificate.setStatus(CertificateStatus.IN_USE);
         } else {
-            certificate.setState(State.DISABLED);
+            certificate.setStatus(CertificateStatus.DISABLED);
         }
         return certificate;
     }
@@ -88,37 +166,12 @@ public class CertificateConverter {
         Certificate certificate = new Certificate();
 
         String issuerCommonName = null;
-        String subjectCommonName = null;
         try {
             issuerCommonName = CertUtils.getIssuerCommonName(x509Certificate);
         } catch (CodedException didNotFindCommonName) {
         }
-        try {
-            subjectCommonName = CertUtils.getSubjectCommonName(x509Certificate);
-        } catch (CodedException didNotFindCommonName) {
-        }
         certificate.setIssuerCommonName(issuerCommonName);
-        certificate.setIssuerDistinguishedName(x509Certificate.getIssuerDN().getName());
-        certificate.setSubjectCommonName(subjectCommonName);
-        certificate.setSubjectDistinguishedName(x509Certificate.getSubjectDN().getName());
 
-        certificate.setSerial(x509Certificate.getSerialNumber().toString());
-        certificate.setVersion(x509Certificate.getVersion());
-
-        certificate.setSignatureAlgorithm(x509Certificate.getSigAlgName());
-        certificate.setPublicKeyAlgorithm(x509Certificate.getPublicKey().getAlgorithm());
-
-        certificate.setKeyUsages(new ArrayList<>(keyUsageConverter.convert(x509Certificate.getKeyUsage())));
-
-        PublicKey publicKey = x509Certificate.getPublicKey();
-        if (publicKey instanceof RSAPublicKey) {
-            RSAPublicKey rsaPublicKey = (RSAPublicKey) publicKey;
-            certificate.setRsaPublicKeyExponent(rsaPublicKey.getPublicExponent().intValue());
-            certificate.setRsaPublicKeyModulus(rsaPublicKey.getModulus().toString(RADIX_FOR_HEX));
-        }
-
-        certificate.setSignature(CryptoUtils.encodeHex(x509Certificate.getSignature()));
-        certificate.setNotBefore(FormatUtils.fromDateToOffsetDateTime(x509Certificate.getNotBefore()));
         certificate.setNotAfter(FormatUtils.fromDateToOffsetDateTime(x509Certificate.getNotAfter()));
         try {
             certificate.setHash(CryptoUtils.calculateCertHexHash(x509Certificate.getEncoded()).toUpperCase());

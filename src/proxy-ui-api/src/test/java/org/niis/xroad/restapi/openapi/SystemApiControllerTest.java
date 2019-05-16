@@ -70,7 +70,7 @@ public class SystemApiControllerTest {
 
         org.niis.xroad.restapi.openapi.model.Certificate certificate =
                 systemApiController.getSystemCertificate().getBody();
-        assertNull(certificate.getState());
+        assertNull(certificate.getStatus());
         assertEquals("xroad2-lxd-ss1", certificate.getIssuerCommonName());
     }
 }
