@@ -149,6 +149,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             logResponseMessage();
             writeSignature();
             close();
+            postprocess();
         } catch (Exception ex) {
             handleException(ex);
         } finally {
