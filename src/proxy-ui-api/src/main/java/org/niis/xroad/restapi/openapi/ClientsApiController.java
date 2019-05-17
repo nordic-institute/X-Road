@@ -258,8 +258,10 @@ public class ClientsApiController implements ClientsApi {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('ADD_LOCAL_GROUP')")
     public ResponseEntity<Void> addClientGroup(String id, Group group) {
-        return null;
+        groupsService.addLocalGroup(clientConverter.convertId(id), groupConverter.convert(group));
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @Override

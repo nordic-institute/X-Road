@@ -24,12 +24,14 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.GroupsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -46,12 +48,21 @@ import org.springframework.transaction.annotation.Transactional;
 public class GroupsService {
 
     private final GroupsRepository groupsRepository;
+    private final ClientRepository clientRepository;
     private final ClientConverter clientConverter;
 
+    /**
+     * GroupsService constructor
+     * @param groupsRepository
+     * @param clientConverter
+     * @param clientRepository
+     */
     @Autowired
-    public GroupsService(GroupsRepository groupsRepository, ClientConverter clientConverter) {
+    public GroupsService(GroupsRepository groupsRepository, ClientConverter clientConverter,
+            ClientRepository clientRepository) {
         this.groupsRepository = groupsRepository;
         this.clientConverter = clientConverter;
+        this.clientRepository = clientRepository;
     }
 
     /**
@@ -60,7 +71,7 @@ public class GroupsService {
      * @param groupCode
      * @return LocaGroupType
      */
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
     public LocalGroupType getLocalGroup(String groupCode, ClientId clientId) {
         return groupsRepository.getLocalGroupType(groupCode, clientId);
     }
@@ -80,5 +91,20 @@ public class GroupsService {
         localGroupType.setDescription(description);
         groupsRepository.saveOrUpdate(localGroupType);
         return localGroupType;
+    }
+
+    /**
+     * Adds a local group to a client
+     * @param id
+     * @param localGroupType
+     */
+    @PreAuthorize("hasAuthority('ADD_LOCAL_GROUP')")
+    public void addLocalGroup(ClientId id, LocalGroupType localGroupType) {
+        ClientType clientType = clientRepository.getClient(id);
+        if (clientType == null) {
+            throw new NotFoundException(("client with id " + id + " not found"));
+        }
+        clientType.getLocalGroup().add(localGroupType);
+        clientRepository.saveOrUpdate(clientType);
     }
 }

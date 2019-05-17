@@ -32,6 +32,7 @@ import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.stream.Collectors;
 
 /**
@@ -50,7 +51,7 @@ public class GroupConverter {
     /**
      * Converts LocalGroupType to Group
      * @param localGroupType
-     * @return
+     * @return Group
      */
     public Group convert(LocalGroupType localGroupType) {
         Group group = new Group();
@@ -69,5 +70,20 @@ public class GroupConverter {
         }).collect(Collectors.toList()));
 
         return group;
+    }
+
+    /**
+     * Converts Group to LocalGroupType
+     * @param group
+     * @return LocalGroupType
+     */
+    public LocalGroupType convert(Group group) {
+        LocalGroupType localGroupType = new LocalGroupType();
+
+        localGroupType.setDescription(group.getDescription());
+        localGroupType.setGroupCode(group.getCode());
+        localGroupType.setUpdated(new Date());
+
+        return localGroupType;
     }
 }

@@ -44,6 +44,7 @@ import org.niis.xroad.restapi.openapi.model.CertificateStatus;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
+import org.niis.xroad.restapi.openapi.model.Group;
 import org.niis.xroad.restapi.repository.TokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -382,5 +383,15 @@ public class ClientsApiControllerIntegrationTest {
             fail("should have thrown NotFoundException");
         } catch (NotFoundException expected) {
         }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "ADD_LOCAL_GROUP" })
+    public void addLocalGroup() throws Exception {
+        Group group = new Group();
+        group.setDescription("Group description");
+        group.setCode("GROUPCODE");
+        ResponseEntity<Void> response = clientsApiController.addClientGroup("FI:GOV:M1:SS1", group);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }
