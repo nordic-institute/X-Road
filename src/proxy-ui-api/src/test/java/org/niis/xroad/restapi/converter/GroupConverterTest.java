@@ -28,9 +28,9 @@ import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -43,11 +43,22 @@ import java.util.Date;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class GroupConverterTest {
 
-    @Autowired
-    private GroupConverter groupConverter;
+    public static final String MEMBER_NAME_PREFIX = "member-name-for-";
 
-    @Autowired
+    private GroupConverter groupConverter;
     private ClientConverter clientConverter;
+
+    @Before
+    public void setup() {
+        GlobalConfWrapper globalConfWrapper = new GlobalConfWrapper() {
+            @Override
+            public String getMemberName(ClientId identifier) {
+                return MEMBER_NAME_PREFIX + identifier.getMemberCode();
+            }
+        };
+        clientConverter = new ClientConverter(globalConfWrapper);
+        groupConverter = new GroupConverter(clientConverter, globalConfWrapper);
+    }
 
     @Test
     public void convertWithMembers() {

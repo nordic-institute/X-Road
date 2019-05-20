@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -42,10 +43,12 @@ import java.util.stream.Collectors;
 public class GroupConverter {
 
     private final ClientConverter clientConverter;
+    private final GlobalConfWrapper globalConfWrapper;
 
     @Autowired
-    public GroupConverter(ClientConverter clientConverter) {
+    public GroupConverter(ClientConverter clientConverter, GlobalConfWrapper globalConfWrapper) {
         this.clientConverter = clientConverter;
+        this.globalConfWrapper = globalConfWrapper;
     }
 
     /**
@@ -63,13 +66,24 @@ public class GroupConverter {
         group.setMemberCount(localGroupType.getGroupMember().size());
         group.setMembers(localGroupType.getGroupMember().stream().map(groupMemberType -> {
             GroupMember groupMember = new GroupMember();
-            groupMember.setId(groupMemberType.getId().toString());
+            groupMember.setId(clientConverter.convertId(groupMemberType.getGroupMemberId()));
             groupMember.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(groupMemberType.getAdded()));
             groupMember.setName(clientConverter.convertId(groupMemberType.getGroupMemberId()));
+            groupMember.setName(globalConfWrapper.getMemberName(groupMemberType.getGroupMemberId()));
             return groupMember;
         }).collect(Collectors.toList()));
 
         return group;
+    }
+
+    /**
+     * Converts a list of LocalGroupType to a list of Groups
+     * @param localGroupTypes
+     * @return
+     */
+    public List<Group> convert(List<LocalGroupType> localGroupTypes) {
+        return localGroupTypes.stream()
+                .map(this::convert).collect(Collectors.toList());
     }
 
     /**

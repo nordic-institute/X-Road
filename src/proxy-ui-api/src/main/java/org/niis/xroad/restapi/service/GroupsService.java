@@ -25,11 +25,11 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.GroupsRepository;
@@ -37,6 +37,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * groups service
@@ -49,19 +53,15 @@ public class GroupsService {
 
     private final GroupsRepository groupsRepository;
     private final ClientRepository clientRepository;
-    private final ClientConverter clientConverter;
 
     /**
      * GroupsService constructor
      * @param groupsRepository
-     * @param clientConverter
      * @param clientRepository
      */
     @Autowired
-    public GroupsService(GroupsRepository groupsRepository, ClientConverter clientConverter,
-            ClientRepository clientRepository) {
+    public GroupsService(GroupsRepository groupsRepository, ClientRepository clientRepository) {
         this.groupsRepository = groupsRepository;
-        this.clientConverter = clientConverter;
         this.clientRepository = clientRepository;
     }
 
@@ -69,7 +69,7 @@ public class GroupsService {
      * Return local group
      * @param clientId
      * @param groupCode
-     * @return LocaGroupType
+     * @return LocalGroupType
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
     public LocalGroupType getLocalGroup(String groupCode, ClientId clientId) {
@@ -78,16 +78,11 @@ public class GroupsService {
 
     /**
      * Edit local group description
-     * @param id
-     * @param groupCode
-     * @return LocaGroupType
+     * @param localGroupType
+     * @return LocalGroupType
      */
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_DESC')")
-    public LocalGroupType updateDescription(String id, String groupCode, String description) {
-        LocalGroupType localGroupType = getLocalGroup(groupCode, clientConverter.convertId(id));
-        if (localGroupType == null) {
-            throw new NotFoundException("LocalGroup with id " + id + " not found");
-        }
+    public LocalGroupType updateDescription(LocalGroupType localGroupType, String description) {
         localGroupType.setDescription(description);
         groupsRepository.saveOrUpdate(localGroupType);
         return localGroupType;
@@ -102,9 +97,56 @@ public class GroupsService {
     public void addLocalGroup(ClientId id, LocalGroupType localGroupType) {
         ClientType clientType = clientRepository.getClient(id);
         if (clientType == null) {
-            throw new NotFoundException(("client with id " + id + " not found"));
+            throw new NotFoundException("client with id " + id + " not found");
         }
         clientType.getLocalGroup().add(localGroupType);
         clientRepository.saveOrUpdate(clientType);
+    }
+
+    /**
+     * Adds a member to local group
+     * @param localGroupType
+     * @param localGroupMember
+     */
+    @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
+    public void addLocalGroupMember(LocalGroupType localGroupType, GroupMemberType localGroupMember) {
+        groupsRepository.saveOrUpdate(localGroupMember);
+        localGroupType.getGroupMember().add(localGroupMember);
+        groupsRepository.saveOrUpdate(localGroupType);
+    }
+
+    /**
+     * Deletes a local group
+     * @param clientType
+     * @param code
+     */
+    @PreAuthorize("hasAuthority('DELETE_LOCAL_GROUP')")
+    public void deleteLocalGroup(ClientType clientType, String code) {
+        Optional<LocalGroupType> existingLocalGroupType = clientType.getLocalGroup().stream()
+                .filter(localGroupType -> localGroupType.getGroupCode().equals(code)).findFirst();
+        if (!existingLocalGroupType.isPresent()) {
+            throw new NotFoundException("local group with code " + code + " not found");
+        }
+        clientType.getLocalGroup().remove(existingLocalGroupType.get());
+        clientRepository.saveOrUpdate(clientType);
+    }
+
+    /**
+     * deletes a member from given local group
+     * @param localGroupType
+     * @param items
+     */
+    @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
+    public void deleteGroupMember(LocalGroupType localGroupType, List<ClientId> items) {
+        List<GroupMemberType> membersToBeRemoved = localGroupType.getGroupMember().stream()
+                .filter(member -> items.stream()
+                        .anyMatch(item -> item.toShortString().trim()
+                                .equals(member.getGroupMemberId().toShortString().trim())))
+                .collect(Collectors.toList());
+        if (membersToBeRemoved.isEmpty()) {
+            throw new NotFoundException("the requested group member was not found in local group");
+        }
+        localGroupType.getGroupMember().removeAll(membersToBeRemoved);
+        groupsRepository.saveOrUpdate(localGroupType);
     }
 }

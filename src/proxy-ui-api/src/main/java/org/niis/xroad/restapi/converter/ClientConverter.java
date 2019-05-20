@@ -38,6 +38,7 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Converter Client related data between openapi and (jaxb) service classes
@@ -53,7 +54,8 @@ public class ClientConverter {
     public static final int SUBSYSTEM_CODE_INDEX = 3;
     public static final char ENCODED_CLIENT_ID_SEPARATOR = ':';
 
-    public ClientConverter(@Autowired GlobalConfWrapper globalConfWrapper) {
+    @Autowired
+    public ClientConverter(GlobalConfWrapper globalConfWrapper) {
         this.globalConfWrapper = globalConfWrapper;
     }
 
@@ -93,14 +95,14 @@ public class ClientConverter {
             builder.append(ENCODED_CLIENT_ID_SEPARATOR)
                     .append(clientId.getSubsystemCode());
         }
-        return builder.toString();
+        return builder.toString().trim();
     }
 
     /**
      * Convert encoded member id into ClientId
      * @param encodedId
+     * @return ClientId
      * @throws BadRequestException if encoded id could not be decoded
-     * @return
      */
     public ClientId convertId(String encodedId) throws BadRequestException {
         int separators = countOccurences(encodedId, ENCODED_CLIENT_ID_SEPARATOR);
@@ -120,6 +122,15 @@ public class ClientConverter {
             subsystemCode = parts.get(SUBSYSTEM_CODE_INDEX);
         }
         return ClientId.create(instance, memberClass, memberCode, subsystemCode);
+    }
+
+    /**
+     * @param encodedIds
+     * @return List of ClientIds
+     * @throws BadRequestException
+     */
+    public List<ClientId> convertIds(List<String> encodedIds) throws BadRequestException {
+        return encodedIds.stream().map(this::convertId).collect(Collectors.toList());
     }
 
     private int countOccurences(String from, char searched) {
