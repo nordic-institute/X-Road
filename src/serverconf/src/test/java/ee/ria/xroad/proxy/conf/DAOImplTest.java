@@ -27,7 +27,6 @@ package ee.ria.xroad.proxy.conf;
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.LocalGroupDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServiceDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServiceDescriptionDAOImpl;
@@ -226,21 +225,6 @@ public class DAOImplTest {
         session.save(member);
 
         localGroup.getGroupMember().add(member);
-    }
-
-    /**
-     * Test getting LocalGroup by its id.
-     * @throws Exception if an error occurs
-     */
-    @Test
-    public void getLocalGroupById() throws Exception {
-        ClientType client = getClient(createTestClientId(client(1)));
-        assertTrue(!client.getLocalGroup().isEmpty());
-
-        LocalGroupType localGroup = client.getLocalGroup().get(0);
-
-        localGroup = new LocalGroupDAOImpl().getLocalGroup(session, localGroup.getId());
-        assertNotNull(localGroup);
     }
 
     private ServerConfType getConf() throws Exception {
