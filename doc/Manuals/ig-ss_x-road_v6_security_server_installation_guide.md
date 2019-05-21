@@ -457,3 +457,14 @@ Sometimes, after using `sudo apt-get upgrade` command, some of the packages are 
 
 To be sure that packages are installed correctly please use `sudo apt upgrade` or `sudo apt full-upgrade` commands.
 
+
+### 4.6 Missing additional packages when using Ubuntu Minimal
+
+When using Ubuntu Minimal LXD image, it is necessary to install the additional packages `locales` and `software-properties-common` in order to follow the installation instructions of the `xroad-opmonitor` service. To install the additional packages, run the command
+
+    sudo apt-get install locales software-properties-common
+
+Ensure as well that the locale is generated or the installation will fail during the database setup (the example uses the US locale):
+
+    sudo locale-gen en_US.UTF-8
+
