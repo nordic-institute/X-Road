@@ -40,7 +40,7 @@ import java.util.Optional;
 @Slf4j
 @PreAuthorize("denyAll")
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public class BackupsApiController implements org.niis.xroad.restapi.openapi.BackupsApi {
+public class BackupsApiController implements BackupsApi {
 
     public static final int MAX_FIFTY_ITEMS = 50;
 

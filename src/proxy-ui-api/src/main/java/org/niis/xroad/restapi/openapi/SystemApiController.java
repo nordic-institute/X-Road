@@ -25,11 +25,22 @@
 package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.CertificateConverter;
+import org.niis.xroad.restapi.openapi.model.Certificate;
+import org.niis.xroad.restapi.service.InternalTlsCertificateService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.context.request.NativeWebRequest;
 
+import java.security.cert.X509Certificate;
 import java.util.Optional;
 
 /**
@@ -39,9 +50,15 @@ import java.util.Optional;
 @RequestMapping("/api")
 @Slf4j
 @PreAuthorize("denyAll")
-public class SystemApiController implements org.niis.xroad.restapi.openapi.SystemApi {
+public class SystemApiController implements SystemApi {
 
     private final NativeWebRequest request;
+
+    @Autowired
+    private InternalTlsCertificateService internalTlsCertificateService;
+
+    @Autowired
+    private CertificateConverter certificateConverter;
 
     @org.springframework.beans.factory.annotation.Autowired
     public SystemApiController(NativeWebRequest request) {
@@ -53,4 +70,25 @@ public class SystemApiController implements org.niis.xroad.restapi.openapi.Syste
         return Optional.ofNullable(request);
     }
 
+    @Override
+    @PreAuthorize("hasAuthority('EXPORT_PROXY_INTERNAL_CERT')")
+    public ResponseEntity<Resource> downloadSystemCertificate() {
+        ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
+                .filename("certs.tar.gz")
+                .build();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentDisposition(contentDisposition);
+
+        byte[] certificateTar = internalTlsCertificateService.exportInternalTlsCertificate();
+        Resource resource = new ByteArrayResource(certificateTar);
+        return new ResponseEntity<>(resource, headers, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_PROXY_INTERNAL_CERT')")
+    public ResponseEntity<Certificate> getSystemCertificate() {
+        X509Certificate x509Certificate = internalTlsCertificateService.getInternalTlsCertificate();
+        Certificate certificate = certificateConverter.convert(x509Certificate);
+        return new ResponseEntity<>(certificate, HttpStatus.OK);
+    }
 }

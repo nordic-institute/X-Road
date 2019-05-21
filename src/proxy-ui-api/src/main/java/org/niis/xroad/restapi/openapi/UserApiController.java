@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api")
 @Slf4j
 @PreAuthorize("denyAll")
-public class UserApiController implements org.niis.xroad.restapi.openapi.UserApi {
+public class UserApiController implements UserApi {
 
     private final NativeWebRequest request;
 

@@ -24,37 +24,18 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
- * Thrown if item was not found.
- * Results in http 404 NOT_FOUND
+ * detailed error code
  */
-@ResponseStatus(value = HttpStatus.NOT_FOUND)
-public class NotFoundException extends ErrorCodedRuntimeException {
+@Getter
+@AllArgsConstructor
+public class ErrorCode {
+    private final String value;
 
-    public NotFoundException() {
+    public static ErrorCode of(String value) {
+        return new ErrorCode(value);
     }
-
-    public NotFoundException(String msg) {
-        super(msg);
-    }
-
-    public NotFoundException(ErrorCode errorCode) {
-        super(errorCode);
-    }
-
-    public NotFoundException(String msg, ErrorCode errorCode) {
-        super(msg, errorCode);
-    }
-
-    public NotFoundException(String msg, Throwable t) {
-        super(msg, t);
-    }
-
-    public NotFoundException(Throwable t) {
-        super(t);
-    }
-
 }

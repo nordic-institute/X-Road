@@ -61,9 +61,11 @@ public class KeyUsageConverter {
      */
     public EnumSet<KeyUsage> convert(boolean[] keyUsageBits) {
         EnumSet<KeyUsage> usages = EnumSet.noneOf(KeyUsage.class);
-        for (int i = 0; i < Math.min(BIT_TO_USAGE.size(), keyUsageBits.length); i++) {
-            if (keyUsageBits[i]) {
-                usages.add(BIT_TO_USAGE.get(i));
+        if (keyUsageBits != null) {
+            for (int i = 0; i < Math.min(BIT_TO_USAGE.size(), keyUsageBits.length); i++) {
+                if (keyUsageBits[i]) {
+                    usages.add(BIT_TO_USAGE.get(i));
+                }
             }
         }
         return usages;

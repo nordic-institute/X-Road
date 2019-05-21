@@ -28,6 +28,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.repository.TokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +41,7 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 
 /**
- * client service
+ * token related service
  */
 @Slf4j
 @Service
@@ -49,10 +50,12 @@ import static java.util.stream.Collectors.toList;
 public class TokenService {
 
     @Autowired
+    @Setter
     private TokenRepository tokenRepository;
 
     /**
      * get all tokens
+     *
      * @return
      * @throws Exception
      */
@@ -77,5 +80,4 @@ public class TokenService {
                 .filter(certificateInfo -> clientType.getIdentifier().memberEquals(certificateInfo.getMemberId()))
                 .collect(toList());
     }
-
 }

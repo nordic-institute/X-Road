@@ -25,6 +25,12 @@ configurations {
     }
 }
 
+sourceSets {
+    main {
+        java.srcDirs = ['src/main/java', 'build/generated-sources']
+    }
+}
+
 ext.excludeDevToolsSetting = project.hasProperty('activate-devtools-do-not-use-in-production') ? false : true
 
 if (!excludeDevToolsSetting) {
@@ -109,13 +115,22 @@ openApiGenerate {
     ]
 }
 
-compileJava.dependsOn tasks.openApiGenerate
-
-sourceSets {
-    main {
-        java.srcDirs = ['src/main/java', 'build/generated-sources']
+// openApiGenerate creates sources to generated-sources/src/main/java, instead of
+// generated-sources/ as e.g. common-util xjc. This causes problems for tooling (IntelliJ autoimports)
+task fixGeneratedSourcesDirectory {
+    doFirst {
+        println 'moving generated sources to the root, instead of src/main/java'
+        copy {
+            from "$buildDir/generated-sources/src/main/java"
+            into "$buildDir/generated-sources"
+            include '**'
+        }
+        delete "$buildDir/generated-sources/src"
     }
 }
+
+compileJava.dependsOn 'fixGeneratedSourcesDirectory'
+fixGeneratedSourcesDirectory.dependsOn tasks.openApiGenerate
 
 // set license format to ignore generated java sources
 task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
@@ -133,6 +148,11 @@ licenseMain.enabled = false
 licenseFormat.dependsOn licenseFormatJava
 licenseTest.dependsOn licenseTestJava
 
+idea.module {
+    excludeDirs -= file(buildDir)
+    buildDir.listFiles({ d, f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
+}
+
 dependencies {
     implementation project(':serverconf')
     implementation project(':common-ui')
@@ -144,6 +164,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation('org.kohsuke:libpam4j:1.11')
     implementation('org.postgresql:postgresql:42.2.5')
+    implementation('org.apache.commons:commons-compress:1.18')
+
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')
     testImplementation('org.hsqldb:hsqldb')

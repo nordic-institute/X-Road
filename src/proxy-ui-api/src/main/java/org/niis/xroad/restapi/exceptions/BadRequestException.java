@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * Results in http 400 BAD_REQUEST
  */
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class BadRequestException extends RuntimeException {
+public class BadRequestException extends ErrorCodedRuntimeException {
     public BadRequestException() {
     }
 
@@ -44,8 +44,16 @@ public class BadRequestException extends RuntimeException {
         super(msg, t);
     }
 
+    public BadRequestException(String msg, Throwable t, ErrorCode errorCode) {
+        super(msg, t, errorCode);
+    }
+
     public BadRequestException(Throwable t) {
         super(t);
+    }
+
+    public BadRequestException(Throwable t, ErrorCode errorCode) {
+        super(t, errorCode);
     }
 
 }

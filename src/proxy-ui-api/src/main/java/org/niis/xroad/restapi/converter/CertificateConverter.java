@@ -24,10 +24,14 @@
  */
 package org.niis.xroad.restapi.converter;
 
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
+import org.niis.xroad.restapi.openapi.model.Certificate;
+import org.niis.xroad.restapi.openapi.model.State;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -40,7 +44,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 /**
- * Converter Certificate related data between openapi and (jaxb) service classes
+ * Converter Certificate related data between openapi, and service domain classes
  */
 @Component
 public class CertificateConverter {
@@ -50,18 +54,54 @@ public class CertificateConverter {
     private KeyUsageConverter keyUsageConverter;
 
     /**
+     * convert CertificateType into openapi Certificate class
+     * @param certificateType
+     * @return
+     */
+    public Certificate convert(CertificateType certificateType) {
+        X509Certificate x509Certificate = CryptoUtils.readCertificate(certificateType.getData());
+        return convert(x509Certificate);
+    }
+
+    /**
      * convert CertificateInfo into openapi Certificate class
      * @param certificateInfo
      * @return
      */
-    public org.niis.xroad.restapi.openapi.model.Certificate convert(CertificateInfo certificateInfo) {
-        org.niis.xroad.restapi.openapi.model.Certificate certificate =
-                new org.niis.xroad.restapi.openapi.model.Certificate();
-
+    public Certificate convert(CertificateInfo certificateInfo) {
         X509Certificate x509Certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
-        certificate.setIssuerCommonName(CertUtils.getIssuerCommonName(x509Certificate));
+        Certificate certificate = convert(x509Certificate);
+
+        if (certificateInfo.isActive()) {
+            certificate.setState(State.IN_USE);
+        } else {
+            certificate.setState(State.DISABLED);
+        }
+        return certificate;
+    }
+
+    /**
+     * convert X509Certificate into openapi Certificate class.
+     * certificate.state will be null.
+     * @param x509Certificate
+     * @return
+     */
+    public Certificate convert(X509Certificate x509Certificate) {
+        Certificate certificate = new Certificate();
+
+        String issuerCommonName = null;
+        String subjectCommonName = null;
+        try {
+            issuerCommonName = CertUtils.getIssuerCommonName(x509Certificate);
+        } catch (CodedException didNotFindCommonName) {
+        }
+        try {
+            subjectCommonName = CertUtils.getSubjectCommonName(x509Certificate);
+        } catch (CodedException didNotFindCommonName) {
+        }
+        certificate.setIssuerCommonName(issuerCommonName);
         certificate.setIssuerDistinguishedName(x509Certificate.getIssuerDN().getName());
-        certificate.setSubjectCommonName(CertUtils.getSubjectCommonName(x509Certificate));
+        certificate.setSubjectCommonName(subjectCommonName);
         certificate.setSubjectDistinguishedName(x509Certificate.getSubjectDN().getName());
 
         certificate.setSerial(x509Certificate.getSerialNumber().toString());
@@ -80,16 +120,10 @@ public class CertificateConverter {
         }
 
         certificate.setSignature(CryptoUtils.encodeHex(x509Certificate.getSignature()));
-
-        if (certificateInfo.isActive()) {
-            certificate.setState(org.niis.xroad.restapi.openapi.model.State.IN_USE);
-        } else {
-            certificate.setState(org.niis.xroad.restapi.openapi.model.State.DISABLED);
-        }
         certificate.setNotBefore(asOffsetDateTime(x509Certificate.getNotBefore()));
         certificate.setNotAfter(asOffsetDateTime(x509Certificate.getNotAfter()));
         try {
-            certificate.setHash(CryptoUtils.calculateCertHexHash(certificateInfo.getCertificateBytes()).toUpperCase());
+            certificate.setHash(CryptoUtils.calculateCertHexHash(x509Certificate.getEncoded()).toUpperCase());
         } catch (Exception ex) {
             throw new IllegalStateException("cannot calculate cert hash", ex);
         }

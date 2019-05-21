@@ -39,7 +39,7 @@ import java.util.Optional;
 @RequestMapping("/api")
 @Slf4j
 @PreAuthorize("denyAll")
-public class TokensApiController implements org.niis.xroad.restapi.openapi.TokensApi {
+public class TokensApiController implements TokensApi {
 
     private final NativeWebRequest request;
 
