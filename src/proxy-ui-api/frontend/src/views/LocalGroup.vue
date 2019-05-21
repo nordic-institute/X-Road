@@ -1,6 +1,6 @@
 <template>
-  <div class="wrapper">
-    <div class="new-content">
+  <div class="xr-tab-max-width">
+    <div>
       <subViewTitle :title="group.code" @close="close"/>
       <template>
         <div class="cert-hash">
@@ -9,7 +9,7 @@
             outline
             round
             color="primary"
-            class="text-uppercase big-button rounded-button"
+            class="xr-big-button"
             type="file"
             @click="deleteGroup()"
           >Delete</v-btn>
@@ -33,18 +33,16 @@
       <div class="row-buttons">
         <v-btn
           outline
-          round
           color="primary"
-          class="text-uppercase big-button rounded-button"
+          class="xr-big-button"
           type="file"
           @click="removeAllMembers()"
         >Remove All</v-btn>
 
         <v-btn
           outline
-          round
           color="primary"
-          class="text-uppercase big-button rounded-button"
+          class="xr-big-button"
           type="file"
           @click="addMembers()"
         >Add Members</v-btn>
@@ -72,7 +70,7 @@
                   outline
                   round
                   color="primary"
-                  class="text-capitalize table-button xr-small-button"
+                  class="xr-small-button"
                   @click="removeMember(groupMember)"
                 >Remove</v-btn>
               </div>
@@ -85,7 +83,7 @@
         <v-btn
           round
           color="primary"
-          class="text-uppercase big-button rounded-button"
+          class="xr-big-button elevation-0"
           type="file"
           @click="close()"
         >Close</v-btn>
@@ -275,9 +273,6 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../assets/colors';
 
-$button-width: 120px;
-$large-button-width: 140px;
-
 .edit-row {
   display: flex;
   align-content: center;
@@ -313,15 +308,7 @@ $large-button-width: 140px;
   justify-content: center;
   flex-direction: column;
   padding-top: 60px;
-  max-width: 850px;
   height: 100%;
-  width: 100%;
-}
-
-.content {
-  max-width: 850px;
-  width: 400px;
-  border: 1px black solid;
 }
 
 .cert-dialog-header {
@@ -336,17 +323,6 @@ $large-button-width: 140px;
   line-height: 51px;
 }
 
-#close-x {
-  cursor: pointer;
-  font-style: normal;
-  font-size: 50px;
-  color: #979797;
-}
-
-#close-x:before {
-  content: '\00d7';
-}
-
 .cert-hash {
   margin-top: 50px;
   display: flex;
@@ -359,11 +335,6 @@ $large-button-width: 140px;
   line-height: 30px;
 }
 
-.new-content {
-  max-width: 850px;
-  width: 100%;
-}
-
 .group-members-table {
   margin-top: 10px;
 }
@@ -372,18 +343,6 @@ $large-button-width: 140px;
   width: 100%;
   display: flex;
   justify-content: flex-end;
-}
-
-.table-button {
-  width: $button-width;
-}
-
-.big-button {
-  width: $large-button-width;
-}
-
-.text-uppercase {
-  text-transform: uppercase;
 }
 
 .close-button-wrap {

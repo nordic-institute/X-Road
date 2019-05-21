@@ -1,6 +1,6 @@
 <template>
   <div class="wrapper">
-    <div class="new-content">
+    <div class="xr-tab-max-width">
       <subViewTitle title="Certificate" @close="close"/>
       <template v-if="certificate">
         <div class="cert-hash">
@@ -157,11 +157,6 @@ export default Vue.extend({
   font-weight: 500;
   letter-spacing: 0.5px;
   line-height: 30px;
-}
-
-.new-content {
-  max-width: 850px;
-  width: 100%;
 }
 </style>
 

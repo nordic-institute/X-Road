@@ -8,7 +8,6 @@
         v-if="showAddGroup()"
         color="primary"
         @click="addGroup"
-        elevation-0
         outline
         round
         class="ma-0 rounded-button elevation-0"

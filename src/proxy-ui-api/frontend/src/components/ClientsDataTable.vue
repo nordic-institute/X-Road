@@ -1,5 +1,5 @@
 <template>
-  <v-layout align-center justify-center column fill-height elevation-0 class="full-width">
+  <v-layout align-center justify-center column fill-height class="full-width">
     <div class="table-toolbar">
       <v-text-field v-model="search" label="Search" single-line hide-details class="search-input">
         <v-icon slot="append" small>fas fa-search</v-icon>
@@ -8,10 +8,9 @@
         v-if="showAddClient()"
         color="primary"
         @click="addClient"
-        elevation-0
         round
         dark
-        class="ma-0 rounded-button elevation-0"
+        class="xr-big-button elevation-0"
       >Add client</v-btn>
     </div>
     <v-data-table
@@ -82,7 +81,7 @@
               outline
               round
               color="primary"
-              class="text-capitalize table-button xr-small-button"
+              class="xr-small-button xr-table-button"
               @click="addSubsystem(props.item)"
             >Add Subsystem</v-btn>
           </td>
@@ -299,11 +298,6 @@ export default Vue.extend({
   max-width: 1280px;
   padding-left: 20px;
   padding-right: 20px;
-}
-
-.table-button {
-  margin-top: auto;
-  margin-bottom: auto;
 }
 
 .name {

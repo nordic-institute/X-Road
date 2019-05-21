@@ -65,7 +65,7 @@
                 outline
                 round
                 color="primary"
-                class="text-capitalize table-button xr-small-button"
+                class="xr-small-button"
                 @click="exportSSCertificate(ssCertificate.hash)"
               >Export</v-btn>
             </td>
