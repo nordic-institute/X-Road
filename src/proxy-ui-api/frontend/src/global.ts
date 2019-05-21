@@ -16,6 +16,7 @@ export enum RouteName {
   SubsystemDetails = 'subs-details',
   SubsystemServers = 'subs-servers',
   SubsystemLocalGroups = 'subs-local-groups',
+  LocalGroup = 'local-group',
 }
 
 // A "single source of thuth" for permission strings

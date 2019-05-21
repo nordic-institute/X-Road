@@ -16,7 +16,7 @@
     </div>
 
     <v-card flat>
-      <table class="certificate-table details-certificates">
+      <table class="xrd-table details-certificates">
         <tr>
           <th>Code</th>
           <th>Description</th>
@@ -43,7 +43,7 @@ import Vue from 'vue';
 import axios from 'axios';
 
 import { mapGetters } from 'vuex';
-import { Permissions } from '@/global';
+import { Permissions, RouteName } from '@/global';
 
 export default Vue.extend({
   components: {},
@@ -127,8 +127,10 @@ export default Vue.extend({
     },
 
     viewGroup(group: any) {
-      // TODO will be done in XRDDEV-520
-      console.log(group);
+      this.$router.push({
+        name: RouteName.LocalGroup,
+        params: { id: this.id, code: group.code },
+      });
     },
 
     fetchGroups(id: string) {

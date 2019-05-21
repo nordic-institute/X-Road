@@ -17,6 +17,7 @@ import Error from '@/views/Error.vue';
 import ClientDetails from '@/components/ClientDetails.vue';
 import InternalServers from '@/components/InternalServers.vue';
 import LocalGroups from '@/components/LocalGroups.vue';
+import LocalGroup from '@/views/LocalGroup.vue';
 import store from './store';
 import { RouteName, Permissions } from '@/global';
 
@@ -139,6 +140,14 @@ const router = new Router({
           path: '/certificate/:id/:hash',
           components: {
             default: Certificate,
+          },
+          props: { default: true },
+        },
+        {
+          name: RouteName.LocalGroup,
+          path: '/localgroup/:id/:code',
+          components: {
+            default: LocalGroup,
           },
           props: { default: true },
         },
