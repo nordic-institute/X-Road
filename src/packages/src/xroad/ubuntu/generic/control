@@ -71,7 +71,9 @@ Description: X-Road security server
 Package: xroad-proxy
 Conflicts: xroad-center, xroad-confproxy
 Architecture: all
-Depends: ${misc:Depends}, rsyslog, xroad-jetty9 (=${binary:Version}), curl, authbind|systemd, xroad-confclient (=${binary:Version}), xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version})
+# versionless xroad-proxy-ui-api to make it easier to update only it
+Depends: ${misc:Depends}, rsyslog, xroad-jetty9 (=${binary:Version}), curl, authbind|systemd, xroad-confclient (=${binary:Version}), xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version}), xroad-proxy-ui-api
+# Depends: ${misc:Depends}, rsyslog, xroad-jetty9 (=${binary:Version}), curl, authbind|systemd, xroad-confclient (=${binary:Version}), xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version})
 Pre-depends: postgresql, postgresql-contrib, xroad-base (=${binary:Version})
 Description: X-Road security server
  X-Road security server programs and utilities
@@ -162,3 +164,13 @@ Replaces: aux-xroad-autologin (<< 1.4-1)
 Conflicts: aux-xroad-autologin (<< 1.4-1)
 Description: Automatic token pin code entry
  Optional utility that automatically enters the software token pin code on xroad-signer start
+
+Package: xroad-proxy-ui-api
+Architecture: amd64
+# Depends:
+Depends: ${misc:Depends}
+# Depends: ${misc:Depends}, xroad-proxy (=${binary:Version})
+Replaces: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
+Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
+Description: X-Road proxy UI REST API
+ REST API for X-Road proxy UI and management operations
