@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.GroupsRepository;
@@ -91,15 +92,22 @@ public class GroupsService {
     /**
      * Adds a local group to a client
      * @param id
-     * @param localGroupType
+     * @param localGroupTypeToAdd
      */
     @PreAuthorize("hasAuthority('ADD_LOCAL_GROUP')")
-    public void addLocalGroup(ClientId id, LocalGroupType localGroupType) {
+    public void addLocalGroup(ClientId id, LocalGroupType localGroupTypeToAdd) {
         ClientType clientType = clientRepository.getClient(id);
         if (clientType == null) {
             throw new NotFoundException("client with id " + id + " not found");
         }
-        clientType.getLocalGroup().add(localGroupType);
+        Optional<LocalGroupType> existingLocalGroupType = clientType.getLocalGroup().stream()
+                .filter(localGroupType -> localGroupType.getGroupCode().equals(
+                        localGroupTypeToAdd.getGroupCode())).findFirst();
+        if (existingLocalGroupType.isPresent()) {
+            throw new ConflictException(
+                    "local group with code " + localGroupTypeToAdd.getGroupCode() + " already added");
+        }
+        clientType.getLocalGroup().add(localGroupTypeToAdd);
         clientRepository.saveOrUpdate(clientType);
     }
 

@@ -262,7 +262,7 @@ public class ClientsApiController implements ClientsApi {
     public ResponseEntity<Void> addClientGroup(String id, Group group) {
         ClientType clientType = getClientType(id);
         groupsService.addLocalGroup(clientType.getIdentifier(), groupConverter.convert(group));
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @Override
@@ -280,7 +280,7 @@ public class ClientsApiController implements ClientsApi {
         groupMemberType.setAdded(new Date());
         groupMemberType.setGroupMemberId(memberToBeAdded.getIdentifier());
         groupsService.addLocalGroupMember(localGroupType, groupMemberType);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @Override
@@ -288,7 +288,7 @@ public class ClientsApiController implements ClientsApi {
     public ResponseEntity<Void> deleteGroup(String id, String code) {
         ClientType clientType = getClientType(id);
         groupsService.deleteLocalGroup(clientType, code);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @Override
@@ -296,7 +296,7 @@ public class ClientsApiController implements ClientsApi {
     public ResponseEntity<Void> deleteGroupMember(String id, String code, List<String> items) {
         LocalGroupType localGroupType = getLocalGroupType(id, code);
         groupsService.deleteGroupMember(localGroupType, clientConverter.convertIds(items));
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @Override
@@ -313,10 +313,12 @@ public class ClientsApiController implements ClientsApi {
      */
     private LocalGroupType getLocalGroupType(String encodedId, String code) {
         ClientType clientType = getClientType(encodedId);
-        LocalGroupType localGroupType = groupsService.getLocalGroup(code, clientType.getIdentifier());
-        if (localGroupType == null) {
+        Optional<LocalGroupType> localGroupType = clientType.getLocalGroup().stream()
+                .filter(group -> group.getGroupCode().equals(code))
+                .findFirst();
+        if (!localGroupType.isPresent()) {
             throw new NotFoundException("LocalGroup with code " + code + " not found");
         }
-        return localGroupType;
+        return localGroupType.get();
     }
 }

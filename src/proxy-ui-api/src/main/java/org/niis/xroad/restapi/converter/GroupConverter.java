@@ -68,7 +68,6 @@ public class GroupConverter {
             GroupMember groupMember = new GroupMember();
             groupMember.setId(clientConverter.convertId(groupMemberType.getGroupMemberId()));
             groupMember.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(groupMemberType.getAdded()));
-            groupMember.setName(clientConverter.convertId(groupMemberType.getGroupMemberId()));
             groupMember.setName(globalConfWrapper.getMemberName(groupMemberType.getGroupMemberId()));
             return groupMember;
         }).collect(Collectors.toList()));

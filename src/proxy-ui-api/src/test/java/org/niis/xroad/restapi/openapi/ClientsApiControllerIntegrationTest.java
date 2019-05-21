@@ -63,6 +63,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 
 import static junit.framework.TestCase.fail;
@@ -81,6 +82,11 @@ import static org.mockito.Mockito.when;
 @Slf4j
 public class ClientsApiControllerIntegrationTest {
     public static final String CLIENT_ID_SS1 = "FI:GOV:M1:SS1";
+    public static final String CLIENT_ID_SS2 = "FI:GOV:M1:SS2";
+    public static final String GROUPCODE = "group1";
+    public static final String GROUPCODE2 = "group2";
+    public static final String NEW_GROUPCODE = "groupx";
+    public static final String GROUP_DESC = "GROUP_DESC";
 
     // this is base64 encoded DER certificate from common-util/test/configuration-anchor.xml
     /**
@@ -130,7 +136,7 @@ public class ClientsApiControllerIntegrationTest {
         ResponseEntity<List<Client>> response =
                 clientsApiController.getClients(null, null, null, null, null, false, false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(2, response.getBody().size());
+        assertEquals(3, response.getBody().size());
         Client client = response.getBody().get(0);
         assertEquals("test-member-name", client.getMemberName());
         assertEquals("M1", client.getMemberCode());
@@ -163,7 +169,7 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals("SS1", client.getSubsystemCode());
 
         try {
-            clientsApiController.getClient("FI:GOV:M1:SS2");
+            clientsApiController.getClient("FI:GOV:M1:SS3");
             fail("should throw NotFoundException to 404");
         } catch (NotFoundException expected) {
         }
@@ -386,12 +392,81 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_LOCAL_GROUP" })
+    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_LOCAL_GROUP" })
     public void addLocalGroup() throws Exception {
-        Group group = new Group();
-        group.setDescription("Group description");
-        group.setCode("GROUPCODE");
-        ResponseEntity<Void> response = clientsApiController.addClientGroup("FI:GOV:M1:SS1", group);
+        ResponseEntity<Void> response = clientsApiController.addClientGroup(CLIENT_ID_SS1, createGroup(NEW_GROUPCODE));
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_LOCAL_GROUPS", "ADD_LOCAL_GROUP" })
+    public void getLocalGroup() throws Exception {
+        ResponseEntity<Group> response =
+                clientsApiController.getGroup(CLIENT_ID_SS1, GROUPCODE2);
         assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_LOCAL_GROUPS", "ADD_LOCAL_GROUP" })
+    public void getClientGroups() throws Exception {
+        ResponseEntity<List<Group>> response =
+                clientsApiController.getClientGroups(CLIENT_ID_SS1);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(2, response.getBody().size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_DESC" })
+    public void updateGroup() throws Exception {
+        clientsApiController.updateGroup(CLIENT_ID_SS1, GROUPCODE, GROUP_DESC);
+        ResponseEntity<Group> response =
+                clientsApiController.getGroup(CLIENT_ID_SS1, GROUPCODE);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(GROUP_DESC, response.getBody().getDescription());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DELETE_LOCAL_GROUP", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_LOCAL_GROUPS" })
+    public void deleteLocalGroup() throws Exception {
+        ResponseEntity<Void> response =
+                clientsApiController.deleteGroup(CLIENT_ID_SS1, GROUPCODE);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+
+        ResponseEntity<List<Group>> responseGroups =
+                clientsApiController.getClientGroups(CLIENT_ID_SS1);
+        assertEquals(1, responseGroups.getBody().size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_MEMBERS" })
+    public void addGroupMember() throws Exception {
+        ResponseEntity<Void> response =
+                clientsApiController.addGroupMember(CLIENT_ID_SS1, GROUPCODE, CLIENT_ID_SS2);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        ResponseEntity<Group> localGroupResponse =
+                clientsApiController.getGroup(CLIENT_ID_SS1, GROUPCODE);
+        assertEquals(1, localGroupResponse.getBody().getMembers().size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_MEMBERS" })
+    public void deleteGroupMember() throws Exception {
+        ResponseEntity<Void> response =
+                clientsApiController.addGroupMember(CLIENT_ID_SS1, GROUPCODE, CLIENT_ID_SS2);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        ResponseEntity<Void> deleteResponse =
+                clientsApiController.deleteGroupMember(CLIENT_ID_SS1, GROUPCODE,
+                        Collections.singletonList(CLIENT_ID_SS2));
+        assertEquals(HttpStatus.CREATED, deleteResponse.getStatusCode());
+        ResponseEntity<Group> localGroupResponse =
+                clientsApiController.getGroup(CLIENT_ID_SS1, GROUPCODE);
+        assertEquals(0, localGroupResponse.getBody().getMembers().size());
+    }
+
+    private static Group createGroup(String groupCode) {
+        Group group = new Group();
+        group.setDescription(GROUP_DESC);
+        group.setCode(groupCode);
+        return group;
     }
 }
