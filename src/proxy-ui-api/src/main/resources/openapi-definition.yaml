@@ -1084,7 +1084,7 @@ paths:
                 type: array
                 uniqueItems: true
                 items:
-                  $ref: '#/components/schemas/Certificate'
+                  $ref: '#/components/schemas/CertificateDetails'
         '400':
           description: request was invalid
         '401':
@@ -1123,7 +1123,7 @@ paths:
                 type: array
                 uniqueItems: true
                 items:
-                  $ref: '#/components/schemas/Certificate'
+                  $ref: '#/components/schemas/CertificateDetails'
         '400':
           description: request was invalid
         '401':
@@ -1208,7 +1208,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Certificate'
+                $ref: '#/components/schemas/CertificateDetails'
         '400':
           description: request was invalid
         '401':
@@ -2442,7 +2442,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Certificate'
+                $ref: '#/components/schemas/CertificateDetails'
         '400':
           description: request was invalid
         '401':
