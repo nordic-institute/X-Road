@@ -150,7 +150,7 @@ Description: X-Road security server with Estonian settings
 Package: xroad-opmonitor
 Conflicts: xroad-center
 Architecture: all
-Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-confclient (=${binary:Version})
+Depends: ${misc:Depends}, net-tools, iproute2, xroad-base (=${binary:Version}), xroad-confclient (=${binary:Version})
 Pre-depends: postgresql, postgresql-contrib
 Description: X-Road operations monitoring daemon
  X-Road operations monitoring daemon
