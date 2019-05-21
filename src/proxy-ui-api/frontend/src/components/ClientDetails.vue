@@ -22,7 +22,7 @@
     </v-card>
 
     <v-card flat>
-      <table class="certificate-table details-certificates">
+      <table class="xrd-table details-certificates">
         <tr>
           <th>Sign Certificate</th>
           <th>Serial Number</th>

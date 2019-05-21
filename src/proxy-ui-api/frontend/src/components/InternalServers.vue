@@ -29,7 +29,7 @@
         <input v-show="false" ref="inputUpload" type="file" @change="onFileChange">
       </div>
       <div class="cert-table-title">Certificate Hash (SHA/1)</div>
-      <table class="certificate-table server-certificates">
+      <table class="xrd-table server-certificates">
         <template v-if="tlsCertificates && tlsCertificates.length > 0">
           <tr v-for="certificate in tlsCertificates" v-bind:key="certificate.hash">
             <td class="cert-icon">
@@ -49,7 +49,7 @@
     <v-card flat class="xr-card">
       <h1 class="title mb-3">Security Server certificate</h1>
       <div class="cert-table-title">Certificate Hash (SHA/1)</div>
-      <table class="certificate-table server-certificates">
+      <table class="xrd-table server-certificates">
         <template v-if="ssCertificate">
           <tr>
             <td class="cert-icon">
