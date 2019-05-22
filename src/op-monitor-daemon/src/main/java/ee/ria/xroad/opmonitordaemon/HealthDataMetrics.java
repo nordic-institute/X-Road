@@ -74,9 +74,9 @@ final class HealthDataMetrics {
 
     /**
      * Register the metrics of health data known at startup.
-     * @param registry the metric registry of the operational monitoring daemon
+     * @param registry                 the metric registry of the operational monitoring daemon
      * @param startupTimestampProvider a Supplier instance whose get() method
-     * is called when the startup timestamp gauge is queried for data
+     *                                 is called when the startup timestamp gauge is queried for data
      */
     static void registerInitialMetrics(MetricRegistry registry,
             Supplier<Long> startupTimestampProvider) {
@@ -89,12 +89,12 @@ final class HealthDataMetrics {
      * Pick the required health data from all the records and update the
      * metrics registry. If necessary, new metrics are registered.
      * @param registry the metric registry of the operational monitoring daemon
-     * @param records a list of operational data records that will be
-     * analyzed for health metrics
+     * @param records  a list of operational data records that will be
+     *                 analyzed for health metrics
      */
     static void processRecords(MetricRegistry registry,
             List<OperationalDataRecord> records) {
-        for (OperationalDataRecord rec: records) {
+        for (OperationalDataRecord rec : records) {
             if (!rec.getSecurityServerType().equals(
                     OpMonitoringData.SecurityServerType.PRODUCER)) {
                 // Health data is computed over the requests that are handled
@@ -160,25 +160,24 @@ final class HealthDataMetrics {
 
     private static void registerOrUpdateHistograms(MetricRegistry registry,
             ServiceId serviceId, OperationalDataRecord rec) {
-        registerOrUpdateHistogram(registry, getRequestDurationName(serviceId),
-                getRequestDuration(rec));
-        registerOrUpdateHistogram(registry, getRequestSoapSizeName(serviceId),
-                rec.getRequestSoapSize());
-        registerOrUpdateHistogram(registry, getResponseSoapSizeName(serviceId),
-                rec.getResponseSoapSize());
+        registerOrUpdateHistogram(registry, getRequestDurationName(serviceId), getRequestDuration(rec));
+
+        registerOrUpdateHistogram(registry, getRequestSoapSizeName(serviceId), rec.getRequestSoapSize());
+        registerOrUpdateHistogram(registry, getResponseSoapSizeName(serviceId), rec.getResponseSoapSize());
     }
 
-    private static void registerOrUpdateHistogram(MetricRegistry registry,
-            String histogramName, Long newValue) {
-        Histogram histogram = HealthDataMetricsUtil.findHistogram(registry,
-                histogramName);
+    private static void registerOrUpdateHistogram(MetricRegistry registry, String histogramName, Long newValue) {
+
+        if (newValue == null) return;
+
+        Histogram histogram = HealthDataMetricsUtil.findHistogram(registry, histogramName);
 
         if (histogram == null) {
             // Add a histogram corresponding to the service and update it.
             histogram = registry.register(histogramName,
-                new Histogram(new SlidingTimeWindowReservoir(
-                        OP_MONITOR_HEALTH_STATS_PERIOD_SECONDS,
-                        TimeUnit.SECONDS)));
+                    new Histogram(new SlidingTimeWindowReservoir(
+                            OP_MONITOR_HEALTH_STATS_PERIOD_SECONDS,
+                            TimeUnit.SECONDS)));
         }
 
         histogram.update(newValue);
@@ -207,7 +206,7 @@ final class HealthDataMetrics {
     /**
      * Registers the gauge that returns the timestamp of the moment when
      * the current instance of the operational monitoring daemon was started.
-     * @param registry metric registry
+     * @param registry                 metric registry
      * @param startupTimestampProvider startup timestamp provider
      */
     private static void registerMonitoringStartupTimestampGauge(
