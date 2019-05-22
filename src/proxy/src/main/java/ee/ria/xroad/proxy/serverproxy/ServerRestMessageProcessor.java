@@ -194,14 +194,15 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
     @Override
     protected void postprocess() throws Exception {
-        final int lowerErrorHttpCodeLimit = 400;
-        final int upperErrorHttpCodeLimit = 599;
-        if (restResponse.getResponseCode() >= lowerErrorHttpCodeLimit
-                && restResponse.getResponseCode() <= upperErrorHttpCodeLimit) {
+        final int lowerHttpErrorCodeLimit = 400;
+        final int upperHttpErrorCodeLimit = 599;
+        if (restResponse.getResponseCode() >= lowerHttpErrorCodeLimit
+                && restResponse.getResponseCode() <= upperHttpErrorCodeLimit) {
             opMonitoringData.setSucceeded(false);
         } else {
             opMonitoringData.setSucceeded(true);
         }
+        opMonitoringData.setRestResponseStatusCode(restResponse.getResponseCode());
     }
 
     private void readMessage() throws Exception {

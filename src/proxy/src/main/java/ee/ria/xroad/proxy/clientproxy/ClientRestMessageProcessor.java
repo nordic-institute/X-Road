@@ -217,10 +217,10 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
     @Override
     public boolean verifyMessageExchangeSucceeded() {
-        final int lowerErrorHttpCodeLimit = 400;
-        final int upperErrorHttpCodeLimit = 599;
+        final int lowerHttpErrorCodeLimit = 400;
+        final int upperHttpErrorCodeLimit = 599;
         int statusCode = this.response.getRestResponse().getResponseCode();
-        if (statusCode >= lowerErrorHttpCodeLimit && statusCode <= upperErrorHttpCodeLimit) {
+        if (statusCode >= lowerHttpErrorCodeLimit && statusCode <= upperHttpErrorCodeLimit) {
             return false;
         } else {
             return true;
