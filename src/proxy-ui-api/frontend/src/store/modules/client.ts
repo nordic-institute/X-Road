@@ -194,9 +194,6 @@ export const actions: ActionTree<ClientState, RootState> = {
       link.setAttribute('download', effectiveFileName);
       document.body.appendChild(link);
       link.click();
-
-    }).catch((response) => {
-      console.error('Could not download the certificate', response);
     });
   },
 
