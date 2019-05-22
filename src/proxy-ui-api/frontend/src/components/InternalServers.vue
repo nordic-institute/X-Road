@@ -172,7 +172,7 @@ export default Vue.extend({
     this.fetchTlsCertificates(this.id);
   },
   methods: {
-    onFileChange(event: any) {
+    onFileChange(event: any): void {
       const fileList = event.target.files || event.dataTransfer.files;
       if (!fileList.length) {
         return;
@@ -205,31 +205,31 @@ export default Vue.extend({
       reader.readAsArrayBuffer(fileList[0]);
     },
 
-    fetchServer(id: string) {
+    fetchServer(id: string): void {
       this.$store.dispatch('fetchServer').catch((error) => {
         this.$bus.$emit('show-error', error.message);
       });
     },
 
-    fetchTlsCertificates(id: string) {
+    fetchTlsCertificates(id: string): void {
       this.$store.dispatch('fetchTlsCertificates', id).catch((error) => {
         this.$bus.$emit('show-error', error.message);
       });
     },
 
-    exportSSCertificate(hash: string) {
+    exportSSCertificate(hash: string): void {
       this.$store.dispatch('downloadSSCertificate', hash).catch((error) => {
         this.$bus.$emit('show-error', error.message);
       });
     },
 
-    fetchSSCertificate(id: string) {
+    fetchSSCertificate(id: string): void {
       this.$store.dispatch('fetchSSCertificate', id).catch((error) => {
         this.$bus.$emit('show-error', error.message);
       });
     },
 
-    openCertificate(cert: any) {
+    openCertificate(cert: any): void {
       this.$router.push({
         name: RouteName.Certificate,
         params: {
@@ -238,7 +238,7 @@ export default Vue.extend({
         },
       });
     },
-    closeDialog() {
+    closeDialog(): void {
       this.dialog = false;
     },
   },

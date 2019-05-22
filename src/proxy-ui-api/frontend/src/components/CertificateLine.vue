@@ -63,7 +63,7 @@ export default Vue.extend({
   },
   computed: {},
   methods: {
-    formattedData() {
+    formattedData(): string {
       if (this.info) {
         return this.info;
       }
@@ -81,7 +81,7 @@ export default Vue.extend({
       return this.sourceObject[this.childKey];
     },
 
-    formatArray(arr: []) {
+    formatArray(arr: []): string {
       let translated: string[];
       translated = [];
 
