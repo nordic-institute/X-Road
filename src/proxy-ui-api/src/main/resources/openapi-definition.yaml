@@ -4,7 +4,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.1"
+  version: "1.0.2"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -71,13 +71,6 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Backup'
-        description: backup information (optional)
   /backups/upload:
     post: # ok
       tags:
@@ -85,6 +78,13 @@ paths:
       summary: upload new backup for the security server
       operationId: uploadBackup
       description: Uploads new backup to the system
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+        description: backup to add
       responses:
         '201':
           description: item created
@@ -104,13 +104,6 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/octet-stream:
-            schema:
-              type: string
-              format: binary
-        description: backup to add
   /backups/{filename}:
     delete: # ok
       tags:
@@ -143,7 +136,7 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
-  /backups/{filename}/restore: 
+  /backups/{filename}/restore:
     put: # ok
       tags:
         - security server
@@ -492,6 +485,12 @@ paths:
       summary: adds new client for security server
       operationId: addClient
       description: Adds an item to the system
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Client'
+        description: client to add
       responses:
         '201':
           description: item created
@@ -509,12 +508,6 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Client'
-        description: client to add
   /clients/{id}:
     get: # ok
       tags:
@@ -676,6 +669,12 @@ paths:
             format: text
             minLength: 1
             maxLength: 1023
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Group'
+        description: group to add
       responses:
         '201':
           description: item created
@@ -693,12 +692,6 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Group'
-        description: group to add
   /clients/{id}/groups/{code}:
     get: # ok
       tags:
@@ -861,15 +854,20 @@ paths:
             format: text
             minLength: 1
             maxLength: 255
-        - in: query
-          name: member_id
-          description: id of the member
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: text
+                  description: id of the member
+                  minLength: 1
+                  maxLength: 255
+              example:
+                label: My new key
       responses:
         '201':
           description: item created
@@ -913,15 +911,20 @@ paths:
             format: text
             minLength: 1
             maxLength: 255
-        - in: query
-          name: items
-          description: array of members to be deleted
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
-              format: text
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  description: array of members to be deleted
+                  items:
+                    type: string
+                    format: text
+                    minLength: 1
+                    maxLength: 255
       responses:
         '201':
           description: items deleted
@@ -1026,15 +1029,18 @@ paths:
             format: text
             minLength: 1
             maxLength: 1023
-        - in: query
-          name: service_client_id
-          description: id of the service client
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 1279
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: text
+                  description: id of the service client
+                  minLength: 1
+                  maxLength: 1279
       responses:
         '201':
           description: item created
@@ -1078,7 +1084,7 @@ paths:
                 type: array
                 uniqueItems: true
                 items:
-                  $ref: '#/components/schemas/Certificate'
+                  $ref: '#/components/schemas/CertificateDetails'
         '400':
           description: request was invalid
         '401':
@@ -1117,7 +1123,7 @@ paths:
                 type: array
                 uniqueItems: true
                 items:
-                  $ref: '#/components/schemas/Certificate'
+                  $ref: '#/components/schemas/CertificateDetails'
         '400':
           description: request was invalid
         '401':
@@ -1146,6 +1152,13 @@ paths:
             format: text
             minLength: 1
             maxLength: 1023
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+        description: certificate to add
       responses:
         '201':
           description: item created
@@ -1163,13 +1176,6 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/octet-stream:
-            schema:
-              type: string
-              format: binary
-        description: certificate to add
   /clients/{id}/tls-certificates/{hash}:
     get: # ok
       tags:
@@ -1202,7 +1208,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Certificate'
+                $ref: '#/components/schemas/CertificateDetails'
         '400':
           description: request was invalid
         '401':
@@ -1340,15 +1346,18 @@ paths:
             format: text
             minLength: 1
             maxLength: 1023
-        - in: query
-          name: url
-          description: path for the service description file
-          required: true
-          schema:
-            type: string
-            format: url
-            minLength: 1
-            maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: text
+                  description: path for the service description file
+                  minLength: 1
+                  maxLength: 255
       responses:
         '201':
           description: item created
@@ -1366,12 +1375,6 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Service'
-        description: service client to add
   /keys/{id}:
     get: # ok
       tags:
@@ -1498,6 +1501,13 @@ paths:
             format: text
             minLength: 1
             maxLength: 255
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+        description: certificate to add
       responses:
         '201':
           description: item created
@@ -1515,13 +1525,6 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/octet-stream:
-            schema:
-              type: string
-              format: binary
-        description: certificate to add
   /keys/{id}/generate-csr:
     put: # ok
       tags:
@@ -1685,9 +1688,9 @@ paths:
           description: >
             Successfully authenticated.
             The session ID is returned in a cookie named `JSESSIONID`. You need to include this cookie in subsequent requests.
-          headers: 
+          headers:
             Set-Cookie:
-              schema: 
+              schema:
                 type: string
                 minLength: 1
                 maxLength: 255
@@ -1895,16 +1898,18 @@ paths:
             format: text
             minLength: 1
             maxLength: 255
-        - in: query
-          name: items
-          description: array of subject ids to add for the access right
-          required: true
-          schema:
-            type: array
-            uniqueItems: true
-            items:
-              type: string
-              format: text
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  uniqueItems: true
+                  description: array of subject ids to add for the access right
+                  items:
+                    $ref: '#/components/schemas/Subject'
       responses:
         '201':
           description: item created
@@ -1922,13 +1927,8 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AccessRight'
-        description: accessright to add
-    delete: # ok
+  /operations/{id}/accessrights/delete:
+    post: # ok
       tags:
         - security server
       summary: remove accessright
@@ -1944,14 +1944,17 @@ paths:
             format: text
             minLength: 1
             maxLength: 255
-        - in: query
-          name: items
-          description: items to be deleted
-          required: true
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/Subject'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  description: items to be deleted
+                  items:
+                    $ref: '#/components/schemas/Subject'
       responses:
         '204':
           description: deletion was successful
@@ -2020,16 +2023,18 @@ paths:
             format: text
             minLength: 1
             maxLength: 1279
-        - in: query
-          name: items
-          description: array of subject ids to add for the access right
-          required: true
-          schema:
-            type: array
-            uniqueItems: true
-            items:
-              type: string
-              format: text
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  uniqueItems: true
+                  description: array of subject ids to add for the access right
+                  items:
+                    $ref: '#/components/schemas/Subject'
       responses:
         '201':
           description: item created
@@ -2047,13 +2052,8 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AccessRight'
-        description: accessright to add
-    delete: # ok
+  /serviceclients/{id}/accessrights/delete:
+    post: # ok
       tags:
         - security server
       summary: remove accessright
@@ -2069,17 +2069,19 @@ paths:
             format: text
             minLength: 1
             maxLength: 1279
-        - in: query
-          name: items
-          description: items to be deleted
-          required: true
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/Subject'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Subject'
       responses:
-        '204':
-          description: deletion was successful
+        '201':
+          description: item created
         '400':
           description: request was invalid
         '401':
@@ -2088,6 +2090,10 @@ paths:
           description: request has been refused
         '404':
           description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
         '500':
           description: internal server error
   /services/{id}:
@@ -2183,7 +2189,7 @@ paths:
             maxLength: 255
         - in: query
           name: disabled_notice
-          description: disabled service notice 
+          description: disabled service notice
           required: false
           schema:
             type: string
@@ -2370,6 +2376,15 @@ paths:
       summary: upload a configuration anchor file
       operationId: uploadAnchor
       description: SS administrator uploads configuration anchor file
+      requestBody:
+        content:
+          application/xml:
+            schema:
+              type: string
+              format: ascii
+              minLength: 1
+              maxLength: 1000000
+        description: configuration anchor file
       responses:
         '201':
           description: item created
@@ -2387,15 +2402,6 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/xml:
-            schema:
-              type: string
-              format: ascii
-              minLength: 1
-              maxLength: 1000000
-        description: configuration anchor file
   /system/anchor/download:
     get: # ok
       tags:
@@ -2436,7 +2442,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Certificate'
+                $ref: '#/components/schemas/CertificateDetails'
         '400':
           description: request was invalid
         '401':
@@ -2527,6 +2533,13 @@ paths:
       summary: import new internal TLS certificate.
       operationId: importSystemCertificate
       description: SS administrator imports new internal TLS certificate
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+        description: certificate to add
       responses:
         '201':
           description: item created
@@ -2544,13 +2557,6 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/octet-stream:
-            schema:
-              type: string
-              format: binary
-        description: certificate to add
   /system/timestamping-services:
     get: # ok
       tags:
@@ -2586,6 +2592,12 @@ paths:
       summary: add a timestamping service
       operationId: addTimestampingService
       description: SS administrator selects new timestamping service
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimestampingService'
+        description: Timestamping service to add
       responses:
         '201':
           description: item created
@@ -2603,12 +2615,6 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TimestampingService'
-        description: Timestamping service to add
   /system/timestamping-services/{url}:
     delete: # ok
       tags:
@@ -2791,15 +2797,20 @@ paths:
             format: text
             minLength: 1
             maxLength: 255
-        - in: query
-          name: label
-          description: label for the new key
-          required: false
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                label:
+                  type: string
+                  format: text
+                  description: label for the new key
+                  minLength: 1
+                  maxLength: 255
+              example:
+                label: My new key
       responses:
         '201':
           description: item created
@@ -2817,19 +2828,13 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Key'
-        description: Key to add
   /tokens/{id}/login:
     put: # ok
       tags:
         - security server
       summary: logins to token
       operationId: loginToken
-      description: Login to token 
+      description: Login to token
       parameters:
         - in: path
           name: id
@@ -3228,29 +3233,6 @@ components:
         - GLOBAL_ERROR
         - REGISTRATION_IN_PROGRESS
         - DELETION_IN_PROGRESS
-    Configuration: # ok
-      type: object
-      required:
-        - status
-        - updated_at
-        - next_update
-      properties:
-        status:
-          $ref: '#/components/schemas/ConfigurationStatus'
-        updated_at:
-          type: string
-          format: date-time
-          description: last time updated
-          example: '2018-12-15T00:00:00.001Z'
-          minLength: 24
-          maxLength: 24
-        next_update:
-          type: string
-          format: date-time
-          description: last time updated
-          example: '2018-12-15T00:00:00.001Z'
-          minLength: 24
-          maxLength: 24
     ConfigurationStatus: # ok
       type: string
       format: enum
@@ -3280,6 +3262,29 @@ components:
       enum:
         - PEM
         - DER
+    GlobalConfiguration: # ok
+      type: object
+      required:
+        - status
+        - updated_at
+        - next_update
+      properties:
+        status:
+          $ref: '#/components/schemas/ConfigurationStatus'
+        updated_at:
+          type: string
+          format: date-time
+          description: last time updated
+          example: '2018-12-15T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
+        next_update:
+          type: string
+          format: date-time
+          description: last time updated
+          example: '2018-12-15T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
     Group: # ok
       type: object
       required:
@@ -3639,7 +3644,7 @@ components:
         anchor:
           $ref: '#/components/schemas/Anchor'
         configuration:
-          $ref: '#/components/schemas/Configuration'
+          $ref: '#/components/schemas/GlobalConfiguration'
         timestamping_services:
           type: array
           uniqueItems: true
@@ -3777,14 +3782,14 @@ components:
             items:
                 type: string
                 format: text
-                example: 
+                example:
         permissions:
             type: array
             uniqueItems: true
             items:
                 type: string
                 format: text
-                example: 
+                example:
       type: object
     Version: # ok
       required:

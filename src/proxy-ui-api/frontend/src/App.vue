@@ -25,10 +25,13 @@ export default Vue.extend({
         return response;
       },
       (error) => {
+        // Check that it's proper "unauthorized error".
+        // Also the response from from session timeout polling is handled elsewhere
         if (
           error.response.status === 401 &&
           error.response.config &&
-          !error.response.config.__isRetryRequest
+          !error.response.config.__isRetryRequest &&
+          !error.request.responseURL.includes('notifications/session-status')
         ) {
           // if you ever get an unauthorized, logout the user
           this.$store.dispatch('clearAuth');

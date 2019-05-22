@@ -39,12 +39,14 @@ import org.niis.xroad.restapi.converter.GlobalConfWrapper;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
-import org.niis.xroad.restapi.openapi.model.Certificate;
+import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.CertificateStatus;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.Group;
+import org.niis.xroad.restapi.openapi.model.InlineObject;
+import org.niis.xroad.restapi.openapi.model.InlineObject1;
 import org.niis.xroad.restapi.repository.TokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -69,6 +71,7 @@ import java.util.List;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -193,8 +196,8 @@ public class ClientsApiControllerIntegrationTest {
 
     @Test
     @WithMockUser(authorities = "VIEW_CLIENT_DETAILS")
-    public void getClientCertificate() throws Exception {
-        ResponseEntity<List<Certificate>> certificates =
+    public void getClientCertificates() throws Exception {
+        ResponseEntity<List<CertificateDetails>> certificates =
                 clientsApiController.getClientCertificates("FI:GOV:M1");
         assertEquals(HttpStatus.OK, certificates.getStatusCode());
         assertEquals(0, certificates.getBody().size());
@@ -208,11 +211,21 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(HttpStatus.OK, certificates.getStatusCode());
         assertEquals(1, certificates.getBody().size());
 
-        Certificate onlyCertificate = certificates.getBody().get(0);
+        CertificateDetails onlyCertificate = certificates.getBody().get(0);
         assertEquals("N/A", onlyCertificate.getIssuerCommonName());
+        assertEquals(OffsetDateTime.parse("1970-01-01T00:00:00Z"), onlyCertificate.getNotBefore());
         assertEquals(OffsetDateTime.parse("2038-01-01T00:00:00Z"), onlyCertificate.getNotAfter());
+        assertEquals("1", onlyCertificate.getSerial());
+        assertEquals(new Integer(3), onlyCertificate.getVersion());
+        assertEquals("SHA512withRSA", onlyCertificate.getSignatureAlgorithm());
+        assertEquals("RSA", onlyCertificate.getPublicKeyAlgorithm());
         assertEquals("A2293825AA82A5429EC32803847E2152A303969C", onlyCertificate.getHash());
         assertEquals(CertificateStatus.IN_USE, onlyCertificate.getStatus());
+        assertTrue(onlyCertificate.getSignature().startsWith("314b7a50a09a9b74322671"));
+        assertTrue(onlyCertificate.getRsaPublicKeyModulus().startsWith("9d888fbe089b32a35f58"));
+        assertEquals(new Integer(65537), onlyCertificate.getRsaPublicKeyExponent());
+        assertEquals(new ArrayList<>(Arrays.asList(org.niis.xroad.restapi.openapi.model.KeyUsage.NON_REPUDIATION)),
+                new ArrayList<>(onlyCertificate.getKeyUsages()));
 
         try {
             certificates = clientsApiController.getClientCertificates("FI:GOV:M2");
@@ -299,7 +312,7 @@ public class ClientsApiControllerIntegrationTest {
             "VIEW_CLIENT_INTERNAL_CERTS" })
     public void addTlsCert() throws Exception {
 
-        ResponseEntity<List<Certificate>> certs = clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1);
+        ResponseEntity<List<CertificateDetails>> certs = clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1);
         assertEquals(0, certs.getBody().size());
 
         ResponseEntity<Void> response =
@@ -369,7 +382,7 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1).getBody().size());
 
-        ResponseEntity<Certificate> findResponse =
+        ResponseEntity<CertificateDetails> findResponse =
                 clientsApiController.getClientTlsCertificate(CLIENT_ID_SS1,
                         "63A104B2BAC14667873C5DBD54BE25BC687B3702");
         assertEquals(HttpStatus.OK, findResponse.getStatusCode());
@@ -441,7 +454,7 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_MEMBERS" })
     public void addGroupMember() throws Exception {
         ResponseEntity<Void> response =
-                clientsApiController.addGroupMember(CLIENT_ID_SS1, GROUPCODE, CLIENT_ID_SS2);
+                clientsApiController.addGroupMember(CLIENT_ID_SS1, GROUPCODE, new InlineObject().id(CLIENT_ID_SS2));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         ResponseEntity<Group> localGroupResponse =
                 clientsApiController.getGroup(CLIENT_ID_SS1, GROUPCODE);
@@ -452,11 +465,11 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_MEMBERS" })
     public void deleteGroupMember() throws Exception {
         ResponseEntity<Void> response =
-                clientsApiController.addGroupMember(CLIENT_ID_SS1, GROUPCODE, CLIENT_ID_SS2);
+                clientsApiController.addGroupMember(CLIENT_ID_SS1, GROUPCODE, new InlineObject().id(CLIENT_ID_SS2));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         ResponseEntity<Void> deleteResponse =
                 clientsApiController.deleteGroupMember(CLIENT_ID_SS1, GROUPCODE,
-                        Collections.singletonList(CLIENT_ID_SS2));
+                        new InlineObject1().items(Collections.singletonList(CLIENT_ID_SS2)));
         assertEquals(HttpStatus.CREATED, deleteResponse.getStatusCode());
         ResponseEntity<Group> localGroupResponse =
                 clientsApiController.getGroup(CLIENT_ID_SS1, GROUPCODE);
