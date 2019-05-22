@@ -34,18 +34,23 @@
         </template>
       </table>
     </v-card>
+
+    <newGroupDialog :dialog="addGroupDialog" :certificate="certificate" @close="closeDialog()"/>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import axios from 'axios';
+import NewGroupDialog from '@/components/NewGroupDialog.vue';
 
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
 
 export default Vue.extend({
-  components: {},
+  components: {
+    NewGroupDialog,
+  },
   props: {
     id: {
       type: String,
@@ -58,6 +63,7 @@ export default Vue.extend({
 
       dialog: false,
       certificate: null,
+      addGroupDialog: false,
       groups: [
         {
           id: 'group123',
@@ -90,9 +96,10 @@ export default Vue.extend({
     this.fetchGroups(this.id);
   },
   methods: {
-    addGroup() {
+    addGroup(): void {
       // TODO will be done in XRDDEV-519
       console.log('add');
+      this.addGroupDialog = true;
     },
 
     filtered() {
@@ -121,18 +128,18 @@ export default Vue.extend({
       return filtered;
     },
 
-    showAddGroup() {
+    showAddGroup(): boolean {
       return true;
     },
 
-    viewGroup(group: any) {
+    viewGroup(group: any): void {
       this.$router.push({
         name: RouteName.LocalGroup,
         params: { id: this.id, code: group.code },
       });
     },
 
-    fetchGroups(id: string) {
+    fetchGroups(id: string): Promise<any> {
       return axios
         .get(`/clients/${id}/groups`)
         .then((res) => {
