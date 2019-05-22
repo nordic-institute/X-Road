@@ -9,9 +9,9 @@ groups="xroad-security-officer xroad-registration-officer xroad-service-administ
 slave_groups="xroad-securityserver-observer"
 
 db_name=serverconf
-db_url=jdbc:postgresql://127.0.0.1:5432/${db_name}
+db_url=jdbc:postgresql://test.cuvgtltu8dqq.eu-west-1.rds.amazonaws.com:5432/${db_name}
 db_user=serverconf
-db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
+db_passwd=Qwerty1234
 db_properties=/etc/xroad/db.properties
 
 die () {
@@ -59,38 +59,38 @@ case "$1" in
       db_url=`crudini --get ${db_properties} '' serverconf.hibernate.connection.url`
       db_user=`crudini --get ${db_properties} '' serverconf.hibernate.connection.username`
       db_passwd=`crudini --get ${db_properties} '' serverconf.hibernate.connection.password`
-   else
+  else
 
-    echo "no db settings detected, creating local db"
+#    echo "no db settings detected, creating local db"
 
-    if ! netstat -na | grep -q :5432
-      then echo -e  "\n\nIs postgres running on port 5432 ?"
-       echo -e "Aborting installation! please fix issues and rerun with apt-get -f install \n\n"
-      exit 100
-    fi
+#    if ! netstat -na | grep -q :5432
+#      then echo -e  "\n\nIs postgres running on port 5432 ?"
+#       echo -e "Aborting installation! please fix issues and rerun with apt-get -f install \n\n"
+#      exit 100
+#    fi
 
-     if  ! su - postgres -c "psql --list -tAF ' '" | grep template1 | awk '{print $3}' | grep -q "UTF8"
-      then echo -e "\n\npostgreSQL is not UTF8 compatible."
-       echo -e "Aborting installation! please fix issues and rerun with apt-get -f install\n\n"
-       exit 101
-    fi
+#    if  ! su - postgres -c "psql --list -tAF ' '" | grep template1 | awk '{print $3}' | grep -q "UTF8"
+#      then echo -e "\n\npostgreSQL is not UTF8 compatible."
+#        echo -e "Aborting installation! please fix issues and rerun with apt-get -f install\n\n"
+#        exit 101
+#    fi
 
-    if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='${db_user}'\" "` == "1" ]]
-      then
-        echo  "$db_user user exists, skipping role creation"
-        echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
-      else
-        echo "CREATE ROLE ${db_user} LOGIN PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
-      fi
+#     if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='${db_user}'\" "` == "1" ]]
+#      then
+#        echo  "$db_user user exists, skipping role creation"
+#        echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
+#      else
+#        echo "CREATE ROLE ${db_user} LOGIN PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
+#      fi
 
-      if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_database WHERE datname='${db_name}'\""`  == "1" ]]
-      then
-        echo "database ${db_name} exists"
-      else
-        su - postgres -c "createdb ${db_name} -O ${db_user} -E UTF-8"
-      fi
+#      if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_database WHERE datname='${db_name}'\""`  == "1" ]]
+#      then
+#        echo "database ${db_name} exists"
+#      else
+#        su - postgres -c "createdb ${db_name} -O ${db_user} -E UTF-8"
+#      fi
 
-      su - postgres -c "psql serverconf -tAc \"CREATE EXTENSION IF NOT EXISTS hstore;\""
+#      su - postgres -c "psql serverconf -tAc \"CREATE EXTENSION IF NOT EXISTS hstore;\""
 
       touch ${db_properties}
       crudini --set ${db_properties} '' serverconf.hibernate.jdbc.use_streams_for_binary true
@@ -108,7 +108,7 @@ case "$1" in
 
   if [[ "$node_type" == "slave" ]]; then
       echo "Skipping database migrations on cluster slave node"
-  else 
+  else
       echo "running ${db_name} database migrations"
       cd /usr/share/xroad/db/
       /usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml --password=${db_passwd} --username=${db_user}  update || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
