@@ -211,8 +211,20 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         updateOpMonitoringDataByResponse(decoder);
         // Ensure we have the required parts.
         checkResponse();
-
+        opMonitoringData.setRestResponseStatusCode(response.getRestResponse().getResponseCode());
         decoder.verify(requestServiceId.getClientId(), response.getSignature());
+    }
+
+    @Override
+    public boolean verifyMessageExchangeSucceeded() {
+        final int lowerErrorHttpCodeLimit = 400;
+        final int upperErrorHttpCodeLimit = 599;
+        int statusCode = this.response.getRestResponse().getResponseCode();
+        if (statusCode >= lowerErrorHttpCodeLimit && statusCode <= upperErrorHttpCodeLimit) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     private void checkResponse() {

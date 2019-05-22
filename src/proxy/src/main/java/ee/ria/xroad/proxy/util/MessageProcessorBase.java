@@ -147,6 +147,14 @@ public abstract class MessageProcessorBase {
         }
     }
 
+    /**
+     * Verify default implementation for checking that message transfer was succesfull. Expected to be overridden
+     * in ClientRestMessageProcessor
+     *
+     */
+    public boolean verifyMessageExchangeSucceeded() {
+        return true;
+    }
 
     protected static String getSecurityServerAddress() {
         return GlobalConf.getSecurityServerAddress(ServerConf.getIdentifier());

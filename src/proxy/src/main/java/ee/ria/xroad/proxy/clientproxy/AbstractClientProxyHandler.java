@@ -152,7 +152,8 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
 
     private static void success(MessageProcessorBase processor, long start, OpMonitoringData opMonitoringData) {
         updateOpMonitoringSucceeded(opMonitoringData);
-
+        boolean isSucceeded = processor.verifyMessageExchangeSucceeded();
+        opMonitoringData.setSucceeded(isSucceeded);
         MonitorAgent.success(processor.createRequestMessageInfo(), new Date(start), new Date());
     }
 
