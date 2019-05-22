@@ -4,8 +4,13 @@
       <subViewTitle title="Certificate" @close="close"/>
       <template v-if="certificate">
         <div class="cert-hash">
-          {{certificate.hash}}
+          <div>
+            <div class="hash-info">Hash (SHA-1)</div>
+            <div>{{certificate.hash | colonize}}</div>
+          </div>
+
           <v-btn
+            v-if="showDeleteButton"
             outline
             round
             color="primary"
@@ -15,7 +20,31 @@
           >Delete</v-btn>
         </div>
 
-        <div>{{certificate.details}}</div>
+        <certificate-line childKey="version" :sourceObject="certificate"/>
+        <certificate-line childKey="serial" :sourceObject="certificate"/>
+        <certificate-line childKey="signature_algorithm" :sourceObject="certificate"/>
+        <certificate-line childKey="issuer_distinguished_name" :sourceObject="certificate"/>
+        <certificate-line childKey="not_before" :sourceObject="certificate" date/>
+        <certificate-line childKey="not_after" :sourceObject="certificate" date/>
+        <certificate-line childKey="subject_distinguished_name" :sourceObject="certificate"/>
+
+        <certificate-line childKey="public_key_algorithm" :sourceObject="certificate"/>
+        <certificate-line
+          childKey="rsa_public_key_modulus"
+          label="RSA Public Key Modulus"
+          :sourceObject="certificate"
+          chunk
+        />
+
+        <certificate-line
+          childKey="rsa_public_key_exponent"
+          label="RSA Public Key Exponent"
+          :sourceObject="certificate"
+        />
+
+        <certificate-line childKey="state" :sourceObject="certificate"/>
+        <certificate-line childKey="key_usages" arrayType :sourceObject="certificate"/>
+        <certificate-line childKey="signature" :sourceObject="certificate" chunk/>
       </template>
     </div>
     <v-dialog v-model="confirm" persistent max-width="290">
@@ -37,10 +66,12 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
 import SubViewTitle from '@/components/SubViewTitle.vue';
+import CertificateLine from '@/components/CertificateLine.vue';
 
 export default Vue.extend({
   components: {
     SubViewTitle,
+    CertificateLine,
   },
   props: {
     id: {
@@ -60,27 +91,35 @@ export default Vue.extend({
   },
   computed: {
     ...mapGetters(['tlsCertificates']),
+    showDeleteButton(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.DELETE_CLIENT_INTERNAL_CERT,
+      );
+    },
+  },
+  filters: {
+    pretty(value: any) {
+      return JSON.stringify(JSON.parse(value), null, 2);
+    },
   },
   methods: {
-    close() {
+    close(): void {
       this.$router.go(-1);
     },
-    fetchData(clientId: string, hash: string) {
-      this.$store.dispatch('fetchTlsCertificates', clientId).then(
+    fetchData(clientId: string, hash: string): void {
+      this.$store.dispatch('fetchTlsCertificate', { clientId, hash }).then(
         (response) => {
-          this.certificate = this.$store.getters.tlsCertificates.find(
-            (cert: any) => cert.hash === hash,
-          );
+          this.certificate = response.data;
         },
         (error) => {
           this.$bus.$emit('show-error', error.message);
         },
       );
     },
-    deleteCertificate() {
+    deleteCertificate(): void {
       this.confirm = true;
     },
-    doDeleteCertificate() {
+    doDeleteCertificate(): void {
       this.confirm = false;
 
       this.$store
@@ -157,6 +196,13 @@ export default Vue.extend({
   font-weight: 500;
   letter-spacing: 0.5px;
   line-height: 30px;
+  margin-bottom: 20px;
+}
+
+.hash-info {
+  color: #202020;
+  font-family: Roboto;
+  font-size: 16px;
 }
 
 .new-content {
