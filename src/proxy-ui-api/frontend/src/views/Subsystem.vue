@@ -51,7 +51,7 @@ export default Vue.extend({
           key: 'serviceClients',
           name: 'Service Clients',
           to: {
-            name: RouteName.SubsystemDetails,
+            name: RouteName.SubsystemServiceClients,
             params: { id: this.id },
           },
         },
@@ -59,7 +59,7 @@ export default Vue.extend({
           key: 'services',
           name: 'Services',
           to: {
-            name: RouteName.SubsystemDetails,
+            name: RouteName.SubsystemServices,
             params: { id: this.id },
           },
         },
