@@ -14,7 +14,9 @@
         <v-card-title>
           <span class="headline">Session expired</span>
         </v-card-title>
-        <v-card-text class="pt-4">You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.</v-card-text>
+        <v-card-text
+          class="pt-4"
+        >You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
@@ -82,11 +84,13 @@ export default Vue.extend({
 </style>
 
 <style lang="scss" scoped>
+@import '../assets/shared';
 
-.base-full-width {
+.full-width {
   width: 100%;
-  max-width: 1280px;
-  margin: 10px;
+  max-width: $view-area-max-width;
+  display: flex;
+  justify-content: center;
 }
 .fade-enter-active,
 .fade-leave-active {
@@ -98,5 +102,4 @@ export default Vue.extend({
 .fade-leave-active {
   opacity: 0;
 }
-
 </style>
