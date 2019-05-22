@@ -61,7 +61,7 @@
   "login": {
     "username": "Username",
     "password": "Password",
-    "logIn": "Log in",
+    "login": "Log in",
     "logout": "Log out"
   }
 }

@@ -1,5 +1,5 @@
 <template>
-  <v-layout align-center justify-center column fill-height elevation-0 class="full-width">
+  <v-layout align-center justify-center column fill-height elevation-0>
     <div class="table-toolbar">
       <v-text-field v-model="search" label="Search" single-line hide-details class="search-input">
         <v-icon slot="append" small>fas fa-search</v-icon>
@@ -277,12 +277,6 @@ export default Vue.extend({
   width: 100%;
 }
 
-.full-width {
-  width: 100%;
-  max-width: 1280px;
-  padding-left: 20px;
-  padding-right: 20px;
-}
 
 .table-button {
   height: 24px;

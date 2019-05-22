@@ -3,7 +3,7 @@ import Vuetify from 'vuetify/lib';
 import 'vuetify/src/stylus/app.styl';
 
 Vue.use(Vuetify, {
-  iconfont: 'fa',
+  iconfont: 'md',
   theme: {
     primary: '#663cdc',
     secondary: '#00C9E7',

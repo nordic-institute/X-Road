@@ -1,12 +1,11 @@
 <template>
   <div class="xr-tab-max-width">
     <v-flex mb-4>
-      <h1 v-if="client" class="display-1 mb-3">{{client.member_name}} (Owner)</h1>
+      <h1 v-if="client" class="display-1 mb-3">{{client.member_name}} ({{ $t("client.owner") }})</h1>
     </v-flex>
     <v-tabs slot="extension" v-model="tab" class="xr-tabs" color="white" grow>
       <v-tabs-slider color="secondary"></v-tabs-slider>
-      <v-tab key="details" :to="detailsRoute">Details</v-tab>
-      <v-tab key="internalServers" :to="serversRoute">Internal Servers</v-tab>
+      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">{{ $t(tab.name) }}</v-tab>
     </v-tabs>
 
     <router-view/>
@@ -38,24 +37,35 @@ export default Vue.extend({
   },
   computed: {
     ...mapGetters(['client']),
-    detailsRoute(): object {
-      return {
-        name: RouteName.MemberDetails,
-        params: { id: this.id },
-      };
-    },
-    serversRoute(): object {
-      return {
-        name: RouteName.MemberServers,
-        params: { id: this.id },
-      };
+    tabs(): object[] {
+      const allTabs = [
+        {
+          key: 'details',
+          name: 'tab.client.details',
+          to: {
+            name: RouteName.MemberDetails,
+            params: { id: this.id },
+          },
+        },
+        {
+          key: 'internalServers',
+          name: 'tab.client.internalServers',
+          to: {
+            name: RouteName.MemberServers,
+            params: { id: this.id },
+          },
+          permission: Permissions.VIEW_CLIENT_INTERNAL_CERTS,
+        },
+      ];
+
+      return this.$store.getters.getAllowedTabs(allTabs);
     },
   },
   created() {
     this.fetchClient(this.id);
   },
   methods: {
-    fetchClient(id: string) {
+    fetchClient(id: string): void {
       this.$store.dispatch('fetchClient', id).catch((error) => {
         this.$bus.$emit('show-error', error.message);
       });
