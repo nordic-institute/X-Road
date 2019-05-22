@@ -197,17 +197,12 @@ export const actions: ActionTree<ClientState, RootState> = {
     });
   },
 
-<<<<<<< HEAD
-  uploadTlsCertificate({ commit, state }, file) {
-    return axios.post(`/submit-form`, file);
-=======
   uploadTlsCertificate({ commit, state }, data) {
     return axios.post(`/clients/${data.clientId}/tlscertificates/`, data.fileData, {
       headers: {
         'Content-Type': 'application/octet-stream',
       },
     });
->>>>>>> 9a298e33e1cc32b1f7dcd536deeaee6eccbd95c9
   },
 
   saveConnectionType({ commit, state }, { clientId, connType }) {
