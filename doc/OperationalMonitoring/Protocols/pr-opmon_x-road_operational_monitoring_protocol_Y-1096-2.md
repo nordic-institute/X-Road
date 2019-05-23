@@ -16,6 +16,7 @@ Doc. ID: PR-OPMON
 | 05.03.2018 | 0.4 | Added terms and abbreviations reference | Tatu Repo |
 | 04.12.2018 | 0.5 | More detailed descriptions for *[request/response][In/Out]Ts* fields | Cybernetica AS |
 | 18.02.2019 | 0.6 | Example response updated: added xRequestId | Caro Hautamäki |
+| 23.05.2019 | 0.7 | Add info about status_code, request_rest_size, response_rest_size | Tapio Jaakkola |
 
 ## Table of Contents
 
@@ -121,6 +122,10 @@ The body of the request MUST contain an XML element *getSecurityServerOperationa
  * *succeeded*
  * *soapFaultCode*
  * *soapFaultString*
+ * *requestRestSize*
+ * *responseRestSize*
+ * *statusCode*
+ 
 
 The fields are described in the JSON-schema of the response payload \[[Annex B](#AnnexB)\].
 
