@@ -12,16 +12,16 @@
         outline
         round
         class="ma-0 rounded-button elevation-0"
-      >Add group</v-btn>
+      >{{$t('localGroups.addGroup')}}</v-btn>
     </div>
 
     <v-card flat>
       <table class="certificate-table details-certificates">
         <tr>
-          <th>Code</th>
-          <th>Description</th>
-          <th>Member Count</th>
-          <th>Updated</th>
+          <th>{{$t('localGroups.code')}}</th>
+          <th>{{$t('localGroups.description')}}</th>
+          <th>{{$t('localGroups.memberCount')}}</th>
+          <th>{{$t('localGroups.updated')}}</th>
         </tr>
         <template v-if="groups && groups.length > 0">
           <tr v-for="group in filtered()" v-bind:key="group.code">

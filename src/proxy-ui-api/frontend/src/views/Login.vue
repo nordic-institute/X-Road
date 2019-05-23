@@ -16,14 +16,14 @@
           <v-flex sm8 md4 class="set-width">
             <v-card flat>
               <v-toolbar flat class="login-form-toolbar">
-                <v-toolbar-title class="login-form-toolbar-title">Log in</v-toolbar-title>
+                <v-toolbar-title class="login-form-toolbar-title">{{$t('login.logIn')}}</v-toolbar-title>
               </v-toolbar>
               <v-card-text>
                 <v-form>
                   <v-text-field
                     id="username"
                     name="username"
-                    label="Username"
+                    :label="$t('login.username')"
                     type="text"
                     v-model="username"
                     :error-messages="errors.collect('username')"
@@ -33,7 +33,7 @@
                   <v-text-field
                     id="password"
                     name="password"
-                    label="Password"
+                    :label="$t('login.password')"
                     type="password"
                     v-model="password"
                     :error-messages="errors.collect('password')"
@@ -52,7 +52,7 @@
                   round
                   :disabled="isDisabled"
                   :loading="loading"
-                >Log in</v-btn>
+                >{{$t('login.logIn')}}</v-btn>
               </v-card-actions>
             </v-card>
           </v-flex>
@@ -120,7 +120,7 @@ export default Vue.extend({
               });
               this.errors.add({
                 field: 'password',
-                msg: 'Wrong username or password',
+                msg: this.$t('login.errorMsg401') as string,
               });
 
               this.username = '';

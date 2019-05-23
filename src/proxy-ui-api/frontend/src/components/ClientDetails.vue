@@ -3,19 +3,19 @@
     <v-card flat>
       <table class="detail-table" v-if="client">
         <tr>
-          <td>Member Name</td>
+          <td>{{$t('client.memberName')}}</td>
           <td>{{client.member_name}}</td>
         </tr>
         <tr>
-          <td>Member Class</td>
+          <td>{{$t('client.memberClass')}}</td>
           <td>{{client.member_class}}</td>
         </tr>
         <tr>
-          <td>Member Code</td>
+          <td>{{$t('client.memberCode')}}</td>
           <td>{{client.member_code}}</td>
         </tr>
         <tr v-if="client.subsystem_code">
-          <td>Subsystem Code</td>
+          <td>{{$t('client.subsystemCode')}}</td>
           <td>{{client.subsystem_code}}</td>
         </tr>
       </table>
@@ -24,10 +24,10 @@
     <v-card flat>
       <table class="certificate-table details-certificates">
         <tr>
-          <th>Sign Certificate</th>
-          <th>Serial Number</th>
-          <th>State</th>
-          <th>Expires</th>
+          <th>{{$t('cert.signCertificate')}}</th>
+          <th>{{$t('cert.serialNumber')}}</th>
+          <th>{{$t('cert.state')}}</th>
+          <th>{{$t('cert.expires')}}</th>
         </tr>
         <template v-if="certificates && certificates.length > 0">
           <tr v-for="certificate in certificates" v-bind:key="certificate.name">

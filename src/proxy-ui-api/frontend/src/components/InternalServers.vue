@@ -2,7 +2,7 @@
   <div>
     <v-card flat class="xr-card" v-if="showConnectionType">
       <v-flex>
-        <h1 class="title mb-3">Connection type</h1>
+        <h1 class="title mb-3">{{$t('internalServers.connectionType')}}</h1>
         <v-select
           v-model="connectionType"
           :items="connectionTypes"
@@ -12,14 +12,12 @@
           :readonly="!canEditConnectionType"
         ></v-select>
       </v-flex>
-      <div
-        class="conn-info"
-      >Connection type for servers in service provider role is set in the Services tab by the service URL (http/https)</div>
+      <div class="conn-info">{{$t('internalServers.connectionInfo')}}</div>
     </v-card>
 
     <v-card flat class="xr-card">
       <div class="tls-title-wrap">
-        <h1 class="title mb-3">Information System TLS certificate</h1>
+        <h1 class="title mb-3">{{$t('internalServers.tlsTitle')}}</h1>
         <v-btn
           v-if="canAddTlsCert"
           outline
@@ -28,7 +26,7 @@
           class="text-capitalize table-button rounded-button"
           type="file"
           @click="$refs.inputUpload.click()"
-        >Add</v-btn>
+        >{{$t('internalServers.add')}}</v-btn>
         <input
           v-show="false"
           ref="inputUpload"
@@ -37,7 +35,7 @@
           @change="onFileChange"
         >
       </div>
-      <div class="cert-table-title">Certificate Hash (SHA/1)</div>
+      <div class="cert-table-title">{{$t('internalServers.certHash')}}</div>
       <table class="certificate-table server-certificates">
         <template v-if="tlsCertificates && tlsCertificates.length > 0">
           <tr v-for="certificate in tlsCertificates" v-bind:key="certificate.hash">
@@ -58,8 +56,8 @@
     </v-card>
 
     <v-card v-if="canViewSSCert" flat class="xr-card">
-      <h1 class="title mb-3">Security Server certificate</h1>
-      <div class="cert-table-title">Certificate Hash (SHA/1)</div>
+      <h1 class="title mb-3">{{$t('internalServers.ssCertTitle')}}</h1>
+      <div class="cert-table-title">{{$t('internalServers.certHash')}}</div>
       <table class="certificate-table server-certificates">
         <template v-if="ssCertificate">
           <tr>
@@ -79,7 +77,7 @@
                 color="primary"
                 class="text-capitalize table-button xr-small-button"
                 @click="exportSSCertificate(ssCertificate.hash)"
-              >Export</v-btn>
+              >{{$t('internalServers.export')}}</v-btn>
             </td>
           </tr>
         </template>

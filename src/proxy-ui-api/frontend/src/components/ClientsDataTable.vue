@@ -18,7 +18,7 @@
         round
         dark
         class="ma-0 rounded-button elevation-0"
-      >Add client</v-btn>
+      >{{$t('action.addClient')}}</v-btn>
     </div>
     <v-data-table
       :loading="loading"
@@ -98,12 +98,12 @@
               color="primary"
               class="text-capitalize table-button xr-small-button"
               @click="addSubsystem(props.item)"
-            >Add Subsystem</v-btn>
+            >{{$t('action.addSubsystem')}}</v-btn>
           </td>
         </tr>
       </template>
 
-      <template slot="no-data">No data</template>
+      <template slot="no-data">{{$t('action.noData')}}</template>
       <v-alert
         slot="no-results"
         :value="true"

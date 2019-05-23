@@ -1,11 +1,11 @@
 <template>
   <div class="wrapper">
     <div class="new-content">
-      <subViewTitle title="Certificate" @close="close"/>
+      <subViewTitle :title="$t('cert.certificate')" @close="close"/>
       <template v-if="certificate">
         <div class="cert-hash">
           <div>
-            <div class="hash-info">Hash (SHA-1)</div>
+            <div class="hash-info">{{$t('cert.hashInfo')}}</div>
             <div>{{certificate.hash | colonize}}</div>
           </div>
 
@@ -17,7 +17,7 @@
             class="text-capitalize table-button rounded-button"
             type="file"
             @click="deleteCertificate()"
-          >Delete</v-btn>
+          >{{$t('cert.delete')}}</v-btn>
         </div>
 
         <certificate-line childKey="version" :sourceObject="certificate"/>
@@ -31,14 +31,14 @@
         <certificate-line childKey="public_key_algorithm" :sourceObject="certificate"/>
         <certificate-line
           childKey="rsa_public_key_modulus"
-          label="RSA Public Key Modulus"
+          :label="$t('cert.rsaModulus')"
           :sourceObject="certificate"
           chunk
         />
 
         <certificate-line
           childKey="rsa_public_key_exponent"
-          label="RSA Public Key Exponent"
+          :label="$t('cert.rsaExp')"
           :sourceObject="certificate"
         />
 
@@ -49,12 +49,12 @@
     </div>
     <v-dialog v-model="confirm" persistent max-width="290">
       <v-card>
-        <v-card-title class="headline">Delete certificate?</v-card-title>
-        <v-card-text>Are you sure that you want to delete this certificate?</v-card-text>
+        <v-card-title class="headline">{{$t('cert.deleteCertTitle')}}</v-card-title>
+        <v-card-text>{{$t('cert.deleteCertConfirm')}}</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="darken-1" flat @click="confirm = false">Cancel</v-btn>
-          <v-btn color="darken-1" flat @click="doDeleteCertificate()">Yes</v-btn>
+          <v-btn color="darken-1" flat @click="confirm = false">{{$t('action.cancel')}}</v-btn>
+          <v-btn color="darken-1" flat @click="doDeleteCertificate()">{{$t('action.yes')}}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
