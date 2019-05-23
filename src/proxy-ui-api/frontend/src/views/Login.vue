@@ -181,16 +181,9 @@ export default Vue.extend({
   margin-left: -24px;
 }
 
-.v-progress-linear {
-  margin: 0;
-}
-
 .set-width {
   max-width: 420px;
 }
 
-#padding {
-  height: 7px;
-}
 </style>
 
