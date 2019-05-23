@@ -82,6 +82,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.MimeUtils.VALUE_MESSAGE_TYPE_REST;
 import static ee.ria.xroad.common.util.MimeUtils.getBoundary;
+import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
 class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
@@ -150,6 +151,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
     private void updateOpMonitoringDataByResponse(ProxyMessageDecoder decoder) {
         if (response.getRestResponse() != null) {
+            opMonitoringData.setResponseAttachmentCount(0);
             opMonitoringData.setResponseRestSize(response.getRestResponse().getMessageBytes().length
                     + decoder.getAttachmentsByteCount());
         }
@@ -184,7 +186,9 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
         try {
             final String contentType = MimeUtils.mpMixedContentType("xtop" + RandomStringUtils.randomAlphabetic(30));
+            opMonitoringData.setRequestOutTs(getEpochMillisecond());
             httpSender.doPost(addresses[0], new ProxyMessageEntity(contentType));
+            opMonitoringData.setResponseInTs(getEpochMillisecond());
         } catch (Exception e) {
             MonitorAgent.serverProxyFailed(createRequestMessageInfo());
             throw e;
@@ -271,7 +275,6 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
     private void sendResponse() throws Exception {
         final RestResponse rest = response.getRestResponse();
-
         if (servletResponse instanceof Response) {
             // the standard API for setting reason and code is deprecated
             ((Response)servletResponse).setStatusWithReason(
@@ -359,6 +362,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                     }
                 }
 
+                opMonitoringData.setRequestAttachmentCount(0);
                 opMonitoringData.setRequestRestSize(restRequest.getMessageBytes().length
                         + enc.getAttachmentsByteCount());
 

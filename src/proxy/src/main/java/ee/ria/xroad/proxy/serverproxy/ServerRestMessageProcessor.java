@@ -101,6 +101,7 @@ import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
+import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
 class ServerRestMessageProcessor extends MessageProcessorBase {
@@ -148,6 +149,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             logResponseMessage();
             writeSignature();
             close();
+            postprocess();
         } catch (Exception ex) {
             handleException(ex);
         } finally {
@@ -227,6 +229,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
     private void updateOpMonitoringDataByRequest() {
         updateOpMonitoringDataByRestRequest(opMonitoringData, requestMessage.getRest());
+        opMonitoringData.setRequestAttachmentCount(0);
         opMonitoringData.setRequestRestSize(requestMessage.getRest().getMessageBytes().length
                 + decoder.getAttachmentsByteCount());
     }
@@ -367,7 +370,9 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
         final HttpContext ctx = new BasicHttpContext();
         ctx.setAttribute(ServiceId.class.getName(), requestServiceId);
+        opMonitoringData.setRequestOutTs(getEpochMillisecond());
         final HttpResponse response = httpClient.execute(req, ctx);
+        opMonitoringData.setResponseInTs(getEpochMillisecond());
         final StatusLine statusLine = response.getStatusLine();
 
         //calculate request hash
@@ -401,6 +406,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             EntityUtils.consume(response.getEntity());
         }
 
+        opMonitoringData.setResponseAttachmentCount(0);
         opMonitoringData.setResponseRestSize(restResponse.getMessageBytes().length + encoder.getAttachmentsByteCount());
     }
 
