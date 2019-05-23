@@ -114,16 +114,10 @@ const router = new Router({
             },
             {
               name: RouteName.SubsystemLocalGroups,
-              path: '/subsystem/groups/:id',
+              path: '/subsystem/localgroups/:id',
               component: LocalGroups,
               props: true,
               meta: { permission: Permissions.VIEW_CLIENT_LOCAL_GROUPS },
-            },
-            {
-              name: RouteName.SubsystemLocalGroups,
-              path: '/subsystem/logalgroups/:id',
-              component: LocalGroups,
-              props: true,
             },
           ],
         },
