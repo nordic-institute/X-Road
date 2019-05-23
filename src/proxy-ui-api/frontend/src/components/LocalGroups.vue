@@ -105,7 +105,7 @@ export default Vue.extend({
       console.log(mysearch);
 
       const re = new RegExp(mysearch, 'i');
-      let filtered = this.groups.filter((g) => {
+      const filtered = this.groups.filter((g) => {
         // Check the grop code
         if (g.code.includes(mysearch)) {
           return true;
