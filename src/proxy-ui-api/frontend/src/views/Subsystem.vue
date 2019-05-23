@@ -15,11 +15,6 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-/*
-import ClientDetails from '@/components/ClientDetails.vue';
-import InternalServers from '@/components/InternalServers.vue';
-import LocalGroups from '@/components/LocalGroups.vue';
-*/
 import { Permissions, RouteName } from '@/global';
 
 export default Vue.extend({
