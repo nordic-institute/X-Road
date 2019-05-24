@@ -60,7 +60,7 @@ public class GroupsServiceIntegrationTest {
     private static final String NEW_GROUP_DESC = "bar";
 
     @Autowired
-    private GroupsService groupsService;
+    private GroupService groupsService;
 
     private ClientId getM1Ss1ClientId() {
         return ClientId.create("FI", "GOV", "M1", "SS1");
@@ -102,7 +102,7 @@ public class GroupsServiceIntegrationTest {
     public void updateDescription() {
         LocalGroupType localGroupType = groupsService.getLocalGroup(GROUPCODE, getM1Ss1ClientId());
         assertEquals(localGroupType.getDescription(), GROUP_DESC);
-        groupsService.updateDescription(localGroupType, NEW_GROUP_DESC);
+        groupsService.updateDescription(getM1Ss1ClientId(), GROUPCODE, NEW_GROUP_DESC);
         localGroupType = groupsService.getLocalGroup(GROUPCODE, getM1Ss1ClientId());
         assertEquals(localGroupType.getDescription(), NEW_GROUP_DESC);
     }

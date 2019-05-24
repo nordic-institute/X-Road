@@ -36,6 +36,12 @@ public final class FormatUtils {
         // noop
     }
 
+    /**
+     * Converts Date to OffsetDateTime with ZoneOffset.UTC
+     * @param date
+     * @return OffsetDateTime with offset ZoneOffset.UTC
+     * @see ZoneOffset#UTC
+     */
     public static OffsetDateTime fromDateToOffsetDateTime(Date date) {
         return date.toInstant().atOffset(ZoneOffset.UTC);
     }

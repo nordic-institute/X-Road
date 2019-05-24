@@ -33,12 +33,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.repository.ClientRepository;
-import org.niis.xroad.restapi.repository.GroupsRepository;
+import org.niis.xroad.restapi.repository.GroupRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -50,9 +51,9 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @PreAuthorize("denyAll")
-public class GroupsService {
+public class GroupService {
 
-    private final GroupsRepository groupsRepository;
+    private final GroupRepository groupsRepository;
     private final ClientRepository clientRepository;
 
     /**
@@ -61,7 +62,7 @@ public class GroupsService {
      * @param clientRepository
      */
     @Autowired
-    public GroupsService(GroupsRepository groupsRepository, ClientRepository clientRepository) {
+    public GroupService(GroupRepository groupsRepository, ClientRepository clientRepository) {
         this.groupsRepository = groupsRepository;
         this.clientRepository = clientRepository;
     }
@@ -74,16 +75,21 @@ public class GroupsService {
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
     public LocalGroupType getLocalGroup(String groupCode, ClientId clientId) {
-        return groupsRepository.getLocalGroupType(groupCode, clientId);
+        return groupsRepository.getLocalGroup(groupCode, clientId);
     }
 
     /**
      * Edit local group description
-     * @param localGroupType
+     * @param id
+     * @param groupCode
      * @return LocalGroupType
      */
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_DESC')")
-    public LocalGroupType updateDescription(LocalGroupType localGroupType, String description) {
+    public LocalGroupType updateDescription(ClientId id, String groupCode, String description) {
+        LocalGroupType localGroupType = getLocalGroup(groupCode, id);
+        if (localGroupType == null) {
+            throw new NotFoundException("LocalGroup with code " + groupCode + " not found");
+        }
         localGroupType.setDescription(description);
         groupsRepository.saveOrUpdate(localGroupType);
         return localGroupType;
@@ -112,14 +118,39 @@ public class GroupsService {
     }
 
     /**
-     * Adds a member to local group
-     * @param localGroupType
-     * @param localGroupMember
+     * Adds a member to LocalGroup
+     * @param id
+     * @param groupCode
+     * @param memberId
      */
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
-    public void addLocalGroupMember(LocalGroupType localGroupType, GroupMemberType localGroupMember) {
-        groupsRepository.saveOrUpdate(localGroupMember);
-        localGroupType.getGroupMember().add(localGroupMember);
+    public void addLocalGroupMember(ClientId id, String groupCode, ClientId memberId) {
+        LocalGroupType localGroupType = getLocalGroup(groupCode, id);
+
+        if (localGroupType == null) {
+            throw new NotFoundException("group with code " + groupCode + " not found");
+        }
+
+        ClientType memberToBeAdded = clientRepository.getClient(memberId);
+
+        if (memberToBeAdded == null) {
+            throw new NotFoundException("client with id " + memberId.toShortString() + " not found");
+        }
+
+        boolean isAdded = localGroupType.getGroupMember().stream().anyMatch(groupMemberType ->
+                groupMemberType.getGroupMemberId().toShortString().trim()
+                        .equals(memberToBeAdded.getIdentifier().toShortString().trim()));
+
+        if (isAdded) {
+            throw new ConflictException("local group member already exists in group: " + groupCode);
+        }
+
+        GroupMemberType groupMemberType = new GroupMemberType();
+        groupMemberType.setAdded(new Date());
+        groupMemberType.setGroupMemberId(memberToBeAdded.getIdentifier());
+
+        groupsRepository.saveOrUpdate(groupMemberType);
+        localGroupType.getGroupMember().add(groupMemberType);
         groupsRepository.saveOrUpdate(localGroupType);
     }
 

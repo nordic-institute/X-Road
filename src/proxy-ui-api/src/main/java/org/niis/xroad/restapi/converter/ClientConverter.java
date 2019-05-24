@@ -125,9 +125,10 @@ public class ClientConverter {
     }
 
     /**
+     * Convert a list of encoded member ids to ClientIds
      * @param encodedIds
      * @return List of ClientIds
-     * @throws BadRequestException
+     * @throws BadRequestException if encoded id could not be decoded
      */
     public List<ClientId> convertIds(List<String> encodedIds) throws BadRequestException {
         return encodedIds.stream().map(this::convertId).collect(Collectors.toList());

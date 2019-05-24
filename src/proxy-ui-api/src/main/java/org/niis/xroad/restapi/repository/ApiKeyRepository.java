@@ -25,20 +25,18 @@
 package org.niis.xroad.restapi.repository;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Session;
 import org.niis.xroad.restapi.dao.PersistentApiKeyDAOImpl;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.exceptions.InvalidParametersException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.persistence.EntityManager;
 
 import java.util.AbstractMap;
 import java.util.Collection;
@@ -61,15 +59,14 @@ public class ApiKeyRepository {
     public static final String GET_KEY_CACHE = "apikey-by-keys";
     public static final String LIST_ALL_KEYS_CACHE = "all-apikeys";
 
-    @Autowired
-    private EntityManager entityManager;
+    private final PasswordEncoder passwordEncoder;
+    private final PersistenceUtils persistenceUtils;
 
-    private Session getCurrentSession() {
-        return entityManager.unwrap(Session.class);
+    @Autowired
+    public ApiKeyRepository(PasswordEncoder passwordEncoder, PersistenceUtils persistenceUtils) {
+        this.passwordEncoder = passwordEncoder;
+        this.persistenceUtils = persistenceUtils;
     }
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     /**
      * Api keys are created with UUID.randomUUID which uses SecureRandom,
@@ -83,7 +80,7 @@ public class ApiKeyRepository {
     /**
      * create api key with one role
      */
-    @CacheEvict(allEntries = true, cacheNames = {LIST_ALL_KEYS_CACHE, GET_KEY_CACHE})
+    @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public Map.Entry<String, PersistentApiKeyType> create(String roleName) {
         return create(Collections.singletonList(roleName));
     }
@@ -92,7 +89,7 @@ public class ApiKeyRepository {
      * create api key with collection of roles
      * @return Map.Entry with key = plaintext key, value = PersistentApiKeyType
      */
-    @CacheEvict(allEntries = true, cacheNames = {LIST_ALL_KEYS_CACHE, GET_KEY_CACHE})
+    @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public Map.Entry<String, PersistentApiKeyType> create(Collection<String> roleNames) {
         if (roleNames.isEmpty()) {
             throw new InvalidParametersException("missing roles");
@@ -102,7 +99,7 @@ public class ApiKeyRepository {
         String encodedKey = encode(plainKey);
         PersistentApiKeyType apiKey = new PersistentApiKeyType(encodedKey, Collections.unmodifiableCollection(roles));
         PersistentApiKeyDAOImpl apiKeyDAO = new PersistentApiKeyDAOImpl();
-        apiKeyDAO.insert(getCurrentSession(), apiKey);
+        apiKeyDAO.insert(persistenceUtils.getCurrentSession(), apiKey);
         Map.Entry<String, PersistentApiKeyType> entry =
                 new AbstractMap.SimpleImmutableEntry<>(plainKey, apiKey);
         return entry;
@@ -111,7 +108,6 @@ public class ApiKeyRepository {
     private String encode(String key) {
         return passwordEncoder.encode(key);
     }
-
 
 
     /**
@@ -123,7 +119,7 @@ public class ApiKeyRepository {
     @Cacheable(GET_KEY_CACHE)
     public PersistentApiKeyType get(String key) throws NotFoundException {
         String encodedKey = passwordEncoder.encode(key);
-        List<PersistentApiKeyType> keys = new PersistentApiKeyDAOImpl().findAll(getCurrentSession());
+        List<PersistentApiKeyType> keys = new PersistentApiKeyDAOImpl().findAll(persistenceUtils.getCurrentSession());
         for (PersistentApiKeyType apiKeyType : keys) {
             if (apiKeyType.getEncodedKey().equals(encodedKey)) {
                 return apiKeyType;
@@ -137,10 +133,10 @@ public class ApiKeyRepository {
      * @param key
      * @throws NotFoundException if api key was not found
      */
-    @CacheEvict(allEntries = true, cacheNames = {LIST_ALL_KEYS_CACHE, GET_KEY_CACHE})
+    @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public void remove(String key) throws NotFoundException {
         PersistentApiKeyType apiKeyType = get(key);
-        new PersistentApiKeyDAOImpl().delete(getCurrentSession(), apiKeyType);
+        new PersistentApiKeyDAOImpl().delete(persistenceUtils.getCurrentSession(), apiKeyType);
     }
 
     /**
@@ -148,14 +144,14 @@ public class ApiKeyRepository {
      * @param id
      * @throws NotFoundException if api key was not found
      */
-    @CacheEvict(allEntries = true, cacheNames = {LIST_ALL_KEYS_CACHE, GET_KEY_CACHE})
+    @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public void removeById(long id) throws NotFoundException {
         PersistentApiKeyDAOImpl dao = new PersistentApiKeyDAOImpl();
-        PersistentApiKeyType apiKeyType = dao.findById(getCurrentSession(), id);
+        PersistentApiKeyType apiKeyType = dao.findById(persistenceUtils.getCurrentSession(), id);
         if (apiKeyType == null) {
             throw new NotFoundException("api key with id " + id + " not found");
         }
-        dao.delete(getCurrentSession(), apiKeyType);
+        dao.delete(persistenceUtils.getCurrentSession(), apiKeyType);
     }
 
     /**
@@ -164,6 +160,6 @@ public class ApiKeyRepository {
      */
     @Cacheable(LIST_ALL_KEYS_CACHE)
     public List<PersistentApiKeyType> listAll() {
-        return new PersistentApiKeyDAOImpl().findAll(getCurrentSession());
+        return new PersistentApiKeyDAOImpl().findAll(persistenceUtils.getCurrentSession());
     }
 }

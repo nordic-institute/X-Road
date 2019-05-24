@@ -26,7 +26,6 @@ package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.ClientId;
 
@@ -37,7 +36,6 @@ import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.ConnectionTypeMapping;
 import org.niis.xroad.restapi.converter.GroupConverter;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
-import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.ErrorCode;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
@@ -47,7 +45,7 @@ import org.niis.xroad.restapi.openapi.model.Group;
 import org.niis.xroad.restapi.openapi.model.InlineObject;
 import org.niis.xroad.restapi.openapi.model.InlineObject1;
 import org.niis.xroad.restapi.service.ClientService;
-import org.niis.xroad.restapi.service.GroupsService;
+import org.niis.xroad.restapi.service.GroupService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -62,7 +60,6 @@ import org.springframework.web.context.request.NativeWebRequest;
 import java.io.IOException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -80,7 +77,7 @@ public class ClientsApiController implements ClientsApi {
     private final ClientConverter clientConverter;
     private final ClientService clientService;
     private final GroupConverter groupConverter;
-    private final GroupsService groupsService;
+    private final GroupService groupsService;
     private final NativeWebRequest request;
     private final TokenService tokenService;
     private final CertificateDetailsConverter certificateDetailsConverter;
@@ -97,7 +94,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Autowired
     public ClientsApiController(NativeWebRequest request, ClientService clientService, TokenService tokenService,
-            ClientConverter clientConverter, GroupConverter groupConverter, GroupsService groupsService,
+            ClientConverter clientConverter, GroupConverter groupConverter, GroupService groupsService,
             CertificateDetailsConverter certificateDetailsConverter) {
         this.request = request;
         this.clientService = clientService;
@@ -260,7 +257,8 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_DESC')")
     public ResponseEntity<Group> updateGroup(String id, String groupCode, String description) {
-        LocalGroupType localGroupType = groupsService.updateDescription(getLocalGroupType(id, groupCode), description);
+        LocalGroupType localGroupType = groupsService.updateDescription(clientConverter.convertId(id), groupCode,
+                description);
         return new ResponseEntity<>(groupConverter.convert(localGroupType), HttpStatus.OK);
     }
 
@@ -280,18 +278,8 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
     public ResponseEntity<Void> addGroupMember(String id, String code, InlineObject memberIdWrapper) {
-        LocalGroupType localGroupType = getLocalGroupType(id, code);
-        ClientType memberToBeAdded = getClientType(memberIdWrapper.getId());
-        boolean isAdded = localGroupType.getGroupMember().stream().anyMatch(groupMemberType ->
-                groupMemberType.getGroupMemberId().toShortString().trim()
-                        .equals(memberToBeAdded.getIdentifier().toShortString().trim()));
-        if (isAdded) {
-            throw new ConflictException("local group member already exists in group: " + code);
-        }
-        GroupMemberType groupMemberType = new GroupMemberType();
-        groupMemberType.setAdded(new Date());
-        groupMemberType.setGroupMemberId(memberToBeAdded.getIdentifier());
-        groupsService.addLocalGroupMember(localGroupType, groupMemberType);
+        groupsService.addLocalGroupMember(clientConverter.convertId(id), code,
+                clientConverter.convertId(memberIdWrapper.getId()));
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -324,13 +312,10 @@ public class ClientsApiController implements ClientsApi {
      * BadRequestException is needed
      */
     private LocalGroupType getLocalGroupType(String encodedId, String code) {
-        ClientType clientType = getClientType(encodedId);
-        Optional<LocalGroupType> localGroupType = clientType.getLocalGroup().stream()
-                .filter(group -> group.getGroupCode().equals(code))
-                .findFirst();
-        if (!localGroupType.isPresent()) {
+        LocalGroupType localGroupType = groupsService.getLocalGroup(code, clientConverter.convertId(encodedId));
+        if (localGroupType == null) {
             throw new NotFoundException("LocalGroup with code " + code + " not found");
         }
-        return localGroupType.get();
+        return localGroupType;
     }
 }

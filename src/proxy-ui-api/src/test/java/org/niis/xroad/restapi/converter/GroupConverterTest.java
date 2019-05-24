@@ -31,10 +31,13 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.openapi.model.Group;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Date;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Test GroupConverter
@@ -76,7 +79,9 @@ public class GroupConverterTest {
         localGroupType.setUpdated(new Date());
         localGroupType.getGroupMember().add(groupMemberType);
 
-        groupConverter.convert(localGroupType);
+        Group group = groupConverter.convert(localGroupType);
+
+        assertEquals(1, group.getMembers().size());
     }
 
     @Test
@@ -89,5 +94,9 @@ public class GroupConverterTest {
         localGroupType.setUpdated(new Date());
 
         groupConverter.convert(localGroupType);
+
+        Group group = groupConverter.convert(localGroupType);
+
+        assertEquals(0, group.getMembers().size());
     }
 }

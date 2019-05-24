@@ -41,16 +41,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Repository
 @Transactional
-public class GroupsRepository {
+public class GroupRepository {
 
     private final PersistenceUtils persistenceUtils;
 
     @Autowired
-    public GroupsRepository(PersistenceUtils persistenceUtils) {
+    public GroupRepository(PersistenceUtils persistenceUtils) {
         this.persistenceUtils = persistenceUtils;
     }
 
-    public LocalGroupType getLocalGroupType(String groupCode, ClientId clientId) {
+    public LocalGroupType getLocalGroup(String groupCode, ClientId clientId) {
         LocalGroupDAOImpl localGroupDAO = new LocalGroupDAOImpl();
         return localGroupDAO.findLocalGroup(persistenceUtils.getCurrentSession(), groupCode, clientId);
     }

@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.converter;
 
+import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 
 import org.niis.xroad.restapi.openapi.model.Group;
@@ -64,13 +65,7 @@ public class GroupConverter {
         group.setDescription(localGroupType.getDescription());
         group.setUpdatedAt(FormatUtils.fromDateToOffsetDateTime(localGroupType.getUpdated()));
         group.setMemberCount(localGroupType.getGroupMember().size());
-        group.setMembers(localGroupType.getGroupMember().stream().map(groupMemberType -> {
-            GroupMember groupMember = new GroupMember();
-            groupMember.setId(clientConverter.convertId(groupMemberType.getGroupMemberId()));
-            groupMember.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(groupMemberType.getAdded()));
-            groupMember.setName(globalConfWrapper.getMemberName(groupMemberType.getGroupMemberId()));
-            return groupMember;
-        }).collect(Collectors.toList()));
+        group.setMembers(localGroupType.getGroupMember().stream().map(this::convert).collect(Collectors.toList()));
 
         return group;
     }
@@ -86,7 +81,7 @@ public class GroupConverter {
     }
 
     /**
-     * Converts Group to LocalGroupType
+     * Converts Group to LocalGroupType. Ignores Group#id field since it is obsolete in LocalGroupType
      * @param group
      * @return LocalGroupType
      */
@@ -96,7 +91,38 @@ public class GroupConverter {
         localGroupType.setDescription(group.getDescription());
         localGroupType.setGroupCode(group.getCode());
         localGroupType.setUpdated(new Date());
+        if (group.getMembers() != null) {
+            localGroupType.getGroupMember().addAll(group.getMembers().stream()
+                    .map(this::convert).collect(Collectors.toList()));
+        }
 
         return localGroupType;
+    }
+
+    /**
+     * Converts GroupMember to GroupMemberType. Ignores id field
+     * @param groupMember
+     * @return GroupMemberType
+     */
+    private GroupMemberType convert(GroupMember groupMember) {
+        GroupMemberType groupMemberType = new GroupMemberType();
+
+        groupMemberType.setGroupMemberId(clientConverter.convertId(groupMember.getId()));
+        groupMemberType.setAdded(new Date(groupMember.getCreatedAt().toEpochSecond()));
+
+        return groupMemberType;
+    }
+
+    /**
+     * Converts GroupMemberType to GroupMember. Ignores id field
+     * @param groupMemberType
+     * @return GroupMember
+     */
+    public GroupMember convert(GroupMemberType groupMemberType) {
+        GroupMember groupMember = new GroupMember();
+        groupMember.setId(clientConverter.convertId(groupMemberType.getGroupMemberId()));
+        groupMember.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(groupMemberType.getAdded()));
+        groupMember.setName(globalConfWrapper.getMemberName(groupMemberType.getGroupMemberId()));
+        return groupMember;
     }
 }
