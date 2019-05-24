@@ -27,7 +27,9 @@ package ee.ria.xroad.common.conf.serverconf.dao;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 
-import org.hibernate.Criteria;
+import org.hibernate.Session;
+
+import javax.persistence.criteria.CriteriaQuery;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
 import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
@@ -54,7 +56,7 @@ public class ServerConfDAOImpl {
      * @return true, if configuration exists in the database
      * @throws Exception if an error occurs
      */
-    public boolean confExists() throws Exception {
+    public boolean confExists() {
         return getFirst(ServerConfType.class) != null;
     }
 
@@ -64,19 +66,20 @@ public class ServerConfDAOImpl {
     public ServerConfType getConf() {
         ServerConfType confType = getFirst(ServerConfType.class);
         if (confType == null) {
-            throw new CodedException(X_MALFORMED_SERVERCONF,
-                    "Server conf is not initialized!");
+            throw new CodedException(X_MALFORMED_SERVERCONF, "Server conf is not initialized!");
         }
 
         return confType;
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> T getFirst(final Class<?> clazz) {
-        Criteria c = get().getSession().createCriteria(clazz);
-        c.setFirstResult(0);
-        c.setMaxResults(1);
-        T t = (T) c.uniqueResult();
-        return t;
+    private <T> T getFirst(final Class<T> clazz) {
+        final Session session = get().getSession();
+        final CriteriaQuery<T> q = session.getCriteriaBuilder().createQuery(clazz);
+        q.select(q.from(clazz));
+
+        return session.createQuery(q)
+                .setFirstResult(0)
+                .setMaxResults(1)
+                .uniqueResult();
     }
 }

@@ -42,10 +42,11 @@ public class IdentifierDAOImpl extends AbstractDAOImpl<XRoadId> {
      * @param <T> the type of the example
      * @return the identifier
      * @throws Exception if an error occurs
+     * @deprecated Only used by the admin ui from ruby code, to be removed
      */
     @SuppressWarnings("unchecked")
-    public static <T extends XRoadId> T getIdentifier(T example)
-            throws Exception {
+    @Deprecated
+    public static <T extends XRoadId> T getIdentifier(T example) {
         Criteria criteria =
                 get().getSession().createCriteria(example.getClass());
         criteria.add(Example.create(example));

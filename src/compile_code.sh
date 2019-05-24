@@ -11,6 +11,9 @@ case "$i" in
     "sonar"|"-sonar")
         SONAR=1
         ;;
+    "-nodaemon")
+        NODAEMON=1
+        ;;
 esac
 done
 
@@ -18,6 +21,10 @@ ARGUMENTS=("-PxroadBuildType=$RELEASE" --stacktrace buildAll runProxyTest runMet
 
 if [[ -n "$SONAR" ]]; then
     ARGUMENTS+=(dependencyCheckAnalyze sonarqube)
+fi
+
+if [[ -n "$NODAEMON" ]]; then
+    ARGUMENTS+=(--no-daemon)
 fi
 
 ./gradlew "${ARGUMENTS[@]}"
