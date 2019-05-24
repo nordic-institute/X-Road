@@ -26,14 +26,11 @@ else
     echo "WARN: Installed version ($INSTALLED_VERSION) does not match packaged version ($PACKAGED_VERSION)" >&2
 fi
 
-if [  -z "${XROAD_AUTOLOGIN_PIN}" ]
+if [  -n "$XROAD_TOKEN_PIN" ]
 then
-    # Optional notification if we want to notify user of optional XROAD_AUTOLOGIN_PIN environment variable. Leaving blank for now.
-    echo ""
-else
-    echo "XROAD_AUTOLOGIN_PIN variable set, writing to /etc/xroad/autologin"
-    echo ${XROAD_AUTOLOGIN_PIN} > /etc/xroad/autologin
-    unset XROAD_AUTOLOGIN_PIN
+    echo "XROAD_TOKEN_PIN variable set, writing to /etc/xroad/autologin"
+    echo "$XROAD_TOKEN_PIN" > /etc/xroad/autologin
+    unset XROAD_TOKEN_PIN
 fi
 
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf

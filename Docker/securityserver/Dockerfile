@@ -50,4 +50,3 @@ CMD ["/root/entrypoint.sh"]
 VOLUME /var/lib/postgresql/10/main
 VOLUME /etc/xroad
 EXPOSE 80 443 4000 5500 5577
-ENV XROAD_AUTOLOGIN_PIN=""

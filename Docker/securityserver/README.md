@@ -14,7 +14,8 @@ Admin UI credentials: xrd/secret
 ## Running
 ```
 # Publish the container ports (80 and/or 443, 4000, and optionally 5500 and 5577) e.g. to localhost (loopback address).
-docker run -p 4000:4000 -p 4001:80 --name my-ss niis/xroad-security-server
+# One can pass the token pin code for autologin using XROAD_TOKEN_PIN environment variable
+docker run -p 4000:4000 -p 4001:80 --name my-ss -e XROAD_TOKEN_PIN=1234 niis/xroad-security-server
 
 # Running exact version instead of the default latest version
 docker run -p 4000:4000 -p 4001:80 --name my-ss niis/xroad-security-server:bionic-6.20.0
@@ -32,6 +33,39 @@ docker network create -d bridge x-road-network
 docker run -p 4000:4000 -p 4001:80 --network x-road-network --name my-ss1 niis/xroad-security-server
 docker run -p 4100:4000 -p 4101:80 --network x-road-network --name my-ss2 niis/xroad-security-server
 
+```
+
+## Running multiple security servers via docker-compose
+
+docker-compose.yml example file:
+
+```yaml
+version: '3.3'
+
+services:
+  my-ss-1:
+    image: niis/xroad-security-server:latest
+    environment:
+      - XROAD_TOKEN_PIN="1234"
+    ports:
+      - "4000:4000"
+      - "4001:80"
+    networks:
+      - x-road-network
+
+  my-ss-2:
+    image: niis/xroad-security-server:latest
+    environment:
+      - XROAD_TOKEN_PIN="1234"
+    ports:
+      - "4100:4000"
+      - "4101:80"
+    networks:
+      - x-road-network
+
+networks:
+  x-road-network:
+    driver: bridge
 ```
 
 ## Notes
