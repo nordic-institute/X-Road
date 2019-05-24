@@ -168,7 +168,7 @@ Description: Automatic token pin code entry
 Package: xroad-proxy-ui-api
 Architecture: amd64
 # Depends:
-Depends: ${misc:Depends}
+Depends: ${misc:Depends}, xroad-base
 # Depends: ${misc:Depends}, xroad-proxy (=${binary:Version})
 Replaces: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
