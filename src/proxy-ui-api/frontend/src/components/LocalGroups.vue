@@ -96,30 +96,8 @@ export default Vue.extend({
       console.log('add');
     },
 
-    filtered() {
-      const mysearch = this.search.toString().toLowerCase();
-      if (mysearch.trim() === '') {
-        return this.groups;
-      }
-
-      console.log(mysearch);
-
-      const re = new RegExp(mysearch, 'i');
-      const filtered = this.groups.filter((g) => {
-        // Check the grop code
-        if (g.code.includes(mysearch)) {
-          return true;
-        }
-
-        // Check also description
-        if (g.description.includes(mysearch)) {
-          return true;
-        }
-
-        return false;
-      });
-
-      return filtered;
+    filtered(): any[] {
+      return selectedFilter(this.groups, this.search, 'id');
     },
 
     showAddGroup() {
