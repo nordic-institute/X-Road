@@ -2843,11 +2843,9 @@ components:
     ApiKeyAuth:
       type: apiKey
       in: header
-      name: XROAD-API-KEY
-    CookieAuth:
-      type: apiKey
-      in: cookie
-      name: JSESSIONID
+      name: Authorization
+      description: X-Road-ApiKey token=<api key>
+      #https://github.com/nordic-institute/X-Road-REST-UI/blob/XRDDEV-237/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#1911-creating-new-api-keys
   schemas:
     AccessRight: # ok
       type: object

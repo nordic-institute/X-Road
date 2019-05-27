@@ -7,7 +7,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Authentication
-  version: "1.0.0"
+  version: "1.0.1"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -32,20 +32,24 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/LoginRequest'
-      security:
-        - CookieAuth: []
       responses:
         '200':
           description: >
             Successfully authenticated.
             The session ID is returned in a cookie named `JSESSIONID`. You need to include this cookie in subsequent requests.
-          headers: 
+          headers:
             Set-Cookie:
-              schema: 
+              description: session cookie
+              schema:
                 type: string
                 minLength: 1
                 maxLength: 255
                 example: JSESSIONID=abcde12345; Path=/;
+            "\0Set-Cookie":
+              description: CSRF token
+              schema:
+                type: string
+                example: CSRF-TOKEN=fghijk678910; Path=/; HttpOnly
         '400':
           description: request was invalid
         '401':
@@ -67,8 +71,6 @@ paths:
       summary: logout from the UI
       operationId: logout
       description: SS administrator logs out from UI.
-      security:
-        - ApiKeyAuth: []
       responses:
         '204':
           description: deletion was successful
@@ -84,16 +86,13 @@ paths:
           description: internal server error
 components:
   securitySchemes:
-    ApiKeyAuth:
-      type: apiKey
-      in: header
-      name: XROAD-API-KEY
     CookieAuth:
       type: apiKey
       in: cookie
       name: JSESSIONID
   schemas:
     LoginRequest: # ok
+      type: object
       required:
         - username
         - password
@@ -110,4 +109,5 @@ components:
           example: Password123
           minLength: 4
           maxLength: 255
-      type: object
+security:
+  - CookieAuth: []
