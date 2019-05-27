@@ -22,42 +22,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package ee.ria.xroad.common.conf.serverconf.dao;
 
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
+import ee.ria.xroad.common.identifier.ClientId;
 
-import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Session;
 
 /**
- * test ClientRepository
+ * LocalGroupDAO
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureTestDatabase
-@Slf4j
-@Transactional
-public class ClientRepositoryIntegrationTest {
+public class LocalGroupDAOImpl {
 
-    @Autowired
-    private ClientRepository clientRepository;
-
-    @Test
-    public void getAllClients() {
-        List<ClientType> clients = clientRepository.getAllClients();
-        assertEquals(3, clients.size());
+    /**
+     * Return the local group by groupcode and client id
+     * @param session
+     * @param groupCode
+     * @param groupOwnerId
+     * @return LocalGroupType
+     */
+    public LocalGroupType findLocalGroup(Session session, String groupCode, ClientId groupOwnerId) {
+        return new ClientDAOImpl().getClient(session, groupOwnerId).getLocalGroup().stream()
+                .filter(g -> StringUtils.equals(groupCode, g.getGroupCode()))
+                .findFirst().orElse(null);
     }
-
 }
-
-

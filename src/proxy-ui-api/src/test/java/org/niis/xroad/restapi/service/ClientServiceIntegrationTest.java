@@ -190,5 +190,4 @@ public class ClientServiceIntegrationTest {
         clientType = clientService.getClient(id);
         assertEquals(0, clientType.getIsCert().size());
     }
-
 }

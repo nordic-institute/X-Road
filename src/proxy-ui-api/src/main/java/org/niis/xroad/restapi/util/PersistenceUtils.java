@@ -22,42 +22,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.util;
 
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-
-import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Component;
 
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
+import javax.persistence.EntityManager;
 
 /**
- * test ClientRepository
+ * Util class for persistence context helper methods
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureTestDatabase
-@Slf4j
-@Transactional
-public class ClientRepositoryIntegrationTest {
+@Component
+public final class PersistenceUtils {
+
+    private final EntityManager entityManager;
 
     @Autowired
-    private ClientRepository clientRepository;
-
-    @Test
-    public void getAllClients() {
-        List<ClientType> clients = clientRepository.getAllClients();
-        assertEquals(3, clients.size());
+    public PersistenceUtils(EntityManager entityManager) {
+        this.entityManager = entityManager;
     }
 
+    public Session getCurrentSession() {
+        return entityManager.unwrap(Session.class);
+    }
 }
-
-

@@ -22,42 +22,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.util;
 
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-
-import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.Date;
 
 /**
- * test ClientRepository
+ * Format utils
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureTestDatabase
-@Slf4j
-@Transactional
-public class ClientRepositoryIntegrationTest {
-
-    @Autowired
-    private ClientRepository clientRepository;
-
-    @Test
-    public void getAllClients() {
-        List<ClientType> clients = clientRepository.getAllClients();
-        assertEquals(3, clients.size());
+public final class FormatUtils {
+    private FormatUtils() {
+        // noop
     }
 
+    /**
+     * Converts Date to OffsetDateTime with ZoneOffset.UTC
+     * @param date
+     * @return OffsetDateTime with offset ZoneOffset.UTC
+     * @see ZoneOffset#UTC
+     */
+    public static OffsetDateTime fromDateToOffsetDateTime(Date date) {
+        return date.toInstant().atOffset(ZoneOffset.UTC);
+    }
 }
-
-
