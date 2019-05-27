@@ -60,29 +60,7 @@ export default Vue.extend({
 
       dialog: false,
       certificate: null,
-      groups: [
-        {
-          id: 'group123',
-          code: 'groupcode',
-          description: 'description',
-          member_count: 10,
-          updated_at: '2018-12-15T00:00:00.001Z',
-        },
-        {
-          id: 'group345',
-          code: 'groupcode2',
-          description: 'description',
-          member_count: 5,
-          updated_at: '2018-12-15T00:00:00.001Z',
-        },
-        {
-          id: 'ryhmy9',
-          code: 'ryhmy9',
-          description: 'kiksd',
-          member_count: 5,
-          updated_at: '2018-12-15T00:00:00.001Z',
-        },
-      ],
+      groups: [],
     };
   },
   computed: {
@@ -136,7 +114,6 @@ export default Vue.extend({
   margin-top: 40px;
 }
 
-// TODO put this in some shared place ?
 .table-toolbar {
   display: flex;
   flex-direction: row;
