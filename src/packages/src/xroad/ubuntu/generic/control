@@ -172,5 +172,7 @@ Depends: ${misc:Depends}, xroad-base
 # Depends: ${misc:Depends}, xroad-proxy (=${binary:Version})
 Replaces: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
+Pre-depends: xroad-base
+#Pre-depends: xroad-base (=${binary:Version})
 Description: X-Road proxy UI REST API
  REST API for X-Road proxy UI and management operations

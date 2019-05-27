@@ -86,9 +86,18 @@ $ su -c "psql -d serverconf -a -f /create_apikey_tables.sql" postgres
 
 Application listens to https in port 4000.
 
-Since it uses a self-signed certificate (currently in `nginx.p12`
-keystore embedded in the build), clients need to trust this certificate. In browser access this means manually allow exception for
+Since it uses a self-signed certificate, clients need to trust this certificate. In browser access this means manually allow exception for
 "your connection is not secure" warning. For `curl` commands this means `-k` parameter (which you can see used in the examples).
+
+By default the certificate is read from keystore `/etc/xroad/ssl/proxy-ui-api.p12`. 
+This keystore is automatically created when linux packages are installed.
+If this does not suit you (for example in local development environment), you can do one of:
+
+1. copy `proxy-ui-api.p12` from an x-road that has been installed from packages, to local `/etc/xroad/ssl/`
+2. create a new `proxy-ui-api.p12` with password `proxy-ui-api`, following for example [these instructions](https://www.baeldung.com/spring-boot-https-self-signed-certificate) and store this in local `/etc/xroad/ssl/`
+3. store a keystore elsewhere, and configure it's location and password with `ssl.properties`: https://github.com/nordic-institute/X-Road-REST-UI/blob/develop/doc/Manuals/ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-rest-api
+
+(explain certificate file)
 
 # Api key administration
 
