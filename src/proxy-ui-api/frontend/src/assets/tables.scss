@@ -1,4 +1,6 @@
 
+@import './colors';
+
 .detail-table {
   width: 100%;
   margin-top: 40px;
@@ -6,7 +8,7 @@
 
   td {
     height: 48px;
-    border-bottom: #ededed solid 1px;
+    border-bottom: $XRoad-Grey10 solid 1px;
     padding-left: 16px;
   }
   tr td:first-child {
@@ -17,17 +19,17 @@
 
 .xrd-table {
   width: 100%;
-  margin-top: 40px;
+  margin-top: 10px;
   border-collapse: collapse;
 
   td {
     height: 48px;
-    border-bottom: #ededed solid 1px;
+    border-bottom: $XRoad-Grey10 solid 1px;
     padding-left: 16px;
   }
   th {
     height: 48px;
-    border-bottom: #9b9b9b solid 1px;
+    border-bottom: $XRoad-Grey40 solid 1px;
     padding-left: 16px;
     text-align: left;
   }

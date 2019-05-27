@@ -39,7 +39,8 @@ import org.niis.xroad.restapi.converter.GlobalConfWrapper;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
-import org.niis.xroad.restapi.openapi.model.Certificate;
+import org.niis.xroad.restapi.openapi.model.CertificateDetails;
+import org.niis.xroad.restapi.openapi.model.CertificateStatus;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.repository.TokenRepository;
@@ -185,7 +186,7 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = "VIEW_CLIENT_DETAILS")
     public void getClientCertificates() throws Exception {
-        ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Certificate>> certificates =
+        ResponseEntity<List<CertificateDetails>> certificates =
                 clientsApiController.getClientCertificates("FI:GOV:M1");
         assertEquals(HttpStatus.OK, certificates.getStatusCode());
         assertEquals(0, certificates.getBody().size());
@@ -199,7 +200,7 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(HttpStatus.OK, certificates.getStatusCode());
         assertEquals(1, certificates.getBody().size());
 
-        org.niis.xroad.restapi.openapi.model.Certificate onlyCertificate = certificates.getBody().get(0);
+        CertificateDetails onlyCertificate = certificates.getBody().get(0);
         assertEquals("N/A", onlyCertificate.getIssuerCommonName());
         assertEquals(OffsetDateTime.parse("1970-01-01T00:00:00Z"), onlyCertificate.getNotBefore());
         assertEquals(OffsetDateTime.parse("2038-01-01T00:00:00Z"), onlyCertificate.getNotAfter());
@@ -208,7 +209,7 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals("SHA512withRSA", onlyCertificate.getSignatureAlgorithm());
         assertEquals("RSA", onlyCertificate.getPublicKeyAlgorithm());
         assertEquals("A2293825AA82A5429EC32803847E2152A303969C", onlyCertificate.getHash());
-        assertEquals(org.niis.xroad.restapi.openapi.model.State.IN_USE, onlyCertificate.getState());
+        assertEquals(CertificateStatus.IN_USE, onlyCertificate.getStatus());
         assertTrue(onlyCertificate.getSignature().startsWith("314b7a50a09a9b74322671"));
         assertTrue(onlyCertificate.getRsaPublicKeyModulus().startsWith("9d888fbe089b32a35f58"));
         assertEquals(new Integer(65537), onlyCertificate.getRsaPublicKeyExponent());
@@ -299,7 +300,7 @@ public class ClientsApiControllerIntegrationTest {
             "VIEW_CLIENT_INTERNAL_CERTS" })
     public void addTlsCert() throws Exception {
 
-        ResponseEntity<List<Certificate>> certs = clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1);
+        ResponseEntity<List<CertificateDetails>> certs = clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1);
         assertEquals(0, certs.getBody().size());
 
         ResponseEntity<Void> response =
@@ -369,7 +370,7 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1).getBody().size());
 
-        ResponseEntity<Certificate> findResponse =
+        ResponseEntity<CertificateDetails> findResponse =
                 clientsApiController.getClientTlsCertificate(CLIENT_ID_SS1,
                         "63A104B2BAC14667873C5DBD54BE25BC687B3702");
         assertEquals(HttpStatus.OK, findResponse.getStatusCode());

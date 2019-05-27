@@ -29,6 +29,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -68,9 +69,9 @@ public class SystemApiControllerTest {
         }
         given(mockRepository.getInternalTlsCertificate()).willReturn(x509Certificate);
 
-        org.niis.xroad.restapi.openapi.model.Certificate certificate =
+        CertificateDetails certificate =
                 systemApiController.getSystemCertificate().getBody();
-        assertNull(certificate.getState());
+        assertNull(certificate.getStatus());
         assertEquals("xroad2-lxd-ss1", certificate.getIssuerCommonName());
     }
 }

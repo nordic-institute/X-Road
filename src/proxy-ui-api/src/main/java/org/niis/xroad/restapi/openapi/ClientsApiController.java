@@ -31,12 +31,13 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.niis.xroad.restapi.converter.CertificateConverter;
+import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.ConnectionTypeMapping;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.ErrorCode;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
-import org.niis.xroad.restapi.openapi.model.Certificate;
+import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.service.ClientService;
@@ -83,6 +84,9 @@ public class ClientsApiController implements ClientsApi {
     private CertificateConverter certificateConverter;
 
     @Autowired
+    private CertificateDetailsConverter certificateDetailsConverter;
+
+    @Autowired
     public ClientsApiController(NativeWebRequest request) {
         this.request = request;
     }
@@ -99,13 +103,26 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public ResponseEntity<List<Client>> getClients() {
+    public ResponseEntity<List<Client>> getClients(String name, String instance, String propertyClass, String code,
+                                                   String subsystem, Boolean showMembers, Boolean internalSearch) {
+        // no filtering / search yet, returns all
         List<ClientType> clientTypes = clientService.getAllClients();
         List<Client> clients = new ArrayList<>();
         for (ClientType clientType : clientTypes) {
             clients.add(clientConverter.convert(clientType));
         }
         return new ResponseEntity<>(clients, HttpStatus.OK);
+    }
+
+    /**
+     * No argument version to return all clients
+     * @return
+     */
+    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
+    public ResponseEntity<List<Client>> getClients() {
+        final String ignoredSearchParam = null;
+        return getClients(ignoredSearchParam, ignoredSearchParam, ignoredSearchParam, ignoredSearchParam,
+                ignoredSearchParam, null, null);
     }
 
     @Override
@@ -131,12 +148,12 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
-    public ResponseEntity<List<Certificate>> getClientCertificates(String encodedId) {
+    public ResponseEntity<List<CertificateDetails>> getClientCertificates(String encodedId) {
         ClientType clientType = getClientType(encodedId);
         try {
-            List<Certificate> certificates = tokenService.getAllTokens(clientType)
+            List<CertificateDetails> certificates = tokenService.getAllTokens(clientType)
                     .stream()
-                    .map(certificateConverter::convert)
+                    .map(certificateDetailsConverter::convert)
                     .collect(toList());
             return new ResponseEntity<>(certificates, HttpStatus.OK);
         } catch (Exception e) {
@@ -194,23 +211,23 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_INTERNAL_CERT_DETAILS')")
-    public ResponseEntity<Certificate> getClientTlsCertificate(String encodedId, String certHash) {
+    public ResponseEntity<CertificateDetails> getClientTlsCertificate(String encodedId, String certHash) {
         ClientId clientId = clientConverter.convertId(encodedId);
         Optional<CertificateType> certificateType = clientService.getTlsCertificate(clientId, certHash);
         if (!certificateType.isPresent()) {
             throw new NotFoundException("certificate with hash " + certHash
                     + ", client id " + encodedId + " not found");
         }
-        return new ResponseEntity<>(certificateConverter.convert(certificateType.get()), HttpStatus.OK);
+        return new ResponseEntity<>(certificateDetailsConverter.convert(certificateType.get()), HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_INTERNAL_CERTS')")
-    public ResponseEntity<List<Certificate>> getClientTlsCertificates(String encodedId) {
+    public ResponseEntity<List<CertificateDetails>> getClientTlsCertificates(String encodedId) {
         ClientType clientType = getClientType(encodedId);
-        List<Certificate> certificates = clientType.getIsCert()
+        List<CertificateDetails> certificates = clientType.getIsCert()
                 .stream()
-                .map(certificateConverter::convert)
+                .map(certificateDetailsConverter::convert)
                 .collect(toList());
         return new ResponseEntity<>(certificates, HttpStatus.OK);
     }

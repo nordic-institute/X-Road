@@ -2,19 +2,20 @@
   <div>
     <toolbar/>
     <router-view name="top"/>
-
-    <v-layout mt-5 class="full-width">
-      <transition name="fade" mode="out-in">
-        <router-view/>
-      </transition>
+    <v-layout align-center justify-center>
+      <v-layout mt-5 align-center justify-center class="base-full-width">
+        <transition name="fade" mode="out-in">
+          <router-view/>
+        </transition>
+      </v-layout>
     </v-layout>
 
     <v-dialog v-model="logoutDialog" width="500" lazy persistent>
       <v-card class="xroad-card">
         <v-card-title>
-          <span class="headline">Session expired</span>
+          <span class="headline">{{$t('logout.sessionExpired')}}</span>
         </v-card-title>
-        <v-card-text class="pt-4">You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.</v-card-text>
+        <v-card-text class="pt-4">{{$t('logout.idleWarning')}}</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
@@ -23,7 +24,7 @@
             dark
             class="mb-2 rounded-button elevation-0"
             @click="closeLogoutDialog()"
-          >Ok</v-btn>
+          >{{$t('action.ok')}}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -82,7 +83,6 @@ export default Vue.extend({
 </style>
 
 <style lang="scss" scoped>
-
 .base-full-width {
   width: 100%;
   max-width: 1280px;
@@ -98,5 +98,4 @@ export default Vue.extend({
 .fade-leave-active {
   opacity: 0;
 }
-
 </style>

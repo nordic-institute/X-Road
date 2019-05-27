@@ -5,7 +5,7 @@
     </v-flex>
     <v-tabs slot="extension" v-model="tab" class="xr-tabs" color="white" grow>
       <v-tabs-slider color="secondary"></v-tabs-slider>
-      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">{{tab.name}}</v-tab>
+      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">{{ $t(tab.name) }}</v-tab>
     </v-tabs>
 
     <router-view/>
@@ -14,13 +14,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-
 import { mapGetters } from 'vuex';
-/*
-import ClientDetails from '@/components/ClientDetails.vue';
-import InternalServers from '@/components/InternalServers.vue';
-import LocalGroups from '@/components/LocalGroups.vue';
-*/
 import { Permissions, RouteName } from '@/global';
 
 export default Vue.extend({
@@ -37,11 +31,11 @@ export default Vue.extend({
   },
   computed: {
     ...mapGetters(['client']),
-    tabs(): any {
-      return [
+    tabs(): any[] {
+      const allTabs = [
         {
           key: 'details',
-          name: 'Details',
+          name: 'tab.client.details',
           to: {
             name: RouteName.SubsystemDetails,
             params: { id: this.id },
@@ -49,44 +43,50 @@ export default Vue.extend({
         },
         {
           key: 'serviceClients',
-          name: 'Service Clients',
+          name: 'tab.client.serviceClients',
           to: {
-            name: RouteName.SubsystemDetails,
+            name: RouteName.SubsystemServiceClients,
             params: { id: this.id },
           },
+          permission: Permissions.VIEW_CLIENT_ACL_SUBJECTS,
         },
         {
           key: 'services',
-          name: 'Services',
+          name: 'tab.client.services',
           to: {
-            name: RouteName.SubsystemDetails,
+            name: RouteName.SubsystemServices,
             params: { id: this.id },
           },
+          permission: Permissions.VIEW_CLIENT_SERVICES,
         },
         {
           key: 'internalServers',
-          name: 'Internal Servers',
+          name: 'tab.client.internalServers',
           to: {
             name: RouteName.SubsystemServers,
             params: { id: this.id },
           },
+          permission: Permissions.VIEW_CLIENT_INTERNAL_CERTS,
         },
         {
           key: 'localGroups',
-          name: 'Local Groups',
+          name: 'tab.client.localGroups',
           to: {
             name: RouteName.SubsystemLocalGroups,
             params: { id: this.id },
           },
+          permission: Permissions.VIEW_CLIENT_LOCAL_GROUPS,
         },
       ];
+
+      return this.$store.getters.getAllowedTabs(allTabs);
     },
   },
   created() {
     this.fetchClient(this.id);
   },
   methods: {
-    fetchClient(id: string) {
+    fetchClient(id: string): void {
       this.$store.dispatch('fetchClient', id).catch((error) => {
         this.$bus.$emit('show-error', error.message);
       });

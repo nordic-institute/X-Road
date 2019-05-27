@@ -25,8 +25,8 @@
 package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.converter.CertificateConverter;
-import org.niis.xroad.restapi.openapi.model.Certificate;
+import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
+import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.service.InternalTlsCertificateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
@@ -58,7 +58,7 @@ public class SystemApiController implements SystemApi {
     private InternalTlsCertificateService internalTlsCertificateService;
 
     @Autowired
-    private CertificateConverter certificateConverter;
+    private CertificateDetailsConverter certificateDetailsConverter;
 
     @org.springframework.beans.factory.annotation.Autowired
     public SystemApiController(NativeWebRequest request) {
@@ -86,9 +86,9 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_PROXY_INTERNAL_CERT')")
-    public ResponseEntity<Certificate> getSystemCertificate() {
+    public ResponseEntity<CertificateDetails> getSystemCertificate() {
         X509Certificate x509Certificate = internalTlsCertificateService.getInternalTlsCertificate();
-        Certificate certificate = certificateConverter.convert(x509Certificate);
+        CertificateDetails certificate = certificateDetailsConverter.convert(x509Certificate);
         return new ResponseEntity<>(certificate, HttpStatus.OK);
     }
 }
