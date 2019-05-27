@@ -44,6 +44,7 @@ import axios from 'axios';
 
 import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
+import { selectedFilter } from '@/util/helpers';
 
 export default Vue.extend({
   components: {},
