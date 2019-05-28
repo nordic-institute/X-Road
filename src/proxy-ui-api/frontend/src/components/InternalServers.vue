@@ -127,6 +127,12 @@ export default Vue.extend({
             clientId: this.id,
             connType: value,
           })
+          .then((reply) => {
+            this.$bus.$emit(
+              'show-success',
+              this.$t('internalServers.connTypeUpdated'),
+            );
+          })
           .catch((error) => {
             this.revertHack += 1;
             this.$bus.$emit('show-error', error.message);
@@ -273,6 +279,7 @@ export default Vue.extend({
 }
 
 .server-certificates {
+  width: 100%;
   border-top: $XRoad-Grey40 solid 1px;
 }
 

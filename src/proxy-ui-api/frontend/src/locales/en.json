@@ -39,7 +39,8 @@
     "add": "Add",
     "certHash": "Certificate Hash (SHA/1)",
     "ssCertTitle": "Security Server certificate",
-    "export": "Export"
+    "export": "Export",
+    "connTypeUpdated": "Connection type updated"
   },
   "cert": {
     "signCertificate": "Sign Certificate",
