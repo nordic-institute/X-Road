@@ -17,12 +17,9 @@ import Error from '@/views/Error.vue';
 import ClientDetails from '@/components/ClientDetails.vue';
 import InternalServers from '@/components/InternalServers.vue';
 import LocalGroups from '@/components/LocalGroups.vue';
-<<<<<<< HEAD
 import LocalGroup from '@/views/LocalGroup.vue';
-=======
 import Services from '@/components/Services.vue';
 import ServiceClients from '@/components/ServiceClients.vue';
->>>>>>> XRDDEV-518-local-groups-list
 import store from './store';
 import { RouteName, Permissions } from '@/global';
 
