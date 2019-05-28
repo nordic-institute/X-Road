@@ -29,7 +29,7 @@
             </td>
             <td>{{group.description}}</td>
             <td>{{group.member_count}}</td>
-            <td>{{group.updated_at}}</td>
+            <td>{{group.updated_at | formatDate}}</td>
           </tr>
         </template>
       </table>
