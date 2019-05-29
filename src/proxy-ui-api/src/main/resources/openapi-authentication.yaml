@@ -46,10 +46,10 @@ paths:
                 maxLength: 255
                 example: JSESSIONID=abcde12345; Path=/;
             "\0Set-Cookie":
-              description: CSRF token
+              description: XSRF token
               schema:
                 type: string
-                example: CSRF-TOKEN=fghijk678910; Path=/; HttpOnly
+                example: XSRF-TOKEN=fghijk678910; Path=/; HttpOnly
         '400':
           description: request was invalid
         '401':
@@ -71,6 +71,14 @@ paths:
       summary: logout from the UI
       operationId: logout
       description: SS administrator logs out from UI.
+      parameters:
+        - in: header
+          name: X-XSRF-TOKEN
+          schema:
+            type: string
+            format: text
+            example: fghijk678910
+          required: true
       responses:
         '204':
           description: deletion was successful
