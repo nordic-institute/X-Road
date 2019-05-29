@@ -4,7 +4,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.3"
+  version: "1.0.4"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -544,7 +544,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    put: # ok
+    patch: # ok
       tags:
         - security server
       summary: update security server client information
@@ -560,12 +560,14 @@ paths:
             format: text
             minLength: 1
             maxLength: 1023
-        - in: query
-          name: connection_type
-          description: server connection type
-          required: true
-          schema:
-            $ref: '#/components/schemas/ConnectionType'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                connection_type:
+                  $ref: '#/components/schemas/ConnectionType'
       responses:
         '200':
           description: item modified
@@ -692,7 +694,7 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /clients/{id}/groups/{code}:
+  /clients/{id}/groups/{group_id}:
     get: # ok
       tags:
         - security server
@@ -710,8 +712,8 @@ paths:
             minLength: 1
             maxLength: 255
         - in: path
-          name: code
-          description: code of the local group
+          name: group_id
+          description: id of the local group
           required: true
           schema:
             type: string
@@ -754,8 +756,8 @@ paths:
             minLength: 1
             maxLength: 255
         - in: path
-          name: code
-          description: code of the local group
+          name: group_id
+          description: id of the local group
           required: true
           schema:
             type: string
@@ -807,8 +809,8 @@ paths:
             minLength: 1
             maxLength: 255
         - in: path
-          name: code
-          description: code of the local group
+          name: group_id
+          description: id of the local group
           required: true
           schema:
             type: string
@@ -828,7 +830,7 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
-  /clients/{id}/groups/{code}/members:
+  /clients/{id}/groups/{group_id}/members:
     post: # ok
       tags:
         - security server
@@ -846,28 +848,28 @@ paths:
             minLength: 1
             maxLength: 255
         - in: path
-          name: code
-          description: code of the local group
+          name: group_id
+          description: id of the local group
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1023
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
-                id:
-                  type: string
-                  format: text
-                  description: id of the member
-                  minLength: 1
-                  maxLength: 255
-              example:
-                label: My new key
+                items:
+                  type: array
+                  description: array of members to be added
+                  items:
+                    type: string
+                    format: text
+                    minLength: 1
+                    maxLength: 1023
       responses:
         '201':
           description: item created
@@ -885,7 +887,7 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /clients/{id}/groups/{code}/members/delete:
+  /clients/{id}/groups/{group_id}/members/delete:
     post: # ok
       tags:
         - security server
@@ -903,8 +905,8 @@ paths:
             minLength: 1
             maxLength: 255
         - in: path
-          name: code
-          description: code of the local group
+          name: group_id
+          description: id of the local group
           required: true
           schema:
             type: string
@@ -3255,12 +3257,10 @@ components:
         - description
       properties:
         id:
-          type: string
-          format: text
+          type: integer
+          format: uint
           description: unique identifier
-          example: group123
-          minLength: 1
-          maxLength: 255
+          example: 123
         code:
           type: string
           format: text
@@ -3309,7 +3309,7 @@ components:
           description: group member id
           example: FI:GOV:123:SS1
           minLength: 1
-          maxLength: 255
+          maxLength: 1023
         name:
           type: string
           format: text
