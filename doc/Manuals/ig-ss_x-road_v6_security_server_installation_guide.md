@@ -41,6 +41,7 @@ Doc. ID: IG-SS
  25.10.2018 | 2.14    | Add RHEL7 as supported platform, update section 2.2 Reference data | Petteri Kivimäki
  15.11.2018 | 2.15    | Add Ubuntu 18 installation instructions | Jarkko Hyöty
  28.01.2018 | 2.16    | Update port 2080 documentation | Petteri Kivimäki
+ 30.05.2018 | 2.17    | Added package installation instructions on chapter "[2.4 Preparing OS](#24-preparing-os)" | Raul Martinez
   
 ## Table of Contents
 
