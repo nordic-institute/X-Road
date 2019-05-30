@@ -26,6 +26,8 @@ package org.niis.xroad.restapi.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.TransactionDefinition;
 
@@ -40,9 +42,6 @@ import javax.persistence.Query;
 @Component
 public class UsernameSettingTransactionManager extends JpaTransactionManager {
 
-    // TO DO: username of authenticated user
-    private static final String USERNAME = "username-from-txmanager";
-
     @Autowired
     private EntityManager entityManager;
 
@@ -55,7 +54,21 @@ public class UsernameSettingTransactionManager extends JpaTransactionManager {
         super.doBegin(transaction, definition);
         Query query = entityManager.createNativeQuery(
                 "SELECT set_config('xroad.user_name', ?, true);");
-        query.setParameter(1, USERNAME);
+        query.setParameter(1, getCurrentUsername());
         query.getResultList();
+    }
+
+    private String getCurrentUsername() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // Authentication is null if transaction was not due to authenticated user doing something -
+        // e.g. authentication itself created transaction to load api keys from db
+        String username = "unknown_user";
+        if (authentication != null) {
+            // for PreAuthenticatedAuthenticationToken (session cookie auth) and
+            // UsernamePasswordAuthenticationToken (api key auth), principal
+            // is simply a String that contains what we want
+            username = String.valueOf(authentication.getPrincipal());
+        }
+        return username;
     }
 }
