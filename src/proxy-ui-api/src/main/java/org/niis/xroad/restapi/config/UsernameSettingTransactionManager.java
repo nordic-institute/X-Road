@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,8 +39,11 @@ import javax.persistence.Query;
 /**
  * Sets xroad_user_name configuration setting for each transaction.
  * Needed for history table stored procedures.
+ *
+ * Not used in tests (since HSQLDB does not understand set_config)
  */
 @Component
+@Profile("!test")
 public class UsernameSettingTransactionManager extends JpaTransactionManager {
 
     @Autowired
