@@ -176,13 +176,13 @@ Requirements to software and settings:
 
         LC_ALL=en_US.UTF-8
 
--   Ensure that the locale is available
-
-        sudo locale-gen en_US.UTF-8
-
 -   Ensure that the packages `locales` and `software-properties-common` are present
 
         sudo apt-get install locales software-properties-common
+
+-   Ensure that the locale is available
+
+        sudo locale-gen en_US.UTF-8
 
 
 ### 2.5 Installation
