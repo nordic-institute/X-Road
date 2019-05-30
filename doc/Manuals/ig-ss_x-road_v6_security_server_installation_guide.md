@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.16  
+Version: 2.17  
 Doc. ID: IG-SS
 
 ---
