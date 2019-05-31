@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
@@ -31,6 +32,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.GlobalConfWrapper;
 import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.ErrorCode;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
@@ -39,12 +41,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * client service
@@ -58,8 +65,19 @@ public class ClientService {
     public static final String CLIENT_NOT_FOUND_ERROR_CODE = "client_not_found";
     public static final String CERTIFICATE_NOT_FOUND_ERROR_CODE = "certificate_not_found";
 
+    private final ClientRepository clientRepository;
+    private final GlobalConfWrapper globalConfWrapper;
+
+    /**
+     * ClientService constructor
+     * @param clientRepository
+     * @param globalConfWrapper
+     */
     @Autowired
-    private ClientRepository clientRepository;
+    public ClientService(ClientRepository clientRepository, GlobalConfWrapper globalConfWrapper) {
+        this.clientRepository = clientRepository;
+        this.globalConfWrapper = globalConfWrapper;
+    }
 
     /**
      * return all clients
@@ -85,8 +103,8 @@ public class ClientService {
      * @param connectionType
      * @return
      * @throws org.niis.xroad.restapi.exceptions.NotFoundException if
-     * client was not found
-     * @throws IllegalArgumentException if connectionType was not supported value
+     *                                                             client was not found
+     * @throws IllegalArgumentException                            if connectionType was not supported value
      */
     @PreAuthorize("hasAuthority('EDIT_CLIENT_INTERNAL_CONNECTION_TYPE')")
     public ClientType updateConnectionType(ClientId id, String connectionType) {
@@ -106,7 +124,7 @@ public class ClientService {
      * @param certBytes either PEM or DER -encoded certificate
      * @return
      * @throws CertificateException if certBytes was not a valid PEM or DER encoded certificate
-     * @throws ConflictException if the certificate already exists
+     * @throws ConflictException    if the certificate already exists
      */
     @PreAuthorize("hasAuthority('ADD_CLIENT_INTERNAL_CERT')")
     public ClientType addTlsCertificate(ClientId id, byte[] certBytes) throws CertificateException {
@@ -125,7 +143,8 @@ public class ClientService {
                 .filter(cert -> hash.equalsIgnoreCase(calculateCertHexHash(cert.getData())))
                 .findAny()
                 .ifPresent(a -> {
-                    throw new ConflictException("certificate already exists"); });
+                    throw new ConflictException("certificate already exists");
+                });
 
         CertificateType certificateType = new CertificateType();
         try {
@@ -181,7 +200,7 @@ public class ClientService {
                 .findAny()
                 .orElseThrow(() ->
                         new NotFoundException("certificate with hash " + certificateHash + " not found",
-                            ErrorCode.of(CERTIFICATE_NOT_FOUND_ERROR_CODE)));
+                                ErrorCode.of(CERTIFICATE_NOT_FOUND_ERROR_CODE)));
 
         clientType.getIsCert().remove(certificateType);
         clientRepository.saveOrUpdate(clientType);
@@ -204,5 +223,116 @@ public class ClientService {
                 .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
                 .findAny();
         return certificateType;
+    }
+
+    /**
+     * Find clients in the local serverconf
+     * @param name
+     * @param instance
+     * @param propertyClass
+     * @param code
+     * @param subsystem
+     * @param showMembers
+     * @return ClientType list
+     */
+    public List<ClientType> findLocalClients(String name, String instance, String propertyClass, String code,
+            String subsystem, boolean showMembers) {
+        List<Predicate<ClientType>> searchPredicates = buildLocalClientSearchPredicates(name, instance, propertyClass,
+                code, subsystem, showMembers);
+        List<ClientType> clientList = getAllClients().stream()
+                .filter(searchPredicates.stream().reduce(p -> true, Predicate::and))
+                .filter(ct -> showMembers || ct.getIdentifier().getSubsystemCode() != null)
+                .collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(clientList)) {
+            throw new NotFoundException(("no members found with the given search terms"));
+        }
+        return clientList;
+    }
+
+    /**
+     * Find clients in the globalconf
+     * @param name
+     * @param instance
+     * @param propertyClass
+     * @param code
+     * @param subsystem
+     * @param showMembers
+     * @return ClientId list
+     */
+    public List<ClientId> findGlobalClients(String name, String instance, String propertyClass, String code,
+            String subsystem, boolean showMembers) {
+        List<Predicate<ClientId>> searchPredicates = buildGlobalClientSearchPredicates(name, instance, propertyClass,
+                code, subsystem, showMembers);
+        List<ClientId> globalMembers = globalConfWrapper.getGlobalMembers().stream()
+                .map(MemberInfo::getId)
+                .filter(searchPredicates.stream().reduce(p -> true, Predicate::and))
+                .filter(id -> showMembers || id.getSubsystemCode() != null)
+                .collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(globalMembers)) {
+            throw new NotFoundException(("no members found with the given search terms"));
+        }
+        return globalMembers;
+    }
+
+    private List<Predicate<ClientType>> buildLocalClientSearchPredicates(String name, String instance,
+            String propertyClass, String code, String subsystem, boolean showMembers) {
+        List<Predicate<ClientType>> searchPredicates = new ArrayList<>();
+
+        if (!StringUtils.isEmpty(name)) {
+            searchPredicates.add(ct -> globalConfWrapper.getMemberName(ct.getIdentifier()).equals(name));
+        }
+        if (!StringUtils.isEmpty(instance)) {
+            searchPredicates.add(ct -> ct.getIdentifier().getXRoadInstance().equals(instance));
+        }
+        if (!StringUtils.isEmpty(propertyClass)) {
+            searchPredicates.add(ct -> ct.getIdentifier().getMemberClass().equals(propertyClass));
+        }
+        if (!StringUtils.isEmpty(code)) {
+            searchPredicates.add(ct -> ct.getIdentifier().getMemberCode().equals(code));
+        }
+        if (!StringUtils.isEmpty(subsystem)) {
+            searchPredicates.add(ct -> {
+                if (showMembers) {
+                    return ct.getIdentifier().getSubsystemCode() == null
+                            || ct.getIdentifier().getSubsystemCode().equals(subsystem);
+                } else {
+                    return ct.getIdentifier().getSubsystemCode() != null
+                            && ct.getIdentifier().getSubsystemCode().equals(subsystem);
+                }
+            });
+        }
+
+        return searchPredicates;
+    }
+
+    private List<Predicate<ClientId>> buildGlobalClientSearchPredicates(String name, String instance,
+            String propertyClass, String code, String subsystem, boolean showMembers) {
+        List<Predicate<ClientId>> searchPredicates = new ArrayList<>();
+
+        if (!StringUtils.isEmpty(name)) {
+            searchPredicates.add(id -> globalConfWrapper.getMemberName(id).equals(name));
+        }
+        if (!StringUtils.isEmpty(instance)) {
+            searchPredicates.add(id -> id.getXRoadInstance().equals(instance));
+        }
+        if (!StringUtils.isEmpty(propertyClass)) {
+            searchPredicates.add(id -> id.getMemberClass().equals(propertyClass));
+        }
+        if (!StringUtils.isEmpty(code)) {
+            searchPredicates.add(id -> id.getMemberCode().equals(code));
+        }
+        if (!StringUtils.isEmpty(subsystem)) {
+            searchPredicates.add(id -> {
+                if (showMembers) {
+                    return id.getSubsystemCode() == null
+                            || id.getSubsystemCode().equals(subsystem);
+                } else {
+                    return id.getSubsystemCode() != null
+                            && id.getSubsystemCode().equals(subsystem);
+                }
+            });
+        }
+
+        return searchPredicates;
     }
 }

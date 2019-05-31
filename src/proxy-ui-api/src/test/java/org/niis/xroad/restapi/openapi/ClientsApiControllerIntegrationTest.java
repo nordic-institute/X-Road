@@ -137,7 +137,7 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void getClients() {
         ResponseEntity<List<Client>> response =
-                clientsApiController.getClients(null, null, null, null, null, false, false);
+                clientsApiController.getClients();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(3, response.getBody().size());
         Client client = response.getBody().get(0);

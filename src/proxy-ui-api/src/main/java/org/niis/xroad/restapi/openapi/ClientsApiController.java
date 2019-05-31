@@ -53,6 +53,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -115,13 +116,30 @@ public class ClientsApiController implements ClientsApi {
         }
     }
 
+    /**
+     * Finds clients matching search terms
+     * @param name
+     * @param instance
+     * @param propertyClass
+     * @param code
+     * @param subsystem
+     * @param showMembers will be null safely unboxed using Boolean.TRUE.equals(showMembers)
+     * @param internalSearch will only search for local clients
+     * @return
+     */
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public ResponseEntity<List<Client>> getClients(String name, String instance,
-            String propertyClass, String code, String subsystem, Boolean showMembers,
-            Boolean internalSearch) {
-        // no filtering / search yet, returns all
-        List<ClientType> clientTypes = clientService.getAllClients();
+    public ResponseEntity<List<Client>> getClients(String name, String instance, String propertyClass, String code,
+            String subsystem, Boolean showMembers, Boolean internalSearch) {
+        List<ClientType> clientTypes;
+        // if internalSearch --> use findLocalClients
+        if (!StringUtils.isEmpty(name) || !StringUtils.isEmpty(instance) || !StringUtils.isEmpty(propertyClass)
+                || !StringUtils.isEmpty(code) || !StringUtils.isEmpty(subsystem) || showMembers != null) {
+            clientTypes = clientService.findLocalClients(name, instance, propertyClass, code, subsystem,
+                    Boolean.TRUE.equals(showMembers));
+        } else {
+            clientTypes = clientService.getAllClients();
+        }
         List<Client> clients = new ArrayList<>();
         for (ClientType clientType : clientTypes) {
             clients.add(clientConverter.convert(clientType));

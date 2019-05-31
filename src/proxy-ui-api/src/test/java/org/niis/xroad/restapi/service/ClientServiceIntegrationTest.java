@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -33,8 +34,10 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.converter.GlobalConfWrapper;
 import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,7 +46,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -59,7 +64,14 @@ import static org.junit.Assert.fail;
 @Transactional
 public class ClientServiceIntegrationTest {
 
+    private static final String SUBSYSTEM = "SS";
+    private static final String SUBSYSTEM1 = "SS1";
+    private static final String SUBSYSTEM2 = "SS2";
+    private static final String SUBSYSTEM3 = "SS3";
+    private static final String NAME_APPENDIX = "-name";
+
     @Autowired
+    private ClientRepository clientRepository;
     private ClientService clientService;
 
     private byte[] pemBytes;
@@ -68,6 +80,20 @@ public class ClientServiceIntegrationTest {
 
     @Before
     public void setup() throws Exception {
+        GlobalConfWrapper globalConfWrapper = new GlobalConfWrapper() {
+            @Override
+            public List<MemberInfo> getGlobalMembers(String... instanceIdentifiers) {
+                return new ArrayList<>(
+                        Arrays.asList(getMemberInfoWithSubsystem(SUBSYSTEM), getMemberInfoWithSubsystem(SUBSYSTEM1),
+                                getMemberInfoWithSubsystem(SUBSYSTEM2), getMemberInfoWithSubsystem(SUBSYSTEM3)));
+            }
+
+            @Override
+            public String getMemberName(ClientId identifier) {
+                return identifier.getSubsystemCode() + NAME_APPENDIX;
+            }
+        };
+        clientService = new ClientService(clientRepository, globalConfWrapper);
         pemBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
                 getResourceAsStream("google-cert.pem"));
         derBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
@@ -102,6 +128,10 @@ public class ClientServiceIntegrationTest {
 
     private ClientId getM1Ss1ClientId() {
         return ClientId.create("FI", "GOV", "M1", "SS1");
+    }
+
+    private MemberInfo getMemberInfoWithSubsystem(String subsystem) {
+        return new MemberInfo(ClientId.create("FI", "GOV", "M1", subsystem), subsystem + NAME_APPENDIX);
     }
 
     @Test
@@ -189,5 +219,80 @@ public class ClientServiceIntegrationTest {
         clientService.deleteTlsCertificate(id, hash);
         clientType = clientService.getClient(id);
         assertEquals(0, clientType.getIsCert().size());
+    }
+
+    @Test
+    public void findLocalClientsByNameIncludeMembers() {
+        List<ClientType> clients = clientService.findLocalClients(SUBSYSTEM1 + NAME_APPENDIX, null, null,
+                null, null, true);
+        assertEquals(1, clients.size());
+    }
+
+    @Test
+    public void findLocalClientsByInstanceIncludeMembers() {
+        List<ClientType> clients = clientService.findLocalClients(null, "FI", null,
+                null, null, true);
+        assertEquals(3, clients.size());
+    }
+
+    @Test
+    public void findLocalClientsByClassIncludeMembers() {
+        List<ClientType> clients = clientService.findLocalClients(null, null, "GOV",
+                null, null, true);
+        assertEquals(3, clients.size());
+    }
+
+    @Test
+    public void findLocalClientsByInstanceAndMemberCodeIncludeMembers() {
+        List<ClientType> clients = clientService.findLocalClients(null, "FI", null,
+                "M1", null, true);
+        assertEquals(3, clients.size());
+    }
+
+    @Test
+    public void findLocalClientsByAllTermsIncludeMembers() {
+        List<ClientType> clients = clientService.findLocalClients(SUBSYSTEM1 + NAME_APPENDIX, "FI",
+                "GOV", "M1", SUBSYSTEM1, true);
+        assertEquals(1, clients.size());
+    }
+
+    @Test
+    public void findLocalClientsByNameExcludeMembers() {
+        List<ClientType> clients = clientService.findLocalClients(SUBSYSTEM1 + NAME_APPENDIX, null, null,
+                null, null, false);
+        assertEquals(1, clients.size());
+    }
+
+    @Test
+    public void findLocalClientsByInstanceExcludeMembers() {
+        List<ClientType> clients = clientService.findLocalClients(null, "FI", null,
+                null, null, false);
+        assertEquals(2, clients.size());
+    }
+
+    @Test
+    public void findLocalClientsByClassExcludeMembers() {
+        List<ClientType> clients = clientService.findLocalClients(null, null, "GOV",
+                null, null, false);
+        assertEquals(2, clients.size());
+    }
+
+    @Test
+    public void findLocalClientsByInstanceAndMemberCodeExcludeMembers() {
+        List<ClientType> clients = clientService.findLocalClients(null, "FI", null,
+                "M1", null, false);
+        assertEquals(2, clients.size());
+    }
+
+    @Test
+    public void findLocalClientsByAllTermsExcludeMembers() {
+        List<ClientType> clients = clientService.findLocalClients(SUBSYSTEM1 + NAME_APPENDIX, "FI",
+                "GOV", "M1", SUBSYSTEM1, false);
+        assertEquals(1, clients.size());
+    }
+
+    @Test
+    public void findGlobalMembers() {
+
     }
 }
