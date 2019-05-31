@@ -29,8 +29,8 @@
           <th>{{$t('cert.state')}}</th>
           <th>{{$t('cert.expires')}}</th>
         </tr>
-        <template v-if="certificates && signCertificates.length > 0">
-          <tr v-for="certificate in certificates" v-bind:key="certificate.name">
+        <template v-if="signCertificates && signCertificates.length > 0">
+          <tr v-for="certificate in signCertificates" v-bind:key="certificate.name">
             <td>
               <span class="cert-name" @click="viewCertificate(certificate)">{{certificate.name}}</span>
             </td>
