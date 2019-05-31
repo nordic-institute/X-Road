@@ -29,7 +29,7 @@ export function getObjectValueByPath(obj: object, path: string, fallback?: any):
 }
 
 // Filters an array of objects excluding specified object key
-export function selectedFilter(arr: Array<any>, search: string, excluded?: string): Array<any> {
+export function selectedFilter(arr: any[], search: string, excluded?: string): any[] {
 
 
   // Clean the search string
@@ -44,7 +44,7 @@ export function selectedFilter(arr: Array<any>, search: string, excluded?: strin
 
     // If there is an excluded key remove it from the keys
     if (excluded) {
-      filteredKeys = Object.keys(g).filter((value, index, arr) => {
+      filteredKeys = Object.keys(g).filter((value, index) => {
         return value !== 'id';
       });
     }
