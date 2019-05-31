@@ -32,12 +32,10 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import org.niis.xroad.restapi.openapi.model.Certificate;
 import org.niis.xroad.restapi.openapi.model.CertificateStatus;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.Date;
 
 /**
  * Converter Certificate related data between openapi, and service domain classes
@@ -88,16 +86,12 @@ public class CertificateConverter {
         }
         certificate.setIssuerCommonName(issuerCommonName);
 
-        certificate.setNotAfter(asOffsetDateTime(x509Certificate.getNotAfter()));
+        certificate.setNotAfter(FormatUtils.fromDateToOffsetDateTime(x509Certificate.getNotAfter()));
         try {
             certificate.setHash(CryptoUtils.calculateCertHexHash(x509Certificate.getEncoded()).toUpperCase());
         } catch (Exception ex) {
             throw new IllegalStateException("cannot calculate cert hash", ex);
         }
         return certificate;
-    }
-
-    private OffsetDateTime asOffsetDateTime(Date notBefore) {
-        return notBefore.toInstant().atOffset(ZoneOffset.UTC);
     }
 }

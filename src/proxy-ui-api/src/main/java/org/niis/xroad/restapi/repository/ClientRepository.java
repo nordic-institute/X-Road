@@ -31,12 +31,10 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
-import org.hibernate.Session;
+import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.persistence.EntityManager;
 
 import java.util.List;
 
@@ -48,11 +46,11 @@ import java.util.List;
 @Transactional
 public class ClientRepository {
 
-    @Autowired
-    private EntityManager entityManager;
+    private final PersistenceUtils persistenceUtils;
 
-    private Session getCurrentSession() {
-        return entityManager.unwrap(Session.class);
+    @Autowired
+    public ClientRepository(PersistenceUtils persistenceUtils) {
+        this.persistenceUtils = persistenceUtils;
     }
 
     /**
@@ -61,7 +59,7 @@ public class ClientRepository {
      * @return
      */
     public void saveOrUpdate(ClientType clientType) {
-        getCurrentSession().saveOrUpdate(clientType);
+        persistenceUtils.getCurrentSession().saveOrUpdate(clientType);
     }
 
     /**
@@ -70,7 +68,7 @@ public class ClientRepository {
      */
     public ClientType getClient(ClientId id) {
         ClientDAOImpl clientDAO = new ClientDAOImpl();
-        return clientDAO.getClient(getCurrentSession(), id);
+        return clientDAO.getClient(persistenceUtils.getCurrentSession(), id);
     }
 
     /**
@@ -79,7 +77,7 @@ public class ClientRepository {
      */
     public List<ClientType> getAllClients() {
         ServerConfDAOImpl serverConf = new ServerConfDAOImpl();
-        List<ClientType> clientTypes = serverConf.getConf(getCurrentSession()).getClient();
+        List<ClientType> clientTypes = serverConf.getConf(persistenceUtils.getCurrentSession()).getClient();
         Hibernate.initialize(clientTypes);
         return clientTypes;
     }

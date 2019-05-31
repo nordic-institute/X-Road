@@ -42,7 +42,11 @@ import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.CertificateStatus;
 import org.niis.xroad.restapi.openapi.model.Client;
+import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
+import org.niis.xroad.restapi.openapi.model.Group;
+import org.niis.xroad.restapi.openapi.model.InlineObject;
+import org.niis.xroad.restapi.openapi.model.InlineObject1;
 import org.niis.xroad.restapi.repository.TokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -61,11 +65,13 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 
-import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -79,6 +85,11 @@ import static org.mockito.Mockito.when;
 @Slf4j
 public class ClientsApiControllerIntegrationTest {
     public static final String CLIENT_ID_SS1 = "FI:GOV:M1:SS1";
+    public static final String CLIENT_ID_SS2 = "FI:GOV:M1:SS2";
+    public static final String GROUPCODE = "group1";
+    public static final String GROUPCODE2 = "group2";
+    public static final String NEW_GROUPCODE = "groupx";
+    public static final String GROUP_DESC = "GROUP_DESC";
 
     // this is base64 encoded DER certificate from common-util/test/configuration-anchor.xml
     /**
@@ -125,11 +136,11 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void getClients() {
-        ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Client>> response =
-                clientsApiController.getClients();
+        ResponseEntity<List<Client>> response =
+                clientsApiController.getClients(null, null, null, null, null, false, false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(2, response.getBody().size());
-        org.niis.xroad.restapi.openapi.model.Client client = response.getBody().get(0);
+        assertEquals(3, response.getBody().size());
+        Client client = response.getBody().get(0);
         assertEquals("test-member-name", client.getMemberName());
         assertEquals("M1", client.getMemberCode());
     }
@@ -137,23 +148,23 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = "VIEW_CLIENT_DETAILS")
     public void getClient() {
-        ResponseEntity<org.niis.xroad.restapi.openapi.model.Client> response =
+        ResponseEntity<Client> response =
                 clientsApiController.getClient("FI:GOV:M1");
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Client client = response.getBody();
-        assertEquals(org.niis.xroad.restapi.openapi.model.ConnectionType.HTTP, client.getConnectionType());
-        assertEquals(org.niis.xroad.restapi.openapi.model.ClientStatus.REGISTERED, client.getStatus());
+        assertEquals(ConnectionType.HTTP, client.getConnectionType());
+        assertEquals(ClientStatus.REGISTERED, client.getStatus());
         assertEquals("test-member-name", client.getMemberName());
         assertEquals("GOV", client.getMemberClass());
         assertEquals("M1", client.getMemberCode());
         assertEquals("FI:GOV:M1", client.getId());
-        assertEquals(null, client.getSubsystemCode());
+        assertNull(client.getSubsystemCode());
 
         response = clientsApiController.getClient("FI:GOV:M1:SS1");
         assertEquals(HttpStatus.OK, response.getStatusCode());
         client = response.getBody();
-        assertEquals(org.niis.xroad.restapi.openapi.model.ConnectionType.HTTPS_NO_AUTH, client.getConnectionType());
-        assertEquals(org.niis.xroad.restapi.openapi.model.ClientStatus.REGISTERED, client.getStatus());
+        assertEquals(ConnectionType.HTTPS_NO_AUTH, client.getConnectionType());
+        assertEquals(ClientStatus.REGISTERED, client.getStatus());
         assertEquals("test-member-name", client.getMemberName());
         assertEquals("GOV", client.getMemberClass());
         assertEquals("M1", client.getMemberCode());
@@ -161,7 +172,7 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals("SS1", client.getSubsystemCode());
 
         try {
-            response = clientsApiController.getClient("FI:GOV:M1:SS2");
+            clientsApiController.getClient("FI:GOV:M1:SS3");
             fail("should throw NotFoundException to 404");
         } catch (NotFoundException expected) {
         }
@@ -171,7 +182,7 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "EDIT_CLIENT_INTERNAL_CONNECTION_TYPE",
             "VIEW_CLIENT_DETAILS" })
     public void updateClient() throws Exception {
-        ResponseEntity<org.niis.xroad.restapi.openapi.model.Client> response =
+        ResponseEntity<Client> response =
                 clientsApiController.getClient("FI:GOV:M1:SS1");
         assertEquals(ConnectionType.HTTPS_NO_AUTH, response.getBody().getConnectionType());
 
@@ -194,7 +205,7 @@ public class ClientsApiControllerIntegrationTest {
         CertificateInfo mockCertificate = new CertificateInfo(
                 ClientId.create("FI", "GOV", "M1"),
                 true, true, CertificateInfo.STATUS_REGISTERED,
-                    "id", certBytes, null);
+                "id", certBytes, null);
         when(tokenRepository.getTokens()).thenReturn(createMockTokenInfos(mockCertificate));
         certificates = clientsApiController.getClientCertificates("FI:GOV:M1");
         assertEquals(HttpStatus.OK, certificates.getStatusCode());
@@ -227,10 +238,11 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(roles = "WRONG_ROLE")
     public void forbidden() {
         try {
-            ResponseEntity<List<org.niis.xroad.restapi.openapi.model.Client>> response =
-                    clientsApiController.getClients();
+            ResponseEntity<List<Client>> response = clientsApiController.getClients(null, null, null, null, null, null,
+                    null);
             fail("should throw AccessDeniedException");
-        } catch (AccessDeniedException expected) { }
+        } catch (AccessDeniedException expected) {
+        }
     }
 
 
@@ -390,5 +402,84 @@ public class ClientsApiControllerIntegrationTest {
             fail("should have thrown NotFoundException");
         } catch (NotFoundException expected) {
         }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_LOCAL_GROUP" })
+    public void addLocalGroup() throws Exception {
+        ResponseEntity<Void> response = clientsApiController.addClientGroup(CLIENT_ID_SS1, createGroup(NEW_GROUPCODE));
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_LOCAL_GROUPS", "ADD_LOCAL_GROUP" })
+    public void getLocalGroup() throws Exception {
+        ResponseEntity<Group> response =
+                clientsApiController.getGroup(CLIENT_ID_SS1, GROUPCODE2);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_LOCAL_GROUPS", "ADD_LOCAL_GROUP" })
+    public void getClientGroups() throws Exception {
+        ResponseEntity<List<Group>> response =
+                clientsApiController.getClientGroups(CLIENT_ID_SS1);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(2, response.getBody().size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_DESC" })
+    public void updateGroup() throws Exception {
+        clientsApiController.updateGroup(CLIENT_ID_SS1, GROUPCODE, GROUP_DESC);
+        ResponseEntity<Group> response =
+                clientsApiController.getGroup(CLIENT_ID_SS1, GROUPCODE);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(GROUP_DESC, response.getBody().getDescription());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DELETE_LOCAL_GROUP", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_LOCAL_GROUPS" })
+    public void deleteLocalGroup() throws Exception {
+        ResponseEntity<Void> response =
+                clientsApiController.deleteGroup(CLIENT_ID_SS1, GROUPCODE);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+
+        ResponseEntity<List<Group>> responseGroups =
+                clientsApiController.getClientGroups(CLIENT_ID_SS1);
+        assertEquals(1, responseGroups.getBody().size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_MEMBERS" })
+    public void addGroupMember() throws Exception {
+        ResponseEntity<Void> response =
+                clientsApiController.addGroupMember(CLIENT_ID_SS1, GROUPCODE, new InlineObject().id(CLIENT_ID_SS2));
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        ResponseEntity<Group> localGroupResponse =
+                clientsApiController.getGroup(CLIENT_ID_SS1, GROUPCODE);
+        assertEquals(1, localGroupResponse.getBody().getMembers().size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_MEMBERS" })
+    public void deleteGroupMember() throws Exception {
+        ResponseEntity<Void> response =
+                clientsApiController.addGroupMember(CLIENT_ID_SS1, GROUPCODE, new InlineObject().id(CLIENT_ID_SS2));
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        ResponseEntity<Void> deleteResponse =
+                clientsApiController.deleteGroupMember(CLIENT_ID_SS1, GROUPCODE,
+                        new InlineObject1().items(Collections.singletonList(CLIENT_ID_SS2)));
+        assertEquals(HttpStatus.CREATED, deleteResponse.getStatusCode());
+        ResponseEntity<Group> localGroupResponse =
+                clientsApiController.getGroup(CLIENT_ID_SS1, GROUPCODE);
+        assertEquals(0, localGroupResponse.getBody().getMembers().size());
+    }
+
+    private static Group createGroup(String groupCode) {
+        Group group = new Group();
+        group.setDescription(GROUP_DESC);
+        group.setCode(groupCode);
+        return group;
     }
 }
