@@ -151,7 +151,6 @@ export default Vue.extend({
   display: flex;
   justify-content: center;
   flex-direction: column;
-  padding-top: 60px;
   max-width: 850px;
   height: 100%;
   width: 100%;

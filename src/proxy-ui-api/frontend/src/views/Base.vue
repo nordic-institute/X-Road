@@ -3,7 +3,7 @@
     <toolbar/>
     <router-view name="top"/>
     <v-layout align-center justify-center>
-      <v-layout mt-5 align-center justify-center class="base-full-width">
+      <v-layout mt-5 align-center justify-center class="base-full-width frame">
         <transition name="fade" mode="out-in">
           <router-view/>
         </transition>
@@ -97,5 +97,9 @@ export default Vue.extend({
 .fade-enter,
 .fade-leave-active {
   opacity: 0;
+}
+
+.frame {
+  padding-bottom: 40px;
 }
 </style>
