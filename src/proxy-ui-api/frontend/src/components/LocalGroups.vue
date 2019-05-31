@@ -5,7 +5,7 @@
         <v-icon slot="append" small>fas fa-search</v-icon>
       </v-text-field>
       <v-btn
-        v-if="showAddGroup()"
+        v-if="showAddGroup"
         color="primary"
         @click="addGroup"
         outline
@@ -56,20 +56,21 @@ export default Vue.extend({
   data() {
     return {
       search: '',
-
       dialog: false,
-      certificate: null,
       groups: [],
     };
   },
   computed: {
-    ...mapGetters(['client', 'certificates']),
+    ...mapGetters(['client']),
+    showAddGroup(): boolean {
+      return this.$store.getters.hasPermission(Permissions.ADD_LOCAL_GROUP);
+    },
   },
   created() {
     this.fetchGroups(this.id);
   },
   methods: {
-    addGroup() {
+    addGroup(): void {
       // TODO will be done in XRDDEV-519
       console.log('add');
     },
@@ -78,19 +79,15 @@ export default Vue.extend({
       return selectedFilter(this.groups, this.search, 'id');
     },
 
-    showAddGroup() {
-      return true;
-    },
-
-    viewGroup(group: any) {
+    viewGroup(group: any): void {
       this.$router.push({
         name: RouteName.LocalGroup,
         params: { id: this.id, code: group.code },
       });
     },
 
-    fetchGroups(id: string) {
-      return axios
+    fetchGroups(id: string): void {
+      axios
         .get(`/clients/${id}/groups`)
         .then((res) => {
           this.groups = res.data;

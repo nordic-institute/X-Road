@@ -1,64 +1,73 @@
 <template>
   <div class="xr-tab-max-width">
     <div>
-      <subViewTitle :title="group.code" @close="close"/>
+      <subViewTitle :title="bannerTitle()" @close="close"/>
+
       <template>
         <div class="cert-hash">
-          Local Group
+          {{$t('localGroup.localGroup')}}
           <v-btn
+            v-if="showDelete"
             outline
             round
             color="primary"
             class="xr-big-button"
             type="file"
             @click="deleteGroup()"
-          >Delete</v-btn>
+          >{{$t('localGroup.delete')}}</v-btn>
         </div>
       </template>
     </div>
 
     <div class="edit-row">
-      <div>Edit description</div>
-      <v-text-field
-        v-model="description"
-        @change="saveDescription"
-        single-line
-        hide-details
-        class="description-input"
-      ></v-text-field>
+      <template v-if="canEditDescription()">
+        <div>{{$t('localGroup.editDesc')}}</div>
+        <v-text-field
+          v-model="description"
+          @change="saveDescription"
+          single-line
+          hide-details
+          class="description-input"
+        ></v-text-field>
+      </template>
+      <template v-else>
+        <div>{{description}}</div>
+      </template>
     </div>
 
     <div class="group-members-row">
-      <div class="row-title">Group Members</div>
+      <div class="row-title">{{$t('localGroup.groupMembers')}}</div>
       <div class="row-buttons">
         <v-btn
+          v-if="showRemove()"
           outline
           color="primary"
           class="xr-big-button"
           type="file"
           @click="removeAllMembers()"
-        >Remove All</v-btn>
+        >{{$t('localGroup.removeAll')}}</v-btn>
 
         <v-btn
+          v-if="showAddMembers()"
           outline
           color="primary"
           class="xr-big-button"
           type="file"
           @click="addMembers()"
-        >Add Members</v-btn>
+        >{{$t('localGroup.add')}}</v-btn>
       </div>
     </div>
 
     <v-card flat>
       <table class="xrd-table group-members-table">
         <tr>
-          <th>Member Name/Group Description</th>
-          <th>Id</th>
-          <th>Access Rights Given</th>
+          <th>{{$t('localGroup.name')}}</th>
+          <th>{{$t('localGroup.id')}}</th>
+          <th>{{$t('localGroup.accessDate')}}</th>
           <th></th>
         </tr>
-        <template v-if="members && members.length > 0">
-          <tr v-for="groupMember in members" v-bind:key="groupMember.id">
+        <template v-if="group && group.members && group.members.length > 0">
+          <tr v-for="groupMember in group.members" v-bind:key="groupMember.id">
             <td>{{groupMember.name}}</td>
             <td>{{groupMember.id}}</td>
             <td>{{groupMember.created_at}}</td>
@@ -66,13 +75,14 @@
             <td>
               <div class="button-wrap">
                 <v-btn
+                  v-if="showRemove()"
                   small
                   outline
                   round
                   color="primary"
                   class="xr-small-button"
                   @click="removeMember(groupMember)"
-                >Remove</v-btn>
+                >{{$t('localGroup.remove')}}</v-btn>
               </div>
             </td>
           </tr>
@@ -86,19 +96,19 @@
           class="xr-big-button elevation-0"
           type="file"
           @click="close()"
-        >Close</v-btn>
+        >{{$t('localGroup.close')}}</v-btn>
       </div>
     </v-card>
 
     <!-- Confirm dialog delete group -->
     <v-dialog v-model="confirmGroup" persistent max-width="290">
       <v-card>
-        <v-card-title class="headline">Delete group?</v-card-title>
-        <v-card-text>Are you sure that you want to delete this group?</v-card-text>
+        <v-card-title class="headline">{{$t('localGroup.deleteTitle')}}</v-card-title>
+        <v-card-text>{{$t('localGroup.deleteText')}}</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="darken-1" flat @click="confirmGroup = false">Cancel</v-btn>
-          <v-btn color="darken-1" flat @click="doDeleteGroup()">Yes</v-btn>
+          <v-btn color="darken-1" flat @click="confirmGroup = false">{{$t('localGroup.cancel')}}</v-btn>
+          <v-btn color="darken-1" flat @click="doDeleteGroup()">{{$t('localGroup.yes')}}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -106,12 +116,12 @@
     <!-- Confirm dialog remove member-->
     <v-dialog v-model="confirmMember" persistent max-width="290">
       <v-card>
-        <v-card-title class="headline">Remove member?</v-card-title>
-        <v-card-text>Are you sure that you want to remove this member?</v-card-text>
+        <v-card-title class="headline">{{$t('localGroup.removeTitle')}}</v-card-title>
+        <v-card-text>{{$t('localGroup.removeText')}}</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="darken-1" flat @click="confirmMember = false">Cancel</v-btn>
-          <v-btn color="darken-1" flat @click="doRemoveMember()">Yes</v-btn>
+          <v-btn color="darken-1" flat @click="confirmMember = false">{{$t('localGroup.cancel')}}</v-btn>
+          <v-btn color="darken-1" flat @click="doRemoveMember()">{{$t('localGroup.yes')}}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -121,6 +131,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import _ from 'lodash';
+import axios from 'axios';
 import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
 import SubViewTitle from '@/components/SubViewTitle.vue';
@@ -144,128 +155,97 @@ export default Vue.extend({
       confirmGroup: false,
       confirmMember: false,
       selectedMember: undefined,
-      description: 'tetet',
-      group: {
-        id: 'group123',
-        code: 'groupcode',
-        description: 'description',
-        member_count: 10,
-        updated_at: '2018-12-15T00:00:00.001Z',
-      },
+      description: undefined,
+      group: undefined,
       members: [],
     };
   },
   computed: {
     ...mapGetters(['tlsCertificates']),
+    showDelete() {
+      return true;
+    },
   },
   methods: {
-    close() {
+    bannerTitle(): string {
+      if (this.group && this.group.code) {
+        return this.group.code;
+      }
+      return '';
+    },
+    close(): void {
       this.$router.go(-1);
     },
 
-    saveDescription: _.debounce(() => {
-      console.log('I only get fired once every two seconds, max!');
-    }, 500),
+    canEditDescription(): boolean {
+      return true;
+    },
 
-    fetchData(clientId: string, hash: string) {
-      /*
-      this.$store.dispatch('fetchTlsCertificates', clientId).then(
-        (response) => {
-          this.certificate = this.$store.getters.tlsCertificates.find(
-            (cert: any) => cert.hash === hash,
-          );
-        },
-        (error) => {
+    showRemove(): boolean {
+      return true;
+    },
+
+    showAddMembers(): boolean {
+      return true;
+    },
+
+    saveDescription(): void {
+      axios
+        .put(
+          `/clients/${this.id}/groups/${this.code}?description=${
+            this.description
+          }`,
+        )
+        .then((res) => {
+          this.group = res.data;
+          this.description = res.data.description;
+          this.$bus.$emit('show-success', 'dine');
+        })
+        .catch((error) => {
           this.$bus.$emit('show-error', error.message);
-        },
-      ); */
-
-      this.sleep().then(() => {
-        this.description = 'jau';
-
-        this.members = [
-          {
-            id: 'FI:GOV:123:SS1',
-            name: 'member name A',
-            created_at: '2018-12-15T00:00:00.001Z',
-          },
-          {
-            id: 'FI:GOV:123:SS18',
-            name: 'member name B',
-            created_at: '2018-12-15T00:00:00.001Z',
-          },
-        ];
-      });
+        });
     },
 
-    addMembers() {
+    fetchData(clientId: string, code: string): void {
+      axios
+        .get(`/clients/${clientId}/groups/${code}`)
+        .then((res) => {
+          this.group = res.data;
+          this.description = res.data.description;
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
+    },
+
+    addMembers(): void {
       // TODO placeholder. will be done in future task
     },
 
-    removeAllMembers() {
+    removeAllMembers(): void {
       // TODO placeholder. will be done in future task
     },
 
-    removeMember(member: any) {
+    removeMember(member: any): void {
       this.confirmMember = true;
       this.selectedMember = member;
     },
     doRemoveMember() {
       this.confirmMember = false;
-      console.log(this.selectedMember);
       this.selectedMember = undefined;
-
-      /*
-      this.$store
-        .dispatch('deleteTlsCertificate', {
-          clientId: this.id,
-          hash: this.hash,
-        })
-        .then(
-          (response) => {
-            this.$bus.$emit('show-success', 'Certificate deleted');
-          },
-          (error) => {
-            this.$bus.$emit('show-error', error.message);
-          },
-        )
-        .finally(() => {
-          this.close();
-        });
-        */
+      // TODO placeholder. will be done in future task
     },
 
-    deleteGroup() {
+    deleteGroup(): void {
       this.confirmGroup = true;
     },
-    doDeleteGroup() {
+    doDeleteGroup(): void {
       this.confirmGroup = false;
-
-      /*
-      this.$store
-        .dispatch('deleteTlsCertificate', {
-          clientId: this.id,
-          hash: this.hash,
-        })
-        .then(
-          (response) => {
-            this.$bus.$emit('show-success', 'Certificate deleted');
-          },
-          (error) => {
-            this.$bus.$emit('show-error', error.message);
-          },
-        )
-        .finally(() => {
-          this.close();
-        });
-        */
-    },
-    sleep() {
-      return new Promise((resolve) => setTimeout(resolve, 3000));
+      // TODO placeholder. will be done in future task
     },
   },
   created() {
-    this.fetchData(this.id, this.hash);
+    this.fetchData(this.id, this.code);
   },
 });
 </script>

@@ -78,6 +78,25 @@
     "memberCount": "Member Count",
     "updated": "Updated"
   },
+  "localGroup": {
+    "localGroup": "Local group",
+    "delete": "Delete",
+    "editDesc": "Edit description",
+    "groupMembers": "Group Members",
+    "removeAll": "Remove All",
+    "add": "Add Members",
+    "name": "Member Name",
+    "id": "Id",
+    "accessDate": "Access Rights Given",
+    "remove": "Remove",
+    "close": "Close",
+    "deleteTitle": "Delete group?",
+    "deleteText": "Are you sure that you want to delete this group?",
+    "cancel": "Cancel",
+    "yes": "Yes",
+    "removeTitle": "Remove member?",
+    "removeText": "Are you sure that you want to remove this member?"
+  },
   "action": {
     "addSubsystem": "add subsystem",
     "addClient": "add client",
