@@ -134,6 +134,30 @@ public class ClientConverter {
         return encodedIds.stream().map(this::convertId).collect(Collectors.toList());
     }
 
+    /**
+     * Convert ClientId into Client
+     * @param clientId
+     * @return Client
+     */
+    public Client convertIdToClient(ClientId clientId) {
+        Client client = new Client();
+        client.setId(convertId(clientId));
+        client.setMemberClass(clientId.getMemberClass());
+        client.setMemberCode(clientId.getMemberCode());
+        client.setSubsystemCode(clientId.getSubsystemCode());
+        client.setMemberName(globalConfWrapper.getMemberName(clientId));
+        return client;
+    }
+
+    /**
+     * Convert ClientId list into Client list
+     * @param clientIds
+     * @return List of Clients
+     */
+    public List<Client> convertIdsToClients(List<ClientId> clientIds) {
+        return clientIds.stream().map(this::convertIdToClient).collect(Collectors.toList());
+    }
+
     private int countOccurences(String from, char searched) {
         String removed = from.replace(String.valueOf(searched), "");
         return from.length() - removed.length();

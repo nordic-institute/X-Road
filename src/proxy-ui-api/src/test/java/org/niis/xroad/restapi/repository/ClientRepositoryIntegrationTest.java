@@ -53,8 +53,8 @@ public class ClientRepositoryIntegrationTest {
     private ClientRepository clientRepository;
 
     @Test
-    public void getAllClients() {
-        List<ClientType> clients = clientRepository.getAllClients();
+    public void getAllLocalClients() {
+        List<ClientType> clients = clientRepository.getAllLocalClients();
         assertEquals(3, clients.size());
     }
 

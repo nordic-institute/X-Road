@@ -75,7 +75,7 @@ public class ClientRepository {
      * return all clients
      * @return
      */
-    public List<ClientType> getAllClients() {
+    public List<ClientType> getAllLocalClients() {
         ServerConfDAOImpl serverConf = new ServerConfDAOImpl();
         List<ClientType> clientTypes = serverConf.getConf(persistenceUtils.getCurrentSession()).getClient();
         Hibernate.initialize(clientTypes);

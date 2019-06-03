@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.converter.GlobalConfWrapper;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.ConflictException;
@@ -48,6 +49,7 @@ import org.niis.xroad.restapi.openapi.model.Group;
 import org.niis.xroad.restapi.openapi.model.InlineObject;
 import org.niis.xroad.restapi.openapi.model.InlineObject1;
 import org.niis.xroad.restapi.repository.TokenRepository;
+import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -90,6 +92,17 @@ public class ClientsApiControllerIntegrationTest {
     public static final String GROUPCODE2 = "group2";
     public static final String NEW_GROUPCODE = "groupx";
     public static final String GROUP_DESC = "GROUP_DESC";
+    public static final String NAME_APPENDIX = "-name";
+    private static final String INSTANCE_FI = "FI";
+    private static final String INSTANCE_EE = "EE";
+    private static final String MEMBER_CLASS_GOV = "GOV";
+    private static final String MEMBER_CLASS_PRO = "PRO";
+    private static final String MEMBER_CODE_M1 = "M1";
+    private static final String MEMBER_CODE_M2 = "M2";
+    private static final String SUBSYSTEM1 = "SS1";
+    private static final String SUBSYSTEM2 = "SS2";
+    private static final String SUBSYSTEM3 = "SS3";
+
 
     // this is base64 encoded DER certificate from common-util/test/configuration-anchor.xml
     /**
@@ -124,7 +137,20 @@ public class ClientsApiControllerIntegrationTest {
 
     @Before
     public void setup() throws Exception {
-        when(globalConfWrapper.getMemberName(any())).thenReturn("test-member-name");
+        when(globalConfWrapper.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
+            Object[] args = invocation.getArguments();
+            ClientId identifier = (ClientId) args[0];
+            return identifier.getSubsystemCode() != null ? identifier.getSubsystemCode() + NAME_APPENDIX
+                    : "test-member" + NAME_APPENDIX;
+        });
+
+        when(globalConfWrapper.getGlobalMembers(any())).thenReturn(new ArrayList<>(Arrays.asList(
+                TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1),
+                TestUtils.getMemberInfo(INSTANCE_EE, MEMBER_CLASS_GOV, MEMBER_CODE_M2, SUBSYSTEM3),
+                TestUtils.getMemberInfo(INSTANCE_EE, MEMBER_CLASS_GOV, MEMBER_CODE_M1, null),
+                TestUtils.getMemberInfo(INSTANCE_EE, MEMBER_CLASS_PRO, MEMBER_CODE_M1, SUBSYSTEM1),
+                TestUtils.getMemberInfo(INSTANCE_EE, MEMBER_CLASS_PRO, MEMBER_CODE_M2, null))
+        ));
 
         List<TokenInfo> mockTokens = createMockTokenInfos(null);
         when(tokenRepository.getTokens()).thenReturn(mockTokens);
@@ -135,9 +161,21 @@ public class ClientsApiControllerIntegrationTest {
 
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
-    public void getClients() {
+    public void getAllClients() {
         ResponseEntity<List<Client>> response =
                 clientsApiController.getClients();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(8, response.getBody().size());
+        Client client = response.getBody().get(0);
+        assertEquals("test-member-name", client.getMemberName());
+        assertEquals("M1", client.getMemberCode());
+    }
+
+    @Test
+    @WithMockUser(authorities = "VIEW_CLIENTS")
+    public void getAllLocalClients() {
+        ResponseEntity<List<Client>> response = clientsApiController.getClients(null, null, null, null, null, null,
+                true);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(3, response.getBody().size());
         Client client = response.getBody().get(0);
@@ -165,7 +203,7 @@ public class ClientsApiControllerIntegrationTest {
         client = response.getBody();
         assertEquals(ConnectionType.HTTPS_NO_AUTH, client.getConnectionType());
         assertEquals(ClientStatus.REGISTERED, client.getStatus());
-        assertEquals("test-member-name", client.getMemberName());
+        assertEquals("SS1-name", client.getMemberName());
         assertEquals("GOV", client.getMemberClass());
         assertEquals("M1", client.getMemberCode());
         assertEquals("FI:GOV:M1:SS1", client.getId());
@@ -248,7 +286,7 @@ public class ClientsApiControllerIntegrationTest {
 
     /**
      * @param certificateInfo one certificate to put inside this tokenInfo
-     *                        structure
+     * structure
      * @return
      */
     private List<TokenInfo> createMockTokenInfos(CertificateInfo certificateInfo) {
@@ -481,5 +519,71 @@ public class ClientsApiControllerIntegrationTest {
         group.setDescription(GROUP_DESC);
         group.setCode(groupCode);
         return group;
+    }
+
+    @Test
+    @WithMockUser(authorities = "VIEW_CLIENTS")
+    public void findAllClientsByAllSearchTermsExcludeMembers() {
+        ResponseEntity<List<Client>> clientsResponse = clientsApiController.getClients(SUBSYSTEM1 + NAME_APPENDIX,
+                INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1, false, false);
+        assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
+        assertEquals(2, clientsResponse.getBody().size());
+    }
+
+    @Test
+    @WithMockUser(authorities = "VIEW_CLIENTS")
+    public void findAllClientsByMemberCodeIncludeMembers() {
+        ResponseEntity<List<Client>> clientsResponse = clientsApiController.getClients(null, null, null, MEMBER_CODE_M1,
+                null, true, false);
+        assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
+        assertEquals(6, clientsResponse.getBody().size());
+    }
+
+    @Test
+    @WithMockUser(authorities = "VIEW_CLIENTS")
+    public void findAllClientsByMemberClassIncludeMembers() {
+        ResponseEntity<List<Client>> clientsResponse = clientsApiController.getClients(null, null, MEMBER_CLASS_PRO,
+                null, null, true, false);
+        assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
+        assertEquals(2, clientsResponse.getBody().size());
+    }
+
+    @Test
+    @WithMockUser(authorities = "VIEW_CLIENTS")
+    public void findAllClientsByNameIncludeMembers() {
+        ResponseEntity<List<Client>> clientsResponse = clientsApiController.getClients(SUBSYSTEM2 + NAME_APPENDIX, null,
+                null, null, null, false, true);
+        assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
+        assertEquals(1, clientsResponse.getBody().size());
+        // not found
+        try {
+            clientsApiController.getClients("DOES_NOT_EXIST", null, null, null, null, true, false);
+            fail("should have thrown NotFoundException");
+        } catch (NotFoundException expected) {
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = "VIEW_CLIENTS")
+    public void findInternalClientsByAllSearchTermsExcludeMembers() {
+        ResponseEntity<List<Client>> clientsResponse = clientsApiController.getClients(SUBSYSTEM1 + NAME_APPENDIX,
+                INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1, false, true);
+        assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
+        assertEquals(1, clientsResponse.getBody().size());
+    }
+
+    @Test
+    @WithMockUser(authorities = "VIEW_CLIENTS")
+    public void findInternalClientsBySubsystemExcludeMembers() {
+        ResponseEntity<List<Client>> clientsResponse = clientsApiController.getClients(null, null, null, null,
+                SUBSYSTEM2, false, true);
+        assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
+        assertEquals(1, clientsResponse.getBody().size());
+        // not found
+        try {
+            clientsApiController.getClients(null, null, null, null, SUBSYSTEM3, false, true);
+            fail("should have thrown NotFoundException");
+        } catch (NotFoundException expected) {
+        }
     }
 }

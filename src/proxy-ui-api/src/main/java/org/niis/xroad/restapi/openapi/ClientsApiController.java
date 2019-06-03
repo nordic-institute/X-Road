@@ -63,6 +63,7 @@ import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -124,25 +125,47 @@ public class ClientsApiController implements ClientsApi {
      * @param code
      * @param subsystem
      * @param showMembers will be null safely unboxed using Boolean.TRUE.equals(showMembers)
-     * @param internalSearch will only search for local clients
+     * @param internalSearch will only search for local clients (also unboxed in a null safe fashion)
      * @return
      */
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public ResponseEntity<List<Client>> getClients(String name, String instance, String propertyClass, String code,
             String subsystem, Boolean showMembers, Boolean internalSearch) {
-        List<ClientType> clientTypes;
-        // if internalSearch --> use findLocalClients
-        if (!StringUtils.isEmpty(name) || !StringUtils.isEmpty(instance) || !StringUtils.isEmpty(propertyClass)
-                || !StringUtils.isEmpty(code) || !StringUtils.isEmpty(subsystem) || showMembers != null) {
-            clientTypes = clientService.findLocalClients(name, instance, propertyClass, code, subsystem,
-                    Boolean.TRUE.equals(showMembers));
-        } else {
-            clientTypes = clientService.getAllClients();
-        }
+        boolean unboxedInternalSearch = Boolean.TRUE.equals(internalSearch);
         List<Client> clients = new ArrayList<>();
-        for (ClientType clientType : clientTypes) {
-            clients.add(clientConverter.convert(clientType));
+        if (!StringUtils.isEmpty(name) || !StringUtils.isEmpty(instance) || !StringUtils.isEmpty(propertyClass)
+                || !StringUtils.isEmpty(code) || !StringUtils.isEmpty(subsystem)) {
+            boolean unboxedShowMembers = Boolean.TRUE.equals(showMembers);
+            try {
+                List<ClientType> foundClientTypes = clientService.findLocalClients(name, instance, propertyClass, code,
+                        subsystem, unboxedShowMembers);
+                clients.addAll(foundClientTypes.stream().map(clientConverter::convert).collect(Collectors.toList()));
+            } catch (NotFoundException ex) {
+                // do not throw if global clients are yet to be searched
+                if (unboxedInternalSearch) {
+                    throw ex;
+                }
+            }
+            if (!unboxedInternalSearch) {
+                List<ClientId> foundIds = clientService.findGlobalClients(name, instance, propertyClass, code,
+                        subsystem, unboxedShowMembers);
+                clients.addAll(clientConverter.convertIdsToClients(foundIds));
+            }
+        } else {
+            try {
+                List<ClientType> foundClientTypes = clientService.getAllLocalClients();
+                clients.addAll(foundClientTypes.stream().map(clientConverter::convert).collect(Collectors.toList()));
+            } catch (NotFoundException ex) {
+                // do not throw if global clients are yet to be searched
+                if (unboxedInternalSearch) {
+                    throw ex;
+                }
+            }
+            if (!unboxedInternalSearch) {
+                List<ClientId> foundIds = clientService.getAllGlobalClients();
+                clients.addAll(clientConverter.convertIdsToClients(foundIds));
+            }
         }
         return new ResponseEntity<>(clients, HttpStatus.OK);
     }
