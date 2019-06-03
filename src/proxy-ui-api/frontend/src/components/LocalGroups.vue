@@ -5,22 +5,22 @@
         <v-icon slot="append" small>fas fa-search</v-icon>
       </v-text-field>
       <v-btn
-        v-if="showAddGroup()"
+        v-if="showAddGroup"
         color="primary"
         @click="addGroup"
         outline
         round
         class="ma-0 rounded-button elevation-0"
-      >Add group</v-btn>
+      >{{$t('localGroups.addGroup')}}</v-btn>
     </div>
 
     <v-card flat>
       <table class="xrd-table details-certificates">
         <tr>
-          <th>Code</th>
-          <th>Description</th>
-          <th>Member Count</th>
-          <th>Updated</th>
+          <th>{{$t('localGroups.code')}}</th>
+          <th>{{$t('localGroups.description')}}</th>
+          <th>{{$t('localGroups.memberCount')}}</th>
+          <th>{{$t('localGroups.updated')}}</th>
         </tr>
         <template v-if="groups && groups.length > 0">
           <tr v-for="group in filtered()" v-bind:key="group.code">
@@ -29,7 +29,7 @@
             </td>
             <td>{{group.description}}</td>
             <td>{{group.member_count}}</td>
-            <td>{{group.updated_at}}</td>
+            <td>{{group.updated_at | formatDate}}</td>
           </tr>
         </template>
       </table>
@@ -46,6 +46,7 @@ import NewGroupDialog from '@/components/NewGroupDialog.vue';
 
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
+import { selectedFilter } from '@/util/helpers';
 
 export default Vue.extend({
   components: {
@@ -60,37 +61,16 @@ export default Vue.extend({
   data() {
     return {
       search: '',
-
       dialog: false,
-      certificate: null,
+      groups: [],
       addGroupDialog: false,
-      groups: [
-        {
-          id: 'group123',
-          code: 'groupcode',
-          description: 'description',
-          member_count: 10,
-          updated_at: '2018-12-15T00:00:00.001Z',
-        },
-        {
-          id: 'group345',
-          code: 'groupcode2',
-          description: 'description',
-          member_count: 5,
-          updated_at: '2018-12-15T00:00:00.001Z',
-        },
-        {
-          id: 'ryhmy9',
-          code: 'ryhmy9',
-          description: 'kiksd',
-          member_count: 5,
-          updated_at: '2018-12-15T00:00:00.001Z',
-        },
-      ],
     };
   },
   computed: {
-    ...mapGetters(['client', 'certificates']),
+    ...mapGetters(['client']),
+    showAddGroup(): boolean {
+      return this.$store.getters.hasPermission(Permissions.ADD_LOCAL_GROUP);
+    },
   },
   created() {
     this.fetchGroups(this.id);
@@ -102,34 +82,8 @@ export default Vue.extend({
       this.addGroupDialog = true;
     },
 
-    filtered() {
-      const mysearch = this.search.toString().toLowerCase();
-      if (mysearch.trim() === '') {
-        return this.groups;
-      }
-
-      console.log(mysearch);
-
-      const re = new RegExp(mysearch, 'i');
-      let filtered = this.groups.filter((g) => {
-        // Check the grop code
-        if (g.code.includes(mysearch)) {
-          return true;
-        }
-
-        // Check also description
-        if (g.description.includes(mysearch)) {
-          return true;
-        }
-
-        return false;
-      });
-
-      return filtered;
-    },
-
-    showAddGroup(): boolean {
-      return true;
+    filtered(): any[] {
+      return selectedFilter(this.groups, this.search, 'id');
     },
 
     viewGroup(group: any): void {
@@ -139,8 +93,8 @@ export default Vue.extend({
       });
     },
 
-    fetchGroups(id: string): Promise<any> {
-      return axios
+    fetchGroups(id: string): void {
+      axios
         .get(`/clients/${id}/groups`)
         .then((res) => {
           this.groups = res.data;
@@ -165,7 +119,6 @@ export default Vue.extend({
   margin-top: 40px;
 }
 
-// TODO put this in some shared place ?
 .table-toolbar {
   display: flex;
   flex-direction: row;

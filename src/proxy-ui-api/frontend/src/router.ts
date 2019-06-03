@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import Router from 'vue-router';
+import Router, { Route } from 'vue-router';
 import { sync } from 'vuex-router-sync';
 import Login from './views/Login.vue';
 import Base from './views/Base.vue';
@@ -20,6 +20,8 @@ import LocalGroups from '@/components/LocalGroups.vue';
 import ServiceClients from '@/components/ServiceClients.vue';
 import Services from '@/components/Services.vue';
 import LocalGroup from '@/views/LocalGroup.vue';
+import Services from '@/components/Services.vue';
+import ServiceClients from '@/components/ServiceClients.vue';
 import store from './store';
 import { RouteName, Permissions } from '@/global';
 
@@ -75,6 +77,7 @@ const router = new Router({
         {
           name: RouteName.Subsystem,
           path: '/subsystem',
+          meta: { permission: Permissions.VIEW_CLIENT_DETAILS },
           redirect: '/subsystem/details/:id',
           components: {
             default: Subsystem,
@@ -89,6 +92,21 @@ const router = new Router({
               path: '/subsystem/details/:id',
               component: ClientDetails,
               props: true,
+              meta: { permission: Permissions.VIEW_CLIENT_DETAILS },
+            },
+            {
+              name: RouteName.SubsystemServiceClients,
+              path: '/subsystem/clients/:id',
+              component: ServiceClients,
+              props: true,
+              meta: { permission: Permissions.VIEW_CLIENT_ACL_SUBJECTS },
+            },
+            {
+              name: RouteName.SubsystemServices,
+              path: '/subsystem/services/:id',
+              component: Services,
+              props: true,
+              meta: { permission: Permissions.VIEW_CLIENT_SERVICES },
             },
             {
               name: RouteName.SubsystemServiceClients,
@@ -107,18 +125,21 @@ const router = new Router({
               path: '/subsystem/internalservers/:id',
               component: InternalServers,
               props: true,
+              meta: { permission: Permissions.VIEW_CLIENT_INTERNAL_CERTS },
             },
             {
               name: RouteName.SubsystemLocalGroups,
-              path: '/subsystem/logalgroups/:id',
+              path: '/subsystem/localgroups/:id',
               component: LocalGroups,
               props: true,
+              meta: { permission: Permissions.VIEW_CLIENT_LOCAL_GROUPS },
             },
           ],
         },
         {
           name: RouteName.Client,
           path: '/client',
+          meta: { permission: Permissions.VIEW_CLIENT_DETAILS },
           redirect: '/client/details/:id',
           components: {
             default: Client,
@@ -131,12 +152,14 @@ const router = new Router({
               path: '/client/details/:id',
               component: ClientDetails,
               props: true,
+              meta: { permission: Permissions.VIEW_CLIENT_DETAILS },
             },
             {
               name: RouteName.MemberServers,
               path: '/client/internalservers/:id',
               component: InternalServers,
               props: true,
+              meta: { permission: Permissions.VIEW_CLIENT_INTERNAL_CERTS },
             },
           ],
         },
@@ -156,6 +179,7 @@ const router = new Router({
             default: Certificate,
           },
           props: { default: true },
+          meta: { permission: Permissions.VIEW_CLIENT_INTERNAL_CERT_DETAILS },
         },
         {
           name: RouteName.LocalGroup,
@@ -179,7 +203,7 @@ const router = new Router({
   ],
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to: Route, from: Route, next) => {
 
   // Going to login
   if (to.name === 'login') {
@@ -188,24 +212,18 @@ router.beforeEach((to, from, next) => {
   }
 
   if (store.getters.isAuthenticated) {
-
-    const record = to.matched.find((route) => route.meta.permission);
-    if (record) {
-      if (store.getters.permissions.includes(record.meta.permission)) {
-        // Route is allowed
-        next();
-        return;
-      } else {
-        // This route is not allowed
-        next({
-          name: store.getters.firstAllowedTab.to.name,
-        });
-        return;
-      }
+    if (!to.meta.permission) {
+      next();
+    } else if (store.getters.hasPermission(to.meta.permission)) {
+      // This route is allowed
+      next();
+    } else {
+      // This route is not allowed
+      next({
+        name: store.getters.firstAllowedTab.to.name,
+      });
     }
-
-    next();
-
+    return;
   } else {
     next({
       path: '/login',

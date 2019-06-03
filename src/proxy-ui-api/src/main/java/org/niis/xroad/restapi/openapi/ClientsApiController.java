@@ -26,20 +26,26 @@ package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.niis.xroad.restapi.converter.CertificateConverter;
+import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.ConnectionTypeMapping;
+import org.niis.xroad.restapi.converter.GroupConverter;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.ErrorCode;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
-import org.niis.xroad.restapi.openapi.model.Certificate;
+import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
+import org.niis.xroad.restapi.openapi.model.Group;
+import org.niis.xroad.restapi.openapi.model.InlineObject;
+import org.niis.xroad.restapi.openapi.model.InlineObject1;
 import org.niis.xroad.restapi.service.ClientService;
+import org.niis.xroad.restapi.service.GroupService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -68,23 +74,35 @@ import static java.util.stream.Collectors.toList;
 @PreAuthorize("denyAll")
 public class ClientsApiController implements ClientsApi {
 
+    private final ClientConverter clientConverter;
+    private final ClientService clientService;
+    private final GroupConverter groupConverter;
+    private final GroupService groupsService;
     private final NativeWebRequest request;
+    private final TokenService tokenService;
+    private final CertificateDetailsConverter certificateDetailsConverter;
+
+    /**
+     * ClientsApiController constructor
+     * @param request
+     * @param clientService
+     * @param tokenService
+     * @param clientConverter
+     * @param groupConverter
+     * @param groupsService
+     */
 
     @Autowired
-    private ClientService clientService;
-
-    @Autowired
-    private TokenService tokenService;
-
-    @Autowired
-    private ClientConverter clientConverter;
-
-    @Autowired
-    private CertificateConverter certificateConverter;
-
-    @Autowired
-    public ClientsApiController(NativeWebRequest request) {
+    public ClientsApiController(NativeWebRequest request, ClientService clientService, TokenService tokenService,
+            ClientConverter clientConverter, GroupConverter groupConverter, GroupService groupsService,
+            CertificateDetailsConverter certificateDetailsConverter) {
         this.request = request;
+        this.clientService = clientService;
+        this.tokenService = tokenService;
+        this.clientConverter = clientConverter;
+        this.groupConverter = groupConverter;
+        this.groupsService = groupsService;
+        this.certificateDetailsConverter = certificateDetailsConverter;
     }
 
     /**
@@ -99,13 +117,27 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public ResponseEntity<List<Client>> getClients() {
+    public ResponseEntity<List<Client>> getClients(String name, String instance,
+            String propertyClass, String code, String subsystem, Boolean showMembers,
+            Boolean internalSearch) {
+        // no filtering / search yet, returns all
         List<ClientType> clientTypes = clientService.getAllClients();
         List<Client> clients = new ArrayList<>();
         for (ClientType clientType : clientTypes) {
             clients.add(clientConverter.convert(clientType));
         }
         return new ResponseEntity<>(clients, HttpStatus.OK);
+    }
+
+    /**
+     * No argument version to return all clients
+     * @return
+     */
+    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
+    public ResponseEntity<List<Client>> getClients() {
+        final String ignoredSearchParam = null;
+        return getClients(ignoredSearchParam, ignoredSearchParam, ignoredSearchParam, ignoredSearchParam,
+                ignoredSearchParam, null, null);
     }
 
     @Override
@@ -131,12 +163,12 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
-    public ResponseEntity<List<Certificate>> getClientCertificates(String encodedId) {
+    public ResponseEntity<List<CertificateDetails>> getClientCertificates(String encodedId) {
         ClientType clientType = getClientType(encodedId);
         try {
-            List<Certificate> certificates = tokenService.getAllTokens(clientType)
+            List<CertificateDetails> certificates = tokenService.getAllTokens(clientType)
                     .stream()
-                    .map(certificateConverter::convert)
+                    .map(certificateDetailsConverter::convert)
                     .collect(toList());
             return new ResponseEntity<>(certificates, HttpStatus.OK);
         } catch (Exception e) {
@@ -167,7 +199,7 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAuthority('ADD_CLIENT_INTERNAL_CERT')")
     public ResponseEntity<Void> addClientTlsCertificate(String encodedId,
-                                                        Resource body) {
+            Resource body) {
         byte[] certificateBytes;
         try {
             certificateBytes = IOUtils.toByteArray(body.getInputStream());
@@ -194,25 +226,40 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_INTERNAL_CERT_DETAILS')")
-    public ResponseEntity<Certificate> getClientTlsCertificate(String encodedId, String certHash) {
+    public ResponseEntity<CertificateDetails> getClientTlsCertificate(String encodedId, String certHash) {
         ClientId clientId = clientConverter.convertId(encodedId);
         Optional<CertificateType> certificateType = clientService.getTlsCertificate(clientId, certHash);
         if (!certificateType.isPresent()) {
             throw new NotFoundException("certificate with hash " + certHash
                     + ", client id " + encodedId + " not found");
         }
-        return new ResponseEntity<>(certificateConverter.convert(certificateType.get()), HttpStatus.OK);
+        return new ResponseEntity<>(certificateDetailsConverter.convert(certificateType.get()), HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_INTERNAL_CERTS')")
-    public ResponseEntity<List<Certificate>> getClientTlsCertificates(String encodedId) {
+    public ResponseEntity<List<CertificateDetails>> getClientTlsCertificates(String encodedId) {
         ClientType clientType = getClientType(encodedId);
-        List<Certificate> certificates = clientType.getIsCert()
+        List<CertificateDetails> certificates = clientType.getIsCert()
                 .stream()
-                .map(certificateConverter::convert)
+                .map(certificateDetailsConverter::convert)
                 .collect(toList());
         return new ResponseEntity<>(certificates, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
+    public ResponseEntity<Group> getGroup(String id, String groupCode) {
+        LocalGroupType localGroupType = getLocalGroupType(id, groupCode);
+        return new ResponseEntity<>(groupConverter.convert(localGroupType), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_DESC')")
+    public ResponseEntity<Group> updateGroup(String id, String groupCode, String description) {
+        LocalGroupType localGroupType = groupsService.updateDescription(clientConverter.convertId(id), groupCode,
+                description);
+        return new ResponseEntity<>(groupConverter.convert(localGroupType), HttpStatus.OK);
     }
 
     @Override
@@ -220,4 +267,55 @@ public class ClientsApiController implements ClientsApi {
         return Optional.ofNullable(request);
     }
 
+    @Override
+    @PreAuthorize("hasAuthority('ADD_LOCAL_GROUP')")
+    public ResponseEntity<Void> addClientGroup(String id, Group group) {
+        ClientType clientType = getClientType(id);
+        groupsService.addLocalGroup(clientType.getIdentifier(), groupConverter.convert(group));
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
+    public ResponseEntity<Void> addGroupMember(String id, String code, InlineObject memberIdWrapper) {
+        groupsService.addLocalGroupMember(clientConverter.convertId(id), code,
+                clientConverter.convertId(memberIdWrapper.getId()));
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DELETE_LOCAL_GROUP')")
+    public ResponseEntity<Void> deleteGroup(String id, String code) {
+        ClientType clientType = getClientType(id);
+        groupsService.deleteLocalGroup(clientType, code);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
+    public ResponseEntity<Void> deleteGroupMember(String id, String code, InlineObject1 itemsWrapper) {
+        LocalGroupType localGroupType = getLocalGroupType(id, code);
+        groupsService.deleteGroupMember(localGroupType, clientConverter.convertIds(itemsWrapper.getItems()));
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
+    public ResponseEntity<List<Group>> getClientGroups(String id) {
+        ClientType clientType = getClientType(id);
+        List<LocalGroupType> localGroupTypes = clientType.getLocalGroup();
+        return new ResponseEntity<>(groupConverter.convert(localGroupTypes), HttpStatus.OK);
+    }
+
+    /**
+     * Read one group from DB, throw NotFoundException or
+     * BadRequestException is needed
+     */
+    private LocalGroupType getLocalGroupType(String encodedId, String code) {
+        LocalGroupType localGroupType = groupsService.getLocalGroup(code, clientConverter.convertId(encodedId));
+        if (localGroupType == null) {
+            throw new NotFoundException("LocalGroup with code " + code + " not found");
+        }
+        return localGroupType;
+    }
 }

@@ -1,15 +1,18 @@
 <template>
   <div>
-    <v-card flat>Placeholder for services</v-card>
+    <v-card flat>
+      Services
+      <br>
+      ID: {{id}}
+    </v-card>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import axios from 'axios';
 
 import { mapGetters } from 'vuex';
-import { Permissions, RouteName } from '@/global';
+import { Permissions } from '@/global';
 
 export default Vue.extend({
   components: {},
@@ -19,8 +22,16 @@ export default Vue.extend({
       required: true,
     },
   },
+  data() {
+    return {};
+  },
+  computed: {
+    ...mapGetters(['client']),
+  },
+  methods: {},
 });
 </script>
 
 <style lang="scss" >
 </style>
+

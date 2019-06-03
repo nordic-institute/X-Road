@@ -4,7 +4,7 @@
       <v-tabs-slider color="secondary" class="xr-main-tabs-slider"></v-tabs-slider>
 
       <template v-for="tab in allowedTabs">
-        <v-tab v-bind:key="tab.key" :to="tab.to">{{tab.name}}</v-tab>
+        <v-tab v-bind:key="tab.key" :to="tab.to">{{ $t(tab.name) }}</v-tab>
       </template>
     </v-tabs>
   </v-layout>
@@ -14,12 +14,7 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 
-import TabContent from '../components/TabContent.vue';
-
 export default Vue.extend({
-  components: {
-    TabContent,
-  },
   data() {
     return {
       tab: null,

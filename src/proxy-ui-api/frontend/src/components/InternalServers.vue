@@ -1,35 +1,42 @@
 <template>
   <div>
-    <v-card flat class="xr-card">
+    <v-card flat class="xr-card" v-if="showConnectionType">
       <v-flex>
-        <h1 class="title mb-3">Connection type</h1>
+        <h1 class="title mb-3">{{$t('internalServers.connectionType')}}</h1>
         <v-select
           v-model="connectionType"
           :items="connectionTypes"
           class="select-connection"
           :key="revertHack"
+          :disabled="!canEditConnectionType"
+          :readonly="!canEditConnectionType"
         ></v-select>
       </v-flex>
-      <div
-        class="conn-info"
-      >Connection type for servers in service provider role is set in the Services tab by the service URL (http/https)</div>
+      <div class="conn-info">{{$t('internalServers.connectionInfo')}}</div>
     </v-card>
 
     <v-card flat class="xr-card">
       <div class="tls-title-wrap">
-        <h1 class="title mb-3">Information System TLS certificate</h1>
+        <h1 class="title mb-3">{{$t('internalServers.tlsTitle')}}</h1>
         <v-btn
+          v-if="canAddTlsCert"
           outline
           round
           color="primary"
           class="text-capitalize table-button rounded-button"
           type="file"
           @click="$refs.inputUpload.click()"
-        >Add</v-btn>
-        <input v-show="false" ref="inputUpload" type="file" @change="onFileChange">
+        >{{$t('internalServers.add')}}</v-btn>
+        <input
+          v-show="false"
+          ref="inputUpload"
+          type="file"
+          accept=".pem, .cer, .der"
+          @change="onFileChange"
+        >
       </div>
-      <div class="cert-table-title">Certificate Hash (SHA/1)</div>
-      <table class="xrd-table server-certificates">
+      <div class="cert-table-title">{{$t('internalServers.certHash')}}</div>
+      <table class="certificate-table server-certificates">
         <template v-if="tlsCertificates && tlsCertificates.length > 0">
           <tr v-for="certificate in tlsCertificates" v-bind:key="certificate.hash">
             <td class="cert-icon">
@@ -37,37 +44,40 @@
             </td>
             <td>
               <span
+                v-if="canViewTlsCertDetails"
                 @click="openCertificate(certificate)"
                 class="certificate-link"
-              >{{certificate.hash}}</span>
+              >{{certificate.hash | colonize}}</span>
+              <span v-else>{{certificate.hash | colonize}}</span>
             </td>
           </tr>
         </template>
       </table>
     </v-card>
 
-    <v-card flat class="xr-card">
-      <h1 class="title mb-3">Security Server certificate</h1>
-      <div class="cert-table-title">Certificate Hash (SHA/1)</div>
-      <table class="xrd-table server-certificates">
+    <v-card v-if="canViewSSCert" flat class="xr-card">
+      <h1 class="title mb-3">{{$t('internalServers.ssCertTitle')}}</h1>
+      <div class="cert-table-title">{{$t('internalServers.certHash')}}</div>
+      <table class="certificate-table server-certificates">
         <template v-if="ssCertificate">
           <tr>
             <td class="cert-icon">
               <certificateIcon/>
             </td>
             <td>
-              <span>{{ssCertificate.hash}}</span>
+              <span>{{ssCertificate.hash | colonize}}</span>
             </td>
 
             <td class="column-button">
               <v-btn
+                v-if="canExportSSCert"
                 small
                 outline
                 round
                 color="primary"
                 class="xr-small-button"
                 @click="exportSSCertificate(ssCertificate.hash)"
-              >Export</v-btn>
+              >{{$t('internalServers.export')}}</v-btn>
             </td>
           </tr>
         </template>
@@ -94,7 +104,11 @@ export default Vue.extend({
   },
   data() {
     return {
-      connectionTypes: ['http', 'https', 'https no auth'],
+      connectionTypes: [
+        { text: 'HTTP', value: 'HTTP' },
+        { text: 'HTTPS', value: 'HTTPS' },
+        { text: 'HTTPS NO AUTH', value: 'HTTPS_NO_AUTH' },
+      ],
       dialog: false,
       selectedCertificate: null,
       revertHack: 0,
@@ -108,11 +122,53 @@ export default Vue.extend({
         return this.$store.getters.connectionType;
       },
       set(value: string) {
-        this.$store.dispatch('saveConnectionType', value).catch((error) => {
-          this.revertHack += 1;
-          this.$bus.$emit('show-error', error.message);
-        });
+        this.$store
+          .dispatch('saveConnectionType', {
+            clientId: this.id,
+            connType: value,
+          })
+          .then((reply) => {
+            this.$bus.$emit(
+              'show-success',
+              this.$t('internalServers.connTypeUpdated'),
+            );
+          })
+          .catch((error) => {
+            this.revertHack += 1;
+            this.$bus.$emit('show-error', error.message);
+          });
       },
+    },
+
+    showConnectionType(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.VIEW_CLIENT_INTERNAL_CONNECTION_TYPE,
+      );
+    },
+    canEditConnectionType(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.EDIT_CLIENT_INTERNAL_CONNECTION_TYPE,
+      );
+    },
+    canViewTlsCertDetails(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.VIEW_CLIENT_INTERNAL_CERT_DETAILS,
+      );
+    },
+    canAddTlsCert(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.ADD_CLIENT_INTERNAL_CERT,
+      );
+    },
+    canViewSSCert(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.VIEW_INTERNAL_SSL_CERT,
+      );
+    },
+    canExportSSCert(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.EXPORT_INTERNAL_SSL_CERT,
+      );
     },
   },
   created() {
@@ -120,59 +176,64 @@ export default Vue.extend({
     this.fetchTlsCertificates(this.id);
   },
   methods: {
-    onFileChange(e: any) {
-      const fileList = e.target.files || e.dataTransfer.files;
+    onFileChange(event: any): void {
+      const fileList = event.target.files || event.dataTransfer.files;
       if (!fileList.length) {
         return;
       }
 
-      const formData = new FormData();
-      // append the files to FormData
-      Array.from(Array(fileList.length).keys()).map((x) => {
-        formData.append('fieldName', fileList[x], fileList[x].name);
-      });
+      const reader = new FileReader();
 
-      // save it
-      this.$store.dispatch('uploadTlsCertificate', formData).then(
-        (response) => {
-          this.$bus.$emit('show-success', 'Certificate added');
-        },
-        (error) => {
-          this.$bus.$emit('show-error', error.message);
-        },
-      );
+      // Upload file when it's loaded in FileReader
+      reader.onload = (e: any) => {
+        if (!e || !e.target || !e.target.result) {
+          return;
+        }
+
+        this.$store
+          .dispatch('uploadTlsCertificate', {
+            clientId: this.id,
+            fileData: e.target.result,
+          })
+          .then(
+            (response) => {
+              // Refresh the tls cert list
+              this.fetchTlsCertificates(this.id);
+            },
+            (error) => {
+              this.$bus.$emit('show-error', error.message);
+            },
+          );
+      };
+
+      reader.readAsArrayBuffer(fileList[0]);
     },
 
-    fetchServer(id: string) {
+    fetchServer(id: string): void {
       this.$store.dispatch('fetchServer').catch((error) => {
         this.$bus.$emit('show-error', error.message);
       });
     },
 
-    fetchTlsCertificates(id: string) {
+    fetchTlsCertificates(id: string): void {
       this.$store.dispatch('fetchTlsCertificates', id).catch((error) => {
         this.$bus.$emit('show-error', error.message);
       });
     },
 
-    exportSSCertificate(hash: string) {
-      this.$store.dispatch('downloadSSCertificate', hash).then(
-        (response) => {
-          this.$bus.$emit('show-success', 'Download ok!');
-        },
-        (error) => {
-          this.$bus.$emit('show-error', error.message);
-        },
-      );
+    exportSSCertificate(hash: string): void {
+      this.$store.dispatch('downloadSSCertificate', hash).catch((error) => {
+        this.$bus.$emit('show-error', error.message);
+      });
     },
 
-    fetchSSCertificate(id: string) {
+    fetchSSCertificate(id: string): void {
       this.$store.dispatch('fetchSSCertificate', id).catch((error) => {
         this.$bus.$emit('show-error', error.message);
       });
     },
 
-    openCertificate(cert: any) {
+    openCertificate(cert: any): void {
       this.$router.push({
         name: RouteName.Certificate,
         params: {
@@ -181,7 +242,7 @@ export default Vue.extend({
         },
       });
     },
-    closeDialog() {
+    closeDialog(): void {
       this.dialog = false;
     },
   },
@@ -218,7 +279,8 @@ export default Vue.extend({
 }
 
 .server-certificates {
-  border-top: #9b9b9b solid 2px;
+  width: 100%;
+  border-top: $XRoad-Grey40 solid 1px;
 }
 
 .cert-icon {

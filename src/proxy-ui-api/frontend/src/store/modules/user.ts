@@ -46,6 +46,20 @@ export const userGetters: GetterTree<UserState, RootState> = {
   hasPermission: (state) => (perm: string) => {
     return state.permissions.includes(perm);
   },
+  getAllowedTabs: (state, getters) => (tabs: any[]) => {
+    // returns filtered array of objects based on the 'permission' attribute
+    const filteredTabs = tabs.filter((tab) => {
+      if (!tab.permission) {
+        return true;
+      }
+      if (getters.hasPermission(tab.permission)) {
+        return true;
+      }
+      return false;
+    });
+
+    return filteredTabs;
+  },
 };
 
 export const mutations: MutationTree<UserState> = {
