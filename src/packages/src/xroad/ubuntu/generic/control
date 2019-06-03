@@ -64,16 +64,14 @@ Description: X-Road signer component
 Package: xroad-securityserver
 Conflicts: xroad-centralserver, uxp-addon-monitor (<=6.5)
 Architecture: all
-Depends: xroad-proxy (=${binary:Version}), xroad-addon-metaservices (=${binary:Version}), xroad-addon-messagelog (=${binary:Version}), xroad-addon-proxymonitor (=${binary:Version}), xroad-addon-wsdlvalidator (=${binary:Version})
+Depends: xroad-proxy (=${binary:Version}), xroad-addon-metaservices (=${binary:Version}), xroad-addon-messagelog (=${binary:Version}), xroad-addon-proxymonitor (=${binary:Version}), xroad-addon-wsdlvalidator (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version})
 Description: X-Road security server
  This is meta-package of X-Road security server.
 
 Package: xroad-proxy
 Conflicts: xroad-center, xroad-confproxy
 Architecture: all
-# versionless xroad-proxy-ui-api to make it easier to update only it
-Depends: ${misc:Depends}, rsyslog, xroad-jetty9 (=${binary:Version}), curl, authbind|systemd, xroad-confclient (=${binary:Version}), xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version}), xroad-proxy-ui-api
-# Depends: ${misc:Depends}, rsyslog, xroad-jetty9 (=${binary:Version}), curl, authbind|systemd, xroad-confclient (=${binary:Version}), xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version})
+Depends: ${misc:Depends}, rsyslog, xroad-jetty9 (=${binary:Version}), curl, authbind|systemd, xroad-confclient (=${binary:Version}), xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version})
 Pre-depends: postgresql, postgresql-contrib, xroad-base (=${binary:Version})
 Description: X-Road security server
  X-Road security server programs and utilities
@@ -166,13 +164,8 @@ Description: Automatic token pin code entry
  Optional utility that automatically enters the software token pin code on xroad-signer start
 
 Package: xroad-proxy-ui-api
-Architecture: amd64
-# Depends:
-Depends: ${misc:Depends}, xroad-base
-# Depends: ${misc:Depends}, xroad-proxy (=${binary:Version})
-Replaces: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
-Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
-Pre-depends: xroad-base
-#Pre-depends: xroad-base (=${binary:Version})
+Architecture: all
+Depends: ${misc:Depends}
+Pre-depends: xroad-base (=${binary:Version}), xroad-proxy (=${binary:Version})
 Description: X-Road proxy UI REST API
  REST API for X-Road proxy UI and management operations
