@@ -6,7 +6,7 @@
 
 **Technical Specification**
 
-Version: 1.12  
+Version: 1.13  
 Doc. ID: PR-MSERV
 
 |  Date      | Version |  Description                                                             | Author             |
@@ -31,28 +31,27 @@ Doc. ID: PR-MSERV
 | 07.06.2017 | 1.10    | Additional signature algorithms supported                                | Kristo Heero       |
 | 06.03.2018 | 1.11    | Added terms section, term doc reference and link, fixed references       | Tatu Repo          |
 | 06.02.2019 | 1.12    | Update *clientReg* message description                                   | Petteri Kivimäki   |
+| 03.06.2019 | 1.13    | Add ownerChange management service                                       | Ilkka Seppälä      |
 
-## Table of Contents
+## Table of Contents- [X-Road: Protocol for Management Services](#x-road-protocol-for-management-services)
 
-<!-- vim-markdown-toc GFM -->
-
-* [License](#license)
-* [1 Introduction](#1-introduction)
-    * [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
-    * [1.2 References](#12-references)
-* [2 Format of the Messages](#2-format-of-the-messages)
-    * [2.1 clientReg - Security Server Client Registration](#21-clientreg---security-server-client-registration)
-    * [2.2 clientDeletion - Security Server Client Deletion](#22-clientdeletion---security-server-client-deletion)
-    * [2.3 authCertReg - Security Server Authentication Certificate Registration](#23-authcertreg---security-server-authentication-certificate-registration)
-    * [2.4 authCertDeletion - Security Server Authentication Certificate Deletion](#24-authcertdeletion---security-server-authentication-certificate-deletion)
-* [Annex A Example messages](#annex-a-example-messages)
-    * [A.1 clientReg](#a1-clientreg)
-    * [A.2 clientDeletion](#a2-clientdeletion)
-    * [A.3 authCertReg](#a3-authcertreg)
-    * [A.4 authCertDeletion](#a4-authcertdeletion)
-* [Annex B WSDL File for Management Services](#annex-b-wsdl-file-for-management-services)
-
-<!-- vim-markdown-toc -->
+  - [License](#license)
+  - [1 Introduction](#1-introduction)
+    - [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
+    - [1.2 References](#12-references)
+  - [2 Format of the Messages](#2-format-of-the-messages)
+    - [2.1 *clientReg* - Security Server Client Registration](#21-clientreg---security-server-client-registration)
+    - [2.2 *clientDeletion* - Security Server Client Deletion](#22-clientdeletion---security-server-client-deletion)
+    - [2.3 *authCertReg* - Security Server Authentication Certificate Registration](#23-authcertreg---security-server-authentication-certificate-registration)
+    - [2.4 *authCertDeletion* - Security Server Authentication Certificate Deletion](#24-authcertdeletion---security-server-authentication-certificate-deletion)
+    - [2.5 *ownerChange* - Security Server Owner Change](#25-ownerchange---security-server-owner-change)
+  - [Annex A. Example messages](#annex-a-example-messages)
+    - [A.1 clientReg](#a1-clientreg)
+    - [A.2 clientDeletion](#a2-clientdeletion)
+    - [A.3 authCertReg](#a3-authcertreg)
+    - [A.4 authCertDeletion](#a4-authcertdeletion)
+    - [A.5 ownerChange](#a5-ownerchange)
+  - [Annex B WSDL File for Management Services](#annex-b-wsdl-file-for-management-services)
 
 ## License
 
@@ -69,6 +68,8 @@ Management services are services provided by the X-Road governing organization t
 * *authCertReg* – adding an authentication certificate to the security server;
 
 * *authCertDeletion* – removing an authentication certificate from the security server.
+  
+* *ownerChange* - changing the owner member of the security server.
 
 The management services are implemented as standard X-Road services (see \[[PR-MESS](#Ref_PR-MESS)\] for detailed description of the protocol) that are offered by the X-Road governing authority. The exception is the *authCertReg* service that, for technical reasons, is implemented as HTTPS POST (see below for details).
 
@@ -239,6 +240,44 @@ The XML Schema fragment of the authentication certificate deletion request body 
 The response echoes back the client and the server fields of the request and adds the field *requestId*.
 
 An example of the authentication certificate deletion request and response is given in [Annex A.4](#a4-authcertdeletion).
+
+### 2.5 *ownerChange* - Security Server Owner Change
+
+The owner change service is invoked by the security server when the owner member of the security server is changed.
+
+The body of the owner change message (request or response) contains the following fields:
+
+* **server** – identifier of the security server where the owner is changed;
+
+* **newOwner** – identifier of the new owner member of the security server;
+
+* **requestId** – for responses only, unique identifier of the request that is stored in the central server database \[[DM-CS](#Ref_DM-CS)\].
+
+The XML Schema fragment of the client registration request body is shown below. For clarity, documentation in the schema fragment is omitted.
+
+```xml
+<xsd:complexType name="OwnerChangeRequestType">
+    <xsd:sequence>
+        <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType"/>
+        <xsd:element name="newOwner" type="id:XRoadClientIdentifierType"/>
+        <element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+    </xsd:sequence>
+</xsd:complexType>
+```
+
+The request is sent using HTTP POST method. The content type of the request MUST be *multipart/related* and the request must contain the following MIME parts.
+
+1. X-Road SOAP request message. The message MUST contain the regular X-Road headers and the two data fields (*server*, *client*). The content type of this part MUST be *text/xml*.
+
+2. Signature of the new owner member of the security server. The MIME part must contain signature of the SOAP request message, created with the private key corresponding to a **signing certificate** of the new owner member. The content type of this part must be *application/octet-stream*. Additionally, the part MUST include header field *signature-algorithm-ID* that identifies the signature algorithm. Currently supported signature algorithms are *SHA256withRSA*, *SHA384withRSA*, *SHA512withRSA*, *SHA256withRSAandMGF1*, *SHA384withRSAandMGF1*, and *SHA512withRSAandMGF1*.
+
+3. Signing certificate of the new owner member that was used to create the second MIME part. The content type of this part MUST be *application/octet-stream*.
+
+4. OCSP response certifying that the new owner member's signing certificate was valid at the time of creation of the request. The content type of this part MUST be *application/octet-stream*.
+
+The response echoes back the client and the server fields of the request and adds the field *requestId*.
+
+An example of the owner change request and response is given in [Annex A.5](#a5-ownerchange).
 
 ## Annex A. Example messages
 
@@ -712,6 +751,112 @@ Response message
 </SOAP-ENV:Envelope>
 ```
 
+### A.5 ownerChange
+
+Request message
+
+```xml
+--jetty113950090iemuz6a3
+Content-Type: text/xml; charset=UTF-8
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:id="http://x-road.eu/xsd/identifiers"
+        xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
+    <SOAP-ENV:Header>
+        <xroad:client id:objectType="MEMBER">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>TS1OWNER</id:memberCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>TS1OWNER</id:memberCode>
+            <id:serviceCode>ownerChange</id:serviceCode>
+        </xroad:service>
+        <xroad:id>40c1a424-729d-4d52-bd77-ac6f70d1dac0</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <xroad:ownerChange>
+            <xroad:server id:objectType="SERVER">
+                <id:xRoadInstance>EE</id:xRoadInstance>
+                <id:memberClass>GOV</id:memberClass>
+                <id:memberCode>TS1OWNER</id:memberCode>
+                <id:serverCode>TS1</id:serverCode>
+            </xroad:server>
+            <xroad:newOwner id:objectType="MEMBER">
+                <id:xRoadInstance>EE</id:xRoadInstance>
+                <id:memberClass>GOV</id:memberClass>
+                <id:memberCode>MACK</id:memberCode>
+            </xroad:newOwner>
+        </xroad:clientReg>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+--jetty113950090iemuz6a3
+Content-Type: application/octet-stream
+signature-algorithm-id: SHA512withRSA
+ 
+[SUBSYSTEM OWNER SIGNATURE BYTES]
+--jetty113950090iemuz6a3
+Content-Type: application/octet-stream
+ 
+[SUBSYSTEM OWNER CERTIFICATE BYTES]
+--jetty113950090iemuz6a3
+Content-Type: application/octet-stream
+ 
+[SUBSYSTEM OWNER CERTIFICATE OCSP RESPONSE BYTES]
+--jetty113950090iemuz6a3--
+```
+
+Response message
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:id="http://x-road.eu/xsd/identifiers"
+        xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
+    <SOAP-ENV:Header>
+        <xroad:client id:objectType="MEMBER">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>TS1OWNER</id:memberCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>TS1OWNER</id:memberCode>
+            <id:serviceCode>ownerChange</id:serviceCode>
+        </xroad:service>
+        <xroad:id>40c1a424-729d-4d52-bd77-ac6f70d1dac0</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+        <xroad:requestHash
+                algorithmId="http://www.w3.org/2001/04/xmlenc#sha512">
+            LGxmFNQhkhehCsbrrBgX4w64N0Z+knazghehKDYwJzSmVwf8tyVCYHyD8Vp5eSNNMtm0
+            XDBzMOkqQ3uSDfNrLw==
+        </xroad:requestHash>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <xroad:ownerChangeResponse>
+            <xroad:server id:objectType="SERVER">
+                <id:xRoadInstance>EE</id:xRoadInstance>
+                <id:memberClass>GOV</id:memberClass>
+                <id:memberCode>TS1OWNER</id:memberCode>
+                <id:serverCode>TS1</id:serverCode>
+            </xroad:server>
+            <xroad:newOwner id:objectType="MEMBER">
+                <id:xRoadInstance>EE</id:xRoadInstance>
+                <id:memberClass>GOV</id:memberClass>
+                <id:memberCode>MACK</id:memberCode>
+            </xroad:newOwner>
+            <xroad:requestId>691</xroad:requestId>
+        </xroad:ownerChangeResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+```
+
 ## Annex B WSDL File for Management Services
 
 ```xml
@@ -949,6 +1094,8 @@ Response message
                     type="tns:AuthCertDeletionRequestType"/>
             <xsd:element name="authCertDeletionResponse"
                     type="tns:AuthCertDeletionRequestType"/>
+            <xsd:element name="ownerChange" type="tns:OwnerChangeRequestType"/>
+            <xsd:element name="ownerChangeResponse" type="tns:OwnerChangeRequestType"/>
             <!-- Header fields -->
             <xsd:element name="client" type="id:XRoadClientIdentifierType"/>
             <xsd:element name="service" type="id:XRoadServiceIdentifierType"/>
@@ -1085,6 +1232,12 @@ Response message
     <wsdl:message name="authCertDeletionResponse">
         <wsdl:part element="xroad:authCertDeletionResponse" name="parameters"/>
     </wsdl:message>
+    <wsdl:message name="ownerChange">
+        <wsdl:part element="xroad:ownerChange" name="parameters"/>
+    </wsdl:message>
+    <wsdl:message name="ownerChangeResponse">
+        <wsdl:part element="xroad:ownerChangeResponse" name="parameters"/>
+    </wsdl:message>
     <wsdl:portType name="centralservice">
         <wsdl:operation name="clientReg">
             <wsdl:input message="tns:clientReg"/>
@@ -1097,6 +1250,10 @@ Response message
         <wsdl:operation name="authCertDeletion">
             <wsdl:input message="tns:authCertDeletion"/>
             <wsdl:output message="tns:authCertDeletionResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="ownerChange">
+            <wsdl:input message="tns:ownerChange"/>
+            <wsdl:output message="tns:ownerChangeResponse"/>
         </wsdl:operation>
     </wsdl:portType>
     <wsdl:binding name="centralserviceSOAP" type="tns:centralservice">
@@ -1181,6 +1338,33 @@ Response message
                       use="literal"/>
                 <soap:header message="tns:requestheader" part="requestHash"
                       use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="ownerChange">
+            <soap:operation soapAction=""/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+                <soap:header message="tns:requestheader" part="client"
+                        use="literal"/>
+                <soap:header message="tns:requestheader" part="service"
+                        use="literal"/>
+                <soap:header message="tns:requestheader" part="id"
+                        use="literal"/>
+                <soap:header message="tns:requestheader" part="protocolVersion"
+                        use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+                <soap:header message="tns:requestheader" part="client"
+                        use="literal"/>
+                <soap:header message="tns:requestheader" part="service"
+                        use="literal"/>
+                <soap:header message="tns:requestheader" part="id"
+                        use="literal"/>
+                <soap:header message="tns:requestheader" part="protocolVersion"
+                        use="literal"/>
+                <soap:header message="tns:requestheader" part="requestHash"
+                        use="literal"/>
             </wsdl:output>
         </wsdl:operation>
     </wsdl:binding>
