@@ -95,7 +95,8 @@
     "cancel": "Cancel",
     "yes": "Yes",
     "removeTitle": "Remove member?",
-    "removeText": "Are you sure that you want to remove this member?"
+    "removeText": "Are you sure that you want to remove this member?",
+    "descSaved": "Description saved"
   },
   "action": {
     "addSubsystem": "add subsystem",
