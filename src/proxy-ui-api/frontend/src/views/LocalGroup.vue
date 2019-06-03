@@ -1,7 +1,7 @@
 <template>
   <div class="xr-tab-max-width">
     <div>
-      <subViewTitle :title="bannerTitle()" @close="close"/>
+      <subViewTitle :title="groupCode" @close="close"/>
 
       <template>
         <div class="cert-hash">
@@ -157,6 +157,7 @@ export default Vue.extend({
       selectedMember: undefined,
       description: undefined,
       group: undefined,
+      groupCode: '',
       members: [],
     };
   },
@@ -167,25 +168,23 @@ export default Vue.extend({
     },
   },
   methods: {
-    bannerTitle(): string {
-      if (this.group && this.group.code) {
-        return this.group.code;
-      }
-      return '';
-    },
     close(): void {
       this.$router.go(-1);
     },
 
     canEditDescription(): boolean {
-      return true;
+      return this.$store.getters.hasPermission(
+        Permissions.EDIT_LOCAL_GROUP_DESC,
+      );
     },
 
     showRemove(): boolean {
+      // TODO placeholder. will be done in future task
       return true;
     },
 
     showAddMembers(): boolean {
+      // TODO placeholder. will be done in future task
       return true;
     },
 
@@ -198,8 +197,9 @@ export default Vue.extend({
         )
         .then((res) => {
           this.group = res.data;
+          this.groupCode = res.data.code;
           this.description = res.data.description;
-          this.$bus.$emit('show-success', 'dine');
+          this.$bus.$emit('show-success', this.$t('localGroup.descSaved'));
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
@@ -211,6 +211,7 @@ export default Vue.extend({
         .get(`/clients/${clientId}/groups/${code}`)
         .then((res) => {
           this.group = res.data;
+          this.groupCode = res.data.code;
           this.description = res.data.description;
         })
         .catch((error) => {
