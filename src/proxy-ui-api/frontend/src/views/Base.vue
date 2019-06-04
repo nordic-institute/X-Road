@@ -73,21 +73,14 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
-@import '../assets/colors';
-// Override vuetify styling in alert dialog card
-.xroad-card {
-  .v-card__title {
-    border-bottom: solid $XRoad-Purple 2px;
-  }
-}
 </style>
 
 <style lang="scss" scoped>
+@import '../assets/shared';
 .base-full-width {
   width: 100%;
   max-width: $view-area-max-width;
-  display: flex;
-  justify-content: center;
+  margin: 10px;
 }
 .fade-enter-active,
 .fade-leave-active {

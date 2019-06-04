@@ -1,3 +1,4 @@
+@import '../assets/colors'; 
 
 .rounded-button {
   padding-left: 24px;
@@ -34,10 +35,24 @@ $large-button-width: 140px;
   margin-right: 10px;
 }
 
+// Override vuetify styling in alert dialog card
+.xroad-card {
+  .v-card__title {
+    border-bottom: solid $XRoad-Purple 2px;
+  }
+
+  .xr-card-actions {
+    border-top: 1px $XRoad-Grey20 solid;
+    padding-top: 20px;
+  }
+}
+
 // Vuetify overrides
 .v-tabs__slider{
   height: 4px;
 }
+
+
 
 
 

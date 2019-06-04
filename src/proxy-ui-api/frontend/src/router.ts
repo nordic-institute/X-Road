@@ -17,8 +17,6 @@ import Error from '@/views/Error.vue';
 import ClientDetails from '@/components/ClientDetails.vue';
 import InternalServers from '@/components/InternalServers.vue';
 import LocalGroups from '@/components/LocalGroups.vue';
-import ServiceClients from '@/components/ServiceClients.vue';
-import Services from '@/components/Services.vue';
 import LocalGroup from '@/views/LocalGroup.vue';
 import Services from '@/components/Services.vue';
 import ServiceClients from '@/components/ServiceClients.vue';
