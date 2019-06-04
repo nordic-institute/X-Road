@@ -35,7 +35,12 @@
       </table>
     </v-card>
 
-    <newGroupDialog :dialog="addGroupDialog" :certificate="certificate" @close="closeDialog()"/>
+    <newGroupDialog
+      :dialog="addGroupDialog"
+      :id="id"
+      @cancel="closeDialog()"
+      @groupAdded="groupAdded()"
+    />
   </div>
 </template>
 
@@ -77,9 +82,16 @@ export default Vue.extend({
   },
   methods: {
     addGroup(): void {
-      // TODO will be done in XRDDEV-519
-      console.log('add');
       this.addGroupDialog = true;
+    },
+
+    closeDialog(): void {
+      this.addGroupDialog = false;
+    },
+
+    groupAdded(): void {
+      this.fetchGroups(this.id);
+      this.addGroupDialog = false;
     },
 
     filtered(): any[] {
