@@ -41,7 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.security.cert.CertificateEncodingException;
@@ -93,13 +92,22 @@ public class ClientService {
      * @return
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public List<ClientId> getAllGlobalClients() {
-        List<ClientId> globalMembers = globalConfWrapper.getGlobalMembers().stream()
-                .map(MemberInfo::getId).collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(globalMembers)) {
-            throw new NotFoundException(("no clients found"));
-        }
-        return globalMembers;
+    public List<MemberInfo> getAllGlobalClients() {
+        return globalConfWrapper.getGlobalMembers();
+    }
+
+    /**
+     * return all clients (global and local)
+     * @return MemberInfo list
+     */
+    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
+    public List<MemberInfo> getAllClients() {
+        List<MemberInfo> allClients = globalConfWrapper.getGlobalMembers();
+        allClients.addAll(getAllLocalClients().stream()
+                .map(clientType -> new MemberInfo(clientType.getIdentifier(),
+                        globalConfWrapper.getMemberName(clientType.getIdentifier())))
+                .collect(Collectors.toList()));
+        return allClients;
     }
 
     /**
@@ -253,15 +261,11 @@ public class ClientService {
     public List<ClientType> findLocalClients(String name, String instance, String propertyClass, String code,
             String subsystem, boolean showMembers) {
         List<Predicate<ClientType>> searchPredicates = buildLocalClientSearchPredicates(name, instance, propertyClass,
-                code, subsystem, showMembers);
-        List<ClientType> clientList = getAllLocalClients().stream()
+                code, subsystem);
+        return getAllLocalClients().stream()
                 .filter(searchPredicates.stream().reduce(p -> true, Predicate::and))
                 .filter(ct -> showMembers || ct.getIdentifier().getSubsystemCode() != null)
                 .collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(clientList)) {
-            throw new NotFoundException(("no members found with the given search terms"));
-        }
-        return clientList;
     }
 
     /**
@@ -275,23 +279,44 @@ public class ClientService {
      * @return ClientId list
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public List<ClientId> findGlobalClients(String name, String instance, String propertyClass, String code,
+    public List<MemberInfo> findGlobalClients(String name, String instance, String propertyClass, String code,
             String subsystem, boolean showMembers) {
-        List<Predicate<ClientId>> searchPredicates = buildGlobalClientSearchPredicates(name, instance, propertyClass,
-                code, subsystem, showMembers);
-        List<ClientId> globalMembers = globalConfWrapper.getGlobalMembers().stream()
-                .map(MemberInfo::getId)
+        List<Predicate<MemberInfo>> searchPredicates = buildGlobalClientSearchPredicates(name, instance, propertyClass,
+                code, subsystem);
+        return getAllGlobalClients().stream()
                 .filter(searchPredicates.stream().reduce(p -> true, Predicate::and))
-                .filter(id -> showMembers || id.getSubsystemCode() != null)
+                .filter(memberInfo -> showMembers || memberInfo.getId().getSubsystemCode() != null)
                 .collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(globalMembers)) {
-            throw new NotFoundException(("no members found with the given search terms"));
+    }
+
+    /**
+     * Find from all clients (local and global)
+     * @param name
+     * @param instance
+     * @param propertyClass
+     * @param code
+     * @param subsystem
+     * @param showMembers
+     * @param internalSearch
+     * @return MemberInfo list
+     */
+    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
+    public List<MemberInfo> findFromAllClients(String name, String instance, String propertyClass, String code,
+            String subsystem, boolean showMembers, boolean internalSearch) {
+        List<MemberInfo> foundMembers = findLocalClients(name, instance, propertyClass, code, subsystem, showMembers)
+                .stream()
+                .map(clientType -> new MemberInfo(clientType.getIdentifier(),
+                        globalConfWrapper.getMemberName(clientType.getIdentifier())))
+                .collect(Collectors.toList());
+        if (internalSearch) {
+            return foundMembers;
         }
-        return globalMembers;
+        foundMembers.addAll(findGlobalClients(name, instance, propertyClass, code, subsystem, showMembers));
+        return foundMembers;
     }
 
     private List<Predicate<ClientType>> buildLocalClientSearchPredicates(String name, String instance,
-            String propertyClass, String code, String subsystem, boolean showMembers) {
+            String propertyClass, String code, String subsystem) {
         List<Predicate<ClientType>> searchPredicates = new ArrayList<>();
 
         if (!StringUtils.isEmpty(name)) {
@@ -307,46 +332,33 @@ public class ClientService {
             searchPredicates.add(ct -> ct.getIdentifier().getMemberCode().equalsIgnoreCase(code));
         }
         if (!StringUtils.isEmpty(subsystem)) {
-            searchPredicates.add(ct -> {
-                if (showMembers) {
-                    return ct.getIdentifier().getSubsystemCode() == null
-                            || ct.getIdentifier().getSubsystemCode().equalsIgnoreCase(subsystem);
-                } else {
-                    return ct.getIdentifier().getSubsystemCode() != null
-                            && ct.getIdentifier().getSubsystemCode().equalsIgnoreCase(subsystem);
-                }
-            });
+            searchPredicates.add(ct -> ct.getIdentifier().getSubsystemCode() != null
+                    && ct.getIdentifier().getSubsystemCode().equalsIgnoreCase(subsystem));
         }
 
         return searchPredicates;
     }
 
-    private List<Predicate<ClientId>> buildGlobalClientSearchPredicates(String name, String instance,
-            String propertyClass, String code, String subsystem, boolean showMembers) {
-        List<Predicate<ClientId>> searchPredicates = new ArrayList<>();
+    private List<Predicate<MemberInfo>> buildGlobalClientSearchPredicates(String name, String instance,
+            String propertyClass, String code, String subsystem) {
+        List<Predicate<MemberInfo>> searchPredicates = new ArrayList<>();
 
         if (!StringUtils.isEmpty(name)) {
-            searchPredicates.add(id -> globalConfWrapper.getMemberName(id).equalsIgnoreCase(name));
+            searchPredicates.add(memberInfo -> memberInfo.getName() != null
+                    && memberInfo.getName().equalsIgnoreCase(name));
         }
         if (!StringUtils.isEmpty(instance)) {
-            searchPredicates.add(id -> id.getXRoadInstance().equalsIgnoreCase(instance));
+            searchPredicates.add(memberInfo -> memberInfo.getId().getXRoadInstance().equalsIgnoreCase(instance));
         }
         if (!StringUtils.isEmpty(propertyClass)) {
-            searchPredicates.add(id -> id.getMemberClass().equalsIgnoreCase(propertyClass));
+            searchPredicates.add(memberInfo -> memberInfo.getId().getMemberClass().equalsIgnoreCase(propertyClass));
         }
         if (!StringUtils.isEmpty(code)) {
-            searchPredicates.add(id -> id.getMemberCode().equalsIgnoreCase(code));
+            searchPredicates.add(memberInfo -> memberInfo.getId().getMemberCode().equalsIgnoreCase(code));
         }
         if (!StringUtils.isEmpty(subsystem)) {
-            searchPredicates.add(id -> {
-                if (showMembers) {
-                    return id.getSubsystemCode() == null
-                            || id.getSubsystemCode().equalsIgnoreCase(subsystem);
-                } else {
-                    return id.getSubsystemCode() != null
-                            && id.getSubsystemCode().equalsIgnoreCase(subsystem);
-                }
-            });
+            searchPredicates.add(memberInfo -> memberInfo.getId().getSubsystemCode() != null
+                    && memberInfo.getId().getSubsystemCode().equalsIgnoreCase(subsystem));
         }
 
         return searchPredicates;

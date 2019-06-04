@@ -107,15 +107,15 @@ public class ClientsApiControllerIntegrationTest {
     // this is base64 encoded DER certificate from common-util/test/configuration-anchor.xml
     /**
      * Certificate:
-     *     Data:
-     *         Version: 3 (0x2)
-     *         Serial Number: 1 (0x1)
-     *     Signature Algorithm: sha512WithRSAEncryption
-     *         Issuer: CN=N/A
-     *         Validity
-     *             Not Before: Jan  1 00:00:00 1970 GMT
-     *             Not After : Jan  1 00:00:00 2038 GMT
-     *         Subject: CN=N/A
+     * Data:
+     * Version: 3 (0x2)
+     * Serial Number: 1 (0x1)
+     * Signature Algorithm: sha512WithRSAEncryption
+     * Issuer: CN=N/A
+     * Validity
+     * Not Before: Jan  1 00:00:00 1970 GMT
+     * Not After : Jan  1 00:00:00 2038 GMT
+     * Subject: CN=N/A
      */
     private static byte[] certBytes =
             CryptoUtils.decodeBase64("MIICqTCCAZGgAwIBAgIBATANBgkqhkiG9w0BAQ0FADAOMQwwCgYDVQQDDANOL0EwHhcNN\n"
@@ -163,7 +163,7 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void getAllClients() {
         ResponseEntity<List<Client>> response =
-                clientsApiController.getClients();
+                clientsApiController.getClients(null, null, null, null, null, true, false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(8, response.getBody().size());
         Client client = response.getBody().get(0);
@@ -174,7 +174,7 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void getAllLocalClients() {
-        ResponseEntity<List<Client>> response = clientsApiController.getClients(null, null, null, null, null, null,
+        ResponseEntity<List<Client>> response = clientsApiController.getClients(null, null, null, null, null, true,
                 true);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(3, response.getBody().size());
@@ -556,11 +556,8 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertEquals(1, clientsResponse.getBody().size());
         // not found
-        try {
-            clientsApiController.getClients("DOES_NOT_EXIST", null, null, null, null, true, false);
-            fail("should have thrown NotFoundException");
-        } catch (NotFoundException expected) {
-        }
+        clientsResponse = clientsApiController.getClients("DOES_NOT_EXIST", null, null, null, null, true, false);
+        assertEquals(0, clientsResponse.getBody().size());
     }
 
     @Test
@@ -580,10 +577,7 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertEquals(1, clientsResponse.getBody().size());
         // not found
-        try {
-            clientsApiController.getClients(null, null, null, null, SUBSYSTEM3, false, true);
-            fail("should have thrown NotFoundException");
-        } catch (NotFoundException expected) {
-        }
+        clientsResponse = clientsApiController.getClients(null, null, null, null, SUBSYSTEM3, false, true);
+        assertEquals(0, clientsResponse.getBody().size());
     }
 }

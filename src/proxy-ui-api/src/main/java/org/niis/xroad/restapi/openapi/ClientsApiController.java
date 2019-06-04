@@ -53,17 +53,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.NativeWebRequest;
 
 import java.io.IOException;
 import java.security.cert.CertificateException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -132,53 +129,11 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public ResponseEntity<List<Client>> getClients(String name, String instance, String propertyClass, String code,
             String subsystem, Boolean showMembers, Boolean internalSearch) {
+        boolean unboxedShowMembers = Boolean.TRUE.equals(showMembers);
         boolean unboxedInternalSearch = Boolean.TRUE.equals(internalSearch);
-        List<Client> clients = new ArrayList<>();
-        if (!StringUtils.isEmpty(name) || !StringUtils.isEmpty(instance) || !StringUtils.isEmpty(propertyClass)
-                || !StringUtils.isEmpty(code) || !StringUtils.isEmpty(subsystem)) {
-            boolean unboxedShowMembers = Boolean.TRUE.equals(showMembers);
-            try {
-                List<ClientType> foundClientTypes = clientService.findLocalClients(name, instance, propertyClass, code,
-                        subsystem, unboxedShowMembers);
-                clients.addAll(foundClientTypes.stream().map(clientConverter::convert).collect(Collectors.toList()));
-            } catch (NotFoundException ex) {
-                // do not throw if global clients are yet to be searched
-                if (unboxedInternalSearch) {
-                    throw ex;
-                }
-            }
-            if (!unboxedInternalSearch) {
-                List<ClientId> foundIds = clientService.findGlobalClients(name, instance, propertyClass, code,
-                        subsystem, unboxedShowMembers);
-                clients.addAll(clientConverter.convertIdsToClients(foundIds));
-            }
-        } else {
-            try {
-                List<ClientType> foundClientTypes = clientService.getAllLocalClients();
-                clients.addAll(foundClientTypes.stream().map(clientConverter::convert).collect(Collectors.toList()));
-            } catch (NotFoundException ex) {
-                // do not throw if global clients are yet to be searched
-                if (unboxedInternalSearch) {
-                    throw ex;
-                }
-            }
-            if (!unboxedInternalSearch) {
-                List<ClientId> foundIds = clientService.getAllGlobalClients();
-                clients.addAll(clientConverter.convertIdsToClients(foundIds));
-            }
-        }
+        List<Client> clients = clientConverter.convertMemberInfosToClients(clientService.findFromAllClients(name,
+                instance, propertyClass, code, subsystem, unboxedShowMembers, unboxedInternalSearch));
         return new ResponseEntity<>(clients, HttpStatus.OK);
-    }
-
-    /**
-     * No argument version to return all clients
-     * @return
-     */
-    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public ResponseEntity<List<Client>> getClients() {
-        final String ignoredSearchParam = null;
-        return getClients(ignoredSearchParam, ignoredSearchParam, ignoredSearchParam, ignoredSearchParam,
-                ignoredSearchParam, null, null);
     }
 
     @Override
