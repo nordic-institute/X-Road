@@ -20,7 +20,7 @@
     </div>
 
     <div class="edit-row">
-      <template v-if="canEditDescription()">
+      <template v-if="canEditDescription">
         <div>{{$t('localGroup.editDesc')}}</div>
         <v-text-field
           v-model="description"
@@ -163,19 +163,18 @@ export default Vue.extend({
   },
   computed: {
     ...mapGetters(['tlsCertificates']),
-    showDelete() {
-      return true;
+    showDelete(): boolean {
+      return this.$store.getters.hasPermission(Permissions.DELETE_LOCAL_GROUP);
+    },
+    canEditDescription(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.EDIT_LOCAL_GROUP_DESC,
+      );
     },
   },
   methods: {
     close(): void {
       this.$router.go(-1);
-    },
-
-    canEditDescription(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.EDIT_LOCAL_GROUP_DESC,
-      );
     },
 
     showRemove(): boolean {
@@ -242,7 +241,16 @@ export default Vue.extend({
     },
     doDeleteGroup(): void {
       this.confirmGroup = false;
-      // TODO placeholder. will be done in future task
+
+      axios
+        .delete(`/clients/${this.id}/groups/${this.groupCode}`)
+        .then((res) => {
+          this.$bus.$emit('show-success', 'localGroup.groupDeleted');
+          this.$router.go(-1);
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
     },
   },
   created() {
