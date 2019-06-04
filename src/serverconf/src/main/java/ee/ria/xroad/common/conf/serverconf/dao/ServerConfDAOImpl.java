@@ -27,8 +27,9 @@ package ee.ria.xroad.common.conf.serverconf.dao;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 
-import org.hibernate.Criteria;
 import org.hibernate.Session;
+
+import javax.persistence.criteria.CriteriaQuery;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
 import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.get;
@@ -44,7 +45,7 @@ public class ServerConfDAOImpl {
      * @throws Exception if an error occurs
      */
     @Deprecated
-    public boolean confExists() throws Exception {
+    public boolean confExists() {
         return getFirst(ServerConfType.class) != null;
     }
 
@@ -56,8 +57,7 @@ public class ServerConfDAOImpl {
     public ServerConfType getConf() {
         ServerConfType confType = getFirst(ServerConfType.class);
         if (confType == null) {
-            throw new CodedException(X_MALFORMED_SERVERCONF,
-                    "Server conf is not initialized!");
+            throw new CodedException(X_MALFORMED_SERVERCONF, "Server conf is not initialized!");
         }
         return confType;
     }
@@ -76,13 +76,14 @@ public class ServerConfDAOImpl {
         return confType;
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> T getFirst(Session session, final Class<?> clazz) {
-        Criteria c = session.createCriteria(clazz);
-        c.setFirstResult(0);
-        c.setMaxResults(1);
-        T t = (T) c.uniqueResult();
-        return t;
+    private <T> T getFirst(Session session, final Class<T> clazz) {
+        final CriteriaQuery<T> q = session.getCriteriaBuilder().createQuery(clazz);
+        q.select(q.from(clazz));
+
+        return session.createQuery(q)
+                .setFirstResult(0)
+                .setMaxResults(1)
+                .uniqueResult();
     }
 
     /**
@@ -90,7 +91,7 @@ public class ServerConfDAOImpl {
      */
     @SuppressWarnings("unchecked")
     @Deprecated
-    private <T> T getFirst(final Class<?> clazz) {
+    private <T> T getFirst(final Class<T> clazz) {
         Session session = get().getSession();
         return getFirst(session, clazz);
     }

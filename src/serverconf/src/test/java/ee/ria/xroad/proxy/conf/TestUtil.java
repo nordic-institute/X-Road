@@ -41,7 +41,7 @@ import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 
 import java.util.Date;
 
