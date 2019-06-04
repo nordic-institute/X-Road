@@ -26,8 +26,9 @@ export default (Vue as VueConstructor<
     Snackbar,
   },
   methods: {
-    showSuccessSnackbar(message: string): void {
-      this.$refs.snackbar.showSuccess(message);
+    showSuccessSnackbar(messageKey: string): void {
+      // Translate localisation key and pass it forward to snackbar component
+      this.$refs.snackbar.showSuccess(this.$t(messageKey) as string);
     },
     showErrorSnackbar(message: string): void {
       this.$refs.snackbar.showError(message);

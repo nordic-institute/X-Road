@@ -128,10 +128,7 @@ export default Vue.extend({
             connType: value,
           })
           .then(() => {
-            this.$bus.$emit(
-              'show-success',
-              this.$t('internalServers.connTypeUpdated'),
-            );
+            this.$bus.$emit('show-success', 'internalServers.connTypeUpdated');
           })
           .catch((error) => {
             this.revertHack += 1;

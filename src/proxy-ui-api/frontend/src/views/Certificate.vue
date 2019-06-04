@@ -129,7 +129,7 @@ export default Vue.extend({
         })
         .then(
           (response) => {
-            this.$bus.$emit('show-success', 'Certificate deleted');
+            this.$bus.$emit('show-success', 'cert.certDeleted');
           },
           (error) => {
             this.$bus.$emit('show-error', error.message);

@@ -196,10 +196,10 @@ export default Vue.extend({
           }`,
         )
         .then((res) => {
+          this.$bus.$emit('show-success', 'localGroup.descSaved');
           this.group = res.data;
           this.groupCode = res.data.code;
           this.description = res.data.description;
-          this.$bus.$emit('show-success', this.$t('localGroup.descSaved'));
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
