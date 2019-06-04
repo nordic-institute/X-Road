@@ -127,7 +127,7 @@ export default Vue.extend({
             clientId: this.id,
             connType: value,
           })
-          .then((reply) => {
+          .then(() => {
             this.$bus.$emit(
               'show-success',
               this.$t('internalServers.connTypeUpdated'),

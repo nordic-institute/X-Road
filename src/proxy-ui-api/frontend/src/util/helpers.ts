@@ -44,7 +44,7 @@ export function selectedFilter(arr: any[], search: string, excluded?: string): a
 
     // If there is an excluded key remove it from the keys
     if (excluded) {
-      filteredKeys = Object.keys(g).filter((value, index) => {
+      filteredKeys = filteredKeys.filter((value) => {
         return value !== 'id';
       });
     }
