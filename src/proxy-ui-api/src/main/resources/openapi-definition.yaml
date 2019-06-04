@@ -4,7 +4,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.2"
+  version: "1.0.3"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -1669,68 +1669,6 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /login:
-    post: # ok
-      tags:
-        - security server
-      summary: Logs in and returns the authentication cookie
-      requestBody:
-        required: true
-        description: A JSON object containing the login and password.
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LoginRequest'
-      security:
-        - CookieAuth: []
-      responses:
-        '200':
-          description: >
-            Successfully authenticated.
-            The session ID is returned in a cookie named `JSESSIONID`. You need to include this cookie in subsequent requests.
-          headers:
-            Set-Cookie:
-              schema:
-                type: string
-                minLength: 1
-                maxLength: 255
-                example: JSESSIONID=abcde12345; Path=/;
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '409':
-          description: an existing item already exists
-        '500':
-          description: internal server error
-  /logout:
-    delete: # ok
-      tags:
-        - security server
-      summary: logout from the UI
-      operationId: logout
-      description: SS administrator logs out from UI.
-      security:
-        - CookieAuth: []
-      responses:
-        '204':
-          description: deletion was successful
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '500':
-          description: internal server error
   /user:
     get: # ok
       tags:
@@ -2905,13 +2843,13 @@ components:
     ApiKeyAuth:
       type: apiKey
       in: header
-      name: XROAD-API-KEY
-    CookieAuth:
-      type: apiKey
-      in: cookie
-      name: JSESSIONID
+      name: Authorization
+      description: X-Road-ApiKey token=<api key>
+      #https://github.com/nordic-institute/X-Road-REST-UI/blob/XRDDEV-237/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#1911-creating-new-api-keys
   schemas:
     AccessRight: # ok
+      type: object
+      description: access right for clients and services
       required:
         - id
         - client_id
@@ -2921,6 +2859,7 @@ components:
         id:
           type: string
           format: text
+          description: access right id
           example: 123
           minLength: 1
           maxLength: 255
@@ -2935,18 +2874,20 @@ components:
         operation_code:
           type: string
           format: text
+          description: operation code
           example: clientDeletion
           minLength: 1
           maxLength: 255
         operation_title:
           type: string
           format: text
+          description: operation title
           example: client deletion
           minLength: 1
           maxLength: 255
-      type: object
     Anchor: # ok
       type: object
+      description: security server anchor
       required:
         - hash
         - created_at
@@ -2954,17 +2895,20 @@ components:
         hash:
           type: string
           format: hash
+          description: anchor hash
           example: 42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3
           minLength: 1
           maxLength: 255
         created_at:
           type: string
           format: date-time
+          description: anchor created at
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
     Backup: # ok
       type: object
+      description: security server backup
       required:
         - filename
         - created_at
@@ -2972,16 +2916,20 @@ components:
         filename:
           type: string
           format: filename
+          description: backup filename
           example: configuration_backup_20181224.tar
           minLength: 1
           maxLength: 255
         created_at:
           type: string
           format: date-time
+          description: backup created at
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
     Certificate: # ok
+      type: object
+      description: certificate
       required:
       - issuer_common_name
       - not_after
@@ -2989,13 +2937,12 @@ components:
       - client_id
       - hash
       - status
-      type: object
       properties:
         issuer_common_name:
           type: string
           format: text
-          example: domain.com
           description: certificate issuer common name
+          example: domain.com
           minLength: 1
           maxLength: 255
         ocsp_status:
@@ -3003,15 +2950,15 @@ components:
         not_after:
           type: string
           format: date-time
-          example: '2018-12-15T00:00:00.001Z'
           description: certificate validity not after
+          example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
         hash:
           type: string
           format: text
-          example: 1234567890ABCDEF
           description: certificate SHA-1 hash
+          example: 1234567890ABCDEF
           minLength: 1
           maxLength: 255
         client_id:
@@ -3024,6 +2971,8 @@ components:
         status:
           $ref: '#/components/schemas/CertificateStatus'
     CertificateDetails: # ok
+      type: object
+      description: certificate details
       required:
       - issuer_distinguished_name
       - issuer_common_name
@@ -3041,55 +2990,54 @@ components:
       - hash
       - key_usages
       - status
-      type: object
       properties:
         issuer_distinguished_name:
           type: string
           format: text
-          example: issuer123
           description: certificate issuer distinguished name
+          example: issuer123
           minLength: 1
           maxLength: 255
         issuer_common_name:
           type: string
           format: text
-          example: domain.com
           description: certificate issuer common name
+          example: domain.com
           minLength: 1
           maxLength: 255
         subject_distinguished_name:
           type: string
           format: text
-          example: subject123
           description: certificate subject distinguished name
+          example: subject123
           minLength: 1
           maxLength: 255
         subject_common_name:
           type: string
           format: text
-          example: domain.com
           description: certificate subject common name
+          example: domain.com
           minLength: 1
           maxLength: 255
         not_before:
           type: string
           format: date-time
-          example: '2018-12-15T00:00:00.001Z'
           description: certificate validity not before
+          example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
         not_after:
           type: string
           format: date-time
-          example: '2018-12-15T00:00:00.001Z'
           description: certificate validity not after
+          example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
         serial:
           type: string
           format: text
-          example: '123456789'
           description: serial number
+          example: '123456789'
           minLength: 1
           maxLength: 255
         version:
@@ -3100,54 +3048,56 @@ components:
         signature_algorithm:
           type: string
           format: sha-256
-          example: sha256WithRSAEncryption
           description: certificate signature algorithm
+          example: sha256WithRSAEncryption
           minLength: 1
           maxLength: 255
         signature:
           type: string
           format: text
-          example: '30af2fdc1780...'
           description: hex encoded certificate signature
+          example: '30af2fdc1780...'
           minLength: 1
           maxLength: 255
         public_key_algorithm:
           type: string
           format: sha-256
-          example: 'sha256WithRSAEncryption'
           description: certificate public key algorithm
+          example: 'sha256WithRSAEncryption'
           minLength: 1
           maxLength: 255
         rsa_public_key_modulus:
           type: string
           format: hex
-          example: c44421d601...
           description: hex encoded RSA public key modulus (if RSA key)
+          example: c44421d601...
           minLength: 1
           maxLength: 1000
         rsa_public_key_exponent:
           type: integer
           format: int32
-          example: 65537
           description: RSA public key exponent (if RSA key) as an integer
+          example: 65537
           minLength: 1
           maxLength: 255
         hash:
           type: string
           format: text
-          example: 1234567890ABCDEF
           description: certificate SHA-1 hash
+          example: 1234567890ABCDEF
           minLength: 1
           maxLength: 255
         key_usages:
-            type: array
-            uniqueItems: true
-            items:
-              $ref: '#/components/schemas/KeyUsage'
+          type: array
+          description: certificate key usage array
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/KeyUsage'
         status:
           $ref: '#/components/schemas/CertificateStatus'
     CertificateAuthority: # ok
       type: object
+      description: certificate authority
       required:
         - name
         - response
@@ -3163,25 +3113,28 @@ components:
         response:
           type: string
           format: text
+          description: certificate authority response
           example: N/A
           minLength: 1
           maxLength: 1000
         expires_at:
           type: string
           format: date-time
+          description: certificate authority expires at
           example: '2099-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
     CertificateStatus: # ok
       type: string
       format: enum
+      description: certificate status
       example: IN_USE
-      description: certificate state
       enum:
         - IN_USE
         - DISABLED
     Client: # ok
       type: object
+      description: x-road client
       required:
         - member_class
         - member_code
@@ -3198,24 +3151,28 @@ components:
         member_name:
           type: string
           format: text
+          description: member name
           example: FI
           minLength: 1
           maxLength: 255
         member_class:
           type: string
           format: text
+          description: member class
           example: GOV
           minLength: 1
           maxLength: 255
         member_code:
           type: string
           format: text
+          description: member code
           example: 123
           minLength: 1
           maxLength: 255
         subsystem_code:
           type: string
           format: text
+          description: subsystem code
           example: ABC
           minLength: 1
           maxLength: 255
@@ -3226,6 +3183,7 @@ components:
     ClientStatus: # ok
       type: string
       format: enum
+      description: client status
       example: REGISTERED
       enum:
         - REGISTERED
@@ -3236,6 +3194,7 @@ components:
     ConfigurationStatus: # ok
       type: string
       format: enum
+      description: configuration status
       example: SUCCESS
       enum:
         - SUCCESS # Everything ok
@@ -3248,6 +3207,7 @@ components:
     ConnectionType: # ok
       type: string
       format: enum
+      description: connection type
       example: HTTP
       default: HTTP
       enum:
@@ -3257,6 +3217,7 @@ components:
     CsrFormat: # ok
       type: string
       format: enum
+      description: csr format
       example: PEM
       default: PEM
       enum:
@@ -3264,6 +3225,7 @@ components:
         - DER
     GlobalConfiguration: # ok
       type: object
+      description: global configuration
       required:
         - status
         - updated_at
@@ -3287,6 +3249,7 @@ components:
           maxLength: 24
     Group: # ok
       type: object
+      description: group
       required:
         - code
         - description
@@ -3294,28 +3257,31 @@ components:
         id:
           type: string
           format: text
-          example: group123
           description: unique identifier
+          example: group123
           minLength: 1
           maxLength: 255
         code:
           type: string
           format: text
+          description: group code
           example: groupcode
           minLength: 1
           maxLength: 255
         description:
           type: string
           format: text
+          description: group description
           example: description
           minLength: 1
           maxLength: 255
         member_count:
           type: integer
           format: uint
+          description: member count
+          example: 10
           minimum: 0
           maximum: 1000000
-          example: 10
         updated_at:
           type: string
           format: date-time
@@ -3325,10 +3291,13 @@ components:
           maxLength: 24
         members:
           type: array
+          description: group members
           uniqueItems: true
           items:
             $ref: '#/components/schemas/GroupMember'
     GroupMember: # ok
+      type: object
+      description: group member
       required:
         - id
         - name
@@ -3337,24 +3306,27 @@ components:
         id:
           type: string
           format: text
+          description: group member id
           example: FI:GOV:123:SS1
           minLength: 1
           maxLength: 255
         name:
           type: string
           format: text
-          example: member name
+          description: group member name
+          example: Member123
           minLength: 1
           maxLength: 255
         created_at:
           type: string
           format: date-time
+          description: group member created at
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
-      type: object
     Key: # ok
       type: object
+      description: key for the certificate
       required:
         - name
         - label
@@ -3366,6 +3338,7 @@ components:
         id:
           type: string
           format: text
+          description: key id
           example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
           minLength: 1
           maxLength: 255
@@ -3373,18 +3346,21 @@ components:
         name:
           type: string
           format: text
+          description: key name
           example: friendly name
           minLength: 1
           maxLength: 255
         label:
           type: string
           format: text
+          description: key label
           example: key label
           minLength: 1
           maxLength: 255
         type:
           type: string
           format: text
+          description: key type
           example: AUTH
           minLength: 1
           maxLength: 255
@@ -3392,24 +3368,26 @@ components:
           $ref: '#/components/schemas/KeyStatus'
         read_only:
           type: boolean
+          description: key read only status
           example: true
         certificates:
           type: array
+          description: list of certificates for the key
           items:
             $ref: '#/components/schemas/Certificate'
     KeyStatus: # ok
       type: string
       format: enum
-      example: REGISTERED
       description: key status
+      example: REGISTERED
       enum:
         - SAVED
         - REGISTERED
     KeyUsage: # ok
       type: string
       format: enum
-      example: NON_REPUDIATION
       description: certificate key usage
+      example: NON_REPUDIATION
       enum:
         - DIGITAL_SIGNATURE
         - NON_REPUDIATION
@@ -3423,12 +3401,14 @@ components:
     KeyUsageInfo: # ok
       type: string
       format: enum
-      example: AUTHENTICATION
       description: inteded usage for the key
+      example: AUTHENTICATION
       enum:
         - AUTHENTICATION
         - SIGNING
     Language: # ok
+      type: object
+      description: language
       required:
         - code
       properties:
@@ -3439,26 +3419,9 @@ components:
           minLength: 2
           maxLength: 2
           readOnly: true
-      type: object
-    LoginRequest: # ok
-      required:
-        - username
-        - password
-      properties:
-        username:
-          type: string
-          format: text
-          example: username
-          minLength: 4
-          maxLength: 255
-        password:
-          type: string
-          format: password
-          example: Password123
-          minLength: 4
-          maxLength: 255
-      type: object
     Operation: # ok
+      type: object
+      description: operation for the service
       required:
         - url
         - code
@@ -3469,36 +3432,37 @@ components:
         url:
           type: string
           format: url
+          description: operation url
           example: https://domain/service
           minLength: 1
           maxLength: 255
         code:
           type: string
           format: text
+          description: operation code
           example: ClientReg
           minLength: 1
           maxLength: 255
         timeout:
           type: integer
           format: uint
+          description: operation time out value
           example: 60
           minimum: 0
           maximum: 1000
         ssl_auth:
-          type: string
-          format: url
-          example: https://domain.com/service
-          minLength: 1
-          maxLength: 255
+          type: boolean
+          description: operation ssl auth
+          example: true
         service_id:
           type: string
           format: url
           example: https://domain.com/service
           minLength: 1
           maxLength: 255
-      type: object
     OcspResponders: # ok
       type: object
+      description: ocsp responce
       required:
         - url
         - status
@@ -3531,8 +3495,8 @@ components:
     OcspStatus: # ok
       type: string
       format: enum
-      example: SUCCESS
       description: OCSP responder status
+      example: SUCCESS
       enum:
         - SUCCESS # Everything ok
         - ERROR_CODE_OCSP_CONNECTION_ERROR # Unable to connect to the OCSP responder.
@@ -3540,6 +3504,8 @@ components:
         - ERROR_CODE_OCSP_RESPONSE_INVALID # Unable to parse the OCSP response.
         - ERROR_CODE_OCSP_UNINITIALIZED # Status request not sent yet.
     ServiceClient: # ok
+      type: object
+      description: service client
       required:
         - id
         - name
@@ -3555,6 +3521,7 @@ components:
         name:
           type: string
           format: text
+          description: service client name
           example: Security server owners
           minLength: 1
           maxLength: 255
@@ -3563,8 +3530,9 @@ components:
           uniqueItems: true
           items:
             $ref: '#/components/schemas/AccessRight'
-      type: object
     Service: # ok
+      type: object
+      description: WSDL/REST service
       required:
         - url
         - type
@@ -3577,6 +3545,7 @@ components:
         url:
           type: string
           format: url
+          description: service url
           example: http://dev.xroad.rocks/services.wsdl
           minLength: 1
           maxLength: 255
@@ -3584,6 +3553,7 @@ components:
           $ref: '#/components/schemas/ServiceType'
         disabled:
           type: boolean
+          description: service disabled
           example: true
         disabled_notice:
           type: string
@@ -3601,6 +3571,7 @@ components:
           maxLength: 24
         operations:
           type: array
+          description: service operations
           uniqueItems: true
           items:
             $ref: '#/components/schemas/Operation'
@@ -3611,27 +3582,29 @@ components:
           example: FI:GOV:123:ABC
           minLength: 1
           maxLength: 255
-      type: object
     ServiceType: # ok
       type: string
       format: text
-      example: WSDL
       description: service type
+      example: WSDL
       enum:
         - WSDL
         - REST
     Subject: # ok
+      type: object
+      description: subject
       required:
         - id
       properties:
         id:
           type: string
           format: text
+          description: subject id
           example: 123
           readOnly: true
-      type: object
     System: # ok
       type: object
+      description: system parameters
       required:
         - anchor
         - configuration
@@ -3654,6 +3627,7 @@ components:
           $ref: '#/components/schemas/OcspResponders'
         certificate_authorities:
           type: array
+          description: system certificate authorities
           uniqueItems: true
           items:
             $ref: '#/components/schemas/CertificateAuthority'
@@ -3662,6 +3636,8 @@ components:
         version:
           $ref: '#/components/schemas/Version'
     TimestampingService: # ok
+      type: object
+      description: timestamping services
       required:
         - name
         - url
@@ -3693,15 +3669,16 @@ components:
         message:
           type: string
           format: text
+          description: timestamping service message
           example: ok
           minLength: 1
           maxLength: 255
         status:
           $ref: '#/components/schemas/TimestampingStatus'
-      type: object
     TimestampingStatus: # ok
       type: string
       format: enum
+      description: timestamping status
       example:  SUCCESS
       enum:
         - SUCCESS # Everything ok
@@ -3713,6 +3690,7 @@ components:
         - ERROR_CODE_CONNECTION_FAILED # Connection to configuration client failed. Ensure that xroad-confclient is running.
     Token: # ok
       type: object
+      description: token
       required:
         - id
         - name
@@ -3723,6 +3701,7 @@ components:
         id:
           type: string
           format: text
+          description: token id
           example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
           minLength: 1
           maxLength: 255
@@ -3730,6 +3709,7 @@ components:
         name:
           type: string
           format: text
+          description: token name
           example: softToken-0
           minLength: 1
           maxLength: 255
@@ -3737,6 +3717,7 @@ components:
           $ref: '#/components/schemas/TokenType'
         keys:
           type: array
+          description: token keys
           uniqueItems: true
           items:
             $ref: '#/components/schemas/Key'
@@ -3745,8 +3726,8 @@ components:
     TokenStatus: # ok
       type: string
       format: text
-      example: OK
       description: token type
+      example: OK
       enum:
         - OK # Normal operation status
         - USER_PIN_LOCKED # Blocked
@@ -3759,12 +3740,14 @@ components:
     TokenType: # ok
       type: string
       format: text
-      example: SOFTWARE
       description: token type
+      example: SOFTWARE
       enum:
         - SOFTWARE
         - HARDWARE
     User: # ok
+      type: object
+      description: x-road user
       required:
         - username
         - roles
@@ -3773,31 +3756,34 @@ components:
         username:
           type: string
           format: text
+          description: user username
           example: Guest
           minLength: 1
           maxLength: 255
         roles:
-            type: array
-            uniqueItems: true
-            items:
-                type: string
-                format: text
-                example:
+          type: array
+          description: user roles
+          uniqueItems: true
+          items:
+            type: string
+            format: text
         permissions:
-            type: array
-            uniqueItems: true
-            items:
-                type: string
-                format: text
-                example:
-      type: object
+          type: array
+          description: user permissions
+          uniqueItems: true
+          items:
+            type: string
+            format: text
     Version: # ok
+      type: object
+      description: version information
       required:
         - info
       properties:
         info:
           type: string
           format: text
+          description: information about the security server
           example: Security Server version 6.21.0-SNAPSHOT-20190411git32add470
           minLength: 1
           maxLength: 255
