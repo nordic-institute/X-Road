@@ -3,34 +3,34 @@
     <v-card flat>
       <table class="detail-table" v-if="client">
         <tr>
-          <td>Member Name</td>
+          <td>{{$t('client.memberName')}}</td>
           <td>{{client.member_name}}</td>
         </tr>
         <tr>
-          <td>Member Class</td>
+          <td>{{$t('client.memberClass')}}</td>
           <td>{{client.member_class}}</td>
         </tr>
         <tr>
-          <td>Member Code</td>
+          <td>{{$t('client.memberCode')}}</td>
           <td>{{client.member_code}}</td>
         </tr>
         <tr v-if="client.subsystem_code">
-          <td>Subsystem Code</td>
+          <td>{{$t('client.subsystemCode')}}</td>
           <td>{{client.subsystem_code}}</td>
         </tr>
       </table>
     </v-card>
 
     <v-card flat>
-      <table class="certificate-table details-certificates">
+      <table class="xrd-table details-certificates">
         <tr>
-          <th>Sign Certificate</th>
-          <th>Serial Number</th>
-          <th>State</th>
-          <th>Expires</th>
+          <th>{{$t('cert.signCertificate')}}</th>
+          <th>{{$t('cert.serialNumber')}}</th>
+          <th>{{$t('cert.state')}}</th>
+          <th>{{$t('cert.expires')}}</th>
         </tr>
-        <template v-if="certificates && certificates.length > 0">
-          <tr v-for="certificate in certificates" v-bind:key="certificate.name">
+        <template v-if="signCertificates && signCertificates.length > 0">
+          <tr v-for="certificate in signCertificates" v-bind:key="certificate.name">
             <td>
               <span class="cert-name" @click="viewCertificate(certificate)">{{certificate.name}}</span>
             </td>
@@ -70,10 +70,10 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['client', 'certificates']),
+    ...mapGetters(['client', 'signCertificates']),
   },
   created() {
-    this.fetchCertificates(this.id);
+    this.fetchSignCertificates(this.id);
   },
   methods: {
     viewCertificate(cert: any) {
@@ -88,8 +88,8 @@ export default Vue.extend({
         this.$bus.$emit('show-error', error.message);
       });
     },
-    fetchCertificates(id: string) {
-      this.$store.dispatch('fetchCertificates', id).catch((error) => {
+    fetchSignCertificates(id: string) {
+      this.$store.dispatch('fetchSignCertificates', id).catch((error) => {
         this.$bus.$emit('show-error', error.message);
       });
     },

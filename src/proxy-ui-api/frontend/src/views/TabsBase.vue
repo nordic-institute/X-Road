@@ -14,12 +14,7 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 
-import TabContent from '../components/TabContent.vue';
-
 export default Vue.extend({
-  components: {
-    TabContent,
-  },
   data() {
     return {
       tab: null,

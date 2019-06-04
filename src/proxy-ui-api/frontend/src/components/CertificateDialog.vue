@@ -2,22 +2,22 @@
   <v-dialog v-model="dialog" width="500">
     <v-card>
       <v-card-title>
-        <span class="headline">Certificate</span>
+        <span class="headline">{{$t('cert.certificate')}}</span>
       </v-card-title>
       <v-card-text v-if="certificate">
-        Name: {{certificate.name}}
+        {{$t('cert.name')}}: {{certificate.name}}
         <br>
-        csp: {{certificate.csp}}
+        {{$t('cert.csp')}}: {{certificate.csp}}
         <br>
-        serial: {{certificate.serial}}
+        {{$t('cert.serial')}}: {{certificate.serial}}
         <br>
-        state: {{certificate.state}}
+        {{$t('cert.state')}}: {{certificate.state}}
         <br>
-        expires: {{certificate.expires}}
+        {{$t('cert.expires')}}: {{certificate.expires}}
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="darken-1" flat="flat" @click="close()">Ok</v-btn>
+        <v-btn color="darken-1" flat="flat" @click="close()">{{$t('action.ok')}}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
