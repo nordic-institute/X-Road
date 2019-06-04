@@ -33,7 +33,7 @@ Doc. ID: PR-MSERV
 | 06.02.2019 | 1.12    | Update *clientReg* message description                                   | Petteri Kivimäki   |
 | 03.06.2019 | 1.13    | Add ownerChange management service                                       | Ilkka Seppälä      |
 
-## Table of Contents- [X-Road: Protocol for Management Services](#x-road-protocol-for-management-services)
+## Table of Contents
 
   - [License](#license)
   - [1 Introduction](#1-introduction)
@@ -267,7 +267,7 @@ The XML Schema fragment of the client registration request body is shown below. 
 
 The request is sent using HTTP POST method. The content type of the request MUST be *multipart/related* and the request must contain the following MIME parts.
 
-1. X-Road SOAP request message. The message MUST contain the regular X-Road headers and the two data fields (*server*, *client*). The content type of this part MUST be *text/xml*.
+1. X-Road SOAP request message. The message MUST contain the regular X-Road headers and the two data fields (*server*, *newOwner*). The content type of this part MUST be *text/xml*.
 
 2. Signature of the new owner member of the security server. The MIME part must contain signature of the SOAP request message, created with the private key corresponding to a **signing certificate** of the new owner member. The content type of this part must be *application/octet-stream*. Additionally, the part MUST include header field *signature-algorithm-ID* that identifies the signature algorithm. Currently supported signature algorithms are *SHA256withRSA*, *SHA384withRSA*, *SHA512withRSA*, *SHA256withRSAandMGF1*, *SHA384withRSAandMGF1*, and *SHA512withRSAandMGF1*.
 
@@ -275,7 +275,7 @@ The request is sent using HTTP POST method. The content type of the request MUST
 
 4. OCSP response certifying that the new owner member's signing certificate was valid at the time of creation of the request. The content type of this part MUST be *application/octet-stream*.
 
-The response echoes back the client and the server fields of the request and adds the field *requestId*.
+The response echoes back the server and the newOwner fields of the request and adds the field *requestId*.
 
 An example of the owner change request and response is given in [Annex A.5](#a5-ownerchange).
 
@@ -788,7 +788,7 @@ Content-Type: text/xml; charset=UTF-8
             </xroad:server>
             <xroad:newOwner id:objectType="MEMBER">
                 <id:xRoadInstance>EE</id:xRoadInstance>
-                <id:memberClass>GOV</id:memberClass>
+                <id:memberClass>COM</id:memberClass>
                 <id:memberCode>MACK</id:memberCode>
             </xroad:newOwner>
         </xroad:clientReg>
@@ -798,15 +798,15 @@ Content-Type: text/xml; charset=UTF-8
 Content-Type: application/octet-stream
 signature-algorithm-id: SHA512withRSA
  
-[SUBSYSTEM OWNER SIGNATURE BYTES]
+[NEW OWNER SIGNATURE BYTES]
 --jetty113950090iemuz6a3
 Content-Type: application/octet-stream
  
-[SUBSYSTEM OWNER CERTIFICATE BYTES]
+[NEW OWNER CERTIFICATE BYTES]
 --jetty113950090iemuz6a3
 Content-Type: application/octet-stream
  
-[SUBSYSTEM OWNER CERTIFICATE OCSP RESPONSE BYTES]
+[NEW OWNER CERTIFICATE OCSP RESPONSE BYTES]
 --jetty113950090iemuz6a3--
 ```
 
@@ -848,7 +848,7 @@ Response message
             </xroad:server>
             <xroad:newOwner id:objectType="MEMBER">
                 <id:xRoadInstance>EE</id:xRoadInstance>
-                <id:memberClass>GOV</id:memberClass>
+                <id:memberClass>COM</id:memberClass>
                 <id:memberCode>MACK</id:memberCode>
             </xroad:newOwner>
             <xroad:requestId>691</xroad:requestId>
