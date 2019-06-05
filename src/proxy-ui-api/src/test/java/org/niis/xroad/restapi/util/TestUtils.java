@@ -22,32 +22,55 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.converter;
+package org.niis.xroad.restapi.util;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 
-import org.springframework.stereotype.Component;
-
-import java.util.List;
-
 /**
- * wrap static methods to make things more testable
+ * Test utils for generic object creation
  */
-@Component
-public class GlobalConfWrapper {
-    /**
-     * get member name
-     */
-    public String getMemberName(ClientId identifier) {
-        return GlobalConf.getMemberName(identifier);
+public final class TestUtils {
+    private static final String INSTANCE_FI = "FI";
+    private static final String MEMBER_CLASS_GOV = "GOV";
+    private static final String MEMBER_CODE_M1 = "M1";
+    private static final String SUBSYSTEM1 = "SS1";
+    private static final String NAME_APPENDIX = "-name";
+
+    private TestUtils() {
+        // noop
     }
 
     /**
-     * get global members
+     * Returns a new ClientId with given params
+     * @param instance
+     * @param memberClass
+     * @param memberCode
+     * @param subsystem
+     * @return ClientId
      */
-    public List<MemberInfo> getGlobalMembers(String... instanceIdentifiers) {
-        return GlobalConf.getMembers(instanceIdentifiers);
+    public static ClientId getClientId(String instance, String memberClass, String memberCode, String subsystem) {
+        return ClientId.create(instance, memberClass, memberCode, subsystem);
+    }
+
+    /**
+     * Returns a new ClientId with default parameters "FI:GOV:M1:SS1"
+     * @return ClientId
+     */
+    public static ClientId getM1Ss1ClientId() {
+        return getClientId(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1);
+    }
+
+    /**
+     * Returns a new MemberInfo with given parameters
+     * @param instance
+     * @param memberClass
+     * @param memberCode
+     * @param subsystem
+     * @return MemberInfo
+     */
+    public static MemberInfo getMemberInfo(String instance, String memberClass, String memberCode, String subsystem) {
+        return new MemberInfo(getClientId(instance, memberClass, memberCode, subsystem),
+                subsystem != null ? subsystem + NAME_APPENDIX : null);
     }
 }

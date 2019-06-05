@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.converter;
 
+import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 
@@ -132,6 +133,31 @@ public class ClientConverter {
      */
     public List<ClientId> convertIds(List<String> encodedIds) throws BadRequestException {
         return encodedIds.stream().map(this::convertId).collect(Collectors.toList());
+    }
+
+    /**
+     * Convert MemberInfo into Client
+     * @param memberInfo
+     * @return Client
+     */
+    public Client convertMemberInfoToClient(MemberInfo memberInfo) {
+        ClientId clientId = memberInfo.getId();
+        Client client = new Client();
+        client.setId(convertId(clientId));
+        client.setMemberClass(clientId.getMemberClass());
+        client.setMemberCode(clientId.getMemberCode());
+        client.setSubsystemCode(clientId.getSubsystemCode());
+        client.setMemberName(memberInfo.getName());
+        return client;
+    }
+
+    /**
+     * Convert MemberInfo list into Client list
+     * @param memberInfos
+     * @return List of Clients
+     */
+    public List<Client> convertMemberInfosToClients(List<MemberInfo> memberInfos) {
+        return memberInfos.stream().map(this::convertMemberInfoToClient).collect(Collectors.toList());
     }
 
     private int countOccurences(String from, char searched) {

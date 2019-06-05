@@ -59,7 +59,6 @@ import org.springframework.web.context.request.NativeWebRequest;
 
 import java.io.IOException;
 import java.security.cert.CertificateException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -115,29 +114,26 @@ public class ClientsApiController implements ClientsApi {
         }
     }
 
-    @Override
-    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public ResponseEntity<List<Client>> getClients(String name, String instance,
-            String propertyClass, String code, String subsystem, Boolean showMembers,
-            Boolean internalSearch) {
-        // no filtering / search yet, returns all
-        List<ClientType> clientTypes = clientService.getAllClients();
-        List<Client> clients = new ArrayList<>();
-        for (ClientType clientType : clientTypes) {
-            clients.add(clientConverter.convert(clientType));
-        }
-        return new ResponseEntity<>(clients, HttpStatus.OK);
-    }
-
     /**
-     * No argument version to return all clients
+     * Finds clients matching search terms
+     * @param name
+     * @param instance
+     * @param memberClass
+     * @param memberCode
+     * @param subsystemCode
+     * @param showMembers include members (without susbsystemCode) in the results
+     * @param internalSearch search only in the local clients
      * @return
      */
+    @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public ResponseEntity<List<Client>> getClients() {
-        final String ignoredSearchParam = null;
-        return getClients(ignoredSearchParam, ignoredSearchParam, ignoredSearchParam, ignoredSearchParam,
-                ignoredSearchParam, null, null);
+    public ResponseEntity<List<Client>> getClients(String name, String instance, String memberClass,
+            String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch) {
+        boolean unboxedShowMembers = Boolean.TRUE.equals(showMembers);
+        boolean unboxedInternalSearch = Boolean.TRUE.equals(internalSearch);
+        List<Client> clients = clientConverter.convertMemberInfosToClients(clientService.findFromAllClients(name,
+                instance, memberClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch));
+        return new ResponseEntity<>(clients, HttpStatus.OK);
     }
 
     @Override
