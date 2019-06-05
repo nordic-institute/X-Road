@@ -279,7 +279,7 @@ public class ClientService {
      * Find from all clients (local and global)
      * @param name
      * @param instance
-     * @param propertyClass
+     * @param memberClass
      * @param memberCode
      * @param subsystemCode
      * @param showMembers include members (without susbsystemCode) in the results
@@ -287,9 +287,9 @@ public class ClientService {
      * @return MemberInfo list
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public List<MemberInfo> findFromAllClients(String name, String instance, String propertyClass, String memberCode,
+    public List<MemberInfo> findFromAllClients(String name, String instance, String memberClass, String memberCode,
             String subsystemCode, boolean showMembers, boolean internalSearch) {
-        List<MemberInfo> clients = findLocalClients(name, instance, propertyClass, memberCode, subsystemCode,
+        List<MemberInfo> clients = findLocalClients(name, instance, memberClass, memberCode, subsystemCode,
                 showMembers)
                 .stream()
                 .map(clientType -> new MemberInfo(clientType.getIdentifier(),
@@ -299,7 +299,7 @@ public class ClientService {
             return clients;
         }
         // find global clients and remove duplicates
-        List<MemberInfo> globalClients = findGlobalClients(name, instance, propertyClass, memberCode, subsystemCode,
+        List<MemberInfo> globalClients = findGlobalClients(name, instance, memberClass, memberCode, subsystemCode,
                 showMembers)
                 .stream()
                 .filter(globalClient -> clients.stream()
@@ -311,7 +311,7 @@ public class ClientService {
     }
 
     private List<Predicate<ClientType>> buildLocalClientSearchPredicates(String name, String instance,
-            String propertyClass, String memberCode, String subsystemCode) {
+            String memberClass, String memberCode, String subsystemCode) {
         List<Predicate<ClientType>> searchPredicates = new ArrayList<>();
 
         if (!StringUtils.isEmpty(name)) {
@@ -320,8 +320,8 @@ public class ClientService {
         if (!StringUtils.isEmpty(instance)) {
             searchPredicates.add(ct -> ct.getIdentifier().getXRoadInstance().equalsIgnoreCase(instance));
         }
-        if (!StringUtils.isEmpty(propertyClass)) {
-            searchPredicates.add(ct -> ct.getIdentifier().getMemberClass().equalsIgnoreCase(propertyClass));
+        if (!StringUtils.isEmpty(memberClass)) {
+            searchPredicates.add(ct -> ct.getIdentifier().getMemberClass().equalsIgnoreCase(memberClass));
         }
         if (!StringUtils.isEmpty(memberCode)) {
             searchPredicates.add(ct -> ct.getIdentifier().getMemberCode().equalsIgnoreCase(memberCode));
@@ -335,7 +335,7 @@ public class ClientService {
     }
 
     private List<Predicate<MemberInfo>> buildGlobalClientSearchPredicates(String name, String instance,
-            String propertyClass, String memberCode, String subsystemCode) {
+            String memberClass, String memberCode, String subsystemCode) {
         List<Predicate<MemberInfo>> searchPredicates = new ArrayList<>();
 
         if (!StringUtils.isEmpty(name)) {
@@ -345,8 +345,8 @@ public class ClientService {
         if (!StringUtils.isEmpty(instance)) {
             searchPredicates.add(memberInfo -> memberInfo.getId().getXRoadInstance().equalsIgnoreCase(instance));
         }
-        if (!StringUtils.isEmpty(propertyClass)) {
-            searchPredicates.add(memberInfo -> memberInfo.getId().getMemberClass().equalsIgnoreCase(propertyClass));
+        if (!StringUtils.isEmpty(memberClass)) {
+            searchPredicates.add(memberInfo -> memberInfo.getId().getMemberClass().equalsIgnoreCase(memberClass));
         }
         if (!StringUtils.isEmpty(memberCode)) {
             searchPredicates.add(memberInfo -> memberInfo.getId().getMemberCode().equalsIgnoreCase(memberCode));

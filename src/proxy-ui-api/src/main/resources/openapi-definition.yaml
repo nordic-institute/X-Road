@@ -423,22 +423,22 @@ paths:
             type: string
             format: text
         - in: query
-          name: class
-          description: pass an optional search string (class) for looking up clients
+          name: member_class
+          description: pass an optional search string (member_class) for looking up clients
           required: false
           schema:
             type: string
             format: text
         - in: query
-          name: code
-          description: pass an optional search string (code) for looking up clients
+          name: member_code
+          description: pass an optional search string (member_code) for looking up clients
           required: false
           schema:
             type: string
             format: text
         - in: query
-          name: subsystem
-          description: pass an optional search string (subsystem) for looking up clients
+          name: subsystem_code
+          description: pass an optional search string (subsystem_code) for looking up clients
           required: false
           schema:
             type: string

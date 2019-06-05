@@ -118,7 +118,7 @@ public class ClientsApiController implements ClientsApi {
      * Finds clients matching search terms
      * @param name
      * @param instance
-     * @param propertyClass
+     * @param memberClass
      * @param memberCode
      * @param subsystemCode
      * @param showMembers include members (without susbsystemCode) in the results
@@ -127,12 +127,12 @@ public class ClientsApiController implements ClientsApi {
      */
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public ResponseEntity<List<Client>> getClients(String name, String instance, String propertyClass,
+    public ResponseEntity<List<Client>> getClients(String name, String instance, String memberClass,
             String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch) {
         boolean unboxedShowMembers = Boolean.TRUE.equals(showMembers);
         boolean unboxedInternalSearch = Boolean.TRUE.equals(internalSearch);
         List<Client> clients = clientConverter.convertMemberInfosToClients(clientService.findFromAllClients(name,
-                instance, propertyClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch));
+                instance, memberClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch));
         return new ResponseEntity<>(clients, HttpStatus.OK);
     }
 
