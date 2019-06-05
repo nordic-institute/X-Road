@@ -119,20 +119,20 @@ public class ClientsApiController implements ClientsApi {
      * @param name
      * @param instance
      * @param propertyClass
-     * @param code
-     * @param subsystem
-     * @param showMembers will be null safely unboxed using Boolean.TRUE.equals(showMembers)
-     * @param internalSearch will only search for local clients (also unboxed in a null safe fashion)
+     * @param memberCode
+     * @param subsystemCode
+     * @param showMembers include members (without susbsystemCode) in the results
+     * @param internalSearch search only in the local clients
      * @return
      */
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public ResponseEntity<List<Client>> getClients(String name, String instance, String propertyClass, String code,
-            String subsystem, Boolean showMembers, Boolean internalSearch) {
+    public ResponseEntity<List<Client>> getClients(String name, String instance, String propertyClass,
+            String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch) {
         boolean unboxedShowMembers = Boolean.TRUE.equals(showMembers);
         boolean unboxedInternalSearch = Boolean.TRUE.equals(internalSearch);
         List<Client> clients = clientConverter.convertMemberInfosToClients(clientService.findFromAllClients(name,
-                instance, propertyClass, code, subsystem, unboxedShowMembers, unboxedInternalSearch));
+                instance, propertyClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch));
         return new ResponseEntity<>(clients, HttpStatus.OK);
     }
 

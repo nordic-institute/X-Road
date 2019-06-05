@@ -165,7 +165,7 @@ public class ClientsApiControllerIntegrationTest {
         ResponseEntity<List<Client>> response =
                 clientsApiController.getClients(null, null, null, null, null, true, false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(8, response.getBody().size());
+        assertEquals(7, response.getBody().size());
         Client client = response.getBody().get(0);
         assertEquals("test-member-name", client.getMemberName());
         assertEquals("M1", client.getMemberCode());
@@ -527,7 +527,7 @@ public class ClientsApiControllerIntegrationTest {
         ResponseEntity<List<Client>> clientsResponse = clientsApiController.getClients(SUBSYSTEM1 + NAME_APPENDIX,
                 INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1, false, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
-        assertEquals(2, clientsResponse.getBody().size());
+        assertEquals(1, clientsResponse.getBody().size());
     }
 
     @Test
@@ -536,7 +536,7 @@ public class ClientsApiControllerIntegrationTest {
         ResponseEntity<List<Client>> clientsResponse = clientsApiController.getClients(null, null, null, MEMBER_CODE_M1,
                 null, true, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
-        assertEquals(6, clientsResponse.getBody().size());
+        assertEquals(5, clientsResponse.getBody().size());
     }
 
     @Test
