@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component;
 import java.security.cert.X509Certificate;
 
 /**
- * Converter Certificate related data between openapi, and service domain classes
+ * Converter Certificate related data between openapi and service domain classes
  */
 @Component
 public class CertificateConverter {

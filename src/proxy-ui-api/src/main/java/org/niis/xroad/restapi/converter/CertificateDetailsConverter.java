@@ -42,7 +42,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 
 /**
- * Converter Certificate related data between openapi, and service domain classes
+ * Converter CertificateDetails related data between openapi and service domain classes
  */
 @Component
 public class CertificateDetailsConverter {
