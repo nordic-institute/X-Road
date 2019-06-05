@@ -1,18 +1,49 @@
 <template>
   <div>
+    <div class="table-toolbar">
+      <v-text-field v-model="search" label="Search" single-line hide-details class="search-input">
+        <v-icon slot="append" small>fas fa-search</v-icon>
+      </v-text-field>
+      <v-btn
+        v-if="showAddGroup"
+        color="primary"
+        @click="addGroup"
+        outline
+        round
+        class="ma-0 rounded-button elevation-0"
+      >{{$t('localGroups.addGroup')}}</v-btn>
+    </div>
+
     <v-card flat>
-      Local groups
-      <br>
-      ID: {{id}}
+      <table class="xrd-table details-certificates">
+        <tr>
+          <th>{{$t('localGroups.code')}}</th>
+          <th>{{$t('localGroups.description')}}</th>
+          <th>{{$t('localGroups.memberCount')}}</th>
+          <th>{{$t('localGroups.updated')}}</th>
+        </tr>
+        <template v-if="groups && groups.length > 0">
+          <tr v-for="group in filtered()" v-bind:key="group.code">
+            <td>
+              <span class="cert-name" @click="viewGroup(group)">{{group.code}}</span>
+            </td>
+            <td>{{group.description}}</td>
+            <td>{{group.member_count}}</td>
+            <td>{{group.updated_at | formatDate}}</td>
+          </tr>
+        </template>
+      </table>
     </v-card>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
+import axios from 'axios';
 
 import { mapGetters } from 'vuex';
-import { Permissions } from '@/global';
+import { Permissions, RouteName } from '@/global';
+import { selectedFilter } from '@/util/helpers';
 
 export default Vue.extend({
   components: {},
@@ -23,12 +54,77 @@ export default Vue.extend({
     },
   },
   data() {
-    return {};
+    return {
+      search: '',
+      dialog: false,
+      groups: [],
+    };
   },
   computed: {
     ...mapGetters(['client']),
+    showAddGroup(): boolean {
+      return this.$store.getters.hasPermission(Permissions.ADD_LOCAL_GROUP);
+    },
   },
-  methods: {},
+  created() {
+    this.fetchGroups(this.id);
+  },
+  methods: {
+    addGroup(): void {
+      // TODO will be done in XRDDEV-519
+      console.log('add');
+    },
+
+    filtered(): any[] {
+      return selectedFilter(this.groups, this.search, 'id');
+    },
+
+    viewGroup(group: any): void {
+      this.$router.push({
+        name: RouteName.LocalGroup,
+        params: { id: this.id, code: group.code },
+      });
+    },
+
+    fetchGroups(id: string): void {
+      axios
+        .get(`/clients/${id}/groups`)
+        .then((res) => {
+          this.groups = res.data;
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
+    },
+  },
 });
 </script>
+
+<style lang="scss" >
+@import '../assets/tables';
+
+.cert-name {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.details-certificates {
+  margin-top: 40px;
+}
+
+.table-toolbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 100%;
+  margin-top: 40px;
+  padding-left: 24px;
+  margin-bottom: 24px;
+}
+
+.search-input {
+  max-width: 300px;
+}
+</style>
 

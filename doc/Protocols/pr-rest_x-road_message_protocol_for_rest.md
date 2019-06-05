@@ -5,8 +5,7 @@
 # X-Road: Message Protocol for REST
 **Technical Specification**
 
-Version: 0.9.0  
-22.03.2019  
+Version: 1.0.0  
 Doc. ID: PR-REST
 
 ---
@@ -20,7 +19,8 @@ Doc. ID: PR-REST
 |11.01.2019 | 0.3.0	  | <ul><li>Remove constant prefix `/rest` from the protocol</li><li>Consumer ID is specified with HTTP headers instead of encoding it to the request URL</li><li>Clarified service id and client id encoding (percent-encoded UTF-8)</li><li>Changes to "Use of HTTP Headers" section <br /> - Clarified user defined headers rules <br /> - Added filtered headers section <br /> - Added cache headers section <br /> - Added cross-origin resource sharing section <br /> - Clarified Content-Type header <br /> - Added explanation of specially handled headers </li><li>Added HTTP version to "Scope and Requirements" chapter</li><li>Use OpenAPI 3.0 service description</li><li>Updated the examples according to REST guidelines</li><li>Added section about HTTP redirections</li></ul> | Ilkka Seppälä <br /> Petteri Kivimäki <br /> Jarkko Hyöty <br /> Janne Mattila <br /> Lauri Koutaniemi |
 |21.02.2019 | 0.4.0	  | <ul><li>Added chapter 1.2 containing general description about REST architectural style</li><li>Clarified 3.2 objectives</li><li>Clarified 'X-Road-UserId' header</li><li>Added 4.3 request hash header</li><li>Added 4.6 example 5 about tracking the source of error</li><li>Clarified 2.3 protocol versioning</li><li>Minor grammar changes to 4.1</li><li>Added a warning to 4.4 about following redirects</li><li>Fixed 4.6 example 2 -> X-Road-Error header added</li><li>Clarified 4.6 user defined headers</li><li>Clarified 5.1 what is the role of OpenAPI 3</li><li>Updated the response body format in 4.6 error handling</li><li>Added X-Road-Security-Server header to 4.3 to make it possible to call monitoring via REST</li></ul> | Ilkka Seppälä <br /> Petteri Kivimäki <br /> Jarkko Hyöty |
 |22.03.2019 | 0.5.0	  | <ul><li>Clarified 1.1 overview</li><li>Clarified 3.2 objectives</li><li>Added to 4.3 chapter "X-Road specific headers returned in the response"</li><li>Clarified the use of X-Road-Id in 4.3</li><li>Removed chapter 5.2 where it was recommended to use \[REST-BEST-PRACTISES\]</li><li>Updated examples in chapters 4.6 and 6</li><li>Updated request hash description in 4.3</li></ul> | Ilkka Seppälä <br /> Petteri Kivimäki <br /> Jarkko Hyöty |
-|22.03.2019 | 0.9.0	  | Initial Markdown documentation | Caro Hautamäki |
+|22.03.2019 | 0.9.0   | Initial Markdown documentation | Caro Hautamäki |
+|25.04.2019 | 1.0.0   | Update document version number | Jarkko Hyöty |
 
 ## Table of Contents  
 
@@ -266,13 +266,13 @@ The response contains some X-Road specific headers that are set by the provider 
 - **X-Road-Id**: Unique identifier for this message
 - **X-Road-Request-Hash**: For responses, this field contains sha-512 encoded hash of the request message
 - **X-Road-Error**: This header is provided in case there was an error processing the request and it occurred somewhere in X-Road (on the consumer or provider Security Server)
-- **X-Request-Id**: Unique identifier for the request
+- **X-Road-Request-Id**: Unique identifier for the request
   ```
   X-Road-Client: INSTANCE/CLASS/MEMBER/SUBSYSTEM
   X-Road-Service: INSTANCE/CLASS/MEMBER/SUBSYSTEM/PETSTORE
   X-Road-Id: fa2e18a5-c2cb-4d09-b994-f57727f7c3fb
   X-Road-Request-Hash: 4c519cf0-0e5e-4ccf-b72b-8ed6fe289e6e
-  X-Request-Id: f92591a3-6bf0-49b1-987b-0dd78c034cc3
+  X-Road-Request-Id: f92591a3-6bf0-49b1-987b-0dd78c034cc3
   ```
  
 **Request hash header**

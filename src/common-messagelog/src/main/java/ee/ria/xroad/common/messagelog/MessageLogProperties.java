@@ -51,6 +51,8 @@ public final class MessageLogProperties {
 
     private static final int DEFAULT_TIMESTAMPER_CLIENT_READ_TIMEOUT = 60000;
 
+    private static final int DEFAULT_TIMESTAMP_RETRY_DELAY = 60;
+
     private static final int DEFAULT_ARCHIVE_TRANSACTION_BATCH_SIZE = 10000;
     private static final int DEFAULT_CLEAN_TRANSACTION_BATCH_SIZE = 10000;
 
@@ -68,6 +70,9 @@ public final class MessageLogProperties {
     public static final String TIMESTAMP_IMMEDIATELY = PREFIX + "timestamp-immediately";
 
     public static final String TIMESTAMP_RECORDS_LIMIT = PREFIX + "timestamp-records-limit";
+
+    /** Property name of the timestamp retry delay (seconds). */
+    public static final String TIMESTAMP_RETRY_DELAY = PREFIX + "timestamp-retry-delay";
 
     public static final String ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD = PREFIX + "acceptable-timestamp-failure-period";
 
@@ -141,6 +146,15 @@ public final class MessageLogProperties {
     public static int getTimestamperClientReadTimeout() {
         return getInt(System.getProperty(TIMESTAMPER_CLIENT_READ_TIMEOUT),
                 DEFAULT_TIMESTAMPER_CLIENT_READ_TIMEOUT);
+    }
+
+    /**
+     * @return the timestamp retry delay in seconds. A retry delay of zero is
+     * interpreted as retry delay is disabled. '60' by default.
+     */
+    public static int getTimestampRetryDelay() {
+        return getInt(System.getProperty(TIMESTAMP_RETRY_DELAY),
+                DEFAULT_TIMESTAMP_RETRY_DELAY);
     }
 
     /**

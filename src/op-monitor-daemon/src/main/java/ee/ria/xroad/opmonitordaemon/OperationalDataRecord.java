@@ -69,17 +69,19 @@ public class OperationalDataRecord {
     @JsonAdapter(SecurityServerTypeTypeAdapter.class)
     private String securityServerType;
 
-    SecurityServerType getSecurityServerType() {
+    public SecurityServerType getSecurityServerType() {
         return securityServerType == null
                 ? null : SecurityServerType.fromString(securityServerType);
     }
 
-    void setSecurityServerType(String serverType) {
+    /**
+     * set security server type
+     * @throws IllegalArgumentException if serverType is not valid
+     */
+    public void setSecurityServerType(String serverType) {
         if (SecurityServerType.fromString(serverType) == null) {
-            throw new IllegalArgumentException(
-                    "Invalid value of securityServerType");
+            throw new IllegalArgumentException("Invalid value of securityServerType");
         }
-
         securityServerType = serverType;
     }
 

@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.converter;
 
+import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 
@@ -38,6 +39,7 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Converter Client related data between openapi and (jaxb) service classes
@@ -53,7 +55,8 @@ public class ClientConverter {
     public static final int SUBSYSTEM_CODE_INDEX = 3;
     public static final char ENCODED_CLIENT_ID_SEPARATOR = ':';
 
-    public ClientConverter(@Autowired GlobalConfWrapper globalConfWrapper) {
+    @Autowired
+    public ClientConverter(GlobalConfWrapper globalConfWrapper) {
         this.globalConfWrapper = globalConfWrapper;
     }
 
@@ -93,14 +96,14 @@ public class ClientConverter {
             builder.append(ENCODED_CLIENT_ID_SEPARATOR)
                     .append(clientId.getSubsystemCode());
         }
-        return builder.toString();
+        return builder.toString().trim();
     }
 
     /**
      * Convert encoded member id into ClientId
      * @param encodedId
+     * @return ClientId
      * @throws BadRequestException if encoded id could not be decoded
-     * @return
      */
     public ClientId convertId(String encodedId) throws BadRequestException {
         int separators = countOccurences(encodedId, ENCODED_CLIENT_ID_SEPARATOR);
@@ -120,6 +123,41 @@ public class ClientConverter {
             subsystemCode = parts.get(SUBSYSTEM_CODE_INDEX);
         }
         return ClientId.create(instance, memberClass, memberCode, subsystemCode);
+    }
+
+    /**
+     * Convert a list of encoded member ids to ClientIds
+     * @param encodedIds
+     * @return List of ClientIds
+     * @throws BadRequestException if encoded id could not be decoded
+     */
+    public List<ClientId> convertIds(List<String> encodedIds) throws BadRequestException {
+        return encodedIds.stream().map(this::convertId).collect(Collectors.toList());
+    }
+
+    /**
+     * Convert MemberInfo into Client
+     * @param memberInfo
+     * @return Client
+     */
+    public Client convertMemberInfoToClient(MemberInfo memberInfo) {
+        ClientId clientId = memberInfo.getId();
+        Client client = new Client();
+        client.setId(convertId(clientId));
+        client.setMemberClass(clientId.getMemberClass());
+        client.setMemberCode(clientId.getMemberCode());
+        client.setSubsystemCode(clientId.getSubsystemCode());
+        client.setMemberName(memberInfo.getName());
+        return client;
+    }
+
+    /**
+     * Convert MemberInfo list into Client list
+     * @param memberInfos
+     * @return List of Clients
+     */
+    public List<Client> convertMemberInfosToClients(List<MemberInfo> memberInfos) {
+        return memberInfos.stream().map(this::convertMemberInfoToClient).collect(Collectors.toList());
     }
 
     private int countOccurences(String from, char searched) {

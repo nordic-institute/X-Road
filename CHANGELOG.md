@@ -1,6 +1,12 @@
 # Change Log
 
-## 6.21.0 - UNRELEASED
+## 6.22.0 - UNRELEASED
+
+## 6.21.1 - 2019-05-22
+- XRDDEV-526: Fix adding a WSDL with a newer version of an existing service fails.
+- XRDDEV-506: Fix operational monitoring does not record request_out_ts and response_in_ts for REST messages.
+
+## 6.21.0 - 2019-04-24
 - XRDDEV-263: Security Server data model extended to cover REST services.
 - XRDDEV-225: Add configuration option that allows auto-accepting auth cert registration requests on Central Server.
 - XRDDEV-258: Update JRuby to version 9.1.17.
@@ -11,18 +17,20 @@
 - XRDDEV-337: Hide the admin ui X-Road logo on smaller screens
 - XTE-432: Fix resource leak - close discarded socket.
 - XRDDEV-353: Add support for verifying ASiC containers containing REST messages.
-- XRDDEV-358: Add support for downloading RESET message records via ASiC web service
-- XRDDEV-375: Add securityserver protocol extension
-- XRDDEV-264: Support transporting REST messages of arbitrary size
-- XRDDEV-314: Extend messagelog database for REST messages
-- XRDDEV-328: Archive REST message records as ASiC containers
-- XRDDEV-285: Log rest messages to message log
-- XRDDEV-155: Update intial REST implementation
-- XRDDEV-120: Initial implementation of the REST support
-- XRDDEV-284: Add support for configuring REST services in the admin UI
-- XRDDEV-418: Align REST implementation with the specification
+- XRDDEV-352: Add support for downloading RESET message records via ASiC web service.
+- XRDDEV-358: Record rest messages to operational monitoring.
+- XRDDEV-375: Add securityserver protocol extension.
+- XRDDEV-264: Support transporting REST messages of arbitrary size.
+- XRDDEV-314: Extend messagelog database for REST messages.
+- XRDDEV-328: Archive REST message records as ASiC containers.
+- XRDDEV-285: Log rest messages to message log.
+- XRDDEV-155: Update intial REST implementation.
+- XRDDEV-120: Initial implementation of the REST support.
+- XRDDEV-284: Add support for configuring REST services in the admin UI.
+- XRDDEV-418: Align REST implementation with the specification.
 - XRDDEV-426: Fix performance regression and native memory leak in messagelog archiving.
 - XRDDEV-419: Include X-Road-Request-Id into REST message signature and request headers.
+- XRDDEV-400: Return descriptive error if one tries to download WSDL for a REST service.
 - XRDDEV-398: Add markdown documentation for REST message protocol.
 - XRDDEV-412: Prevent SOAP service calls from REST interface and vice versa.
 - XRDDEV-432: Prevent adding new services with already existing service code.
@@ -30,6 +38,7 @@
 - XRDDEV-439: Fix message log cleaning can fail if log is large.
 - XRDDEV-383: Add security server Dockerfile and usage instructions.
 - XRDDEV-411: Fix SonarQube duplication warning.
+- XRDDEV-443: Fix updating REST service code removes all access rights.
 
 ## 6.20.1 - 2019-02-05
 - XRDDEV-351: Fix XRDDEV-351

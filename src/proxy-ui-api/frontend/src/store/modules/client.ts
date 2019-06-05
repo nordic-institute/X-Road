@@ -14,7 +14,7 @@ export interface Client {
 
 export interface ClientState {
   client: Client | null;
-  certificates: any[];
+  signCertificates: any[];
   loading: boolean;
   connection_type: string | null;
   tlsCertificates: any[];
@@ -24,7 +24,7 @@ export interface ClientState {
 export const clientState: ClientState = {
   client: null,
   loading: false,
-  certificates: [],
+  signCertificates: [],
   connection_type: null,
   tlsCertificates: [],
   ssCertificate: null,
@@ -34,8 +34,8 @@ export const getters: GetterTree<ClientState, RootState> = {
   client(state): Client | null {
     return state.client;
   },
-  certificates(state): any[] {
-    return state.certificates;
+  signCertificates(state): any[] {
+    return state.signCertificates;
   },
   connectionType(state): string | null | undefined {
     if (state.client) {
@@ -61,8 +61,8 @@ export const mutations: MutationTree<ClientState> = {
   storeTlsCertificates(state, certificates: any[]) {
     state.tlsCertificates = certificates;
   },
-  storeCertificates(state, certificates: any[]) {
-    state.certificates = certificates;
+  storeSignCertificates(state, certificates: any[]) {
+    state.signCertificates = certificates;
   },
   setLoading(state, loading: boolean) {
     state.loading = loading;
@@ -71,7 +71,7 @@ export const mutations: MutationTree<ClientState> = {
     state.client = null;
     state.ssCertificate = null;
     state.tlsCertificates = [];
-    state.certificates = [];
+    state.signCertificates = [];
   },
 };
 
@@ -95,7 +95,7 @@ export const actions: ActionTree<ClientState, RootState> = {
         commit('setLoading', false);
       });
   },
-  fetchCertificates({ commit, rootGetters }, id: string) {
+  fetchSignCertificates({ commit, rootGetters }, id: string) {
 
     commit('setLoading', true);
 
@@ -103,9 +103,9 @@ export const actions: ActionTree<ClientState, RootState> = {
       throw new Error('Missing id');
     }
 
-    return axios.get(`/clients/${id}/certificates`)
+    return axios.get(`/clients/${id}/sign-certificates`)
       .then((res) => {
-        commit('storeCertificates', res.data);
+        commit('storeSignCertificates', res.data);
       })
       .catch((error) => {
         throw error;
@@ -123,7 +123,7 @@ export const actions: ActionTree<ClientState, RootState> = {
       throw new Error('Missing id');
     }
 
-    return axios.get(`/clients/${id}/tlscertificates`)
+    return axios.get(`/clients/${id}/tls-certificates`)
       .then((res) => {
         commit('storeTlsCertificates', res.data);
       })
@@ -163,12 +163,12 @@ export const actions: ActionTree<ClientState, RootState> = {
       throw new Error('Missing certificate hash');
     }
 
-    return axios.get(`/clients/${clientId}/tlscertificates/${hash}`);
+    return axios.get(`/clients/${clientId}/tls-certificates/${hash}`);
   },
 
   deleteTlsCertificate({ commit, state }, { clientId, hash }) {
 
-    return axios.delete(`/clients/${clientId}/tlscertificates/${hash}`);
+    return axios.delete(`/clients/${clientId}/tls-certificates/${hash}`);
   },
 
   downloadSSCertificate({ commit, state }, { hash }) {
@@ -198,7 +198,7 @@ export const actions: ActionTree<ClientState, RootState> = {
   },
 
   uploadTlsCertificate({ commit, state }, data) {
-    return axios.post(`/clients/${data.clientId}/tlscertificates/`, data.fileData, {
+    return axios.post(`/clients/${data.clientId}/tls-certificates/`, data.fileData, {
       headers: {
         'Content-Type': 'application/octet-stream',
       },

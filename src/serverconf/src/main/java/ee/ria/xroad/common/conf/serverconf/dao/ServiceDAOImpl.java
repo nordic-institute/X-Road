@@ -29,8 +29,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.hibernate.Hibernate;
-import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.query.Query;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -88,11 +88,11 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
                 + nullOrName(serviceProvider.getSubsystemCode(),
                 CLIENT_SUBSYSTEM_CODE));
 
-        Query q = session.createQuery(qb.toString());
+        Query<ServiceType> q = session.createQuery(qb.toString(), ServiceType.class);
 
-        q.setString("clientInstance", serviceProvider.getXRoadInstance());
-        q.setString("clientClass", serviceProvider.getMemberClass());
-        q.setString("clientCode", serviceProvider.getMemberCode());
+        q.setParameter("clientInstance", serviceProvider.getXRoadInstance());
+        q.setParameter("clientClass", serviceProvider.getMemberClass());
+        q.setParameter("clientCode", serviceProvider.getMemberCode());
         setString(q, CLIENT_SUBSYSTEM_CODE, serviceProvider.getSubsystemCode());
 
         List<ServiceId> services = new ArrayList<>();
@@ -121,16 +121,14 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
                 + nullOrName(id.getClientId().getSubsystemCode(),
                 CLIENT_SUBSYSTEM_CODE));
 
-        Query q = session.createQuery(qb.toString());
+        Query<ServiceType> q = session.createQuery(qb.toString(), ServiceType.class);
 
-        q.setString("serviceCode", id.getServiceCode());
+        q.setParameter("serviceCode", id.getServiceCode());
         setString(q, "serviceVersion", id.getServiceVersion());
-
-        q.setString("clientInstance", id.getClientId().getXRoadInstance());
-        q.setString("clientClass", id.getClientId().getMemberClass());
-        q.setString("clientCode", id.getClientId().getMemberCode());
-        setString(q, CLIENT_SUBSYSTEM_CODE,
-                id.getClientId().getSubsystemCode());
+        q.setParameter("clientInstance", id.getClientId().getXRoadInstance());
+        q.setParameter("clientClass", id.getClientId().getMemberClass());
+        q.setParameter("clientCode", id.getClientId().getMemberCode());
+        setString(q, CLIENT_SUBSYSTEM_CODE, id.getClientId().getSubsystemCode());
 
         return findOne(q);
     }

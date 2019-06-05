@@ -14,11 +14,10 @@
         v-if="showAddClient()"
         color="primary"
         @click="addClient"
-        elevation-0
         round
         dark
         class="ma-0 rounded-button elevation-0"
-      >Add client</v-btn>
+      >{{$t('action.addClient')}}</v-btn>
     </div>
     <v-data-table
       :loading="loading"
@@ -96,14 +95,14 @@
               outline
               round
               color="primary"
-              class="text-capitalize table-button xr-small-button"
+              class="xr-small-button xr-table-button"
               @click="addSubsystem(props.item)"
-            >Add Subsystem</v-btn>
+            >{{$t('action.addSubsystem')}}</v-btn>
           </td>
         </tr>
       </template>
 
-      <template slot="no-data">No data</template>
+      <template slot="no-data">{{$t('action.noData')}}</template>
       <v-alert
         slot="no-results"
         :value="true"
@@ -310,10 +309,6 @@ export default Vue.extend({
   padding-left: 24px;
   margin-bottom: 24px;
 }
-.expand-name {
-  width: 38%;
-  padding-left: 60px !important;
-}
 
 .search-input {
   max-width: 300px;
@@ -325,11 +320,6 @@ export default Vue.extend({
 
 .data-table {
   width: 100%;
-}
-
-.table-button {
-  margin-top: auto;
-  margin-bottom: auto;
 }
 
 .name {

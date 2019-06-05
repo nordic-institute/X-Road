@@ -20,7 +20,7 @@
 
       <v-list>
         <v-list-tile id="logout-list-tile" @click="logout">
-          <v-list-tile-title id="logout-title">Logout</v-list-tile-title>
+          <v-list-tile-title id="logout-title">{{$t('login.logOut')}}</v-list-tile-title>
         </v-list-tile>
 
         <v-list-tile @click="demoLogout">

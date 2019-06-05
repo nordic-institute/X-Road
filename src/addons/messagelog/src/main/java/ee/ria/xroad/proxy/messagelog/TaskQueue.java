@@ -51,7 +51,9 @@ import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransactio
 public class TaskQueue extends UntypedActor {
 
     static final String START_TIMESTAMPING = "StartTimestamping";
+    static final String START_TIMESTAMPING_RETRY_MODE = "StartTimestampingRetryMode";
     static final double TIMESTAMPED_RECORDS_RATIO_THRESHOLD = 0.7;
+    static final int TIMESTAMP_RECORDS_LIMIT_RETRY_MODE = 1;
 
     @Override
     public void onReceive(Object message) throws Exception {
@@ -59,6 +61,8 @@ public class TaskQueue extends UntypedActor {
 
         if (message.equals(START_TIMESTAMPING)) {
             handleStartTimestamping();
+        } else if (message.equals(START_TIMESTAMPING_RETRY_MODE)) {
+            handleStartTimestamping(TIMESTAMP_RECORDS_LIMIT_RETRY_MODE);
         } else if (message instanceof Timestamper.TimestampSucceeded) {
             handleTimestampSucceeded((Timestamper.TimestampSucceeded) message);
         } else if (message instanceof Timestamper.TimestampFailed) {
@@ -134,10 +138,14 @@ public class TaskQueue extends UntypedActor {
     }
 
     protected void handleStartTimestamping() {
+        handleStartTimestamping(MessageLogProperties.getTimestampRecordsLimit());
+    }
+
+    protected void handleStartTimestamping(int timestampRecordsLimit) {
         List<Task> timestampTasks;
 
         try {
-            timestampTasks = doInTransaction(this::getTimestampTasks);
+            timestampTasks = doInTransaction(session -> getTimestampTasks(session, timestampRecordsLimit));
         } catch (Exception e) {
             log.error("Error getting time-stamp tasks", e);
 
@@ -191,9 +199,8 @@ public class TaskQueue extends UntypedActor {
     }
 
     @SuppressWarnings("unchecked")
-    private List<Task> getTimestampTasks(Session session) {
-        return session.createQuery(getTaskQueueQuery()).setMaxResults(
-                MessageLogProperties.getTimestampRecordsLimit()).list();
+    private List<Task> getTimestampTasks(Session session, int timestampRecordsLimit) {
+        return session.createQuery(getTaskQueueQuery()).setMaxResults(timestampRecordsLimit).list();
     }
 
     @SuppressWarnings("unchecked")

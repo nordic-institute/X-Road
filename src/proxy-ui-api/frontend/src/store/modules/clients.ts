@@ -2,6 +2,7 @@ import axios from 'axios';
 import _ from 'lodash';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
+import i18n from './../../i18n';
 
 export interface Client {
   id: string;
@@ -47,7 +48,7 @@ export const getters: GetterTree<ClientsState, RootState> = {
     // New arrays to separate members and subsystems
     const members: Client[] = [];
     const subsystems: Client[] = [];
-    const UNKNOWN_NAME: string = 'unknown member';
+    const UNKNOWN_NAME: string = i18n.t('client.unknownMember') as string;
 
     // Find the owner member (there is only one) it has member_name, but no subsystem_code
     state.clients.forEach((element, index) => {

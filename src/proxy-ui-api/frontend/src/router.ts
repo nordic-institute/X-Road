@@ -17,6 +17,7 @@ import Error from '@/views/Error.vue';
 import ClientDetails from '@/components/ClientDetails.vue';
 import InternalServers from '@/components/InternalServers.vue';
 import LocalGroups from '@/components/LocalGroups.vue';
+import LocalGroup from '@/views/LocalGroup.vue';
 import Services from '@/components/Services.vue';
 import ServiceClients from '@/components/ServiceClients.vue';
 import store from './store';
@@ -114,7 +115,7 @@ const router = new Router({
             },
             {
               name: RouteName.SubsystemLocalGroups,
-              path: '/subsystem/groups/:id',
+              path: '/subsystem/localgroups/:id',
               component: LocalGroups,
               props: true,
               meta: { permission: Permissions.VIEW_CLIENT_LOCAL_GROUPS },
@@ -165,6 +166,14 @@ const router = new Router({
           },
           props: { default: true },
           meta: { permission: Permissions.VIEW_CLIENT_INTERNAL_CERT_DETAILS },
+        },
+        {
+          name: RouteName.LocalGroup,
+          path: '/localgroup/:id/:code',
+          components: {
+            default: LocalGroup,
+          },
+          props: { default: true },
         },
       ],
     },

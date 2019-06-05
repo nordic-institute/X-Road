@@ -60,6 +60,12 @@ export default Vue.extend({
 
       return this.$store.getters.getAllowedTabs(allTabs);
     },
+    localGroupsRoute(): object {
+      return {
+        name: RouteName.SubsystemLocalGroups,
+        params: { id: this.id },
+      };
+    },
   },
   created() {
     this.fetchClient(this.id);

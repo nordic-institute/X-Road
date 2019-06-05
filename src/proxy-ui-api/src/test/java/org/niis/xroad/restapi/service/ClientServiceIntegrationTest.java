@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -33,8 +34,11 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.converter.GlobalConfWrapper;
 import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.repository.ClientRepository;
+import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,7 +47,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -59,7 +65,19 @@ import static org.junit.Assert.fail;
 @Transactional
 public class ClientServiceIntegrationTest {
 
+    private static final String INSTANCE_FI = "FI";
+    private static final String INSTANCE_EE = "EE";
+    private static final String MEMBER_CLASS_GOV = "GOV";
+    private static final String MEMBER_CLASS_PRO = "PRO";
+    private static final String MEMBER_CODE_M1 = "M1";
+    private static final String MEMBER_CODE_M2 = "M2";
+    private static final String SUBSYSTEM1 = "SS1";
+    private static final String SUBSYSTEM2 = "SS2";
+    private static final String SUBSYSTEM3 = "SS3";
+    private static final String NAME_APPENDIX = "-name";
+
     @Autowired
+    private ClientRepository clientRepository;
     private ClientService clientService;
 
     private byte[] pemBytes;
@@ -68,6 +86,27 @@ public class ClientServiceIntegrationTest {
 
     @Before
     public void setup() throws Exception {
+        GlobalConfWrapper globalConfWrapper = new GlobalConfWrapper() {
+            @Override
+            public List<MemberInfo> getGlobalMembers(String... instanceIdentifiers) {
+                return new ArrayList<>(Arrays.asList(
+                        TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1),
+                        TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM2),
+                        TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, null),
+                        TestUtils.getMemberInfo(INSTANCE_EE, MEMBER_CLASS_PRO, MEMBER_CODE_M2, SUBSYSTEM3),
+                        TestUtils.getMemberInfo(INSTANCE_EE, MEMBER_CLASS_PRO, MEMBER_CODE_M1, null),
+                        TestUtils.getMemberInfo(INSTANCE_EE, MEMBER_CLASS_PRO, MEMBER_CODE_M1, SUBSYSTEM1),
+                        TestUtils.getMemberInfo(INSTANCE_EE, MEMBER_CLASS_PRO, MEMBER_CODE_M2, null))
+                );
+            }
+
+            @Override
+            public String getMemberName(ClientId identifier) {
+                return identifier.getSubsystemCode() != null ? identifier.getSubsystemCode() + NAME_APPENDIX
+                        : "test-member" + NAME_APPENDIX;
+            }
+        };
+        clientService = new ClientService(clientRepository, globalConfWrapper);
         pemBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
                 getResourceAsStream("google-cert.pem"));
         derBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
@@ -83,7 +122,7 @@ public class ClientServiceIntegrationTest {
     @WithMockUser(authorities = { "EDIT_CLIENT_INTERNAL_CONNECTION_TYPE",
             "VIEW_CLIENT_DETAILS" })
     public void updateConnectionType() {
-        ClientId id = getM1Ss1ClientId();
+        ClientId id = TestUtils.getM1Ss1ClientId();
         ClientType clientType = clientService.getClient(id);
         assertEquals("SSLNOAUTH", clientType.getIsAuthentication());
         assertEquals(2, clientType.getLocalGroup().size());
@@ -100,15 +139,11 @@ public class ClientServiceIntegrationTest {
         assertEquals(2, clientType.getLocalGroup().size());
     }
 
-    private ClientId getM1Ss1ClientId() {
-        return ClientId.create("FI", "GOV", "M1", "SS1");
-    }
-
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_CLIENT_INTERNAL_CERT" })
     public void addCertificatePem() throws Exception {
 
-        ClientId id = getM1Ss1ClientId();
+        ClientId id = TestUtils.getM1Ss1ClientId();
         ClientType clientType = clientService.getClient(id);
         assertEquals(0, clientType.getIsCert().size());
 
@@ -123,7 +158,7 @@ public class ClientServiceIntegrationTest {
     @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_CLIENT_INTERNAL_CERT" })
     public void addInvalidCertificate() throws Exception {
 
-        ClientId id = getM1Ss1ClientId();
+        ClientId id = TestUtils.getM1Ss1ClientId();
         ClientType clientType = clientService.getClient(id);
         assertEquals(0, clientType.getIsCert().size());
 
@@ -138,7 +173,7 @@ public class ClientServiceIntegrationTest {
     @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_CLIENT_INTERNAL_CERT" })
     public void addCertificateDer() throws Exception {
 
-        ClientId id = getM1Ss1ClientId();
+        ClientId id = TestUtils.getM1Ss1ClientId();
         ClientType clientType = clientService.getClient(id);
         assertEquals(0, clientType.getIsCert().size());
 
@@ -153,7 +188,7 @@ public class ClientServiceIntegrationTest {
     @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_CLIENT_INTERNAL_CERT" })
     public void addDuplicate() throws Exception {
 
-        ClientId id = getM1Ss1ClientId();
+        ClientId id = TestUtils.getM1Ss1ClientId();
         ClientType clientType = clientService.getClient(id);
         assertEquals(0, clientType.getIsCert().size());
 
@@ -171,7 +206,7 @@ public class ClientServiceIntegrationTest {
             "DELETE_CLIENT_INTERNAL_CERT" })
     public void deleteCertificate() throws Exception {
 
-        ClientId id = getM1Ss1ClientId();
+        ClientId id = TestUtils.getM1Ss1ClientId();
         ClientType clientType = clientService.getClient(id);
         assertEquals(0, clientType.getIsCert().size());
 
@@ -191,4 +226,145 @@ public class ClientServiceIntegrationTest {
         assertEquals(0, clientType.getIsCert().size());
     }
 
+    /* Test LOCAL client search */
+    @Test
+    public void findLocalClientsByNameIncludeMembers() {
+        List<ClientType> clients = clientService.findLocalClients(SUBSYSTEM1 + NAME_APPENDIX, null, null,
+                null, null, true);
+        assertEquals(1, clients.size());
+    }
+
+    @Test
+    public void findLocalClientsByInstanceIncludeMembers() {
+        List<ClientType> clients = clientService.findLocalClients(null, INSTANCE_FI, null,
+                null, null, true);
+        assertEquals(3, clients.size());
+    }
+
+    @Test
+    public void findLocalClientsByClassIncludeMembers() {
+        List<ClientType> clients = clientService.findLocalClients(null, null, MEMBER_CLASS_GOV,
+                null, null, true);
+        assertEquals(3, clients.size());
+    }
+
+    @Test
+    public void findLocalClientsByInstanceAndMemberCodeIncludeMembers() {
+        List<ClientType> clients = clientService.findLocalClients(null, INSTANCE_FI, null,
+                MEMBER_CODE_M1, null, true);
+        assertEquals(3, clients.size());
+    }
+
+    @Test
+    public void findLocalClientsByAllTermsIncludeMembers() {
+        List<ClientType> clients = clientService.findLocalClients(SUBSYSTEM1 + NAME_APPENDIX, INSTANCE_FI,
+                MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1, true);
+        assertEquals(1, clients.size());
+    }
+
+    @Test
+    public void findLocalClientsByNameExcludeMembers() {
+        List<ClientType> clients = clientService.findLocalClients(SUBSYSTEM1 + NAME_APPENDIX, null, null,
+                null, null, false);
+        assertEquals(1, clients.size());
+    }
+
+    @Test
+    public void findLocalClientsByInstanceExcludeMembers() {
+        List<ClientType> clients = clientService.findLocalClients(null, INSTANCE_FI, null,
+                null, null, false);
+        assertEquals(2, clients.size());
+    }
+
+    @Test
+    public void findLocalClientsByClassExcludeMembers() {
+        List<ClientType> clients = clientService.findLocalClients(null, null, MEMBER_CLASS_GOV,
+                null, null, false);
+        assertEquals(2, clients.size());
+    }
+
+    @Test
+    public void findLocalClientsByInstanceAndMemberCodeExcludeMembers() {
+        List<ClientType> clients = clientService.findLocalClients(null, INSTANCE_FI, null,
+                MEMBER_CODE_M1, null, false);
+        assertEquals(2, clients.size());
+    }
+
+    @Test
+    public void findLocalClientsByAllTermsExcludeMembers() {
+        List<ClientType> clients = clientService.findLocalClients(SUBSYSTEM1 + NAME_APPENDIX, INSTANCE_FI,
+                MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1, false);
+        assertEquals(1, clients.size());
+    }
+
+    /* Test GLOBAL client search */
+    @Test
+    public void findGlobalClientsByNameIncludeMembers() {
+        List<MemberInfo> clients = clientService.findGlobalClients(SUBSYSTEM1 + NAME_APPENDIX, null, null,
+                null, null, true);
+        assertEquals(2, clients.size());
+    }
+
+    @Test
+    public void findGlobalClientsByInstanceIncludeMembers() {
+        List<MemberInfo> clients = clientService.findGlobalClients(null, INSTANCE_EE, null,
+                null, null, true);
+        assertEquals(4, clients.size());
+    }
+
+    @Test
+    public void findGlobalClientsByClassIncludeMembers() {
+        List<MemberInfo> clients = clientService.findGlobalClients(null, null, MEMBER_CLASS_GOV,
+                null, null, true);
+        assertEquals(3, clients.size());
+    }
+
+    @Test
+    public void findGlobalClientsByInstanceAndMemberCodeIncludeMembers() {
+        List<MemberInfo> clients = clientService.findGlobalClients(null, INSTANCE_FI, null,
+                MEMBER_CODE_M1, null, true);
+        assertEquals(3, clients.size());
+    }
+
+    @Test
+    public void findGlobalClientsByAllTermsIncludeMembers() {
+        List<MemberInfo> clients = clientService.findGlobalClients(SUBSYSTEM1 + NAME_APPENDIX, INSTANCE_FI,
+                MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1, true);
+        assertEquals(1, clients.size());
+    }
+
+    @Test
+    public void findGlobalClientsByNameExcludeMembers() {
+        List<MemberInfo> clients = clientService.findGlobalClients(SUBSYSTEM1 + NAME_APPENDIX, null, null,
+                null, null, false);
+        assertEquals(2, clients.size());
+    }
+
+    @Test
+    public void findGlobalClientsByInstanceExcludeMembers() {
+        List<MemberInfo> clients = clientService.findGlobalClients(null, INSTANCE_EE, null,
+                null, null, false);
+        assertEquals(2, clients.size());
+    }
+
+    @Test
+    public void findGlobalClientsByClassExcludeMembers() {
+        List<MemberInfo> clients = clientService.findGlobalClients(null, null, MEMBER_CLASS_GOV,
+                null, null, false);
+        assertEquals(2, clients.size());
+    }
+
+    @Test
+    public void findGlobalClientsByInstanceAndMemberCodeExcludeMembers() {
+        List<MemberInfo> clients = clientService.findGlobalClients(null, INSTANCE_FI, null,
+                MEMBER_CODE_M1, null, false);
+        assertEquals(2, clients.size());
+    }
+
+    @Test
+    public void findGlobalClientsByAllTermsExcludeMembers() {
+        List<MemberInfo> clients = clientService.findGlobalClients(SUBSYSTEM1 + NAME_APPENDIX, INSTANCE_FI,
+                MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1, false);
+        assertEquals(1, clients.size());
+    }
 }
