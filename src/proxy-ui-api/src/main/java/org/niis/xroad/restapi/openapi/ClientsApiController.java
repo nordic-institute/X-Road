@@ -37,6 +37,7 @@ import org.niis.xroad.restapi.converter.ConnectionTypeMapping;
 import org.niis.xroad.restapi.converter.GroupConverter;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.ErrorCode;
+import org.niis.xroad.restapi.exceptions.InvalidParametersException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
@@ -44,6 +45,7 @@ import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.Group;
 import org.niis.xroad.restapi.openapi.model.InlineObject;
 import org.niis.xroad.restapi.openapi.model.InlineObject1;
+import org.niis.xroad.restapi.openapi.model.InlineObject2;
 import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.GroupService;
 import org.niis.xroad.restapi.service.TokenService;
@@ -180,14 +182,18 @@ public class ClientsApiController implements ClientsApi {
     /**
      * Update a client's connection type
      * @param encodedId
-     * @param connectiontype
+     * @param inlineObject wrapper object containing the connection type to set
      * @return
      */
     @PreAuthorize("hasAuthority('EDIT_CLIENT_INTERNAL_CONNECTION_TYPE')")
     @Override
-    public ResponseEntity<Client> updateClient(String encodedId, ConnectionType connectiontype) {
+    public ResponseEntity<Client> updateClient(String encodedId, InlineObject inlineObject) {
+        if (inlineObject == null || inlineObject.getConnectionType() == null) {
+            throw new InvalidParametersException();
+        }
+        ConnectionType connectionType = inlineObject.getConnectionType();
         ClientId clientId = clientConverter.convertId(encodedId);
-        String connectionTypeString = ConnectionTypeMapping.map(connectiontype).get();
+        String connectionTypeString = ConnectionTypeMapping.map(connectionType).get();
         ClientType changed = clientService.updateConnectionType(clientId, connectionTypeString);
         Client result = clientConverter.convert(changed);
         return new ResponseEntity<>(result, HttpStatus.OK);
@@ -277,9 +283,16 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
-    public ResponseEntity<Void> addGroupMember(String id, String code, InlineObject memberIdWrapper) {
+    public ResponseEntity<Void> addGroupMember(String id, String code, InlineObject1 memberIdWrapper) {
+        if (memberIdWrapper == null || memberIdWrapper.getItems() == null || memberIdWrapper.getItems().size() < 1) {
+            throw new InvalidParametersException("missing member id");
+        }
+        if (memberIdWrapper.getItems().size() > 1) {
+            throw new InvalidParametersException("adding multiple members will be implemented later");
+        }
+        String memberId = memberIdWrapper.getItems().iterator().next();
         groupsService.addLocalGroupMember(clientConverter.convertId(id), code,
-                clientConverter.convertId(memberIdWrapper.getId()));
+                clientConverter.convertId(memberId));
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -293,7 +306,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
-    public ResponseEntity<Void> deleteGroupMember(String id, String code, InlineObject1 itemsWrapper) {
+    public ResponseEntity<Void> deleteGroupMember(String id, String code, InlineObject2 itemsWrapper) {
         LocalGroupType localGroupType = getLocalGroupType(id, code);
         groupsService.deleteGroupMember(localGroupType, clientConverter.convertIds(itemsWrapper.getItems()));
         return new ResponseEntity<>(HttpStatus.CREATED);

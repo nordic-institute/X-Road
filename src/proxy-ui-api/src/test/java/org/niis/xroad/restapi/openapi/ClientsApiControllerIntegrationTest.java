@@ -47,6 +47,7 @@ import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.Group;
 import org.niis.xroad.restapi.openapi.model.InlineObject;
 import org.niis.xroad.restapi.openapi.model.InlineObject1;
+import org.niis.xroad.restapi.openapi.model.InlineObject2;
 import org.niis.xroad.restapi.repository.TokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -186,7 +187,9 @@ public class ClientsApiControllerIntegrationTest {
                 clientsApiController.getClient("FI:GOV:M1:SS1");
         assertEquals(ConnectionType.HTTPS_NO_AUTH, response.getBody().getConnectionType());
 
-        response = clientsApiController.updateClient("FI:GOV:M1:SS1", ConnectionType.HTTP);
+        InlineObject http = new InlineObject();
+        http.setConnectionType(ConnectionType.HTTP);
+        response = clientsApiController.updateClient("FI:GOV:M1:SS1", http);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(ConnectionType.HTTP, response.getBody().getConnectionType());
 
@@ -454,7 +457,8 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_MEMBERS" })
     public void addGroupMember() throws Exception {
         ResponseEntity<Void> response =
-                clientsApiController.addGroupMember(CLIENT_ID_SS1, GROUPCODE, new InlineObject().id(CLIENT_ID_SS2));
+                clientsApiController.addGroupMember(CLIENT_ID_SS1, GROUPCODE, new InlineObject1()
+                        .items(Collections.singletonList(CLIENT_ID_SS2)));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         ResponseEntity<Group> localGroupResponse =
                 clientsApiController.getGroup(CLIENT_ID_SS1, GROUPCODE);
@@ -465,11 +469,12 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_MEMBERS" })
     public void deleteGroupMember() throws Exception {
         ResponseEntity<Void> response =
-                clientsApiController.addGroupMember(CLIENT_ID_SS1, GROUPCODE, new InlineObject().id(CLIENT_ID_SS2));
+                clientsApiController.addGroupMember(CLIENT_ID_SS1, GROUPCODE, new InlineObject1()
+                        .items(Collections.singletonList(CLIENT_ID_SS2)));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         ResponseEntity<Void> deleteResponse =
                 clientsApiController.deleteGroupMember(CLIENT_ID_SS1, GROUPCODE,
-                        new InlineObject1().items(Collections.singletonList(CLIENT_ID_SS2)));
+                        new InlineObject2().items(Collections.singletonList(CLIENT_ID_SS2)));
         assertEquals(HttpStatus.CREATED, deleteResponse.getStatusCode());
         ResponseEntity<Group> localGroupResponse =
                 clientsApiController.getGroup(CLIENT_ID_SS1, GROUPCODE);

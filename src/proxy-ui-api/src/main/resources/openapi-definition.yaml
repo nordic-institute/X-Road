@@ -4,7 +4,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.3"
+  version: "1.0.5"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -13,9 +13,9 @@ info:
     url: https://opensource.org/licenses/MIT
 tags:
   - name: security server
-    description: <br>Security Server operations and API calls
+    description: <br>Security Server API design
   - name: central server
-    description: <br>Central Server operations and API calls
+    description: <br>Central Server API design
 paths:
   /backups:
     get: # ok
@@ -544,7 +544,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    put: # ok
+    patch: # ok
       tags:
         - security server
       summary: update security server client information
@@ -560,12 +560,14 @@ paths:
             format: text
             minLength: 1
             maxLength: 1023
-        - in: query
-          name: connection_type
-          description: server connection type
-          required: true
-          schema:
-            $ref: '#/components/schemas/ConnectionType'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                connection_type:
+                  $ref: '#/components/schemas/ConnectionType'
       responses:
         '200':
           description: item modified
@@ -692,7 +694,7 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /clients/{id}/groups/{code}:
+  /clients/{id}/groups/{group_id}:
     get: # ok
       tags:
         - security server
@@ -710,8 +712,8 @@ paths:
             minLength: 1
             maxLength: 255
         - in: path
-          name: code
-          description: code of the local group
+          name: group_id
+          description: id of the local group
           required: true
           schema:
             type: string
@@ -754,8 +756,8 @@ paths:
             minLength: 1
             maxLength: 255
         - in: path
-          name: code
-          description: code of the local group
+          name: group_id
+          description: id of the local group
           required: true
           schema:
             type: string
@@ -807,8 +809,8 @@ paths:
             minLength: 1
             maxLength: 255
         - in: path
-          name: code
-          description: code of the local group
+          name: group_id
+          description: id of the local group
           required: true
           schema:
             type: string
@@ -828,7 +830,7 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
-  /clients/{id}/groups/{code}/members:
+  /clients/{id}/groups/{group_id}/members:
     post: # ok
       tags:
         - security server
@@ -846,28 +848,28 @@ paths:
             minLength: 1
             maxLength: 255
         - in: path
-          name: code
-          description: code of the local group
+          name: group_id
+          description: id of the local group
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1023
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
-                id:
-                  type: string
-                  format: text
-                  description: id of the member
-                  minLength: 1
-                  maxLength: 255
-              example:
-                label: My new key
+                items:
+                  type: array
+                  description: array of members to be added
+                  items:
+                    type: string
+                    format: text
+                    minLength: 1
+                    maxLength: 1023
       responses:
         '201':
           description: item created
@@ -885,7 +887,7 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /clients/{id}/groups/{code}/members/delete:
+  /clients/{id}/groups/{group_id}/members/delete:
     post: # ok
       tags:
         - security server
@@ -903,8 +905,8 @@ paths:
             minLength: 1
             maxLength: 255
         - in: path
-          name: code
-          description: code of the local group
+          name: group_id
+          description: id of the local group
           required: true
           schema:
             type: string
@@ -974,12 +976,12 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /clients/{id}/serviceclients:
+  /clients/{id}/service-clients:
     get: # ok
       tags:
         - security server
       summary: get service clients for the selected client
-      operationId: getClientServiceclients
+      operationId: getClientServiceClients
       description: SS administrator views the service clients for the client.
       parameters:
         - in: path
@@ -1017,7 +1019,7 @@ paths:
       tags:
         - security server
       summary: add new service client for the security server client
-      operationId: addClientServiceclient
+      operationId: addClientServiceClient
       description: SS administrator adds a new service client for the client.
       parameters:
         - in: path
@@ -1291,13 +1293,13 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /clients/{id}/services:
+  /clients/{id}/service-descriptions:
     get: # ok
       tags:
         - security server
-      summary: get security server client services
-      operationId: getClientServices
-      description: SS administrator views the services for the client.
+      summary: get security server client service descriptions
+      operationId: getClientServiceDescriptions
+      description: SS administrator views the service descriptions for the client.
       parameters:
         - in: path
           name: id
@@ -1310,14 +1312,14 @@ paths:
             maxLength: 1023
       responses:
         '200':
-          description: list of services
+          description: list of service descriptions
           content:
             application/json:
               schema:
                 type: array
                 uniqueItems: true
                 items:
-                  $ref: '#/components/schemas/Service'
+                  $ref: '#/components/schemas/ServiceDescription'
         '400':
           description: request was invalid
         '401':
@@ -1333,9 +1335,9 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: add new service for the security server client
-      operationId: addClientService
-      description: SS administrator adds a new service for the client.
+      summary: add new service description for the security server client
+      operationId: addClientServiceDescription
+      description: SS administrator adds a new service description for the client.
       parameters:
         - in: path
           name: id
@@ -1695,17 +1697,17 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /operations/{id}:
+  /services/{id}:
     put: # ok
       tags:
         - security server
-      summary: update operation
-      operationId: updateOperation
-      description: SS administrator updates the operation.
+      summary: update service
+      operationId: updateService
+      description: SS administrator updates the service.
       parameters:
         - in: path
           name: id
-          description: id of the operation
+          description: id of the service
           required: true
           schema:
             type: string
@@ -1714,7 +1716,7 @@ paths:
             maxLength: 255
         - in: query
           name: url
-          description: operation url
+          description: service url
           required: false
           schema:
             type: string
@@ -1723,7 +1725,7 @@ paths:
             maxLength: 255
         - in: query
           name: url_all
-          description: operation url for all operations
+          description: url for all services
           required: false
           schema:
             type: boolean
@@ -1731,7 +1733,7 @@ paths:
             default: false
         - in: query
           name: timeout
-          description: operation timeout value
+          description: service timeout value
           required: false
           schema:
             type: integer
@@ -1740,7 +1742,7 @@ paths:
             maximum: 10000
         - in: query
           name: timeout_all
-          description: operation timeout value for all operations
+          description: timeout value for all services
           required: false
           schema:
             type: boolean
@@ -1748,7 +1750,7 @@ paths:
             default: false
         - in: query
           name: ssl_auth
-          description: operation ssl authentication
+          description: service ssl authentication
           required: false
           schema:
             type: boolean
@@ -1756,7 +1758,7 @@ paths:
             default: true
         - in: query
           name: ssl_auth_all
-          description: operation ssl authentication for all operations
+          description: ssl authentication for all services
           required: false
           schema:
             type: boolean
@@ -1768,7 +1770,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Operation'
+                $ref: '#/components/schemas/Service'
         '400':
           description: request was invalid
         '401':
@@ -1781,17 +1783,17 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /operations/{id}/accessrights:
+  /services/{id}/access-rights:
     get: # ok
       tags:
         - security server
-      summary: get access rights for the selected operation
-      operationId: getOperationAccessrights
-      description: SS administrator views operation accessrights.
+      summary: get access rights for the selected service
+      operationId: getServiceAccessRights
+      description: SS administrator views service access rights.
       parameters:
         - in: path
           name: id
-          description: id of the operation
+          description: id of the service
           required: true
           schema:
             type: string
@@ -1823,13 +1825,13 @@ paths:
     post:
       tags:
         - security server
-      summary: adds new accessright for the selected operation
-      operationId: addOperationAccessright
-      description: Adds accessright to the operation
+      summary: adds new access right for the selected service
+      operationId: addServiceAccessRight
+      description: Adds access right to the service
       parameters:
         - in: path
           name: id
-          description: id of the operation
+          description: id of the service
           required: true
           schema:
             type: string
@@ -1865,17 +1867,17 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /operations/{id}/accessrights/delete:
+  /services/{id}/access-rights/delete:
     post: # ok
       tags:
         - security server
-      summary: remove accessright
-      operationId: deleteOperationAccessright
-      description: SS administrator removes accessright from selected operation.
+      summary: remove access right
+      operationId: deleteServiceAccessRight
+      description: SS administrator removes access right from selected service.
       parameters:
         - in: path
           name: id
-          description: id of the operation
+          description: id of the service
           required: true
           schema:
             type: string
@@ -1906,13 +1908,13 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
-  /serviceclients/{id}/accessrights:
+  /service-clients/{id}/access-rights:
     get: # ok
       tags:
         - security server
       summary: get access rights for the selected service client.
-      operationId: getServiceclientAccessrights
-      description: SS administrator views service client's accessrights.
+      operationId: getServiceClientAccessRights
+      description: SS administrator views service client's access rights.
       parameters:
         - in: path
           name: id
@@ -1925,7 +1927,7 @@ paths:
             maxLength: 1279
       responses:
         '200':
-          description: list of accessrights
+          description: list of access rights
           content:
             application/json:
               schema:
@@ -1948,9 +1950,9 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: adds new accessright for selected service client
-      operationId: addServiceclientAccessright
-      description: Adds accessright to the service client.
+      summary: adds new access right for selected service client
+      operationId: addServiceClientAccessRight
+      description: Adds access right to the service client.
       parameters:
         - in: path
           name: id
@@ -1990,13 +1992,13 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /serviceclients/{id}/accessrights/delete:
+  /service-clients/{id}/access-rights/delete:
     post: # ok
       tags:
         - security server
-      summary: remove accessright
-      operationId: deleteServiceclientAccessright
-      description: SS administrator removes accessright from selected service client.
+      summary: remove access right
+      operationId: deleteServiceClientAccessRight
+      description: SS administrator removes access right from selected service client.
       parameters:
         - in: path
           name: id
@@ -2034,17 +2036,17 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /services/{id}:
+  /service-descriptions/{id}:
     put: # ok
       tags:
         - security server
-      summary: update url for the selected service
-      operationId: updateService
-      description: SS administrator updates the selected service.
+      summary: update url for the selected service description
+      operationId: updateServiceDescription
+      description: SS administrator updates the selected service description.
       parameters:
         - in: path
           name: id
-          description: id of the service
+          description: id of the service description
           required: true
           schema:
             type: string
@@ -2066,7 +2068,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Service'
+                $ref: '#/components/schemas/ServiceDescription'
         '400':
           description: request was invalid
         '401':
@@ -2082,13 +2084,13 @@ paths:
     delete: # ok
       tags:
         - security server
-      summary: delete service
-      operationId: deleteService
-      description: SS administrator deletes the service.
+      summary: delete service description
+      operationId: deleteServiceDescription
+      description: SS administrator deletes the service description.
       parameters:
         - in: path
           name: id
-          description: id of the service
+          description: id of the service description
           required: true
           schema:
             type: string
@@ -2108,17 +2110,17 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
-  /services/{id}/disable:
+  /service-descriptions/{id}/disable:
     put: # ok
       tags:
         - security server
-      summary: disable selected service
-      operationId: disableService
-      description: SS administrator disables service.
+      summary: disable selected service description
+      operationId: disableServiceDescription
+      description: SS administrator disables service description.
       parameters:
         - in: path
           name: id
-          description: id of the service
+          description: id of the service description
           required: true
           schema:
             type: string
@@ -2149,17 +2151,17 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /services/{id}/enable:
+  /service-descriptions/{id}/enable:
     put: # ok
       tags:
         - security server
-      summary: enable selected service
-      operationId: enableService
-      description: SS administrator enables service.
+      summary: enable selected service description
+      operationId: enableServiceDescription
+      description: SS administrator enables service description.
       parameters:
         - in: path
           name: id
-          description: id of the service
+          description: id of the service description
           required: true
           schema:
             type: string
@@ -2181,17 +2183,17 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /services/{id}/refresh:
+  /service-descriptions/{id}/refresh:
     put: # ok
       tags:
         - security server
-      summary: refresh selected service
-      operationId: refreshService
-      description: SS administrator refreshes service.
+      summary: refresh selected service description
+      operationId: refreshServiceDescription
+      description: SS administrator refreshes service description.
       parameters:
         - in: path
           name: id
-          description: id of the service
+          description: id of the service description
           required: true
           schema:
             type: string
@@ -2204,7 +2206,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Service'
+                $ref: '#/components/schemas/ServiceDescription'
         '400':
           description: request was invalid
         '401':
@@ -2217,17 +2219,17 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /services/{id}/operations:
+  /service-descriptions/{id}/services:
     get: # ok
       tags:
         - security server
-      summary: get operations for the selected service
-      operationId: getServiceOperations
-      description: SS administrator views the operations for the selected service.
+      summary: get services for the selected service description
+      operationId: getServiceDescriptionServices
+      description: SS administrator views the services for the selected service description.
       parameters:
         - in: path
           name: id
-          description: id of the service
+          description: id of the service description
           required: true
           schema:
             type: string
@@ -2243,7 +2245,7 @@ paths:
                 type: array
                 uniqueItems: true
                 items:
-                  $ref: '#/components/schemas/Operation'
+                  $ref: '#/components/schemas/Service'
         '400':
           description: request was invalid
         '401':
@@ -2853,8 +2855,8 @@ components:
       required:
         - id
         - client_id
-        - operation_code
-        - operation_title
+        - service_code
+        - service_title
       properties:
         id:
           type: string
@@ -2871,17 +2873,17 @@ components:
           example: FI:GOV:123:ABC
           minLength: 1
           maxLength: 255
-        operation_code:
+        service_code:
           type: string
           format: text
-          description: operation code
+          description: service code
           example: clientDeletion
           minLength: 1
           maxLength: 255
-        operation_title:
+        service_title:
           type: string
           format: text
-          description: operation title
+          description: service title
           example: client deletion
           minLength: 1
           maxLength: 255
@@ -3255,12 +3257,10 @@ components:
         - description
       properties:
         id:
-          type: string
-          format: text
+          type: integer
+          format: int64
           description: unique identifier
-          example: group123
-          minLength: 1
-          maxLength: 255
+          example: 123
         code:
           type: string
           format: text
@@ -3309,7 +3309,7 @@ components:
           description: group member id
           example: FI:GOV:123:SS1
           minLength: 1
-          maxLength: 255
+          maxLength: 1023
         name:
           type: string
           format: text
@@ -3415,51 +3415,11 @@ components:
         id:
           type: string
           format: text
+          description: language code
           example: en
           minLength: 2
           maxLength: 2
           readOnly: true
-    Operation: # ok
-      type: object
-      description: operation for the service
-      required:
-        - url
-        - code
-        - timeout
-        - ssl_auth
-        - service_id
-      properties:
-        url:
-          type: string
-          format: url
-          description: operation url
-          example: https://domain/service
-          minLength: 1
-          maxLength: 255
-        code:
-          type: string
-          format: text
-          description: operation code
-          example: ClientReg
-          minLength: 1
-          maxLength: 255
-        timeout:
-          type: integer
-          format: uint
-          description: operation time out value
-          example: 60
-          minimum: 0
-          maximum: 1000
-        ssl_auth:
-          type: boolean
-          description: operation ssl auth
-          example: true
-        service_id:
-          type: string
-          format: url
-          example: https://domain.com/service
-          minLength: 1
-          maxLength: 255
     OcspResponders: # ok
       type: object
       description: ocsp responce
@@ -3503,6 +3463,48 @@ components:
         - ERROR_CODE_OCSP_FAILED # Unable to fetch response from the OCSP responder.
         - ERROR_CODE_OCSP_RESPONSE_INVALID # Unable to parse the OCSP response.
         - ERROR_CODE_OCSP_UNINITIALIZED # Status request not sent yet.
+    Service: # ok
+      type: object
+      description: service for the service description
+      required:
+        - url
+        - code
+        - timeout
+        - ssl_auth
+        - service_id
+      properties:
+        id:
+          type: string
+          format: text
+          description: service id
+          example: uniqueId
+          minLength: 1
+          maxLength: 255
+        code:
+          type: string
+          format: text
+          description: service code
+          example: ClientReg
+          minLength: 1
+          maxLength: 255
+        timeout:
+          type: integer
+          format: uint
+          description: service time out value
+          example: 60
+          minimum: 0
+          maximum: 1000
+        ssl_auth:
+          type: boolean
+          description: service ssl auth
+          example: true
+        url:
+          type: string
+          format: url
+          description: service url
+          example: https://domain.com/service
+          minLength: 1
+          maxLength: 255
     ServiceClient: # ok
       type: object
       description: service client
@@ -3530,7 +3532,7 @@ components:
           uniqueItems: true
           items:
             $ref: '#/components/schemas/AccessRight'
-    Service: # ok
+    ServiceDescription: # ok
       type: object
       description: WSDL/REST service
       required:
@@ -3539,7 +3541,7 @@ components:
         - disabled
         - disabled_notice
         - refreshed_date
-        - operations
+        - services
         - client_id
       properties:
         url:
@@ -3569,12 +3571,12 @@ components:
           example: "2018-12-15T00:00:00.001Z"
           minLength: 24
           maxLength: 24
-        operations:
+        services:
           type: array
-          description: service operations
+          description: service description services
           uniqueItems: true
           items:
-            $ref: '#/components/schemas/Operation'
+            $ref: '#/components/schemas/Service'
         client_id:
           type: string
           format: text
