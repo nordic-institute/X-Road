@@ -2,13 +2,13 @@
   <v-dialog :value="dialog" width="550" persistent>
     <v-card class="xroad-card">
       <v-card-title>
-        <span class="headline">Add Local Group</span>
+        <span class="headline">{{$t('localGroup.addLocalGroup')}}</span>
         <v-spacer/>
         <i @click="cancel()" id="close-x"></i>
       </v-card-title>
       <v-card-text>
         <div class="edit-row">
-          <div class="row-title">Code</div>
+          <div class="row-title">{{$t('localGroup.code')}}</div>
           <v-text-field
             v-model="code"
             hint="insert code"
@@ -19,7 +19,7 @@
         </div>
 
         <div class="edit-row">
-          <div class="row-title">Description</div>
+          <div class="row-title">{{$t('localGroup.description')}}</div>
           <v-text-field v-model="description" hint single-line hide-details class="row-input"></v-text-field>
         </div>
       </v-card-text>
@@ -31,14 +31,14 @@
           outline
           class="mb-2 rounded-button elevation-0 xr-big-button button-margin"
           @click="cancel()"
-        >Cancel</v-btn>
+        >{{$t('localGroup.cancel')}}</v-btn>
 
         <v-btn
           color="primary"
           round
           class="mb-2 rounded-button elevation-0 xr-big-button button-margin"
           @click="save()"
-        >ADD</v-btn>
+        >{{$t('localGroup.add')}}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -77,7 +77,7 @@ export default Vue.extend({
           description: this.description,
         })
         .then((res) => {
-          this.$bus.$emit('show-success', 'localGroup.descSaved');
+          this.$bus.$emit('show-success', 'localGroup.localGroupAdded');
           this.$emit('groupAdded');
         })
         .catch((error) => {

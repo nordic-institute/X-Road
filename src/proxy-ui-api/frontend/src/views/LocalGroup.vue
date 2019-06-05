@@ -54,7 +54,7 @@
           class="xr-big-button"
           type="file"
           @click="addMembers()"
-        >{{$t('localGroup.add')}}</v-btn>
+        >{{$t('localGroup.addMembers')}}</v-btn>
       </div>
     </div>
 

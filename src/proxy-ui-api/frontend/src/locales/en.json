@@ -85,7 +85,7 @@
     "editDesc": "Edit description",
     "groupMembers": "Group Members",
     "removeAll": "Remove All",
-    "add": "Add Members",
+    "addMembers": "Add Members",
     "name": "Member Name",
     "id": "Id",
     "accessDate": "Access Rights Given",
@@ -98,7 +98,12 @@
     "removeTitle": "Remove member?",
     "removeText": "Are you sure that you want to remove this member?",
     "descSaved": "Description saved",
-    "groupDeleted": "Group deleted"
+    "groupDeleted": "Group deleted",
+    "description": "Description",
+    "add": "Add",
+    "code": "Code",
+    "addLocalGroup": "Add Local Group",
+    "localGroupAdded": "Local group added"
   },
   "action": {
     "addSubsystem": "add subsystem",
