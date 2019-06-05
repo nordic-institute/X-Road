@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.45  
+Version: 2.46  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -55,6 +55,7 @@ Doc. ID: UG-SYSPAR
 | 02.04.2019 | 2.43     | Added new message log parameter *clean-transaction-batch* | Jarkko Hyöty |
 | 08.04.2019 | 2.44     | Update REST related message log parameters' descriptions | Petteri Kivimäki |
 | 30.04.2019 | 2.45     | Added new parameter *timestamp-retry-delay* | Petteri Kivimäki |
+| 05.06.2019 | 2.46     | Added new parameter set *hsm-slot-indexes-** | Ilkka Seppälä |
 
 ## Table of Contents
 
@@ -272,6 +273,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 | csr-signature-digest-algorithm                   | SHA-256                                    |   |   | Certificate Signing Request signature digest algorithm.<br/>Possible values are<br/>-   SHA-256,<br/>-   SHA-384,<br/>-   SHA-512. |
 | ocsp-retry-delay                                 | 60                                         |   |   | OCSP retry delay for signer when fetching OCSP responses fail. After failing to fetch OCSP responses signer waits for the time period defined by "ocsp-retry-delay" before trying again. This is repeated until fetching OCSP responses succeeds. After successfully fetching OCSP responses signer returns to normal OCSP refresh schedule defined by "ocspFetchInterval". If the value of "ocsp-retry-delay" is higher than "ocspFetchInterval", the value of "ocspFetchInterval" is used as OCSP retry delay. |
 | module-manager-update-interval                   | 60                                         |   |   | HSM module manager update interval in seconds. |          
+| hsm-slot-indexes-*                               |                                            |   |   | Optional HSM device slot configuration. The configuration is device specific and the parameter name has to be adjusted per device. For example if the HSM device name in devices.ini is 'hsm_utimaco' then the parameter name to use is 'hsm-slot-indexes-hsm_utimaco'. The value of the parameter is comma separated list of slot indexes to use e.g. 0,1,3,4,8. The default slot configuration for each HSM device is empty which means that all the slots will be scanned by the Security Server. |          
 
 ### 3.5 Anti-DOS parameters: `[anti-dos]`
 
