@@ -85,7 +85,7 @@ public class GroupService {
     public LocalGroupType updateDescription(String groupId, String description) {
         LocalGroupType localGroupType = getLocalGroup(groupId);
         if (localGroupType == null) {
-            throw new NotFoundException("LocalGroup with not found");
+            throw new NotFoundException("LocalGroup with id " + groupId + " not found");
         }
         localGroupType.setDescription(description);
         localGroupType.setUpdated(new Date());
@@ -126,7 +126,7 @@ public class GroupService {
         LocalGroupType localGroupType = getLocalGroup(groupId);
 
         if (localGroupType == null) {
-            throw new NotFoundException("group not found");
+            throw new NotFoundException("LocalGroup with id " + groupId + " not found");
         }
 
         ClientType memberToBeAdded = clientRepository.getClient(memberId);
@@ -160,7 +160,7 @@ public class GroupService {
     public void deleteLocalGroup(String groupId) {
         LocalGroupType existingLocalGroupType = getLocalGroup(groupId);
         if (existingLocalGroupType == null) {
-            throw new NotFoundException("local group not found");
+            throw new NotFoundException("LocalGroup with id " + groupId + " not found");
         }
         groupsRepository.delete(existingLocalGroupType);
     }

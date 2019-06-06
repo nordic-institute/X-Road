@@ -90,6 +90,9 @@ public class GroupsApiController implements GroupsApi {
                 || memberItemsWrapper.getItems().size() < 1) {
             throw new InvalidParametersException("missing member id");
         }
+        if (memberItemsWrapper.getItems().size() > 1) {
+            throw new InvalidParametersException("adding multiple members will be implemented later");
+        }
         String memberId = memberItemsWrapper.getItems().iterator().next();
         groupsService.addLocalGroupMember(groupId, clientConverter.convertId(memberId));
         return new ResponseEntity<>(HttpStatus.CREATED);
