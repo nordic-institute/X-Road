@@ -88,6 +88,7 @@ public class GroupService {
             throw new NotFoundException("LocalGroup with not found");
         }
         localGroupType.setDescription(description);
+        localGroupType.setUpdated(new Date());
         groupsRepository.saveOrUpdate(localGroupType);
         return localGroupType;
     }
