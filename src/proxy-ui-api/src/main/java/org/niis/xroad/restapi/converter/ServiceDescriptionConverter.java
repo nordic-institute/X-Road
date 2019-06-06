@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Converter ServiceDescription related data between openapi and service domain classes
+ * Convert ServiceDescription related data between openapi and service domain classes
  */
 @Component
 public class ServiceDescriptionConverter {
