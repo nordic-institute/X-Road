@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
@@ -32,7 +33,6 @@ import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -63,7 +63,7 @@ public class ServiceDescriptionConverter {
 
     /**
      * Convert a ServiceDescriptionType into ServiceDescription.
-     * Shallow convert for now, does not handle services.
+     * Does a deep conversion, converts ServiceDescriptionType.ServiceTypes
      * @param serviceDescriptionType
      * @return
      */
@@ -76,13 +76,38 @@ public class ServiceDescriptionConverter {
         serviceDescription.setDisabledNotice(serviceDescriptionType.getDisabledNotice());
         serviceDescription.setRefreshedDate(FormatUtils.fromDateToOffsetDateTime(
                 serviceDescriptionType.getRefreshedDate()));
-        // TO DO: Shallow convert at the moment
-        serviceDescription.setServices(new ArrayList<Service>());
+        serviceDescription.setServices(convertServices(serviceDescriptionType.getService()));
         serviceDescription.setType(ServiceTypeMapping.map(serviceDescriptionType.getType()).get());
         serviceDescription.setUrl(serviceDescriptionType.getUrl());
 
         return serviceDescription;
     }
 
+    /**
+     * Converts a collection of ServiceTypes to a list of Services
+     * @param serviceTypes
+     * @return
+     */
+    private List<Service> convertServices(Collection<ServiceType> serviceTypes) {
+        return serviceTypes.stream()
+                .map(this::convert).collect(Collectors.toList());
+    }
+
+    /**
+     * Convert a ServiceType into Service.
+     * @param serviceType
+     * @return
+     */
+    public Service convert(ServiceType serviceType) {
+        Service service = new Service();
+
+        service.setId(String.valueOf(serviceType.getId()));
+        service.setCode(serviceType.getServiceCode());
+        service.setSslAuth(serviceType.getSslAuthentication());
+        service.setTimeout(serviceType.getTimeout());
+        service.setUrl(serviceType.getUrl());
+
+        return service;
+    }
 
 }
