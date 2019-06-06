@@ -44,8 +44,6 @@ import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.Group;
 import org.niis.xroad.restapi.openapi.model.InlineObject;
-import org.niis.xroad.restapi.openapi.model.InlineObject1;
-import org.niis.xroad.restapi.openapi.model.InlineObject2;
 import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.GroupService;
 import org.niis.xroad.restapi.service.TokenService;
@@ -56,7 +54,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.NativeWebRequest;
 
 import java.io.IOException;
@@ -104,16 +101,6 @@ public class ClientsApiController implements ClientsApi {
         this.groupConverter = groupConverter;
         this.groupsService = groupsService;
         this.certificateDetailsConverter = certificateDetailsConverter;
-    }
-
-    /**
-     * Example exception
-     */
-    @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "No such Thing there")
-    public static class RestNotFoundException extends RuntimeException {
-        public RestNotFoundException(String s) {
-            super(s);
-        }
     }
 
     /**
@@ -250,21 +237,6 @@ public class ClientsApiController implements ClientsApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
-    public ResponseEntity<Group> getGroup(String id, String groupCode) {
-        LocalGroupType localGroupType = getLocalGroupType(id, groupCode);
-        return new ResponseEntity<>(groupConverter.convert(localGroupType), HttpStatus.OK);
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_DESC')")
-    public ResponseEntity<Group> updateGroup(String id, String groupCode, String description) {
-        LocalGroupType localGroupType = groupsService.updateDescription(clientConverter.convertId(id), groupCode,
-                description);
-        return new ResponseEntity<>(groupConverter.convert(localGroupType), HttpStatus.OK);
-    }
-
-    @Override
     public Optional<NativeWebRequest> getRequest() {
         return Optional.ofNullable(request);
     }
@@ -278,37 +250,6 @@ public class ClientsApiController implements ClientsApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
-    public ResponseEntity<Void> addGroupMember(String id, String code, InlineObject1 memberIdWrapper) {
-        if (memberIdWrapper == null || memberIdWrapper.getItems() == null || memberIdWrapper.getItems().size() < 1) {
-            throw new InvalidParametersException("missing member id");
-        }
-        if (memberIdWrapper.getItems().size() > 1) {
-            throw new InvalidParametersException("adding multiple members will be implemented later");
-        }
-        String memberId = memberIdWrapper.getItems().iterator().next();
-        groupsService.addLocalGroupMember(clientConverter.convertId(id), code,
-                clientConverter.convertId(memberId));
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority('DELETE_LOCAL_GROUP')")
-    public ResponseEntity<Void> deleteGroup(String id, String code) {
-        ClientType clientType = getClientType(id);
-        groupsService.deleteLocalGroup(clientType, code);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
-    public ResponseEntity<Void> deleteGroupMember(String id, String code, InlineObject2 itemsWrapper) {
-        LocalGroupType localGroupType = getLocalGroupType(id, code);
-        groupsService.deleteGroupMember(localGroupType, clientConverter.convertIds(itemsWrapper.getItems()));
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    }
-
-    @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
     public ResponseEntity<List<Group>> getClientGroups(String id) {
         ClientType clientType = getClientType(id);
@@ -316,15 +257,4 @@ public class ClientsApiController implements ClientsApi {
         return new ResponseEntity<>(groupConverter.convert(localGroupTypes), HttpStatus.OK);
     }
 
-    /**
-     * Read one group from DB, throw NotFoundException or
-     * BadRequestException is needed
-     */
-    private LocalGroupType getLocalGroupType(String encodedId, String code) {
-        LocalGroupType localGroupType = groupsService.getLocalGroup(code, clientConverter.convertId(encodedId));
-        if (localGroupType == null) {
-            throw new NotFoundException("LocalGroup with code " + code + " not found");
-        }
-        return localGroupType;
-    }
 }

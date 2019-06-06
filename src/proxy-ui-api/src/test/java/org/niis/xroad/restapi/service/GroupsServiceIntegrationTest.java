@@ -54,7 +54,7 @@ import static org.junit.Assert.fail;
 @Transactional
 public class GroupsServiceIntegrationTest {
 
-    private static final String GROUPCODE = "group1";
+    private static final String GROUP_ID = "1";
     private static final String NEW_GROUPCODE = "groupX";
     private static final String GROUP_DESC = "foo";
     private static final String NEW_GROUP_DESC = "bar";
@@ -74,21 +74,21 @@ public class GroupsServiceIntegrationTest {
         localGroupType.setGroupCode(NEW_GROUPCODE);
         localGroupType.setDescription(GROUP_DESC);
         localGroupType.setUpdated(new Date());
-        groupsService.addLocalGroup(id, localGroupType);
+        localGroupType = groupsService.addLocalGroup(id, localGroupType);
 
-        localGroupType = groupsService.getLocalGroup(NEW_GROUPCODE, id);
+        LocalGroupType localGroupTypeFromDb = groupsService.getLocalGroup(localGroupType.getId().toString());
 
-        assertEquals(NEW_GROUPCODE, localGroupType.getGroupCode());
-        assertEquals(GROUP_DESC, localGroupType.getDescription());
-        assertEquals(0, localGroupType.getGroupMember().size());
-        assertNotNull(localGroupType.getId());
+        assertEquals(NEW_GROUPCODE, localGroupTypeFromDb.getGroupCode());
+        assertEquals(GROUP_DESC, localGroupTypeFromDb.getDescription());
+        assertEquals(0, localGroupTypeFromDb.getGroupMember().size());
+        assertNotNull(localGroupTypeFromDb.getId());
     }
 
     @Test
     @WithMockUser(authorities = { "ADD_LOCAL_GROUP", "VIEW_CLIENT_LOCAL_GROUPS" })
     public void addDuplicateLocalGroup() {
         ClientId id = getM1Ss1ClientId();
-        LocalGroupType localGroupType = groupsService.getLocalGroup(GROUPCODE, id);
+        LocalGroupType localGroupType = groupsService.getLocalGroup(GROUP_ID);
         try {
             groupsService.addLocalGroup(id, localGroupType);
             groupsService.addLocalGroup(id, localGroupType);
@@ -100,10 +100,10 @@ public class GroupsServiceIntegrationTest {
     @Test
     @WithMockUser(authorities = { "ADD_LOCAL_GROUP", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_DESC" })
     public void updateDescription() {
-        LocalGroupType localGroupType = groupsService.getLocalGroup(GROUPCODE, getM1Ss1ClientId());
+        LocalGroupType localGroupType = groupsService.getLocalGroup(GROUP_ID);
         assertEquals(localGroupType.getDescription(), GROUP_DESC);
-        groupsService.updateDescription(getM1Ss1ClientId(), GROUPCODE, NEW_GROUP_DESC);
-        localGroupType = groupsService.getLocalGroup(GROUPCODE, getM1Ss1ClientId());
+        groupsService.updateDescription(GROUP_ID, NEW_GROUP_DESC);
+        localGroupType = groupsService.getLocalGroup(GROUP_ID);
         assertEquals(localGroupType.getDescription(), NEW_GROUP_DESC);
     }
 }

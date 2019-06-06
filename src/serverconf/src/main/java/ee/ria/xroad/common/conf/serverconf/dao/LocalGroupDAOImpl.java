@@ -47,4 +47,14 @@ public class LocalGroupDAOImpl {
                 .filter(g -> StringUtils.equals(groupCode, g.getGroupCode()))
                 .findFirst().orElse(null);
     }
+
+    /**
+     * Returns the LocalGroupType for the given LocalGroupType id.
+     * @param session the session
+     * @param id the LocalGroupType id
+     * @return the LocalGroupType, or null if not found
+     */
+    public LocalGroupType getLocalGroup(Session session, Long id) {
+        return session.get(LocalGroupType.class, id);
+    }
 }

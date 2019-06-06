@@ -694,256 +694,6 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /clients/{id}/groups/{group_id}:
-    get: # ok
-      tags:
-        - security server
-      summary: get local group information
-      operationId: getGroup
-      description: SS administrator views local group details.
-      parameters:
-        - in: path
-          name: id
-          description: id of the client
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-        - in: path
-          name: group_id
-          description: id of the local group
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-      responses:
-        '200':
-          description: ok
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Group'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
-    put: # ok
-      tags:
-        - security server
-      summary: update local group information
-      operationId: updateGroup
-      description: SS administrator updates the local group information.
-      parameters:
-        - in: path
-          name: id
-          description: id of the client
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-        - in: path
-          name: group_id
-          description: id of the local group
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-        - in: query
-          name: description
-          description: local group description
-          required: false
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-      responses:
-        '200':
-          description: item modified
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Group'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
-    delete: # ok
-      tags:
-        - security server
-      summary: delete local group
-      operationId: deleteGroup
-      description: SS administrator deletes the local group.
-      parameters:
-        - in: path
-          name: id
-          description: id of the client
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-        - in: path
-          name: group_id
-          description: id of the local group
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-      responses:
-        '204':
-          description: deletion was successful
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '500':
-          description: internal server error
-  /clients/{id}/groups/{group_id}/members:
-    post: # ok
-      tags:
-        - security server
-      summary: add new member for the local group
-      operationId: addGroupMember
-      description: SS administrator adds a new member for the local group.
-      parameters:
-        - in: path
-          name: id
-          description: id of the client
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-        - in: path
-          name: group_id
-          description: id of the local group
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 1023
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                items:
-                  type: array
-                  description: array of members to be added
-                  items:
-                    type: string
-                    format: text
-                    minLength: 1
-                    maxLength: 1023
-      responses:
-        '201':
-          description: item created
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '409':
-          description: an existing item already exists
-        '500':
-          description: internal server error
-  /clients/{id}/groups/{group_id}/members/delete:
-    post: # ok
-      tags:
-        - security server
-      summary: delete member from local group
-      operationId: deleteGroupMember
-      description: SS administrator deletes the member from local group.
-      parameters:
-        - in: path
-          name: id
-          description: id of the client
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-        - in: path
-          name: group_id
-          description: id of the local group
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                items:
-                  type: array
-                  description: array of members to be deleted
-                  items:
-                    type: string
-                    format: text
-                    minLength: 1
-                    maxLength: 255
-      responses:
-        '201':
-          description: items deleted
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '409':
-          description: an existing item already exists
-        '500':
-          description: internal server error
   /clients/{id}/register:
     put: # ok
       tags:
@@ -1363,6 +1113,211 @@ paths:
       responses:
         '201':
           description: item created
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
+  /groups/{group_id}:
+    get: # ok
+      tags:
+        - security server
+      summary: get local group information
+      operationId: getGroup
+      description: SS administrator views local group details.
+      parameters:
+        - in: path
+          name: group_id
+          description: id of the local group
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    put: # ok
+      tags:
+        - security server
+      summary: update local group information
+      operationId: updateGroup
+      description: SS administrator updates the local group information.
+      parameters:
+        - in: path
+          name: group_id
+          description: id of the local group
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: description
+          description: local group description
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '200':
+          description: item modified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    delete: # ok
+      tags:
+        - security server
+      summary: delete local group
+      operationId: deleteGroup
+      description: SS administrator deletes the local group.
+      parameters:
+        - in: path
+          name: group_id
+          description: id of the local group
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '204':
+          description: deletion was successful
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '500':
+          description: internal server error
+  /groups/{group_id}/members:
+    post: # ok
+      tags:
+        - security server
+      summary: add new member for the local group
+      operationId: addGroupMember
+      description: SS administrator adds a new member for the local group.
+      parameters:
+        - in: path
+          name: group_id
+          description: id of the local group
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  description: array of members to be added
+                  items:
+                    type: string
+                    format: text
+                    minLength: 1
+                    maxLength: 1023
+      responses:
+        '201':
+          description: item created
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
+  /groups/{group_id}/members/delete:
+    post: # ok
+      tags:
+        - security server
+      summary: delete member from local group
+      operationId: deleteGroupMember
+      description: SS administrator deletes the member from local group.
+      parameters:
+        - in: path
+          name: group_id
+          description: id of the local group
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  description: array of members to be deleted
+                  items:
+                    type: string
+                    format: text
+                    minLength: 1
+                    maxLength: 255
+      responses:
+        '201':
+          description: items deleted
         '400':
           description: request was invalid
         '401':
