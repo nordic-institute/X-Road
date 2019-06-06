@@ -69,28 +69,26 @@ public class GroupService {
 
     /**
      * Return local group
-     * @param clientId
-     * @param groupCode
+     * @param groupId
      * @return LocalGroupType
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
-    public LocalGroupType getLocalGroup(String groupCode, ClientId clientId) {
-        return groupsRepository.getLocalGroup(groupCode, clientId);
+    public LocalGroupType getLocalGroup(String groupId) {
+        return groupsRepository.getLocalGroup(Long.parseLong(groupId));
     }
 
     /**
      * Edit local group description
-     * @param id
-     * @param groupCode
      * @return LocalGroupType
      */
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_DESC')")
-    public LocalGroupType updateDescription(ClientId id, String groupCode, String description) {
-        LocalGroupType localGroupType = getLocalGroup(groupCode, id);
+    public LocalGroupType updateDescription(String groupId, String description) {
+        LocalGroupType localGroupType = getLocalGroup(groupId);
         if (localGroupType == null) {
-            throw new NotFoundException("LocalGroup with code " + groupCode + " not found");
+            throw new NotFoundException("LocalGroup with id " + groupId + " not found");
         }
         localGroupType.setDescription(description);
+        localGroupType.setUpdated(new Date());
         groupsRepository.saveOrUpdate(localGroupType);
         return localGroupType;
     }
@@ -101,7 +99,7 @@ public class GroupService {
      * @param localGroupTypeToAdd
      */
     @PreAuthorize("hasAuthority('ADD_LOCAL_GROUP')")
-    public void addLocalGroup(ClientId id, LocalGroupType localGroupTypeToAdd) {
+    public LocalGroupType addLocalGroup(ClientId id, LocalGroupType localGroupTypeToAdd) {
         ClientType clientType = clientRepository.getClient(id);
         if (clientType == null) {
             throw new NotFoundException("client with id " + id + " not found");
@@ -113,22 +111,22 @@ public class GroupService {
             throw new ConflictException(
                     "local group with code " + localGroupTypeToAdd.getGroupCode() + " already added");
         }
+        groupsRepository.persist(localGroupTypeToAdd);
         clientType.getLocalGroup().add(localGroupTypeToAdd);
         clientRepository.saveOrUpdate(clientType);
+        return localGroupTypeToAdd;
     }
 
     /**
      * Adds a member to LocalGroup
-     * @param id
-     * @param groupCode
      * @param memberId
      */
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
-    public void addLocalGroupMember(ClientId id, String groupCode, ClientId memberId) {
-        LocalGroupType localGroupType = getLocalGroup(groupCode, id);
+    public void addLocalGroupMember(String groupId, ClientId memberId) {
+        LocalGroupType localGroupType = getLocalGroup(groupId);
 
         if (localGroupType == null) {
-            throw new NotFoundException("group with code " + groupCode + " not found");
+            throw new NotFoundException("LocalGroup with id " + groupId + " not found");
         }
 
         ClientType memberToBeAdded = clientRepository.getClient(memberId);
@@ -142,7 +140,7 @@ public class GroupService {
                         .equals(memberToBeAdded.getIdentifier().toShortString().trim()));
 
         if (isAdded) {
-            throw new ConflictException("local group member already exists in group: " + groupCode);
+            throw new ConflictException("local group member already exists in group");
         }
 
         GroupMemberType groupMemberType = new GroupMemberType();
@@ -156,18 +154,15 @@ public class GroupService {
 
     /**
      * Deletes a local group
-     * @param clientType
-     * @param code
+     * @param groupId
      */
     @PreAuthorize("hasAuthority('DELETE_LOCAL_GROUP')")
-    public void deleteLocalGroup(ClientType clientType, String code) {
-        Optional<LocalGroupType> existingLocalGroupType = clientType.getLocalGroup().stream()
-                .filter(localGroupType -> localGroupType.getGroupCode().equals(code)).findFirst();
-        if (!existingLocalGroupType.isPresent()) {
-            throw new NotFoundException("local group with code " + code + " not found");
+    public void deleteLocalGroup(String groupId) {
+        LocalGroupType existingLocalGroupType = getLocalGroup(groupId);
+        if (existingLocalGroupType == null) {
+            throw new NotFoundException("LocalGroup with id " + groupId + " not found");
         }
-        clientType.getLocalGroup().remove(existingLocalGroupType.get());
-        clientRepository.saveOrUpdate(clientType);
+        groupsRepository.delete(existingLocalGroupType);
     }
 
     /**

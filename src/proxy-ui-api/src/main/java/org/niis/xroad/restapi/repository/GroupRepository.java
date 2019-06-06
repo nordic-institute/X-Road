@@ -27,7 +27,6 @@ package org.niis.xroad.restapi.repository;
 import ee.ria.xroad.common.conf.serverconf.dao.LocalGroupDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
-import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.util.PersistenceUtils;
@@ -50,13 +49,21 @@ public class GroupRepository {
         this.persistenceUtils = persistenceUtils;
     }
 
-    public LocalGroupType getLocalGroup(String groupCode, ClientId clientId) {
+    public LocalGroupType getLocalGroup(Long entityId) {
         LocalGroupDAOImpl localGroupDAO = new LocalGroupDAOImpl();
-        return localGroupDAO.findLocalGroup(persistenceUtils.getCurrentSession(), groupCode, clientId);
+        return localGroupDAO.getLocalGroup(persistenceUtils.getCurrentSession(), entityId);
     }
 
     /**
-     * Executes a Hibernate saveOrUpdate(client)
+     * Executes a Hibernate persist(localGroupType)
+     * @param localGroupType
+     */
+    public void persist(LocalGroupType localGroupType) {
+        persistenceUtils.getCurrentSession().persist(localGroupType);
+    }
+
+    /**
+     * Executes a Hibernate saveOrUpdate(localGroupType)
      * @param localGroupType
      */
     public void saveOrUpdate(LocalGroupType localGroupType) {
@@ -64,11 +71,19 @@ public class GroupRepository {
     }
 
     /**
-     * Executes a Hibernate saveOrUpdate(client)
+     * Executes a Hibernate saveOrUpdate(groupMemberType)
      * @param groupMemberType
-     * @return
      */
     public void saveOrUpdate(GroupMemberType groupMemberType) {
         persistenceUtils.getCurrentSession().saveOrUpdate(groupMemberType);
+    }
+
+    /**
+     * Executes a Hibernate delete(localGroupType)
+     * @param localGroupType
+     * @return
+     */
+    public void delete(LocalGroupType localGroupType) {
+        persistenceUtils.getCurrentSession().delete(localGroupType);
     }
 }

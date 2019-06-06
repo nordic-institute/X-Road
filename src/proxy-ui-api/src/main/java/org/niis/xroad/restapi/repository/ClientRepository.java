@@ -56,7 +56,6 @@ public class ClientRepository {
     /**
      * Executes a Hibernate saveOrUpdate(client)
      * @param clientType
-     * @return
      */
     public void saveOrUpdate(ClientType clientType) {
         persistenceUtils.getCurrentSession().saveOrUpdate(clientType);
