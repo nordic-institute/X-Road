@@ -82,7 +82,7 @@ Doc. ID: UG-SYSPAR
     - [3.7 Message log add-on parameters: `[message-log]`](#37-message-log-add-on-parameters-message-log)
       - [3.7.1 Note on logged X-Road message headers](#371-note-on-logged-x-road-message-headers)
     - [3.8 Environmental monitoring add-on configuration parameters: `[env-monitor]`](#38-environmental-monitoring-add-on-configuration-parameters-env-monitor)
-    - [3.9 Management REST API parameters: `[rest-api]`](#39-management-rest-api-parameters-rest-api)
+    - [3.9 Management REST API parameters: `[proxy-ui-api]`](#39-management-rest-api-parameters-rest-api)
   - [4 Central Server System Parameters](#4-central-server-system-parameters)
     - [4.1 System Parameters in the Configuration File](#41-system-parameters-in-the-configuration-file)
       - [4.1.1 Common parameters: `[common]`](#411-common-parameters-common)
@@ -360,7 +360,7 @@ the message log.
 | certificate-info-sensor-interval                 | 86400                                      | Interval of certificate information sensor in seconds. How often certificate data is collected. The first collection is always done after a delay of 10 seconds. |
 | limit-remote-data-set                            | false                                      | On/Off switch for filtering out optional monitoring data. With flag set to true, only security server owner can request and get full data set. |
 
-### 3.9 Management REST API parameters: `[rest-api]`
+### 3.9 Management REST API parameters: `[proxy-ui-api]`
 
 | **Parameter**                                    | **Vanilla value**                          | **Description** |
 |--------------------------------------------------|--------------------------------------------|-----------------|

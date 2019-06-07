@@ -69,7 +69,7 @@ if  [ "$1" = "reconfigure" ];
 fi
 
 
-#check certificates and request neccesary subject information from user
+#check certificates and request necessary subject information from user
 HOST=`hostname -f`
 LIST=
 for i in `ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'`; do LIST+="IP:$i,"; done;
