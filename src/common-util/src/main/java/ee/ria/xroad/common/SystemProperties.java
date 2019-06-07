@@ -72,8 +72,8 @@ public final class SystemProperties {
 
     // REST API ---------------------------------------------------------------
 
-    /** Property name of the REST API's ssl configuration file. */
-    public static final String REST_API_SSL_PROPERTIES =
+    /** Property name of the Proxy UI API's ssl configuration file. */
+    public static final String PROXY_UI_API_SSL_PROPERTIES =
             PREFIX + "proxy-ui-api.ssl-properties";
 
 
@@ -664,7 +664,8 @@ public final class SystemProperties {
      * @return path to the proxy ssl configuration file, '/etc/xroad/ssl.properties' by default.
      */
     public static String getSslPropertiesFile() {
-        return System.getProperty(REST_API_SSL_PROPERTIES, getConfPath() + DefaultFilepaths.REST_API_SSL_PROPERTIES);
+        return System.getProperty(PROXY_UI_API_SSL_PROPERTIES,
+                getConfPath() + DefaultFilepaths.PROXY_UI_API_SSL_PROPERTIES);
     }
 
     /**

@@ -48,7 +48,7 @@ public final class DefaultFilepaths {
 
     static final String SERVER_DATABASE_PROPERTIES = "db.properties";
 
-    static final String REST_API_SSL_PROPERTIES = "ssl.properties";
+    static final String PROXY_UI_API_SSL_PROPERTIES = "ssl.properties";
 
     static final String KEY_CONFIGURATION_FILE = "signer/keyconf.xml";
 
