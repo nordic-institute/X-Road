@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.converter.GlobalConfWrapper;
+import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.Group;
 import org.niis.xroad.restapi.openapi.model.InlineObject3;
@@ -46,7 +47,9 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -62,6 +65,7 @@ import static org.mockito.Mockito.when;
 @Slf4j
 public class GroupsApiControllerIntegrationTest {
     private static final String GROUP_ID = "1";
+    public static final String CLIENT_ID_SS1 = "FI:GOV:M1:SS1";
     public static final String CLIENT_ID_SS2 = "FI:GOV:M1:SS2";
     public static final String GROUP_DESC = "GROUP_DESC";
     public static final String NAME_APPENDIX = "-name";
@@ -123,6 +127,38 @@ public class GroupsApiControllerIntegrationTest {
         ResponseEntity<Group> localGroupResponse =
                 groupsApiController.getGroup(GROUP_ID);
         assertEquals(1, localGroupResponse.getBody().getMembers().size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_MEMBERS" })
+    public void addMultipleGroupMembers() throws Exception {
+        List<String> membersToBeAdded = Arrays.asList(CLIENT_ID_SS1, CLIENT_ID_SS2, CLIENT_ID_SS1, CLIENT_ID_SS2);
+        ResponseEntity<Void> response =
+                groupsApiController.addGroupMember(GROUP_ID, new InlineObject3()
+                        .items(membersToBeAdded));
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        ResponseEntity<Group> localGroupResponse =
+                groupsApiController.getGroup(GROUP_ID);
+        assertEquals(2, localGroupResponse.getBody().getMembers().size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_MEMBERS" })
+    public void addDuplicateGroupMember() throws Exception {
+        List<String> membersToBeAdded = Arrays.asList(CLIENT_ID_SS1, CLIENT_ID_SS2);
+        ResponseEntity<Void> response =
+                groupsApiController.addGroupMember(GROUP_ID, new InlineObject3()
+                        .items(membersToBeAdded));
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        ResponseEntity<Group> localGroupResponse =
+                groupsApiController.getGroup(GROUP_ID);
+        assertEquals(2, localGroupResponse.getBody().getMembers().size());
+        try {
+            groupsApiController.addGroupMember(GROUP_ID,
+                    new InlineObject3().items(Collections.singletonList(CLIENT_ID_SS2)));
+        } catch (ConflictException expected) {
+            // expected exception
+        }
     }
 
     @Test

@@ -39,6 +39,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -118,37 +119,40 @@ public class GroupService {
     }
 
     /**
-     * Adds a member to LocalGroup
-     * @param memberId
+     * Adds a members to LocalGroup
+     * @param memberIds
      */
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
-    public void addLocalGroupMember(String groupId, ClientId memberId) {
+    public void addLocalGroupMembers(String groupId, List<ClientId> memberIds) {
         LocalGroupType localGroupType = getLocalGroup(groupId);
 
         if (localGroupType == null) {
             throw new NotFoundException("LocalGroup with id " + groupId + " not found");
         }
 
-        ClientType memberToBeAdded = clientRepository.getClient(memberId);
+        List<GroupMemberType> membersToBeAdded = new ArrayList<>(memberIds.size());
 
-        if (memberToBeAdded == null) {
-            throw new NotFoundException("client with id " + memberId.toShortString() + " not found");
-        }
+        memberIds.forEach(memberId -> {
+            ClientType memberToBeAdded = clientRepository.getClient(memberId);
+            if (memberToBeAdded == null) {
+                throw new NotFoundException("client with id " + memberId.toShortString() + " not found");
+            }
+            boolean isAdded = localGroupType.getGroupMember().stream().anyMatch(groupMemberType ->
+                    groupMemberType.getGroupMemberId().toShortString().trim()
+                            .equals(memberToBeAdded.getIdentifier().toShortString().trim()));
+            if (isAdded) {
+                throw new ConflictException("local group member already exists in group");
+            }
 
-        boolean isAdded = localGroupType.getGroupMember().stream().anyMatch(groupMemberType ->
-                groupMemberType.getGroupMemberId().toShortString().trim()
-                        .equals(memberToBeAdded.getIdentifier().toShortString().trim()));
+            GroupMemberType groupMemberType = new GroupMemberType();
+            groupMemberType.setAdded(new Date());
+            groupMemberType.setGroupMemberId(memberToBeAdded.getIdentifier());
 
-        if (isAdded) {
-            throw new ConflictException("local group member already exists in group");
-        }
+            membersToBeAdded.add(groupMemberType);
+        });
 
-        GroupMemberType groupMemberType = new GroupMemberType();
-        groupMemberType.setAdded(new Date());
-        groupMemberType.setGroupMemberId(memberToBeAdded.getIdentifier());
-
-        groupsRepository.saveOrUpdate(groupMemberType);
-        localGroupType.getGroupMember().add(groupMemberType);
+        groupsRepository.saveOrUpdateAll(membersToBeAdded);
+        localGroupType.getGroupMember().addAll(membersToBeAdded);
         groupsRepository.saveOrUpdate(localGroupType);
     }
 
