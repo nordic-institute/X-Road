@@ -125,13 +125,10 @@ public class GroupService {
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
     public void addLocalGroupMembers(String groupId, List<ClientId> memberIds) {
         LocalGroupType localGroupType = getLocalGroup(groupId);
-
         if (localGroupType == null) {
             throw new NotFoundException("LocalGroup with id " + groupId + " not found");
         }
-
         List<GroupMemberType> membersToBeAdded = new ArrayList<>(memberIds.size());
-
         memberIds.forEach(memberId -> {
             ClientType memberToBeAdded = clientRepository.getClient(memberId);
             if (memberToBeAdded == null) {
@@ -143,14 +140,11 @@ public class GroupService {
             if (isAdded) {
                 throw new ConflictException("local group member already exists in group");
             }
-
             GroupMemberType groupMemberType = new GroupMemberType();
             groupMemberType.setAdded(new Date());
             groupMemberType.setGroupMemberId(memberToBeAdded.getIdentifier());
-
             membersToBeAdded.add(groupMemberType);
         });
-
         groupsRepository.saveOrUpdateAll(membersToBeAdded);
         localGroupType.getGroupMember().addAll(membersToBeAdded);
         groupsRepository.saveOrUpdate(localGroupType);
