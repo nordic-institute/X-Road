@@ -53,8 +53,8 @@
         <v-card-text>{{$t('cert.deleteCertConfirm')}}</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="darken-1" flat @click="confirm = false">{{$t('action.cancel')}}</v-btn>
-          <v-btn color="darken-1" flat @click="doDeleteCertificate()">{{$t('action.yes')}}</v-btn>
+          <v-btn color="primary" flat @click="confirm = false">{{$t('action.cancel')}}</v-btn>
+          <v-btn color="primary" flat @click="doDeleteCertificate()">{{$t('action.yes')}}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

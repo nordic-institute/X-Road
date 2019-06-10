@@ -107,8 +107,8 @@
         <v-card-text>{{$t('localGroup.deleteText')}}</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="darken-1" flat @click="confirmGroup = false">{{$t('localGroup.cancel')}}</v-btn>
-          <v-btn color="darken-1" flat @click="doDeleteGroup()">{{$t('localGroup.yes')}}</v-btn>
+          <v-btn color="primary" flat @click="confirmGroup = false">{{$t('localGroup.cancel')}}</v-btn>
+          <v-btn color="primary" flat @click="doDeleteGroup()">{{$t('localGroup.yes')}}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -120,8 +120,8 @@
         <v-card-text>{{$t('localGroup.removeText')}}</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="darken-1" flat @click="confirmMember = false">{{$t('localGroup.cancel')}}</v-btn>
-          <v-btn color="darken-1" flat @click="doRemoveMember()">{{$t('localGroup.yes')}}</v-btn>
+          <v-btn color="primary" flat @click="confirmMember = false">{{$t('localGroup.cancel')}}</v-btn>
+          <v-btn color="primary" flat @click="doRemoveMember()">{{$t('localGroup.yes')}}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
