@@ -94,7 +94,7 @@ const router = new Router({
             },
             {
               name: RouteName.SubsystemServiceClients,
-              path: '/subsystem/clients/:id',
+              path: '/subsystem/serviceclients/:id',
               component: ServiceClients,
               props: true,
               meta: { permission: Permissions.VIEW_CLIENT_ACL_SUBJECTS },
@@ -105,18 +105,6 @@ const router = new Router({
               component: Services,
               props: true,
               meta: { permission: Permissions.VIEW_CLIENT_SERVICES },
-            },
-            {
-              name: RouteName.SubsystemServiceClients,
-              path: '/subsystem/serviceclients/:id',
-              component: ServiceClients,
-              props: true,
-            },
-            {
-              name: RouteName.SubsystemServices,
-              path: '/subsystem/services/:id',
-              component: Services,
-              props: true,
             },
             {
               name: RouteName.SubsystemServers,
