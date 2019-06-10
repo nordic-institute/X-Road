@@ -169,7 +169,7 @@ const router = new Router({
         },
         {
           name: RouteName.LocalGroup,
-          path: '/localgroup/:id/:code',
+          path: '/localgroup/:clientId/:groupId',
           components: {
             default: LocalGroup,
           },
