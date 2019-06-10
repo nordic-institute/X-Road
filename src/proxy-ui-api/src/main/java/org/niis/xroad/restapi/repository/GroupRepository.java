@@ -32,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,19 +45,15 @@ import java.util.List;
 @Transactional
 public class GroupRepository {
 
-    private final int batchSize;
     private final PersistenceUtils persistenceUtils;
 
     /**
      * GroupRepository constructor
      * @param persistenceUtils
-     * @param environment
      */
     @Autowired
-    public GroupRepository(PersistenceUtils persistenceUtils, Environment environment) {
+    public GroupRepository(PersistenceUtils persistenceUtils) {
         this.persistenceUtils = persistenceUtils;
-        this.batchSize = Integer.parseInt(
-                environment.getProperty("spring.jpa.properties.hibernate.jdbc.batch_size", "25"));
     }
 
     public LocalGroupType getLocalGroup(Long entityId) {
@@ -80,12 +75,8 @@ public class GroupRepository {
      */
     public void saveOrUpdateAll(List<GroupMemberType> groupMemberTypes) {
         Session session = persistenceUtils.getCurrentSession();
-        for (int i = 0; i < groupMemberTypes.size(); i++) {
-            if (i > 0 && i % batchSize == 0) {
-                session.flush();
-                session.clear();
-            }
-            session.saveOrUpdate(groupMemberTypes.get(i));
+        for (GroupMemberType groupMemberType : groupMemberTypes) {
+            session.saveOrUpdate(groupMemberType);
         }
     }
 
