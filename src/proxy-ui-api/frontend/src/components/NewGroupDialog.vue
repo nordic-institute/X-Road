@@ -37,6 +37,7 @@
           color="primary"
           round
           class="mb-2 rounded-button elevation-0 xr-big-button button-margin"
+          :disabled="!formReady"
           @click="save()"
         >{{$t('localGroup.add')}}</v-btn>
       </v-card-actions>
@@ -62,15 +63,25 @@ export default Vue.extend({
 
   data() {
     return {
-      code: undefined,
-      description: undefined,
+      code: '',
+      description: '',
     };
   },
+  computed: {
+    formReady(): boolean {
+      if (this.code && this.code.length > 0 && this.description.length > 0) {
+        return true;
+      }
+      return false;
+    },
+  },
+
   methods: {
-    cancel() {
+    cancel(): void {
+      this.clearForm();
       this.$emit('cancel');
     },
-    save() {
+    save(): void {
       axios
         .post(`/clients/${this.id}/groups`, {
           code: this.code,
@@ -82,7 +93,13 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
-        });
+        })
+        .finally(() => this.clearForm());
+    },
+
+    clearForm(): void {
+      this.code = '';
+      this.description = '';
     },
   },
 });
