@@ -2082,15 +2082,19 @@ paths:
             format: text
             minLength: 1
             maxLength: 255
-        - in: query
-          name: disabled_notice
-          description: disabled service notice
-          required: false
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                disabled_notice:
+                  type: string
+                  format: text
+                  description: disabled service notice
+                  minLength: 1
+                  maxLength: 255
       responses:
         '204':
           description: request was successful
