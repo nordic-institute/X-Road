@@ -81,7 +81,7 @@ exports[`Toolbar snapshot test 1`] = `
                 class="v-list__tile__title"
                 id="logout-title"
               >
-                
+                localized text
               </div>
             </a>
           </div>
