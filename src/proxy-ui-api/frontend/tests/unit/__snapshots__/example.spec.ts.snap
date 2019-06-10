@@ -10,7 +10,7 @@ exports[`Toolbar snapshot test 1`] = `
     style="height: 64px;"
   >
     <div
-      class="v-responsive v-image"
+      class="v-responsive v-image xr-logo"
       style="height: 64px; max-height: 64px; max-width: 128px; width: 128px;"
     >
       <div
@@ -54,8 +54,10 @@ exports[`Toolbar snapshot test 1`] = `
           >
             <i
               aria-hidden="true"
-              class="v-icon fa fa-user-circle theme--dark"
-            />
+              class="v-icon material-icons theme--dark"
+            >
+              person
+            </i>
           </div>
         </button>
       </div>
@@ -73,11 +75,13 @@ exports[`Toolbar snapshot test 1`] = `
           >
             <a
               class="v-list__tile v-list__tile--link theme--light"
+              id="logout-list-tile"
             >
               <div
                 class="v-list__tile__title"
+                id="logout-title"
               >
-                Logout
+                
               </div>
             </a>
           </div>
