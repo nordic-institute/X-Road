@@ -44,9 +44,9 @@
           color="primary"
           class="xr-big-button"
           type="file"
+          :disabled="!hasMembers"
           @click="removeAllMembers()"
         >{{$t('localGroup.removeAll')}}</v-btn>
-
         <v-btn
           v-if="showAddMembers()"
           outline
@@ -141,12 +141,12 @@ export default Vue.extend({
     SubViewTitle,
   },
   props: {
-    id: {
+    clientId: {
       type: String,
       required: true,
     },
-    code: {
-      type: String,
+    groupId: {
+      type: Number,
       required: true,
     },
   },
@@ -171,6 +171,14 @@ export default Vue.extend({
         Permissions.EDIT_LOCAL_GROUP_DESC,
       );
     },
+    hasMembers(): boolean {
+      const tempGroup: any = this.group;
+
+      if (tempGroup && tempGroup.members && tempGroup.members.length > 0) {
+        return true;
+      }
+      return false;
+    },
   },
   methods: {
     close(): void {
@@ -189,11 +197,7 @@ export default Vue.extend({
 
     saveDescription(): void {
       axios
-        .put(
-          `/clients/${this.id}/groups/${this.code}?description=${
-            this.description
-          }`,
-        )
+        .put(`/groups/${this.groupId}?description=${this.description}`)
         .then((res) => {
           this.$bus.$emit('show-success', 'localGroup.descSaved');
           this.group = res.data;
@@ -205,9 +209,9 @@ export default Vue.extend({
         });
     },
 
-    fetchData(clientId: string, code: string): void {
+    fetchData(clientId: string, groupId: number): void {
       axios
-        .get(`/clients/${clientId}/groups/${code}`)
+        .get(`/groups/${groupId}`)
         .then((res) => {
           this.group = res.data;
           this.groupCode = res.data.code;
@@ -243,7 +247,7 @@ export default Vue.extend({
       this.confirmGroup = false;
 
       axios
-        .delete(`/clients/${this.id}/groups/${this.groupCode}`)
+        .delete(`/groups/${this.groupId}`)
         .then((res) => {
           this.$bus.$emit('show-success', 'localGroup.groupDeleted');
           this.$router.go(-1);
@@ -254,7 +258,7 @@ export default Vue.extend({
     },
   },
   created() {
-    this.fetchData(this.id, this.code);
+    this.fetchData(this.clientId, this.groupId);
   },
 });
 </script>
