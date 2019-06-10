@@ -153,7 +153,6 @@ public class ClientService {
                 .ifPresent(a -> {
                     throw new ConflictException("certificate already exists");
                 });
-
         CertificateType certificateType = new CertificateType();
         try {
             certificateType.setData(x509Certificate.getEncoded());
@@ -209,7 +208,6 @@ public class ClientService {
                 .orElseThrow(() ->
                         new NotFoundException("certificate with hash " + certificateHash + " not found",
                                 ErrorCode.of(CERTIFICATE_NOT_FOUND_ERROR_CODE)));
-
         clientType.getIsCert().remove(certificateType);
         clientRepository.saveOrUpdate(clientType);
         return clientType;
@@ -313,9 +311,11 @@ public class ClientService {
     private List<Predicate<ClientType>> buildLocalClientSearchPredicates(String name, String instance,
             String memberClass, String memberCode, String subsystemCode) {
         List<Predicate<ClientType>> searchPredicates = new ArrayList<>();
-
         if (!StringUtils.isEmpty(name)) {
-            searchPredicates.add(ct -> globalConfWrapper.getMemberName(ct.getIdentifier()).equalsIgnoreCase(name));
+            searchPredicates.add(ct -> {
+                String memberName = globalConfWrapper.getMemberName(ct.getIdentifier());
+                return memberName != null && memberName.equalsIgnoreCase(name);
+            });
         }
         if (!StringUtils.isEmpty(instance)) {
             searchPredicates.add(ct -> ct.getIdentifier().getXRoadInstance().equalsIgnoreCase(instance));
@@ -330,14 +330,12 @@ public class ClientService {
             searchPredicates.add(ct -> ct.getIdentifier().getSubsystemCode() != null
                     && ct.getIdentifier().getSubsystemCode().equalsIgnoreCase(subsystemCode));
         }
-
         return searchPredicates;
     }
 
     private List<Predicate<MemberInfo>> buildGlobalClientSearchPredicates(String name, String instance,
             String memberClass, String memberCode, String subsystemCode) {
         List<Predicate<MemberInfo>> searchPredicates = new ArrayList<>();
-
         if (!StringUtils.isEmpty(name)) {
             searchPredicates.add(memberInfo -> memberInfo.getName() != null
                     && memberInfo.getName().equalsIgnoreCase(name));
@@ -355,7 +353,6 @@ public class ClientService {
             searchPredicates.add(memberInfo -> memberInfo.getId().getSubsystemCode() != null
                     && memberInfo.getId().getSubsystemCode().equalsIgnoreCase(subsystemCode));
         }
-
         return searchPredicates;
     }
 }
