@@ -3503,6 +3503,10 @@ components:
         - services
         - client_id
       properties:
+        id:
+          type: string
+          description: unique identifier
+          example: 123
         url:
           type: string
           format: url

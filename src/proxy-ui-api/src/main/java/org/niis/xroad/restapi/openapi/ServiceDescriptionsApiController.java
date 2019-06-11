@@ -26,7 +26,7 @@ package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
-import org.niis.xroad.restapi.exceptions.InvalidParametersException;
+import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.InlineObject9;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,12 +75,17 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         return new ResponseEntity<Void>(HttpStatus.OK);
     }
 
+    /**
+     * in case of NumberFormatException we throw NotFoundException. Client should not
+     * know about id parameter details, such as "it should be numeric" -
+     * the resource with given id just cant be found, and that's all there is to it
+     */
     private Long parseServiceDescriptionId(String id) {
         Long serviceDescriptionId = null;
         try {
             serviceDescriptionId = Long.valueOf(id);
         } catch (NumberFormatException nfe) {
-            throw new InvalidParametersException(nfe);
+            throw new NotFoundException(nfe);
         }
         return serviceDescriptionId;
     }
