@@ -42,7 +42,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * Converter Client related data between openapi and (jaxb) service classes
+ * Converter Client related data between openapi and service domain classes
  */
 @Component
 public class ClientConverter {

@@ -47,6 +47,9 @@ import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.Group;
 import org.niis.xroad.restapi.openapi.model.InlineObject;
+import org.niis.xroad.restapi.openapi.model.Service;
+import org.niis.xroad.restapi.openapi.model.ServiceDescription;
+import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.repository.TokenRepository;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,9 +70,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -522,4 +527,62 @@ public class ClientsApiControllerIntegrationTest {
         clientsResponse = clientsApiController.getClients(null, null, null, null, SUBSYSTEM3, false, true);
         assertEquals(0, clientsResponse.getBody().size());
     }
+
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
+    public void getServiceDescriptions() {
+        // client with 0 services
+        ResponseEntity<List<ServiceDescription>> descriptions =
+                clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS2);
+        assertEquals(0, descriptions.getBody().size());
+
+        // client not found
+        try {
+            descriptions = clientsApiController.getClientServiceDescriptions("FI:GOV:M1:NONEXISTENT");
+            fail("should throw NotFoundException to 404");
+        } catch (NotFoundException expected) {
+        }
+
+        // bad client id
+        try {
+            descriptions = clientsApiController.getClientServiceDescriptions("foobar");
+            fail("should throw BadRequestException");
+        } catch (BadRequestException expected) {
+        }
+
+        // client with some services
+        descriptions = clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1);
+        assertEquals(HttpStatus.OK, descriptions.getStatusCode());
+        assertEquals(2, descriptions.getBody().size());
+        ServiceDescription serviceDescription = getDescription(descriptions.getBody(),
+                "https://restservice.com/api/v1")
+                .get();
+        assertEquals(CLIENT_ID_SS1, serviceDescription.getClientId());
+        assertEquals(false, serviceDescription.getDisabled());
+        assertEquals("Kaputt", serviceDescription.getDisabledNotice());
+        assertNotNull(serviceDescription.getRefreshedDate());
+        assertEquals(ServiceType.REST, serviceDescription.getType());
+        assertEquals(1, serviceDescription.getServices().size());
+
+        Service service = serviceDescription.getServices().iterator().next();
+        assertEquals("3", service.getId());
+        assertEquals(Integer.valueOf(60), service.getTimeout());
+        assertEquals("test-rest-servicecode", service.getCode());
+        assertEquals(true, service.getSslAuth());
+        assertEquals("https://restservice.com/api/v1", service.getUrl());
+
+        ServiceDescription wsdlServiceDescription = getDescription(descriptions.getBody(),
+                "https://soapservice.com/v1/Endpoint?wsdl")
+                .get();
+        assertEquals(2, wsdlServiceDescription.getServices().size());
+    }
+
+    private Optional<ServiceDescription> getDescription(List<ServiceDescription> descriptions, String url) {
+        return descriptions.stream()
+                .filter(serviceDescription -> serviceDescription.getUrl().equals(url))
+                .findFirst();
+    }
+
+
 }
