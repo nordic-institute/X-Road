@@ -24,7 +24,6 @@
  */
 package ee.ria.xroad.common.conf.serverconf.dao;
 
-import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ServiceId;
