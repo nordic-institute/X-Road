@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
@@ -56,16 +57,20 @@ public class GroupService {
 
     private final GroupRepository groupsRepository;
     private final ClientRepository clientRepository;
+    private final ClientService clientService;
 
     /**
      * GroupsService constructor
      * @param groupsRepository
      * @param clientRepository
+     * @param clientService
      */
     @Autowired
-    public GroupService(GroupRepository groupsRepository, ClientRepository clientRepository) {
+    public GroupService(GroupRepository groupsRepository, ClientRepository clientRepository,
+            ClientService clientService) {
         this.groupsRepository = groupsRepository;
         this.clientRepository = clientRepository;
+        this.clientService = clientService;
     }
 
     /**
@@ -130,19 +135,20 @@ public class GroupService {
         }
         List<GroupMemberType> membersToBeAdded = new ArrayList<>(memberIds.size());
         memberIds.forEach(memberId -> {
-            ClientType memberToBeAdded = clientRepository.getClient(memberId);
-            if (memberToBeAdded == null) {
+            Optional<MemberInfo> foundMember = clientService.findByClientId(memberId);
+            if (!foundMember.isPresent()) {
                 throw new NotFoundException("client with id " + memberId.toShortString() + " not found");
             }
+            ClientId clientIdToBeAdded = foundMember.get().getId();
             boolean isAdded = localGroupType.getGroupMember().stream().anyMatch(groupMemberType ->
                     groupMemberType.getGroupMemberId().toShortString().trim()
-                            .equals(memberToBeAdded.getIdentifier().toShortString().trim()));
+                            .equals(clientIdToBeAdded.toShortString().trim()));
             if (isAdded) {
                 throw new ConflictException("local group member already exists in group");
             }
             GroupMemberType groupMemberType = new GroupMemberType();
             groupMemberType.setAdded(new Date());
-            groupMemberType.setGroupMemberId(memberToBeAdded.getIdentifier());
+            groupMemberType.setGroupMemberId(clientIdToBeAdded);
             membersToBeAdded.add(groupMemberType);
         });
         groupsRepository.saveOrUpdateAll(membersToBeAdded);

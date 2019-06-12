@@ -43,7 +43,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -95,7 +95,7 @@ public class GroupsApiController implements GroupsApi {
             throw new InvalidParametersException("missing member id");
         }
         // remove duplicates
-        List<String> uniqueIds = new ArrayList<>(new LinkedHashSet<>(memberItemsWrapper.getItems()));
+        List<String> uniqueIds = new ArrayList<>(new HashSet<>(memberItemsWrapper.getItems()));
         groupsService.addLocalGroupMembers(groupId, clientConverter.convertIds(uniqueIds));
         return new ResponseEntity<>(HttpStatus.CREATED);
     }

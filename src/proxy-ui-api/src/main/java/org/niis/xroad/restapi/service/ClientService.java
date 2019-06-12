@@ -274,38 +274,42 @@ public class ClientService {
     }
 
     /**
-     * Find from all clients (local and global)
+     * Find client by ClientId
+     * @param clientId
+     * @return
+     */
+    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
+    public Optional<MemberInfo> findByClientId(ClientId clientId) {
+        return getAllGlobalClients()
+                .stream()
+                .filter(memberInfo -> memberInfo.getId().toShortString().trim().equals(clientId.toShortString().trim()))
+                .findFirst();
+    }
+
+    /**
+     * Find from all clients (local or global)
      * @param name
      * @param instance
      * @param memberClass
      * @param memberCode
      * @param subsystemCode
-     * @param showMembers include members (without susbsystemCode) in the results
+     * @param showMembers include members (without subsystemCode) in the results
      * @param internalSearch search only in the local clients
      * @return MemberInfo list
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public List<MemberInfo> findFromAllClients(String name, String instance, String memberClass, String memberCode,
+    public List<MemberInfo> findClients(String name, String instance, String memberClass, String memberCode,
             String subsystemCode, boolean showMembers, boolean internalSearch) {
-        List<MemberInfo> clients = findLocalClients(name, instance, memberClass, memberCode, subsystemCode,
-                showMembers)
-                .stream()
-                .map(clientType -> new MemberInfo(clientType.getIdentifier(),
-                        globalConfWrapper.getMemberName(clientType.getIdentifier())))
-                .collect(Collectors.toList());
         if (internalSearch) {
-            return clients;
+            return findLocalClients(name, instance, memberClass, memberCode, subsystemCode,
+                    showMembers)
+                    .stream()
+                    .map(clientType -> new MemberInfo(clientType.getIdentifier(),
+                            globalConfWrapper.getMemberName(clientType.getIdentifier())))
+                    .collect(Collectors.toList());
         }
-        // find global clients and remove duplicates
-        List<MemberInfo> globalClients = findGlobalClients(name, instance, memberClass, memberCode, subsystemCode,
-                showMembers)
-                .stream()
-                .filter(globalClient -> clients.stream()
-                        .noneMatch(localClient -> localClient.getId().toShortString()
-                                .equals(globalClient.getId().toShortString())))
-                .collect(Collectors.toList());
-        clients.addAll(globalClients);
-        return clients;
+        // else find only from global clients (globalconf also includes registered local clients)
+        return findGlobalClients(name, instance, memberClass, memberCode, subsystemCode, showMembers);
     }
 
     private List<Predicate<ClientType>> buildLocalClientSearchPredicates(String name, String instance,
