@@ -113,7 +113,7 @@
       </v-card>
     </v-dialog>
 
-    <!-- Confirm dialog remove member-->
+    <!-- Confirm dialog remove member -->
     <v-dialog v-model="confirmMember" persistent max-width="290">
       <v-card>
         <v-card-title class="headline">{{$t('localGroup.removeTitle')}}</v-card-title>
@@ -125,6 +125,29 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Confirm dialog remove all members -->
+
+    <v-dialog v-model="confirmAllMembers" persistent max-width="290">
+      <v-card>
+        <v-card-title class="headline">{{$t('localGroup.removeTitle')}}</v-card-title>
+        <v-card-text>{{$t('localGroup.removeText')}}</v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" flat @click="confirmMember = false">{{$t('localGroup.cancel')}}</v-btn>
+          <v-btn color="primary" flat @click="doRemoveAllMembers()">{{$t('localGroup.yes')}}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Add new members dialog -->
+
+    <addMembersDialog
+      :dialog="addMembersDialogVisible"
+      :id="clientId"
+      @cancel="closeMembersDialog()"
+      @groupAdded="membersAdded()"
+    />
   </div>
 </template>
 
@@ -135,10 +158,12 @@ import axios from 'axios';
 import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
 import SubViewTitle from '@/components/SubViewTitle.vue';
+import AddMembersDialog from '@/components/AddMembersDialog.vue';
 
 export default Vue.extend({
   components: {
     SubViewTitle,
+    AddMembersDialog,
   },
   props: {
     clientId: {
@@ -154,11 +179,12 @@ export default Vue.extend({
     return {
       confirmGroup: false,
       confirmMember: false,
+      confirmAllMembers: false,
       selectedMember: undefined,
       description: undefined,
       group: undefined,
       groupCode: '',
-      members: [],
+      addMembersDialogVisible: false,
     };
   },
   computed: {
@@ -224,10 +250,27 @@ export default Vue.extend({
 
     addMembers(): void {
       // TODO placeholder. will be done in future task
+      this.addMembersDialogVisible = true;
+    },
+
+    closeMembersDialog(): void {
+      this.addMembersDialogVisible = false;
     },
 
     removeAllMembers(): void {
-      // TODO placeholder. will be done in future task
+      this.confirmAllMembers = true;
+    },
+
+    doRemoveAllMembers(): void {
+      const ids: any = [];
+      const tempGroup: any = this.group;
+      tempGroup.members.forEach((member: any) => {
+        ids.push(member.id);
+      });
+
+      this.removeArrayOfMembers(ids);
+
+      this.confirmAllMembers = false;
     },
 
     removeMember(member: any): void {
@@ -235,9 +278,27 @@ export default Vue.extend({
       this.selectedMember = member;
     },
     doRemoveMember() {
+      const member: any = this.selectedMember;
+
+      if (member && member.id) {
+        this.removeArrayOfMembers([member.id]);
+      }
+
       this.confirmMember = false;
       this.selectedMember = undefined;
-      // TODO placeholder. will be done in future task
+    },
+
+    removeArrayOfMembers(members: any) {
+      axios
+        .post(`/groups/${this.groupId}/members/delete`, {
+          items: members,
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        })
+        .finally(() => {
+          this.fetchData(this.clientId, this.groupId);
+        });
     },
 
     deleteGroup(): void {
