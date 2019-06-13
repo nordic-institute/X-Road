@@ -248,7 +248,7 @@ export default Vue.extend({
 
       axios
         .delete(`/groups/${this.groupId}`)
-        .then((res) => {
+        .then(() => {
           this.$bus.$emit('show-success', 'localGroup.groupDeleted');
           this.$router.go(-1);
         })
