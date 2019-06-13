@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
@@ -31,6 +32,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.GlobalConfWrapper;
 import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.ErrorCode;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
@@ -39,12 +41,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * client service
@@ -58,16 +64,36 @@ public class ClientService {
     public static final String CLIENT_NOT_FOUND_ERROR_CODE = "client_not_found";
     public static final String CERTIFICATE_NOT_FOUND_ERROR_CODE = "certificate_not_found";
 
-    @Autowired
-    private ClientRepository clientRepository;
+    private final ClientRepository clientRepository;
+    private final GlobalConfWrapper globalConfWrapper;
 
     /**
-     * return all clients
+     * ClientService constructor
+     * @param clientRepository
+     * @param globalConfWrapper
+     */
+    @Autowired
+    public ClientService(ClientRepository clientRepository, GlobalConfWrapper globalConfWrapper) {
+        this.clientRepository = clientRepository;
+        this.globalConfWrapper = globalConfWrapper;
+    }
+
+    /**
+     * return all clients that are registered on the instance
      * @return
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public List<ClientType> getAllClients() {
-        return clientRepository.getAllClients();
+    public List<ClientType> getAllLocalClients() {
+        return clientRepository.getAllLocalClients();
+    }
+
+    /**
+     * return all global clients
+     * @return
+     */
+    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
+    public List<MemberInfo> getAllGlobalClients() {
+        return globalConfWrapper.getGlobalMembers();
     }
 
     /**
@@ -85,8 +111,8 @@ public class ClientService {
      * @param connectionType
      * @return
      * @throws org.niis.xroad.restapi.exceptions.NotFoundException if
-     * client was not found
-     * @throws IllegalArgumentException if connectionType was not supported value
+     *                                                             client was not found
+     * @throws IllegalArgumentException                            if connectionType was not supported value
      */
     @PreAuthorize("hasAuthority('EDIT_CLIENT_INTERNAL_CONNECTION_TYPE')")
     public ClientType updateConnectionType(ClientId id, String connectionType) {
@@ -106,7 +132,7 @@ public class ClientService {
      * @param certBytes either PEM or DER -encoded certificate
      * @return
      * @throws CertificateException if certBytes was not a valid PEM or DER encoded certificate
-     * @throws ConflictException if the certificate already exists
+     * @throws ConflictException    if the certificate already exists
      */
     @PreAuthorize("hasAuthority('ADD_CLIENT_INTERNAL_CERT')")
     public ClientType addTlsCertificate(ClientId id, byte[] certBytes) throws CertificateException {
@@ -125,7 +151,8 @@ public class ClientService {
                 .filter(cert -> hash.equalsIgnoreCase(calculateCertHexHash(cert.getData())))
                 .findAny()
                 .ifPresent(a -> {
-                    throw new ConflictException("certificate already exists"); });
+                    throw new ConflictException("certificate already exists");
+                });
 
         CertificateType certificateType = new CertificateType();
         try {
@@ -181,7 +208,7 @@ public class ClientService {
                 .findAny()
                 .orElseThrow(() ->
                         new NotFoundException("certificate with hash " + certificateHash + " not found",
-                            ErrorCode.of(CERTIFICATE_NOT_FOUND_ERROR_CODE)));
+                                ErrorCode.of(CERTIFICATE_NOT_FOUND_ERROR_CODE)));
 
         clientType.getIsCert().remove(certificateType);
         clientRepository.saveOrUpdate(clientType);
@@ -204,5 +231,131 @@ public class ClientService {
                 .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
                 .findAny();
         return certificateType;
+    }
+
+    /**
+     * Find clients in the local serverconf
+     * @param name
+     * @param instance
+     * @param propertyClass
+     * @param memberCode
+     * @param subsystemCode
+     * @param showMembers include members (without susbsystemCode) in the results
+     * @return ClientType list
+     */
+    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
+    public List<ClientType> findLocalClients(String name, String instance, String propertyClass, String memberCode,
+            String subsystemCode, boolean showMembers) {
+        List<Predicate<ClientType>> searchPredicates = buildLocalClientSearchPredicates(name, instance, propertyClass,
+                memberCode, subsystemCode);
+        return getAllLocalClients().stream()
+                .filter(searchPredicates.stream().reduce(p -> true, Predicate::and))
+                .filter(ct -> showMembers || ct.getIdentifier().getSubsystemCode() != null)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Find clients in the globalconf. Will return MemberInfos because ClientTypes do not exist in globalconf
+     * @param name
+     * @param instance
+     * @param propertyClass
+     * @param memberCode
+     * @param subsystemCode
+     * @param showMembers include members (without susbsystemCode) in the results
+     * @return ClientId list
+     */
+    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
+    public List<MemberInfo> findGlobalClients(String name, String instance, String propertyClass, String memberCode,
+            String subsystemCode, boolean showMembers) {
+        List<Predicate<MemberInfo>> searchPredicates = buildGlobalClientSearchPredicates(name, instance, propertyClass,
+                memberCode, subsystemCode);
+        return getAllGlobalClients().stream()
+                .filter(searchPredicates.stream().reduce(p -> true, Predicate::and))
+                .filter(memberInfo -> showMembers || memberInfo.getId().getSubsystemCode() != null)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Find from all clients (local and global)
+     * @param name
+     * @param instance
+     * @param memberClass
+     * @param memberCode
+     * @param subsystemCode
+     * @param showMembers include members (without susbsystemCode) in the results
+     * @param internalSearch search only in the local clients
+     * @return MemberInfo list
+     */
+    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
+    public List<MemberInfo> findFromAllClients(String name, String instance, String memberClass, String memberCode,
+            String subsystemCode, boolean showMembers, boolean internalSearch) {
+        List<MemberInfo> clients = findLocalClients(name, instance, memberClass, memberCode, subsystemCode,
+                showMembers)
+                .stream()
+                .map(clientType -> new MemberInfo(clientType.getIdentifier(),
+                        globalConfWrapper.getMemberName(clientType.getIdentifier())))
+                .collect(Collectors.toList());
+        if (internalSearch) {
+            return clients;
+        }
+        // find global clients and remove duplicates
+        List<MemberInfo> globalClients = findGlobalClients(name, instance, memberClass, memberCode, subsystemCode,
+                showMembers)
+                .stream()
+                .filter(globalClient -> clients.stream()
+                        .noneMatch(localClient -> localClient.getId().toShortString()
+                                .equals(globalClient.getId().toShortString())))
+                .collect(Collectors.toList());
+        clients.addAll(globalClients);
+        return clients;
+    }
+
+    private List<Predicate<ClientType>> buildLocalClientSearchPredicates(String name, String instance,
+            String memberClass, String memberCode, String subsystemCode) {
+        List<Predicate<ClientType>> searchPredicates = new ArrayList<>();
+
+        if (!StringUtils.isEmpty(name)) {
+            searchPredicates.add(ct -> globalConfWrapper.getMemberName(ct.getIdentifier()).equalsIgnoreCase(name));
+        }
+        if (!StringUtils.isEmpty(instance)) {
+            searchPredicates.add(ct -> ct.getIdentifier().getXRoadInstance().equalsIgnoreCase(instance));
+        }
+        if (!StringUtils.isEmpty(memberClass)) {
+            searchPredicates.add(ct -> ct.getIdentifier().getMemberClass().equalsIgnoreCase(memberClass));
+        }
+        if (!StringUtils.isEmpty(memberCode)) {
+            searchPredicates.add(ct -> ct.getIdentifier().getMemberCode().equalsIgnoreCase(memberCode));
+        }
+        if (!StringUtils.isEmpty(subsystemCode)) {
+            searchPredicates.add(ct -> ct.getIdentifier().getSubsystemCode() != null
+                    && ct.getIdentifier().getSubsystemCode().equalsIgnoreCase(subsystemCode));
+        }
+
+        return searchPredicates;
+    }
+
+    private List<Predicate<MemberInfo>> buildGlobalClientSearchPredicates(String name, String instance,
+            String memberClass, String memberCode, String subsystemCode) {
+        List<Predicate<MemberInfo>> searchPredicates = new ArrayList<>();
+
+        if (!StringUtils.isEmpty(name)) {
+            searchPredicates.add(memberInfo -> memberInfo.getName() != null
+                    && memberInfo.getName().equalsIgnoreCase(name));
+        }
+        if (!StringUtils.isEmpty(instance)) {
+            searchPredicates.add(memberInfo -> memberInfo.getId().getXRoadInstance().equalsIgnoreCase(instance));
+        }
+        if (!StringUtils.isEmpty(memberClass)) {
+            searchPredicates.add(memberInfo -> memberInfo.getId().getMemberClass().equalsIgnoreCase(memberClass));
+        }
+        if (!StringUtils.isEmpty(memberCode)) {
+            searchPredicates.add(memberInfo -> memberInfo.getId().getMemberCode().equalsIgnoreCase(memberCode));
+        }
+        if (!StringUtils.isEmpty(subsystemCode)) {
+            searchPredicates.add(memberInfo -> memberInfo.getId().getSubsystemCode() != null
+                    && memberInfo.getId().getSubsystemCode().equalsIgnoreCase(subsystemCode));
+        }
+
+        return searchPredicates;
     }
 }

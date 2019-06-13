@@ -28,7 +28,7 @@ import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
 import akka.actor.UntypedActor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.joda.time.DateTime;
 
 import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
@@ -72,8 +72,8 @@ public class LogCleaner extends UntypedActor {
         do {
             removed = doInTransaction(session -> {
                 final Query query = session.getNamedQuery("delete-logrecords");
-                query.setLong("time", time);
-                query.setInteger("limit", CLEAN_BATCH_LIMIT);
+                query.setParameter("time", time);
+                query.setParameter("limit", CLEAN_BATCH_LIMIT);
                 return query.executeUpdate();
             });
             log.debug("Removed {} archived records", removed);

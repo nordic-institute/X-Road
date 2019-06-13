@@ -35,15 +35,17 @@ import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.ConnectionTypeMapping;
 import org.niis.xroad.restapi.converter.GroupConverter;
+import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.ErrorCode;
+import org.niis.xroad.restapi.exceptions.InvalidParametersException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.Group;
 import org.niis.xroad.restapi.openapi.model.InlineObject;
-import org.niis.xroad.restapi.openapi.model.InlineObject1;
+import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.GroupService;
 import org.niis.xroad.restapi.service.TokenService;
@@ -54,12 +56,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.NativeWebRequest;
 
 import java.io.IOException;
 import java.security.cert.CertificateException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -81,6 +81,7 @@ public class ClientsApiController implements ClientsApi {
     private final NativeWebRequest request;
     private final TokenService tokenService;
     private final CertificateDetailsConverter certificateDetailsConverter;
+    private final ServiceDescriptionConverter serviceDescriptionConverter;
 
     /**
      * ClientsApiController constructor
@@ -90,12 +91,14 @@ public class ClientsApiController implements ClientsApi {
      * @param clientConverter
      * @param groupConverter
      * @param groupsService
+     * @param serviceDescriptionConverter
      */
 
     @Autowired
     public ClientsApiController(NativeWebRequest request, ClientService clientService, TokenService tokenService,
             ClientConverter clientConverter, GroupConverter groupConverter, GroupService groupsService,
-            CertificateDetailsConverter certificateDetailsConverter) {
+            CertificateDetailsConverter certificateDetailsConverter,
+            ServiceDescriptionConverter serviceDescriptionConverter) {
         this.request = request;
         this.clientService = clientService;
         this.tokenService = tokenService;
@@ -103,41 +106,29 @@ public class ClientsApiController implements ClientsApi {
         this.groupConverter = groupConverter;
         this.groupsService = groupsService;
         this.certificateDetailsConverter = certificateDetailsConverter;
+        this.serviceDescriptionConverter = serviceDescriptionConverter;
     }
 
     /**
-     * Example exception
-     */
-    @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "No such Thing there")
-    public static class RestNotFoundException extends RuntimeException {
-        public RestNotFoundException(String s) {
-            super(s);
-        }
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public ResponseEntity<List<Client>> getClients(String name, String instance,
-            String propertyClass, String code, String subsystem, Boolean showMembers,
-            Boolean internalSearch) {
-        // no filtering / search yet, returns all
-        List<ClientType> clientTypes = clientService.getAllClients();
-        List<Client> clients = new ArrayList<>();
-        for (ClientType clientType : clientTypes) {
-            clients.add(clientConverter.convert(clientType));
-        }
-        return new ResponseEntity<>(clients, HttpStatus.OK);
-    }
-
-    /**
-     * No argument version to return all clients
+     * Finds clients matching search terms
+     * @param name
+     * @param instance
+     * @param memberClass
+     * @param memberCode
+     * @param subsystemCode
+     * @param showMembers include members (without susbsystemCode) in the results
+     * @param internalSearch search only in the local clients
      * @return
      */
+    @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public ResponseEntity<List<Client>> getClients() {
-        final String ignoredSearchParam = null;
-        return getClients(ignoredSearchParam, ignoredSearchParam, ignoredSearchParam, ignoredSearchParam,
-                ignoredSearchParam, null, null);
+    public ResponseEntity<List<Client>> getClients(String name, String instance, String memberClass,
+            String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch) {
+        boolean unboxedShowMembers = Boolean.TRUE.equals(showMembers);
+        boolean unboxedInternalSearch = Boolean.TRUE.equals(internalSearch);
+        List<Client> clients = clientConverter.convertMemberInfosToClients(clientService.findFromAllClients(name,
+                instance, memberClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch));
+        return new ResponseEntity<>(clients, HttpStatus.OK);
     }
 
     @Override
@@ -149,8 +140,12 @@ public class ClientsApiController implements ClientsApi {
     }
 
     /**
-     * Read one client from DB, throw NotFoundException or
-     * BadRequestException is needed
+     * Read one client from DB
+     * @param encodedId id that is encoded with the <INSTANCE>:<MEMBER_CLASS>:....
+     * encoding
+     * @throws NotFoundException if client does not exist
+     * @throws BadRequestException if encodedId was not proper encoded client ID
+     * @return
      */
     private ClientType getClientType(String encodedId) {
         ClientId clientId = clientConverter.convertId(encodedId);
@@ -180,14 +175,18 @@ public class ClientsApiController implements ClientsApi {
     /**
      * Update a client's connection type
      * @param encodedId
-     * @param connectiontype
+     * @param inlineObject wrapper object containing the connection type to set
      * @return
      */
     @PreAuthorize("hasAuthority('EDIT_CLIENT_INTERNAL_CONNECTION_TYPE')")
     @Override
-    public ResponseEntity<Client> updateClient(String encodedId, ConnectionType connectiontype) {
+    public ResponseEntity<Client> updateClient(String encodedId, InlineObject inlineObject) {
+        if (inlineObject == null || inlineObject.getConnectionType() == null) {
+            throw new InvalidParametersException();
+        }
+        ConnectionType connectionType = inlineObject.getConnectionType();
         ClientId clientId = clientConverter.convertId(encodedId);
-        String connectionTypeString = ConnectionTypeMapping.map(connectiontype).get();
+        String connectionTypeString = ConnectionTypeMapping.map(connectionType).get();
         ClientType changed = clientService.updateConnectionType(clientId, connectionTypeString);
         Client result = clientConverter.convert(changed);
         return new ResponseEntity<>(result, HttpStatus.OK);
@@ -248,21 +247,6 @@ public class ClientsApiController implements ClientsApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
-    public ResponseEntity<Group> getGroup(String id, String groupCode) {
-        LocalGroupType localGroupType = getLocalGroupType(id, groupCode);
-        return new ResponseEntity<>(groupConverter.convert(localGroupType), HttpStatus.OK);
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_DESC')")
-    public ResponseEntity<Group> updateGroup(String id, String groupCode, String description) {
-        LocalGroupType localGroupType = groupsService.updateDescription(clientConverter.convertId(id), groupCode,
-                description);
-        return new ResponseEntity<>(groupConverter.convert(localGroupType), HttpStatus.OK);
-    }
-
-    @Override
     public Optional<NativeWebRequest> getRequest() {
         return Optional.ofNullable(request);
     }
@@ -276,30 +260,6 @@ public class ClientsApiController implements ClientsApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
-    public ResponseEntity<Void> addGroupMember(String id, String code, InlineObject memberIdWrapper) {
-        groupsService.addLocalGroupMember(clientConverter.convertId(id), code,
-                clientConverter.convertId(memberIdWrapper.getId()));
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority('DELETE_LOCAL_GROUP')")
-    public ResponseEntity<Void> deleteGroup(String id, String code) {
-        ClientType clientType = getClientType(id);
-        groupsService.deleteLocalGroup(clientType, code);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
-    public ResponseEntity<Void> deleteGroupMember(String id, String code, InlineObject1 itemsWrapper) {
-        LocalGroupType localGroupType = getLocalGroupType(id, code);
-        groupsService.deleteGroupMember(localGroupType, clientConverter.convertIds(itemsWrapper.getItems()));
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    }
-
-    @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
     public ResponseEntity<List<Group>> getClientGroups(String id) {
         ClientType clientType = getClientType(id);
@@ -307,15 +267,12 @@ public class ClientsApiController implements ClientsApi {
         return new ResponseEntity<>(groupConverter.convert(localGroupTypes), HttpStatus.OK);
     }
 
-    /**
-     * Read one group from DB, throw NotFoundException or
-     * BadRequestException is needed
-     */
-    private LocalGroupType getLocalGroupType(String encodedId, String code) {
-        LocalGroupType localGroupType = groupsService.getLocalGroup(code, clientConverter.convertId(encodedId));
-        if (localGroupType == null) {
-            throw new NotFoundException("LocalGroup with code " + code + " not found");
-        }
-        return localGroupType;
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
+    public ResponseEntity<List<ServiceDescription>> getClientServiceDescriptions(String encodedId) {
+        ClientType clientType = getClientType(encodedId);
+        List<ServiceDescription> serviceDescriptions = serviceDescriptionConverter.convert(
+                clientType.getServiceDescription());
+        return new ResponseEntity<>(serviceDescriptions, HttpStatus.OK);
     }
 }

@@ -31,7 +31,7 @@ else
 
     echo "no db settings detected, creating local db"
 
-    if ! netstat -na | grep -q :5432
+    if ! pg_isready -q -t 10 -p 5432
     then
       echo "Is postgres running on port 5432 ?"
       echo "Aborting installation! please fix issues and rerun with apt-get -f install"
@@ -93,9 +93,8 @@ grant usage, select, update on all sequences in schema public to ${db_user};
 grant execute on all functions in schema public to ${db_user};
 EOF
 
-service xroad-opmonitor restart
-service xroad-confclient restart
-
 #DEBHELPER#
+
+service xroad-confclient restart || true
 
 exit 0

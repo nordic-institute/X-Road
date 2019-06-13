@@ -67,9 +67,18 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
         }
 
         PreAuthenticatedAuthenticationToken authenticationWithGrants =
-                new PreAuthenticatedAuthenticationToken(authentication.getPrincipal(),
+                new PreAuthenticatedAuthenticationToken(createPrincipal(key),
                         authentication.getCredentials(),
                         permissionMapper.getAuthorities(key.getRoles()));
         return authenticationWithGrants;
+    }
+
+    /**
+     * Encode api key ID into the principal, so that we can use it with auditing to history table
+     * @param persistentApiKey
+     * @return
+     */
+    private String createPrincipal(PersistentApiKeyType persistentApiKey) {
+        return "api-key-" + persistentApiKey.getId();
     }
 }

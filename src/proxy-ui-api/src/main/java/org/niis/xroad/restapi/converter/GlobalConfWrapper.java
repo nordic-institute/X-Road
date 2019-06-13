@@ -25,9 +25,12 @@
 package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * wrap static methods to make things more testable
@@ -39,5 +42,12 @@ public class GlobalConfWrapper {
      */
     public String getMemberName(ClientId identifier) {
         return GlobalConf.getMemberName(identifier);
+    }
+
+    /**
+     * get global members
+     */
+    public List<MemberInfo> getGlobalMembers(String... instanceIdentifiers) {
+        return GlobalConf.getMembers(instanceIdentifiers);
     }
 }

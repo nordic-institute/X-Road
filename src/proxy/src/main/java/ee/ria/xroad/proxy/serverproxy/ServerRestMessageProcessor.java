@@ -89,8 +89,8 @@ import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SERVICE_TYPE;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_REST;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_DISABLED;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_MISSING_URL;
@@ -101,6 +101,7 @@ import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
+import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
 class ServerRestMessageProcessor extends MessageProcessorBase {
@@ -148,6 +149,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             logResponseMessage();
             writeSignature();
             close();
+            postprocess();
         } catch (Exception ex) {
             handleException(ex);
         } finally {
@@ -227,13 +229,14 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
     private void updateOpMonitoringDataByRequest() {
         updateOpMonitoringDataByRestRequest(opMonitoringData, requestMessage.getRest());
+        opMonitoringData.setRequestAttachmentCount(0);
         opMonitoringData.setRequestRestSize(requestMessage.getRest().getMessageBytes().length
                 + decoder.getAttachmentsByteCount());
     }
 
-    private void checkRequest() throws Exception {
+    private void checkRequest() {
         if (requestMessage.getRest() == null) {
-            throw new CodedException(X_MISSING_SOAP, "Request does not have REST message");
+            throw new CodedException(X_MISSING_REST, "Request does not have REST message");
         }
 
         if (requestMessage.getSignature() == null) {
@@ -367,7 +370,9 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
         final HttpContext ctx = new BasicHttpContext();
         ctx.setAttribute(ServiceId.class.getName(), requestServiceId);
+        opMonitoringData.setRequestOutTs(getEpochMillisecond());
         final HttpResponse response = httpClient.execute(req, ctx);
+        opMonitoringData.setResponseInTs(getEpochMillisecond());
         final StatusLine statusLine = response.getStatusLine();
 
         //calculate request hash
@@ -401,6 +406,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             EntityUtils.consume(response.getEntity());
         }
 
+        opMonitoringData.setResponseAttachmentCount(0);
         opMonitoringData.setResponseRestSize(restResponse.getMessageBytes().length + encoder.getAttachmentsByteCount());
     }
 
@@ -464,7 +470,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     private void monitorAgentNotifyFailure(CodedException ex) {
         MessageInfo info = null;
 
-        boolean requestIsComplete = requestMessage != null && requestMessage.getSoap() != null
+        boolean requestIsComplete = requestMessage != null && requestMessage.getRest() != null
                 && requestMessage.getSignature() != null;
 
         // Include the request message only if the error was caused while
@@ -482,7 +488,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             return null;
         }
         final RestRequest rest = requestMessage.getRest();
-        return new MessageInfo(Origin.SERVER_PROXY, rest.getClientId(), requestServiceId, null, null);
+        return new MessageInfo(Origin.SERVER_PROXY, rest.getClientId(), requestServiceId, null, rest.getQueryId());
     }
 
     private X509Certificate getClientAuthCert() {

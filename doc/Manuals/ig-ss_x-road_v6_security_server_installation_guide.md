@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.16  
+Version: 2.17  
 Doc. ID: IG-SS
 
 ---
@@ -41,6 +41,7 @@ Doc. ID: IG-SS
  25.10.2018 | 2.14    | Add RHEL7 as supported platform, update section 2.2 Reference data | Petteri Kivimäki
  15.11.2018 | 2.15    | Add Ubuntu 18 installation instructions | Jarkko Hyöty
  28.01.2018 | 2.16    | Update port 2080 documentation | Petteri Kivimäki
+ 30.05.2018 | 2.17    | Added package installation instructions on chapter "[2.4 Preparing OS](#24-preparing-os)" | Raul Martinez
   
 ## Table of Contents
 
@@ -176,6 +177,10 @@ Requirements to software and settings:
 
         LC_ALL=en_US.UTF-8
 
+-   Ensure that the packages `locales` and `software-properties-common` are present
+
+        sudo apt-get install locales software-properties-common
+
 -   Ensure that the locale is available
 
         sudo locale-gen en_US.UTF-8
@@ -207,7 +212,7 @@ Upon the first installation of the packages, the system asks for the following i
 
 -   Account name for the user who will be granted the rights to perform all activities in the user interface (**reference data: 1.3**).
 
--   The Distinguished Name of the owner of the **user interface’s** self-signed TLS certificate (*Subject DN*) and its alternative names (*subjectAltName*) (**reference data: 1.8; 1.10**). The certificate is used for securing connections to the user interface.
+-   The Distinguished Name of the owner of the **user interface's and management REST API's** self-signed TLS certificate (*Subject DN*) and its alternative names (*subjectAltName*) (**reference data: 1.8; 1.10**). The certificate is used for securing connections to the user interface and to the management REST APIs.
     The name and IP addresses detected from the operating system are suggested as default values.
 
     -   The *Subject DN* must be entered in the format:

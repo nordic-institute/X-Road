@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.44
+Version: 2.46
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -54,6 +54,8 @@ Doc. ID: UG-SYSPAR
 | 03.02.2019 | 2.42     | Added new Central Server parameter *auto-approve-client-reg-requests* | Petteri Kivimäki |
 | 27.03.2019 | 2.43     | Added management REST API parameters | Janne Mattila |
 | 02.04.2019 | 2.44     | Added new message log parameter *clean-transaction-batch* | Jarkko Hyöty |
+| 08.04.2019 | 2.45     | Update REST related message log parameters' descriptions | Petteri Kivimäki |
+| 30.04.2019 | 2.46     | Added new parameter *timestamp-retry-delay* | Petteri Kivimäki |
 
 ## Table of Contents
 
@@ -80,7 +82,7 @@ Doc. ID: UG-SYSPAR
     - [3.7 Message log add-on parameters: `[message-log]`](#37-message-log-add-on-parameters-message-log)
       - [3.7.1 Note on logged X-Road message headers](#371-note-on-logged-x-road-message-headers)
     - [3.8 Environmental monitoring add-on configuration parameters: `[env-monitor]`](#38-environmental-monitoring-add-on-configuration-parameters-env-monitor)
-    - [3.9 Management REST API parameters: `[rest-api]`](#39-management-rest-api-parameters-rest-api)
+    - [3.9 Management REST API parameters: `[proxy-ui-api]`](#39-management-rest-api-parameters-rest-api)
   - [4 Central Server System Parameters](#4-central-server-system-parameters)
     - [4.1 System Parameters in the Configuration File](#41-system-parameters-in-the-configuration-file)
       - [4.1.1 Common parameters: `[common]`](#411-common-parameters-common)
@@ -118,6 +120,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 6.  <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] [X-Road Terms and Abbreviations](../terms_x-road_docs.md).
 7.  <a id="Ref_CRONMAN"></a>\[CRONMAN\] [http://linux.die.net/man/8/cron](http://linux.die.net/man/8/cron).
 8.  <a id="Ref_CRONHOW"></a>\[CRONHOW\] Cron format specifications [https://help.ubuntu.com/community/CronHowto](https://help.ubuntu.com/community/CronHowto).
+9.  <a id="Ref_PR-REST"></a>\[PR-REST\] [X-Road Message Protocol for REST v. 1.0](../Protocols/pr-rest_x-road_message_protocol_for_rest.md).
 
 ## 2 Changing the System Parameter Values
 
@@ -304,12 +307,12 @@ to use for example MySQL as a data store for REST API module.
 
 | **Parameter**                                    | **Vanilla value**                          | **FI-package value** | **EE-package value** | **Description** |
 |--------------------------------------------------|--------------------------------------------|----------------------|----------------------|-----------------|
-| message-body-logging                             | true                                       | false  |   | Whether message body should be logged or not.<br/><br/>If *true*, the messages are logged in their original form. If *false*, the message body is cleared of its contents (SOAP body will have an empty child element inside it). In addition, the SOAP/REST header will only have specific set of elements logged, see [Note on logged X-Road message headers](#note-on-logged-x-road-message-headers) . As a side effect, details such as formatting and namespace labels of the xml message can be changed and new elements may be introduced for default values in SOAP header.<br/><br/>Removal of message body is usually done for confidentiality reasons (body contains data that we do not want to have in the logs).<br/><br/>Note that changing the message this way prevents verifying its signature with the asicverifier tool. |
+| message-body-logging                             | true                                       | false  |   | Whether message body should be logged or not.<br/><br/>If *true*, the messages are logged in their original form. If *false*, the message body is cleared of its contents (SOAP body will have an empty child element inside it; REST message body, service path and query parameters will be omitted). In addition, the SOAP header and REST HTTP headers will only have specific set of elements logged, see [Note on logged X-Road message headers](#note-on-logged-x-road-message-headers) . As a side effect, details such as formatting and namespace labels of the xml message can be changed and new elements may be introduced for default values in SOAP header.<br/><br/>Removal of message body is usually done for confidentiality reasons (body contains data that we do not want to have in the logs).<br/><br/>Note that changing the message this way prevents verifying its signature with the asicverifier tool. |
 | soap-body-logging                                | true                                       | false  |   | (deprecated, see message-body-logging) | 
-| enabled-body-logging-local-producer-subsystems   |                                            |   |   | Subsystem-specific overrides for SOAP body logging when soap-body-logging = false.<br/><br/>This parameter defines logging for **local producer** subsystems, that is, our subsystems that produce some service which external clients use.<br/><br/>Comma-separated list of client identifiers for which SOAP body logging is enabled. For example FI/ORG/1710128-9/SUBSYSTEM\_A1, FI/ORG/1710128-9/SUBSYSTEM\_A2 where<br/>-   FI = x-road instance<br/>-   ORG = member class<br/>-   1710128-9 = member code<br/>-   SUBSYSTEM\_A1 = subsystem code<br/><br/>This parameter can only be used on subsystem-level, it is not possible to configure SOAP body logging per member.<br/><br/>If a subsystem has forward slashes “/” in for example subsystem code, those subsystems can’t be configured with this parameter. |
-| enabled-body-logging-remote-producer-subsystems  |                                            |   |   | Subsystem-specific overrides for **remote producer** subsystems, that is, remote subsystems that produce services which we use.<br/><br/>Parameter is used when soap-body-logging = false. |
-| disabled-body-logging-local-producer-subsystems  |                                            |   |   | Same as enabled-body-logging-local-producer-subsystems, but this parameter is used when soap-body-logging = true. |
-| disabled-body-logging-remote-producer-subsystems |                                            |   |   | Same as enabled-body-logging-remote-producer-subsystems, but this parameter is used when soap-body-logging = true. |
+| enabled-body-logging-local-producer-subsystems   |                                            |   |   | Subsystem-specific overrides for message body logging when message-body-logging = false.<br/><br/>This parameter defines logging for **local producer** subsystems, that is, our subsystems that produce some service which external clients use.<br/><br/>Comma-separated list of client identifiers for which message body logging is enabled. For example FI/ORG/1710128-9/SUBSYSTEM\_A1, FI/ORG/1710128-9/SUBSYSTEM\_A2 where<br/>-   FI = x-road instance<br/>-   ORG = member class<br/>-   1710128-9 = member code<br/>-   SUBSYSTEM\_A1 = subsystem code<br/><br/>This parameter can only be used on subsystem-level, it is not possible to configure message body logging per member.<br/><br/>If a subsystem has forward slashes “/” in for example subsystem code, those subsystems can’t be configured with this parameter. |
+| enabled-body-logging-remote-producer-subsystems  |                                            |   |   | Subsystem-specific overrides for **remote producer** subsystems, that is, remote subsystems that produce services which we use.<br/><br/>Parameter is used when message-body-logging = false. |
+| disabled-body-logging-local-producer-subsystems  |                                            |   |   | Same as enabled-body-logging-local-producer-subsystems, but this parameter is used when message-body-logging = true. |
+| disabled-body-logging-remote-producer-subsystems |                                            |   |   | Same as enabled-body-logging-remote-producer-subsystems, but this parameter is used when message-body-logging = true. |
 | acceptable-timestamp-failure-period              | 14400                                      | 18000   |   | Defines the time period (in seconds) for how long is time-stamping allowed to fail (for whatever reasons) before the message log stops accepting any more messages (and consequently the security server stops accepting requests). Set to 0 to disable this check. The value of this parameter should not be lower than the value of the central server system parameter *timeStampingIntervalSeconds.* |
 | archive-interval                                 | 0 0 0/6 1/1 \* ? \*                        |   |   | CRON expression \[[CRON](#Ref_CRON)\] defining the interval of archiving the time-stamped messages. |
 | archive-max-filesize                             | 33554432                                   |   |   | Maximum size for archived files in bytes. Reaching the maximum value triggers file rotation. |
@@ -321,18 +324,30 @@ to use for example MySQL as a data store for REST API module.
 | timestamp-records-limit                          | 10000                                      |   |   | Maximum number of message records to time-stamp in one batch. If the number of message records in a single batch exceeds 70 % of `timestamp-records-limit` value, a warning is logged in `proxy.log`. |
 | timestamper-client-connect-timeout               | 20000                                      |   |   | The timestamper client connect timeout in milliseconds. A timeout of zero is interpreted as an infinite timeout. |
 | timestamper-client-read-timeout                  | 60000                                      |   |   | The timestamper client read timeout in milliseconds. A timeout of zero is interpreted as an infinite timeout. |
+| timestamp-retry-delay                            | 60                                         |   |   | Time-stamp retry delay in seconds when batch time-stamping fails. After failing to batch time-stamp, the timestamper waits for the time period defined by "timestamp-retry-delay" before trying again. This is repeated until fetching a time-stamp succeeds. After successfully fetching a time-stamp, the timestamper returns to normal time-stamping schedule. If the value of "timestamp-retry-delay" is higher than the value of the central server system parameter "timeStampingIntervalSeconds", the value of "timeStampingIntervalSeconds" is used. If the value of "timestamp-retry-delay" is zero, the value of "timeStampingIntervalSeconds" is used. |
 | archive-transaction-batch                        | 10000                                      |   |   | Size of transaction batch for archiving messagelog. This size is not exact because it will always make sure that last archived batch includes timestamp also (this might mean that it will go over transaction size).
 | max-loggable-body-size                           | 10485760 (10 MiB)                          |   |   | Maximum loggable REST message body size |
 | truncated-body-allowed                           | false                                      |   |   | If the REST message body exceeds the maximum loggable body size, truncate the body in the log (true) or reject the message (false). |
 | clean-transaction-batch                          | 10000                                      |   |   | Maximun number of log records to remove in one transaction. |
 
 #### 3.7.1 Note on logged X-Road message headers
-If the messagelog add-on has the SOAP body logging disabled, only a preconfigured set of the SOAP headers will be included in the message log.
+
+If the messagelog add-on has the message body logging disabled, only a preconfigured set of the SOAP headers and/or 
+REST HTTP headers will be included in the message log.
+
+**SOAP**
 
 The logged SOAP headers are the X-Road message headers listed in [Chapter 2.2](../Protocols/pr-mess_x-road_message_protocol.md#22-message-headers) of
 the X-Road Message Protocol document \[[PR-MESS](#Ref_PR-MESS)\], as well as the `representedParty` extension of the X-Road protocol described in the
 extension's [XML schema](http://x-road.eu/xsd/representation.xsd). The security server targeting extension for the X-Road message protocol
 \[[PR-TARGETSS](#Ref_PR-TARGETSS)\] or the Security Token Extension \[[PR-SECTOKEN](#Ref_PR-SECTOKEN)\] will not be included in the message log.
+
+**REST**
+
+The logged HTTP headers are the X-Road HTTP headers listed in [Chapter 4.3](../Protocols/pr-rest_x-road_message_protocol_for_rest.md#43-use-of-http-headers) of
+the X-Road Message Protocol for REST document \[[PR-REST](#Ref_PR-REST)\], including the security server targeting 
+extension for the X-Road message protocol \[[PR-TARGETSS](#Ref_PR-TARGETSS)\]. All other HTTP headers are excluded from 
+the message log.
 
 ### 3.8 Environmental monitoring add-on configuration parameters: `[env-monitor]`
 
@@ -345,7 +360,7 @@ extension's [XML schema](http://x-road.eu/xsd/representation.xsd). The security 
 | certificate-info-sensor-interval                 | 86400                                      | Interval of certificate information sensor in seconds. How often certificate data is collected. The first collection is always done after a delay of 10 seconds. |
 | limit-remote-data-set                            | false                                      | On/Off switch for filtering out optional monitoring data. With flag set to true, only security server owner can request and get full data set. |
 
-### 3.9 Management REST API parameters: `[rest-api]`
+### 3.9 Management REST API parameters: `[proxy-ui-api]`
 
 | **Parameter**                                    | **Vanilla value**                          | **Description** |
 |--------------------------------------------------|--------------------------------------------|-----------------|

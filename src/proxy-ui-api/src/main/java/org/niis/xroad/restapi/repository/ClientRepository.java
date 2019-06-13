@@ -56,7 +56,6 @@ public class ClientRepository {
     /**
      * Executes a Hibernate saveOrUpdate(client)
      * @param clientType
-     * @return
      */
     public void saveOrUpdate(ClientType clientType) {
         persistenceUtils.getCurrentSession().saveOrUpdate(clientType);
@@ -75,7 +74,7 @@ public class ClientRepository {
      * return all clients
      * @return
      */
-    public List<ClientType> getAllClients() {
+    public List<ClientType> getAllLocalClients() {
         ServerConfDAOImpl serverConf = new ServerConfDAOImpl();
         List<ClientType> clientTypes = serverConf.getConf(persistenceUtils.getCurrentSession()).getClient();
         Hibernate.initialize(clientTypes);

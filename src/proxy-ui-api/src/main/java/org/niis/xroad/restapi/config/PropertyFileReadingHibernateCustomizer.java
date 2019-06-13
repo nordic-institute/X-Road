@@ -50,6 +50,7 @@ public class PropertyFileReadingHibernateCustomizer implements HibernateProperti
         // called twice since IntelliJ tests load the class twice
         SystemPropertiesInitializer.initialize();
         Properties dbProperties = new Properties();
+
         try (FileInputStream dbPropertiesStream = new FileInputStream(SystemProperties.getDatabasePropertiesFile())) {
             dbProperties.load(dbPropertiesStream);
         } catch (IOException ioe) {
