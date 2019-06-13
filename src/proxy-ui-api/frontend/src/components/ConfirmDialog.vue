@@ -5,8 +5,8 @@
       <v-card-text>{{$t(text)}}</v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="primary" flat @click="cancel()">{{$t(cancelText)}}</v-btn>
-        <v-btn color="primary" flat @click="accept()">{{$t(acceptText)}}</v-btn>
+        <v-btn color="primary" flat @click="cancel()">{{$t(cancelButtonText)}}</v-btn>
+        <v-btn color="primary" flat @click="accept()">{{$t(acceptButtonText)}}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -33,11 +33,11 @@ export default Vue.extend({
       type: String,
       required: true,
     },
-    cancelText: {
+    cancelButtonText: {
       type: String,
       default: 'localGroup.cancel',
     },
-    acceptText: {
+    acceptButtonText: {
       type: String,
       default: 'localGroup.yes',
     },
