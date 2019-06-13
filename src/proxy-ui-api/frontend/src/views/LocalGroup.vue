@@ -39,7 +39,7 @@
       <div class="row-title">{{$t('localGroup.groupMembers')}}</div>
       <div class="row-buttons">
         <v-btn
-          v-if="showRemove()"
+          v-if="canEditMembers"
           outline
           color="primary"
           class="xr-big-button"
@@ -48,7 +48,7 @@
           @click="removeAllMembers()"
         >{{$t('localGroup.removeAll')}}</v-btn>
         <v-btn
-          v-if="showAddMembers()"
+          v-if="canEditMembers"
           outline
           color="primary"
           class="xr-big-button"
@@ -75,7 +75,7 @@
             <td>
               <div class="button-wrap">
                 <v-btn
-                  v-if="showRemove()"
+                  v-if="canEditMembers"
                   small
                   outline
                   round
@@ -101,52 +101,38 @@
     </v-card>
 
     <!-- Confirm dialog delete group -->
-    <v-dialog v-model="confirmGroup" persistent max-width="290">
-      <v-card>
-        <v-card-title class="headline">{{$t('localGroup.deleteTitle')}}</v-card-title>
-        <v-card-text>{{$t('localGroup.deleteText')}}</v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="primary" flat @click="confirmGroup = false">{{$t('localGroup.cancel')}}</v-btn>
-          <v-btn color="primary" flat @click="doDeleteGroup()">{{$t('localGroup.yes')}}</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <confirmDialog
+      :dialog="confirmGroup"
+      title="localGroup.deleteTitle"
+      text="localGroup.deleteText"
+      @cancel="confirmGroup = false"
+      @accept="doDeleteGroup()"
+    />
 
     <!-- Confirm dialog remove member -->
-    <v-dialog v-model="confirmMember" persistent max-width="290">
-      <v-card>
-        <v-card-title class="headline">{{$t('localGroup.removeTitle')}}</v-card-title>
-        <v-card-text>{{$t('localGroup.removeText')}}</v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="primary" flat @click="confirmMember = false">{{$t('localGroup.cancel')}}</v-btn>
-          <v-btn color="primary" flat @click="doRemoveMember()">{{$t('localGroup.yes')}}</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <confirmDialog
+      :dialog="confirmMember"
+      title="localGroup.removeTitle"
+      text="localGroup.removeText"
+      @cancel="confirmMember = false"
+      @accept="doRemoveMember()"
+    />
 
     <!-- Confirm dialog remove all members -->
-
-    <v-dialog v-model="confirmAllMembers" persistent max-width="290">
-      <v-card>
-        <v-card-title class="headline">{{$t('localGroup.removeTitle')}}</v-card-title>
-        <v-card-text>{{$t('localGroup.removeText')}}</v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="primary" flat @click="confirmMember = false">{{$t('localGroup.cancel')}}</v-btn>
-          <v-btn color="primary" flat @click="doRemoveAllMembers()">{{$t('localGroup.yes')}}</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <confirmDialog
+      :dialog="confirmAllMembers"
+      title="localGroup.removeAllTitle"
+      text="localGroup.removeAllText"
+      @cancel="confirmAllMembers = false"
+      @accept="doRemoveAllMembers()"
+    />
 
     <!-- Add new members dialog -->
-
     <addMembersDialog
       :dialog="addMembersDialogVisible"
-      :id="clientId"
+      :groupId="groupId"
       @cancel="closeMembersDialog()"
-      @groupAdded="membersAdded()"
+      @membersAdded="membersAdded()"
     />
   </div>
 </template>
@@ -159,11 +145,13 @@ import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
 import SubViewTitle from '@/components/SubViewTitle.vue';
 import AddMembersDialog from '@/components/AddMembersDialog.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 
 export default Vue.extend({
   components: {
     SubViewTitle,
     AddMembersDialog,
+    ConfirmDialog,
   },
   props: {
     clientId: {
@@ -197,6 +185,13 @@ export default Vue.extend({
         Permissions.EDIT_LOCAL_GROUP_DESC,
       );
     },
+
+    canEditMembers(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.EDIT_LOCAL_GROUP_MEMBERS,
+      );
+    },
+
     hasMembers(): boolean {
       const tempGroup: any = this.group;
 
@@ -209,16 +204,6 @@ export default Vue.extend({
   methods: {
     close(): void {
       this.$router.go(-1);
-    },
-
-    showRemove(): boolean {
-      // TODO placeholder. will be done in future task
-      return true;
-    },
-
-    showAddMembers(): boolean {
-      // TODO placeholder. will be done in future task
-      return true;
     },
 
     saveDescription(): void {
@@ -249,8 +234,12 @@ export default Vue.extend({
     },
 
     addMembers(): void {
-      // TODO placeholder. will be done in future task
       this.addMembersDialogVisible = true;
+    },
+
+    membersAdded(): void {
+      this.addMembersDialogVisible = false;
+      this.fetchData(this.clientId, this.groupId);
     },
 
     closeMembersDialog(): void {
@@ -269,7 +258,6 @@ export default Vue.extend({
       });
 
       this.removeArrayOfMembers(ids);
-
       this.confirmAllMembers = false;
     },
 
