@@ -34,19 +34,29 @@
         </template>
       </table>
     </v-card>
+
+    <newGroupDialog
+      :dialog="addGroupDialog"
+      :id="id"
+      @cancel="closeDialog()"
+      @groupAdded="groupAdded()"
+    />
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import axios from 'axios';
+import NewGroupDialog from '@/components/NewGroupDialog.vue';
 
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
 import { selectedFilter } from '@/util/helpers';
 
 export default Vue.extend({
-  components: {},
+  components: {
+    NewGroupDialog,
+  },
   props: {
     id: {
       type: String,
@@ -58,6 +68,7 @@ export default Vue.extend({
       search: '',
       dialog: false,
       groups: [],
+      addGroupDialog: false,
     };
   },
   computed: {
@@ -71,8 +82,16 @@ export default Vue.extend({
   },
   methods: {
     addGroup(): void {
-      // TODO will be done in XRDDEV-519
-      console.log('add');
+      this.addGroupDialog = true;
+    },
+
+    closeDialog(): void {
+      this.addGroupDialog = false;
+    },
+
+    groupAdded(): void {
+      this.fetchGroups(this.id);
+      this.addGroupDialog = false;
     },
 
     filtered(): any[] {
@@ -82,7 +101,7 @@ export default Vue.extend({
     viewGroup(group: any): void {
       this.$router.push({
         name: RouteName.LocalGroup,
-        params: { id: this.id, code: group.code },
+        params: { clientId: this.id, groupId: group.id },
       });
     },
 

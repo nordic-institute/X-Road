@@ -20,7 +20,7 @@
     </div>
 
     <div class="edit-row">
-      <template v-if="canEditDescription()">
+      <template v-if="canEditDescription">
         <div>{{$t('localGroup.editDesc')}}</div>
         <v-text-field
           v-model="description"
@@ -44,9 +44,9 @@
           color="primary"
           class="xr-big-button"
           type="file"
+          :disabled="!hasMembers"
           @click="removeAllMembers()"
         >{{$t('localGroup.removeAll')}}</v-btn>
-
         <v-btn
           v-if="showAddMembers()"
           outline
@@ -54,7 +54,7 @@
           class="xr-big-button"
           type="file"
           @click="addMembers()"
-        >{{$t('localGroup.add')}}</v-btn>
+        >{{$t('localGroup.addMembers')}}</v-btn>
       </div>
     </div>
 
@@ -107,8 +107,8 @@
         <v-card-text>{{$t('localGroup.deleteText')}}</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="darken-1" flat @click="confirmGroup = false">{{$t('localGroup.cancel')}}</v-btn>
-          <v-btn color="darken-1" flat @click="doDeleteGroup()">{{$t('localGroup.yes')}}</v-btn>
+          <v-btn color="primary" flat @click="confirmGroup = false">{{$t('localGroup.cancel')}}</v-btn>
+          <v-btn color="primary" flat @click="doDeleteGroup()">{{$t('localGroup.yes')}}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -120,8 +120,8 @@
         <v-card-text>{{$t('localGroup.removeText')}}</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="darken-1" flat @click="confirmMember = false">{{$t('localGroup.cancel')}}</v-btn>
-          <v-btn color="darken-1" flat @click="doRemoveMember()">{{$t('localGroup.yes')}}</v-btn>
+          <v-btn color="primary" flat @click="confirmMember = false">{{$t('localGroup.cancel')}}</v-btn>
+          <v-btn color="primary" flat @click="doRemoveMember()">{{$t('localGroup.yes')}}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -141,12 +141,12 @@ export default Vue.extend({
     SubViewTitle,
   },
   props: {
-    id: {
+    clientId: {
       type: String,
       required: true,
     },
-    code: {
-      type: String,
+    groupId: {
+      type: Number,
       required: true,
     },
   },
@@ -163,19 +163,26 @@ export default Vue.extend({
   },
   computed: {
     ...mapGetters(['tlsCertificates']),
-    showDelete() {
-      return true;
+    showDelete(): boolean {
+      return this.$store.getters.hasPermission(Permissions.DELETE_LOCAL_GROUP);
+    },
+    canEditDescription(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.EDIT_LOCAL_GROUP_DESC,
+      );
+    },
+    hasMembers(): boolean {
+      const tempGroup: any = this.group;
+
+      if (tempGroup && tempGroup.members && tempGroup.members.length > 0) {
+        return true;
+      }
+      return false;
     },
   },
   methods: {
     close(): void {
       this.$router.go(-1);
-    },
-
-    canEditDescription(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.EDIT_LOCAL_GROUP_DESC,
-      );
     },
 
     showRemove(): boolean {
@@ -190,25 +197,21 @@ export default Vue.extend({
 
     saveDescription(): void {
       axios
-        .put(
-          `/clients/${this.id}/groups/${this.code}?description=${
-            this.description
-          }`,
-        )
+        .put(`/groups/${this.groupId}?description=${this.description}`)
         .then((res) => {
+          this.$bus.$emit('show-success', 'localGroup.descSaved');
           this.group = res.data;
           this.groupCode = res.data.code;
           this.description = res.data.description;
-          this.$bus.$emit('show-success', this.$t('localGroup.descSaved'));
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
         });
     },
 
-    fetchData(clientId: string, code: string): void {
+    fetchData(clientId: string, groupId: number): void {
       axios
-        .get(`/clients/${clientId}/groups/${code}`)
+        .get(`/groups/${groupId}`)
         .then((res) => {
           this.group = res.data;
           this.groupCode = res.data.code;
@@ -242,11 +245,20 @@ export default Vue.extend({
     },
     doDeleteGroup(): void {
       this.confirmGroup = false;
-      // TODO placeholder. will be done in future task
+
+      axios
+        .delete(`/groups/${this.groupId}`)
+        .then(() => {
+          this.$bus.$emit('show-success', 'localGroup.groupDeleted');
+          this.$router.go(-1);
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
     },
   },
   created() {
-    this.fetchData(this.id, this.code);
+    this.fetchData(this.clientId, this.groupId);
   },
 });
 </script>

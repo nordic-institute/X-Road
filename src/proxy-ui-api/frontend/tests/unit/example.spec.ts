@@ -26,6 +26,9 @@ describe('Toolbar', () => {
     wrapper = mount(Toolbar, {
       localVue,
       router,
+      mocks: {
+        $t: () => 'localized text'
+      }
     });
   });
 

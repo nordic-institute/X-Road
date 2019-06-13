@@ -69,7 +69,8 @@
     "rsaModulus": "RSA Public Key Modulus",
     "rsaExp": "RSA Public Key Exponent",
     "deleteCertTitle": "Delete certificate?",
-    "deleteCertConfirm": "Are you sure that you want to delete this certificate?"
+    "deleteCertConfirm": "Are you sure that you want to delete this certificate?",
+    "certDeleted": "Certificate deleted"
   },
   "localGroups": {
     "addGroup": "Add group",
@@ -84,7 +85,7 @@
     "editDesc": "Edit description",
     "groupMembers": "Group Members",
     "removeAll": "Remove All",
-    "add": "Add Members",
+    "addMembers": "Add Members",
     "name": "Member Name",
     "id": "Id",
     "accessDate": "Access Rights Given",
@@ -96,7 +97,13 @@
     "yes": "Yes",
     "removeTitle": "Remove member?",
     "removeText": "Are you sure that you want to remove this member?",
-    "descSaved": "Description saved"
+    "descSaved": "Description saved",
+    "groupDeleted": "Group deleted",
+    "description": "Description",
+    "add": "Add",
+    "code": "Code",
+    "addLocalGroup": "Add Local Group",
+    "localGroupAdded": "Local group added"
   },
   "action": {
     "addSubsystem": "add subsystem",
