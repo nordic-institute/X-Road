@@ -584,5 +584,22 @@ public class ClientsApiControllerIntegrationTest {
                 .findFirst();
     }
 
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENTS" })
+    public void findAllClientsByPartialNameIncludeMembers() {
+        ResponseEntity<List<Client>> clientsResponse = clientsApiController.getClients(SUBSYSTEM3, null,
+                null, null, null, false, false);
+        assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
+        assertEquals(1, clientsResponse.getBody().size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENTS" })
+    public void findAllClientsByPartialSearchTermsIncludeMembers() {
+        ResponseEntity<List<Client>> clientsResponse = clientsApiController.getClients(null, "F",
+                "OV", "1", "1", false, true);
+        assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
+        assertEquals(1, clientsResponse.getBody().size());
+    }
 
 }
