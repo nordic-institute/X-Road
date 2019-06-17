@@ -1098,6 +1098,13 @@ paths:
             format: text
             minLength: 1
             maxLength: 1023
+        - in: query
+          name: ignore_warnings
+          description: if true, any warnings are ignored. if false (or missing),
+              any warnings cause request to fail
+          required: false
+          schema:
+            type: boolean
       requestBody:
         content:
           application/json:
@@ -1114,7 +1121,14 @@ paths:
         '201':
           description: item created
         '400':
-          description: request was invalid
+          description: there are warnings or errors related to the service description
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/ErrorObject'
         '401':
           description: authentication credentials are missing
         '403':
@@ -1991,49 +2005,6 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /service-descriptions/validate:
-    post:
-      tags:
-        - security server
-      summary: validate a service description at given url, return warnings and errors
-      operationId: validateServiceDescription
-      description: SS administrator validates a selected service description before asking confirmation about warnings,
-        or adding it.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                url:
-                  type: string
-                  format: text
-                  description: path for the service description file
-                  minLength: 1
-                  maxLength: 255
-      responses:
-        '200':
-          description: no warnings or errors
-        '400':
-          description: there are warnings or errors related to the service description
-          content:
-            application/json:
-              schema:
-                type: array
-                uniqueItems: true
-                items:
-                  $ref: '#/components/schemas/ErrorObject'
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
-
   /service-descriptions/{id}:
     put: # ok
       tags:
@@ -2052,14 +2023,24 @@ paths:
             minLength: 1
             maxLength: 255
         - in: query
-          name: url
-          description: path for the service description file
-          required: true
+          name: ignore_warnings
+          description: if true, any warnings are ignored. if false (or missing),
+              any warnings cause request to fail
+          required: false
           schema:
-            type: string
-            format: url
-            minLength: 1
-            maxLength: 255
+            type: boolean
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: text
+                  description: path for the service description file
+                  minLength: 1
+                  maxLength: 255
       responses:
         '200':
           description: item modified
@@ -2068,7 +2049,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/ServiceDescription'
         '400':
-          description: request was invalid
+          description: there are warnings or errors related to the service description
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/ErrorObject'
         '401':
           description: authentication credentials are missing
         '403':
@@ -2198,6 +2186,13 @@ paths:
             format: text
             minLength: 1
             maxLength: 255
+        - in: query
+          name: ignore_warnings
+          description: if true, any warnings are ignored. if false (or missing),
+              any warnings cause request to fail
+          required: false
+          schema:
+            type: boolean
       responses:
         '200':
           description: item refreshed
@@ -2206,7 +2201,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/ServiceDescription'
         '400':
-          description: request was invalid
+          description: there are warnings or errors related to the service description
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/ErrorObject'
         '401':
           description: authentication credentials are missing
         '403':
