@@ -4,7 +4,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.5"
+  version: "1.0.6"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -1991,6 +1991,49 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
+  /service-descriptions/validate:
+    post:
+      tags:
+        - security server
+      summary: validate a service description at given url, return warnings and errors
+      operationId: validateServiceDescription
+      description: SS administrator validates a selected service description before asking confirmation about warnings,
+        or adding it.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: text
+                  description: path for the service description file
+                  minLength: 1
+                  maxLength: 255
+      responses:
+        '200':
+          description: no warnings or errors
+        '400':
+          description: there are warnings or errors related to the service description
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/ErrorObject'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+
   /service-descriptions/{id}:
     put: # ok
       tags:
@@ -3180,6 +3223,28 @@ components:
       enum:
         - PEM
         - DER
+    ErrorObject:
+      type: object
+      description: object returned in error cases
+      required:
+        - status
+      properties:
+        status:
+          type: integer
+          format: int32
+          description: http status code
+          example: 400
+        error_code:
+          type: string
+          format: text
+          description: detailed error code
+          example: certificate_not_found
+        warnings:
+          type: array
+          description: warnings that could be ignored
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/Warning'
     GlobalConfiguration: # ok
       type: object
       description: global configuration
@@ -3744,5 +3809,25 @@ components:
           example: Security Server version 6.21.0-SNAPSHOT-20190411git32add470
           minLength: 1
           maxLength: 255
+    Warning:
+      type: object
+      description: warning, primarily from service description validation
+      required:
+        - type
+        - metadata
+      properties:
+        code:
+          type: string
+          format: text
+          description: identifier of the warning type
+          example: adding_services
+        metadata:
+          type: array
+          description: array containing metadata associated with the warning. For example names of services that
+            are to be added
+          uniqueItems: true
+          items:
+            type: string
+            format: text
 security:
   - ApiKeyAuth: []
