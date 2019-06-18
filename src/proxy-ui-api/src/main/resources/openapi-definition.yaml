@@ -1128,7 +1128,7 @@ paths:
                 type: array
                 uniqueItems: true
                 items:
-                  $ref: '#/components/schemas/ErrorObject'
+                  $ref: '#/components/schemas/ErrorInfo'
         '401':
           description: authentication credentials are missing
         '403':
@@ -2092,7 +2092,7 @@ paths:
                 type: array
                 uniqueItems: true
                 items:
-                  $ref: '#/components/schemas/ErrorObject'
+                  $ref: '#/components/schemas/ErrorInfo'
         '401':
           description: authentication credentials are missing
         '403':
@@ -2244,7 +2244,7 @@ paths:
                 type: array
                 uniqueItems: true
                 items:
-                  $ref: '#/components/schemas/ErrorObject'
+                  $ref: '#/components/schemas/ErrorInfo'
         '401':
           description: authentication credentials are missing
         '403':
@@ -3261,7 +3261,7 @@ components:
       enum:
         - PEM
         - DER
-    ErrorObject:
+    ErrorInfo:
       type: object
       description: object returned in error cases
       required:
