@@ -16,29 +16,38 @@
 
             <div>
               <div class="flex-wrap">
-                <v-text-field
-                  v-model="name"
-                  label="Name"
-                  single-line
-                  hide-details
-                  class="flex-input"
-                ></v-text-field>
+                <div class="input-row">
+                  <v-text-field
+                    v-model="name"
+                    label="Name"
+                    single-line
+                    hide-details
+                    class="flex-input"
+                  ></v-text-field>
 
-                <v-select v-model="instance" :items="instances" label="Instance" class="flex-input"></v-select>
+                  <v-select
+                    v-model="instance"
+                    :items="instances"
+                    label="Instance"
+                    class="flex-input"
+                  ></v-select>
+                </div>
 
-                <v-select
-                  v-model="memberClass"
-                  :items="instances"
-                  label="Member class"
-                  class="flex-input"
-                ></v-select>
-                <v-text-field
-                  v-model="memberCode"
-                  label="Member code"
-                  single-line
-                  hide-details
-                  class="flex-input"
-                ></v-text-field>
+                <div class="input-row">
+                  <v-select
+                    v-model="memberClass"
+                    :items="instances"
+                    label="Member class"
+                    class="flex-input"
+                  ></v-select>
+                  <v-text-field
+                    v-model="memberCode"
+                    label="Member code"
+                    single-line
+                    hide-details
+                    class="flex-input"
+                  ></v-text-field>
+                </div>
                 <v-text-field
                   v-model="subsystemCode"
                   label="Subsystem code"
@@ -221,20 +230,11 @@ export default Vue.extend({
   padding-right: 20px;
 }
 
-.edit-row {
+.input-row {
   display: flex;
-  align-content: center;
-  align-items: flex-end;
-  margin-top: 0px;
-  margin-bottom: 20px;
-
-  .row-title {
-    min-width: 100px;
-  }
-
-  .row-input {
-    margin-left: 10px;
-  }
+  width: 100%;
+  justify-content: space-between;
+  padding-right: 10px;
 }
 
 .flex-wrap {
@@ -246,9 +246,7 @@ export default Vue.extend({
 
 .flex-input {
   margin: 4px;
-  width: 46%;
   max-width: 310px;
-  margin-right: 40px;
 }
 
 .search-wrap {
