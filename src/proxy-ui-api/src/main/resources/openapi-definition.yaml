@@ -4,7 +4,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.0"
+  version: "1.0.6"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -13,26 +13,25 @@ info:
     url: https://opensource.org/licenses/MIT
 tags:
   - name: security server
-    description: <br>Security Server operations and API calls
+    description: <br>Security Server API design
   - name: central server
-    description: <br>Central Server operations and API calls
+    description: <br>Central Server API design
 paths:
-  /backups: # ok
-    get:
+  /backups:
+    get: # ok
       tags:
         - security server
       summary: get security server backups
       operationId: getBackups
-      description: SS administrator views backups of the security server.
-      security:
-        - ApiKeyAuth: []
+      description: Administrator views the backups for the security server.
       responses:
         '200':
-          description: list of backups
+          description: list of security server backups
           content:
             application/json:
               schema:
                 type: array
+                description: array of backup objects
                 uniqueItems: true
                 items:
                   $ref: '#/components/schemas/Backup'
@@ -53,9 +52,7 @@ paths:
         - security server
       summary: add new backup for the security server
       operationId: addBackup
-      description: Adds backup to the system
-      security:
-        - ApiKeyAuth: []
+      description: Adds security server backup to the system
       responses:
         '201':
           description: item created
@@ -75,30 +72,21 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Backup'
-        description: backup to add
   /backups/upload:
-    post:
+    post: # ok
       tags:
         - security server
       summary: upload new backup for the security server
       operationId: uploadBackup
-      description: Uploads new backup to the system
-      parameters:
-        - in: query
-          name: file
-          description: optional backup file
-          required: true
-          schema:
-            type: string
-            minLength: 1
-            maxLength: 1000000
-      security:
-        - ApiKeyAuth: []
+      description: Uploads new security server backup to the system
+      requestBody:
+        description: backup to add
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+              description: backup file
       responses:
         '201':
           description: item created
@@ -118,69 +106,23 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/x-tar:
-            schema:
-              type: string
-              format: ascii
-              minLength: 1
-              maxLength: 1000000
-        description: backup to add
-  /backups/{id}:
-    get: # ok ? is this needed
-      tags:
-        - security server
-      summary: get security server backup information
-      operationId: getBackup
-      description: SS administrator views the backup details of the security server.
-      parameters:
-        - in: path
-          name: id
-          description: id of the backup
-          required: true
-          schema:
-            type: string
-            minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
-      responses:
-        '200':
-          description: ok
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Backup'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
+  /backups/{filename}:
     delete: # ok
       tags:
         - security server
       summary: delete security server backup
       operationId: deleteBackup
-      description: SS administrator deletes the backup of the security server.
+      description: Administrator deletes the backup of the security server.
       parameters:
         - in: path
-          name: id
-          description: id of the backup
+          name: filename
+          description: filename of the backup
           required: true
           schema:
             type: string
+            format: filename
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
       responses:
         '202':
           description: item accepted for deletion
@@ -196,24 +138,23 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
-  /backups/{id}/restore:
+  /backups/{filename}/restore:
     put: # ok
       tags:
         - security server
-      summary: restore configuration from backup
+      summary: restore security server configuration from backup
       operationId: restoreBackup
-      description: SS administrator restores the configuration from backup.
+      description: Administrator restores the security server configuration from backup.
       parameters:
         - in: path
-          name: id
-          description: id of the backup
+          name: filename
+          description: filename of the backup
           required: true
           schema:
             type: string
+            format: filename
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
       responses:
         '202':
           description: item accepted
@@ -231,34 +172,32 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /backups/{id}/download:
+  /backups/{filename}/download:
     get: # ok
       tags:
         - security server
       summary: download security server backup
       operationId: downloadBackup
-      description: SS administrator downloads the backup of the security server.
+      description: Administrator downloads the backup of the security server.
       parameters:
         - in: path
-          name: id
-          description: id of the backup
+          name: filename
+          description: filename of the backup
           required: true
           schema:
             type: string
+            format: filename
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
       responses:
         '200':
-          description: backup file (tar)
+          description: backup file downloaded
           content:
-            application/x-tar:
+            application/octet-stream:
               schema:
                 type: string
-                format: ascii
-                minLength: 1
-                maxLength: 1000000
+                format: binary
+                description: backup file
         '400':
           description: request was invalid
         '401':
@@ -271,31 +210,30 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /certificates/{id}:
+  /certificates/{hash}:
     get: # ok
       tags:
         - security server
       summary: get certificate information
       operationId: getCertificate
-      description: SS administrator views certificate details.
+      description: Administrator views certificate details.
       parameters:
         - in: path
-          name: id
-          description: id of the certificate
+          name: hash
+          description: SHA-1 hash of the certificate
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
       responses:
         '200':
-          description: ok
+          description: certificate details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Certificate'
+                $ref: '#/components/schemas/CertificateDetails'
         '400':
           description: request was invalid
         '401':
@@ -313,18 +251,17 @@ paths:
         - security server
       summary: delete certificate
       operationId: deleteCertificate
-      description: SS administrator deletes the certificate.
+      description: Administrator deletes the certificate.
       parameters:
         - in: path
-          name: id
-          description: id of the certificate
+          name: hash
+          description: SHA-1 hash of the certificate
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
       responses:
         '204':
           description: deletion was successful
@@ -338,24 +275,23 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
-  /certificates/{id}/activate:
+  /certificates/{hash}/activate:
     put: # ok
       tags:
         - security server
       summary: activate certificate
       operationId: activateCertificate
-      description: SS administrator activates selected certificate.
+      description: Administrator activates selected certificate.
       parameters:
         - in: path
-          name: id
-          description: id of the certificate
+          name: hash
+          description: SHA-1 hash of the certificate
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
       responses:
         '204':
           description: request was successful
@@ -371,24 +307,23 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /certificates/{id}/disable:
+  /certificates/{hash}/disable:
     put: # ok
       tags:
         - security server
       summary: disable certificate
       operationId: disableCertificate
-      description: SS administrator disables selected certificate.
+      description: Administrator disables selected certificate.
       parameters:
         - in: path
-          name: id
-          description: id of the certificate
+          name: hash
+          description: SHA-1 hash of the certificate
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
       responses:
         '204':
           description: request was successful
@@ -404,24 +339,23 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /certificates/{id}/register:
+  /certificates/{hash}/register:
     put: # ok
       tags:
         - security server
       summary: register certificate
       operationId: registerCertificate
-      description: SS administrator registers selected certificate.
+      description: Administrator registers selected certificate.
       parameters:
         - in: path
-          name: id
-          description: id of the certificate
+          name: hash
+          description: SHA-1 hash of the certificate
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
       responses:
         '204':
           description: request was successful
@@ -437,24 +371,23 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /certificates/{id}/unregister:
+  /certificates/{hash}/unregister:
     put: # ok
       tags:
         - security server
       summary: unregister certificate
       operationId: unregisterCertificate
-      description: SS administrator unregisters selected certificate.
+      description: Administrator unregisters selected certificate.
       parameters:
         - in: path
-          name: id
-          description: id of the certificate
+          name: hash
+          description: SHA-1 hash of the certificate
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
       responses:
         '204':
           description: request was successful
@@ -476,9 +409,67 @@ paths:
         - security server
       summary: get security server clients
       operationId: getClients
-      description: SS administrator views the clients of the security server.
-      security:
-        - ApiKeyAuth: []
+      description: Administrator views the clients of the security server.
+      parameters:
+        - in: query
+          name: name
+          description: pass an optional search string (name) for looking up clients
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: instance
+          description: pass an optional search string (instance) for looking up clients
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: member_class
+          description: pass an optional search string (member_class) for looking up clients
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: member_code
+          description: pass an optional search string (member_code) for looking up clients
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: subsystem_code
+          description: pass an optional search string (subsystem_code) for looking up clients
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: show_members
+          description: to include members for search results
+          required: false
+          schema:
+            type: boolean
+            default: true
+        - in: query
+          name: internal_search
+          description: to search only clients inside security server
+          required: false
+          schema:
+            type: boolean
+            default: true
       responses:
         '200':
           description: list of clients
@@ -487,6 +478,7 @@ paths:
               schema:
                 type: array
                 uniqueItems: true
+                description: array of client objects
                 items:
                   $ref: '#/components/schemas/Client'
         '400':
@@ -504,14 +496,18 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: adds new client for security server
+      summary: adds new client for the security server
       operationId: addClient
-      description: Adds an item to the system
-      security:
-        - ApiKeyAuth: []
+      description: Adds new client to the system
+      requestBody:
+        description: client to add
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Client'
       responses:
         '201':
-          description: item created
+          description: new client created
         '400':
           description: request was invalid
         '401':
@@ -526,19 +522,13 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Client'
-        description: client to add
   /clients/{id}:
     get: # ok
       tags:
         - security server
       summary: get security server client information
       operationId: getClient
-      description: SS administrator views the client details of the security server.
+      description: Administrator views the client details of the security server.
       parameters:
         - in: path
           name: id
@@ -546,13 +536,12 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
+            maxLength: 1023
       responses:
         '200':
-          description: ok
+          description: client object
           content:
             application/json:
               schema:
@@ -569,12 +558,12 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    put: # ok
+    patch: # ok
       tags:
         - security server
       summary: update security server client information
       operationId: updateClient
-      description: SS administrator updates the client information.
+      description: Administrator updates the client information.
       parameters:
         - in: path
           name: id
@@ -582,21 +571,21 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
-            maxLength: 255
-        - in: query
-          name: connectiontype
-          description: server connection type
-          required: true
-          schema:
-            type: string
-            enum: [HTTP, HTTPS, HTTPS_NO_AUTH]
-            default: HTTPS
-      security:
-        - ApiKeyAuth: []
+            maxLength: 1023
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: connection type
+              properties:
+                connection_type:
+                  $ref: '#/components/schemas/ConnectionType'
       responses:
         '200':
-          description: item modified
+          description: client modified
           content:
             application/json:
               schema:
@@ -618,7 +607,7 @@ paths:
         - security server
       summary: delete security server client
       operationId: deleteClient
-      description: SS administrator deletes the client of the security server.
+      description: Administrator deletes the client of the security server.
       parameters:
         - in: path
           name: id
@@ -626,13 +615,12 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
+            maxLength: 1023
       responses:
         '204':
-          description: deletion was successful
+          description: client deletion was successful
         '400':
           description: request was invalid
         '401':
@@ -641,46 +629,6 @@ paths:
           description: request has been refused
         '404':
           description: resource requested does not exists
-        '500':
-          description: internal server error
-  /clients/{id}/certificates:
-    get: # ok
-      tags:
-        - security server
-      summary: get security server client certificates information
-      operationId: getClientCertificates
-      description: SS administrator views the certificates for the client.
-      parameters:
-        - in: path
-          name: id
-          description: id of the client
-          required: true
-          schema:
-            type: string
-            minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
-      responses:
-        '200':
-          description: list of certificates
-          content:
-            application/json:
-              schema:
-                type: array
-                uniqueItems: true
-                items:
-                  $ref: '#/components/schemas/Certificate'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
         '500':
           description: internal server error
   /clients/{id}/groups:
@@ -689,7 +637,7 @@ paths:
         - security server
       summary: get local groups for the selected client
       operationId: getClientGroups
-      description: SS administrator views the local groups for the client.
+      description: Administrator views the local groups for the client.
       parameters:
         - in: path
           name: id
@@ -697,10 +645,9 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
+            maxLength: 1023
       responses:
         '200':
           description: list of local groups
@@ -709,6 +656,7 @@ paths:
               schema:
                 type: array
                 uniqueItems: true
+                description: array of local group objects
                 items:
                   $ref: '#/components/schemas/Group'
         '400':
@@ -728,7 +676,7 @@ paths:
         - security server
       summary: add new local group for the security server client
       operationId: addClientGroup
-      description: SS administrator adds a new local group for the client.
+      description: Administrator adds a new local group for the client.
       parameters:
         - in: path
           name: id
@@ -736,13 +684,18 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
+            maxLength: 1023
+      requestBody:
+        description: group to add
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Group'
       responses:
         '201':
-          description: item created
+          description: local group created
         '400':
           description: request was invalid
         '401':
@@ -757,19 +710,13 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Group'
-        description: group to add
   /clients/{id}/register:
     put: # ok
       tags:
         - security server
       summary: register security server client
       operationId: registerClient
-      description: SS administrator registers client.
+      description: Administrator registers client.
       parameters:
         - in: path
           name: id
@@ -777,13 +724,12 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
+            maxLength: 1023
       responses:
         '204':
-          description: request was successful
+          description: client was registered
         '400':
           description: request was invalid
         '401':
@@ -796,13 +742,13 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /clients/{id}/serviceclients:
+  /clients/{id}/service-clients:
     get: # ok
       tags:
         - security server
       summary: get service clients for the selected client
-      operationId: getClientServiceclients
-      description: SS administrator views the service clients for the client.
+      operationId: getClientServiceClients
+      description: Administrator views the service clients for the client.
       parameters:
         - in: path
           name: id
@@ -810,10 +756,9 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
+            maxLength: 1023
       responses:
         '200':
           description: list of service clients
@@ -822,6 +767,7 @@ paths:
               schema:
                 type: array
                 uniqueItems: true
+                description: array of service client objects
                 items:
                   $ref: '#/components/schemas/ServiceClient'
         '400':
@@ -840,8 +786,8 @@ paths:
       tags:
         - security server
       summary: add new service client for the security server client
-      operationId: addClientServiceclient
-      description: SS administrator adds a new service client for the client.
+      operationId: addClientServiceClient
+      description: Administrator adds a new service client for the client.
       parameters:
         - in: path
           name: id
@@ -849,11 +795,24 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1023
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: text
+                  description: id of the service client
+                  minLength: 1
+                  maxLength: 1279
       responses:
         '201':
-          description: item created
+          description: service client added
         '400':
           description: request was invalid
         '401':
@@ -868,19 +827,13 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ServiceClient'
-        description: service client to add
-  /clients/{id}/tlscertificates:
+  /clients/{id}/sign-certificates:
     get: # ok
       tags:
         - security server
-      summary: get security server client TLS certificates information
-      operationId: getClientTlsCertificates
-      description: SS administrator views the TLS certificates for the client.
+      summary: get security server client certificates information
+      operationId: getClientCertificates
+      description: Administrator views the certificates for the client.
       parameters:
         - in: path
           name: id
@@ -888,10 +841,49 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
+            maxLength: 1023
+      responses:
+        '200':
+          description: list of certificates
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of certificate (details) objects
+                items:
+                  $ref: '#/components/schemas/CertificateDetails'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /clients/{id}/tls-certificates:
+    get: # ok
+      tags:
+        - security server
+      summary: get security server client TLS certificates information
+      operationId: getClientTlsCertificates
+      description: Administrator views the TLS certificates for the client.
+      parameters:
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
       responses:
         '200':
           description: list of tls certificates
@@ -900,8 +892,9 @@ paths:
               schema:
                 type: array
                 uniqueItems: true
+                description: array of certificate (details) objects
                 items:
-                  $ref: '#/components/schemas/TlsCertificate'
+                  $ref: '#/components/schemas/CertificateDetails'
         '400':
           description: request was invalid
         '401':
@@ -919,7 +912,7 @@ paths:
         - security server
       summary: add new certificate for the security server client
       operationId: addClientTlsCertificate
-      description: SS administrator adds a new certificate for the client.
+      description: Administrator adds a new certificate for the client.
       parameters:
         - in: path
           name: id
@@ -927,13 +920,20 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
+            maxLength: 1023
+      requestBody:
+        description: certificate to add
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+              description: certificate file
       responses:
         '201':
-          description: item created
+          description: certificate added
         '400':
           description: request was invalid
         '401':
@@ -948,22 +948,13 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/*:
-            schema:
-              type: string
-              minLength: 1
-              maxLength: 1000000
-              format: base64
-        description: certificate to add
-  /clients/{id}/tlscertificates/{cid}:
+  /clients/{id}/tls-certificates/{hash}:
     get: # ok
       tags:
         - security server
       summary: get TLS certificate
       operationId: getClientTlsCertificate
-      description: SS administrator gets the TLS certificate for the selected client.
+      description: Administrator gets the TLS certificate for the selected client.
       parameters:
         - in: path
           name: id
@@ -971,25 +962,25 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1023
         - in: path
-          name: cid
-          description: id of the certificate
+          name: hash
+          description: SHA-1 hash of the certificate
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
       responses:
         '200':
-          description: ok
+          description: certificate details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TlsCertificate'
+                $ref: '#/components/schemas/CertificateDetails'
         '400':
           description: request was invalid
         '401':
@@ -1007,7 +998,7 @@ paths:
         - security server
       summary: delete certificate
       operationId: deleteClientTlsCertificate
-      description: SS administrator deletes the certificate from selected client.
+      description: Administrator deletes the certificate from selected client.
       parameters:
         - in: path
           name: id
@@ -1015,21 +1006,21 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1023
         - in: path
-          name: cid
-          description: id of the certificate
+          name: hash
+          description: SHA-1 hash of the certificate
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
       responses:
         '204':
-          description: deletion was successful
+          description: certificate deletion was successful
         '400':
           description: request was invalid
         '401':
@@ -1046,7 +1037,7 @@ paths:
         - security server
       summary: unregister security server client
       operationId: unregisterClient
-      description: SS administrator unregisters client.
+      description: Administrator unregisters client.
       parameters:
         - in: path
           name: id
@@ -1054,13 +1045,12 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
+            maxLength: 1023
       responses:
         '204':
-          description: request was successful
+          description: unregister was successful
         '400':
           description: request was invalid
         '401':
@@ -1073,13 +1063,13 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /clients/{id}/wsdls:
+  /clients/{id}/service-descriptions:
     get: # ok
       tags:
         - security server
-      summary: get security server client WSDL files
-      operationId: getClientWsdls
-      description: SS administrator views the WSDL files for the client.
+      summary: get security server client service descriptions
+      operationId: getClientServiceDescriptions
+      description: Administrator views the service descriptions for the client.
       parameters:
         - in: path
           name: id
@@ -1087,20 +1077,20 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
+            maxLength: 1023
       responses:
         '200':
-          description: list of wsdls
+          description: list of service descriptions
           content:
             application/json:
               schema:
                 type: array
                 uniqueItems: true
+                description: array of service description objects
                 items:
-                  $ref: '#/components/schemas/Wsdl'
+                  $ref: '#/components/schemas/ServiceDescription'
         '400':
           description: request was invalid
         '401':
@@ -1116,9 +1106,9 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: add new wsdl for the security server client
-      operationId: addClientWsdl
-      description: SS administrator adds a new wsdl for the client.
+      summary: add new service description for the security server client
+      operationId: addClientServiceDescription
+      description: Administrator adds a new service description for the client.
       parameters:
         - in: path
           name: id
@@ -1126,21 +1116,24 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
-            maxLength: 255
-        - in: query
-          name: url
-          description: path for the wsdl file
-          required: true
-          schema:
-            type: string
-            minLength: 1
-            maxLength: 1000
-      security:
-        - ApiKeyAuth: []
+            maxLength: 1023
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: text
+                  description: path for the service description file
+                  minLength: 1
+                  maxLength: 255
       responses:
         '201':
-          description: item created
+          description: service description created
         '400':
           description: request was invalid
         '401':
@@ -1155,63 +1148,30 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Wsdl'
-        description: service client to add
-  /groups/{id}:
+  /groups/{group_id}:
     get: # ok
       tags:
         - security server
       summary: get local group information
       operationId: getGroup
-      description: SS administrator views local group details.
+      description: Administrator views local group details.
       parameters:
         - in: path
-          name: id
+          name: group_id
           description: id of the local group
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
       responses:
         '200':
-          description: ok
+          description: group object
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: string
-                    minLength: 1
-                    maxLength: 255
-                    example: groupcode
-                  description:
-                    type: string
-                    minLength: 1
-                    maxLength: 1000
-                    example: description
-                  membercount:
-                    type: string
-                    minLength: 1
-                    maxLength: 1000000
-                    example: 10
-                  updated:
-                    type: string
-                    minLength: 24
-                    maxLength: 24
-                    format: date-time
-                    example: '2018-12-15T00:00:00.001Z'
-                  members:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Member'
+                $ref: '#/components/schemas/Group'
         '400':
           description: request was invalid
         '401':
@@ -1229,14 +1189,15 @@ paths:
         - security server
       summary: update local group information
       operationId: updateGroup
-      description: SS administrator updates the local group information.
+      description: Administrator updates the local group information.
       parameters:
         - in: path
-          name: id
+          name: group_id
           description: id of the local group
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
         - in: query
@@ -1245,13 +1206,12 @@ paths:
           required: false
           schema:
             type: string
+            format: text
             minLength: 1
-            maxLength: 1000
-      security:
-        - ApiKeyAuth: []
+            maxLength: 255
       responses:
         '200':
-          description: item modified
+          description: local group modified
           content:
             application/json:
               schema:
@@ -1273,21 +1233,20 @@ paths:
         - security server
       summary: delete local group
       operationId: deleteGroup
-      description: SS administrator deletes the local group.
+      description: Administrator deletes the local group.
       parameters:
         - in: path
-          name: id
+          name: group_id
           description: id of the local group
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
       responses:
         '204':
-          description: deletion was successful
+          description: local group deletion was successful
         '400':
           description: request was invalid
         '401':
@@ -1298,27 +1257,40 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
-  /groups/{id}/members:
+  /groups/{group_id}/members:
     post: # ok
       tags:
         - security server
       summary: add new member for the local group
       operationId: addGroupMember
-      description: SS administrator adds a new member for the local group.
+      description: Administrator adds a new member for the local group.
       parameters:
         - in: path
-          name: id
-          description: id of the client
+          name: group_id
+          description: id of the local group
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
+            maxLength: 1023
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  description: array of members to be added
+                  items:
+                    type: string
+                    format: text
+                    minLength: 1
+                    maxLength: 1023
       responses:
         '201':
-          description: item created
+          description: new members added
         '400':
           description: request was invalid
         '401':
@@ -1333,41 +1305,40 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Member'
-        description: member to add
-  /groups/{id}/members/{mid}:
-    delete: # ok
+  /groups/{group_id}/members/delete:
+    post: # ok
       tags:
         - security server
       summary: delete member from local group
       operationId: deleteGroupMember
-      description: SS administrator deletes the member from local group.
+      description: Administrator deletes the member from local group.
       parameters:
         - in: path
-          name: id
-          description: id of the group
+          name: group_id
+          description: id of the local group
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-        - in: path
-          name: mid
-          description: id of the member
-          required: true
-          schema:
-            type: string
-            minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  description: array of members to be deleted
+                  items:
+                    type: string
+                    format: text
+                    minLength: 1
+                    maxLength: 255
       responses:
-        '204':
-          description: deletion was successful
+        '201':
+          description: members deleted
         '400':
           description: request was invalid
         '401':
@@ -1376,6 +1347,10 @@ paths:
           description: request has been refused
         '404':
           description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
         '500':
           description: internal server error
   /keys/{id}:
@@ -1384,7 +1359,7 @@ paths:
         - security server
       summary: get information for the selected key
       operationId: getKey
-      description: SS administrator views key details.
+      description: Administrator views key details.
       parameters:
         - in: path
           name: id
@@ -1392,11 +1367,12 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
       responses:
         '200':
-          description: ok
+          description: key object
           content:
             application/json:
               schema:
@@ -1418,7 +1394,7 @@ paths:
         - security server
       summary: update key information
       operationId: updateKey
-      description: SS administrator updates the key information.
+      description: Administrator updates the key information.
       parameters:
         - in: path
           name: id
@@ -1426,21 +1402,21 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
         - in: query
           name: name
-          description: edit friendly name of the key
+          description: friendly name of the key
           required: false
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
       responses:
         '200':
-          description: item modified
+          description: key modified
           content:
             application/json:
               schema:
@@ -1462,7 +1438,7 @@ paths:
         - security server
       summary: delete key
       operationId: deleteKey
-      description: SS administrator deletes the key.
+      description: Administrator deletes the key.
       parameters:
         - in: path
           name: id
@@ -1470,13 +1446,12 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
       responses:
         '204':
-          description: deletion was successful
+          description: key deletion was successful
         '400':
           description: request was invalid
         '401':
@@ -1501,22 +1476,20 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-        - in: query
-          name: file_upload
-          description: import file in DER or PEM format
-          required: false
-          schema:
-            type: string
-            minLength: 1
-            maxLength: 1000000
-            default: false
-      security:
-        - ApiKeyAuth: []
+      requestBody:
+        description: certificate to add
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+              description: certificate file
       responses:
         '201':
-          description: item created
+          description: certificate created
         '400':
           description: request was invalid
         '401':
@@ -1531,22 +1504,13 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/*:
-            schema:
-              type: string
-              minLength: 1
-              maxLength: 1000000
-              format: base64
-        description: certificate to add
-  /keys/{id}/generatecsr:
+  /keys/{id}/generate-csr:
     put: # ok
       tags:
         - security server
       summary: generate csr for the selected key
       operationId: genrerateCsr
-      description: SS administrator generates csr for the key.
+      description: Administrator generates csr for the key.
       parameters:
         - in: path
           name: id
@@ -1554,50 +1518,48 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
         - in: query
           name: key_usage
           description: inteded usage for the key (signing or authentication)
-          required: true
+          required: false
           schema:
-            type: string
-            minLength: 1
-            maxLength: 255
+            $ref: '#/components/schemas/KeyUsageInfo'
         - in: query
           name: approved_ca
           description: approved certification service
-          required: true
+          required: false
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
         - in: query
           name: csr_format
           description: format of the certificate signing request (PEM or DER)
-          required: true
+          required: false
           schema:
-            type: string
-            enum: [PEM, DER]
-            default: PEM
+            $ref: '#/components/schemas/CsrFormat'
         - in: query
           name: member_id
           description: security server client the certificate will be issued for (only for signing certificates)
           required: false
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
       responses:
         '201':
-          description: item created
+          description: CSR created
           content:
             application/pkcs10:
               schema:
                 type: string
                 format: binary
+                description: csr file
         '400':
           description: request was invalid
         '401':
@@ -1610,13 +1572,13 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /keys/{id}/deletecsr:
+  /keys/{id}/delete-csr:
     put: # ok
       tags:
         - security server
       summary: delete csr from the selected key
       operationId: deleteCsr
-      description: SS administrator deletes csr from the key.
+      description: Administrator deletes csr from the key.
       parameters:
         - in: path
           name: id
@@ -1624,13 +1586,21 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
+        - in: query
+          name: csr_id
+          description: id of the csr
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
       responses:
         '204':
-          description: request was successful
+          description: csr deletion was successful
         '400':
           description: request was invalid
         '401':
@@ -1649,18 +1619,17 @@ paths:
         - security server
       summary: change language
       operationId: language
-      description: SS administrator changes the language for the UI.
+      description: Administrator changes the language for the UI.
       parameters:
         - in: path
-          name: id
-          description: id of the language (language code)
+          name: code
+          description: code of the language (language code)
           required: true
           schema:
             type: string
+            format: text
             minLength: 2
             maxLength: 2
-      security:
-        - ApiKeyAuth: []
       responses:
         '200':
           description: language changed
@@ -1680,75 +1649,13 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /login:
-    post:
-      summary: Logs in and returns the authentication cookie
-      requestBody:
-        required: true
-        description: A JSON object containing the login and password.
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LoginRequest'
-      security:
-        - CookieAuth: []
-      responses:
-        '200':
-          description: >
-            Successfully authenticated.
-            The session ID is returned in a cookie named `JSESSIONID`. You need to include this cookie in subsequent requests.
-          headers:
-            Set-Cookie:
-              schema:
-                type: string
-                minLength: 1
-                maxLength: 255
-                example: JSESSIONID=abcde12345; Path=/;
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '409':
-          description: an existing item already exists
-        '500':
-          description: internal server error
-  /logout:
-    delete: # ok ? is this needed
-      tags:
-        - security server
-      summary: logout from the UI
-      operationId: logout
-      description: SS administrator logs out from UI.
-      security:
-        - CookieAuth: []
-      responses:
-        '204':
-          description: deletion was successful
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '500':
-          description: internal server error
   /user:
     get: # ok
       tags:
         - security server
       summary: get user data for the logged user
       operationId: user
-      description: SS administrator gets user data from backend.
-      security:
-        - ApiKeyAuth: []
+      description: Administrator gets user data from backend.
       responses:
         '200':
           description: user details
@@ -1772,9 +1679,9 @@ paths:
     put: # ok
       tags:
         - security server
-      summary: update service information
+      summary: update service
       operationId: updateService
-      description: SS administrator updates the service information.
+      description: Administrator updates the service.
       parameters:
         - in: path
           name: id
@@ -1782,6 +1689,7 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
         - in: query
@@ -1790,69 +1698,53 @@ paths:
           required: false
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
         - in: query
           name: url_all
-          description: service url for all services
+          description: url for all services
           required: false
           schema:
-            type: string
-            minLength: 1
-            maxLength: 255
+            type: boolean
+            example: false
+            default: false
         - in: query
           name: timeout
           description: service timeout value
           required: false
           schema:
-            type: string
-            minLength: 1
-            maxLength: 255
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 10000
         - in: query
           name: timeout_all
-          description: service timeout value for all services
+          description: timeout value for all services
           required: false
           schema:
-            type: string
-            minLength: 1
-            maxLength: 255
-        - in: query
-          name: security_category
-          description: service security category value
-          required: false
-          schema:
-            type: string
-            minLength: 1
-            maxLength: 255
-        - in: query
-          name: security_category_all
-          description: service security category value for all services
-          required: false
-          schema:
-            type: string
-            minLength: 1
-            maxLength: 255
+            type: boolean
+            example: false
+            default: false
         - in: query
           name: ssl_auth
           description: service ssl authentication
           required: false
           schema:
-            type: string
-            minLength: 1
-            maxLength: 255
+            type: boolean
+            example: true
+            default: true
         - in: query
           name: ssl_auth_all
-          description: service ssl authentication for all services
+          description: ssl authentication for all services
           required: false
           schema:
-            type: string
-            minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
+            type: boolean
+            example: false
+            default: false
       responses:
         '200':
-          description: item modified
+          description: service modified
           content:
             application/json:
               schema:
@@ -1869,43 +1761,13 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    delete: # ok
-      tags:
-        - security server
-      summary: delete service
-      operationId: deleteService
-      description: SS administrator deletes the service.
-      parameters:
-        - in: path
-          name: id
-          description: id of the service
-          required: true
-          schema:
-            type: string
-            minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
-      responses:
-        '204':
-          description: deletion was successful
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '500':
-          description: internal server error
-  /services/{id}/accessrights:
+  /services/{id}/access-rights:
     get: # ok
       tags:
         - security server
       summary: get access rights for the selected service
-      operationId: getServiceAccessrights
-      description: SS administrator views service accessrights.
+      operationId: getServiceAccessRights
+      description: Administrator views service access rights.
       parameters:
         - in: path
           name: id
@@ -1913,10 +1775,9 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
       responses:
         '200':
           description: list of service client and access rights
@@ -1925,8 +1786,9 @@ paths:
               schema:
                 type: array
                 uniqueItems: true
+                description: array of service client objects
                 items:
-                  $ref: '#/components/schemas/ServiceClientAccessRight'
+                  $ref: '#/components/schemas/ServiceClient'
         '400':
           description: request was invalid
         '401':
@@ -1942,9 +1804,9 @@ paths:
     post:
       tags:
         - security server
-      summary: adds new accessright for selected service
-      operationId: addServiceAccessright
-      description: Adds accessright to the service
+      summary: adds new access right for the selected service
+      operationId: addServiceAccessRight
+      description: Adds access right to the service
       parameters:
         - in: path
           name: id
@@ -1952,30 +1814,24 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-        - in: query
-          name: service_code
-          description: selected service code
-          required: true
-          schema:
-            type: string
-            minLength: 1
-            maxLength: 255
-            default: code
-        - in: query
-          name: subject_ids
-          description: selected subject ids
-          required: true
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/Subject'
-      security:
-        - ApiKeyAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  uniqueItems: true
+                  description: array of subject ids to add for the access right
+                  items:
+                    $ref: '#/components/schemas/Subject'
       responses:
         '201':
-          description: item created
+          description: access rights added
         '400':
           description: request was invalid
         '401':
@@ -1990,19 +1846,13 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AccessRight'
-        description: accessright to add
-  /services/{id}/accessrights/{aid}:
-    delete: # ok ? different logic in old backend
+  /services/{id}/access-rights/delete:
+    post: # ok
       tags:
         - security server
-      summary: remove accessright
-      operationId: deleteServiceAccessright
-      description: SS administrator removes accessright from selected service.
+      summary: remove access right
+      operationId: deleteServiceAccessRight
+      description: Administrator removes access right from selected service.
       parameters:
         - in: path
           name: id
@@ -2010,21 +1860,23 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-        - in: path
-          name: aid
-          description: id of the accessright
-          required: true
-          schema:
-            type: string
-            minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  description: items to be deleted
+                  items:
+                    $ref: '#/components/schemas/Subject'
       responses:
         '204':
-          description: deletion was successful
+          description: access right(s) deletion was successful
         '400':
           description: request was invalid
         '401':
@@ -2035,13 +1887,13 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
-  /serviceclients/{id}/accessrights:
+  /service-clients/{id}/access-rights:
     get: # ok
       tags:
         - security server
       summary: get access rights for the selected service client.
-      operationId: getServiceclientAccessrights
-      description: SS administrator views service client's accessrights.
+      operationId: getServiceClientAccessRights
+      description: Administrator views service client's access rights.
       parameters:
         - in: path
           name: id
@@ -2049,18 +1901,18 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
+            maxLength: 1279
       responses:
         '200':
-          description: list of accessrights
+          description: list of access rights
           content:
             application/json:
               schema:
                 type: array
                 uniqueItems: true
+                description: array of access right objects
                 items:
                   $ref: '#/components/schemas/AccessRight'
         '400':
@@ -2078,9 +1930,9 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: adds new accessright for selected service client
-      operationId: addServiceclientAccessright
-      description: Adds accessright to the service client.
+      summary: adds new access right for selected service client
+      operationId: addServiceClientAccessRight
+      description: Adds access right to the service client.
       parameters:
         - in: path
           name: id
@@ -2088,21 +1940,24 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
-            maxLength: 255
-        - in: query
-          name: subject_ids
-          description: selected subject ids
-          required: true
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/Subject'
-      security:
-        - ApiKeyAuth: []
+            maxLength: 1279
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  uniqueItems: true
+                  description: array of subject ids to add for the access right
+                  items:
+                    $ref: '#/components/schemas/Subject'
       responses:
         '201':
-          description: item created
+          description: access right(s) added
         '400':
           description: request was invalid
         '401':
@@ -2117,19 +1972,13 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AccessRight'
-        description: accessright to add
-  /serviceclients/{id}/accessrights/{aid}:
-    delete: # ok
+  /service-clients/{id}/access-rights/delete:
+    post: # ok
       tags:
         - security server
-      summary: remove accessright
-      operationId: deleteServiceclientAccessright
-      description: SS administrator removes accessright from selected service client.
+      summary: remove access right
+      operationId: deleteServiceClientAccessRight
+      description: Administrator removes access right from selected service client.
       parameters:
         - in: path
           name: id
@@ -2137,21 +1986,101 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1279
+      requestBody:
+        description: list of access rights to be deleted
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Subject'
+      responses:
+        '201':
+          description: access right(s) deleted
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
+  /service-descriptions/{id}:
+    put: # ok
+      tags:
+        - security server
+      summary: update url for the selected service description
+      operationId: updateServiceDescription
+      description: Administrator updates the selected service description.
+      parameters:
         - in: path
-          name: aid
-          description: id of the accessright
+          name: id
+          description: id of the service description
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
+        - in: query
+          name: url
+          description: path for the service description file
+          required: true
+          schema:
+            type: string
+            format: url
+            minLength: 1
+            maxLength: 255
+      responses:
+        '200':
+          description: service description modified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceDescription'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    delete: # ok
+      tags:
+        - security server
+      summary: delete service description
+      operationId: deleteServiceDescription
+      description: Administrator deletes the service description.
+      parameters:
+        - in: path
+          name: id
+          description: id of the service description
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
       responses:
         '204':
-          description: deletion was successful
+          description: service description deletion was successful
         '400':
           description: request was invalid
         '401':
@@ -2162,15 +2091,162 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
+  /service-descriptions/{id}/disable:
+    put: # ok
+      tags:
+        - security server
+      summary: disable selected service description
+      operationId: disableServiceDescription
+      description: Administrator disables service description.
+      parameters:
+        - in: path
+          name: id
+          description: id of the service description
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: disabled_notice
+          description: disabled service notice
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '204':
+          description: service description disabled
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /service-descriptions/{id}/enable:
+    put: # ok
+      tags:
+        - security server
+      summary: enable selected service description
+      operationId: enableServiceDescription
+      description: Administrator enables service description.
+      parameters:
+        - in: path
+          name: id
+          description: id of the service description
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '204':
+          description: service description enabled
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /service-descriptions/{id}/refresh:
+    put: # ok
+      tags:
+        - security server
+      summary: refresh selected service description
+      operationId: refreshServiceDescription
+      description: Administrator refreshes service description.
+      parameters:
+        - in: path
+          name: id
+          description: id of the service description
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '200':
+          description: service description refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceDescription'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /service-descriptions/{id}/services:
+    get: # ok
+      tags:
+        - security server
+      summary: get services for the selected service description
+      operationId: getServiceDescriptionServices
+      description: Administrator views the services for the selected service description.
+      parameters:
+        - in: path
+          name: id
+          description: id of the service description
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '200':
+          description: list of services
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of service objects
+                items:
+                  $ref: '#/components/schemas/Service'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /system: # ok
     get:
       tags:
         - security server
       summary: get system information
       operationId: getSystem
-      description: SS administrator views the system information.
-      security:
-        - ApiKeyAuth: []
+      description: Administrator views the system information.
       responses:
         '200':
           description: system information
@@ -2196,9 +2272,7 @@ paths:
         - security server
       summary: view the configuration anchor information
       operationId: getAnchor
-      description: SS administrator views the configuration anchor information.
-      security:
-        - ApiKeyAuth: []
+      description: Administrator views the configuration anchor information.
       responses:
         '200':
           description: anchor information
@@ -2223,12 +2297,20 @@ paths:
         - security server
       summary: upload a configuration anchor file
       operationId: uploadAnchor
-      description: SS administrator uploads configuration anchor file
-      security:
-        - ApiKeyAuth: []
+      description: Administrator uploads configuration anchor file
+      requestBody:
+        description: configuration anchor
+        content:
+          application/xml:
+            schema:
+              type: string
+              format: ascii
+              description: configuration anchor file
+              minLength: 1
+              maxLength: 1000000
       responses:
         '201':
-          description: item created
+          description: configuration anchor uploaded
         '400':
           description: request was invalid
         '401':
@@ -2243,34 +2325,22 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/xml:
-            schema:
-              type: string
-              minLength: 1
-              maxLength: 1000000
-              format: ascii
-        description: configuration anchor file
   /system/anchor/download:
     get: # ok
       tags:
         - security server
       summary: download configuration anchor information
       operationId: downloadAnchor
-      description: SS administrator downloads the configuration anchor information.
-      security:
-        - ApiKeyAuth: []
+      description: Administrator downloads the configuration anchor information.
       responses:
         '200':
-          description: configuration anchor file
+          description: configuration anchor
           content:
             application/xml:
               schema:
                 type: string
-                minLength: 1
-                maxLength: 1000000
                 format: ascii
+                description: configuration anchor file
         '400':
           description: request was invalid
         '401':
@@ -2289,16 +2359,14 @@ paths:
         - security server
       summary: view the security server certificate information
       operationId: getSystemCertificate
-      description: SS administrator views the security server TLS certificate information.
-      security:
-        - ApiKeyAuth: []
+      description: Administrator views the security server TLS certificate information.
       responses:
         '200':
           description: certificate information
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Certificate'
+                $ref: '#/components/schemas/CertificateDetails'
         '400':
           description: request was invalid
         '401':
@@ -2315,21 +2383,18 @@ paths:
     get: # ok
       tags:
         - security server
-      summary: download the security server certificate as zip package
+      summary: download the security server certificate as gzip compressed tar archive
       operationId: downloadSystemCertificate
-      description: SS administrator downloads the security server TLS certificate.
-      security:
-        - ApiKeyAuth: []
+      description: Administrator downloads the security server TLS certificate.
       responses:
         '200':
           description: information fetched successfully
           content:
-            application/zip:
+            application/gzip:
               schema:
                 type: string
-                minLength: 1
-                maxLength: 1000000
                 format: binary
+                description: certificate file
         '400':
           description: request was invalid
         '401':
@@ -2342,22 +2407,100 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /system/timestamping:
+  /system/certificate/generate-tls-key:
+    put: # ok
+      tags:
+        - security server
+      summary: generate new TLS key
+      operationId: generateSystemCertificateTlsKey
+      description: Administrator generates new tls key.
+      responses:
+        '204':
+          description: tls key generated
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /system/certificate/generate-csr:
+    put: # ok
+      tags:
+        - security server
+      summary: generate new certificate request
+      operationId: generateSystemCertificateRequest
+      description: Administrator generates new certificate request.
+      responses:
+        '204':
+          description: certificate request generated
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /system/certificate/import:
+    post: # ok
+      tags:
+        - security server
+      summary: import new internal TLS certificate.
+      operationId: importSystemCertificate
+      description: Administrator imports new internal TLS certificate
+      requestBody:
+        description: certificate to add
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+              description: certificate file
+      responses:
+        '201':
+          description: tls certificate imported
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
+  /system/timestamping-services:
     get: # ok
       tags:
         - security server
-      summary: view the timestamping service information
-      operationId: getTimestamping
-      description: SS administrator views the timestamping service information.
-      security:
-        - ApiKeyAuth: []
+      summary: view the timestamping services
+      operationId: getTimestampingServices
+      description: Administrator views the timestamping services.
       responses:
         '200':
-          description: timestamping information
+          description: list of timestamping services
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Timestamping'
+                type: array
+                uniqueItems: true
+                description: array of timestamping service objects
+                items:
+                  $ref: '#/components/schemas/TimestampingService'
         '400':
           description: request was invalid
         '401':
@@ -2374,13 +2517,17 @@ paths:
       tags:
         - security server
       summary: add a timestamping service
-      operationId: addTimestamping
-      description: SS administrator selects new timestamping service
-      security:
-        - ApiKeyAuth: []
+      operationId: addTimestampingService
+      description: Administrator selects new timestamping service
+      requestBody:
+        description: Timestamping service to add
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimestampingService'
       responses:
         '201':
-          description: item created
+          description: timestamping service created
         '400':
           description: request was invalid
         '401':
@@ -2395,32 +2542,26 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Timestamping'
-        description: Timestamping service to add
+  /system/timestamping-services/{url}:
     delete: # ok
       tags:
         - security server
       summary: delete timestamping service
-      operationId: deleteTimestamping
-      description: SS administrator removes timestamping service.
+      operationId: deleteTimestampingService
+      description: Administrator removes timestamping service.
       parameters:
-        - in: query
-          name: name
-          description: name of the timestamping service
+        - in: path
+          name: url
+          description: url of the timestamping service
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
       responses:
         '204':
-          description: deletion was successful
+          description: timestamping service deletion was successful
         '400':
           description: request was invalid
         '401':
@@ -2429,37 +2570,6 @@ paths:
           description: request has been refused
         '404':
           description: resource requested does not exists
-        '500':
-          description: internal server error
-  /system/timestamping/services:
-    get: # ok
-      tags:
-        - security server
-      summary: view the timestamping services
-      operationId: getTimestampingServices
-      description: SS administrator views the timestamping services.
-      security:
-        - ApiKeyAuth: []
-      responses:
-        '200':
-          description: list of timestamping services
-          content:
-            application/json:
-              schema:
-                type: array
-                uniqueItems: true
-                items:
-                  $ref: '#/components/schemas/Timestamping'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
         '500':
           description: internal server error
   /system/version:
@@ -2468,9 +2578,7 @@ paths:
         - security server
       summary: get information for the system version
       operationId: systemVersion
-      description: SS administrator views key details.
-      security:
-        - ApiKeyAuth: []
+      description: Administrator views key details.
       responses:
         '200':
           description: system version information
@@ -2496,9 +2604,7 @@ paths:
         - security server
       summary: get security server tokens
       operationId: getTokens
-      description: SS administrator views tokens of the security server.
-      security:
-        - ApiKeyAuth: []
+      description: Administrator views tokens of the security server.
       responses:
         '200':
           description: list of tokens
@@ -2507,6 +2613,7 @@ paths:
               schema:
                 type: array
                 uniqueItems: true
+                description: array of token objects
                 items:
                   $ref: '#/components/schemas/Token'
         '400':
@@ -2521,44 +2628,13 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    post: # ok ? do we need this
-      tags:
-        - security server
-      summary: adds new token for security server
-      operationId: addToken
-      description: Adds token to the system
-      security:
-        - ApiKeyAuth: []
-      responses:
-        '201':
-          description: item created
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '409':
-          description: an existing item already exists
-        '500':
-          description: internal server error
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Token'
-        description: Token to add
   /tokens/{id}:
     get: # ok
       tags:
         - security server
       summary: get security server token information
       operationId: getToken
-      description: SS administrator views the token details of the security server.
+      description: Administrator views the token details of the security server.
       parameters:
         - in: path
           name: id
@@ -2566,13 +2642,12 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
       responses:
         '200':
-          description: ok
+          description: token object
           content:
             application/json:
               schema:
@@ -2594,7 +2669,7 @@ paths:
         - security server
       summary: update security server token information
       operationId: updateToken
-      description: SS administrator updates the token information.
+      description: Administrator updates the token information.
       parameters:
         - in: path
           name: id
@@ -2602,6 +2677,7 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
         - in: query
@@ -2610,13 +2686,12 @@ paths:
           required: false
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
       responses:
         '200':
-          description: item modified
+          description: token modified
           content:
             application/json:
               schema:
@@ -2633,36 +2708,6 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    delete: # ok ? do we need this
-      tags:
-        - security server
-      summary: delete security server token
-      operationId: deleteToken
-      description: SS administrator deletes the token of the security server.
-      parameters:
-        - in: path
-          name: id
-          description: id of the token
-          required: true
-          schema:
-            type: string
-            minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
-      responses:
-        '204':
-          description: deletion was successful
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '500':
-          description: internal server error
   /tokens/{id}/keys:
     post: # ok
       tags:
@@ -2677,21 +2722,26 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-        - in: query
-          name: label
-          description: label for the new key
-          required: false
-          schema:
-            type: string
-            minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                label:
+                  type: string
+                  format: text
+                  description: label for the new key
+                  minLength: 1
+                  maxLength: 255
+              example:
+                label: My new key
       responses:
         '201':
-          description: item created
+          description: key created for the token
         '400':
           description: request was invalid
         '401':
@@ -2706,14 +2756,8 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Key'
-        description: Key to add
   /tokens/{id}/login:
-    post: # ok
+    put: # ok
       tags:
         - security server
       summary: logins to token
@@ -2726,13 +2770,16 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
       responses:
-        '201':
-          description: item created
+        '200':
+          description: logged in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
         '400':
           description: request was invalid
         '401':
@@ -2743,23 +2790,15 @@ paths:
           description: resource requested does not exists
         '406':
           description: request specified an invalid format
-        '409':
-          description: an existing item already exists
         '500':
           description: internal server error
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Token'
-        description: Token to add
   /tokens/{id}/logout:
-    delete: # ok
+    put: # ok
       tags:
         - security server
       summary: logout from token
       operationId: logoutToken
-      description: SS administrator logs out from token.
+      description: Administrator logs out from token.
       parameters:
         - in: path
           name: id
@@ -2767,237 +2806,16 @@ paths:
           required: true
           schema:
             type: string
+            format: text
             minLength: 1
             maxLength: 255
-      security:
-        - ApiKeyAuth: []
-      responses:
-        '204':
-          description: deletion was successful
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '500':
-          description: internal server error
-  /wsdls/{id}:
-    put: # ok
-      tags:
-        - security server
-      summary: update url for the selected wsdl
-      operationId: updateWsdl
-      description: SS administrator updates the selected wsdl.
-      parameters:
-        - in: path
-          name: id
-          description: id of the wsdl
-          required: true
-          schema:
-            type: string
-            minLength: 1
-            maxLength: 255
-        - in: query
-          name: url
-          description: path for the wsdl file
-          required: true
-          schema:
-            type: string
-            minLength: 1
-            maxLength: 1000
-      security:
-        - ApiKeyAuth: []
       responses:
         '200':
-          description: item modified
+          description: logged out
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Wsdl'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
-    delete: # ok
-      tags:
-        - security server
-      summary: delete wsdl
-      operationId: deleteWsdl
-      description: SS administrator deletes the wsdl.
-      parameters:
-        - in: path
-          name: id
-          description: id of the wsdl
-          required: true
-          schema:
-            type: string
-            minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
-      responses:
-        '204':
-          description: deletion was successful
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '500':
-          description: internal server error
-  /wsdls/{id}/disable:
-    put: # ok
-      tags:
-        - security server
-      summary: disable selected wsdl
-      operationId: disableWsdl
-      description: SS administrator disables wsdl.
-      parameters:
-        - in: path
-          name: id
-          description: id of the wsdl
-          required: true
-          schema:
-            type: string
-            minLength: 1
-            maxLength: 255
-        - in: query
-          name: disabled_notice
-          description: disabled service notice
-          required: false
-          schema:
-            type: string
-            minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
-      responses:
-        '204':
-          description: request was successful
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
-  /wsdls/{id}/enable:
-    put: # ok
-      tags:
-        - security server
-      summary: enable selected wsdl
-      operationId: enableWsdl
-      description: SS administrator enables wsdl.
-      parameters:
-        - in: path
-          name: id
-          description: id of the wsdl
-          required: true
-          schema:
-            type: string
-            minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
-      responses:
-        '204':
-          description: request was successful
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
-  /wsdls/{id}/refresh:
-    put: # ok
-      tags:
-        - security server
-      summary: refresh selected wsdl
-      operationId: refreshWsdl
-      description: SS administrator refreshes wsdl.
-      parameters:
-        - in: path
-          name: id
-          description: id of the wsdl
-          required: true
-          schema:
-            type: string
-            minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
-      responses:
-        '200':
-          description: item refreshed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Wsdl'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
-  /wsdls/{id}/services:
-    get: # ok
-      tags:
-        - security server
-      summary: get security server client services
-      operationId: getClientServices
-      description: SS administrator views the services for the client.
-      parameters:
-        - in: path
-          name: id
-          description: id of the wsdl
-          required: true
-          schema:
-            type: string
-            minLength: 1
-            maxLength: 255
-      security:
-        - ApiKeyAuth: []
-      responses:
-        '200':
-          description: ok
-          content:
-            application/json:
-              schema:
-                type: array
-                uniqueItems: true
-                items:
-                  $ref: '#/components/schemas/Service'
+                $ref: '#/components/schemas/Token'
         '400':
           description: request was invalid
         '401':
@@ -3015,132 +2833,141 @@ components:
     ApiKeyAuth:
       type: apiKey
       in: header
-      name: XROAD-API-KEY
-    CookieAuth:
-      type: apiKey
-      in: cookie
-      name: JSESSIONID
+      name: Authorization
+      description: X-Road-ApiKey token=<api key>
+      #https://github.com/nordic-institute/X-Road-REST-UI/blob/XRDDEV-237/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#1911-creating-new-api-keys
   schemas:
-    AccessRight: # fix examples
+    AccessRight: # ok
+      type: object
+      description: access right for clients and services
       required:
         - id
-        - acl_id
         - client_id
-        - subject_id
         - service_code
+        - service_title
       properties:
         id:
           type: string
+          format: text
+          description: access right id
+          example: 123
           minLength: 1
           maxLength: 255
-          example: 123
           readOnly: true
-        acl_id:
-          type: integer
-          minimum: 1
-          maximum: 4294967295
-          example: 123456
         client_id:
           type: string
-          minLength: 1
-          maxLength: 255
+          format: text
+          description: <instance_id>:<member_class>:<member_code>:<subsystem>(optional)
           example: FI:GOV:123:ABC
-        subject_id:
-          type: string
           minLength: 1
           maxLength: 255
-          example: 123
         service_code:
           type: string
+          format: text
+          description: service code
+          example: clientDeletion
           minLength: 1
           maxLength: 255
-          example: 123
-      type: object
+        service_title:
+          type: string
+          format: text
+          description: service title
+          example: client deletion
+          minLength: 1
+          maxLength: 255
     Anchor: # ok
       type: object
+      description: security server anchor
       required:
-        - id
         - hash
-        - created
+        - created_at
       properties:
-        id:
-          type: string
-          minLength: 1
-          maxLength: 255
-          example: 123
-          readOnly: true
         hash:
           type: string
-          minLength: 1
-          maxLength: 255
+          format: hash
+          description: anchor hash
           example: 42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3
-        created:
-          type: string
-          minLength: 24
-          maxLength: 24
-          format: date-time
-          example: '2018-12-15T00:00:00.001Z'
-    Authorities: # ok
-      type: object
-      required:
-        - id
-        - name
-        - response
-        - created
-      properties:
-        id:
-          type: string
           minLength: 1
           maxLength: 255
-          example: 123
-          readOnly: true
-        name:
+        created_at:
           type: string
-          minLength: 1
-          maxLength: 255
-          example: Distinguished name
-        response:
-          type: string
-          minLength: 1
-          maxLength: 1000
-          example: N/A
-        created:
-          type: string
+          format: date-time
+          description: anchor created at
+          example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
-          format: date-time
-          example: '2018-12-15T00:00:00.001Z'
     Backup: # ok
       type: object
+      description: security server backup
       required:
-        - id
         - filename
-        - created
+        - created_at
       properties:
-        id:
-          type: string
-          minLength: 1
-          maxLength: 255
-          format: uuid
-          example: 123
-          readOnly: true
         filename:
           type: string
+          format: filename
+          description: backup filename
+          example: configuration_backup_20181224.tar
           minLength: 1
           maxLength: 255
-          example: configuration_backup_20181224.tar
-        created:
+        created_at:
           type: string
+          format: date-time
+          description: backup created at
+          example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
-          format: date-time
-          example: '2018-12-15T00:00:00.001Z'
     Certificate: # ok
+      type: object
+      description: certificate
       required:
-      - issuer-distinguished-name
-      - issuer-common-name
-      - subject-distinguished-name
-      - subject-common-name
+      - issuer_common_name
+      - not_after
+      - ocsp_status
+      - client_id
+      - hash
+      - status
+      properties:
+        issuer_common_name:
+          type: string
+          format: text
+          description: certificate issuer common name
+          example: domain.com
+          minLength: 1
+          maxLength: 255
+        ocsp_status:
+          $ref: '#/components/schemas/OcspStatus'
+        not_after:
+          type: string
+          format: date-time
+          description: certificate validity not after
+          example: '2018-12-15T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
+        hash:
+          type: string
+          format: text
+          description: certificate SHA-1 hash
+          example: 1234567890ABCDEF
+          minLength: 1
+          maxLength: 255
+        client_id:
+          type: string
+          format: text
+          description: <instance_id>:<member_class>:<member_code>:<subsystem>(optional)
+          example: FI:GOV:123:ABC
+          minLength: 1
+          maxLength: 255
+        status:
+          $ref: '#/components/schemas/CertificateStatus'
+    CertificateDetails: # ok
+      type: object
+      description: certificate details
+      required:
+      - issuer_distinguished_name
+      - issuer_common_name
+      - subject_distinguished_name
+      - subject_common_name
       - not_before
       - not_after
       - serial
@@ -3152,354 +2979,523 @@ components:
       - rsa_public_key_exponent
       - hash
       - key_usages
-      - state
-      type: object
+      - status
       properties:
         issuer_distinguished_name:
           type: string
+          format: text
+          description: certificate issuer distinguished name
+          example: issuer123
           minLength: 1
           maxLength: 255
-          description: certificate issuer distinguished name
-          example:
         issuer_common_name:
           type: string
+          format: text
+          description: certificate issuer common name
+          example: domain.com
           minLength: 1
           maxLength: 255
-          description: certificate issuer common name
-          example:
         subject_distinguished_name:
           type: string
+          format: text
+          description: certificate subject distinguished name
+          example: subject123
           minLength: 1
           maxLength: 255
-          description: certificate subject distinguished name
-          example:
         subject_common_name:
           type: string
+          format: text
+          description: certificate subject common name
+          example: domain.com
           minLength: 1
           maxLength: 255
-          description: certificate subject common name
-          example:
         not_before:
           type: string
+          format: date-time
+          description: certificate validity not before
+          example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
-          description: certificate validity not before
-          format: date-time
         not_after:
           type: string
+          format: date-time
+          description: certificate validity not after
+          example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
-          description: certificate validity not after
-          format: date-time
         serial:
           type: string
+          format: text
+          description: serial number
+          example: '123456789'
           minLength: 1
           maxLength: 255
-          description: serial number
-          example: "4"
         version:
           type: integer
-          description: version
-          minimum: 1
-          maximum: 99
+          format: int32
           example: 3
+          description: version
         signature_algorithm:
           type: string
-          minLength: 1
-          maxLength: 255
+          format: sha-256
           description: certificate signature algorithm
           example: sha256WithRSAEncryption
+          minLength: 1
+          maxLength: 255
         signature:
           type: string
+          format: text
+          description: hex encoded certificate signature
+          example: '30af2fdc1780...'
           minLength: 1
           maxLength: 255
-          description: hex encoded certificate signature
-          example: 30af2fdc1780...
         public_key_algorithm:
           type: string
+          format: sha-256
+          description: certificate public key algorithm
+          example: 'sha256WithRSAEncryption'
           minLength: 1
           maxLength: 255
-          description: certificate public key algorithm
-          example: sha256WithRSAEncryption
         rsa_public_key_modulus:
           type: string
-          minLength: 1
-          maxLength: 1000
+          format: hex
           description: hex encoded RSA public key modulus (if RSA key)
           example: c44421d601...
-        rsa_public_key_exponent:
-          type: string
           minLength: 1
-          maxLength: 255
+          maxLength: 1000
+        rsa_public_key_exponent:
+          type: integer
+          format: int32
           description: RSA public key exponent (if RSA key) as an integer
           example: 65537
-        hash:
-          type: string
           minLength: 1
           maxLength: 255
+        hash:
+          type: string
+          format: text
           description: certificate SHA-1 hash
           example: 1234567890ABCDEF
+          minLength: 1
+          maxLength: 255
         key_usages:
-            type: array
-            items:
-              type: string
-              description: certificate key usages
-              example: NON_REPUDIATION
-              enum:
-                - DIGITAL_SIGNATURE
-                - NON_REPUDIATION
-                - KEY_ENCIPHERMENT
-                - DATA_ENCIPHERMENT
-                - KEY_AGREEMENT
-                - KEY_CERT_SIGN
-                - CRL_SIGN
-                - ENCIPHER_ONLY
-                - DECIPHER_ONLY
-        state:
+          type: array
+          description: certificate key usage array
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/KeyUsage'
+        status:
+          $ref: '#/components/schemas/CertificateStatus'
+    CertificateAuthority: # ok
+      type: object
+      description: certificate authority
+      required:
+        - name
+        - response
+        - expires_at
+      properties:
+        name:
           type: string
-          description: certificate state
-          example: IN_USE
-          enum:
-            - IN_USE
-            - DISABLED
+          format: text
+          description: distinguished name
+          example: /C=FI/O=X-Road Test/OU=X-Road Test CA OU/CN=X-Road Test CA CN
+          minLength: 1
+          maxLength: 255
+        response:
+          type: string
+          format: text
+          description: certificate authority response
+          example: N/A
+          minLength: 1
+          maxLength: 1000
+        expires_at:
+          type: string
+          format: date-time
+          description: certificate authority expires at
+          example: '2099-12-15T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
+    CertificateStatus: # ok
+      type: string
+      format: enum
+      description: certificate status
+      example: IN_USE
+      enum:
+        - IN_USE
+        - DISABLED
     Client: # ok
       type: object
+      description: x-road client
       required:
-        - id
-        - member_name
         - member_class
         - member_code
         - subsystem_code
-        - connection_type
-        - status
       properties:
         id:
           type: string
-          minLength: 1
-          maxLength: 255
+          format: text
+          description: <instance_id>:<member_class>:<member_code>:<subsystem>(optional)
           example: FI:GOV:123:ABC
+          minLength: 1
+          maxLength: 1023
           readOnly: true
         member_name:
           type: string
+          format: text
+          description: member name
+          example: FI
           minLength: 1
           maxLength: 255
-          example: FI
         member_class:
           type: string
+          format: text
+          description: member class
+          example: GOV
           minLength: 1
           maxLength: 255
-          example: GOV
         member_code:
           type: string
+          format: text
+          description: member code
+          example: 123
           minLength: 1
           maxLength: 255
-          example: 123
         subsystem_code:
           type: string
+          format: text
+          description: subsystem code
+          example: ABC
           minLength: 1
           maxLength: 255
-          example: ABC
         connection_type:
           $ref: '#/components/schemas/ConnectionType'
         status:
           $ref: '#/components/schemas/ClientStatus'
     ClientStatus: # ok
       type: string
+      format: enum
+      description: client status
+      example: REGISTERED
       enum:
         - REGISTERED
         - SAVED
         - GLOBAL_ERROR
         - REGISTRATION_IN_PROGRESS
         - DELETION_IN_PROGRESS
+    ConfigurationStatus: # ok
+      type: string
+      format: enum
+      description: configuration status
+      example: SUCCESS
+      enum:
+        - SUCCESS # Everything ok
+        - CONFCLIENT_STATUS_FAILED # Global configuration client status query failed
+        - ERROR_CODE_INTERNAL # Internal error occurred."
+        - ERROR_CODE_INVALID_SIGNATURE_VALUE # Invalid signature value."
+        - ERROR_CODE_EXPIRED_CONF # The downloaded global configuration has expired."
+        - ERROR_CODE_CANNOT_DOWNLOAD_CONF # Unable to download global configuration. Check network connection to global configuration provider."
+        - ERROR_CODE_MISSING_PRIVATE_PARAM # The downloaded global configuration did not contain private parameters
     ConnectionType: # ok
       type: string
+      format: enum
+      description: connection type
+      example: HTTP
+      default: HTTP
       enum:
         - HTTP
         - HTTPS
         - HTTPS_NO_AUTH
+    CsrFormat: # ok
+      type: string
+      format: enum
+      description: csr format
+      example: PEM
+      default: PEM
+      enum:
+        - PEM
+        - DER
+    GlobalConfiguration: # ok
+      type: object
+      description: global configuration
+      required:
+        - status
+        - updated_at
+        - next_update
+      properties:
+        status:
+          $ref: '#/components/schemas/ConfigurationStatus'
+        updated_at:
+          type: string
+          format: date-time
+          description: last time updated
+          example: '2018-12-15T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
+        next_update:
+          type: string
+          format: date-time
+          description: last time updated
+          example: '2018-12-15T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
     Group: # ok
       type: object
+      description: group
       required:
         - code
         - description
-        - membercount
-        - updated
       properties:
+        id:
+          type: integer
+          format: int64
+          description: unique identifier
+          example: 123
         code:
           type: string
+          format: text
+          description: group code
+          example: groupcode
           minLength: 1
           maxLength: 255
-          example: groupcode
         description:
           type: string
-          minLength: 1
-          maxLength: 255
+          format: text
+          description: group description
           example: description
-        membercount:
-          type: string
           minLength: 1
           maxLength: 255
+        member_count:
+          type: integer
+          format: uint
+          description: member count
           example: 10
-        updated:
+          minimum: 0
+          maximum: 1000000
+        updated_at:
           type: string
+          format: date-time
+          description: last time updated
+          example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
-          format: date-time
-          example: '2018-12-15T00:00:00.001Z'
-    Key: # ok
+        members:
+          type: array
+          description: group members
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/GroupMember'
+    GroupMember: # ok
       type: object
+      description: group member
       required:
         - id
+        - name
+        - created_at
+      properties:
+        id:
+          type: string
+          format: text
+          description: group member id
+          example: FI:GOV:123:SS1
+          minLength: 1
+          maxLength: 1023
+        name:
+          type: string
+          format: text
+          description: group member name
+          example: Member123
+          minLength: 1
+          maxLength: 255
+        created_at:
+          type: string
+          format: date-time
+          description: group member created at
+          example: '2018-12-15T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
+    Key: # ok
+      type: object
+      description: key for the certificate
+      required:
         - name
         - label
         - type
         - status
         - read_only
+        - certificates
       properties:
         id:
           type: string
+          format: text
+          description: key id
+          example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
           minLength: 1
           maxLength: 255
-          example: 123
           readOnly: true
         name:
           type: string
+          format: text
+          description: key name
+          example: friendly name
           minLength: 1
           maxLength: 255
-          example: friendly name
         label:
           type: string
+          format: text
+          description: key label
+          example: key label
           minLength: 1
           maxLength: 255
-          example: key label
         type:
           type: string
+          format: text
+          description: key type
+          example: AUTH
           minLength: 1
           maxLength: 255
-          example: AUTH
         status:
-          type: string
-          enum: [SAVED, REGISTERED]
-          description: key status
-          example: REGISTERED
+          $ref: '#/components/schemas/KeyStatus'
         read_only:
-          type: string
-          format: boolean
+          type: boolean
+          description: key read only status
           example: true
+        certificates:
+          type: array
+          description: list of certificates for the key
+          items:
+            $ref: '#/components/schemas/Certificate'
+    KeyStatus: # ok
+      type: string
+      format: enum
+      description: key status
+      example: REGISTERED
+      enum:
+        - SAVED
+        - REGISTERED
+    KeyUsage: # ok
+      type: string
+      format: enum
+      description: certificate key usage
+      example: NON_REPUDIATION
+      enum:
+        - DIGITAL_SIGNATURE
+        - NON_REPUDIATION
+        - KEY_ENCIPHERMENT
+        - DATA_ENCIPHERMENT
+        - KEY_AGREEMENT
+        - KEY_CERT_SIGN
+        - CRL_SIGN
+        - ENCIPHER_ONLY
+        - DECIPHER_ONLY
+    KeyUsageInfo: # ok
+      type: string
+      format: enum
+      description: inteded usage for the key
+      example: AUTHENTICATION
+      enum:
+        - AUTHENTICATION
+        - SIGNING
     Language: # ok
+      type: object
+      description: language
       required:
-        - id
+        - code
       properties:
         id:
           type: string
+          format: text
+          description: language code
+          example: en
           minLength: 2
           maxLength: 2
-          example: en
           readOnly: true
+    OcspResponders: # ok
       type: object
-    LoginRequest: # ok
+      description: ocsp responce
       required:
-        - username
-        - password
+        - url
+        - status
+        - updated_at
+        - next_update
       properties:
-        username:
+        url:
           type: string
-          minLength: 4
-          maxLength: 255
-          example: username
-        password:
-          type: string
-          minLength: 4
-          maxLength: 255
-          example: password
-      type: object
-    Member: # ok
-      required:
-        - id
-        - name
-        - created
-      properties:
-        id:
-          type: string
+          format: url
+          description: service url
+          example: https://domain.com/service
           minLength: 1
           maxLength: 255
-          example: 123
-        name:
+        status:
+          $ref: '#/components/schemas/OcspStatus'
+        updated_at:
           type: string
-          minLength: 1
-          maxLength: 255
-          example: member name
-        created:
-          type: string
+          format: date-time
+          description: last time updated
+          example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
+        next_update:
+          type: string
           format: date-time
+          description: last time updated
           example: '2018-12-15T00:00:00.001Z'
-      type: object
+          minLength: 24
+          maxLength: 24
+    OcspStatus: # ok
+      type: string
+      format: enum
+      description: OCSP responder status
+      example: SUCCESS
+      enum:
+        - SUCCESS # Everything ok
+        - ERROR_CODE_OCSP_CONNECTION_ERROR # Unable to connect to the OCSP responder.
+        - ERROR_CODE_OCSP_FAILED # Unable to fetch response from the OCSP responder.
+        - ERROR_CODE_OCSP_RESPONSE_INVALID # Unable to parse the OCSP response.
+        - ERROR_CODE_OCSP_UNINITIALIZED # Status request not sent yet.
     Service: # ok
+      type: object
+      description: service for the service description
       required:
-        - service_id
         - url
         - code
         - timeout
-        - security_category
         - ssl_auth
-        - wsdl_id
-      properties:
-        service_id:
-          type: string
-          minLength: 1
-          maxLength: 255
-          example: 123
-        url:
-          type: string
-          minLength: 1
-          maxLength: 255
-          example: https://domain/service
-        code:
-          type: string
-          minLength: 1
-          maxLength: 255
-          example: ClientReg (1)
-        timeout:
-          type: string
-          minimum: 0
-          maximum: 1000
-          format: uint
-          example: 60
-        security_category:
-          type: string
-          minLength: 1
-          maxLength: 255
-          example: Title
-        ssl_auth:
-          type: string
-          minLength: 1
-          maxLength: 255
-          example: https://domain.com/service
-        wsdl_id:
-          type: string
-          minLength: 1
-          maxLength: 255
-          example: https://domain.com/service
-      type: object
-    ServiceClient: # ok
-      required:
-        - id
-        - name
+        - service_id
       properties:
         id:
           type: string
+          format: text
+          description: service id
+          example: uniqueId
           minLength: 1
           maxLength: 255
-          example: GLOBALGROUP:DEV:security-server-owners
-        name:
+        code:
           type: string
+          format: text
+          description: service code
+          example: ClientReg
           minLength: 1
           maxLength: 255
-          example: Security server owners
+        timeout:
+          type: integer
+          format: uint
+          description: service time out value
+          example: 60
+          minimum: 0
+          maximum: 1000
+        ssl_auth:
+          type: boolean
+          description: service ssl auth
+          example: true
+        url:
+          type: string
+          format: url
+          description: service url
+          example: https://domain.com/service
+          minLength: 1
+          maxLength: 255
+    ServiceClient: # ok
       type: object
-    ServiceClientAccessRight: # ok
+      description: service client
       required:
         - id
         - name
@@ -3507,216 +3503,241 @@ components:
       properties:
         id:
           type: string
-          minLength: 1
-          maxLength: 255
+          format: text
+          description: <service_client_type>:<instance_identifier>:<other_params>
           example: GLOBALGROUP:DEV:security-server-owners
-          readOnly: true
+          minLength: 1
+          maxLength: 1279
         name:
           type: string
+          format: text
+          description: service client name
+          example: Security server owners
           minLength: 1
           maxLength: 255
-          example: Security server owners
         access_rights:
           type: array
+          uniqueItems: true
           items:
             $ref: '#/components/schemas/AccessRight'
+    ServiceDescription: # ok
       type: object
+      description: WSDL/REST service
+      required:
+        - url
+        - type
+        - disabled
+        - disabled_notice
+        - refreshed_date
+        - services
+        - client_id
+      properties:
+        url:
+          type: string
+          format: url
+          description: service url
+          example: http://dev.xroad.rocks/services.wsdl
+          minLength: 1
+          maxLength: 255
+        type:
+          $ref: '#/components/schemas/ServiceType'
+        disabled:
+          type: boolean
+          description: service disabled
+          example: true
+        disabled_notice:
+          type: string
+          format: text
+          description: disabled notice
+          example: default_disabled_service_notice
+          minLength: 1
+          maxLength: 255
+        refreshed_date:
+          type: string
+          format: date-time
+          description: time for service refresh
+          example: "2018-12-15T00:00:00.001Z"
+          minLength: 24
+          maxLength: 24
+        services:
+          type: array
+          description: service description services
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/Service'
+        client_id:
+          type: string
+          format: text
+          description: <instance_id>:<member_class>:<member_code>:<subsystem>(optional)
+          example: FI:GOV:123:ABC
+          minLength: 1
+          maxLength: 255
+    ServiceType: # ok
+      type: string
+      format: text
+      description: service type
+      example: WSDL
+      enum:
+        - WSDL
+        - REST
     Subject: # ok
+      type: object
+      description: subject
       required:
         - id
       properties:
         id:
           type: string
-          format: uint
+          format: text
+          description: subject id
           example: 123
           readOnly: true
-      type: object
-    TlsCertificate: # ok
-      required:
-        - issuer-distinguished-name
-      - issuer-common-name
-      - subject-distinguished-name
-      - subject-common-name
-      - not_before
-      - not_after
-      - serial
-      - version
-      - signature_algorithm
-      - signature
-      - public_key_algorithm
-      - rsa_public_key_modulus
-      - rsa_public_key_exponent
-      - hash
-      - key_usages
-      - state
-      type: object
-      properties:
-        issuer_distinguished_name:
-          type: string
-          minLength: 1
-          maxLength: 255
-          description: certificate issuer distinguished name
-          example:
-        issuer_common_name:
-          type: string
-          minLength: 1
-          maxLength: 255
-          description: certificate issuer common name
-          example:
-        subject_distinguished_name:
-          type: string
-          minLength: 1
-          maxLength: 255
-          description: certificate subject distinguished name
-          example:
-        subject_common_name:
-          type: string
-          minLength: 1
-          maxLength: 255
-          description: certificate subject common name
-          example:
-        not_before:
-          type: string
-          minLength: 24
-          maxLength: 24
-          description: certificate validity not before
-          format: date-time
-        not_after:
-          type: string
-          minLength: 24
-          maxLength: 24
-          description: certificate validity not after
-          format: date-time
-        serial:
-          type: string
-          minLength: 1
-          maxLength: 255
-          description: serial number
-          example: "4"
-        version:
-          type: integer
-          description: version
-          minimum: 1
-          maximum: 99
-          example: 3
-        signature_algorithm:
-          type: string
-          minLength: 1
-          maxLength: 255
-          description: certificate signature algorithm
-          example: sha256WithRSAEncryption
-        signature:
-          type: string
-          minLength: 1
-          maxLength: 255
-          description: hex encoded certificate signature
-          example: 30af2fdc1780...
-        public_key_algorithm:
-          type: string
-          minLength: 1
-          maxLength: 255
-          description: certificate public key algorithm
-          example: sha256WithRSAEncryption
-        rsa_public_key_modulus:
-          type: string
-          minLength: 1
-          maxLength: 1000
-          description: hex encoded RSA public key modulus (if RSA key)
-          example: c44421d601...
-        rsa_public_key_exponent:
-          type: string
-          minLength: 1
-          maxLength: 255
-          description: RSA public key exponent (if RSA key) as an integer
-          example: 65537
-        hash:
-          type: string
-          minLength: 1
-          maxLength: 255
-          description: certificate SHA-1 hash
-          example: 1234567890ABCDEF
-        key_usages:
-            type: array
-            items:
-              type: string
-              description: certificate key usages
-              example: NON_REPUDIATION
-              enum:
-                - DIGITAL_SIGNATURE
-                - NON_REPUDIATION
-                - KEY_ENCIPHERMENT
-                - DATA_ENCIPHERMENT
-                - KEY_AGREEMENT
-                - KEY_CERT_SIGN
-                - CRL_SIGN
-                - ENCIPHER_ONLY
-                - DECIPHER_ONLY
-        state:
-          type: string
-          description: certificate state
-          example: IN_USE
-          enum:
-            - IN_USE
-            - DISABLED
-      type: object
-    Token: # ok
-      type: object
-      required:
-        - name
-        - type
-        - status
-      properties:
-        name:
-          type: string
-          minLength: 1
-          maxLength: 255
-          example: softToken-0
-        type:
-          type: string
-          minLength: 1
-          maxLength: 255
-          example: software
-        status:
-          type: string
-          minLength: 1
-          maxLength: 255
-          example: logged_in
     System: # ok
       type: object
+      description: system parameters
       required:
         - anchor
-        - timestamping
-        - authorities
-        - tlscertificate
+        - configuration
+        - timestamping_services
+        - ocsp_responders
+        - certificate_authorities
+        - tls_certificate
         - version
       properties:
         anchor:
           $ref: '#/components/schemas/Anchor'
-        timestamping:
-          $ref: '#/components/schemas/Timestamping'
-        authorities:
-          $ref: '#/components/schemas/Authorities'
-        tlscertificate:
-          $ref: '#/components/schemas/TlsCertificate'
+        configuration:
+          $ref: '#/components/schemas/GlobalConfiguration'
+        timestamping_services:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/TimestampingService'
+        ocsp_responders:
+          $ref: '#/components/schemas/OcspResponders'
+        certificate_authorities:
+          type: array
+          description: system certificate authorities
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/CertificateAuthority'
+        tls_certificate:
+          $ref: '#/components/schemas/Certificate'
         version:
           $ref: '#/components/schemas/Version'
-    Timestamping: # ok
+    TimestampingService: # ok
+      type: object
+      description: timestamping services
       required:
         - name
         - url
+        - status
+        - message
+        - updated_at
       properties:
         name:
           type: string
+          format: text
+          description: name of the time stamping service
+          example: X-Road Test TSA CN
           minLength: 1
           maxLength: 255
-          example: X-Road Test TSA CN
         url:
           type: string
+          format: url
+          description: url of the time stamping service
+          example: http://dev.xroad.rocks:123
           minLength: 1
           maxLength: 255
-          example: http://dev.xroad.rocks:123
+        updated_at:
+          type: string
+          format: date-time
+          description: last time updated
+          example: '2018-12-15T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
+        message:
+          type: string
+          format: text
+          description: timestamping service message
+          example: ok
+          minLength: 1
+          maxLength: 255
+        status:
+          $ref: '#/components/schemas/TimestampingStatus'
+    TimestampingStatus: # ok
+      type: string
+      format: enum
+      description: timestamping status
+      example:  SUCCESS
+      enum:
+        - SUCCESS # Everything ok
+        - ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT # Connection to the timestamp server timed out. Check the network connection to the timestamp server.
+        - ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL # Malformed timestamp server URL. Check the URL.
+        - ERROR_CODE_UNKNOWN # Unknown error code.
+        - ERROR_CODE_UNINITIALIZED # The configuration client is initializing.
+        - ERROR_CODE_TIMESTAMP_UNINITIALIZED # Connection ok, no timestamp request made yet.
+        - ERROR_CODE_CONNECTION_FAILED # Connection to configuration client failed. Ensure that xroad-confclient is running.
+    Token: # ok
       type: object
+      description: token
+      required:
+        - id
+        - name
+        - type
+        - keys
+        - status
+      properties:
+        id:
+          type: string
+          format: text
+          description: token id
+          example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
+          minLength: 1
+          maxLength: 255
+          readOnly: true
+        name:
+          type: string
+          format: text
+          description: token name
+          example: softToken-0
+          minLength: 1
+          maxLength: 255
+        type:
+          $ref: '#/components/schemas/TokenType'
+        keys:
+          type: array
+          description: token keys
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/Key'
+        status:
+          $ref: '#/components/schemas/TokenStatus'
+    TokenStatus: # ok
+      type: string
+      format: text
+      description: token type
+      example: OK
+      enum:
+        - OK # Normal operation status
+        - USER_PIN_LOCKED # Blocked
+        - USER_PIN_INCORRECT # Incorrect PIN was entered
+        - USER_PIN_INVALID # Invalid PIN
+        - USER_PIN_EXPIRED # PIN expired
+        - USER_PIN_COUNT_LOW # Only a few tries left
+        - USER_PIN_FINAL_TRY # Final try
+        - NOT_INITIALIZED # Not inited
+    TokenType: # ok
+      type: string
+      format: text
+      description: token type
+      example: SOFTWARE
+      enum:
+        - SOFTWARE
+        - HARDWARE
     User: # ok
+      type: object
+      description: x-road user
       required:
         - username
         - roles
@@ -3724,59 +3745,37 @@ components:
       properties:
         username:
           type: string
+          format: text
+          description: user username
+          example: Guest
           minLength: 1
           maxLength: 255
-          example: Guest
         roles:
-            type: array
-            items:
-                type: string
+          type: array
+          description: user roles
+          uniqueItems: true
+          items:
+            type: string
+            format: text
         permissions:
-            type: array
-            items:
-                type: string
-      type: object
+          type: array
+          description: user permissions
+          uniqueItems: true
+          items:
+            type: string
+            format: text
     Version: # ok
+      type: object
+      description: version information
       required:
         - info
       properties:
         info:
           type: string
-          minLength: 1
-          maxLength: 255
+          format: text
+          description: information about the security server
           example: Security Server version 6.21.0-SNAPSHOT-20190411git32add470
-    Wsdl: # ok
-      required:
-        - url
-        - disabled
-        - disabled_notice
-        - refreshed_date
-        - client_id
-      properties:
-        url:
-          type: string
           minLength: 1
           maxLength: 255
-          example: http://dev.xroad.rocks/services.wsdl
-        disabled:
-          type: string
-          format: boolean
-          example: true
-        disabled_notice:
-          type: string
-          format: boolean
-          example: default_disabled_service_notice
-        refreshed_date:
-          type: string
-          minLength: 24
-          maxLength: 24
-          format: date-time
-          example: "2018-12-15T00:00:00.001Z"
-        client_id:
-          type: string
-          minLength: 1
-          maxLength: 255
-          example: FI:GOV:123:ABC
-      type: object
 security:
   - ApiKeyAuth: []
