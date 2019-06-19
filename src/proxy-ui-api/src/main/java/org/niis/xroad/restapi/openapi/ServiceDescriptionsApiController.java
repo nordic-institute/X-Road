@@ -25,7 +25,6 @@
 package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.InlineObject9;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
@@ -49,21 +48,17 @@ import java.util.Collections;
 public class ServiceDescriptionsApiController implements ServiceDescriptionsApi {
 
     private final NativeWebRequest request;
-    private final ServiceDescriptionConverter serviceDescriptionConverter;
     private final ServiceDescriptionService serviceDescriptionService;
 
     /**
      * ServiceDescriptionsApiController constructor
-     * @param serviceDescriptionConverter
      * @param serviceDescriptionService
      */
 
     @Autowired
     public ServiceDescriptionsApiController(NativeWebRequest request,
-                                            ServiceDescriptionConverter serviceDescriptionConverter,
                                             ServiceDescriptionService serviceDescriptionService) {
         this.request = request;
-        this.serviceDescriptionConverter = serviceDescriptionConverter;
         this.serviceDescriptionService = serviceDescriptionService;
     }
 
