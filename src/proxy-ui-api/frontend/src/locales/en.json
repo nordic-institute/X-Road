@@ -110,6 +110,14 @@
     "addSelected": "Add selected",
     "noResults": "Your search found no results."
   },
+  "services": {
+    "addWsdl": "Add WSDL",
+    "addRest": "Add REST",
+    "service": "Service",
+    "serviceCode": "Service Code",
+    "url": "URL",
+    "timeout": "Timeout"
+  },
   "action": {
     "addSubsystem": "add subsystem",
     "addClient": "add client",
@@ -121,7 +129,8 @@
     "ok": "Ok",
     "close": "Close",
     "cancel": "Cancel",
-    "yes": "Yes"
+    "yes": "Yes",
+    "refresh": "Refresh"
   },
   "login": {
     "username": "Username",
