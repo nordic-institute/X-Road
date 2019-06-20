@@ -26,7 +26,7 @@ package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
-import org.niis.xroad.restapi.openapi.model.InlineObject9;
+import org.niis.xroad.restapi.openapi.model.InlineObject10;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -87,7 +87,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
 
     @Override
     @PreAuthorize("hasAuthority('ENABLE_DISABLE_WSDL')")
-    public ResponseEntity<Void> disableServiceDescription(String id, InlineObject9 inlineObject9) {
+    public ResponseEntity<Void> disableServiceDescription(String id, InlineObject10 inlineObject9) {
         String disabledNotice = null;
         if (inlineObject9 != null) {
             disabledNotice = inlineObject9.getDisabledNotice();
