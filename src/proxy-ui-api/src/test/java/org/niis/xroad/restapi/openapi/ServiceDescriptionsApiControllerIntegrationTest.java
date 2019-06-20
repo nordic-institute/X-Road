@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
-import org.niis.xroad.restapi.openapi.model.InlineObject9;
+import org.niis.xroad.restapi.openapi.model.InlineObject10;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -107,7 +107,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
     public void disableServiceDescription() {
         // serviceDescription that was disabled
         serviceDescriptionsApiController.disableServiceDescription("2",
-                new InlineObject9().disabledNotice("foo-notice"));
+                new InlineObject10().disabledNotice("foo-notice"));
         Optional<ServiceDescription> serviceDescription = getServiceDescription(
                 clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1).getBody(), "2");
         assertTrue(serviceDescription.isPresent());
@@ -116,7 +116,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
 
         // serviceDescription that was enabled
         serviceDescriptionsApiController.disableServiceDescription("1",
-                new InlineObject9().disabledNotice("foo-notice"));
+                new InlineObject10().disabledNotice("foo-notice"));
         serviceDescription = getServiceDescription(
                 clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1).getBody(), "1");
         assertTrue(serviceDescription.isPresent());
