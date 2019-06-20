@@ -16,7 +16,7 @@ that is being served from webpack development server.
 
 Parameter `activate-devtools-do-not-use-in-production` can be used to build a jar that contains spring
 devtools, which enable remote hot deployment of code. In this case, jar needs to be started with spring
-profile `devtools`.
+profile `devtools`. 
 
 ```
 ../gradlew clean build -Pactivate-devtools-do-not-use-in-production
