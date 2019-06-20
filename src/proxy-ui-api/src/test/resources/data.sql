@@ -31,7 +31,7 @@ INSERT INTO SERVICEDESCRIPTION (ID, CLIENT_ID, URL, DISABLED, DISABLED_NOTICE, R
 values (1, 2, 'https://soapservice.com/v1/Endpoint?wsdl', false, 'Out of order', now(), 'WSDL');
 
 INSERT INTO SERVICEDESCRIPTION (ID, CLIENT_ID, URL, DISABLED, DISABLED_NOTICE, REFRESHED_DATE, TYPE)
-values (2, 2, 'https://restservice.com/api/v1', false, 'Kaputt', now(), 'OPENAPI3');
+values (2, 2, 'https://restservice.com/api/v1', true, 'Kaputt', now(), 'OPENAPI3');
 
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
 values (1, 1, 'getRandom', 'v1', 'getrandom-title', 'https://soapservice.com/v1/Endpoint', true, 60);

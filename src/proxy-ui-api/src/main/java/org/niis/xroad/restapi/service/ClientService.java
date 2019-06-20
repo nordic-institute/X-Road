@@ -116,14 +116,24 @@ public class ClientService {
      */
     @PreAuthorize("hasAuthority('EDIT_CLIENT_INTERNAL_CONNECTION_TYPE')")
     public ClientType updateConnectionType(ClientId id, String connectionType) {
-        ClientType clientType = clientRepository.getClient(id);
-        if (clientType == null) {
-            throw new NotFoundException(("client with id " + id + " not found"));
-        }
+        ClientType clientType = getClientType(id);
         // validate connectionType param by creating enum out of it
         IsAuthentication enumValue = IsAuthentication.valueOf(connectionType);
         clientType.setIsAuthentication(connectionType);
         clientRepository.saveOrUpdate(clientType);
+        return clientType;
+    }
+
+    /**
+     * Get a ClientType
+     * @throws NotFoundException if not found
+     */
+    private ClientType getClientType(ClientId id) {
+        ClientType clientType = clientRepository.getClient(id);
+        if (clientType == null) {
+            throw new NotFoundException(("client with id " + id + " not found"),
+                    ErrorCode.of(CLIENT_NOT_FOUND_ERROR_CODE));
+        }
         return clientType;
     }
 
@@ -143,10 +153,7 @@ public class ClientService {
             throw new CertificateException("cannot convert bytes to certificate", e);
         }
         String hash = calculateCertHexHash(x509Certificate);
-        ClientType clientType = clientRepository.getClient(id);
-        if (clientType == null) {
-            throw new NotFoundException(("client with id " + id + " not found"));
-        }
+        ClientType clientType = getClientType(id);
         clientType.getIsCert().stream()
                 .filter(cert -> hash.equalsIgnoreCase(calculateCertHexHash(cert.getData())))
                 .findAny()
@@ -198,11 +205,7 @@ public class ClientService {
      */
     @PreAuthorize("hasAuthority('DELETE_CLIENT_INTERNAL_CERT')")
     public ClientType deleteTlsCertificate(ClientId id, String certificateHash) {
-        ClientType clientType = clientRepository.getClient(id);
-        if (clientType == null) {
-            throw new NotFoundException(("client with id " + id + " not found"),
-                    ErrorCode.of(CLIENT_NOT_FOUND_ERROR_CODE));
-        }
+        ClientType clientType = getClientType(id);
         CertificateType certificateType = clientType.getIsCert().stream()
                 .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
                 .findAny()
@@ -223,10 +226,7 @@ public class ClientService {
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENT_INTERNAL_CERT_DETAILS')")
     public Optional<CertificateType> getTlsCertificate(ClientId id, String certificateHash) {
-        ClientType clientType = clientRepository.getClient(id);
-        if (clientType == null) {
-            throw new NotFoundException(("client with id " + id + " not found"));
-        }
+        ClientType clientType = getClientType(id);
         Optional<CertificateType> certificateType = clientType.getIsCert().stream()
                 .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
                 .findAny();

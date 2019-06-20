@@ -559,7 +559,7 @@ public class ClientsApiControllerIntegrationTest {
                 "https://restservice.com/api/v1")
                 .get();
         assertEquals(CLIENT_ID_SS1, serviceDescription.getClientId());
-        assertEquals(false, serviceDescription.getDisabled());
+        assertEquals(true, serviceDescription.getDisabled());
         assertEquals("Kaputt", serviceDescription.getDisabledNotice());
         assertNotNull(serviceDescription.getRefreshedDate());
         assertEquals(ServiceType.REST, serviceDescription.getType());

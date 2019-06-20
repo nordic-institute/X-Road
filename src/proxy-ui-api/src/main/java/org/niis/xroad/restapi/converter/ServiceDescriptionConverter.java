@@ -70,6 +70,7 @@ public class ServiceDescriptionConverter {
     public ServiceDescription convert(ServiceDescriptionType serviceDescriptionType) {
         ServiceDescription serviceDescription = new ServiceDescription();
 
+        serviceDescription.setId(String.valueOf(serviceDescriptionType.getId()));
         serviceDescription.setClientId(clientConverter.convertId(
                 serviceDescriptionType.getClient().getIdentifier()));
         serviceDescription.setDisabled(serviceDescriptionType.isDisabled());
