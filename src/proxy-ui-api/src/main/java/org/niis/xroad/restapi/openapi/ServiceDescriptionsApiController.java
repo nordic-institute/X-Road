@@ -57,7 +57,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
 
     @Autowired
     public ServiceDescriptionsApiController(NativeWebRequest request,
-                                            ServiceDescriptionService serviceDescriptionService) {
+            ServiceDescriptionService serviceDescriptionService) {
         this.request = request;
         this.serviceDescriptionService = serviceDescriptionService;
     }
