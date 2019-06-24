@@ -103,8 +103,6 @@ public class ClientsApiControllerIntegrationTest {
     private static final String SUBSYSTEM1 = "SS1";
     private static final String SUBSYSTEM2 = "SS2";
     private static final String SUBSYSTEM3 = "SS3";
-
-
     // this is base64 encoded DER certificate from common-util/test/configuration-anchor.xml
     /**
      * Certificate:
@@ -144,15 +142,15 @@ public class ClientsApiControllerIntegrationTest {
             return identifier.getSubsystemCode() != null ? identifier.getSubsystemCode() + NAME_APPENDIX
                     : "test-member" + NAME_APPENDIX;
         });
-
         when(globalConfWrapper.getGlobalMembers(any())).thenReturn(new ArrayList<>(Arrays.asList(
+                TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, null),
                 TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1),
+                TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM2),
                 TestUtils.getMemberInfo(INSTANCE_EE, MEMBER_CLASS_GOV, MEMBER_CODE_M2, SUBSYSTEM3),
                 TestUtils.getMemberInfo(INSTANCE_EE, MEMBER_CLASS_GOV, MEMBER_CODE_M1, null),
                 TestUtils.getMemberInfo(INSTANCE_EE, MEMBER_CLASS_PRO, MEMBER_CODE_M1, SUBSYSTEM1),
                 TestUtils.getMemberInfo(INSTANCE_EE, MEMBER_CLASS_PRO, MEMBER_CODE_M2, null))
         ));
-
         List<TokenInfo> mockTokens = createMockTokenInfos(null);
         when(tokenRepository.getTokens()).thenReturn(mockTokens);
     }
@@ -167,9 +165,6 @@ public class ClientsApiControllerIntegrationTest {
                 clientsApiController.getClients(null, null, null, null, null, true, false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(7, response.getBody().size());
-        Client client = response.getBody().get(0);
-        assertEquals("test-member-name", client.getMemberName());
-        assertEquals("M1", client.getMemberCode());
     }
 
     @Test
@@ -198,7 +193,6 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals("M1", client.getMemberCode());
         assertEquals("FI:GOV:M1", client.getId());
         assertNull(client.getSubsystemCode());
-
         response = clientsApiController.getClient("FI:GOV:M1:SS1");
         assertEquals(HttpStatus.OK, response.getStatusCode());
         client = response.getBody();
@@ -209,7 +203,6 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals("M1", client.getMemberCode());
         assertEquals("FI:GOV:M1:SS1", client.getId());
         assertEquals("SS1", client.getSubsystemCode());
-
         try {
             clientsApiController.getClient("FI:GOV:M1:SS3");
             fail("should throw NotFoundException to 404");
@@ -224,13 +217,11 @@ public class ClientsApiControllerIntegrationTest {
         ResponseEntity<Client> response =
                 clientsApiController.getClient("FI:GOV:M1:SS1");
         assertEquals(ConnectionType.HTTPS_NO_AUTH, response.getBody().getConnectionType());
-
         InlineObject http = new InlineObject();
         http.setConnectionType(ConnectionType.HTTP);
         response = clientsApiController.updateClient("FI:GOV:M1:SS1", http);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(ConnectionType.HTTP, response.getBody().getConnectionType());
-
         response = clientsApiController.getClient("FI:GOV:M1:SS1");
         assertEquals(ConnectionType.HTTP, response.getBody().getConnectionType());
     }
@@ -242,7 +233,6 @@ public class ClientsApiControllerIntegrationTest {
                 clientsApiController.getClientCertificates("FI:GOV:M1");
         assertEquals(HttpStatus.OK, certificates.getStatusCode());
         assertEquals(0, certificates.getBody().size());
-
         CertificateInfo mockCertificate = new CertificateInfo(
                 ClientId.create("FI", "GOV", "M1"),
                 true, true, CertificateInfo.STATUS_REGISTERED,
@@ -251,7 +241,6 @@ public class ClientsApiControllerIntegrationTest {
         certificates = clientsApiController.getClientCertificates("FI:GOV:M1");
         assertEquals(HttpStatus.OK, certificates.getStatusCode());
         assertEquals(1, certificates.getBody().size());
-
         CertificateDetails onlyCertificate = certificates.getBody().get(0);
         assertEquals("N/A", onlyCertificate.getIssuerCommonName());
         assertEquals(OffsetDateTime.parse("1970-01-01T00:00:00Z"), onlyCertificate.getNotBefore());
@@ -267,7 +256,6 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(new Integer(65537), onlyCertificate.getRsaPublicKeyExponent());
         assertEquals(new ArrayList<>(Arrays.asList(org.niis.xroad.restapi.openapi.model.KeyUsage.NON_REPUDIATION)),
                 new ArrayList<>(onlyCertificate.getKeyUsages()));
-
         try {
             certificates = clientsApiController.getClientCertificates("FI:GOV:M2");
             fail("should throw NotFoundException for 404");
@@ -352,16 +340,13 @@ public class ClientsApiControllerIntegrationTest {
             "VIEW_CLIENT_DETAILS",
             "VIEW_CLIENT_INTERNAL_CERTS" })
     public void addTlsCert() throws Exception {
-
         ResponseEntity<List<CertificateDetails>> certs = clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1);
         assertEquals(0, certs.getBody().size());
-
         ResponseEntity<Void> response =
                 clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1,
                         getResourceToCert(VALID_CERT));
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1).getBody().size());
-
         // cert already exists
         try {
             response = clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1,
@@ -370,7 +355,6 @@ public class ClientsApiControllerIntegrationTest {
         } catch (ConflictException expected) {
         }
         assertEquals(1, clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1).getBody().size());
-
         // cert is invalid
         try {
             response = clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1,
@@ -387,19 +371,16 @@ public class ClientsApiControllerIntegrationTest {
             "DELETE_CLIENT_INTERNAL_CERT",
             "VIEW_CLIENT_INTERNAL_CERTS" })
     public void deleteTlsCert() throws Exception {
-
         ResponseEntity<Void> response =
                 clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1,
                         getResourceToCert(VALID_CERT));
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1).getBody().size());
-
         ResponseEntity<Void> deleteResponse =
                 clientsApiController.deleteClientTlsCertificate(CLIENT_ID_SS1,
                         "63A104B2BAC14667873C5DBD54BE25BC687B3702");
         assertEquals(HttpStatus.OK, deleteResponse.getStatusCode());
         assertEquals(0, clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1).getBody().size());
-
         // cert does not exist
         try {
             clientsApiController.deleteClientTlsCertificate(CLIENT_ID_SS1,
@@ -416,26 +397,22 @@ public class ClientsApiControllerIntegrationTest {
             "VIEW_CLIENT_INTERNAL_CERT_DETAILS",
             "VIEW_CLIENT_INTERNAL_CERTS" })
     public void findTlsCert() throws Exception {
-
         ResponseEntity<Void> response =
                 clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1,
                         getResourceToCert(VALID_CERT));
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1).getBody().size());
-
         ResponseEntity<CertificateDetails> findResponse =
                 clientsApiController.getClientTlsCertificate(CLIENT_ID_SS1,
                         "63A104B2BAC14667873C5DBD54BE25BC687B3702");
         assertEquals(HttpStatus.OK, findResponse.getStatusCode());
         assertEquals("63A104B2BAC14667873C5DBD54BE25BC687B3702", findResponse.getBody().getHash());
-
         // case insensitive
         findResponse =
                 clientsApiController.getClientTlsCertificate(CLIENT_ID_SS1,
                         "63a104b2bac14667873c5dbd54be25bc687b3702");
         assertEquals(HttpStatus.OK, findResponse.getStatusCode());
         assertEquals("63A104B2BAC14667873C5DBD54BE25BC687B3702", findResponse.getBody().getHash());
-
         // not found
         try {
             clientsApiController.getClientTlsCertificate(CLIENT_ID_SS1,

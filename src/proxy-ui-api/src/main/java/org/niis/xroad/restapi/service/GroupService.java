@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
@@ -39,6 +40,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -55,16 +57,20 @@ public class GroupService {
 
     private final GroupRepository groupsRepository;
     private final ClientRepository clientRepository;
+    private final ClientService clientService;
 
     /**
      * GroupsService constructor
      * @param groupsRepository
      * @param clientRepository
+     * @param clientService
      */
     @Autowired
-    public GroupService(GroupRepository groupsRepository, ClientRepository clientRepository) {
+    public GroupService(GroupRepository groupsRepository, ClientRepository clientRepository,
+            ClientService clientService) {
         this.groupsRepository = groupsRepository;
         this.clientRepository = clientRepository;
+        this.clientService = clientService;
     }
 
     /**
@@ -118,37 +124,35 @@ public class GroupService {
     }
 
     /**
-     * Adds a member to LocalGroup
-     * @param memberId
+     * Adds a members to LocalGroup
+     * @param memberIds
      */
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
-    public void addLocalGroupMember(String groupId, ClientId memberId) {
+    public void addLocalGroupMembers(String groupId, List<ClientId> memberIds) {
         LocalGroupType localGroupType = getLocalGroup(groupId);
-
         if (localGroupType == null) {
             throw new NotFoundException("LocalGroup with id " + groupId + " not found");
         }
-
-        ClientType memberToBeAdded = clientRepository.getClient(memberId);
-
-        if (memberToBeAdded == null) {
-            throw new NotFoundException("client with id " + memberId.toShortString() + " not found");
-        }
-
-        boolean isAdded = localGroupType.getGroupMember().stream().anyMatch(groupMemberType ->
-                groupMemberType.getGroupMemberId().toShortString().trim()
-                        .equals(memberToBeAdded.getIdentifier().toShortString().trim()));
-
-        if (isAdded) {
-            throw new ConflictException("local group member already exists in group");
-        }
-
-        GroupMemberType groupMemberType = new GroupMemberType();
-        groupMemberType.setAdded(new Date());
-        groupMemberType.setGroupMemberId(memberToBeAdded.getIdentifier());
-
-        groupsRepository.saveOrUpdate(groupMemberType);
-        localGroupType.getGroupMember().add(groupMemberType);
+        List<GroupMemberType> membersToBeAdded = new ArrayList<>(memberIds.size());
+        memberIds.forEach(memberId -> {
+            Optional<MemberInfo> foundMember = clientService.findByClientId(memberId);
+            if (!foundMember.isPresent()) {
+                throw new NotFoundException("client with id " + memberId.toShortString() + " not found");
+            }
+            ClientId clientIdToBeAdded = foundMember.get().getId();
+            boolean isAdded = localGroupType.getGroupMember().stream().anyMatch(groupMemberType ->
+                    groupMemberType.getGroupMemberId().toShortString().trim()
+                            .equals(clientIdToBeAdded.toShortString().trim()));
+            if (isAdded) {
+                throw new ConflictException("local group member already exists in group");
+            }
+            GroupMemberType groupMemberType = new GroupMemberType();
+            groupMemberType.setAdded(new Date());
+            groupMemberType.setGroupMemberId(clientIdToBeAdded);
+            membersToBeAdded.add(groupMemberType);
+        });
+        groupsRepository.saveOrUpdateAll(membersToBeAdded);
+        localGroupType.getGroupMember().addAll(membersToBeAdded);
         groupsRepository.saveOrUpdate(localGroupType);
     }
 

@@ -29,10 +29,13 @@ import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * groups repository
@@ -44,6 +47,10 @@ public class GroupRepository {
 
     private final PersistenceUtils persistenceUtils;
 
+    /**
+     * GroupRepository constructor
+     * @param persistenceUtils
+     */
     @Autowired
     public GroupRepository(PersistenceUtils persistenceUtils) {
         this.persistenceUtils = persistenceUtils;
@@ -60,6 +67,17 @@ public class GroupRepository {
      */
     public void persist(LocalGroupType localGroupType) {
         persistenceUtils.getCurrentSession().persist(localGroupType);
+    }
+
+    /**
+     * Executes a Hibernate persist(groupMemberType) for multiple group members
+     * @param groupMemberTypes
+     */
+    public void saveOrUpdateAll(List<GroupMemberType> groupMemberTypes) {
+        Session session = persistenceUtils.getCurrentSession();
+        for (GroupMemberType groupMemberType : groupMemberTypes) {
+            session.saveOrUpdate(groupMemberType);
+        }
     }
 
     /**
