@@ -2,16 +2,13 @@
 
 ---
 
-
 # X-Road: Service Metadata Protocol
 **Technical Specification**
 
-Version: 2.6  
-15.10.2018  
-Doc. ID: PR-META  
+Version: 2.7  
+Doc. ID: PR-META
 
 ---
-
 
 ## Version history
 
@@ -28,23 +25,42 @@ Doc. ID: PR-META
  30.01.2018 | 2.4     | Updated metaservices wsdl                                       | Jarkko Hyöty
  06.03.2018 | 2.5     | Added terms section, terms doc reference and link               | Tatu Repo
  15.10.2018 | 2.6     | Update Annex B                                                  | Petteri Kivimäki
+ 05.06.2019 | 2.7     | Add JSON response for listClients metadata API                  | Jarkko Hyöty
 
 ## Table of Contents
 
 <!-- toc -->
+<!-- vim-markdown-toc GFM -->
 
-- [License](#license)
-- [1 Introduction](#1-introduction)
+* [License](#license)
+* [1 Introduction](#1-introduction)
   * [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
   * [1.2 References](#12-references)
-- [2 Retrieving List of Service Providers](#2-retrieving-list-of-service-providers)
-- [3 Retrieving List of Central Services](#3-retrieving-list-of-central-services)
-- [4 Retrieving List of Services](#4-retrieving-list-of-services)
-- [5 Retrieving the WSDL of a Service](#5-retrieving-the-wsdl-of-a-service)
-- [Annex A XML Schema for Messages](#annex-a-xml-schema-for-messages)
-- [Annex B listMethods and allowedMethods WSDL](#annex-b-listmethods-allowedmethods-and-getwsdl-wsdl)
-- [Annex C Example Messages](#annex-c-example-messages)
+* [2 Retrieving List of Service Providers](#2-retrieving-list-of-service-providers)
+* [3 Retrieving List of Central Services](#3-retrieving-list-of-central-services)
+* [4 Retrieving List of Services](#4-retrieving-list-of-services)
+* [5 Retrieving the WSDL of a Service](#5-retrieving-the-wsdl-of-a-service)
+    * [X-Road protocol POST-request](#x-road-protocol-post-request)
+    * [HTTP GET-request](#http-get-request)
+    * [WSDL-information modifications](#wsdl-information-modifications)
+* [Annex A XML Schema for Messages](#annex-a-xml-schema-for-messages)
+* [Annex B listMethods, allowedMethods, and getWsdl service descriptions](#annex-b-listmethods-allowedmethods-and-getwsdl-service-descriptions)
+  * [WSDL](#wsdl)
+  * [OpenAPI definition](#openapi-definition)
+* [Annex C Example Messages](#annex-c-example-messages)
+  * [C.1 listClients Response](#c1-listclients-response)
+    * [XML Response](#xml-response)
+    * [JSON Response](#json-response)
+  * [C.2 listCentralServices Response](#c2-listcentralservices-response)
+  * [C.3 listMethods Request](#c3-listmethods-request)
+  * [C.4 listMethods Response](#c4-listmethods-response)
+  * [C.5 allowedMethods Request](#c5-allowedmethods-request)
+  * [C.6 allowedMethods Response](#c6-allowedmethods-response)
+  * [C.7 getWsdl Request](#c7-getwsdl-request)
+  * [C.8 getWsdl Response](#c8-getwsdl-response)
+  * [C.9 getWsdl Response attachment](#c9-getwsdl-response-attachment)
 
+<!-- vim-markdown-toc -->
 <!-- tocstop -->
 
 ## License
@@ -63,7 +79,7 @@ This specification describes methods that can be used by X-Road participants to 
 
 This specification is based on the X-Road protocol \[[PR-MESS](#Ref_PR-MESS)\]. The X-Road protocol specification also defines important concepts used in this text (for example, central service and X-Road identifier). Because this protocol uses HTTP and X-Road protocol as transport mechanisms, the details of message transport and error conditions are not described in this specification.
 
-Chapters [2](#2-retrieving-list-of-service-providers), [3](#3-retrieving-list-of-central-services), [4](#4-retrieving-list-of-services) and [5](#5-retrieving-the-wsdl-of-a-service) together with annexes [A](#annex-a-xml-schema-for-messages) and [B](#annex-b-listmethods-and-allowedmethods-wsdl) contain normative information. All the other sections are informative in nature. All the references are normative.
+Chapters [2](#2-retrieving-list-of-service-providers), [3](#3-retrieving-list-of-central-services), [4](#4-retrieving-list-of-services) and [5](#5-retrieving-the-wsdl-of-a-service) together with annexes [A](#annex-a-xml-schema-for-messages) and [B](#annex-b-listmethods-allowedmethods-and-getwsdl-service-descriptions) contain normative information. All the other sections are informative in nature. All the references are normative.
 
 This specification does not include option for partially implementing the protocol – the conformant implementation must implement the entire specification.
 
@@ -92,28 +108,11 @@ In addition, it is possible to retrieve a list of clients in other, federated X-
 
 Thus, in order to retrieve a list of clients defined in the X-Road instance `AA`, the request URL is `http://SECURITYSERVER/listClients?xRoadInstance=AA`.
 
-Security server MUST respond with content-type `text/xml` and the response MUST contain the `clientList` XML element defined below
-(full XML schema appears in Annex [A](#annex-a-xml-schema-for-messages)).
-Annex [C.1](#c1-listclients-response) contains an example response message.
+It is possible to control the response content type using HTTP `Accept` header. If the header value is `application/json`, the security server must produce an application/json response, as defined in Annex B, [OpenAPI definition](#openapi-definition). Otherwise, security server MUST respond with content-type `text/xml` and the response MUST contain the `clientList` XML element defined in Annex [A](#annex-a-xml-schema-for-messages)).
 
-```xml
-    <xs:element name="clientList" type="ClientListType"/>
-    <xs:complexType name="ClientListType">
-        <xs:sequence>
-            <xs:element maxOccurs="unbounded" minOccurs="0"
-                name="member" type="ClientType"/>
-        </xs:sequence>
-    </xs:complexType>
-    <xs:complexType name="ClientType">
-        <xs:sequence>
-            <xs:element name="id" type="id:XRoadClientIdentifierType"/>
-            <xs:element name="name" type="xs:string" minOccurs="0"/>
-        </xs:sequence>
-    </xs:complexType>
-```
+Annex [C.1](#c1-listclients-response) contains an example XML and JSON response messages
 
-The `XRoadClientIdentifierType` represents a globally unique identifier of an X-Road client.
-The client identifier has a hierarchical structure consisting of X-Road instance, member class, member and (optionally) subsystem codes. See specification \[[PR-MESS](#Ref_PR-MESS)\] for explanation and specification of identifiers.
+The X-Road client identifier has a hierarchical structure consisting of X-Road instance, member class, member and (optionally) subsystem codes. See specification \[[PR-MESS](#Ref_PR-MESS)\] for explanation and specification of identifiers.
 
 ## 3 Retrieving List of Central Services
 
@@ -285,8 +284,9 @@ when retrieved through the meta-service.
 </xs:schema>
 ```
 
-## Annex B listMethods, allowedMethods, and getWsdl WSDL
+## Annex B listMethods, allowedMethods, and getWsdl service descriptions
 
+### WSDL
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <wsdl:definitions targetNamespace="http://x-road.eu/xsd/xroad.xsd"
@@ -508,9 +508,91 @@ when retrieved through the meta-service.
 </wsdl:definitions>
 ```
 
+### OpenAPI definition
+
+```yaml
+openapi: 3.0.0
+info:
+  title: X-Road Service Metadata API
+  version: '2.7'
+servers:
+  - url: 'https://{securityserver}/'
+paths:
+  /listClients:
+    get:
+      tags:
+        - metaservices
+      summary: List clients defined in the X-Road instance
+      operationId: listClients
+      parameters:
+        - name: xRoadInstance
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of clients
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/clientList'
+  /listCentralServices:
+    get:
+      tags:
+        - metaservices
+      summary: List central services defined in the X-Road instance
+      operationId: listCentralServices
+      parameters:
+        - name: xRoadInstance
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of central services
+components:
+  schemas:
+    clientList:
+      type: object
+      properties:
+        member:
+          type: array
+          items:
+            $ref: '#/components/schemas/xroadIdentifier'
+    xroadIdentifier:
+      type: object
+      properties:
+        name:
+          type: string
+        id:
+          type: object
+          properties:
+            object_type:
+              type: string
+              enum:
+                - MEMBER
+                - SUBSYSTEM
+                - SERVER
+                - GLOBALGROUP
+                - LOCALGROUP
+                - SERVICE
+                - CENTRALSERVICE
+            xroad_instance:
+              type: string
+            member_class:
+              type: string
+            member_code:
+              type: string
+            subsystem_code:
+              type: string
+```
+
 ## Annex C Example Messages
 
 ### C.1 listClients Response
+
+#### XML Response
+`curl http://SECURITYSERVER/listClients`
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -551,6 +633,53 @@ when retrieved through the meta-service.
         <ns2:name>Client One</ns2:name>
     </ns2:member>
 </ns2:clientList>
+```
+
+#### JSON Response
+`curl -H "Accept: application/json" http://SECURITYSERVER/listClients`
+
+```json
+{
+  "member": [
+    {
+      "id": {
+        "member_class": "GOV",
+        "member_code": "TS1OWNER",
+        "object_type": "MEMBER",
+        "xroad_instance": "AA"
+      },
+      "name": "TS1 Owner"
+    },
+    {
+      "id": {
+        "member_class": "GOV",
+        "member_code": "TS2OWNER",
+        "object_type": "MEMBER",
+        "xroad_instance": "AA"
+      },
+      "name": "TS2 Owner"
+    },
+    {
+      "id": {
+        "member_class": "ENT",
+        "member_code": "CLIENT1",
+        "object_type": "MEMBER",
+        "xroad_instance": "AA"
+      },
+      "name": "Client One"
+    },
+    {
+      "id": {
+        "member_class": "ENT",
+        "member_code": "CLIENT1",
+        "subsystem_code": "sub",
+        "object_type": "SUBSYSTEM",
+        "xroad_instance": "AA"
+      },
+      "name": "Client One"
+    }
+  ]
+}
 ```
 
 ### C.2 listCentralServices Response
@@ -787,6 +916,7 @@ when retrieved through the meta-service.
 ```
 
 ### C.9 getWsdl Response attachment
+
 ```xml
 <wsdl:definitions name="testService" targetNamespace="http://test.x-road.fi/producer">
     <wsdl:types>
