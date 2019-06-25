@@ -8,7 +8,7 @@
       </v-card-title>
       <v-card-text style="height: 500px;">
         <v-expansion-panel class="elevation-0" expand v-model="expandPanel">
-          <v-expansion-panel-content value="true">
+          <v-expansion-panel-content>
             <template v-slot:header>
               <v-spacer/>
               <div class="exp-title">{{$t('localGroup.searchOptions')}}</div>
