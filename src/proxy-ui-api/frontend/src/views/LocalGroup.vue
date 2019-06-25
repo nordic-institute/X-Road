@@ -159,7 +159,7 @@ export default Vue.extend({
       required: true,
     },
     groupId: {
-      type: Number,
+      type: String,
       required: true,
     },
   },
@@ -220,7 +220,7 @@ export default Vue.extend({
         });
     },
 
-    fetchData(clientId: string, groupId: number): void {
+    fetchData(clientId: string, groupId: number | string): void {
       axios
         .get(`/groups/${groupId}`)
         .then((res) => {
