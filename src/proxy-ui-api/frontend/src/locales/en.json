@@ -134,5 +134,9 @@
     "idleWarning": "You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.",
     "sessionExpired": "Session expired"
   },
-  "name": "Name"
+  "name": "Name",
+  "member_class": "Member class",
+  "member_name": "Member name",
+  "member_code": "Member code",
+  "subsystem_code": "Subsystem code"
 }
