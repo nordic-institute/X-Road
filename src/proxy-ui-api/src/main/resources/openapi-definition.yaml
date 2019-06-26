@@ -23,14 +23,15 @@ paths:
         - security server
       summary: get security server backups
       operationId: getBackups
-      description: SS administrator views the backups for the security server.
+      description: Administrator views the backups for the security server.
       responses:
         '200':
-          description: list of backups
+          description: list of security server backups
           content:
             application/json:
               schema:
                 type: array
+                description: array of backup objects
                 uniqueItems: true
                 items:
                   $ref: '#/components/schemas/Backup'
@@ -51,7 +52,7 @@ paths:
         - security server
       summary: add new backup for the security server
       operationId: addBackup
-      description: Adds backup to the system
+      description: Adds security server backup to the system
       responses:
         '201':
           description: item created
@@ -77,13 +78,14 @@ paths:
         - security server
       summary: upload new backup for the security server
       operationId: uploadBackup
-      description: Uploads new backup to the system
+      description: Uploads new security server backup to the system
       requestBody:
         content:
           application/octet-stream:
             schema:
               type: string
               format: binary
+              description: backup file
         description: backup to add
       responses:
         '201':
@@ -110,7 +112,7 @@ paths:
         - security server
       summary: delete security server backup
       operationId: deleteBackup
-      description: SS administrator deletes the backup of the security server.
+      description: Administrator deletes the backup of the security server.
       parameters:
         - in: path
           name: filename
@@ -140,9 +142,9 @@ paths:
     put: # ok
       tags:
         - security server
-      summary: restore configuration from backup
+      summary: restore security server configuration from backup
       operationId: restoreBackup
-      description: SS administrator restores the configuration from backup.
+      description: Administrator restores the security server configuration from backup.
       parameters:
         - in: path
           name: filename
@@ -176,7 +178,7 @@ paths:
         - security server
       summary: download security server backup
       operationId: downloadBackup
-      description: SS administrator downloads the backup of the security server.
+      description: Administrator downloads the backup of the security server.
       parameters:
         - in: path
           name: filename
@@ -189,12 +191,13 @@ paths:
             maxLength: 255
       responses:
         '200':
-          description: backup file
+          description: backup file downloaded
           content:
             application/octet-stream:
               schema:
                 type: string
                 format: binary
+                description: backup file
         '400':
           description: request was invalid
         '401':
@@ -213,7 +216,7 @@ paths:
         - security server
       summary: get certificate information
       operationId: getCertificate
-      description: SS administrator views certificate details.
+      description: Administrator views certificate details.
       parameters:
         - in: path
           name: hash
@@ -226,7 +229,7 @@ paths:
             maxLength: 255
       responses:
         '200':
-          description: ok
+          description: certificate details
           content:
             application/json:
               schema:
@@ -248,7 +251,7 @@ paths:
         - security server
       summary: delete certificate
       operationId: deleteCertificate
-      description: SS administrator deletes the certificate.
+      description: Administrator deletes the certificate.
       parameters:
         - in: path
           name: hash
@@ -278,7 +281,7 @@ paths:
         - security server
       summary: activate certificate
       operationId: activateCertificate
-      description: SS administrator activates selected certificate.
+      description: Administrator activates selected certificate.
       parameters:
         - in: path
           name: hash
@@ -310,7 +313,7 @@ paths:
         - security server
       summary: disable certificate
       operationId: disableCertificate
-      description: SS administrator disables selected certificate.
+      description: Administrator disables selected certificate.
       parameters:
         - in: path
           name: hash
@@ -342,7 +345,7 @@ paths:
         - security server
       summary: register certificate
       operationId: registerCertificate
-      description: SS administrator registers selected certificate.
+      description: Administrator registers selected certificate.
       parameters:
         - in: path
           name: hash
@@ -374,7 +377,7 @@ paths:
         - security server
       summary: unregister certificate
       operationId: unregisterCertificate
-      description: SS administrator unregisters selected certificate.
+      description: Administrator unregisters selected certificate.
       parameters:
         - in: path
           name: hash
@@ -406,7 +409,7 @@ paths:
         - security server
       summary: get security server clients
       operationId: getClients
-      description: SS administrator views the clients of the security server.
+      description: Administrator views the clients of the security server.
       parameters:
         - in: query
           name: name
@@ -415,6 +418,8 @@ paths:
           schema:
             type: string
             format: text
+            minLength: 1
+            maxLength: 255
         - in: query
           name: instance
           description: pass an optional search string (instance) for looking up clients
@@ -422,6 +427,8 @@ paths:
           schema:
             type: string
             format: text
+            minLength: 1
+            maxLength: 255
         - in: query
           name: member_class
           description: pass an optional search string (member_class) for looking up clients
@@ -429,6 +436,8 @@ paths:
           schema:
             type: string
             format: text
+            minLength: 1
+            maxLength: 255
         - in: query
           name: member_code
           description: pass an optional search string (member_code) for looking up clients
@@ -436,6 +445,8 @@ paths:
           schema:
             type: string
             format: text
+            minLength: 1
+            maxLength: 255
         - in: query
           name: subsystem_code
           description: pass an optional search string (subsystem_code) for looking up clients
@@ -443,6 +454,8 @@ paths:
           schema:
             type: string
             format: text
+            minLength: 1
+            maxLength: 255
         - in: query
           name: show_members
           description: to include members for search results
@@ -465,6 +478,7 @@ paths:
               schema:
                 type: array
                 uniqueItems: true
+                description: array of client objects
                 items:
                   $ref: '#/components/schemas/Client'
         '400':
@@ -482,9 +496,9 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: adds new client for security server
+      summary: adds new client for the security server
       operationId: addClient
-      description: Adds an item to the system
+      description: Adds new client to the system
       parameters:
         - in: query
           name: ignore_warnings
@@ -501,7 +515,7 @@ paths:
         description: client to add
       responses:
         '201':
-          description: item created
+          description: new client created
         '400':
           description: there are warnings or errors related to the service description
           content:
@@ -529,7 +543,7 @@ paths:
         - security server
       summary: get security server client information
       operationId: getClient
-      description: SS administrator views the client details of the security server.
+      description: Administrator views the client details of the security server.
       parameters:
         - in: path
           name: id
@@ -542,7 +556,7 @@ paths:
             maxLength: 1023
       responses:
         '200':
-          description: ok
+          description: client object
           content:
             application/json:
               schema:
@@ -564,7 +578,7 @@ paths:
         - security server
       summary: update security server client information
       operationId: updateClient
-      description: SS administrator updates the client information.
+      description: Administrator updates the client information.
       parameters:
         - in: path
           name: id
@@ -580,12 +594,13 @@ paths:
           application/json:
             schema:
               type: object
+              description: connection type
               properties:
                 connection_type:
                   $ref: '#/components/schemas/ConnectionType'
       responses:
         '200':
-          description: item modified
+          description: client modified
           content:
             application/json:
               schema:
@@ -607,7 +622,7 @@ paths:
         - security server
       summary: delete security server client
       operationId: deleteClient
-      description: SS administrator deletes the client of the security server.
+      description: Administrator deletes the client of the security server.
       parameters:
         - in: path
           name: id
@@ -620,7 +635,7 @@ paths:
             maxLength: 1023
       responses:
         '204':
-          description: deletion was successful
+          description: client deletion was successful
         '400':
           description: request was invalid
         '401':
@@ -637,7 +652,7 @@ paths:
         - security server
       summary: get local groups for the selected client
       operationId: getClientGroups
-      description: SS administrator views the local groups for the client.
+      description: Administrator views the local groups for the client.
       parameters:
         - in: path
           name: id
@@ -656,6 +671,7 @@ paths:
               schema:
                 type: array
                 uniqueItems: true
+                description: array of local group objects
                 items:
                   $ref: '#/components/schemas/Group'
         '400':
@@ -675,7 +691,7 @@ paths:
         - security server
       summary: add new local group for the security server client
       operationId: addClientGroup
-      description: SS administrator adds a new local group for the client.
+      description: Administrator adds a new local group for the client.
       parameters:
         - in: path
           name: id
@@ -694,7 +710,7 @@ paths:
         description: group to add
       responses:
         '201':
-          description: item created
+          description: local group created
         '400':
           description: request was invalid
         '401':
@@ -715,7 +731,7 @@ paths:
         - security server
       summary: register security server client
       operationId: registerClient
-      description: SS administrator registers client.
+      description: Administrator registers client.
       parameters:
         - in: path
           name: id
@@ -728,7 +744,7 @@ paths:
             maxLength: 1023
       responses:
         '204':
-          description: request was successful
+          description: client was registered
         '400':
           description: request was invalid
         '401':
@@ -747,7 +763,7 @@ paths:
         - security server
       summary: get service clients for the selected client
       operationId: getClientServiceClients
-      description: SS administrator views the service clients for the client.
+      description: Administrator views the service clients for the client.
       parameters:
         - in: path
           name: id
@@ -766,6 +782,7 @@ paths:
               schema:
                 type: array
                 uniqueItems: true
+                description: array of service client objects
                 items:
                   $ref: '#/components/schemas/ServiceClient'
         '400':
@@ -785,7 +802,7 @@ paths:
         - security server
       summary: add new service client for the security server client
       operationId: addClientServiceClient
-      description: SS administrator adds a new service client for the client.
+      description: Administrator adds a new service client for the client.
       parameters:
         - in: path
           name: id
@@ -810,7 +827,7 @@ paths:
                   maxLength: 1279
       responses:
         '201':
-          description: item created
+          description: service client added
         '400':
           description: request was invalid
         '401':
@@ -831,7 +848,7 @@ paths:
         - security server
       summary: get security server client certificates information
       operationId: getClientCertificates
-      description: SS administrator views the certificates for the client.
+      description: Administrator views the certificates for the client.
       parameters:
         - in: path
           name: id
@@ -850,6 +867,7 @@ paths:
               schema:
                 type: array
                 uniqueItems: true
+                description: array of certificate (details) objects
                 items:
                   $ref: '#/components/schemas/CertificateDetails'
         '400':
@@ -870,7 +888,7 @@ paths:
         - security server
       summary: get security server client TLS certificates information
       operationId: getClientTlsCertificates
-      description: SS administrator views the TLS certificates for the client.
+      description: Administrator views the TLS certificates for the client.
       parameters:
         - in: path
           name: id
@@ -889,6 +907,7 @@ paths:
               schema:
                 type: array
                 uniqueItems: true
+                description: array of certificate (details) objects
                 items:
                   $ref: '#/components/schemas/CertificateDetails'
         '400':
@@ -908,7 +927,7 @@ paths:
         - security server
       summary: add new certificate for the security server client
       operationId: addClientTlsCertificate
-      description: SS administrator adds a new certificate for the client.
+      description: Administrator adds a new certificate for the client.
       parameters:
         - in: path
           name: id
@@ -925,10 +944,10 @@ paths:
             schema:
               type: string
               format: binary
-        description: certificate to add
+              description: certificate file
       responses:
         '201':
-          description: item created
+          description: certificate added
         '400':
           description: request was invalid
         '401':
@@ -949,7 +968,7 @@ paths:
         - security server
       summary: get TLS certificate
       operationId: getClientTlsCertificate
-      description: SS administrator gets the TLS certificate for the selected client.
+      description: Administrator gets the TLS certificate for the selected client.
       parameters:
         - in: path
           name: id
@@ -971,7 +990,7 @@ paths:
             maxLength: 255
       responses:
         '200':
-          description: ok
+          description: certificate details
           content:
             application/json:
               schema:
@@ -993,7 +1012,7 @@ paths:
         - security server
       summary: delete certificate
       operationId: deleteClientTlsCertificate
-      description: SS administrator deletes the certificate from selected client.
+      description: Administrator deletes the certificate from selected client.
       parameters:
         - in: path
           name: id
@@ -1015,7 +1034,7 @@ paths:
             maxLength: 255
       responses:
         '204':
-          description: deletion was successful
+          description: certificate deletion was successful
         '400':
           description: request was invalid
         '401':
@@ -1032,7 +1051,7 @@ paths:
         - security server
       summary: unregister security server client
       operationId: unregisterClient
-      description: SS administrator unregisters client.
+      description: Administrator unregisters client.
       parameters:
         - in: path
           name: id
@@ -1045,7 +1064,7 @@ paths:
             maxLength: 1023
       responses:
         '204':
-          description: request was successful
+          description: unregister was successful
         '400':
           description: request was invalid
         '401':
@@ -1064,7 +1083,7 @@ paths:
         - security server
       summary: get security server client service descriptions
       operationId: getClientServiceDescriptions
-      description: SS administrator views the service descriptions for the client.
+      description: Administrator views the service descriptions for the client.
       parameters:
         - in: path
           name: id
@@ -1083,6 +1102,7 @@ paths:
               schema:
                 type: array
                 uniqueItems: true
+                description: array of service description objects
                 items:
                   $ref: '#/components/schemas/ServiceDescription'
         '400':
@@ -1102,7 +1122,7 @@ paths:
         - security server
       summary: add new service description for the security server client
       operationId: addClientServiceDescription
-      description: SS administrator adds a new service description for the client.
+      description: Administrator adds a new service description for the client.
       parameters:
         - in: path
           name: id
@@ -1134,7 +1154,7 @@ paths:
                   maxLength: 255
       responses:
         '201':
-          description: item created
+          description: service description created
         '400':
           description: there are warnings or errors related to the service description
           content:
@@ -1162,7 +1182,7 @@ paths:
         - security server
       summary: get local group information
       operationId: getGroup
-      description: SS administrator views local group details.
+      description: Administrator views local group details.
       parameters:
         - in: path
           name: group_id
@@ -1175,7 +1195,7 @@ paths:
             maxLength: 255
       responses:
         '200':
-          description: ok
+          description: group object
           content:
             application/json:
               schema:
@@ -1197,7 +1217,7 @@ paths:
         - security server
       summary: update local group information
       operationId: updateGroup
-      description: SS administrator updates the local group information.
+      description: Administrator updates the local group information.
       parameters:
         - in: path
           name: group_id
@@ -1219,7 +1239,7 @@ paths:
             maxLength: 255
       responses:
         '200':
-          description: item modified
+          description: local group modified
           content:
             application/json:
               schema:
@@ -1241,7 +1261,7 @@ paths:
         - security server
       summary: delete local group
       operationId: deleteGroup
-      description: SS administrator deletes the local group.
+      description: Administrator deletes the local group.
       parameters:
         - in: path
           name: group_id
@@ -1254,7 +1274,7 @@ paths:
             maxLength: 255
       responses:
         '204':
-          description: deletion was successful
+          description: local group deletion was successful
         '400':
           description: request was invalid
         '401':
@@ -1271,7 +1291,7 @@ paths:
         - security server
       summary: add new member for the local group
       operationId: addGroupMember
-      description: SS administrator adds a new member for the local group.
+      description: Administrator adds a new member for the local group.
       parameters:
         - in: path
           name: group_id
@@ -1298,7 +1318,7 @@ paths:
                     maxLength: 1023
       responses:
         '201':
-          description: item created
+          description: new members added
         '400':
           description: request was invalid
         '401':
@@ -1319,7 +1339,7 @@ paths:
         - security server
       summary: delete member from local group
       operationId: deleteGroupMember
-      description: SS administrator deletes the member from local group.
+      description: Administrator deletes the member from local group.
       parameters:
         - in: path
           name: group_id
@@ -1346,7 +1366,7 @@ paths:
                     maxLength: 255
       responses:
         '201':
-          description: items deleted
+          description: members deleted
         '400':
           description: request was invalid
         '401':
@@ -1367,7 +1387,7 @@ paths:
         - security server
       summary: get information for the selected key
       operationId: getKey
-      description: SS administrator views key details.
+      description: Administrator views key details.
       parameters:
         - in: path
           name: id
@@ -1380,7 +1400,7 @@ paths:
             maxLength: 255
       responses:
         '200':
-          description: ok
+          description: key object
           content:
             application/json:
               schema:
@@ -1402,7 +1422,7 @@ paths:
         - security server
       summary: update key information
       operationId: updateKey
-      description: SS administrator updates the key information.
+      description: Administrator updates the key information.
       parameters:
         - in: path
           name: id
@@ -1424,7 +1444,7 @@ paths:
             maxLength: 255
       responses:
         '200':
-          description: item modified
+          description: key modified
           content:
             application/json:
               schema:
@@ -1446,7 +1466,7 @@ paths:
         - security server
       summary: delete key
       operationId: deleteKey
-      description: SS administrator deletes the key.
+      description: Administrator deletes the key.
       parameters:
         - in: path
           name: id
@@ -1459,7 +1479,7 @@ paths:
             maxLength: 255
       responses:
         '204':
-          description: deletion was successful
+          description: key deletion was successful
         '400':
           description: request was invalid
         '401':
@@ -1488,15 +1508,16 @@ paths:
             minLength: 1
             maxLength: 255
       requestBody:
+        description: Certificate to add
         content:
           application/octet-stream:
             schema:
               type: string
               format: binary
-        description: certificate to add
+              description: certificate file
       responses:
         '201':
-          description: item created
+          description: certificate created
         '400':
           description: request was invalid
         '401':
@@ -1517,7 +1538,7 @@ paths:
         - security server
       summary: generate csr for the selected key
       operationId: genrerateCsr
-      description: SS administrator generates csr for the key.
+      description: Administrator generates csr for the key.
       parameters:
         - in: path
           name: id
@@ -1560,12 +1581,13 @@ paths:
             maxLength: 255
       responses:
         '201':
-          description: item created
+          description: CSR created
           content:
             application/pkcs10:
               schema:
                 type: string
                 format: binary
+                description: csr file
         '400':
           description: request was invalid
         '401':
@@ -1584,7 +1606,7 @@ paths:
         - security server
       summary: delete csr from the selected key
       operationId: deleteCsr
-      description: SS administrator deletes csr from the key.
+      description: Administrator deletes csr from the key.
       parameters:
         - in: path
           name: id
@@ -1606,7 +1628,7 @@ paths:
             maxLength: 255
       responses:
         '204':
-          description: request was successful
+          description: csr deletion was successful
         '400':
           description: request was invalid
         '401':
@@ -1625,7 +1647,7 @@ paths:
         - security server
       summary: change language
       operationId: language
-      description: SS administrator changes the language for the UI.
+      description: Administrator changes the language for the UI.
       parameters:
         - in: path
           name: code
@@ -1661,7 +1683,7 @@ paths:
         - security server
       summary: get user data for the logged user
       operationId: user
-      description: SS administrator gets user data from backend.
+      description: Administrator gets user data from backend.
       responses:
         '200':
           description: user details
@@ -1682,48 +1704,48 @@ paths:
         '500':
           description: internal server error
   /security-servers/{id}:
-    get: # ok
-      tags:
-        - security server
-      summary: get security server information
-      operationId: getSecurityServer
-      description: SS administrator views the details of a security server.
-      parameters:
-        - in: path
-          name: id
-          description: id of the security server
-          required: true
-          schema:
-            type: string
-            format: text
-            description: <instance_id>:<member_class>:<member_code>:<security_server_code>
-            example: FI:GOV:123:sserver1
-      responses:
-        '200':
-          description: ok
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SecurityServer'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
+      get: # ok
+          tags:
+              - security server
+          summary: get security server information
+          operationId: getSecurityServer
+          description: SS administrator views the details of a security server.
+          parameters:
+              - in: path
+                name: id
+                description: id of the security server
+                required: true
+                schema:
+                    type: string
+                    format: text
+                    description: <instance_id>:<member_class>:<member_code>:<security_server_code>
+                    example: FI:GOV:123:sserver1
+          responses:
+              '200':
+                  description: ok
+                  content:
+                      application/json:
+                          schema:
+                              $ref: '#/components/schemas/SecurityServer'
+              '400':
+                  description: request was invalid
+              '401':
+                  description: authentication credentials are missing
+              '403':
+                  description: request has been refused
+              '404':
+                  description: resource requested does not exists
+              '406':
+                  description: request specified an invalid format
+              '500':
+                  description: internal server error
   /services/{id}:
     put: # ok
       tags:
         - security server
       summary: update service
       operationId: updateService
-      description: SS administrator updates the service.
+      description: Administrator updates the service.
       parameters:
         - in: path
           name: id
@@ -1786,11 +1808,11 @@ paths:
             default: false
       responses:
         '200':
-          description: item modified
+          description: service modified
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Service'
+                $ref: '#/components/schemas/SecurityServer'
         '400':
           description: request was invalid
         '401':
@@ -1809,7 +1831,7 @@ paths:
         - security server
       summary: get access rights for the selected service
       operationId: getServiceAccessRights
-      description: SS administrator views service access rights.
+      description: Administrator views service access rights.
       parameters:
         - in: path
           name: id
@@ -1828,6 +1850,7 @@ paths:
               schema:
                 type: array
                 uniqueItems: true
+                description: array of service client objects
                 items:
                   $ref: '#/components/schemas/ServiceClient'
         '400':
@@ -1872,7 +1895,7 @@ paths:
                     $ref: '#/components/schemas/Subject'
       responses:
         '201':
-          description: item created
+          description: access rights added
         '400':
           description: request was invalid
         '401':
@@ -1893,7 +1916,7 @@ paths:
         - security server
       summary: remove access right
       operationId: deleteServiceAccessRight
-      description: SS administrator removes access right from selected service.
+      description: Administrator removes access right from selected service.
       parameters:
         - in: path
           name: id
@@ -1917,7 +1940,7 @@ paths:
                     $ref: '#/components/schemas/Subject'
       responses:
         '204':
-          description: deletion was successful
+          description: access right(s) deletion was successful
         '400':
           description: request was invalid
         '401':
@@ -1934,7 +1957,7 @@ paths:
         - security server
       summary: get access rights for the selected service client.
       operationId: getServiceClientAccessRights
-      description: SS administrator views service client's access rights.
+      description: Administrator views service client's access rights.
       parameters:
         - in: path
           name: id
@@ -1953,6 +1976,7 @@ paths:
               schema:
                 type: array
                 uniqueItems: true
+                description: array of access right objects
                 items:
                   $ref: '#/components/schemas/AccessRight'
         '400':
@@ -1997,7 +2021,7 @@ paths:
                     $ref: '#/components/schemas/Subject'
       responses:
         '201':
-          description: item created
+          description: access right(s) added
         '400':
           description: request was invalid
         '401':
@@ -2018,7 +2042,7 @@ paths:
         - security server
       summary: remove access right
       operationId: deleteServiceClientAccessRight
-      description: SS administrator removes access right from selected service client.
+      description: Administrator removes access right from selected service client.
       parameters:
         - in: path
           name: id
@@ -2030,6 +2054,7 @@ paths:
             minLength: 1
             maxLength: 1279
       requestBody:
+        description: list of access rights to be deleted
         content:
           application/json:
             schema:
@@ -2041,7 +2066,7 @@ paths:
                     $ref: '#/components/schemas/Subject'
       responses:
         '201':
-          description: item created
+          description: access right(s) deleted
         '400':
           description: request was invalid
         '401':
@@ -2062,7 +2087,7 @@ paths:
         - security server
       summary: update url for the selected service description
       operationId: updateServiceDescription
-      description: SS administrator updates the selected service description.
+      description: Administrator updates the selected service description.
       parameters:
         - in: path
           name: id
@@ -2094,7 +2119,7 @@ paths:
                   maxLength: 255
       responses:
         '200':
-          description: item modified
+          description: service description modified
           content:
             application/json:
               schema:
@@ -2123,7 +2148,7 @@ paths:
         - security server
       summary: delete service description
       operationId: deleteServiceDescription
-      description: SS administrator deletes the service description.
+      description: Administrator deletes the service description.
       parameters:
         - in: path
           name: id
@@ -2136,7 +2161,7 @@ paths:
             maxLength: 255
       responses:
         '204':
-          description: deletion was successful
+          description: service description deletion was successful
         '400':
           description: request was invalid
         '401':
@@ -2153,7 +2178,7 @@ paths:
         - security server
       summary: disable selected service description
       operationId: disableServiceDescription
-      description: SS administrator disables service description.
+      description: Administrator disables service description.
       parameters:
         - in: path
           name: id
@@ -2198,7 +2223,7 @@ paths:
         - security server
       summary: enable selected service description
       operationId: enableServiceDescription
-      description: SS administrator enables service description.
+      description: Administrator enables service description.
       parameters:
         - in: path
           name: id
@@ -2211,7 +2236,7 @@ paths:
             maxLength: 255
       responses:
         '204':
-          description: request was successful
+          description: service description enabled
         '400':
           description: request was invalid
         '401':
@@ -2230,7 +2255,7 @@ paths:
         - security server
       summary: refresh selected service description
       operationId: refreshServiceDescription
-      description: SS administrator refreshes service description.
+      description: Administrator refreshes service description.
       parameters:
         - in: path
           name: id
@@ -2250,7 +2275,7 @@ paths:
             type: boolean
       responses:
         '200':
-          description: item refreshed
+          description: service description refreshed
           content:
             application/json:
               schema:
@@ -2280,7 +2305,7 @@ paths:
         - security server
       summary: get services for the selected service description
       operationId: getServiceDescriptionServices
-      description: SS administrator views the services for the selected service description.
+      description: Administrator views the services for the selected service description.
       parameters:
         - in: path
           name: id
@@ -2293,12 +2318,13 @@ paths:
             maxLength: 255
       responses:
         '200':
-          description: ok
+          description: list of services
           content:
             application/json:
               schema:
                 type: array
                 uniqueItems: true
+                description: array of service objects
                 items:
                   $ref: '#/components/schemas/Service'
         '400':
@@ -2319,7 +2345,7 @@ paths:
         - security server
       summary: get system information
       operationId: getSystem
-      description: SS administrator views the system information.
+      description: Administrator views the system information.
       responses:
         '200':
           description: system information
@@ -2345,7 +2371,7 @@ paths:
         - security server
       summary: view the configuration anchor information
       operationId: getAnchor
-      description: SS administrator views the configuration anchor information.
+      description: Administrator views the configuration anchor information.
       responses:
         '200':
           description: anchor information
@@ -2370,19 +2396,20 @@ paths:
         - security server
       summary: upload a configuration anchor file
       operationId: uploadAnchor
-      description: SS administrator uploads configuration anchor file
+      description: Administrator uploads configuration anchor file
       requestBody:
+        description: configuration anchor
         content:
           application/xml:
             schema:
               type: string
               format: ascii
+              description: configuration anchor file
               minLength: 1
               maxLength: 1000000
-        description: configuration anchor file
       responses:
         '201':
-          description: item created
+          description: configuration anchor uploaded
         '400':
           description: request was invalid
         '401':
@@ -2403,15 +2430,16 @@ paths:
         - security server
       summary: download configuration anchor information
       operationId: downloadAnchor
-      description: SS administrator downloads the configuration anchor information.
+      description: Administrator downloads the configuration anchor information.
       responses:
         '200':
-          description: configuration anchor file
+          description: configuration anchor
           content:
             application/xml:
               schema:
                 type: string
                 format: ascii
+                description: configuration anchor file
         '400':
           description: request was invalid
         '401':
@@ -2430,7 +2458,7 @@ paths:
         - security server
       summary: view the security server certificate information
       operationId: getSystemCertificate
-      description: SS administrator views the security server TLS certificate information.
+      description: Administrator views the security server TLS certificate information.
       responses:
         '200':
           description: certificate information
@@ -2456,7 +2484,7 @@ paths:
         - security server
       summary: download the security server certificate as gzip compressed tar archive
       operationId: downloadSystemCertificate
-      description: SS administrator downloads the security server TLS certificate.
+      description: Administrator downloads the security server TLS certificate.
       responses:
         '200':
           description: information fetched successfully
@@ -2465,6 +2493,7 @@ paths:
               schema:
                 type: string
                 format: binary
+                description: certificate file
         '400':
           description: request was invalid
         '401':
@@ -2483,10 +2512,10 @@ paths:
         - security server
       summary: generate new TLS key
       operationId: generateSystemCertificateTlsKey
-      description: SS administrator generates new tls key.
+      description: Administrator generates new tls key.
       responses:
         '204':
-          description: request was successful
+          description: tls key generated
         '400':
           description: request was invalid
         '401':
@@ -2505,10 +2534,10 @@ paths:
         - security server
       summary: generate new certificate request
       operationId: generateSystemCertificateRequest
-      description: SS administrator generates new certificate request.
+      description: Administrator generates new certificate request.
       responses:
         '204':
-          description: request was successful
+          description: certificate request generated
         '400':
           description: request was invalid
         '401':
@@ -2527,17 +2556,18 @@ paths:
         - security server
       summary: import new internal TLS certificate.
       operationId: importSystemCertificate
-      description: SS administrator imports new internal TLS certificate
+      description: Administrator imports new internal TLS certificate
       requestBody:
+        description: certificate to add
         content:
           application/octet-stream:
             schema:
               type: string
               format: binary
-        description: certificate to add
+              description: certificate file
       responses:
         '201':
-          description: item created
+          description: tls certificate imported
         '400':
           description: request was invalid
         '401':
@@ -2558,7 +2588,7 @@ paths:
         - security server
       summary: view the timestamping services
       operationId: getTimestampingServices
-      description: SS administrator views the timestamping services.
+      description: Administrator views the timestamping services.
       responses:
         '200':
           description: list of timestamping services
@@ -2567,6 +2597,7 @@ paths:
               schema:
                 type: array
                 uniqueItems: true
+                description: array of timestamping service objects
                 items:
                   $ref: '#/components/schemas/TimestampingService'
         '400':
@@ -2586,16 +2617,16 @@ paths:
         - security server
       summary: add a timestamping service
       operationId: addTimestampingService
-      description: SS administrator selects new timestamping service
+      description: Administrator selects new timestamping service
       requestBody:
+        description: Timestamping service to add
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/TimestampingService'
-        description: Timestamping service to add
       responses:
         '201':
-          description: item created
+          description: timestamping service created
         '400':
           description: request was invalid
         '401':
@@ -2616,7 +2647,7 @@ paths:
         - security server
       summary: delete timestamping service
       operationId: deleteTimestampingService
-      description: SS administrator removes timestamping service.
+      description: Administrator removes timestamping service.
       parameters:
         - in: path
           name: url
@@ -2629,7 +2660,7 @@ paths:
             maxLength: 255
       responses:
         '204':
-          description: deletion was successful
+          description: timestamping service deletion was successful
         '400':
           description: request was invalid
         '401':
@@ -2646,7 +2677,7 @@ paths:
         - security server
       summary: get information for the system version
       operationId: systemVersion
-      description: SS administrator views key details.
+      description: Administrator views key details.
       responses:
         '200':
           description: system version information
@@ -2672,7 +2703,7 @@ paths:
         - security server
       summary: get security server tokens
       operationId: getTokens
-      description: SS administrator views tokens of the security server.
+      description: Administrator views tokens of the security server.
       responses:
         '200':
           description: list of tokens
@@ -2681,6 +2712,7 @@ paths:
               schema:
                 type: array
                 uniqueItems: true
+                description: array of token objects
                 items:
                   $ref: '#/components/schemas/Token'
         '400':
@@ -2701,7 +2733,7 @@ paths:
         - security server
       summary: get security server token information
       operationId: getToken
-      description: SS administrator views the token details of the security server.
+      description: Administrator views the token details of the security server.
       parameters:
         - in: path
           name: id
@@ -2714,7 +2746,7 @@ paths:
             maxLength: 255
       responses:
         '200':
-          description: ok
+          description: token object
           content:
             application/json:
               schema:
@@ -2736,7 +2768,7 @@ paths:
         - security server
       summary: update security server token information
       operationId: updateToken
-      description: SS administrator updates the token information.
+      description: Administrator updates the token information.
       parameters:
         - in: path
           name: id
@@ -2758,7 +2790,7 @@ paths:
             maxLength: 255
       responses:
         '200':
-          description: item modified
+          description: token modified
           content:
             application/json:
               schema:
@@ -2808,7 +2840,7 @@ paths:
                 label: My new key
       responses:
         '201':
-          description: item created
+          description: key created for the token
         '400':
           description: request was invalid
         '401':
@@ -2865,7 +2897,7 @@ paths:
         - security server
       summary: logout from token
       operationId: logoutToken
-      description: SS administrator logs out from token.
+      description: Administrator logs out from token.
       parameters:
         - in: path
           name: id
@@ -3281,27 +3313,27 @@ components:
         - PEM
         - DER
     ErrorInfo:
-      type: object
-      description: object returned in error cases
-      required:
-        - status
-      properties:
-        status:
-          type: integer
-          format: int32
-          description: http status code
-          example: 400
-        error_code:
-          type: string
-          format: text
-          description: detailed error code
-          example: certificate_not_found
-        warnings:
-          type: array
-          description: warnings that could be ignored
-          uniqueItems: true
-          items:
-            $ref: '#/components/schemas/Warning'
+        type: object
+        description: object returned in error cases
+        required:
+          - status
+        properties:
+          status:
+            type: integer
+            format: int32
+            description: http status code
+            example: 400
+          error_code:
+            type: string
+            format: text
+            description: detailed error code
+            example: certificate_not_found
+          warnings:
+            type: array
+            description: warnings that could be ignored
+            uniqueItems: true
+            items:
+              $ref: '#/components/schemas/Warning'
     GlobalConfiguration: # ok
       type: object
       description: global configuration
@@ -3656,6 +3688,8 @@ components:
           example: default_disabled_service_notice
           minLength: 0
           maxLength: 255
+          description: unique identifier
+          example: 123
         refreshed_date:
           type: string
           format: date-time
