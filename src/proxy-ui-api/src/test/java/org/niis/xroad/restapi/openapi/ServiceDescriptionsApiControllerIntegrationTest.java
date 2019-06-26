@@ -135,4 +135,14 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
 
 
     }
+
+    @Test
+    @WithMockUser(authorities = { "DELETE_WSDL", "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
+    public void deleteServiceDescription() {
+        serviceDescriptionsApiController.deleteServiceDescription("2");
+        try {
+            clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1);
+            fail("should throw NotFoundException");
+        } catch (NotFoundException expected) { }
+    }
 }
