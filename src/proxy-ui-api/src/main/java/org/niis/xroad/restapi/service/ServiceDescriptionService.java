@@ -61,14 +61,13 @@ public class ServiceDescriptionService {
         this.serviceDescriptionRepository = serviceDescriptionRepository;
     }
 
-
     /**
      * Disable 1-n services
      * @throws NotFoundException if serviceDescriptions with given ids were not found
      */
     @PreAuthorize("hasAuthority('ENABLE_DISABLE_WSDL')")
     public void disableServices(Collection<Long> serviceDescriptionIds,
-                                String disabledNotice) {
+            String disabledNotice) {
         toggleServices(false, serviceDescriptionIds, disabledNotice);
     }
 
@@ -81,7 +80,6 @@ public class ServiceDescriptionService {
         toggleServices(true, serviceDescriptionIds, null);
     }
 
-
     /**
      * Change 1-n services to enabled/disabled
      * @param serviceDescriptionIds
@@ -89,9 +87,9 @@ public class ServiceDescriptionService {
      * @throws NotFoundException if serviceDescriptions with given ids were not found
      */
     private void toggleServices(boolean toEnabled, Collection<Long> serviceDescriptionIds,
-                                String disabledNotice) {
+            String disabledNotice) {
         List<ServiceDescriptionType> possiblyNullServiceDescriptions = serviceDescriptionRepository
-                .getServiceDescriptions(serviceDescriptionIds.toArray(new Long[]{}));
+                .getServiceDescriptions(serviceDescriptionIds.toArray(new Long[] {}));
 
         List<ServiceDescriptionType> serviceDescriptions = possiblyNullServiceDescriptions.stream()
                 .filter(Objects::nonNull)
@@ -117,5 +115,17 @@ public class ServiceDescriptionService {
                 });
     }
 
+    /**
+     * Delete one ServiceDescription
+     * @throws NotFoundException if serviceDescriptions with given id was not found
+     */
+    @PreAuthorize("hasAuthority('DELETE_WSDL')")
+    public void deleteServiceDescription(Long id) {
+        ServiceDescriptionType serviceDescriptionType = serviceDescriptionRepository.getServiceDescription(id);
+        if (serviceDescriptionType == null) {
+            throw new NotFoundException("Service description with id " + id + " not found");
+        }
+        serviceDescriptionRepository.delete(serviceDescriptionType);
+    }
 
 }

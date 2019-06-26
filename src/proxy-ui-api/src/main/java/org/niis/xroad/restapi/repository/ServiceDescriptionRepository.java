@@ -78,4 +78,11 @@ public class ServiceDescriptionRepository {
         persistenceUtils.getCurrentSession().saveOrUpdate(serviceDescriptionType);
     }
 
+    /**
+     * Executes a Hibernate delete(serviceDescriptionType)
+     * @param serviceDescriptionType
+     */
+    public void delete(ServiceDescriptionType serviceDescriptionType) {
+        persistenceUtils.getCurrentSession().delete(serviceDescriptionType);
+    }
 }

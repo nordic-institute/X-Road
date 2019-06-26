@@ -3688,8 +3688,6 @@ components:
           example: default_disabled_service_notice
           minLength: 0
           maxLength: 255
-          description: unique identifier
-          example: 123
         refreshed_date:
           type: string
           format: date-time

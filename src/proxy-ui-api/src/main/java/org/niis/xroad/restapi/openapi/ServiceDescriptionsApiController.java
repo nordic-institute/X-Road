@@ -27,6 +27,9 @@ package org.niis.xroad.restapi.openapi;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.InlineObject10;
+import org.niis.xroad.restapi.openapi.model.InlineObject9;
+import org.niis.xroad.restapi.openapi.model.Service;
+import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -37,6 +40,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.context.request.NativeWebRequest;
 
 import java.util.Collections;
+import java.util.List;
 
 /**
  * clients api
@@ -98,4 +102,27 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         return new ResponseEntity<Void>(HttpStatus.OK);
     }
 
+    @Override
+    @PreAuthorize("hasAuthority('DELETE_WSDL')")
+    public ResponseEntity<Void> deleteServiceDescription(String id) {
+        Long serviceDescriptionId = parseServiceDescriptionId(id);
+        serviceDescriptionService.deleteServiceDescription(serviceDescriptionId);
+        return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    public ResponseEntity<List<Service>> getServiceDescriptionServices(String id) {
+        return null;
+    }
+
+    @Override
+    public ResponseEntity<ServiceDescription> refreshServiceDescription(String id, Boolean ignoreWarnings) {
+        return null;
+    }
+
+    @Override
+    public ResponseEntity<ServiceDescription> updateServiceDescription(String id, Boolean ignoreWarnings,
+            InlineObject9 inlineObject9) {
+        return null;
+    }
 }
