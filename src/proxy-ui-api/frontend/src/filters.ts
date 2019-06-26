@@ -37,3 +37,9 @@ Vue.filter('formatDate', (value: string): string => {
   return date.toISOString().substring(0, 10);
 });
 
+// Format date string. Result YYYY-MM-DD HH:MM.
+Vue.filter('formatDateTime', (value: string): string => {
+  const date = new Date(value);
+  return date.toISOString().substring(0, 10) + ' ' + date.toISOString().substring(11, 16);
+});
+
