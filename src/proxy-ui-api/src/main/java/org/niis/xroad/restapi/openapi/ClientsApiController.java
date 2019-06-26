@@ -126,7 +126,7 @@ public class ClientsApiController implements ClientsApi {
             String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch) {
         boolean unboxedShowMembers = Boolean.TRUE.equals(showMembers);
         boolean unboxedInternalSearch = Boolean.TRUE.equals(internalSearch);
-        List<Client> clients = clientConverter.convertMemberInfosToClients(clientService.findFromAllClients(name,
+        List<Client> clients = clientConverter.convertMemberInfosToClients(clientService.findClients(name,
                 instance, memberClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch));
         return new ResponseEntity<>(clients, HttpStatus.OK);
     }
@@ -211,7 +211,6 @@ public class ClientsApiController implements ClientsApi {
         } catch (CertificateException c) {
             throw new BadRequestException(c, ErrorCode.of(INVALID_CERT_ERROR_CODE));
         }
-
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

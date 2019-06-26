@@ -42,6 +42,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+
 /**
  * groups api
  */
@@ -90,11 +94,9 @@ public class GroupsApiController implements GroupsApi {
                 || memberItemsWrapper.getItems().size() < 1) {
             throw new InvalidParametersException("missing member id");
         }
-        if (memberItemsWrapper.getItems().size() > 1) {
-            throw new InvalidParametersException("adding multiple members will be implemented later");
-        }
-        String memberId = memberItemsWrapper.getItems().iterator().next();
-        groupsService.addLocalGroupMember(groupId, clientConverter.convertId(memberId));
+        // remove duplicates
+        List<String> uniqueIds = new ArrayList<>(new HashSet<>(memberItemsWrapper.getItems()));
+        groupsService.addLocalGroupMembers(groupId, clientConverter.convertIds(uniqueIds));
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 

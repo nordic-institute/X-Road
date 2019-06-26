@@ -8,7 +8,7 @@
       </v-card-title>
       <v-card-text style="height: 500px;">
         <v-expansion-panel class="elevation-0" expand v-model="expandPanel">
-          <v-expansion-panel-content value="true">
+          <v-expansion-panel-content>
             <template v-slot:header>
               <v-spacer/>
               <div class="exp-title">{{$t('localGroup.searchOptions')}}</div>
@@ -19,7 +19,7 @@
                 <div class="input-row">
                   <v-text-field
                     v-model="name"
-                    label="Name"
+                    :label="$t('name')"
                     single-line
                     hide-details
                     class="flex-input"
@@ -37,12 +37,12 @@
                   <v-select
                     v-model="memberClass"
                     :items="instances"
-                    label="Member class"
+                    :label="$t('member_class')"
                     class="flex-input"
                   ></v-select>
                   <v-text-field
                     v-model="memberCode"
-                    label="Member code"
+                    :label="$t('member_code')"
                     single-line
                     hide-details
                     class="flex-input"
@@ -50,7 +50,7 @@
                 </div>
                 <v-text-field
                   v-model="subsystemCode"
-                  label="Subsystem code"
+                  :label="$t('subsystem_code')"
                   single-line
                   hide-details
                   class="flex-input"
