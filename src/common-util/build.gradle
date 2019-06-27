@@ -43,7 +43,7 @@ dependencies {
     compile "com.typesafe.akka:akka-remote_2.11:$akkaVersion"
     compile "com.typesafe.akka:akka-slf4j_2.11:$akkaVersion"
 
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.9'
     compile 'com.google.code.gson:gson:2.7'
     compile 'com.google.guava:guava:26.0-jre'
 

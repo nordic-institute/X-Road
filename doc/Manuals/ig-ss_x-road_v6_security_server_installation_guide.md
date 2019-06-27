@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.16  
+Version: 2.17  
 Doc. ID: IG-SS
 
 ---
@@ -41,6 +41,7 @@ Doc. ID: IG-SS
  25.10.2018 | 2.14    | Add RHEL7 as supported platform, update section 2.2 Reference data | Petteri Kivimäki
  15.11.2018 | 2.15    | Add Ubuntu 18 installation instructions | Jarkko Hyöty
  28.01.2018 | 2.16    | Update port 2080 documentation | Petteri Kivimäki
+ 30.05.2018 | 2.17    | Added package installation instructions on chapter "[2.4 Preparing OS](#24-preparing-os)" | Raul Martinez
   
 ## Table of Contents
 
@@ -175,6 +176,10 @@ Requirements to software and settings:
 -   Set the operating system locale. Add following line to the `/etc/environment` file.
 
         LC_ALL=en_US.UTF-8
+
+-   Ensure that the packages `locales` and `software-properties-common` are present
+
+        sudo apt-get install locales software-properties-common
 
 -   Ensure that the locale is available
 
