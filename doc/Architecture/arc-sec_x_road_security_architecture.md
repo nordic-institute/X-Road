@@ -15,7 +15,7 @@ Doc. ID: ARC-SEC
  ---------- | ------- | ----------------------------------------------------------- | --------------------
  20.06.2019 | 0.1     | Initial version                                             | Niall O’Donoghue
  27.06.2019 | 0.2     | Converted to Github flavoured Markdown                      | Petteri Kivimäki
- 28.06.2019 | 0.3     | Editorial changes, updated chapters 6, 14, 15, 16, 17       | Petteri Kivimäki
+ 28.06.2019 | 0.3     | Editorial changes, updated chapters 5, 6, 14, 15, 16, 17    | Petteri Kivimäki
   
 ## Table of Contents
 
@@ -123,7 +123,7 @@ All X-Road messages are signed by the signing key of the organisations that send
 
 For compliance with the security principle of availability, the objective is to ensure that X-Road assets are readily available to authorised X-Road actors that require them. With assurance of availability, the threat being mitigated is the denial to authorised actors of X-Road services.
 
-Availability is a cornerstone of critical infrastructure. X-Road is design so that no component is a system-wide bottleneck or point of failure. 
+Availability is a cornerstone of critical infrastructure. X-Road is designed so that no component is a system-wide bottleneck or point of failure. X-Road remains operational even if Central Server, OCSP service or time-stamping service would fail. The time window depends on the failing component and configuration of the X-Road instance.
 
 X-Road Security Servers incorporate denial-of-service mitigation functionality. X-Road Linux services will automatically restart after a local system crash. 
 
