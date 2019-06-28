@@ -49,6 +49,7 @@ import org.niis.xroad.restapi.openapi.model.InlineObject2;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.GroupService;
+import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -83,6 +84,7 @@ public class ClientsApiController implements ClientsApi {
     private final TokenService tokenService;
     private final CertificateDetailsConverter certificateDetailsConverter;
     private final ServiceDescriptionConverter serviceDescriptionConverter;
+    private final ServiceDescriptionService serviceDescriptionService;
 
     /**
      * ClientsApiController constructor
@@ -93,13 +95,15 @@ public class ClientsApiController implements ClientsApi {
      * @param groupConverter
      * @param groupsService
      * @param serviceDescriptionConverter
+     * @param serviceDescriptionService
      */
 
     @Autowired
     public ClientsApiController(NativeWebRequest request, ClientService clientService, TokenService tokenService,
             ClientConverter clientConverter, GroupConverter groupConverter, GroupService groupsService,
             CertificateDetailsConverter certificateDetailsConverter,
-            ServiceDescriptionConverter serviceDescriptionConverter) {
+            ServiceDescriptionConverter serviceDescriptionConverter,
+            ServiceDescriptionService serviceDescriptionService) {
         this.request = request;
         this.clientService = clientService;
         this.tokenService = tokenService;
@@ -108,6 +112,7 @@ public class ClientsApiController implements ClientsApi {
         this.groupsService = groupsService;
         this.certificateDetailsConverter = certificateDetailsConverter;
         this.serviceDescriptionConverter = serviceDescriptionConverter;
+        this.serviceDescriptionService = serviceDescriptionService;
     }
 
     /**
@@ -276,9 +281,11 @@ public class ClientsApiController implements ClientsApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
+    @PreAuthorize("hasAuthority('ADD_WSDL')")
     public ResponseEntity<Void> addClientServiceDescription(String id, Boolean ignoreWarnings,
             InlineObject2 inlineObject2) {
+        serviceDescriptionService.addWsdlServiceDescription(clientConverter.convertId(id), inlineObject2.getUrl(),
+                ignoreWarnings);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

@@ -47,6 +47,7 @@ import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.Group;
 import org.niis.xroad.restapi.openapi.model.InlineObject;
+import org.niis.xroad.restapi.openapi.model.InlineObject2;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
@@ -561,5 +562,13 @@ public class ClientsApiControllerIntegrationTest {
                 .findFirst();
     }
 
-
+    @Test
+    @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
+    public void addWsdlServiceDescription() {
+        InlineObject2 inlineObject2 = new InlineObject2().url("file:src/test/resources/valid.wsdl");
+        clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, inlineObject2);
+        ResponseEntity<List<ServiceDescription>> descriptions =
+                clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1);
+        assertEquals(3, descriptions.getBody().size());
+    }
 }

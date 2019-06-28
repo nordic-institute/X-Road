@@ -506,6 +506,7 @@ paths:
               any warnings cause request to fail
           required: false
           schema:
+            default: false
             type: boolean
       requestBody:
         content:
@@ -1139,6 +1140,7 @@ paths:
               any warnings cause request to fail
           required: false
           schema:
+            default: false
             type: boolean
       requestBody:
         content:
@@ -2104,6 +2106,7 @@ paths:
               any warnings cause request to fail
           required: false
           schema:
+            default: false
             type: boolean
       requestBody:
         content:
@@ -2272,6 +2275,7 @@ paths:
               any warnings cause request to fail
           required: false
           schema:
+            default: false
             type: boolean
       responses:
         '200':

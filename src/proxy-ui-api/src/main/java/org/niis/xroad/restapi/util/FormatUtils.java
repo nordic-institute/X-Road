@@ -24,6 +24,10 @@
  */
 package org.niis.xroad.restapi.util;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
@@ -44,5 +48,20 @@ public final class FormatUtils {
      */
     public static OffsetDateTime fromDateToOffsetDateTime(Date date) {
         return date.toInstant().atOffset(ZoneOffset.UTC);
+    }
+
+    /**
+     * @param url
+     * @return true or false depending on the validity of the provided url
+     */
+    public static boolean isValidUrl(String url) {
+        try {
+            URL wsdlUrl = new URL(url);
+            URI uri = wsdlUrl.toURI();
+            uri.parseServerAuthority();
+        } catch (MalformedURLException | URISyntaxException e) {
+            return false;
+        }
+        return true;
     }
 }

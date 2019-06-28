@@ -25,7 +25,9 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
@@ -33,16 +35,17 @@ import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.InvalidParametersException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.exceptions.WsdlParseException;
+import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -58,19 +61,24 @@ import java.util.stream.Collectors;
 @PreAuthorize("denyAll")
 public class ServiceDescriptionService {
 
+    public static final int DEFAULT_SERVICE_TIMEOUT = 60;
+
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final ClientService clientService;
+    private final ClientRepository clientRepository;
 
     /**
      * ServiceDescriptionService constructor
      * @param serviceDescriptionRepository
      * @param clientService
+     * @param clientRepository
      */
     @Autowired
     public ServiceDescriptionService(ServiceDescriptionRepository serviceDescriptionRepository,
-            ClientService clientService) {
+            ClientService clientService, ClientRepository clientRepository) {
         this.serviceDescriptionRepository = serviceDescriptionRepository;
         this.clientService = clientService;
+        this.clientRepository = clientRepository;
     }
 
     /**
@@ -131,32 +139,87 @@ public class ServiceDescriptionService {
      * Add a new WSDL ServiceDescription
      * @param clientId
      * @param url
+     * @param ignoreWarnings
      * @throws InvalidParametersException if URL is malformed
-     * @throws ConflictException URL already exists
+     * @throws ConflictException          URL already exists
      */
+    @PreAuthorize("hasAuthority('ADD_WSDL')")
     public void addWsdlServiceDescription(ClientId clientId, String url, boolean ignoreWarnings) {
         ClientType client = clientService.getClient(clientId);
         if (client == null) {
             throw new NotFoundException("Client with id " + clientId.toShortString() + " not found");
         }
-        try {
-            new URL(url);
-        } catch (MalformedURLException e) {
+
+        // check for valid url (is this not enough??)
+        if (!FormatUtils.isValidUrl(url)) {
             throw new InvalidParametersException("Malformed URL");
         }
+
+        List<ServiceType> existingServices = client.getServiceDescription()
+                .stream()
+                .map(ServiceDescriptionType::getService)
+                .flatMap(List::stream).collect(Collectors.toList());
+
+        // check if wsdl already exist
         client.getServiceDescription().forEach(serviceDescription -> {
             if (serviceDescription.getUrl().equalsIgnoreCase(url)) {
-                throw new ConflictException("URL already exists");
+                throw new ConflictException("WSDL URL already exists");
             }
         });
-        if (!ignoreWarnings) {
-            try {
-                WsdlParser.parseWSDL(url);
-            } catch (Exception e) {
-                throw new WsdlParseException("WSDL parsing failed", e);
-            }
+
+        // validate wsdl before parsing if ignoreWarnings == false
+
+        Collection<WsdlParser.ServiceInfo> parsedServices;
+        try {
+            parsedServices = WsdlParser.parseWSDL(url);
+        } catch (Exception e) {
+            throw new WsdlParseException("WSDL parsing failed", e);
         }
+
+        // check if services already exist
+        existingServices.forEach(existingService -> parsedServices.forEach(newService -> {
+            if (existingService.getServiceCode().equalsIgnoreCase(newService.name)
+                    && existingService.getServiceVersion().equalsIgnoreCase(newService.version)) {
+                throw new ConflictException("Service already exists");
+            }
+        }));
+
+        // create new ServiceDescription
+        ServiceDescriptionType serviceDescriptionType = getServiceDescriptionOfType(client, url, DescriptionType.WSDL);
+
+        // create services
+        List<ServiceType> newServices = parsedServices
+                .stream()
+                .map(serviceInfo -> serviceInfoToServiceType(serviceInfo, serviceDescriptionType))
+                .collect(Collectors.toList());
+
+        serviceDescriptionType.getService().addAll(newServices);
+        client.getServiceDescription().add(serviceDescriptionType);
+        clientRepository.saveOrUpdate(client);
+    }
+
+    private ServiceDescriptionType getServiceDescriptionOfType(ClientType client, String url,
+            DescriptionType descriptionType) {
         ServiceDescriptionType serviceDescriptionType = new ServiceDescriptionType();
+        serviceDescriptionType.setClient(client);
+        serviceDescriptionType.setDisabled(true);
+        serviceDescriptionType.setDisabledNotice("DEFAULT_DISABLED_NOTICE");
+        serviceDescriptionType.setRefreshedDate(new Date());
+        serviceDescriptionType.setType(descriptionType);
+        serviceDescriptionType.setUrl(url);
+        return serviceDescriptionType;
+    }
+
+    private ServiceType serviceInfoToServiceType(WsdlParser.ServiceInfo serviceInfo,
+            ServiceDescriptionType serviceDescriptionType) {
+        ServiceType newService = new ServiceType();
+        newService.setServiceCode(serviceInfo.name);
+        newService.setServiceVersion(serviceInfo.version);
+        newService.setTitle(serviceInfo.title);
+        newService.setUrl(serviceInfo.url);
+        newService.setTimeout(DEFAULT_SERVICE_TIMEOUT);
+        newService.setServiceDescription(serviceDescriptionType);
+        return newService;
     }
 
 }
