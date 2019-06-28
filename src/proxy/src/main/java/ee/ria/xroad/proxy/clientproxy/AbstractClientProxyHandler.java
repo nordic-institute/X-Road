@@ -151,10 +151,15 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
     }
 
     private static void success(MessageProcessorBase processor, long start, OpMonitoringData opMonitoringData) {
-        updateOpMonitoringSucceeded(opMonitoringData);
-        boolean isSucceeded = processor.verifyMessageExchangeSucceeded();
-        opMonitoringData.setSucceeded(isSucceeded);
-        MonitorAgent.success(processor.createRequestMessageInfo(), new Date(start), new Date());
+        final boolean success = processor.verifyMessageExchangeSucceeded();
+        final MessageInfo messageInfo = processor.createRequestMessageInfo();
+
+        updateOpMonitoringSucceeded(opMonitoringData, success);
+        if (success) {
+            MonitorAgent.success(messageInfo, new Date(start), new Date());
+        } else {
+            MonitorAgent.failure(messageInfo, null, null);
+        }
     }
 
     protected void failure(MessageProcessorBase processor, HttpServletResponse response, CodedException e,
@@ -221,9 +226,9 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         }
     }
 
-    private static void updateOpMonitoringSucceeded(OpMonitoringData opMonitoringData) {
+    private static void updateOpMonitoringSucceeded(OpMonitoringData opMonitoringData, boolean success) {
         if (opMonitoringData != null) {
-            opMonitoringData.setSucceeded(true);
+            opMonitoringData.setSucceeded(success);
         }
     }
 }

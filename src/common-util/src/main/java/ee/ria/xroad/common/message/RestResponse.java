@@ -52,6 +52,9 @@ import java.util.stream.Collectors;
 @Getter
 public class RestResponse extends RestMessage {
 
+    private static final int HTTP_ERROR_MIN = 400;
+    private static final int HTTP_ERROR_MAX = 599;
+
     private final int responseCode;
     private final String reason;
     private final byte[] requestHash;
@@ -121,8 +124,7 @@ public class RestResponse extends RestMessage {
     }
 
     /**
-     * serialize
-     * @return
+     * Serialize the message including only X-Road headers
      */
     @Override
     public byte[] getFilteredMessage() {
@@ -141,6 +143,13 @@ public class RestResponse extends RestMessage {
     @Override
     public ClientId getSender() {
         return serviceId.getClientId();
+    }
+
+    /**
+     * @return true if the HTTP response code indicates an error
+     */
+    public boolean isErrorResponse() {
+        return responseCode >= HTTP_ERROR_MIN && responseCode <= HTTP_ERROR_MAX;
     }
 
     /**

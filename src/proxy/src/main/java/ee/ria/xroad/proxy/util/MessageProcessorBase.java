@@ -148,9 +148,7 @@ public abstract class MessageProcessorBase {
     }
 
     /**
-     * Verify default implementation for checking that message transfer was succesfull. Expected to be overridden
-     * in ClientRestMessageProcessor
-     *
+     * Check that message transfer was successful.
      */
     public boolean verifyMessageExchangeSucceeded() {
         return true;

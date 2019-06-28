@@ -394,10 +394,11 @@ public class OpMonitoringData {
 
     /**
      * Sets rest response status code
-     *
      * @param statusCode http status code for the response
      */
-    public void setRestResponseStatusCode(int statusCode) { data.put(REST_RESPONSE_STATUS_CODE, statusCode); }
+    public void setRestResponseStatusCode(int statusCode) {
+        data.put(REST_RESPONSE_STATUS_CODE, statusCode);
+    }
 
     /**
      * Sets a fault code and string from given CodedException.
