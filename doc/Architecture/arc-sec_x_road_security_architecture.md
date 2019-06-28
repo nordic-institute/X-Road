@@ -15,7 +15,7 @@ Doc. ID: ARC-SEC
  ---------- | ------- | ----------------------------------------------------------- | --------------------
  20.06.2019 | 0.1     | Initial version                                             | Niall O’Donoghue
  27.06.2019 | 0.2     | Converted to Github flavoured Markdown                      | Petteri Kivimäki
- 28.06.2019 | 0.3     | Editorial changes, updated chapter 6                        | Petteri Kivimäki
+ 28.06.2019 | 0.3     | Editorial changes, updated chapters 6, 14, 15, 16, 17       | Petteri Kivimäki
   
 ## Table of Contents
 
@@ -41,30 +41,22 @@ Doc. ID: ARC-SEC
 - [11 Updatability](#11-updatability)
 - [12 Trust Federation](#12-trust-federation)
 - [13 Standardised Protocols](#13-standardised-protocols)
-- [14 Central Server and Security Components](#14-central-server-and-security-components)
-  * [14.1 Signer Component](#14.1-signer-component)
-  * [14.2 Secure Signature Creation Device](#14.2-secure-signature-creation-device)
-  * [14.3 Password Store](#14.3-password-store)
-  * [14.4 Database](#14.4-database)
-  * [14.5 User Interface](#14.5-user-interface)
-- [15 Security Server Roles and Components](#15-security-server-roles-and-components)
-  * [15.1 Security Server Roles](#15.1-security-server-roles)
-    * [15.1.1 Access Rights](#15.1.1-access-rights)
-  * [15.2 Security Server Components](#15.2-security-server-components)
-    * [15.2.1 Proxy](#15.2.1-proxy)
-    * [15.2.2 Message Log](#15.2.2-message-log) 
- - [16 Certificates and Keys Management](#16-certificates-and-keys-management) 
- - [17 Monitoring](#17-monitoring)
-   * [17.1 Controlling Access to Monitoring](#17.1-controlling-access-to-monitoring) 
- - [18 Privacy](#18-privacy)
-   * [18.1 Purpose Limitation](#18.1-purpose-limitation)
-   * [18.2 Data Mimimisation](#18.2-data-mimimisation) 
- - [19 Regulatory Compliance](#19-regulatory-compliance)
-   * [19.1 Common Regulations](#19.1-common-regulations)
-   * [19.2 Environment and Country-Specific Regulations](#19.2-environment-and-country-specific-regulations)
- - [20 Appendix](#20-appendix)
-   * [20.1 Unique Identifiers](#20.1-unique-identifiers)
-   * [20.2 Trust Services](#20.2-trust-services) 
+- [14 Central Server](#14-central-server)
+- [15 Security Server](#15-security-server)
+- [16 Certificates and Keys Management](#16-certificates-and-keys-management) 
+- [17 Monitoring](#17-monitoring)
+  * [17.1 Environmental Monitoring](#17.1-environmental-monitoring)
+  * [### 17.2 Operational Monitoring](#17.2-operational-monitoring) 
+  * [17.3 Controlling Access to Monitoring](#17.3-controlling-access-to-monitoring) 
+- [18 Privacy](#18-privacy)
+  * [18.1 Purpose Limitation](#18.1-purpose-limitation)
+  * [18.2 Data Mimimisation](#18.2-data-mimimisation) 
+- [19 Regulatory Compliance](#19-regulatory-compliance)
+  * [19.1 Common Regulations](#19.1-common-regulations)
+  * [19.2 Environment and Country-Specific Regulations](#19.2-environment-and-country-specific-regulations)
+- [20 Appendix](#20-appendix)
+  * [20.1 Unique Identifiers](#20.1-unique-identifiers)
+  * [20.2 Trust Services](#20.2-trust-services) 
 
 <!-- tocstop -->
 
@@ -98,13 +90,14 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 2. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 3. <a id="Ref_PKCS10" class="anchor"></a>\[PKCS10\] Certification Request Syntax Standard. RSA Laboratories, PKCS \#10.
 4. <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] Cybernetica AS. X-Road 6. Security Server User Guide. Document ID: [UG-SS](../Manuals/ug-ss_x-road_6_security_server_user_guide.md)
-5. <a id="Ref_UG-SS" class="anchor"></a>\[UG-CS\] Cybernetica AS. X-Road 6. Central Server User Guide. Document ID: [UG-CS](../Manuals/ug-cs_x-road_6_central_server_user_guide.md)
+5. <a id="Ref_UG-CS" class="anchor"></a>\[UG-CS\] Cybernetica AS. X-Road 6. Central Server User Guide. Document ID: [UG-CS](../Manuals/ug-cs_x-road_6_central_server_user_guide.md)
 6. <a id="Ref_EIDAS" class="anchor"></a>\[EIDAS\] EU Regulation No 910/2014 – Regulation (EU) No 910/2014 of the European Parliament and of the Council of 23 July 2014 on electronic identification and trust services for electronic transactions in the internal market and repealing Directive 1999/93/EC
 7. <a id="Ref_BATCH-TS" class="anchor"></a>\[BATCH-TS\] Freudenthal, Margus. Using Batch Hashing for Signing and Time-Stamping. Cybernetica Research Reports, T-4-20, 2013.
 8. <a id="Ref_UC-FED" class="anchor"></a>\[UC-FED\] Cybernetica AS. X-Road 6. Use Case Model for Federation. Document ID: [UC-FED](../UseCases/uc-fed_x-road_use_case_model_for_federation_1.1_Y-883-7.md)
 9. <a name="ARC-CS"></a>\[ARC-CS\]-- X-Road: Central Server Architecture. Document ID: [ARC-CS](arc-cs_x-road_central_server_architecture.md). 
-10. <a id="Ref_ARC-ENVMON" class="anchor"></a>\[ARC-ENVMON\] X-Road: Monitoring Architecture. Document ID: [ARC-ENVMON](../EnvironmentalMonitoring/Monitoring-architecture.md).
-11. <a id="Ref_GDPR" class="anchor"></a>\[GDPR\] EU Regulation No 679/2016 – Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 on the protection of natural persons with regard to the processing of personal data and on the free movement of such data, and repealing Directive 95/46/EC
+10. <a id="Ref_ARC-ENVMON" class="anchor"></a>\[ARC-ENVMON\] X-Road: Environmental Monitoring Architecture. Document ID: [ARC-ENVMON](../EnvironmentalMonitoring/Monitoring-architecture.md).
+11. <a id="Ref_ARC-OPMOND" class="anchor"></a>\[ARC-OPMOND\] X-Road: Operational Monitoring Daemon Architecture. Document ID: [ARC-OPMOND](../OperationalMonitoring/Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).
+12. <a id="Ref_GDPR" class="anchor"></a>\[GDPR\] EU Regulation No 679/2016 – Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 on the protection of natural persons with regard to the processing of personal data and on the free movement of such data, and repealing Directive 95/46/EC
 
 ## 2 Environment Assumptions
 
@@ -233,7 +226,7 @@ For compliance with security principle of economy of mechanism, X-Road member or
   * Online Certificate Status Protocol (OCSP) is used by the Security Servers to query the validity information about the signing and authentication certificates. OCSP protocol is a synchronous protocol that is offered by the OCSP responder belonging to a certification authority. In X-Road, each Security Server is responsible for downloading and caching the validity information about its certificates. The OCSP responses are sent to the other Security Servers as part of the message transport protocol to ensure that the Security Servers do not need to discover the OCSP service used by the other party. 
   * Time-Stamping Protocol is used by Security Servers to ensure long-term proof value of  exchanged messages. The Security Servers log all messages and their signatures. These logs are periodically time-stamped to create long-term proof. Time-stamping is used in an asynchronous manner, so temporary unavailability of the time-stamping service does not directly affect the X-Road message exchange.
 
-## 14 Central Server and Security Components
+## 14 Central Server
 
 The Central Server manages the database of X-Road members and Security Servers. In addition, the Central Server contains the security policy of the X-Road instance. The security policy consists of the following: 
 
@@ -243,29 +236,11 @@ The Central Server manages the database of X-Road members and Security Servers. 
    
 Both the member database and the security policy are made available to the Security Servers via the HTTP protocol. This distributed set of data forms the global configuration. The Central Server incorporates the following security-centric components.
 
-### 14.1 Signer Component
+For Central Server components, refer to \[[ARC-CS](#ARC-CS)\] section 2.
 
-The signer component is responsible for managing the keys and certificates used for signing the global configuration. The signer is called from the management services component to create the signature for the configuration.
+For Central Server roles, refer to \[[UG-CS](#UG-CS)\] section 2.
 
-### 14.2 Secure Signature Creation Device
-
-The SSCD (Secure Signature Creation Device) is an optional hardware security module (HSM) component that provides secure cryptographic signature creation capability to the signer. The SSCD needs to be a PKCS #11 compliant hardware device that may be optionally used by the Central Server for signing the generated global configuration files it generates. The use of the interface requires that a PKCS #11 compliant device driver is installed and configured in the Central Server system. SSCDs can also be used in conjunction with Security Servers.
-
-### 14.3 Password Store
-
-The Password Store stores security token passwords in a shared memory segment of the operating system that may be accessed by the Central Server interface and signer. Allows security token logins to persist, until the Central Server is restarted, without compromising the passwords.
-
-### 14.4 Database
-
-The Central Server holds the X-Road configuration in a PostgreSQL database. The database contains the security policy of the X-Road instance as well as a list of members, Security Servers, global groups and management services. 
-
-### 14.5 User Interface
-
-The Central Server user interface allows the user to manage X-Road members and Security Servers and define the global configuration parameters that are distributed to the Security Servers. User action events that change the system state or configuration are logged into the audit log. The actions are logged regardless of whether the outcome was a success or a failure. 
-
-For other Central Server details, refer to \[[ARC-CS](#ARC-CS)\].
-
-## 15	Security Server Roles and Components
+## 15 Security Server
 
 The main function of a Security Server is to mediate requests in a way that preserves their evidential value. The Security Server is connected to the public Internet from one side and to the information system within the organization's internal network from the other side (refer to Figure 1 X-Road Security Architecture). The Security Server is equipped with the functionality required to secure the message exchange between a client and a service provider.
 
@@ -273,31 +248,9 @@ A Security Server instance is an independent and separately identifiable entity.
 
 Messages transmitted over the public Internet are secured using digital signatures and TLS (HTTPS) encryption. The service provider's Security Server applies access control to incoming messages, thus ensuring that only those users that have signed an appropriate agreement with the service provider can access the data.
 
-### 15.1 Security Server Roles
+For Security Server components, refer to \[[ARC-SS](#ARC-SS)\] section 2.
 
-Security servers support the following user roles (refer to \[[UG-SS](#Ref_UG-SS)\] for more details):
-
-  * Security Officer is responsible for the application of the security policy and security requirements, including the management of key settings, keys, and certificates.
-  * Registration Officer is responsible for the registration and removal of Security Server clients.
-  * Service Administrator manages the data of and access rights to services
-  * System Administrator is responsible for the installation, configuration, and maintenance of the Security Server.
-  * Security Server Observer can view the status of the Security Server without having access rights to edit the configuration. This role may be used to offer users read-only access to the Security Server admin user interface.
-
-User management is performed on command line in root user permissions. One user may have multiple roles and multiple users may be in the same role. Each role has a corresponding system group, created upon the installation of the system.
-
-#### 15.1.1 Access Rights
-
-If the logged-in user does not have a permission to carry out a particular task, the button that would initiate the action is hidden. Nor is it possible to run the task using its corresponding keyboard combinations or mouse actions. Only the permitted data and actions are visible and available to the user. This fulfils the security principle of least privilege.
-
-### 15.2 Security Server Components
-
-#### 15.2.1 Proxy
-
-The proxy is responsible for mediating messages between service clients and service providers. The messages are transmitted over the public Internet and the proxy ensures that the communication is secured using digital signatures and encryption. The component is a standalone Java daemon application.
-
-#### 15.2.2 Message Log
-
-The purpose of the message log is to provide means to prove the reception of a regular request or response message to a third party. Messages exchanged between Security Servers are signed and encrypted. For every regular request and response, the Security Server produces a complete signed and timestamped document  Messages are stored with their signatures and signatures are timestamped. 
+For Security Server roles, refer to \[[UG-SS](#UG-SS)\] section 2.
 
 ## 16 Certificates and Keys Management
 
@@ -311,7 +264,11 @@ By default, X-Road utilises 2048 bit RSA keys as authentication and signing keys
 
 ## 17 Monitoring
 
-X-Road monitoring is conceptually split into environmental and operational monitoring. The X-Road monitoring service uses several sensors to collect the data; the CertificateInfoSensor sensor produces the following security certificate-associated monitoring data:
+X-Road monitoring is conceptually split into environmental and operational monitoring. 
+
+### 17.1 Environmental Monitoring
+   
+Environmental monitoring provides details of the Security Servers such as operating system, memory, disk space, CPU load, running processes and installed packages, etc. The X-Road monitoring service uses several sensors to collect the data; the CertificateInfoSensor sensor produces the following security certificate-associated monitoring data:
    
   * data: information about certificates associated with this Security Server
     * certificate SHA-1 hash
@@ -324,15 +281,31 @@ X-Road monitoring is conceptually split into environmental and operational monit
       * is the certificate active (true/false)
     * data is refreshed once per day
 
-### 17.1 Controlling Access to Monitoring 
+It is possible to limit the environmental monitoring data set that is returned to the central monitoring client. The limited data set includes certificate, operating system and X-Road version information.
 
-Monitoring queries are allowed from
+For more in-depth technical details of the environmental monitoring architecture, refer to \[[ARC-ENVMON](#Ref_ARC-ENVMON)\].
+
+### 17.2 Operational Monitoring
+
+Operational monitoring collects data about request exchange between Security Servers. The data includes, but is not limited to, the following information:
+
+  * ID-s of the client and the service
+  * various attributes of the message read from the message header
+  * request and response timestamps
+  * message size and processing time
+
+For more in-depth technical details of the operation monitoring architecture, refer to \[[ARC-OPMOND](#Ref_ARC-OPMOND)\].
+
+### 17.3 Controlling Access to Monitoring 
+
+Both environmental and operational monitoring queries are allowed from
+
   * a client that is the owner of the Security Server
   * a central monitoring client (if any have been configured)
+  
+In addition, a regular client is allowed to query its own operational monitoring records - records that are associated with the client sending the query.
 
 The central monitoring client is configured via Central Server administrator user interface. Attempts to query monitoring data from other clients results in an AccessDenied system response.
-
-For more in-depth technical details of the X-Road Monitoring Architecture, refer to \[[ARC-ENVMON](#Ref_ARC-ENVMON)\].
 
 ## 18 Privacy
 
