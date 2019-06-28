@@ -54,6 +54,7 @@ public class ApplicationExceptionHandler {
         log.error("exception caught", e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
     /**
      * handle auth exceptions
      * @param e
@@ -74,5 +75,16 @@ public class ApplicationExceptionHandler {
     public ResponseEntity<ErrorInfo> exception(AccessDeniedException e) {
         log.error("exception caught", e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.FORBIDDEN);
+    }
+
+    /**
+     * handle wsdl parser exceptions
+     * @param e
+     * @return
+     */
+    @ExceptionHandler(WsdlParseException.class)
+    public ResponseEntity<ErrorInfo> exception(WsdlParseException e) {
+        log.error("exception caught", e);
+        return exceptionTranslator.toResponseEntity(e, HttpStatus.BAD_REQUEST);
     }
 }

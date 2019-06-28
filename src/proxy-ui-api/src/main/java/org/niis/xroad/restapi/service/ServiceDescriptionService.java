@@ -24,16 +24,24 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
+import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.exceptions.ConflictException;
+import org.niis.xroad.restapi.exceptions.InvalidParametersException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.exceptions.WsdlParseException;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
+import org.niis.xroad.restapi.wsdl.WsdlParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -51,16 +59,19 @@ import java.util.stream.Collectors;
 public class ServiceDescriptionService {
 
     private final ServiceDescriptionRepository serviceDescriptionRepository;
+    private final ClientService clientService;
 
     /**
      * ServiceDescriptionService constructor
      * @param serviceDescriptionRepository
+     * @param clientService
      */
     @Autowired
-    public ServiceDescriptionService(ServiceDescriptionRepository serviceDescriptionRepository) {
+    public ServiceDescriptionService(ServiceDescriptionRepository serviceDescriptionRepository,
+            ClientService clientService) {
         this.serviceDescriptionRepository = serviceDescriptionRepository;
+        this.clientService = clientService;
     }
-
 
     /**
      * Disable 1-n services
@@ -68,7 +79,7 @@ public class ServiceDescriptionService {
      */
     @PreAuthorize("hasAuthority('ENABLE_DISABLE_WSDL')")
     public void disableServices(Collection<Long> serviceDescriptionIds,
-                                String disabledNotice) {
+            String disabledNotice) {
         toggleServices(false, serviceDescriptionIds, disabledNotice);
     }
 
@@ -81,7 +92,6 @@ public class ServiceDescriptionService {
         toggleServices(true, serviceDescriptionIds, null);
     }
 
-
     /**
      * Change 1-n services to enabled/disabled
      * @param serviceDescriptionIds
@@ -89,9 +99,9 @@ public class ServiceDescriptionService {
      * @throws NotFoundException if serviceDescriptions with given ids were not found
      */
     private void toggleServices(boolean toEnabled, Collection<Long> serviceDescriptionIds,
-                                String disabledNotice) {
+            String disabledNotice) {
         List<ServiceDescriptionType> possiblyNullServiceDescriptions = serviceDescriptionRepository
-                .getServiceDescriptions(serviceDescriptionIds.toArray(new Long[]{}));
+                .getServiceDescriptions(serviceDescriptionIds.toArray(new Long[] {}));
 
         List<ServiceDescriptionType> serviceDescriptions = possiblyNullServiceDescriptions.stream()
                 .filter(Objects::nonNull)
@@ -117,5 +127,36 @@ public class ServiceDescriptionService {
                 });
     }
 
+    /**
+     * Add a new WSDL ServiceDescription
+     * @param clientId
+     * @param url
+     * @throws InvalidParametersException if URL is malformed
+     * @throws ConflictException URL already exists
+     */
+    public void addWsdlServiceDescription(ClientId clientId, String url, boolean ignoreWarnings) {
+        ClientType client = clientService.getClient(clientId);
+        if (client == null) {
+            throw new NotFoundException("Client with id " + clientId.toShortString() + " not found");
+        }
+        try {
+            new URL(url);
+        } catch (MalformedURLException e) {
+            throw new InvalidParametersException("Malformed URL");
+        }
+        client.getServiceDescription().forEach(serviceDescription -> {
+            if (serviceDescription.getUrl().equalsIgnoreCase(url)) {
+                throw new ConflictException("URL already exists");
+            }
+        });
+        if (!ignoreWarnings) {
+            try {
+                WsdlParser.parseWSDL(url);
+            } catch (Exception e) {
+                throw new WsdlParseException("WSDL parsing failed", e);
+            }
+        }
+        ServiceDescriptionType serviceDescriptionType = new ServiceDescriptionType();
+    }
 
 }

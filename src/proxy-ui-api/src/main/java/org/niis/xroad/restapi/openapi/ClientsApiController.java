@@ -45,6 +45,7 @@ import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.Group;
 import org.niis.xroad.restapi.openapi.model.InlineObject;
+import org.niis.xroad.restapi.openapi.model.InlineObject2;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.GroupService;
@@ -143,9 +144,9 @@ public class ClientsApiController implements ClientsApi {
      * Read one client from DB
      * @param encodedId id that is encoded with the <INSTANCE>:<MEMBER_CLASS>:....
      * encoding
-     * @throws NotFoundException if client does not exist
-     * @throws BadRequestException if encodedId was not proper encoded client ID
      * @return
+     * @throws NotFoundException   if client does not exist
+     * @throws BadRequestException if encodedId was not proper encoded client ID
      */
     private ClientType getClientType(String encodedId) {
         ClientId clientId = clientConverter.convertId(encodedId);
@@ -170,7 +171,6 @@ public class ClientsApiController implements ClientsApi {
             throw new RuntimeException(e);
         }
     }
-
 
     /**
      * Update a client's connection type
@@ -273,5 +273,12 @@ public class ClientsApiController implements ClientsApi {
         List<ServiceDescription> serviceDescriptions = serviceDescriptionConverter.convert(
                 clientType.getServiceDescription());
         return new ResponseEntity<>(serviceDescriptions, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
+    public ResponseEntity<Void> addClientServiceDescription(String id, Boolean ignoreWarnings,
+            InlineObject2 inlineObject2) {
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
