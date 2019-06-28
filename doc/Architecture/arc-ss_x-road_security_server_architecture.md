@@ -199,7 +199,7 @@ The operational monitoring buffer is an in memory circular buffer that mediates 
 The component is a proxy addon.
 
 
-## 2.6 Signer
+### 2.6 Signer
 
 The signer component is responsible for managing keys and certificates used for signing messages. The signer is called from the proxy component when signing messages or verifying their validity. The user interface also calls the signer when generating authentication and signing keys or certificate requests.
 
