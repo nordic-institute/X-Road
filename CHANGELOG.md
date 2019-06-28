@@ -2,6 +2,10 @@
 
 ## 6.22.0 - UNRELEASED
 
+## 6.21.1 - 2019-05-22
+- XRDDEV-526: Fix adding a WSDL with a newer version of an existing service fails.
+- XRDDEV-506: Fix operational monitoring does not record request_out_ts and response_in_ts for REST messages.
+
 ## 6.21.0 - 2019-04-24
 - XRDDEV-263: Security Server data model extended to cover REST services.
 - XRDDEV-225: Add configuration option that allows auto-accepting auth cert registration requests on Central Server.
@@ -35,7 +39,6 @@
 - XRDDEV-383: Add security server Dockerfile and usage instructions.
 - XRDDEV-411: Fix SonarQube duplication warning.
 - XRDDEV-443: Fix updating REST service code removes all access rights.
-
 
 ## 6.20.1 - 2019-02-05
 - XRDDEV-351: Fix XRDDEV-351

@@ -151,6 +151,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
     private void updateOpMonitoringDataByResponse(ProxyMessageDecoder decoder) {
         if (response.getRestResponse() != null) {
+            opMonitoringData.setResponseAttachmentCount(0);
             opMonitoringData.setResponseRestSize(response.getRestResponse().getMessageBytes().length
                     + decoder.getAttachmentsByteCount());
         }
@@ -368,6 +369,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                     }
                 }
 
+                opMonitoringData.setRequestAttachmentCount(0);
                 opMonitoringData.setRequestRestSize(restRequest.getMessageBytes().length
                         + enc.getAttachmentsByteCount());
 

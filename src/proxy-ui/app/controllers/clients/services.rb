@@ -688,7 +688,7 @@ module Clients::Services
       end if deleted.has_key?(wsdl.url)
 
       services_deleted.each do |service|
-        service.wsdl = nil
+        service.serviceDescription = nil
         wsdl.service.remove(service)
         @session.delete(service)
       end
