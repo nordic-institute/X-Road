@@ -15,7 +15,7 @@ Doc. ID: ARC-SEC
  ---------- | ------- | ----------------------------------------------------------- | --------------------
  20.06.2019 | 0.1     | Initial version                                             | Niall O’Donoghue
  27.06.2019 | 0.2     | Converted to Github flavoured Markdown                      | Petteri Kivimäki
- 28.06.2019 | 0.3     | Editorial changes                                           | Petteri Kivimäki
+ 28.06.2019 | 0.3     | Editorial changes, updated chapter 6                        | Petteri Kivimäki
   
 ## Table of Contents
 
@@ -301,7 +301,11 @@ The purpose of the message log is to provide means to prove the reception of a r
 
 ## 16 Certificates and Keys Management
 
-The signer component is responsible for managing the keys and certificates used for signing the global configuration. The signer is called from the management services component to create the signature for the configuration.
+Only certificates issued by approved certification authorities can be used in X-Road. Approved certification authorities are defined on the Central Server and the configuration is environment specific. It is possible to have multipl approved certification authorities within an environment. 
+
+Security Server authentication key and certificate are stored on a software token. Central Server and Security Server signing keys and certificates can be stored on a software token or an HSM device.
+
+The signer component is responsible for managing signing keys and certificates. The signer is called by other components when creating or verifying signatures. The user interface also calls the signer when generating authentication and signing keys or certificate requests.
 
 By default, X-Road utilises 2048 bit RSA keys as authentication and signing keys/certificates. The key length may be configured using the Security Server system parameters. Longer keys may be utilised in X-Road without compatibility issues; 2k, 3k and 4k keys may be simultaneously utilised.
 
