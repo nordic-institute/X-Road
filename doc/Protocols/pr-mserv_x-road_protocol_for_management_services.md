@@ -249,7 +249,7 @@ The body of the owner change message (request or response) contains the followin
 
 * **server** – identifier of the security server where the owner is changed;
 
-* **newOwner** – identifier of the new owner member of the security server;
+* **client** – identifier of the new owner member of the security server;
 
 * **requestId** – for responses only, unique identifier of the request that is stored in the central server database \[[DM-CS](#Ref_DM-CS)\].
 
@@ -259,7 +259,7 @@ The XML Schema fragment of the client registration request body is shown below. 
 <xsd:complexType name="OwnerChangeRequestType">
     <xsd:sequence>
         <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType"/>
-        <xsd:element name="newOwner" type="id:XRoadClientIdentifierType"/>
+        <xsd:element name="client" type="id:XRoadClientIdentifierType"/>
         <element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
     </xsd:sequence>
 </xsd:complexType>
@@ -267,7 +267,7 @@ The XML Schema fragment of the client registration request body is shown below. 
 
 The request is sent using HTTP POST method. The content type of the request MUST be *multipart/related* and the request must contain the following MIME parts.
 
-1. X-Road SOAP request message. The message MUST contain the regular X-Road headers and the two data fields (*server*, *newOwner*). The content type of this part MUST be *text/xml*.
+1. X-Road SOAP request message. The message MUST contain the regular X-Road headers and the two data fields (*server*, *client*). The content type of this part MUST be *text/xml*.
 
 2. Signature of the new owner member of the security server. The MIME part must contain signature of the SOAP request message, created with the private key corresponding to a **signing certificate** of the new owner member. The content type of this part must be *application/octet-stream*. Additionally, the part MUST include header field *signature-algorithm-ID* that identifies the signature algorithm. Currently supported signature algorithms are *SHA256withRSA*, *SHA384withRSA*, *SHA512withRSA*, *SHA256withRSAandMGF1*, *SHA384withRSAandMGF1*, and *SHA512withRSAandMGF1*.
 
@@ -275,7 +275,7 @@ The request is sent using HTTP POST method. The content type of the request MUST
 
 4. OCSP response certifying that the new owner member's signing certificate was valid at the time of creation of the request. The content type of this part MUST be *application/octet-stream*.
 
-The response echoes back the server and the newOwner fields of the request and adds the field *requestId*.
+The response echoes back the server and the client fields of the request and adds the field *requestId*.
 
 An example of the owner change request and response is given in [Annex A.5](#a5-ownerchange).
 
@@ -786,12 +786,12 @@ Content-Type: text/xml; charset=UTF-8
                 <id:memberCode>TS1OWNER</id:memberCode>
                 <id:serverCode>TS1</id:serverCode>
             </xroad:server>
-            <xroad:newOwner id:objectType="MEMBER">
+            <xroad:client id:objectType="MEMBER">
                 <id:xRoadInstance>EE</id:xRoadInstance>
                 <id:memberClass>COM</id:memberClass>
                 <id:memberCode>MACK</id:memberCode>
-            </xroad:newOwner>
-        </xroad:clientReg>
+            </xroad:client>
+        </xroad:ownerChange>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>
 --jetty113950090iemuz6a3
@@ -846,11 +846,11 @@ Response message
                 <id:memberCode>TS1OWNER</id:memberCode>
                 <id:serverCode>TS1</id:serverCode>
             </xroad:server>
-            <xroad:newOwner id:objectType="MEMBER">
+            <xroad:client id:objectType="MEMBER">
                 <id:xRoadInstance>EE</id:xRoadInstance>
                 <id:memberClass>COM</id:memberClass>
                 <id:memberCode>MACK</id:memberCode>
-            </xroad:newOwner>
+            </xroad:client>
             <xroad:requestId>691</xroad:requestId>
         </xroad:ownerChangeResponse>
     </SOAP-ENV:Body>
@@ -1094,8 +1094,8 @@ Response message
                     type="tns:AuthCertDeletionRequestType"/>
             <xsd:element name="authCertDeletionResponse"
                     type="tns:AuthCertDeletionRequestType"/>
-            <xsd:element name="ownerChange" type="tns:OwnerChangeRequestType"/>
-            <xsd:element name="ownerChangeResponse" type="tns:OwnerChangeRequestType"/>
+            <xsd:element name="ownerChange" type="tns:ClientRequestType"/>
+            <xsd:element name="ownerChangeResponse" type="tns:ClientRequestType"/>
             <!-- Header fields -->
             <xsd:element name="client" type="id:XRoadClientIdentifierType"/>
             <xsd:element name="service" type="id:XRoadServiceIdentifierType"/>
