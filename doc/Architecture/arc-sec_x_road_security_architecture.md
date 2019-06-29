@@ -123,7 +123,7 @@ All X-Road messages are signed by the signing key of the organisations that send
 
 For compliance with the security principle of availability, the objective is to ensure that X-Road assets are readily available to authorised X-Road actors that require them. With assurance of availability, the threat being mitigated is the denial to authorised actors of X-Road services.
 
-Availability is a cornerstone of critical infrastructure. X-Road is designed so that no component is a system-wide bottleneck or point of failure. X-Road remains operational even if Central Server, OCSP service or time-stamping service would fail. The time window depends on the failing component and configuration of the X-Road instance.
+Availability is a cornerstone of critical infrastructure. X-Road is designed so that no component is a system-wide bottleneck or point of failure. Security Servers remain operational even if Central Server, OCSP service and/or time-stamping service would fail. The grace period depends on the failing component and configuration of the X-Road instance.
 
 X-Road Security Servers incorporate denial-of-service mitigation functionality. X-Road Linux services will automatically restart after a local system crash. 
 
@@ -139,7 +139,9 @@ For compliance with the security principle of authentication, the objective is t
 
 X-Road enforces organisation-level authentication (and authorization) mechanisms and for X-Road Administrator web application frontend-to-backend connections and direct calls to the backend for configuration and maintenance automation purposes.
 
-An X-Road organisation’s client information system Security Server acts as the entry point to all the X-Road services. The client information system is responsible for implementing a user authentication and access control mechanism that complies with the requirements of the particular X-Road instance. The identity of the end user may be made available to the service provider by including it in the service request. 
+An X-Road organisation’s client information system Security Server acts as the entry point to all the X-Road services. The client information system is responsible for implementing an end user authentication and access control mechanism that complies with the requirements of the particular X-Road instance. The identity of the end user may be made available to the service provider by including it in the service request. 
+
+In case a Security Server becomes compromised, it can be blocked from the X-Road instance by revoking its authentication certificate or removing it from the Central Server's configuration. Similarly, a selected member organisation or subsystem can be blocked out centrally without affecting other Security Servers, members or subsystems.
 
 For details on X-Road Administrator web application user management-related authentication, refer to \[[UG-SS](#Ref_UG-SS)\] section 2.
 
@@ -246,7 +248,15 @@ The main function of a Security Server is to mediate requests in a way that pres
 
 A Security Server instance is an independent and separately identifiable entity. A Security Server identity consist of a server identifier (member id + server code). For each server identifier there may be multiple authentication certificates present locally, each of which must be unique. However, only one authentication certificate must be active and registered on the Central Server at a time. In addition, each Security Server has an address (DNS name or IP address) which is not required to be unique. The global configuration binds together the authentication certificate(s), server identifier and address. The authentication certificate may contain information about the service identifier; however this is optional. Also, the server address and the common name or alternate subject names in the authentication certificate may be different.
 
-Messages transmitted over the public Internet are secured using digital signatures and TLS (HTTPS) encryption. The service provider's Security Server applies access control to incoming messages, thus ensuring that only those users that have signed an appropriate agreement with the service provider can access the data.
+Messages transmitted over the public Internet are secured using digital signatures and TLS (HTTPS) encryption. On every connection, the Security Server verifies that the authentication certificate of the other Security Server:
+
+  * is issued by an approved certification authority
+  * matches the authentication certificate registered to the Security Server on global configuration
+  * has a valid OCSP response available.
+  
+If any of the above verifications fail, the message is not processed further and an error message is returned.
+
+The service provider's Security Server applies access control to incoming messages, thus ensuring that only those users that have signed an appropriate agreement with the service provider can access the data.
 
 For Security Server components, refer to \[[ARC-SS](#ARC-SS)\] section 2.
 
