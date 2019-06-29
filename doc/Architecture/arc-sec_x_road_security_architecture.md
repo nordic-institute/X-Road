@@ -3,7 +3,7 @@
 **Technical Specification**
 
 Version: 0.3  
-28.06.2019
+29.06.2019
 
 Doc. ID: ARC-SEC
 
@@ -15,7 +15,7 @@ Doc. ID: ARC-SEC
  ---------- | ------- | ----------------------------------------------------------- | --------------------
  20.06.2019 | 0.1     | Initial version                                             | Niall O’Donoghue
  27.06.2019 | 0.2     | Converted to Github flavoured Markdown                      | Petteri Kivimäki
- 28.06.2019 | 0.3     | Editorial changes, updated chapters 5, 6, 14, 15, 16, 17    | Petteri Kivimäki
+ 29.06.2019 | 0.3     | Editorial changes, updated chapters 5-7, 14-17 | Petteri Kivimäki
   
 ## Table of Contents
 
@@ -153,7 +153,7 @@ For compliance with the security principle of least privilege, the objective is 
 
 ### 7.1 Messaging Access Control
 
-X-Road core handles access control on the organisation level during data exchange between registered X-Road members. 
+X-Road core handles access control on the organisation level during data exchange between registered X-Road members. A service provider is responsible for managing access rights to its services. Publishing services via X-Road does not automatically provide other members access to the services. 
 
 ### 7.2 Web UI Access Control
 
