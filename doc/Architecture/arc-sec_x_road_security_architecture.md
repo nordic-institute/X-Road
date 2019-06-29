@@ -15,7 +15,7 @@ Doc. ID: ARC-SEC
  ---------- | ------- | ----------------------------------------------------------- | --------------------
  20.06.2019 | 0.1     | Initial version                                             | Niall O’Donoghue
  27.06.2019 | 0.2     | Converted to Github flavoured Markdown                      | Petteri Kivimäki
- 29.06.2019 | 0.3     | Editorial changes, updated chapters 5-7, 14-17 | Petteri Kivimäki
+ 29.06.2019 | 0.3     | Editorial changes, updated chapters 5-7, 14-18 | Petteri Kivimäki
   
 ## Table of Contents
 
@@ -251,7 +251,7 @@ A Security Server instance is an independent and separately identifiable entity.
 Messages transmitted over the public Internet are secured using digital signatures and TLS (HTTPS) encryption. On every connection, the Security Server verifies that the authentication certificate of the other Security Server:
 
   * is issued by an approved certification authority
-  * matches the authentication certificate registered to the Security Server on global configuration
+  * matches the authentication certificate registered to the Security Server on the global configuration
   * has a valid OCSP response available.
   
 If any of the above verifications fail, the message is not processed further and an error message is returned.
@@ -264,7 +264,7 @@ For Security Server roles, refer to \[[UG-SS](#UG-SS)\] section 2.
 
 ## 16 Certificates and Keys Management
 
-Only certificates issued by approved certification authorities can be used in X-Road. Approved certification authorities are defined on the Central Server and the configuration is environment specific. It is possible to have multipl approved certification authorities within an environment. 
+Only certificates issued by approved certification authorities can be used in X-Road. Approved certification authorities are defined on the Central Server and the configuration is environment specific. It is possible to have multipl approved certification authorities within an X-Road instance. 
 
 Security Server authentication key and certificate are stored on a software token. Central Server and Security Server signing keys and certificates can be stored on a software token or an HSM device.
 
@@ -297,7 +297,7 @@ For more in-depth technical details of the environmental monitoring architecture
 
 ### 17.2 Operational Monitoring
 
-Operational monitoring collects data about request exchange between Security Servers. The data includes, but is not limited to, the following information:
+Operational monitoring collects data about request exchange between Security Servers. The data includes, but is not limited to:
 
   * ID-s of the client and the service
   * various attributes of the message read from the message header
@@ -323,9 +323,13 @@ Security best practice supports and facilitates privacy best practice. Privacy i
 
 X-Road is obligated to comply with the General Protection Data Regulation (GDPR) that stipulates how personal data must be processed in any operation performed on personal data, including collection, recording, organization, storage, alteration, disclosure, granting access to personal data, consultation and retrieval, use of personal data, communication, cross-usage, combination, closure, erasure, destruction, or several of the aforementioned operations, regardless of the manner in which the operations are carried out or the means used.
 
+An X-Road member organisation is responsible for maintaining and operating its Security Server(s) in a GDPR compliant manner.
+
 ### 18.1 Purpose Limitation
 
-X-Road data is communicated, processed and stored only for the specified, explicit and legitimate intended purposes and not in any manner that is incompatible with X-Road data purposes and X-Road security policy. 
+X-Road data is communicated, processed and stored only for the specified, explicit and legitimate intended purposes and not in any manner that is incompatible with X-Road data purposes and X-Road security policy.
+
+X-Road data purposes and X-Road security policy are member organisation and X-Road instance specific, and they may be influenced by local interpretations of both national and international legislation.
 
 ### 18.2 Data Mimimisation
 
