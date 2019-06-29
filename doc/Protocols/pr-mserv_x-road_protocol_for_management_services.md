@@ -6,7 +6,7 @@
 
 **Technical Specification**
 
-Version: 1.13  
+Version: 1.14  
 Doc. ID: PR-MSERV
 
 |  Date      | Version |  Description                                                             | Author             |
@@ -32,6 +32,7 @@ Doc. ID: PR-MSERV
 | 06.03.2018 | 1.11    | Added terms section, term doc reference and link, fixed references       | Tatu Repo          |
 | 06.02.2019 | 1.12    | Update *clientReg* message description                                   | Petteri Kivimäki   |
 | 03.06.2019 | 1.13    | Add ownerChange management service                                       | Ilkka Seppälä      |
+| 29.06.2019 | 1.14    | Rename *newOwner* element to *client* in ownerChange management service  | Petteri Kivimäki   |
 
 ## Table of Contents
 
