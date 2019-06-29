@@ -147,6 +147,21 @@ public final class ManagementRequestSender {
                 clientId));
     }
 
+    /**
+     * Sends an owner change request as a normal X-Road message.
+     * @param securityServer the security server id
+     * @param clientId the client id of the new security server owner
+     * @return request ID in the central server database
+     * @throws Exception if an error occurs
+     */
+    public Integer sendOwnerChangeRequest(SecurityServerId securityServer,
+                                        ClientId clientId) throws Exception {
+        try (HttpSender sender = ManagementRequestClient.createProxyHttpSender()) {
+            return send(sender, getSecurityServerURI(),
+                    new OwnerChangeRequest(clientId, builder.buildOwnerChangeRequest(securityServer, clientId)));
+        }
+    }
+
     // -- Helper methods ------------------------------------------------------
 
     private Integer sendToProxy(SoapMessageImpl request) throws Exception {

@@ -24,23 +24,16 @@
  */
 package ee.ria.xroad.common.request;
 
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.message.SoapMessageImpl;
 
-/**
- * Contains constants for management request service names.
- */
-public final class ManagementRequests {
+import lombok.extern.slf4j.Slf4j;
 
-    private ManagementRequests() {
+@Slf4j
+class OwnerChangeRequest extends GenericClientRequest {
+
+    OwnerChangeRequest(ClientId client, SoapMessageImpl request) throws Exception {
+        super(client, request);
     }
-
-    public static final String AUTH_CERT_REG = "authCertReg";
-
-    public static final String AUTH_CERT_DELETION = "authCertDeletion";
-
-    public static final String CLIENT_REG = "clientReg";
-
-    public static final String CLIENT_DELETION = "clientDeletion";
-
-    public static final String OWNER_CHANGE = "ownerChange";
 
 }
