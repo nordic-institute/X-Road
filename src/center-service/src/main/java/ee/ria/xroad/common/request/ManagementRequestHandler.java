@@ -175,7 +175,13 @@ public final class ManagementRequestHandler {
 
         ClientId idFromReq = req.getClient();
 
-        if (!idFromReq.subsystemContainsMember(idFromCert)) {
+        // Separate conditions are needed for 1) subsystem registration and 2) member registration.
+        // 1. In subsystem registration request idFromReq is the subsystem code to be registered
+        // and idFromCert is the member code from the sign cert. The subsystem must be owned by the member
+        // that signed the request.
+        // 2. In member registration request both idFromReq is the member code to be registered
+        // and idFromCert is the member code from the sign cert. The member codes must match.
+        if (!idFromReq.subsystemContainsMember(idFromCert) && !idFromReq.equals(idFromCert)) {
             throw new CodedException(X_INVALID_REQUEST,
                     "Subject identifier (%s) in certificate does not match"
                             + " client's member identifier (%s) in request",
