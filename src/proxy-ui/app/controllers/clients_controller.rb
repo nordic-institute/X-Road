@@ -153,7 +153,7 @@ class ClientsController < ApplicationController
     client.identifier = client_id
     client.clientStatus = registered ?
       ClientType::STATUS_REGISTERED : ClientType::STATUS_SAVED
-    client.isAuthentication = "NOSSL"
+    client.isAuthentication = "SSLAUTH"
     client.conf = serverconf
 
     audit_log_data[:clientIdentifier] = client.identifier
