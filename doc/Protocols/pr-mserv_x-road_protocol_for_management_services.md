@@ -257,7 +257,7 @@ The body of the owner change message (request or response) contains the followin
 The XML Schema fragment of the client registration request body is shown below. For clarity, documentation in the schema fragment is omitted.
 
 ```xml
-<xsd:complexType name="OwnerChangeRequestType">
+<xsd:complexType name="ClientRequestType">
     <xsd:sequence>
         <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType"/>
         <xsd:element name="client" type="id:XRoadClientIdentifierType"/>
