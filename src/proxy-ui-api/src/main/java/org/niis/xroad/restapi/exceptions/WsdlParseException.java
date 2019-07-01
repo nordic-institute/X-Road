@@ -29,7 +29,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
  * Thrown if WSDL parsing fails
- * will be handled further in ApplicationExceptionHandler
  */
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
 public class WsdlParseException extends ErrorCodedRuntimeException {

@@ -25,11 +25,14 @@
 package org.niis.xroad.restapi.exceptions;
 
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
+import org.niis.xroad.restapi.openapi.model.Warning;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.ResponseStatus;
+
+import java.util.List;
 
 /**
  * Translate exceptions to ResponseEntities
@@ -37,14 +40,18 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Component
 public class ExceptionTranslator {
 
+    public static final String ADD_SERVICE_DESCRIPTION_WARNING_CODE = "adding_service_description";
+
     /**
      * Create ResponseEntity<ErrorInfo> from an Exception.
      * Use provided status or override it with value from
      * Exception's ResponseStatus annotation if one exists
      * @param e
+     * @param defaultStatus
+     * @param warnings
      * @return
      */
-    public ResponseEntity<ErrorInfo> toResponseEntity(Exception e, HttpStatus defaultStatus) {
+    public ResponseEntity<ErrorInfo> toResponseEntity(Exception e, HttpStatus defaultStatus, List<Warning> warnings) {
         HttpStatus status = defaultStatus;
         ResponseStatus statusAnnotation = AnnotationUtils.findAnnotation(
                 e.getClass(), ResponseStatus.class);
@@ -58,6 +65,20 @@ public class ExceptionTranslator {
             ErrorCodedException errorCodedException = (ErrorCodedException) e;
             errorDto.setErrorCode(errorCodedException.getErrorCode());
         }
+        if (warnings != null) {
+            errorDto.setWarnings(warnings);
+        }
         return new ResponseEntity<ErrorInfo>(errorDto, status);
+    }
+
+    /**
+     * Create ResponseEntity<ErrorInfo> from an Exception.
+     * Use provided status or override it with value from
+     * Exception's ResponseStatus annotation if one exists
+     * @param e
+     * @return
+     */
+    public ResponseEntity<ErrorInfo> toResponseEntity(Exception e, HttpStatus defaultStatus) {
+        return toResponseEntity(e, defaultStatus, null);
     }
 }

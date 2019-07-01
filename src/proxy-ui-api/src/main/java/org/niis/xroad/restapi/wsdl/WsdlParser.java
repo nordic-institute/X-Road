@@ -29,6 +29,7 @@ import ee.ria.xroad.common.CodedException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.restapi.exceptions.WsdlParseException;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -66,7 +67,6 @@ import java.util.List;
 import java.util.Map;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
 
 /**
  * Utils for WSDL parsing
@@ -102,11 +102,11 @@ public final class WsdlParser {
      * @return collection of ServiceInfo objects
      * @throws Exception in case of any errors
      */
-    public static Collection<ServiceInfo> parseWSDL(String wsdlUrl) throws Exception {
+    public static Collection<ServiceInfo> parseWSDL(String wsdlUrl) throws WsdlParseException {
         try {
             return internalParseWSDL(wsdlUrl);
         } catch (Exception e) {
-            throw translateException(clarifyWsdlParsingException(e));
+            throw new WsdlParseException(clarifyWsdlParsingException(e));
         }
     }
 

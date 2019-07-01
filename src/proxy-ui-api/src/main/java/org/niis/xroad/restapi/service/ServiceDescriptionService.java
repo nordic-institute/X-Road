@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.cxf.tools.common.ToolException;
+import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.InvalidParametersException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
@@ -182,8 +183,8 @@ public class ServiceDescriptionService {
         Collection<WsdlParser.ServiceInfo> parsedServices;
         try {
             parsedServices = WsdlParser.parseWSDL(url);
-        } catch (Exception ex) {
-            throw new WsdlParseException("WSDL parsing failed", ex);
+        } catch (WsdlParseException ex) {
+            throw new BadRequestException("WSDL parsing failed", ex);
         }
 
         // check if services already exist
