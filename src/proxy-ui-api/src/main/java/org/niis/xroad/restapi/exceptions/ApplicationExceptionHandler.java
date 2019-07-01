@@ -87,4 +87,15 @@ public class ApplicationExceptionHandler {
         log.error("exception caught", e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.BAD_REQUEST);
     }
+
+    /**
+     * handle wsdl validation exceptions
+     * @param e
+     * @return
+     */
+    @ExceptionHandler(WsdlValidationException.class)
+    public ResponseEntity<ErrorInfo> exception(WsdlValidationException e) {
+        log.error("exception caught", e);
+        return exceptionTranslator.toResponseEntity(e, HttpStatus.BAD_REQUEST);
+    }
 }

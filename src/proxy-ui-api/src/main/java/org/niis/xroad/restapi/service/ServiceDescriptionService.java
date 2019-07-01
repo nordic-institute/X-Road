@@ -31,14 +31,17 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.cxf.tools.common.ToolException;
 import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.InvalidParametersException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.exceptions.WsdlParseException;
+import org.niis.xroad.restapi.exceptions.WsdlValidationException;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
+import org.niis.xroad.restapi.wsdl.WsdlValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -167,13 +170,20 @@ public class ServiceDescriptionService {
             }
         });
 
-        // validate wsdl before parsing if ignoreWarnings == false
+        // validate wsdl before parsing - if warnings are ignored
+        if (!ignoreWarnings) {
+            try {
+                WsdlValidator.executeValidator(url);
+            } catch (ToolException ex) {
+                throw new WsdlValidationException("WSDL validation failed", ex);
+            }
+        }
 
         Collection<WsdlParser.ServiceInfo> parsedServices;
         try {
             parsedServices = WsdlParser.parseWSDL(url);
-        } catch (Exception e) {
-            throw new WsdlParseException("WSDL parsing failed", e);
+        } catch (Exception ex) {
+            throw new WsdlParseException("WSDL parsing failed", ex);
         }
 
         // check if services already exist
