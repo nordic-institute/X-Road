@@ -49,6 +49,8 @@ class RegistrationManagementController < ManagementRequestController
                 handle_client_registration
             when ManagementRequests::CLIENT_DELETION
                 handle_client_deletion
+            when ManagementRequests::OWNER_CHANGE
+                handle_owner_change
             else
                 raise "Unknown service code '#{service}'"
         end
@@ -141,6 +143,10 @@ class RegistrationManagementController < ManagementRequestController
             :origin => Request::SECURITY_SERVER)
         req.register()
         req.id
+    end
+
+    def handle_owner_change
+      id = 123
     end
 
     def auto_approve_client_reg_requests?
