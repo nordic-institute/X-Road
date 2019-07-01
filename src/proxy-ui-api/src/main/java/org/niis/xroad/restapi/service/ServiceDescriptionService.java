@@ -66,6 +66,7 @@ import java.util.stream.Collectors;
 public class ServiceDescriptionService {
 
     public static final int DEFAULT_SERVICE_TIMEOUT = 60;
+    public static final String DEFAULT_DISABLED_NOTICE = "Out of order";
 
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final ClientService clientService;
@@ -214,7 +215,7 @@ public class ServiceDescriptionService {
         ServiceDescriptionType serviceDescriptionType = new ServiceDescriptionType();
         serviceDescriptionType.setClient(client);
         serviceDescriptionType.setDisabled(true);
-        serviceDescriptionType.setDisabledNotice("DEFAULT_DISABLED_NOTICE");
+        serviceDescriptionType.setDisabledNotice(DEFAULT_DISABLED_NOTICE);
         serviceDescriptionType.setRefreshedDate(new Date());
         serviceDescriptionType.setType(descriptionType);
         serviceDescriptionType.setUrl(url);
