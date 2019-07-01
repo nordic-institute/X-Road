@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.26  
+Version: 2.27  
 Doc. ID: UG-SS
 
 ---
@@ -59,6 +59,7 @@ Doc. ID: UG-SS
  06.02.2019 | 2.24    | Minor updates on security server client registration in Chapters [4.3](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client) and [4.4](#44-registering-a-security-server-client-in-the-x-road-governing-authority). | Petteri Kivimäki
  15.03.2019 | 2.25    | Update documentation to cover REST service usage in chapter [6] | Jarkko Hyöty
  16.04.2019 | 2.26    | Minor updates regarding REST services in chapter [6] | Petteri Kivimäki
+ 01.07.2019 | 2.27    | Changing the Security Server Owner chapter added (Chapter [3.4](#34-changing-the-security-server-owner)) | Petteri Kivimäki
 
 ## Table of Contents
 
@@ -85,6 +86,7 @@ Doc. ID: UG-SS
     * [3.2.3 Importing an Authentication Certificate from the Local File System](#323-importing-an-authentication-certificate-from-the-local-file-system)
   * [3.3 Registering the Security Server in the X-Road Governing Authority](#33-registering-the-security-server-in-the-x-road-governing-authority)
     * [3.3.1 Registering an Authentication Certificate](#331-registering-an-authentication-certificate)
+  * [3.4 Changing the Security Server Owner](#34-changing-the-security-server-owner)  
 * [4 Security Server Clients](#4-security-server-clients)
   * [4.1 Security Server Client States](#41-security-server-client-states)
   * [4.2 Adding a Security Server Client](#42-adding-a-security-server-client)
@@ -487,6 +489,35 @@ On submitting the request, the message "Request sent" is displayed, and the auth
 
 After the X-Road governing authority has accepted the registration, the registration state of the authentication certificate is set to “Registered” and the registration process is completed.
 
+### 3.4 Changing the Security Server Owner
+
+**Access rights:** [Registration Officer](#xroad-registration-officer)
+
+To change the security server owner the following actions must be completed.
+
+- The new Owner member must be added to the security server (see [4.2](#42-adding-a-security-server-client)).
+
+- A Signing Key and Certificate must be configured for the new Owner member (see [4.3](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client)).
+ 
+- The new Owner must be registered in the X-Road Governing Authority (see [4.3](#44-registering-a-security-server-client-in-the-x-road-governing-authority)).
+
+- The security server owner change request must be submitted from the security server. To submit an owner change request follow these steps.
+
+  1. On the **Configuration** menu, select **Security Server Clients**.
+
+  2. Select the new Owner member from the list of security server clients.
+
+  3. Click the **Details** icon and in the window that opens, click **Make Owner**.
+
+  4. Click **Confirm** to submit the request.
+
+  5. On submitting the request, the message "Request sent" is displayed.
+
+- A request for changing the security server owner must be submitted to the X-Road governing authority according to the organizational procedures of the X-Road instance.
+
+- The owner change request must be approved by the X-Road governing authority.
+
+- New Authentication Key and Certificate should be configured for the new security server owner (see [3.2](#32-configuring-the-authentication-key-and-certificate-for-the-security-server)).
 
 ## 4 Security Server Clients
 
