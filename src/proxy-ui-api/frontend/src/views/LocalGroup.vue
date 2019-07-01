@@ -141,7 +141,6 @@
 import Vue from 'vue';
 import _ from 'lodash';
 import axios from 'axios';
-import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
 import SubViewTitle from '@/components/SubViewTitle.vue';
 import AddMembersDialog from '@/components/AddMembersDialog.vue';
@@ -176,7 +175,6 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['tlsCertificates']),
     showDelete(): boolean {
       return this.$store.getters.hasPermission(Permissions.DELETE_LOCAL_GROUP);
     },
