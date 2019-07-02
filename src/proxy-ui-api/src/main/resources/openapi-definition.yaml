@@ -1148,283 +1148,6 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /clients/{id}/service-descriptions/{sd_id}:
-    put: # ok
-      tags:
-        - security server
-      summary: update url for the selected service description
-      operationId: updateServiceDescription
-      description: Administrator updates the selected service description.
-      parameters:
-        - in: path
-          name: id
-          description: id of the client
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 1023
-        - in: path
-          name: sd_id
-          description: id of the service description
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-        - in: query
-          name: url
-          description: path for the service description file
-          required: true
-          schema:
-            type: string
-            format: url
-            minLength: 1
-            maxLength: 255
-      responses:
-        '200':
-          description: service description modified
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServiceDescription'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
-    delete: # ok
-      tags:
-        - security server
-      summary: delete service description
-      operationId: deleteServiceDescription
-      description: Administrator deletes the service description.
-      parameters:
-        - in: path
-          name: id
-          description: id of the client
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 1023
-        - in: path
-          name: sd_id
-          description: id of the service description
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-      responses:
-        '204':
-          description: service description deletion was successful
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '500':
-          description: internal server error
-  /clients/{id}/service-descriptions/{sd_id}/disable:
-    put: # ok
-      tags:
-        - security server
-      summary: disable selected service description
-      operationId: disableServiceDescription
-      description: Administrator disables service description.
-      parameters:
-        - in: path
-          name: id
-          description: id of the client
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 1023
-        - in: path
-          name: sd_id
-          description: id of the service description
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-        - in: query
-          name: disabled_notice
-          description: disabled service notice
-          required: false
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-      responses:
-        '204':
-          description: service description disabled
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
-  /clients/{id}/service-descriptions/{sd_id}/enable:
-    put: # ok
-      tags:
-        - security server
-      summary: enable selected service description
-      operationId: enableServiceDescription
-      description: Administrator enables service description.
-      parameters:
-        - in: path
-          name: id
-          description: id of the client
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 1023
-        - in: path
-          name: sd_id
-          description: id of the service description
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-      responses:
-        '204':
-          description: service description enabled
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
-  /clients/{id}/service-descriptions/{sd_id}/refresh:
-    put: # ok
-      tags:
-        - security server
-      summary: refresh selected service description
-      operationId: refreshServiceDescription
-      description: Administrator refreshes service description.
-      parameters:
-        - in: path
-          name: id
-          description: id of the client
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 1023
-        - in: path
-          name: sd_id
-          description: id of the service description
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-      responses:
-        '200':
-          description: service description refreshed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServiceDescription'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
-  /clients/{id}/service-descriptions/{sd_id}/services:
-    get: # ok
-      tags:
-        - security server
-      summary: get services for the selected service description
-      operationId: getServiceDescriptionServices
-      description: Administrator views the services for the selected service description.
-      parameters:
-        - in: path
-          name: id
-          description: id of the client
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 1023
-        - in: path
-          name: sd_id
-          description: id of the service description
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-      responses:
-        '200':
-          description: list of services
-          content:
-            application/json:
-              schema:
-                type: array
-                uniqueItems: true
-                description: array of service objects
-                items:
-                  $ref: '#/components/schemas/Service'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
   /groups/{group_id}:
     get: # ok
       tags:
@@ -2310,6 +2033,238 @@ paths:
           description: request specified an invalid format
         '409':
           description: an existing item already exists
+        '500':
+          description: internal server error
+  /service-descriptions/{sd_id}:
+    put: # ok
+      tags:
+        - security server
+      summary: update url for the selected service description
+      operationId: updateServiceDescription
+      description: Administrator updates the selected service description.
+      parameters:
+        - in: path
+          name: sd_id
+          description: id of the service description
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: url
+          description: path for the service description file
+          required: true
+          schema:
+            type: string
+            format: url
+            minLength: 1
+            maxLength: 255
+      responses:
+        '200':
+          description: service description modified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceDescription'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    delete: # ok
+      tags:
+        - security server
+      summary: delete service description
+      operationId: deleteServiceDescription
+      description: Administrator deletes the service description.
+      parameters:
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+        - in: path
+          name: sd_id
+          description: id of the service description
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '204':
+          description: service description deletion was successful
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '500':
+          description: internal server error
+  /service-descriptions/{sd_id}/disable:
+    put: # ok
+      tags:
+        - security server
+      summary: disable selected service description
+      operationId: disableServiceDescription
+      description: Administrator disables service description.
+      parameters:
+        - in: path
+          name: sd_id
+          description: id of the service description
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: disabled_notice
+          description: disabled service notice
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '204':
+          description: service description disabled
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /service-descriptions/{sd_id}/enable:
+    put: # ok
+      tags:
+        - security server
+      summary: enable selected service description
+      operationId: enableServiceDescription
+      description: Administrator enables service description.
+      parameters:
+        - in: path
+          name: sd_id
+          description: id of the service description
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '204':
+          description: service description enabled
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /service-descriptions/{sd_id}/refresh:
+    put: # ok
+      tags:
+        - security server
+      summary: refresh selected service description
+      operationId: refreshServiceDescription
+      description: Administrator refreshes service description.
+      parameters:
+        - in: path
+          name: sd_id
+          description: id of the service description
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '200':
+          description: service description refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceDescription'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /service-descriptions/{sd_id}/services:
+    get: # ok
+      tags:
+        - security server
+      summary: get services for the selected service description
+      operationId: getServiceDescriptionServices
+      description: Administrator views the services for the selected service description.
+      parameters:
+        - in: path
+          name: sd_id
+          description: id of the service description
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '200':
+          description: list of services
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of service objects
+                items:
+                  $ref: '#/components/schemas/Service'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
         '500':
           description: internal server error
   /system: # ok
