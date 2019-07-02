@@ -1,4 +1,4 @@
-/*
+/**
  *  The MIT License
  *  Copyright (c) 2018 Estonian Information System Authority (RIA),
  *  Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -22,37 +22,25 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
+
 package org.niis.xroad.restapi.exceptions;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
 /**
- * Thrown if WSDL validation fails
+ * Thrown if WSDL file is not found - internal wrapper runtime exception for FileNotFoundException
  */
-@ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class WsdlValidationException extends ErrorCodedRuntimeException {
-    public WsdlValidationException() {
+public class WsdlNotFoundException extends RuntimeException {
+    public WsdlNotFoundException() {
     }
 
-    public WsdlValidationException(String msg) {
-        super(msg);
+    public WsdlNotFoundException(String message) {
+        super(message);
     }
 
-    public WsdlValidationException(String msg, Throwable t) {
-        super(msg, t);
+    public WsdlNotFoundException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    public WsdlValidationException(String msg, Throwable t, ErrorCode errorCode) {
-        super(msg, t, errorCode);
+    public WsdlNotFoundException(Throwable cause) {
+        super(cause);
     }
-
-    public WsdlValidationException(Throwable t) {
-        super(t);
-    }
-
-    public WsdlValidationException(Throwable t, ErrorCode errorCode) {
-        super(t, errorCode);
-    }
-
 }

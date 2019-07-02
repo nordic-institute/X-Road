@@ -29,6 +29,7 @@ import ee.ria.xroad.common.CodedException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.restapi.exceptions.WsdlNotFoundException;
 import org.niis.xroad.restapi.exceptions.WsdlParseException;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -56,6 +57,7 @@ import javax.wsdl.xml.WSDLReader;
 import javax.xml.namespace.QName;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
@@ -102,9 +104,11 @@ public final class WsdlParser {
      * @return collection of ServiceInfo objects
      * @throws Exception in case of any errors
      */
-    public static Collection<ServiceInfo> parseWSDL(String wsdlUrl) throws WsdlParseException {
+    public static Collection<ServiceInfo> parseWSDL(String wsdlUrl) throws WsdlParseException, WsdlNotFoundException {
         try {
             return internalParseWSDL(wsdlUrl);
+        } catch (WsdlNotFoundException e) {
+            throw e;
         } catch (Exception e) {
             throw new WsdlParseException(clarifyWsdlParsingException(e));
         }
@@ -287,8 +291,8 @@ public final class WsdlParser {
                 log.trace("Received WSDL response: {}", new String(response));
 
                 return new InputSource(new ByteArrayInputStream(response));
-            } catch (CodedException e) {
-                throw e;
+            } catch (FileNotFoundException e) {
+                throw new WsdlNotFoundException(e);
             } catch (Exception e) {
                 throw new CodedException(X_INTERNAL_ERROR, e);
             }

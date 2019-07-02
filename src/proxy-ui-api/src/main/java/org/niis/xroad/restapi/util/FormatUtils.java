@@ -24,6 +24,11 @@
  */
 package org.niis.xroad.restapi.util;
 
+import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
+
+import org.apache.commons.lang.StringUtils;
+import org.niis.xroad.restapi.wsdl.WsdlParser;
+
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -63,5 +68,33 @@ public final class FormatUtils {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Get the full service name (e.g. myService.v1) from ServiceType object
+     * @param serviceType
+     * @return full service name as String
+     */
+    public static String getServiceFullName(ServiceType serviceType) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(serviceType.getServiceCode());
+        if (!StringUtils.isEmpty(serviceType.getServiceVersion())) {
+            sb.append(".").append(serviceType.getServiceVersion());
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Get the full service name (e.g. myService.v1) from WsdlParser.ServiceInfo object
+     * @param serviceInfo
+     * @return full service name as String
+     */
+    public static String getServiceFullName(WsdlParser.ServiceInfo serviceInfo) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(serviceInfo.name);
+        if (!StringUtils.isEmpty(serviceInfo.version)) {
+            sb.append(".").append(serviceInfo.version);
+        }
+        return sb.toString();
     }
 }

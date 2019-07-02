@@ -24,16 +24,25 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * RuntimeException that (possibly) carries error code
  */
 public class ErrorCodedRuntimeException extends RuntimeException implements ErrorCodedException {
 
     private String errorCode;
+    private Map<String, List<String>> warningMap;
 
     @Override
     public String getErrorCode() {
         return errorCode;
+    }
+
+    @Override
+    public Map<String, List<String>> getWarningMap() {
+        return warningMap;
     }
 
     public ErrorCodedRuntimeException() {
@@ -54,6 +63,16 @@ public class ErrorCodedRuntimeException extends RuntimeException implements Erro
 
     public ErrorCodedRuntimeException(String msg, Throwable t) {
         super(msg, t);
+    }
+
+    public ErrorCodedRuntimeException(String msg, Map<String, List<String>> warningMap) {
+        super(msg);
+        this.warningMap = warningMap;
+    }
+
+    public ErrorCodedRuntimeException(String msg, Throwable t, Map<String, List<String>> warningMap) {
+        super(msg, t);
+        this.warningMap = warningMap;
     }
 
     public ErrorCodedRuntimeException(String msg, Throwable t, ErrorCode errorCode) {

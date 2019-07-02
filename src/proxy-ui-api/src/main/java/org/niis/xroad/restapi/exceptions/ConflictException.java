@@ -27,17 +27,28 @@ package org.niis.xroad.restapi.exceptions;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Thrown if there was a conflict, for example tried to add an item which already exists.
  * Results in http 409 CONFLICT
  */
 @ResponseStatus(value = HttpStatus.CONFLICT)
-public class ConflictException extends RuntimeException {
+public class ConflictException extends ErrorCodedRuntimeException {
     public ConflictException() {
     }
 
     public ConflictException(String msg) {
         super(msg);
+    }
+
+    public ConflictException(String msg, Map<String, List<String>> warningMap) {
+        super(msg, warningMap);
+    }
+
+    public ConflictException(String msg, ErrorCode errorCode) {
+        super(msg, errorCode);
     }
 
     public ConflictException(String msg, Throwable t) {
@@ -47,5 +58,4 @@ public class ConflictException extends RuntimeException {
     public ConflictException(Throwable t) {
         super(t);
     }
-
 }

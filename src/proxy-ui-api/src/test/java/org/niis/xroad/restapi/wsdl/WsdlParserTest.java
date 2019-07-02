@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.wsdl;
 
 import org.junit.Test;
+import org.niis.xroad.restapi.exceptions.WsdlNotFoundException;
 import org.niis.xroad.restapi.exceptions.WsdlParseException;
 
 import java.util.Collection;
@@ -71,5 +72,14 @@ public class WsdlParserTest {
     @Test(expected = WsdlParseException.class)
     public void readFaultInsteadOfWsdl() throws Exception {
         WsdlParser.parseWSDL("file:src/test/resources/fault.xml");
+    }
+
+    /**
+     * Test if NotFound is recognized.
+     * @throws Exception in case of any errors
+     */
+    @Test(expected = WsdlNotFoundException.class)
+    public void tryReadNotFoundWsdl() throws Exception {
+        WsdlParser.parseWSDL("file:src/test/resources/notfound.wsdl");
     }
 }

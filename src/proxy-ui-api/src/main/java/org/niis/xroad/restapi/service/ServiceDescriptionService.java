@@ -34,10 +34,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.cxf.tools.common.ToolException;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.ConflictException;
+import org.niis.xroad.restapi.exceptions.ErrorCode;
 import org.niis.xroad.restapi.exceptions.InvalidParametersException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.exceptions.WsdlNotFoundException;
 import org.niis.xroad.restapi.exceptions.WsdlParseException;
-import org.niis.xroad.restapi.exceptions.WsdlValidationException;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -48,10 +49,14 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -67,6 +72,11 @@ public class ServiceDescriptionService {
 
     public static final int DEFAULT_SERVICE_TIMEOUT = 60;
     public static final String DEFAULT_DISABLED_NOTICE = "Out of order";
+    public static final String INVALID_WSDL = "clients.invalid_wsdl";
+    public static final String WSDL_DOWNLOAD_FAILED = "clients.wsdl_download_failed";
+    public static final String WSDL_EXISTS = "clients.wsdl_exists";
+    public static final String SERVICE_EXISTS = "clients.service_exists";
+    public static final String MALFORMED_URL = "clients.malformed_wsdl_url";
 
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final ClientService clientService;
@@ -157,7 +167,7 @@ public class ServiceDescriptionService {
 
         // check for valid url (is this not enough??)
         if (!FormatUtils.isValidUrl(url)) {
-            throw new InvalidParametersException("Malformed URL");
+            throw new BadRequestException("Malformed URL", ErrorCode.of(MALFORMED_URL));
         }
 
         List<ServiceType> existingServices = client.getServiceDescription()
@@ -168,33 +178,52 @@ public class ServiceDescriptionService {
         // check if wsdl already exist
         client.getServiceDescription().forEach(serviceDescription -> {
             if (serviceDescription.getUrl().equalsIgnoreCase(url)) {
-                throw new ConflictException("WSDL URL already exists");
+                throw new ConflictException("WSDL URL already exists", ErrorCode.of(WSDL_EXISTS));
             }
         });
 
-        // validate wsdl before parsing - if warnings are ignored
-        if (!ignoreWarnings) {
-            try {
-                WsdlValidator.executeValidator(url);
-            } catch (ToolException ex) {
-                throw new WsdlValidationException("WSDL validation failed", ex);
-            }
-        }
-
+        // parse wsdl
         Collection<WsdlParser.ServiceInfo> parsedServices;
         try {
             parsedServices = WsdlParser.parseWSDL(url);
-        } catch (WsdlParseException ex) {
-            throw new BadRequestException("WSDL parsing failed", ex);
+        } catch (WsdlParseException e) {
+            Map<String, List<String>> warningMap = new HashMap<>();
+            warningMap.put(INVALID_WSDL, Collections.singletonList(e.getCause().getMessage()));
+            throw new BadRequestException("WSDL parsing failed", e, warningMap);
+        } catch (WsdlNotFoundException e) {
+            Map<String, List<String>> warningMap = new HashMap<>();
+            warningMap.put(WSDL_DOWNLOAD_FAILED, Collections.singletonList(e.getCause().getMessage()));
+            throw new BadRequestException("WSDL not found", e, warningMap);
+        }
+
+        // validate wsdl - unless warnings are ignored
+        if (!ignoreWarnings) {
+            try {
+                WsdlValidator.executeValidator(url);
+            } catch (ToolException e) {
+                Map<String, List<String>> warningMap = new HashMap<>();
+                warningMap.put(INVALID_WSDL, Collections.singletonList(e.getCause().getMessage()));
+                throw new BadRequestException("WSDL validation failed", e, warningMap);
+            }
         }
 
         // check if services already exist
-        existingServices.forEach(existingService -> parsedServices.forEach(newService -> {
-            if (existingService.getServiceCode().equalsIgnoreCase(newService.name)
-                    && existingService.getServiceVersion().equalsIgnoreCase(newService.version)) {
-                throw new ConflictException("Service already exists");
-            }
-        }));
+        Set<ServiceType> conflictedServices = parsedServices
+                .stream()
+                .flatMap(newService -> existingServices
+                        .stream()
+                        .filter(existingService -> FormatUtils.getServiceFullName(existingService)
+                                .equalsIgnoreCase(FormatUtils.getServiceFullName(newService))))
+                .collect(Collectors.toSet());
+
+        // create warnings and throw if conflicted
+        if (!conflictedServices.isEmpty()) {
+            Map<String, List<String>> warningMap = new HashMap<>();
+            warningMap.put(SERVICE_EXISTS, new ArrayList<>());
+            conflictedServices.forEach(conflictedService -> warningMap.get(SERVICE_EXISTS)
+                    .add(FormatUtils.getServiceFullName(conflictedService)));
+            throw new ConflictException("Service already exists", warningMap);
+        }
 
         // create new ServiceDescription
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptionOfType(client, url, DescriptionType.WSDL);
@@ -233,5 +262,4 @@ public class ServiceDescriptionService {
         newService.setServiceDescription(serviceDescriptionType);
         return newService;
     }
-
 }

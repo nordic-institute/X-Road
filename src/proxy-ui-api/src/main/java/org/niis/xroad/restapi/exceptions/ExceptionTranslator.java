@@ -33,6 +33,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Translate exceptions to ResponseEntities
@@ -40,18 +42,15 @@ import java.util.List;
 @Component
 public class ExceptionTranslator {
 
-    public static final String ADD_SERVICE_DESCRIPTION_WARNING_CODE = "adding_service_description";
-
     /**
      * Create ResponseEntity<ErrorInfo> from an Exception.
      * Use provided status or override it with value from
      * Exception's ResponseStatus annotation if one exists
      * @param e
      * @param defaultStatus
-     * @param warnings
      * @return
      */
-    public ResponseEntity<ErrorInfo> toResponseEntity(Exception e, HttpStatus defaultStatus, List<Warning> warnings) {
+    public ResponseEntity<ErrorInfo> toResponseEntity(Exception e, HttpStatus defaultStatus) {
         HttpStatus status = defaultStatus;
         ResponseStatus statusAnnotation = AnnotationUtils.findAnnotation(
                 e.getClass(), ResponseStatus.class);
@@ -64,21 +63,20 @@ public class ExceptionTranslator {
         if (e instanceof ErrorCodedException) {
             ErrorCodedException errorCodedException = (ErrorCodedException) e;
             errorDto.setErrorCode(errorCodedException.getErrorCode());
-        }
-        if (warnings != null) {
-            errorDto.setWarnings(warnings);
+            // add warnings if they exist
+            Map<String, List<String>> warningMap = errorCodedException.getWarningMap();
+            if (warningMap != null) {
+                List<Warning> warnings = errorCodedException.getWarningMap().keySet()
+                        .stream()
+                        .map(key -> {
+                            Warning warning = new Warning().code(key);
+                            warningMap.get(key).forEach(warning::addMetadataItem);
+                            return warning;
+                        })
+                        .collect(Collectors.toList());
+                errorDto.setWarnings(warnings);
+            }
         }
         return new ResponseEntity<ErrorInfo>(errorDto, status);
-    }
-
-    /**
-     * Create ResponseEntity<ErrorInfo> from an Exception.
-     * Use provided status or override it with value from
-     * Exception's ResponseStatus annotation if one exists
-     * @param e
-     * @return
-     */
-    public ResponseEntity<ErrorInfo> toResponseEntity(Exception e, HttpStatus defaultStatus) {
-        return toResponseEntity(e, defaultStatus, null);
     }
 }

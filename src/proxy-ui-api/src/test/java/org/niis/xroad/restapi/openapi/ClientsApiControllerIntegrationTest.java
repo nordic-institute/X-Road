@@ -40,7 +40,6 @@ import org.niis.xroad.restapi.converter.GlobalConfWrapper;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
-import org.niis.xroad.restapi.exceptions.WsdlValidationException;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.CertificateStatus;
 import org.niis.xroad.restapi.openapi.model.Client;
@@ -568,6 +567,19 @@ public class ClientsApiControllerIntegrationTest {
         ResponseEntity<List<ServiceDescription>> descriptions =
                 clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1);
         assertEquals(3, descriptions.getBody().size());
+        try {
+            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, inlineObject2);
+            fail("should have thrown ConflictException");
+        } catch (ConflictException expected) {
+            // duplicate service description
+        }
+        inlineObject2 = new InlineObject2().url("file:src/test/resources/testservice.wsdl");
+        try {
+            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, inlineObject2);
+            fail("should have thrown ConflictException");
+        } catch (ConflictException expected) {
+            // duplicate services
+        }
     }
 
     @Test
@@ -578,7 +590,7 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, inlineObject2);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            System.err.println(expected.getMessage());
+            // noop
         }
     }
 
@@ -588,9 +600,9 @@ public class ClientsApiControllerIntegrationTest {
         InlineObject2 inlineObject2 = new InlineObject2().url("file:src/test/resources/error.wsdl");
         try {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, inlineObject2);
-            fail("should have thrown WsdlValidationException");
-        } catch (WsdlValidationException expected) {
-            System.err.println(expected.getMessage());
+            fail("should have thrown BadRequestException");
+        } catch (BadRequestException expected) {
+            // noop
         }
     }
 

@@ -26,7 +26,6 @@ package org.niis.xroad.restapi.exceptions;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
-import org.niis.xroad.restapi.openapi.model.Warning;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,8 +33,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-
-import java.util.Collections;
 
 /**
  * exception handler
@@ -78,17 +75,5 @@ public class ApplicationExceptionHandler {
     public ResponseEntity<ErrorInfo> exception(AccessDeniedException e) {
         log.error("exception caught", e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.FORBIDDEN);
-    }
-
-    /**
-     * handle wsdl validation exceptions and add a warning
-     * @param e
-     * @return
-     */
-    @ExceptionHandler(WsdlValidationException.class)
-    public ResponseEntity<ErrorInfo> exception(WsdlValidationException e) {
-        log.error("exception caught", e);
-        Warning warning = new Warning().code(ExceptionTranslator.ADD_SERVICE_DESCRIPTION_WARNING_CODE);
-        return exceptionTranslator.toResponseEntity(e, HttpStatus.BAD_REQUEST, Collections.singletonList(warning));
     }
 }
