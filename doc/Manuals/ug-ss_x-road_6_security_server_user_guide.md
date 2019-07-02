@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.26  
+Version: 2.27  
 Doc. ID: UG-SS
 
 ---
@@ -59,7 +59,8 @@ Doc. ID: UG-SS
  06.02.2019 | 2.24    | Minor updates on security server client registration in Chapters [4.3](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client) and [4.4](#44-registering-a-security-server-client-in-the-x-road-governing-authority). | Petteri Kivimäki
  15.03.2019 | 2.25    | Update documentation to cover REST service usage in chapter [6] | Jarkko Hyöty
  16.04.2019 | 2.26    | Minor updates regarding REST services in chapter [6] | Petteri Kivimäki
-
+ 30.06.2019 | 2.27    | Update the default connection type from HTTP to HTTPS in chapter [9] | Petteri Kivimäki
+ 
 ## Table of Contents
 
 <!-- toc -->
@@ -1097,13 +1098,15 @@ A security server can use either the HTTP, HTTPS, or HTTPS NOAUTH protocol to co
 
 -   The HTTP protocol should be used if the information system server and the security server communicate in a private network segment where no other computers are connected to. Furthermore, the information system server must not allow interactive log-in.
 
--   The HTTPS protocol should be used if it is not possible to provide a separate network segment for the communication between the information system server and the security server. In that case, cryptographic methods are used to protect their communication against potential eavesdropping and interception. Before HTTPS can be used, internal TLS certificates must be created for the information system server(s) and loaded to the security server.
+-   The HTTPS protocol (**default for new clients**) should be used if it is not possible to provide a separate network segment for the communication between the information system server and the security server. In that case, cryptographic methods are used to protect their communication against potential eavesdropping and interception. Before HTTPS can be used, internal TLS certificates must be created for the information system server(s) and uploaded to the security server.
 
 -   The HTTPS NOAUTH protocol should be used if you want the security server to skip the verification of the information system TLS certificate.
 
    *Note:* If the HTTP connection method is selected, but the information system connects to the security server over HTTPS, then the connection is accepted, but the client’s internal TLS certificate is not verified (same behavior as with HTTPS NOAUTH).
 
-**By default the connection type for the security server owner is set to HTTPS to prevent security server clients from making operational monitoring data requests as a security server owner.**
+**By default the connection type for all the security server clients is set to HTTPS to prevent unauthorised use of the clients.**
+
+**It is strongly recommended to keep the connection type of the security server owner as HTTPS to prevent security server clients from making operational monitoring data requests as a security server owner.**
 
 To set the connection method for internal network servers in the **service consumer role**, follow these steps.
 

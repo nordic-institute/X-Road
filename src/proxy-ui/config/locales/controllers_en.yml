@@ -81,6 +81,7 @@ en:
     cert_disabled: "disabled"
     cannot_delete_owner: "Security server owner cannot be deleted"
     cannot_register_owner: "Security server owner cannot be registered"
+    cannot_register_another_member: "Security Server can have only two members"
     cert_exists: "Certificate already exists"
     wsdl_exists: "WSDL address already exists."
     openapi3_exists: "REST address already exists."
