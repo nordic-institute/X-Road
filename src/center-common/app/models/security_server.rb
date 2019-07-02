@@ -124,6 +124,11 @@ class SecurityServer < ActiveRecord::Base
     return get_search_relation(searchable).count
   end
 
+  def self.update_owner(server_id, owner)
+    server = SecurityServer.find_server_by_id(server_id)
+    server.update_attributes!(:owner => owner)
+  end
+
   # Server is hash including keys :member_class, :member_code and :server_code.
   def self.get_management_requests(server, query_params)
     return get_management_requests_relation(server).
