@@ -2101,6 +2101,41 @@ paths:
         '500':
           description: internal server error
   /service-descriptions/{id}:
+    get: # ok
+      tags:
+        - security server
+      summary: get service description with provided id
+      operationId: getServiceDescription
+      description: Administrator views a service description with a certain id.
+      parameters:
+        - in: path
+          name: id
+          description: id of the service description
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '200':
+          description: wanted service description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceDescription'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
     put: # ok
       tags:
         - security server
