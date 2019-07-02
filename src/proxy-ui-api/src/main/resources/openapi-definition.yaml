@@ -499,6 +499,14 @@ paths:
       summary: adds new client for the security server
       operationId: addClient
       description: Adds new client to the system
+      parameters:
+        - in: query
+          name: ignore_warnings
+          description: if true, any warnings are ignored. if false (or missing),
+            any warnings cause request to fail
+          required: false
+          schema:
+            type: boolean
       requestBody:
         description: client to add
         content:
@@ -509,7 +517,14 @@ paths:
         '201':
           description: new client created
         '400':
-          description: request was invalid
+          description: there are warnings or errors related to the service description
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/ErrorInfo'
         '401':
           description: authentication credentials are missing
         '403':
@@ -1119,6 +1134,13 @@ paths:
             format: text
             minLength: 1
             maxLength: 1023
+        - in: query
+          name: ignore_warnings
+          description: if true, any warnings are ignored. if false (or missing),
+            any warnings cause request to fail
+          required: false
+          schema:
+            type: boolean
       requestBody:
         content:
           application/json:
@@ -1135,7 +1157,14 @@ paths:
         '201':
           description: service description created
         '400':
-          description: request was invalid
+          description: there are warnings or errors related to the service description
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/ErrorInfo'
         '401':
           description: authentication credentials are missing
         '403':
@@ -1675,6 +1704,42 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /security-servers/{id}:
+    get: # ok
+      tags:
+        - security server
+      summary: get security server information
+      operationId: getSecurityServer
+      description: SS administrator views the details of a security server.
+      parameters:
+        - in: path
+          name: id
+          description: id of the security server
+          required: true
+          schema:
+            type: string
+            format: text
+            description: <instance_id>:<member_class>:<member_code>:<security_server_code>
+            example: FI:GOV:123:sserver1
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityServer'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /services/{id}:
     put: # ok
       tags:
@@ -1766,7 +1831,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Service'
+                $ref: '#/components/schemas/SecurityServer'
         '400':
           description: request was invalid
         '401':
@@ -2035,7 +2100,7 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /service-descriptions/{sd_id}:
+  /service-descriptions/{id}:
     put: # ok
       tags:
         - security server
@@ -2044,7 +2109,7 @@ paths:
       description: Administrator updates the selected service description.
       parameters:
         - in: path
-          name: sd_id
+          name: id
           description: id of the service description
           required: true
           schema:
@@ -2053,14 +2118,24 @@ paths:
             minLength: 1
             maxLength: 255
         - in: query
-          name: url
-          description: path for the service description file
-          required: true
+          name: ignore_warnings
+          description: if true, any warnings are ignored. if false (or missing),
+            any warnings cause request to fail
+          required: false
           schema:
-            type: string
-            format: url
-            minLength: 1
-            maxLength: 255
+            type: boolean
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: text
+                  description: path for the service description file
+                  minLength: 1
+                  maxLength: 255
       responses:
         '200':
           description: service description modified
@@ -2069,7 +2144,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/ServiceDescription'
         '400':
-          description: request was invalid
+          description: there are warnings or errors related to the service description
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/ErrorInfo'
         '401':
           description: authentication credentials are missing
         '403':
@@ -2089,15 +2171,6 @@ paths:
       parameters:
         - in: path
           name: id
-          description: id of the client
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 1023
-        - in: path
-          name: sd_id
           description: id of the service description
           required: true
           schema:
@@ -2118,7 +2191,7 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
-  /service-descriptions/{sd_id}/disable:
+  /service-descriptions/{id}/disable:
     put: # ok
       tags:
         - security server
@@ -2127,7 +2200,7 @@ paths:
       description: Administrator disables service description.
       parameters:
         - in: path
-          name: sd_id
+          name: id
           description: id of the service description
           required: true
           schema:
@@ -2135,15 +2208,19 @@ paths:
             format: text
             minLength: 1
             maxLength: 255
-        - in: query
-          name: disabled_notice
-          description: disabled service notice
-          required: false
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                disabled_notice:
+                  type: string
+                  format: text
+                  description: disabled service notice
+                  minLength: 0
+                  maxLength: 255
       responses:
         '204':
           description: service description disabled
@@ -2159,7 +2236,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /service-descriptions/{sd_id}/enable:
+  /service-descriptions/{id}/enable:
     put: # ok
       tags:
         - security server
@@ -2168,7 +2245,7 @@ paths:
       description: Administrator enables service description.
       parameters:
         - in: path
-          name: sd_id
+          name: id
           description: id of the service description
           required: true
           schema:
@@ -2191,7 +2268,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /service-descriptions/{sd_id}/refresh:
+  /service-descriptions/{id}/refresh:
     put: # ok
       tags:
         - security server
@@ -2200,7 +2277,7 @@ paths:
       description: Administrator refreshes service description.
       parameters:
         - in: path
-          name: sd_id
+          name: id
           description: id of the service description
           required: true
           schema:
@@ -2208,6 +2285,13 @@ paths:
             format: text
             minLength: 1
             maxLength: 255
+        - in: query
+          name: ignore_warnings
+          description: if true, any warnings are ignored. if false (or missing),
+            any warnings cause request to fail
+          required: false
+          schema:
+            type: boolean
       responses:
         '200':
           description: service description refreshed
@@ -2216,7 +2300,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/ServiceDescription'
         '400':
-          description: request was invalid
+          description: there are warnings or errors related to the service description
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/ErrorInfo'
         '401':
           description: authentication credentials are missing
         '403':
@@ -2227,7 +2318,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /service-descriptions/{sd_id}/services:
+  /service-descriptions/{id}/services:
     get: # ok
       tags:
         - security server
@@ -2236,7 +2327,7 @@ paths:
       description: Administrator views the services for the selected service description.
       parameters:
         - in: path
-          name: sd_id
+          name: id
           description: id of the service description
           required: true
           schema:
@@ -3240,6 +3331,28 @@ components:
       enum:
         - PEM
         - DER
+    ErrorInfo:
+      type: object
+      description: object returned in error cases
+      required:
+        - status
+      properties:
+        status:
+          type: integer
+          format: int32
+          description: http status code
+          example: 400
+        error_code:
+          type: string
+          format: text
+          description: detailed error code
+          example: certificate_not_found
+        warnings:
+          type: array
+          description: warnings that could be ignored
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/Warning'
     GlobalConfiguration: # ok
       type: object
       description: global configuration
@@ -3478,6 +3591,17 @@ components:
         - ERROR_CODE_OCSP_FAILED # Unable to fetch response from the OCSP responder.
         - ERROR_CODE_OCSP_RESPONSE_INVALID # Unable to parse the OCSP response.
         - ERROR_CODE_OCSP_UNINITIALIZED # Status request not sent yet.
+    SecurityServer: # ok
+      type: object
+      description: security server information
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: text
+          description: <instance_id>:<member_class>:<member_code>:<security_server_code>
+          example: FI:GOV:123:sserver1
     Service: # ok
       type: object
       description: service for the service description
@@ -3558,6 +3682,7 @@ components:
       type: object
       description: WSDL/REST service
       required:
+        - id
         - url
         - type
         - disabled
@@ -3566,6 +3691,10 @@ components:
         - services
         - client_id
       properties:
+        id:
+          type: string
+          description: unique identifier
+          example: 123
         url:
           type: string
           format: url
@@ -3584,7 +3713,7 @@ components:
           format: text
           description: disabled notice
           example: default_disabled_service_notice
-          minLength: 1
+          minLength: 0
           maxLength: 255
         refreshed_date:
           type: string
@@ -3811,5 +3940,25 @@ components:
           example: Security Server version 6.21.0-SNAPSHOT-20190411git32add470
           minLength: 1
           maxLength: 255
+    Warning:
+      type: object
+      description: warning, primarily from service description validation
+      required:
+        - type
+        - metadata
+      properties:
+        code:
+          type: string
+          format: text
+          description: identifier of the warning type
+          example: adding_services
+        metadata:
+          type: array
+          description: array containing metadata associated with the warning. For example names of services that
+            are to be added
+          uniqueItems: true
+          items:
+            type: string
+            format: text
 security:
   - ApiKeyAuth: []
