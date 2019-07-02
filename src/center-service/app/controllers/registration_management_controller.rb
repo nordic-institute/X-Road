@@ -158,7 +158,10 @@ class RegistrationManagementController < ManagementRequestController
         req = nil
         owner_change_request = nil
 
-        server_user_member = SecurityServerClient.find_by_id(member_id(req_type.getClient()))
+        new_owner = SecurityServerClient.find_by_id(member_id(req_type.getClient()))
+
+        # Auto-approval must be enabled and new owner must be registered on Central Server
+        auto_approve_and_new_owner_exists = auto_approve_owner_change_requests? && !new_owner.nil?
 
         @@client_registration_mutex.synchronize do
             req = OwnerChangeRequest.new(
@@ -174,11 +177,19 @@ class RegistrationManagementController < ManagementRequestController
             owner_change_request.register()
         end
 
+        if auto_approve_and_new_owner_exists
+            RequestWithProcessing.approve(owner_change_request.id)
+        end
+
         req.id
     end
 
     def auto_approve_client_reg_requests?
         Java::ee.ria.xroad.common.SystemProperties::getCenterAutoApproveClientRegRequests
+    end
+
+    def auto_approve_owner_change_requests?
+        Java::ee.ria.xroad.common.SystemProperties::getCenterAutoApproveOwnerChangeRequests
     end
 
 end
