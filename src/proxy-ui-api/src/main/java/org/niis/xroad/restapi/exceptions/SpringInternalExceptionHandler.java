@@ -25,7 +25,7 @@
 package org.niis.xroad.restapi.exceptions;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.domain.ErrorInfo;
+import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -49,7 +49,8 @@ public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandl
                                                              HttpHeaders headers, HttpStatus status,
                                                              WebRequest request) {
         log.error("exception caught", ex);
-        ErrorInfo errorInfo = new ErrorInfo(status.value());
+        ErrorInfo errorInfo = new ErrorInfo();
+        errorInfo.setStatus(status.value());
         return super.handleExceptionInternal(ex, errorInfo, headers,
                 status, request);
     }

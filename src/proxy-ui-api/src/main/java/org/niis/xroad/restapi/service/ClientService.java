@@ -116,14 +116,24 @@ public class ClientService {
      */
     @PreAuthorize("hasAuthority('EDIT_CLIENT_INTERNAL_CONNECTION_TYPE')")
     public ClientType updateConnectionType(ClientId id, String connectionType) {
-        ClientType clientType = clientRepository.getClient(id);
-        if (clientType == null) {
-            throw new NotFoundException(("client with id " + id + " not found"));
-        }
+        ClientType clientType = getClientType(id);
         // validate connectionType param by creating enum out of it
         IsAuthentication enumValue = IsAuthentication.valueOf(connectionType);
         clientType.setIsAuthentication(connectionType);
         clientRepository.saveOrUpdate(clientType);
+        return clientType;
+    }
+
+    /**
+     * Get a ClientType
+     * @throws NotFoundException if not found
+     */
+    private ClientType getClientType(ClientId id) {
+        ClientType clientType = clientRepository.getClient(id);
+        if (clientType == null) {
+            throw new NotFoundException(("client with id " + id + " not found"),
+                    ErrorCode.of(CLIENT_NOT_FOUND_ERROR_CODE));
+        }
         return clientType;
     }
 
@@ -143,10 +153,7 @@ public class ClientService {
             throw new CertificateException("cannot convert bytes to certificate", e);
         }
         String hash = calculateCertHexHash(x509Certificate);
-        ClientType clientType = clientRepository.getClient(id);
-        if (clientType == null) {
-            throw new NotFoundException(("client with id " + id + " not found"));
-        }
+        ClientType clientType = getClientType(id);
         clientType.getIsCert().stream()
                 .filter(cert -> hash.equalsIgnoreCase(calculateCertHexHash(cert.getData())))
                 .findAny()
@@ -198,11 +205,7 @@ public class ClientService {
      */
     @PreAuthorize("hasAuthority('DELETE_CLIENT_INTERNAL_CERT')")
     public ClientType deleteTlsCertificate(ClientId id, String certificateHash) {
-        ClientType clientType = clientRepository.getClient(id);
-        if (clientType == null) {
-            throw new NotFoundException(("client with id " + id + " not found"),
-                    ErrorCode.of(CLIENT_NOT_FOUND_ERROR_CODE));
-        }
+        ClientType clientType = getClientType(id);
         CertificateType certificateType = clientType.getIsCert().stream()
                 .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
                 .findAny()
@@ -223,10 +226,7 @@ public class ClientService {
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENT_INTERNAL_CERT_DETAILS')")
     public Optional<CertificateType> getTlsCertificate(ClientId id, String certificateHash) {
-        ClientType clientType = clientRepository.getClient(id);
-        if (clientType == null) {
-            throw new NotFoundException(("client with id " + id + " not found"));
-        }
+        ClientType clientType = getClientType(id);
         Optional<CertificateType> certificateType = clientType.getIsCert().stream()
                 .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
                 .findAny();
@@ -276,47 +276,52 @@ public class ClientService {
     }
 
     /**
-     * Find from all clients (local and global)
+     * Find client by ClientId
+     * @param clientId
+     * @return
+     */
+    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
+    public Optional<MemberInfo> findByClientId(ClientId clientId) {
+        return getAllGlobalClients()
+                .stream()
+                .filter(memberInfo -> memberInfo.getId().toShortString().trim().equals(clientId.toShortString().trim()))
+                .findFirst();
+    }
+
+    /**
+     * Find from all clients (local or global)
      * @param name
      * @param instance
      * @param memberClass
      * @param memberCode
      * @param subsystemCode
-     * @param showMembers include members (without susbsystemCode) in the results
+     * @param showMembers include members (without subsystemCode) in the results
      * @param internalSearch search only in the local clients
      * @return MemberInfo list
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public List<MemberInfo> findFromAllClients(String name, String instance, String memberClass, String memberCode,
+    public List<MemberInfo> findClients(String name, String instance, String memberClass, String memberCode,
             String subsystemCode, boolean showMembers, boolean internalSearch) {
-        List<MemberInfo> clients = findLocalClients(name, instance, memberClass, memberCode, subsystemCode,
-                showMembers)
-                .stream()
-                .map(clientType -> new MemberInfo(clientType.getIdentifier(),
-                        globalConfWrapper.getMemberName(clientType.getIdentifier())))
-                .collect(Collectors.toList());
         if (internalSearch) {
-            return clients;
+            return findLocalClients(name, instance, memberClass, memberCode, subsystemCode,
+                    showMembers)
+                    .stream()
+                    .map(clientType -> new MemberInfo(clientType.getIdentifier(),
+                            globalConfWrapper.getMemberName(clientType.getIdentifier())))
+                    .collect(Collectors.toList());
         }
-        // find global clients and remove duplicates
-        List<MemberInfo> globalClients = findGlobalClients(name, instance, memberClass, memberCode, subsystemCode,
-                showMembers)
-                .stream()
-                .filter(globalClient -> clients.stream()
-                        .noneMatch(localClient -> localClient.getId().toShortString()
-                                .equals(globalClient.getId().toShortString())))
-                .collect(Collectors.toList());
-        clients.addAll(globalClients);
-        return clients;
+        // else find only from global clients (globalconf also includes registered local clients)
+        return findGlobalClients(name, instance, memberClass, memberCode, subsystemCode, showMembers);
     }
 
     private List<Predicate<ClientType>> buildLocalClientSearchPredicates(String name, String instance,
             String memberClass, String memberCode, String subsystemCode) {
         List<Predicate<ClientType>> searchPredicates = new ArrayList<>();
-
         if (!StringUtils.isEmpty(name)) {
-            searchPredicates.add(ct -> globalConfWrapper.getMemberName(ct.getIdentifier()).toLowerCase()
-                    .contains(name.toLowerCase()));
+            searchPredicates.add(ct -> {
+                String memberName = globalConfWrapper.getMemberName(ct.getIdentifier());
+                return memberName != null && memberName.toLowerCase().contains(name.toLowerCase());
+            });
         }
         if (!StringUtils.isEmpty(instance)) {
             searchPredicates.add(ct -> ct.getIdentifier().getXRoadInstance().toLowerCase()
@@ -334,14 +339,12 @@ public class ClientService {
             searchPredicates.add(ct -> ct.getIdentifier().getSubsystemCode() != null
                     && ct.getIdentifier().getSubsystemCode().toLowerCase().contains(subsystemCode.toLowerCase()));
         }
-
         return searchPredicates;
     }
 
     private List<Predicate<MemberInfo>> buildGlobalClientSearchPredicates(String name, String instance,
             String memberClass, String memberCode, String subsystemCode) {
         List<Predicate<MemberInfo>> searchPredicates = new ArrayList<>();
-
         if (!StringUtils.isEmpty(name)) {
             searchPredicates.add(memberInfo -> memberInfo.getName() != null
                     && memberInfo.getName().toLowerCase().contains(name.toLowerCase()));
@@ -362,7 +365,6 @@ public class ClientService {
             searchPredicates.add(memberInfo -> memberInfo.getId().getSubsystemCode() != null
                     && memberInfo.getId().getSubsystemCode().toLowerCase().contains(subsystemCode.toLowerCase()));
         }
-
         return searchPredicates;
     }
 }

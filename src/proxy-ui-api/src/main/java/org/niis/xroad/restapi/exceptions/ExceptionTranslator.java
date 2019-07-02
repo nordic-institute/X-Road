@@ -24,7 +24,7 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
-import org.niis.xroad.restapi.domain.ErrorInfo;
+import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,7 +52,8 @@ public class ExceptionTranslator {
             // take status from exception annotation
             status = statusAnnotation.value();
         }
-        ErrorInfo errorDto = new ErrorInfo(status.value());
+        ErrorInfo errorDto = new ErrorInfo();
+        errorDto.setStatus(status.value());
         if (e instanceof ErrorCodedException) {
             ErrorCodedException errorCodedException = (ErrorCodedException) e;
             errorDto.setErrorCode(errorCodedException.getErrorCode());
