@@ -259,10 +259,6 @@ export default Vue.extend({
   margin-right: 14px;
 }
 
-.empty-wrap {
-  width: 100%;
-}
-
 .empty-row {
   padding: 10px;
   width: 100%;
