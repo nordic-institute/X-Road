@@ -45,11 +45,11 @@ import org.niis.xroad.restapi.openapi.model.CertificateStatus;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
+import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
 import org.niis.xroad.restapi.openapi.model.Group;
-import org.niis.xroad.restapi.openapi.model.InlineObject;
-import org.niis.xroad.restapi.openapi.model.InlineObject2;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
+import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUrl;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.repository.TokenRepository;
 import org.niis.xroad.restapi.util.TestUtils;
@@ -218,7 +218,7 @@ public class ClientsApiControllerIntegrationTest {
         ResponseEntity<Client> response =
                 clientsApiController.getClient("FI:GOV:M1:SS1");
         assertEquals(ConnectionType.HTTPS_NO_AUTH, response.getBody().getConnectionType());
-        InlineObject http = new InlineObject();
+        ConnectionTypeWrapper http = new ConnectionTypeWrapper();
         http.setConnectionType(ConnectionType.HTTP);
         response = clientsApiController.updateClient("FI:GOV:M1:SS1", http);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -579,20 +579,21 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
     public void addWsdlServiceDescription() {
-        InlineObject2 inlineObject2 = new InlineObject2().url("file:src/test/resources/valid.wsdl");
-        clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, inlineObject2);
+        ServiceDescriptionUrl serviceDescriptionUrl = new ServiceDescriptionUrl()
+                .url("file:src/test/resources/valid.wsdl");
+        clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, serviceDescriptionUrl);
         ResponseEntity<List<ServiceDescription>> descriptions =
                 clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1);
         assertEquals(3, descriptions.getBody().size());
         try {
-            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, inlineObject2);
+            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, serviceDescriptionUrl);
             fail("should have thrown ConflictException");
         } catch (ConflictException expected) {
             // duplicate service description
         }
-        inlineObject2 = new InlineObject2().url("file:src/test/resources/testservice.wsdl");
+        serviceDescriptionUrl = new ServiceDescriptionUrl().url("file:src/test/resources/testservice.wsdl");
         try {
-            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, inlineObject2);
+            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, serviceDescriptionUrl);
             fail("should have thrown ConflictException");
         } catch (ConflictException expected) {
             // duplicate services
@@ -602,9 +603,10 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
     public void addWsdlServiceDescriptionParserFail() {
-        InlineObject2 inlineObject2 = new InlineObject2().url("file:src/test/resources/invalid.wsdl");
+        ServiceDescriptionUrl serviceDescriptionUrl =
+                new ServiceDescriptionUrl().url("file:src/test/resources/invalid.wsdl");
         try {
-            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, inlineObject2);
+            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, serviceDescriptionUrl);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
             // noop
@@ -614,9 +616,10 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
     public void addWsdlServiceDescriptionValidationFail() {
-        InlineObject2 inlineObject2 = new InlineObject2().url("file:src/test/resources/error.wsdl");
+        ServiceDescriptionUrl serviceDescriptionUrl =
+                new ServiceDescriptionUrl().url("file:src/test/resources/error.wsdl");
         try {
-            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, inlineObject2);
+            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, serviceDescriptionUrl);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
             // noop
@@ -626,8 +629,9 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
     public void addWsdlServiceDescriptionSkipValidation() {
-        InlineObject2 inlineObject2 = new InlineObject2().url("file:src/test/resources/error.wsdl");
-        clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, inlineObject2);
+        ServiceDescriptionUrl serviceDescriptionUrl =
+                new ServiceDescriptionUrl().url("file:src/test/resources/error.wsdl");
+        clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, serviceDescriptionUrl);
         ResponseEntity<List<ServiceDescription>> descriptions =
                 clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1);
         assertEquals(3, descriptions.getBody().size());

@@ -595,6 +595,7 @@ paths:
         content:
           application/json:
             schema:
+              title: ConnectionTypeWrapper
               type: object
               description: connection type
               properties:
@@ -819,6 +820,7 @@ paths:
         content:
           application/json:
             schema:
+              title: ServiceClientId
               type: object
               properties:
                 id:
@@ -1148,14 +1150,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                url:
-                  type: string
-                  format: text
-                  description: path for the service description file
-                  minLength: 1
-                  maxLength: 255
+              $ref: '#/components/schemas/ServiceDescriptionUrl'
       responses:
         '201':
           description: service description created
@@ -1310,16 +1305,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                items:
-                  type: array
-                  description: array of members to be added
-                  items:
-                    type: string
-                    format: text
-                    minLength: 1
-                    maxLength: 1023
+              $ref: '#/components/schemas/Members'
       responses:
         '201':
           description: new members added
@@ -1358,16 +1344,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                items:
-                  type: array
-                  description: array of members to be deleted
-                  items:
-                    type: string
-                    format: text
-                    minLength: 1
-                    maxLength: 255
+              $ref: '#/components/schemas/Members'
       responses:
         '201':
           description: members deleted
@@ -1942,14 +1919,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                items:
-                  type: array
-                  uniqueItems: true
-                  description: array of subject ids to add for the access right
-                  items:
-                    $ref: '#/components/schemas/Subject'
+              $ref: '#/components/schemas/Subjects'
       responses:
         '201':
           description: access rights added
@@ -1988,13 +1958,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                items:
-                  type: array
-                  description: items to be deleted
-                  items:
-                    $ref: '#/components/schemas/Subject'
+              $ref: '#/components/schemas/Subjects'
       responses:
         '204':
           description: access right(s) deletion was successful
@@ -2068,14 +2032,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                items:
-                  type: array
-                  uniqueItems: true
-                  description: array of subject ids to add for the access right
-                  items:
-                    $ref: '#/components/schemas/Subject'
+              $ref: '#/components/schemas/Subjects'
       responses:
         '201':
           description: access right(s) added
@@ -2115,12 +2072,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                items:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Subject'
+              $ref: '#/components/schemas/Subjects'
       responses:
         '201':
           description: access right(s) deleted
@@ -2202,14 +2154,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                url:
-                  type: string
-                  format: text
-                  description: path for the service description file
-                  minLength: 1
-                  maxLength: 255
+              $ref: '#/components/schemas/ServiceDescriptionUrl'
       responses:
         '200':
           description: service description modified
@@ -2287,6 +2232,7 @@ paths:
         content:
           application/json:
             schema:
+              title: ServiceDescriptionDisabledNotice
               type: object
               properties:
                 disabled_notice:
@@ -2922,6 +2868,7 @@ paths:
         content:
           application/json:
             schema:
+              title: KeyLabel
               type: object
               properties:
                 label:
@@ -3623,6 +3570,18 @@ components:
           minLength: 2
           maxLength: 2
           readOnly: true
+    Members: # ok
+      type: object
+      description: request object containing an array of member ids
+      properties:
+        items:
+          type: array
+          description: array of members to be added
+          items:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
     OcspResponders: # ok
       type: object
       description: ocsp responce
@@ -3677,6 +3636,16 @@ components:
           format: text
           description: <instance_id>:<member_class>:<member_code>:<security_server_code>
           example: FI:GOV:123:sserver1
+    ServiceDescriptionUrl:
+      type: object
+      description: request object containing service description url
+      properties:
+        url:
+          type: string
+          format: text
+          description: path for the service description file
+          minLength: 1
+          maxLength: 255
     Service: # ok
       type: object
       description: service for the service description
@@ -3830,6 +3799,16 @@ components:
           description: subject id
           example: 123
           readOnly: true
+    Subjects:
+      type: object
+      description: object containing and array of subject ids
+      properties:
+        items:
+          type: array
+          uniqueItems: true
+          description: array of subject ids
+          items:
+            $ref: '#/components/schemas/Subject'
     System: # ok
       type: object
       description: system parameters

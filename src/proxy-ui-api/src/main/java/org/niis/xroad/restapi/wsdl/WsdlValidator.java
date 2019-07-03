@@ -44,9 +44,6 @@ public final class WsdlValidator {
     public static void executeValidator(String wsdlUrl) throws ToolException {
         ToolContext env = new ToolContext();
         env.put(ToolConstants.CFG_WSDLURL, wsdlUrl);
-        final WSDL11Validator validator = new WSDL11Validator(null, env);
-        if (validator.isValid()) {
-            System.out.println("Passed Validation : Valid WSDL ");
-        }
+        new WSDL11Validator(null, env).isValid();
     }
 }

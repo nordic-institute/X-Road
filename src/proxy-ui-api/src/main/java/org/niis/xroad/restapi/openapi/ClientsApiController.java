@@ -43,10 +43,10 @@ import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
+import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
 import org.niis.xroad.restapi.openapi.model.Group;
-import org.niis.xroad.restapi.openapi.model.InlineObject;
-import org.niis.xroad.restapi.openapi.model.InlineObject2;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
+import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUrl;
 import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.GroupService;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
@@ -180,16 +180,16 @@ public class ClientsApiController implements ClientsApi {
     /**
      * Update a client's connection type
      * @param encodedId
-     * @param inlineObject wrapper object containing the connection type to set
+     * @param connectionTypeWrapper wrapper object containing the connection type to set
      * @return
      */
     @PreAuthorize("hasAuthority('EDIT_CLIENT_INTERNAL_CONNECTION_TYPE')")
     @Override
-    public ResponseEntity<Client> updateClient(String encodedId, InlineObject inlineObject) {
-        if (inlineObject == null || inlineObject.getConnectionType() == null) {
+    public ResponseEntity<Client> updateClient(String encodedId, ConnectionTypeWrapper connectionTypeWrapper) {
+        if (connectionTypeWrapper == null || connectionTypeWrapper.getConnectionType() == null) {
             throw new InvalidParametersException();
         }
-        ConnectionType connectionType = inlineObject.getConnectionType();
+        ConnectionType connectionType = connectionTypeWrapper.getConnectionType();
         ClientId clientId = clientConverter.convertId(encodedId);
         String connectionTypeString = ConnectionTypeMapping.map(connectionType).get();
         ClientType changed = clientService.updateConnectionType(clientId, connectionTypeString);
@@ -283,9 +283,9 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAuthority('ADD_WSDL')")
     public ResponseEntity<Void> addClientServiceDescription(String id, Boolean ignoreWarnings,
-            InlineObject2 inlineObject2) {
-        serviceDescriptionService.addWsdlServiceDescription(clientConverter.convertId(id), inlineObject2.getUrl(),
-                ignoreWarnings);
+            ServiceDescriptionUrl serviceDescriptionUrl) {
+        serviceDescriptionService.addWsdlServiceDescription(clientConverter.convertId(id),
+                serviceDescriptionUrl.getUrl(), ignoreWarnings);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

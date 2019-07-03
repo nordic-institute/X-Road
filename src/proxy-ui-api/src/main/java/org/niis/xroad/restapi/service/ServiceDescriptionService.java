@@ -170,11 +170,6 @@ public class ServiceDescriptionService {
             throw new BadRequestException("Malformed URL", ErrorCode.of(MALFORMED_URL));
         }
 
-        List<ServiceType> existingServices = client.getServiceDescription()
-                .stream()
-                .map(ServiceDescriptionType::getService)
-                .flatMap(List::stream).collect(Collectors.toList());
-
         // check if wsdl already exist
         client.getServiceDescription().forEach(serviceDescription -> {
             if (serviceDescription.getUrl().equalsIgnoreCase(url)) {
@@ -208,6 +203,11 @@ public class ServiceDescriptionService {
         }
 
         // check if services already exist
+        List<ServiceType> existingServices = client.getServiceDescription()
+                .stream()
+                .map(ServiceDescriptionType::getService)
+                .flatMap(List::stream).collect(Collectors.toList());
+
         Set<ServiceType> conflictedServices = parsedServices
                 .stream()
                 .flatMap(newService -> existingServices

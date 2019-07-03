@@ -32,8 +32,7 @@ import org.niis.xroad.restapi.converter.GroupConverter;
 import org.niis.xroad.restapi.exceptions.InvalidParametersException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.Group;
-import org.niis.xroad.restapi.openapi.model.InlineObject3;
-import org.niis.xroad.restapi.openapi.model.InlineObject4;
+import org.niis.xroad.restapi.openapi.model.Members;
 import org.niis.xroad.restapi.service.GroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -89,13 +88,12 @@ public class GroupsApiController implements GroupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
-    public ResponseEntity<Void> addGroupMember(String groupId, InlineObject3 memberItemsWrapper) {
-        if (memberItemsWrapper == null || memberItemsWrapper.getItems() == null
-                || memberItemsWrapper.getItems().size() < 1) {
+    public ResponseEntity<Void> addGroupMember(String groupId, Members members) {
+        if (members == null || members.getItems() == null || members.getItems().size() < 1) {
             throw new InvalidParametersException("missing member id");
         }
         // remove duplicates
-        List<String> uniqueIds = new ArrayList<>(new HashSet<>(memberItemsWrapper.getItems()));
+        List<String> uniqueIds = new ArrayList<>(new HashSet<>(members.getItems()));
         groupsService.addLocalGroupMembers(groupId, clientConverter.convertIds(uniqueIds));
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
@@ -109,9 +107,9 @@ public class GroupsApiController implements GroupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
-    public ResponseEntity<Void> deleteGroupMember(String groupId, InlineObject4 memberItemsWrapper) {
+    public ResponseEntity<Void> deleteGroupMember(String groupId, Members members) {
         LocalGroupType localGroupType = getLocalGroupType(groupId);
-        groupsService.deleteGroupMember(localGroupType, clientConverter.convertIds(memberItemsWrapper.getItems()));
+        groupsService.deleteGroupMember(localGroupType, clientConverter.convertIds(members.getItems()));
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
