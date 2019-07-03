@@ -560,6 +560,23 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
+    @WithMockUser(authorities = { "VIEW_CLIENTS" })
+    public void findAllClientsByPartialNameIncludeMembers() {
+        ResponseEntity<List<Client>> clientsResponse = clientsApiController.getClients(SUBSYSTEM3, null,
+                null, null, null, false, false);
+        assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
+        assertEquals(1, clientsResponse.getBody().size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENTS" })
+    public void findAllClientsByPartialSearchTermsIncludeMembers() {
+        ResponseEntity<List<Client>> clientsResponse = clientsApiController.getClients(null, "F",
+                "OV", "1", "1", false, true);
+        assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
+        assertEquals(1, clientsResponse.getBody().size());
+    }
+    @Test
     @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
     public void addWsdlServiceDescription() {
         InlineObject2 inlineObject2 = new InlineObject2().url("file:src/test/resources/valid.wsdl");

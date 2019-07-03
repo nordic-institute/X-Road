@@ -1,10 +1,11 @@
+---
 openapi: 3.0.0
 servers:
   - description: X-Road API Design
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.6"
+  version: "1.0.7"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -80,13 +81,13 @@ paths:
       operationId: uploadBackup
       description: Uploads new security server backup to the system
       requestBody:
+        description: backup to add
         content:
           application/octet-stream:
             schema:
               type: string
               format: binary
               description: backup file
-        description: backup to add
       responses:
         '201':
           description: item created
@@ -307,13 +308,13 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /certificates/{hash}/disable:
+  /certificates/{hash}/deactivate:
     put: # ok
       tags:
         - security server
-      summary: disable certificate
-      operationId: disableCertificate
-      description: Administrator disables selected certificate.
+      summary: deactivate certificate
+      operationId: deactivateCertificate
+      description: Administrator deactivates selected certificate.
       parameters:
         - in: path
           name: hash
@@ -326,7 +327,7 @@ paths:
             maxLength: 255
       responses:
         '204':
-          description: request was successful
+          description: certificate was deactivated
         '400':
           description: request was invalid
         '401':
@@ -503,17 +504,17 @@ paths:
         - in: query
           name: ignore_warnings
           description: if true, any warnings are ignored. if false (or missing),
-              any warnings cause request to fail
+            any warnings cause request to fail
           required: false
           schema:
             default: false
             type: boolean
       requestBody:
+        description: client to add
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Client'
-        description: client to add
       responses:
         '201':
           description: new client created
@@ -704,11 +705,11 @@ paths:
             minLength: 1
             maxLength: 1023
       requestBody:
+        description: group to add
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Group'
-        description: group to add
       responses:
         '201':
           description: local group created
@@ -940,6 +941,7 @@ paths:
             minLength: 1
             maxLength: 1023
       requestBody:
+        description: certificate to add
         content:
           application/octet-stream:
             schema:
@@ -1137,7 +1139,7 @@ paths:
         - in: query
           name: ignore_warnings
           description: if true, any warnings are ignored. if false (or missing),
-              any warnings cause request to fail
+            any warnings cause request to fail
           required: false
           schema:
             default: false
@@ -1437,7 +1439,7 @@ paths:
             maxLength: 255
         - in: query
           name: name
-          description: edit friendly name of the key
+          description: friendly name of the key
           required: false
           schema:
             type: string
@@ -1510,7 +1512,7 @@ paths:
             minLength: 1
             maxLength: 255
       requestBody:
-        description: Certificate to add
+        description: certificate to add
         content:
           application/octet-stream:
             schema:
@@ -1706,42 +1708,77 @@ paths:
         '500':
           description: internal server error
   /security-servers/{id}:
-      get: # ok
-          tags:
-              - security server
-          summary: get security server information
-          operationId: getSecurityServer
-          description: SS administrator views the details of a security server.
-          parameters:
-              - in: path
-                name: id
-                description: id of the security server
-                required: true
-                schema:
-                    type: string
-                    format: text
-                    description: <instance_id>:<member_class>:<member_code>:<security_server_code>
-                    example: FI:GOV:123:sserver1
-          responses:
-              '200':
-                  description: ok
-                  content:
-                      application/json:
-                          schema:
-                              $ref: '#/components/schemas/SecurityServer'
-              '400':
-                  description: request was invalid
-              '401':
-                  description: authentication credentials are missing
-              '403':
-                  description: request has been refused
-              '404':
-                  description: resource requested does not exists
-              '406':
-                  description: request specified an invalid format
-              '500':
-                  description: internal server error
+    get: # ok
+      tags:
+        - security server
+      summary: get security server information
+      operationId: getSecurityServer
+      description: SS administrator views the details of a security server.
+      parameters:
+        - in: path
+          name: id
+          description: id of the security server
+          required: true
+          schema:
+            type: string
+            format: text
+            description: <instance_id>:<member_class>:<member_code>:<security_server_code>
+            example: FI:GOV:123:sserver1
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityServer'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /services/{id}:
+    get: # ok
+      tags:
+        - security server
+      summary: get service
+      operationId: getService
+      description: Administrator views selected service.
+      parameters:
+        - in: path
+          name: id
+          description: id of the service
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
     put: # ok
       tags:
         - security server
@@ -1793,6 +1830,24 @@ paths:
             example: false
             default: false
         - in: query
+          name: security_category
+          description: service security category
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 0
+            maxLength: 255
+        - in: query
+          name: security_category_all
+          description: security category for all services
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 0
+            maxLength: 255
+        - in: query
           name: ssl_auth
           description: service ssl authentication
           required: false
@@ -1814,7 +1869,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SecurityServer'
+                $ref: '#/components/schemas/Service'
         '400':
           description: request was invalid
         '401':
@@ -2084,6 +2139,41 @@ paths:
         '500':
           description: internal server error
   /service-descriptions/{id}:
+    get: # ok
+      tags:
+        - security server
+      summary: get service description with provided id
+      operationId: getServiceDescription
+      description: Administrator views a service description with a certain id.
+      parameters:
+        - in: path
+          name: id
+          description: id of the service description
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '200':
+          description: wanted service description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceDescription'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
     put: # ok
       tags:
         - security server
@@ -2103,7 +2193,7 @@ paths:
         - in: query
           name: ignore_warnings
           description: if true, any warnings are ignored. if false (or missing),
-              any warnings cause request to fail
+            any warnings cause request to fail
           required: false
           schema:
             default: false
@@ -2207,7 +2297,7 @@ paths:
                   maxLength: 255
       responses:
         '204':
-          description: request was successful
+          description: service description disabled
         '400':
           description: request was invalid
         '401':
@@ -2272,7 +2362,7 @@ paths:
         - in: query
           name: ignore_warnings
           description: if true, any warnings are ignored. if false (or missing),
-              any warnings cause request to fail
+            any warnings cause request to fail
           required: false
           schema:
             default: false
@@ -2938,7 +3028,7 @@ components:
       in: header
       name: Authorization
       description: X-Road-ApiKey token=<api key>
-      #https://github.com/nordic-institute/X-Road-REST-UI/blob/XRDDEV-237/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#1911-creating-new-api-keys
+      # https://github.com/nordic-institute/X-Road-REST-UI/blob/XRDDEV-237/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#1911-creating-new-api-keys
   schemas:
     AccessRight: # ok
       type: object
@@ -3024,12 +3114,12 @@ components:
       type: object
       description: certificate
       required:
-      - issuer_common_name
-      - not_after
-      - ocsp_status
-      - client_id
-      - hash
-      - status
+        - issuer_common_name
+        - not_after
+        - ocsp_status
+        - client_id
+        - hash
+        - status
       properties:
         issuer_common_name:
           type: string
@@ -3067,22 +3157,22 @@ components:
       type: object
       description: certificate details
       required:
-      - issuer_distinguished_name
-      - issuer_common_name
-      - subject_distinguished_name
-      - subject_common_name
-      - not_before
-      - not_after
-      - serial
-      - version
-      - signature_algorithm
-      - signature
-      - public_key_algorithm
-      - rsa_public_key_modulus
-      - rsa_public_key_exponent
-      - hash
-      - key_usages
-      - status
+        - issuer_distinguished_name
+        - issuer_common_name
+        - subject_distinguished_name
+        - subject_common_name
+        - not_before
+        - not_after
+        - serial
+        - version
+        - signature_algorithm
+        - signature
+        - public_key_algorithm
+        - rsa_public_key_modulus
+        - rsa_public_key_exponent
+        - hash
+        - key_usages
+        - status
       properties:
         issuer_distinguished_name:
           type: string
@@ -3317,27 +3407,27 @@ components:
         - PEM
         - DER
     ErrorInfo:
-        type: object
-        description: object returned in error cases
-        required:
-          - status
-        properties:
-          status:
-            type: integer
-            format: int32
-            description: http status code
-            example: 400
-          error_code:
-            type: string
-            format: text
-            description: detailed error code
-            example: certificate_not_found
-          warnings:
-            type: array
-            description: warnings that could be ignored
-            uniqueItems: true
-            items:
-              $ref: '#/components/schemas/Warning'
+      type: object
+      description: object returned in error cases
+      required:
+        - status
+      properties:
+        status:
+          type: integer
+          format: int32
+          description: http status code
+          example: 400
+        error_code:
+          type: string
+          format: text
+          description: detailed error code
+          example: certificate_not_found
+        warnings:
+          type: array
+          description: warnings that could be ignored
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/Warning'
     GlobalConfiguration: # ok
       type: object
       description: global configuration
@@ -3595,6 +3685,7 @@ components:
         - code
         - timeout
         - ssl_auth
+        - security_category
         - service_id
       properties:
         id:
@@ -3622,6 +3713,12 @@ components:
           type: boolean
           description: service ssl auth
           example: true
+        security_category:
+          type: string
+          format: text
+          description: service security category
+          minLength: 0
+          maxLength: 255
         url:
           type: string
           format: url
@@ -3660,6 +3757,7 @@ components:
       type: object
       description: WSDL/REST service
       required:
+        - id
         - url
         - type
         - disabled
@@ -3692,8 +3790,6 @@ components:
           example: default_disabled_service_notice
           minLength: 0
           maxLength: 255
-          description: unique identifier
-          example: 123
         refreshed_date:
           type: string
           format: date-time
@@ -3811,7 +3907,7 @@ components:
       type: string
       format: enum
       description: timestamping status
-      example:  SUCCESS
+      example: SUCCESS
       enum:
         - SUCCESS # Everything ok
         - ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT # Connection to the timestamp server timed out. Check the network connection to the timestamp server.
