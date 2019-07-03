@@ -50,13 +50,10 @@ Doc. ID: ARC-SEC
   * [17.3 Controlling Access to Monitoring](#17.3-controlling-access-to-monitoring) 
 - [18 Privacy](#18-privacy)
   * [18.1 Purpose Limitation](#181-purpose-limitation)
-  * [18.2 Data Mimimisation](#182-data-mimimisation) 
+  * [18.2 Data Minimisation](#182-data-minimisation) 
 - [19 Regulatory Compliance](#19-regulatory-compliance)
   * [19.1 Common Regulations](#191-common-regulations)
   * [19.2 Environment and Country-Specific Regulations](#192-environment-and-country-specific-regulations)
-- [20 Appendix](#20-appendix)
-  * [20.1 Unique Identifiers](#201-unique-identifiers)
-  * [20.2 Trust Services](#202-trust-services) 
 
 <!-- tocstop -->
 
@@ -94,10 +91,11 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 6. <a id="Ref_EIDAS" class="anchor"></a>\[EIDAS\] EU Regulation No 910/2014 – Regulation (EU) No 910/2014 of the European Parliament and of the Council of 23 July 2014 on electronic identification and trust services for electronic transactions in the internal market and repealing Directive 1999/93/EC
 7. <a id="Ref_BATCH-TS" class="anchor"></a>\[BATCH-TS\] Freudenthal, Margus. Using Batch Hashing for Signing and Time-Stamping. Cybernetica Research Reports, T-4-20, 2013.
 8. <a id="Ref_UC-FED" class="anchor"></a>\[UC-FED\] Cybernetica AS. X-Road 6. Use Case Model for Federation. Document ID: [UC-FED](../UseCases/uc-fed_x-road_use_case_model_for_federation_1.1_Y-883-7.md)
-9. <a name="ARC-CS"></a>\[ARC-CS\]-- X-Road: Central Server Architecture. Document ID: [ARC-CS](arc-cs_x-road_central_server_architecture.md). 
-10. <a id="Ref_ARC-ENVMON" class="anchor"></a>\[ARC-ENVMON\] X-Road: Environmental Monitoring Architecture. Document ID: [ARC-ENVMON](../EnvironmentalMonitoring/Monitoring-architecture.md).
-11. <a id="Ref_ARC-OPMOND" class="anchor"></a>\[ARC-OPMOND\] X-Road: Operational Monitoring Daemon Architecture. Document ID: [ARC-OPMOND](../OperationalMonitoring/Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).
-12. <a id="Ref_GDPR" class="anchor"></a>\[GDPR\] EU Regulation No 679/2016 – Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 on the protection of natural persons with regard to the processing of personal data and on the free movement of such data, and repealing Directive 95/46/EC
+9. <a id="Ref_ARC-CS" class="anchor"></a>\[ARC-CS\]-- X-Road: Central Server Architecture. Document ID: [ARC-CS](arc-cs_x-road_central_server_architecture.md). 
+10. <a id="Ref_ARC-SS" class="anchor"></a>\[ARC-SS\] X-Road: Security Server Architecture. Cybernetica AS. Document ID: [ARC-SS](arc-ss_x-road_security_server_architecture.md)
+12. <a id="Ref_ARC-ENVMON" class="anchor"></a>\[ARC-ENVMON\] X-Road: Environmental Monitoring Architecture. Document ID: [ARC-ENVMON](../EnvironmentalMonitoring/Monitoring-architecture.md).
+13. <a id="Ref_ARC-OPMOND" class="anchor"></a>\[ARC-OPMOND\] X-Road: Operational Monitoring Daemon Architecture. Document ID: [ARC-OPMOND](../OperationalMonitoring/Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).
+14. <a id="Ref_GDPR" class="anchor"></a>\[GDPR\] EU Regulation No 679/2016 – Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 on the protection of natural persons with regard to the processing of personal data and on the free movement of such data, and repealing Directive 95/46/EC
 
 ## 2 Environment Assumptions
 
@@ -163,7 +161,7 @@ When the end user is successfully authenticated, least privilege-based access co
 
 Details on Security Server user roles and associated access controls are described in section 15.1 Security Server Roles.
 
-In X-Road, a class-level `PreAuthorize("denyAll")` annotation is enforced to forbid access to all methods, so that access control starts by denying all access by default, and so that access will not be allowed to all roles if a new resource is added yet authorisation is somehow configured incorrectly.
+In X-Road, access control starts by denying all access by default. Access will not be allowed to all roles if a new resource is added and authorisation is somehow configured incorrectly.
 
 ## 8 Input Validation
 
@@ -238,9 +236,9 @@ The Central Server manages the database of X-Road members and Security Servers. 
    
 Both the member database and the security policy are made available to the Security Servers via the HTTP protocol. This distributed set of data forms the global configuration. The Central Server incorporates the following security-centric components.
 
-For Central Server components, refer to \[[ARC-CS](#ARC-CS)\] section 2.
+For Central Server components, refer to \[[ARC-CS](#Ref_ARC-CS)\] section 2.
 
-For Central Server roles, refer to \[[UG-CS](#UG-CS)\] section 2.
+For Central Server roles, refer to \[[UG-CS](#Ref_UG-CS)\] section 2.
 
 ## 15 Security Server
 
@@ -256,15 +254,15 @@ Messages transmitted over the public Internet are secured using digital signatur
   
 If any of the above verifications fail, the message is not processed further and an error message is returned.
 
-The service provider's Security Server applies access control to incoming messages, thus ensuring that only those users that have signed an appropriate agreement with the service provider can access the data.
+The service provider's Security Server applies access control to incoming messages, thus ensuring that only those X-Road members (consumer information systems) that have been explicitly allowed access can access a service. Managing access rights of a service is the responsibility of the administrator of the service provider's Security Server.
 
-For Security Server components, refer to \[[ARC-SS](#ARC-SS)\] section 2.
+For Security Server components, refer to \[[ARC-SS](#Ref_ARC-SS)\] section 2.
 
-For Security Server roles, refer to \[[UG-SS](#UG-SS)\] section 2.
+For Security Server roles, refer to \[[UG-SS](#Ref_UG-SS)\] section 2.
 
 ## 16 Certificates and Keys Management
 
-Only certificates issued by approved certification authorities can be used in X-Road. Approved certification authorities are defined on the Central Server and the configuration is environment specific. It is possible to have multipl approved certification authorities within an X-Road instance. 
+Only certificates issued by approved certification authorities can be used in X-Road. Approved certification authorities are defined on the Central Server and the configuration is environment specific. It is possible to have multiple approved certification authorities within an X-Road instance. 
 
 Security Server authentication key and certificate are stored on a software token. Central Server and Security Server signing keys and certificates can be stored on a software token or an HSM device.
 
@@ -278,18 +276,7 @@ X-Road monitoring is conceptually split into environmental and operational monit
 
 ### 17.1 Environmental Monitoring
    
-Environmental monitoring provides details of the Security Servers such as operating system, memory, disk space, CPU load, running processes and installed packages, etc. The X-Road monitoring service uses several sensors to collect the data; the CertificateInfoSensor sensor produces the following security certificate-associated monitoring data:
-   
-  * data: information about certificates associated with this Security Server
-    * certificate SHA-1 hash
-    * validity period: not before (ISO 8601 date)
-    * validity period: not after (ISO 8601 date)
-    * the type of the certificate:
-      * `AUTH_OR_SIGN` for the Security Server member certificates (for signing) and the Security Server certificate (for authentication)
-      * `INTERNAL_IS_CLIENT_TLS` for the client Information system certificates
-      * `SECURITY_SERVER_TLS` for the TLS certificate of the Security server
-      * is the certificate active (true/false)
-    * data is refreshed once per day
+Environmental monitoring provides details of the Security Servers such as operating system, memory, disk space, CPU load, running processes, installed packages, X-Road version information etc.
 
 It is possible to limit the environmental monitoring data set that is returned to the central monitoring client. The limited data set includes certificate, operating system and X-Road version information.
 
@@ -323,7 +310,7 @@ Security best practice supports and facilitates privacy best practice. Privacy i
 
 X-Road is obligated to comply with the General Protection Data Regulation (GDPR) that stipulates how personal data must be processed in any operation performed on personal data, including collection, recording, organization, storage, alteration, disclosure, granting access to personal data, consultation and retrieval, use of personal data, communication, cross-usage, combination, closure, erasure, destruction, or several of the aforementioned operations, regardless of the manner in which the operations are carried out or the means used.
 
-An X-Road member organisation is responsible for maintaining and operating its Security Server(s) in a GDPR compliant manner.
+When GDPR (or any other rule/regulation) must be applied, an X-Road member organisation is responsible for maintaining and operating its Security Server(s) in a manner that is compliant with the rule/regulation. 
 
 ### 18.1 Purpose Limitation
 
@@ -331,7 +318,7 @@ X-Road data is communicated, processed and stored only for the specified, explic
 
 X-Road data purposes and X-Road security policy are member organisation and X-Road instance specific, and they may be influenced by local interpretations of both national and international legislation.
 
-### 18.2 Data Mimimisation
+### 18.2 Data Minimisation
 
 X-Road data is limited to what is adequate, relevant and necessary in relation to the purposes for which data are processed.
 
@@ -341,70 +328,14 @@ X-Road is obligated to comply with security requirements stipulated by the follo
 
 ### 19.1 Common Regulations
 
-X-Road complies with the following common European Union (EU) regulations:
+Common European Union (EU) regulations:
 
   * EIDAS – Regulation (EU) No 910/2014 of the European Parliament and of the Council of 23 July 2014 on electronic identification and trust services for electronic transactions in the internal market. Refer to \[[EIDAS](#Ref_EIDAS)\]. 
   * GDPR – General Data Protection Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 on the protection of natural persons with regard to the processing of personal data and on the free movement of such data. Refer to \[[GDPR](#Ref_GDPR)\].
 
 ### 19.2 Environment and Country-Specific Regulations
 
-X-Road complies with the following environment and country-specific regulations:
+Environment and country-specific regulations:
 
   * VAHTI – Information security standard that is developed for the Finnish public sector. VAHTI is compulsory for Finnish state and local government organisations who handle databases/registers.
   * ISKE - Information security standard that is developed for the Estonian public sector. ISKE is compulsory for Estonian state and local government organisations who handle databases/registers.
-
-## 20 Appendix 
-
-### 20.1 Unique Identifiers
-
-**Central service identifier** – identifier, that uniquely identifies service in X-Road network without having a reference for service provider. Central service identifier consists of X-Road instance identifier and central service code.
-
-**Global access group identifier** – identifier, that uniquely identifies access group in X-Road Network. Global access group identifier consists of X-Road instance identifier and global group code.
-
-**Local access group identifier** – identifier, that uniquely identifies access group for a Security Server client. Global access group identifier consists of X-Road instance identifier and global group code.
-
-**Member class** – identifier, that is identified by the X-Road governing authority and that uniquely identifies members with similar characteristics. All members with the same member class must be uniquely identifiable by their member codes.
-
-**Member code** – identifier, that uniquely identifies an X-Road member within its member class. The member code remains unchanged during the entire lifetime of the member.
-
-**Member identifier** – identifier, that uniquely identifies a member in the X-Road Network. Member identifier consists of X-Road instance identifier, member class, and member code.
-
-**Security server code** – identifier, that uniquely identifies the Security Server in all of the Security Servers of the Security Server owner.
-
-**Security server identifier** – identifier, that uniquely identifies Security Server in X-road Network. The Security Server identifier consists of Security Server owner identifier and Security Server code.
-
-**Service identifier** – identifier, that uniquely identifies service in X-Road Network. The service identifier consists of member identifier of the service provider, service code and version of the service. Including version of the service in the service identifier is optional.
-
-**Subsystem code** – code, that uniquely identifies subsystem in all of the subsystems of the member.
-
-**Subsystem identifier** – identifier, that uniquely identifies subsystem in X-Road Network. Subsystem identifier consists of member identifier and subsystem code.
-
-**X-Road instance identifier** – identifier, that uniquely identifies the X-road instance in the X-Road Network.
-
-### 20.2 Trust Services
-
-**Approved certification service provider** – Provider of a trust service approved on X-Road, who provides at least following trust services approved on X-Road: service of authentication certificate of Security Server, service of signature certificate of a member, and certificate validation service (OCSP).
-
-**Approved timestamp service provider** – Provider of a trust service approved on X-Road, who provides the timestamp service.
-
-**Authentication certificate of Security Server** – qualified certificate of e-stamp issued by certification service provider approved on X-Road and bound to Security Server, certifying authenticity of Security Server and used for authentication of Security Servers upon establishment of connection between Security Servers. Upon establishment of connection, it is checked from global configuration, if the Security Server trying to establish connection has registered the used authentication certificate in X-Road governing authority (i.e. the used authentication certificate is bound to the ID of Security Server).
-
-**Certification authority (CA)** – is an entity that issues digital certificates. A digital certificate certifies the ownership of a public key by the named subject of the certificate.
-
-**Certification service CA** – is used in the X-Road system as a trust anchor for a certification service. The certification service CA may, but does not have to be a Root CA.
-
-**Certificate signing request (CSR)** – is generated in the Security Server for a certain approved certification authority for signing a public key and associated information.
-
-**Internal TLS certificates** – are used for setting up the TLS connection between the Security Server and the client information systems.
-
-**Signature certificate of a member** – qualified certificate of e-stamp issued by certification service provider approved on X-Road and bound to a member, used for verification of the integrity of mediated messages and association of the member with the message.
-
-**Timestamp** – means data in electronic form which binds other data in electronic form to a particular time establishing evidence that the latter data existed at that time (EU No 910/2014)
-
-**Timestamping authority (TSA)** – is an entity that issues timestamps. Timestamps are used to prove the existence of certain data before a certain point of time without the possibility that the owner can backdate the timestamps.
-
-**TLS certificate** – is a certificate used by the Security Server to authenticate the information system when HTTPS protocol is used for connections between the service client's or service provider's Security Server and information system.
-
-**Validation service (OCSP)** – Validation service of the validity of certificate issued by certification service provider approved on X-Road.
-
-**Trusted anchor** – is a configuration anchor that points to the external configuration source of a federation partner and has been uploaded to the Central Server during the federation process. Trusted anchors are distributed to the configuration clients of the local X-Road system as a part of private parameters.
