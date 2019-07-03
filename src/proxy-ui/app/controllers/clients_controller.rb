@@ -106,19 +106,32 @@ class ClientsController < ApplicationController
     validate_params({
       :add_member_class => [:required],
       :add_member_code => [:required],
-      :add_subsystem_code => [:required]
+      :add_subsystem_code => []
     })
 
-    client_id = ClientId.create(
-      xroad_instance,
-      params[:add_member_class],
-      params[:add_member_code],
-      params[:add_subsystem_code])
+    if params[:add_subsystem_code] && !params[:add_subsystem_code].empty?
+      client_id = ClientId.create(
+        xroad_instance,
+        params[:add_member_class],
+        params[:add_member_code],
+        params[:add_subsystem_code])
+    else
+      client_id = ClientId.create(
+        xroad_instance,
+        params[:add_member_class],
+        params[:add_member_code])
+    end
 
-    # check if client exists in serverconf
+    # check if client exists in serverconf and
+    # if serverconf already includes one registered
+    # member in addition to the owner member
     serverconf.client.each do |client|
       if client.identifier.equals(client_id)
         raise t('clients.client_exists')
+      elsif client_id.subsystemCode.nil? &&
+          client.identifier.subsystemCode.nil? &&
+          client.identifier != owner_identifier
+        raise t('clients.cannot_register_another_member')
       end
     end
 
@@ -140,7 +153,7 @@ class ClientsController < ApplicationController
     client.identifier = client_id
     client.clientStatus = registered ?
       ClientType::STATUS_REGISTERED : ClientType::STATUS_SAVED
-    client.isAuthentication = "NOSSL"
+    client.isAuthentication = "SSLAUTH"
     client.conf = serverconf
 
     audit_log_data[:clientIdentifier] = client.identifier
