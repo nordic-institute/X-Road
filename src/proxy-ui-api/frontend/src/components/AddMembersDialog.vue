@@ -3,14 +3,14 @@
     <v-card class="xroad-card">
       <v-card-title>
         <span class="headline">{{$t('localGroup.addMembers')}}</span>
-        <v-spacer/>
+        <v-spacer />
         <i @click="cancel()" id="close-x"></i>
       </v-card-title>
       <v-card-text style="height: 500px;">
         <v-expansion-panel class="elevation-0" expand v-model="expandPanel">
           <v-expansion-panel-content>
             <template v-slot:header>
-              <v-spacer/>
+              <v-spacer />
               <div class="exp-title">{{$t('localGroup.searchOptions')}}</div>
             </template>
 
