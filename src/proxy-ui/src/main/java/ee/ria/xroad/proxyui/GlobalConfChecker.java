@@ -25,6 +25,7 @@
 package ee.ria.xroad.proxyui;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
@@ -53,12 +54,18 @@ import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 @Slf4j
 @DisallowConcurrentExecution
 public class GlobalConfChecker implements Job {
+    private boolean reloadServerConf = false;
 
     @Override
     public void execute(JobExecutionContext context)
             throws JobExecutionException {
         try {
+            reloadServerConf = false;
             checkGlobalConf();
+            if (reloadServerConf) {
+                // Reload server conf to update cache
+                ServerConf.reload();
+            }
         } catch (Exception e) {
             log.error("Checking globalconf for updates failed", e);
             throw new JobExecutionException(e);
@@ -73,13 +80,11 @@ public class GlobalConfChecker implements Job {
 
         updateAuthCertStatuses(doInTransaction(session -> {
             ServerConfType serverConf = new ServerConfDAOImpl().getConf();
-
-            ClientId ownerId = serverConf.getOwner().getIdentifier();
-            SecurityServerId securityServerId = SecurityServerId.create(
-                    ownerId.getXRoadInstance(), ownerId.getMemberClass(),
-                    ownerId.getMemberCode(), serverConf.getServerCode());
+            SecurityServerId securityServerId = null;
 
             try {
+                securityServerId = getSecurityServerId(serverConf);
+                log.debug("Security Server ID is \"{}\"", securityServerId);
                 updateClientStatuses(serverConf, securityServerId);
             } catch (Exception e) {
                 throw translateException(e);
@@ -89,6 +94,54 @@ public class GlobalConfChecker implements Job {
 
             return securityServerId;
         }));
+    }
+
+    private SecurityServerId buildSecurityServerId(ClientId ownerId, String serverCode) {
+        return SecurityServerId.create(
+                ownerId.getXRoadInstance(), ownerId.getMemberClass(),
+                ownerId.getMemberCode(), serverCode);
+    }
+
+    private SecurityServerId getSecurityServerId(ServerConfType serverConf) throws Exception {
+        ClientId ownerId = serverConf.getOwner().getIdentifier();
+        SecurityServerId securityServerId = buildSecurityServerId(ownerId, serverConf.getServerCode());
+
+        // Verify that the server id exists in global conf
+        if (GlobalConf.getServerOwner(securityServerId) == null) {
+            log.trace("Security Server ID \"{}\" not found in global conf", securityServerId);
+            // If not, try to build an alternative server id
+            SecurityServerId altSecurityServerId = findAltSecurityServerId(serverConf, ownerId);
+            if (altSecurityServerId != null) {
+                return altSecurityServerId;
+            }
+        }
+        return securityServerId;
+
+    }
+
+    private SecurityServerId findAltSecurityServerId(ServerConfType serverConf, ClientId ownerId)
+            throws Exception {
+        for (ClientType client : serverConf.getClient()) {
+            // Look for another member that is not the owner
+            if (client.getIdentifier().getSubsystemCode() == null
+                    && !client.getIdentifier().equals(ownerId)) {
+                log.trace("Found another member: \"{}\"", client.getIdentifier());
+
+                // Build a new server id using the alternative member as owner
+                SecurityServerId altSecurityServerId = buildSecurityServerId(client.getIdentifier(),
+                        serverConf.getServerCode());
+
+                // Does the alternative server id exist in global conf?
+                if (GlobalConf.getServerOwner(altSecurityServerId) != null) {
+                    log.trace("Alternative Server ID \"{}\" exists in global conf", altSecurityServerId);
+                    // Update server owner
+                    serverConf.setOwner(client);
+                    reloadServerConf = true;
+                    return altSecurityServerId;
+                }
+            }
+        }
+        return null;
     }
 
     private void updateClientStatuses(ServerConfType serverConf,

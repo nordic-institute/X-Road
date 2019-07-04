@@ -73,6 +73,8 @@ public class ServerConfImpl implements ServerConfProvider {
 
     private static SecurityServerId identifier;
 
+    protected ServerConfImpl() { identifier = null; }
+
     // ------------------------------------------------------------------------
 
     @Override

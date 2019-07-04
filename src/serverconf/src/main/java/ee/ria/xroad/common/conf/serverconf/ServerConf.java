@@ -60,6 +60,14 @@ public class ServerConf {
     }
 
     /**
+     * Reloads the configuration with the default configuration provider.
+     */
+    public static void reload() {
+        log.trace("reload({})", CachingServerConfImpl.class);
+        instance = new CachingServerConfImpl();
+    }
+
+    /**
      * Reloads the configuration with given configuration instance.
      * @param conf the new configuration implementation
      */
