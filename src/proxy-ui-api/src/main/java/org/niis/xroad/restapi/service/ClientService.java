@@ -160,6 +160,7 @@ public class ClientService {
                 .ifPresent(a -> {
                     throw new ConflictException("certificate already exists");
                 });
+
         CertificateType certificateType = new CertificateType();
         try {
             certificateType.setData(x509Certificate.getEncoded());
@@ -211,6 +212,7 @@ public class ClientService {
                 .orElseThrow(() ->
                         new NotFoundException("certificate with hash " + certificateHash + " not found",
                                 ErrorCode.of(CERTIFICATE_NOT_FOUND_ERROR_CODE)));
+
         clientType.getIsCert().remove(certificateType);
         clientRepository.saveOrUpdate(clientType);
         return clientType;
@@ -318,21 +320,24 @@ public class ClientService {
         if (!StringUtils.isEmpty(name)) {
             searchPredicates.add(ct -> {
                 String memberName = globalConfWrapper.getMemberName(ct.getIdentifier());
-                return memberName != null && memberName.equalsIgnoreCase(name);
+                return memberName != null && memberName.toLowerCase().contains(name.toLowerCase());
             });
         }
         if (!StringUtils.isEmpty(instance)) {
-            searchPredicates.add(ct -> ct.getIdentifier().getXRoadInstance().equalsIgnoreCase(instance));
+            searchPredicates.add(ct -> ct.getIdentifier().getXRoadInstance().toLowerCase()
+                    .contains(instance.toLowerCase()));
         }
         if (!StringUtils.isEmpty(memberClass)) {
-            searchPredicates.add(ct -> ct.getIdentifier().getMemberClass().equalsIgnoreCase(memberClass));
+            searchPredicates.add(ct -> ct.getIdentifier().getMemberClass().toLowerCase()
+                    .contains(memberClass.toLowerCase()));
         }
         if (!StringUtils.isEmpty(memberCode)) {
-            searchPredicates.add(ct -> ct.getIdentifier().getMemberCode().equalsIgnoreCase(memberCode));
+            searchPredicates.add(ct -> ct.getIdentifier().getMemberCode().toLowerCase()
+                    .contains(memberCode.toLowerCase()));
         }
         if (!StringUtils.isEmpty(subsystemCode)) {
             searchPredicates.add(ct -> ct.getIdentifier().getSubsystemCode() != null
-                    && ct.getIdentifier().getSubsystemCode().equalsIgnoreCase(subsystemCode));
+                    && ct.getIdentifier().getSubsystemCode().toLowerCase().contains(subsystemCode.toLowerCase()));
         }
         return searchPredicates;
     }
@@ -342,20 +347,23 @@ public class ClientService {
         List<Predicate<MemberInfo>> searchPredicates = new ArrayList<>();
         if (!StringUtils.isEmpty(name)) {
             searchPredicates.add(memberInfo -> memberInfo.getName() != null
-                    && memberInfo.getName().equalsIgnoreCase(name));
+                    && memberInfo.getName().toLowerCase().contains(name.toLowerCase()));
         }
         if (!StringUtils.isEmpty(instance)) {
-            searchPredicates.add(memberInfo -> memberInfo.getId().getXRoadInstance().equalsIgnoreCase(instance));
+            searchPredicates.add(memberInfo -> memberInfo.getId().getXRoadInstance().toLowerCase()
+                    .contains(instance.toLowerCase()));
         }
         if (!StringUtils.isEmpty(memberClass)) {
-            searchPredicates.add(memberInfo -> memberInfo.getId().getMemberClass().equalsIgnoreCase(memberClass));
+            searchPredicates.add(memberInfo -> memberInfo.getId().getMemberClass().toLowerCase()
+                    .contains(memberClass.toLowerCase()));
         }
         if (!StringUtils.isEmpty(memberCode)) {
-            searchPredicates.add(memberInfo -> memberInfo.getId().getMemberCode().equalsIgnoreCase(memberCode));
+            searchPredicates.add(memberInfo -> memberInfo.getId().getMemberCode().toLowerCase()
+                    .contains(memberCode.toLowerCase()));
         }
         if (!StringUtils.isEmpty(subsystemCode)) {
             searchPredicates.add(memberInfo -> memberInfo.getId().getSubsystemCode() != null
-                    && memberInfo.getId().getSubsystemCode().equalsIgnoreCase(subsystemCode));
+                    && memberInfo.getId().getSubsystemCode().toLowerCase().contains(subsystemCode.toLowerCase()));
         }
         return searchPredicates;
     }
