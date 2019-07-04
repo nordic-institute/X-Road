@@ -19,6 +19,9 @@ export enum RouteName {
   LocalGroup = 'local-group',
   SubsystemServiceClients = 'subs-clients',
   SubsystemServices = 'subs-services',
+  RestDetails = 'rest-details',
+  WsdlDetails = 'wsdl-details',
+  Service = 'service',
 }
 
 // A "single source of thuth" for permission strings
