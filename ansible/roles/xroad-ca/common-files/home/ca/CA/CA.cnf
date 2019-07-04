@@ -2,7 +2,6 @@
 HOME		= .
 INTERMEDIATE    = intermediate
 INTERMEDIATE    = ${ENV::INTERMEDIATE}
-RANDFILE	= $HOME/private/.rnd
 
 [ ca ]
 # `man ca`
