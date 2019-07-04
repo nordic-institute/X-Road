@@ -98,6 +98,18 @@ class OwnerChangeRequest < RequestWithProcessing
     server = SecurityServer.find_server_by_id(security_server)
     client = SecurityServerClient.find_by_id(sec_serv_user)
 
+    if server == nil
+      raise InvalidOwnerChangeRequestException.new(
+          I18n.t("requests.server_not_found",
+            :server => security_server))
+    end
+
+    if client == nil
+      raise InvalidOwnerChangeRequestException.new(
+          I18n.t("requests.client_not_found",
+            :client => sec_serv_user))
+    end
+
     # Client cannot be a subsystem
     if client.subsystem_code != nil
       raise InvalidOwnerChangeRequestException.new(
@@ -112,6 +124,17 @@ class OwnerChangeRequest < RequestWithProcessing
             :user => sec_serv_user,
             :security_server => security_server))
 
+    end
+
+    # Check that server with the new server id does not exist yet
+    existing_server = SecurityServer.find_server(
+      server.server_code, client.member_code, client.member_class.code)
+
+    if existing_server
+      raise I18n.t("validation.securitserver_exists",
+        :member_class => client.member_class.code,
+        :member_code => client.member_code,
+        :server_code => server.server_code)
     end
   end
 
