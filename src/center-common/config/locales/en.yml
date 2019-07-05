@@ -95,6 +95,7 @@ en:
     duplicate_owner_change_requests: "A request for registering '%{user}', as the owner of the security server '%{security_server}' has already been submitted (%{received}, request ID: '%{id}')"
     must_be_member: "'%{user}' is a subsystem. New owner must be a member"
     already_owner: "'%{user}' is already the owner of the security server '%{security_server}'"
+    server_code_exists: "Member '%{member_class} : %{member_code}' already owns a security server with server code '%{server_code}'"
 
   errors:
     format: "%{message}"

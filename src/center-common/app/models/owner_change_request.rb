@@ -75,7 +75,7 @@ class OwnerChangeRequest < RequestWithProcessing
     end
 
     verify_against_submitted_requests()
-    verify_new_owner()
+    validate_request()
   end
 
   def verify_against_submitted_requests()
@@ -94,7 +94,7 @@ class OwnerChangeRequest < RequestWithProcessing
     end
   end
 
-  def verify_new_owner
+  def validate_request
     server = SecurityServer.find_server_by_id(security_server)
     client = SecurityServerClient.find_by_id(sec_serv_user)
 
@@ -131,7 +131,7 @@ class OwnerChangeRequest < RequestWithProcessing
       server.server_code, client.member_code, client.member_class.code)
 
     if existing_server
-      raise I18n.t("validation.securitserver_exists",
+      raise I18n.t("requests.server_code_exists",
         :member_class => client.member_class.code,
         :member_code => client.member_code,
         :server_code => server.server_code)
