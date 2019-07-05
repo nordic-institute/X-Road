@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
@@ -52,7 +53,9 @@ import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUrl;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.repository.TokenRepository;
+import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.util.TestUtils;
+import org.niis.xroad.restapi.wsdl.WsdlValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -154,6 +157,9 @@ public class ClientsApiControllerIntegrationTest {
         ));
         List<TokenInfo> mockTokens = createMockTokenInfos(null);
         when(tokenRepository.getTokens()).thenReturn(mockTokens);
+        System.setProperty(
+                SystemProperties.WSDL_VALIDATOR_COMMAND,
+                "src/test/resources/validator/mock-wsdlvalidator.sh");
     }
 
     @Autowired
@@ -576,6 +582,7 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertEquals(1, clientsResponse.getBody().size());
     }
+
     @Test
     @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
     public void addWsdlServiceDescription() {
@@ -589,14 +596,15 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, serviceDescriptionUrl);
             fail("should have thrown ConflictException");
         } catch (ConflictException expected) {
-            // duplicate service description
+            assertEquals(ServiceDescriptionService.WSDL_EXISTS, expected.getErrorCode());
         }
         serviceDescriptionUrl = new ServiceDescriptionUrl().url("file:src/test/resources/testservice.wsdl");
         try {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, serviceDescriptionUrl);
             fail("should have thrown ConflictException");
         } catch (ConflictException expected) {
-            // duplicate services
+            assertEquals(ServiceDescriptionService.ADDING_WSDL_FAILED, expected.getErrorCode());
+            assertNotNull(expected.getWarningMap().get(ServiceDescriptionService.SERVICE_EXISTS));
         }
     }
 
@@ -609,7 +617,8 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, serviceDescriptionUrl);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            // noop
+            assertEquals(ServiceDescriptionService.ADDING_WSDL_FAILED, expected.getErrorCode());
+            assertNotNull(expected.getWarningMap().get(ServiceDescriptionService.INVALID_WSDL));
         }
     }
 
@@ -622,7 +631,8 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, serviceDescriptionUrl);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            // noop
+            assertEquals(WsdlValidator.WSDL_VALIDATION_WARNINGS, expected.getErrorCode());
+            assertNotNull(expected.getWarningMap().get(WsdlValidator.WSDL_VALIDATION_FAILED));
         }
     }
 

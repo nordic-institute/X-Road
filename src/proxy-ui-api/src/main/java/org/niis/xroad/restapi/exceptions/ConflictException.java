@@ -47,15 +47,11 @@ public class ConflictException extends ErrorCodedRuntimeException {
         super(msg, warningMap);
     }
 
+    public ConflictException(ErrorCode errorCode,  Map<String, List<String>> warningMap) {
+        super(errorCode, warningMap);
+    }
+
     public ConflictException(String msg, ErrorCode errorCode) {
         super(msg, errorCode);
-    }
-
-    public ConflictException(String msg, Throwable t) {
-        super(msg, t);
-    }
-
-    public ConflictException(Throwable t) {
-        super(t);
     }
 }

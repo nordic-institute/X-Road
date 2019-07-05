@@ -63,7 +63,6 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
     @Autowired
     private ClientsApiController clientsApiController;
 
-
     @Test
     @WithMockUser(authorities = { "ENABLE_DISABLE_WSDL", "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
     public void enableServiceDescription() {
@@ -87,16 +86,18 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         try {
             serviceDescriptionsApiController.enableServiceDescription("10000");
             fail("should throw NotFoundException");
-        } catch (NotFoundException expected) { }
+        } catch (NotFoundException expected) {
+        }
         try {
             serviceDescriptionsApiController.enableServiceDescription("non-numeric-id");
             fail("should throw NotFoundException");
-        } catch (NotFoundException expected) { }
+        } catch (NotFoundException expected) {
+        }
 
     }
 
     private Optional<ServiceDescription> getServiceDescription(List<ServiceDescription> serviceDescriptions,
-                                                               String id) {
+            String id) {
         return serviceDescriptions.stream()
                 .filter(serviceDescription -> serviceDescription.getId().equals(id))
                 .findFirst();
@@ -127,12 +128,13 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         try {
             serviceDescriptionsApiController.enableServiceDescription("10000");
             fail("should throw NotFoundException");
-        } catch (NotFoundException expected) { }
+        } catch (NotFoundException expected) {
+        }
         try {
             serviceDescriptionsApiController.enableServiceDescription("non-numeric-id");
             fail("should throw NotFoundException");
-        } catch (NotFoundException expected) { }
-
+        } catch (NotFoundException expected) {
+        }
 
     }
 }

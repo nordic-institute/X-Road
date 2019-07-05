@@ -43,10 +43,6 @@ public class BadRequestException extends ErrorCodedRuntimeException {
         super(msg);
     }
 
-    public BadRequestException(String msg, Throwable t) {
-        super(msg, t);
-    }
-
     public BadRequestException(String msg, ErrorCode errorCode) {
         super(msg, errorCode);
     }
@@ -55,12 +51,8 @@ public class BadRequestException extends ErrorCodedRuntimeException {
         super(msg, t, errorCode);
     }
 
-    public BadRequestException(String msg, Throwable t, Map<String, List<String>> warningMap) {
-        super(msg, t, warningMap);
-    }
-
-    public BadRequestException(Throwable t) {
-        super(t);
+    public BadRequestException(Throwable t, ErrorCode errorCode,  Map<String, List<String>> warningMap) {
+        super(t, errorCode, warningMap);
     }
 
     public BadRequestException(Throwable t, ErrorCode errorCode) {

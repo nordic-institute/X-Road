@@ -52,10 +52,6 @@ public class ErrorCodedRuntimeException extends RuntimeException implements Erro
         super(msg);
     }
 
-    public ErrorCodedRuntimeException(ErrorCode errorCode) {
-        this.errorCode = errorCode.getValue();
-    }
-
     public ErrorCodedRuntimeException(String msg, ErrorCode errorCode) {
         super(msg);
         this.errorCode = errorCode.getValue();
@@ -70,14 +66,18 @@ public class ErrorCodedRuntimeException extends RuntimeException implements Erro
         this.warningMap = warningMap;
     }
 
-    public ErrorCodedRuntimeException(String msg, Throwable t, Map<String, List<String>> warningMap) {
-        super(msg, t);
-        this.warningMap = warningMap;
-    }
-
     public ErrorCodedRuntimeException(String msg, Throwable t, ErrorCode errorCode) {
         super(msg, t);
         this.errorCode = errorCode.getValue();
+    }
+
+    public ErrorCodedRuntimeException(ErrorCode errorCode) {
+        this.errorCode = errorCode.getValue();
+    }
+
+    public ErrorCodedRuntimeException(ErrorCode errorCode, Map<String, List<String>> warningMap) {
+        this.errorCode = errorCode.getValue();
+        this.warningMap = warningMap;
     }
 
     public ErrorCodedRuntimeException(Throwable t) {
@@ -87,6 +87,26 @@ public class ErrorCodedRuntimeException extends RuntimeException implements Erro
     public ErrorCodedRuntimeException(Throwable t, ErrorCode errorCode) {
         super(t);
         this.errorCode = errorCode.getValue();
+    }
+
+    public ErrorCodedRuntimeException(Throwable throwable, Map<String, List<String>> warningMap) {
+        super(throwable);
+        this.warningMap = warningMap;
+    }
+
+    /**
+     * @param t
+     * @param errorCode
+     * @param warningMap
+     */
+    public ErrorCodedRuntimeException(Throwable t, ErrorCode errorCode, Map<String, List<String>> warningMap) {
+        super(t);
+        this.warningMap = warningMap;
+        this.errorCode = errorCode.getValue();
+    }
+
+    public ErrorCodedRuntimeException(Map<String, List<String>> warningMap) {
+        this.warningMap = warningMap;
     }
 
 }
