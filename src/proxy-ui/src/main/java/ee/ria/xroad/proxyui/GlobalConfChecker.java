@@ -25,7 +25,6 @@
 package ee.ria.xroad.proxyui;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
@@ -57,18 +56,12 @@ import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 @Slf4j
 @DisallowConcurrentExecution
 public class GlobalConfChecker implements Job {
-    private boolean reloadServerConf = false;
 
     @Override
     public void execute(JobExecutionContext context)
             throws JobExecutionException {
         try {
-            reloadServerConf = false;
             checkGlobalConf();
-            if (reloadServerConf) {
-                // Reload server conf to update cache
-                ServerConf.reload();
-            }
         } catch (Exception e) {
             log.error("Checking globalconf for updates failed", e);
             throw new JobExecutionException(e);
@@ -146,7 +139,7 @@ public class GlobalConfChecker implements Job {
                     log.trace("Alternative Server ID \"{}\" exists in global conf", altSecurityServerId);
                     // Update server owner
                     serverConf.setOwner(client);
-                    reloadServerConf = true;
+
                     return altSecurityServerId;
                 }
             }
