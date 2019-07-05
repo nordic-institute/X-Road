@@ -512,8 +512,6 @@ To change the security server owner the following actions must be completed.
 
   4. Click **Confirm** to submit the request.
 
-  5. On submitting the request, the message "Request sent" is displayed.
-
 - A request for changing the security server owner must be submitted to the X-Road governing authority according to the organizational procedures of the X-Road instance.
 
 - The owner change request must be approved by the X-Road governing authority.
