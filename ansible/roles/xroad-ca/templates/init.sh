@@ -17,12 +17,12 @@ DN_TSA_OU="{{ xroad_ca_tsa_ou }}"
 DN_TSA_CN="{{ xroad_ca_tsa_cn }}"
 
 rm -rf private certs newcerts crl csr
-rm index.* serial
-touch index.txt
+rm -f index.* serial
 echo 01 > serial
 mkdir -p private certs newcerts crl csr
+touch index.txt index.txt.attr
 set -e
-echo "temppw" > pw
+openssl rand -hex -out pw -writerand private/.rnd 16
 echo "Generating CA Certificate"
 openssl genrsa -aes256 -passout file:pw -out private/tmp.key.pem 4096
 openssl rsa -in private/tmp.key.pem -passin file:pw -out private/ca.key.pem
