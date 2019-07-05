@@ -73,7 +73,10 @@ public class ServerConfImpl implements ServerConfProvider {
 
     private static SecurityServerId identifier;
 
-    protected ServerConfImpl() {
+    /**
+     * Initializes a new ServerConfImpl object.
+     */
+    public ServerConfImpl() {
         synchronized (this) {
             identifier = null;
         }
