@@ -133,12 +133,12 @@ public class GlobalConfChecker implements Job {
                 SecurityServerId altSecurityServerId = buildSecurityServerId(client.getIdentifier(),
                         serverConf.getServerCode());
 
-                // Get current auth cert
+                // Get local auth cert
                 X509Certificate cert = getAuthCert(altSecurityServerId);
 
                 // Does the alternative server id exist in global conf?
-                // And does the auth cert of this server match to the auth cert of
-                // the alternative server?
+                // And does the local auth cert match with the auth cert of
+                // the alternative server from global conf?
                 if (GlobalConf.getServerOwner(altSecurityServerId) != null
                         && cert != null
                         && altSecurityServerId.equals(GlobalConf.getServerId(cert))
