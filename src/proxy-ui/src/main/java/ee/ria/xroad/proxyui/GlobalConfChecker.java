@@ -106,7 +106,7 @@ public class GlobalConfChecker implements Job {
         return buildSecurityServerId(ownerId, serverConf.getServerCode());
     }
 
-    private boolean updateOwner(ServerConfType serverConf) throws Exception {
+    private void updateOwner(ServerConfType serverConf) throws Exception {
         ClientId ownerId = serverConf.getOwner().getIdentifier();
         for (ClientType client : serverConf.getClient()) {
             // Look for another member that is not the owner
@@ -130,11 +130,9 @@ public class GlobalConfChecker implements Job {
                 ) {
                     log.debug("Set \"{}\" as new owner", client.getIdentifier());
                     serverConf.setOwner(client);
-                    return true;
                 }
             }
         }
-        return false;
     }
 
     private X509Certificate getAuthCert(SecurityServerId serverId) throws Exception {
