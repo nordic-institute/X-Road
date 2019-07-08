@@ -26,7 +26,6 @@ package ee.ria.xroad.proxy.conf;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -132,14 +131,7 @@ public final class KeyConf {
     public static AuthKey getAuthKey() {
         LOG.trace("getAuthKey()");
 
-        AuthKey authKey = getInstance().getAuthKey();
-        if (authKey != null && authKey.getCertChain() == null) {
-            // If Security Server owner has changed, reloading
-            // server conf may help
-            ServerConf.reload();
-            authKey = getInstance().getAuthKey();
-        }
-        return authKey;
+        return getInstance().getAuthKey();
     }
 
     /**

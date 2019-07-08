@@ -28,6 +28,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -122,6 +123,9 @@ class CachingKeyConfImpl extends KeyConfImpl {
             if (keyConfHasChanged()) {
                 CachingKeyConfImpl.invalidateCaches();
             }
+            if (ownerHasChanged()) {
+                ServerConf.reload();
+            }
             AuthKeyInfo info = AUTH_KEY_CACHE.get(AUTH_CACHE_SINGLETON_KEY,
                     () -> getAuthKeyInfo());
             if (!info.verifyValidity(new Date())) {
@@ -151,6 +155,22 @@ class CachingKeyConfImpl extends KeyConfImpl {
         }
     }
 
+    boolean ownerHasChanged() {
+        try {
+            // Get server id from serverconf database
+            SecurityServerId serverId = ServerConf.getIdentifier();
+            // Does the server id exist in global conf?
+            boolean changed = GlobalConf.getServerOwner(serverId) == null;
+
+            log.trace("Security Server owner has{} changed!", !changed ? " not" : "");
+
+            return changed;
+        } catch (Exception e) {
+            log.error("Failed to check if Security Server owner has changed", e);
+
+            return true;
+        }
+    }
     protected AuthKeyInfo getAuthKeyInfo() throws Exception {
         log.debug("getAuthKeyInfo");
         SecurityServerId serverId = ServerConf.getIdentifier();
