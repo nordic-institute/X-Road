@@ -98,5 +98,4 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
                 disabledNotice);
         return new ResponseEntity<Void>(HttpStatus.OK);
     }
-
 }

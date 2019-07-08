@@ -46,7 +46,8 @@ import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
 import org.niis.xroad.restapi.openapi.model.Group;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
-import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUrl;
+import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
+import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.GroupService;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
@@ -283,9 +284,13 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAuthority('ADD_WSDL')")
     public ResponseEntity<Void> addClientServiceDescription(String id, Boolean ignoreWarnings,
-            ServiceDescriptionUrl serviceDescriptionUrl) {
-        serviceDescriptionService.addWsdlServiceDescription(clientConverter.convertId(id),
-                serviceDescriptionUrl.getUrl(), ignoreWarnings);
+            ServiceDescriptionAdd serviceDescription) {
+        if (serviceDescription.getType() == ServiceType.WSDL) {
+            serviceDescriptionService.addWsdlServiceDescription(clientConverter.convertId(id),
+                    serviceDescription.getUrl(), ignoreWarnings);
+        } else if (serviceDescription.getType() == ServiceType.REST) {
+            return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+        }
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }
