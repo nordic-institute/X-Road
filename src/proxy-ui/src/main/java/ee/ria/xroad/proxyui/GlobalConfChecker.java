@@ -79,7 +79,10 @@ public class GlobalConfChecker implements Job {
             SecurityServerId securityServerId = null;
 
             try {
-                securityServerId = getSecurityServerId(serverConf);
+                if (GlobalConf.getServerOwner(buildSecurityServerId(serverConf)) == null) {
+                    updateOwner(serverConf);
+                }
+                securityServerId = buildSecurityServerId(serverConf);
                 log.debug("Security Server ID is \"{}\"", securityServerId);
                 updateClientStatuses(serverConf, securityServerId);
             } catch (Exception e) {
@@ -98,29 +101,18 @@ public class GlobalConfChecker implements Job {
                 ownerId.getMemberCode(), serverCode);
     }
 
-    private SecurityServerId getSecurityServerId(ServerConfType serverConf) throws Exception {
+    private SecurityServerId buildSecurityServerId(ServerConfType serverConf) throws Exception {
         ClientId ownerId = serverConf.getOwner().getIdentifier();
-        SecurityServerId securityServerId = buildSecurityServerId(ownerId, serverConf.getServerCode());
-
-        // Verify that the server id exists in global conf
-        if (GlobalConf.getServerOwner(securityServerId) == null) {
-            log.trace("Security Server ID \"{}\" not found in global conf", securityServerId);
-            // If not, try to build an alternative server id
-            SecurityServerId altSecurityServerId = findAltSecurityServerId(serverConf, ownerId);
-            if (altSecurityServerId != null) {
-                return altSecurityServerId;
-            }
-        }
-        return securityServerId;
-
+        return buildSecurityServerId(ownerId, serverConf.getServerCode());
     }
 
-    private SecurityServerId findAltSecurityServerId(ServerConfType serverConf, ClientId ownerId) throws Exception {
+    private boolean updateOwner(ServerConfType serverConf) throws Exception {
+        ClientId ownerId = serverConf.getOwner().getIdentifier();
         for (ClientType client : serverConf.getClient()) {
             // Look for another member that is not the owner
             if (client.getIdentifier().getSubsystemCode() == null
                     && !client.getIdentifier().equals(ownerId)) {
-                log.trace("Found another member: \"{}\"", client.getIdentifier());
+                log.trace("Found potential new owner: \"{}\"", client.getIdentifier());
 
                 // Build a new server id using the alternative member as owner
                 SecurityServerId altSecurityServerId = buildSecurityServerId(client.getIdentifier(),
@@ -136,15 +128,13 @@ public class GlobalConfChecker implements Job {
                         && cert != null
                         && altSecurityServerId.equals(GlobalConf.getServerId(cert))
                 ) {
-                    log.trace("Alternative Server ID \"{}\" exists in global conf", altSecurityServerId);
-                    // Update server owner
+                    log.debug("Set \"{}\" as new owner", client.getIdentifier());
                     serverConf.setOwner(client);
-
-                    return altSecurityServerId;
+                    return true;
                 }
             }
         }
-        return null;
+        return false;
     }
 
     private X509Certificate getAuthCert(SecurityServerId serverId) throws Exception {
