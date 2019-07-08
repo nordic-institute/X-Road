@@ -26,21 +26,21 @@
           class="text-capitalize table-button rounded-button"
           type="file"
           @click="$refs.inputUpload.click()"
-        >{{$t('internalServers.add')}}</v-btn>
+        >{{$t('action.add')}}</v-btn>
         <input
           v-show="false"
           ref="inputUpload"
           type="file"
           accept=".pem, .cer, .der"
           @change="onFileChange"
-        >
+        />
       </div>
       <div class="cert-table-title">{{$t('internalServers.certHash')}}</div>
       <table class="certificate-table server-certificates">
         <template v-if="tlsCertificates && tlsCertificates.length > 0">
           <tr v-for="certificate in tlsCertificates" v-bind:key="certificate.hash">
             <td class="cert-icon">
-              <certificateIcon/>
+              <certificateIcon />
             </td>
             <td>
               <span
@@ -62,7 +62,7 @@
         <template v-if="ssCertificate">
           <tr>
             <td class="cert-icon">
-              <certificateIcon/>
+              <certificateIcon />
             </td>
             <td>
               <span>{{ssCertificate.hash | colonize}}</span>
@@ -77,7 +77,7 @@
                 color="primary"
                 class="xr-small-button"
                 @click="exportSSCertificate(ssCertificate.hash)"
-              >{{$t('internalServers.export')}}</v-btn>
+              >{{$t('action.export')}}</v-btn>
             </td>
           </tr>
         </template>

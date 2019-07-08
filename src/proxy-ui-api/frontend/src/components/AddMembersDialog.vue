@@ -110,7 +110,7 @@
           outline
           class="mb-2 rounded-button elevation-0 xr-big-button button-margin"
           @click="cancel()"
-        >{{$t('localGroup.cancel')}}</v-btn>
+        >{{$t('action.cancel')}}</v-btn>
 
         <v-btn
           color="primary"

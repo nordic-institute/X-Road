@@ -3,7 +3,7 @@
     <v-card class="xroad-card">
       <v-card-title>
         <span class="headline">{{$t('localGroup.addLocalGroup')}}</span>
-        <v-spacer/>
+        <v-spacer />
         <i @click="cancel()" id="close-x"></i>
       </v-card-title>
       <v-card-text>
@@ -31,7 +31,7 @@
           outline
           class="mb-2 rounded-button elevation-0 xr-big-button button-margin"
           @click="cancel()"
-        >{{$t('localGroup.cancel')}}</v-btn>
+        >{{$t('action.cancel')}}</v-btn>
 
         <v-btn
           color="primary"
@@ -39,7 +39,7 @@
           class="mb-2 rounded-button elevation-0 xr-big-button button-margin"
           :disabled="!formReady"
           @click="save()"
-        >{{$t('localGroup.add')}}</v-btn>
+        >{{$t('action.add')}}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

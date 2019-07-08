@@ -14,7 +14,7 @@
             class="xr-big-button"
             type="file"
             @click="deleteGroup()"
-          >{{$t('localGroup.delete')}}</v-btn>
+          >{{$t('action.delete')}}</v-btn>
         </div>
       </template>
     </div>
@@ -46,7 +46,7 @@
           type="file"
           :disabled="!hasMembers"
           @click="removeAllMembers()"
-        >{{$t('localGroup.removeAll')}}</v-btn>
+        >{{$t('action.removeAll')}}</v-btn>
         <v-btn
           v-if="canEditMembers"
           outline
@@ -82,7 +82,7 @@
                   color="primary"
                   class="xr-small-button"
                   @click="removeMember(groupMember)"
-                >{{$t('localGroup.remove')}}</v-btn>
+                >{{$t('action.remove')}}</v-btn>
               </div>
             </td>
           </tr>
@@ -96,7 +96,7 @@
           class="xr-big-button elevation-0"
           type="file"
           @click="close()"
-        >{{$t('localGroup.close')}}</v-btn>
+        >{{$t('action.close')}}</v-btn>
       </div>
     </v-card>
 
