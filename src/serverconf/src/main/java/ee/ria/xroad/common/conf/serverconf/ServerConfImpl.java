@@ -71,17 +71,7 @@ public class ServerConfImpl implements ServerConfProvider {
     // default service connection timeout in seconds
     private static final int DEFAULT_SERVICE_TIMEOUT = 30;
 
-    private static SecurityServerId identifier;
-
-    /**
-     * Initializes a new ServerConfImpl object.
-     */
-    public ServerConfImpl() {
-        synchronized (this) {
-            identifier = null;
-        }
-    }
-
+    private SecurityServerId identifier;
     // ------------------------------------------------------------------------
 
     @Override
