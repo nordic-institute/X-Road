@@ -54,7 +54,7 @@ import static org.junit.Assert.fail;
 @Transactional
 public class GroupsServiceIntegrationTest {
 
-    private static final String GROUP_ID = "1";
+    private static final Long GROUP_ID = 1L;
     private static final String NEW_GROUPCODE = "groupX";
     private static final String GROUP_DESC = "foo";
     private static final String NEW_GROUP_DESC = "bar";
@@ -76,7 +76,7 @@ public class GroupsServiceIntegrationTest {
         localGroupType.setUpdated(new Date());
         localGroupType = groupsService.addLocalGroup(id, localGroupType);
 
-        LocalGroupType localGroupTypeFromDb = groupsService.getLocalGroup(localGroupType.getId().toString());
+        LocalGroupType localGroupTypeFromDb = groupsService.getLocalGroup(localGroupType.getId());
 
         assertEquals(NEW_GROUPCODE, localGroupTypeFromDb.getGroupCode());
         assertEquals(GROUP_DESC, localGroupTypeFromDb.getDescription());

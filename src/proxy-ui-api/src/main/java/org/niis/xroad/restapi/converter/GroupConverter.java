@@ -60,7 +60,7 @@ public class GroupConverter {
     public Group convert(LocalGroupType localGroupType) {
         Group group = new Group();
 
-        group.setId(localGroupType.getId());
+        group.setId(String.valueOf(localGroupType.getId()));
         group.setCode(localGroupType.getGroupCode());
         group.setDescription(localGroupType.getDescription());
         group.setUpdatedAt(FormatUtils.fromDateToOffsetDateTime(localGroupType.getUpdated()));

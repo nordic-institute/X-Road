@@ -53,6 +53,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -67,6 +68,7 @@ import static org.mockito.Mockito.when;
 @Slf4j
 public class GroupsApiControllerIntegrationTest {
     private static final String GROUP_ID = "1";
+    private static final String INVALID_GROUP_ID = "NOT_VALID";
     public static final String CLIENT_ID_SS1 = "FI:GOV:M1:SS1";
     public static final String CLIENT_ID_SS2 = "FI:GOV:M1:SS2";
     public static final String GROUP_DESC = "GROUP_DESC";
@@ -112,6 +114,12 @@ public class GroupsApiControllerIntegrationTest {
         ResponseEntity<Group> response =
                 groupsApiController.getGroup(GROUP_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        try {
+            groupsApiController.getGroup(INVALID_GROUP_ID);
+            fail("should throw NotFoundException");
+        } catch (NotFoundException expected) {
+            // nothing should be found
+        }
     }
 
     @Test
@@ -132,6 +140,7 @@ public class GroupsApiControllerIntegrationTest {
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         try {
             groupsApiController.getGroup(GROUP_ID);
+            fail("should throw NotFoundException");
         } catch (NotFoundException expected) {
             // success
         }
@@ -176,6 +185,7 @@ public class GroupsApiControllerIntegrationTest {
         try {
             groupsApiController.addGroupMember(GROUP_ID,
                     new InlineObject3().items(Collections.singletonList(CLIENT_ID_SS2)));
+            fail("should throw ConflictException");
         } catch (ConflictException expected) {
             // expected exception
         }
