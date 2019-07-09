@@ -60,14 +60,6 @@ public class ServerConf {
     }
 
     /**
-     * Reloads the configuration with the default configuration provider.
-     */
-    public static void reload() {
-        log.trace("reload({})", CachingServerConfImpl.class);
-        instance = new CachingServerConfImpl();
-    }
-
-    /**
      * Reloads the configuration with given configuration instance.
      * @param conf the new configuration implementation
      */
@@ -100,7 +92,7 @@ public class ServerConf {
     }
 
     /**
-     * @param sender the sender identifier
+     * @param sender  the sender identifier
      * @param service the service identifier
      * @return true, if member <code>sender</code> is allowed
      * to invoke service <code>serviceName</code>
@@ -155,7 +147,7 @@ public class ServerConf {
 
     /**
      * @param serviceProvider the service provider identifier
-     * @param client the client identifier
+     * @param client          the client identifier
      * @return all the services by a service provider that the caller
      * has permission to invoke.
      */

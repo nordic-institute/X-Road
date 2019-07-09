@@ -28,7 +28,6 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -65,14 +64,15 @@ class CachingKeyConfImpl extends KeyConfImpl {
     private final FileContentChangeChecker keyConfChangeChecker;
 
     private static final Cache<ClientId, SigningInfo> SIGNING_INFO_CACHE;
+
     static {
         SIGNING_INFO_CACHE = CacheBuilder.newBuilder()
                 .expireAfterWrite(CACHE_PERIOD_SECONDS, TimeUnit.SECONDS)
                 .build();
     }
 
-    private static final Integer AUTH_CACHE_SINGLETON_KEY = Integer.valueOf(1);
-    private static final Cache<Integer, AuthKeyInfo> AUTH_KEY_CACHE;
+    private static final Cache<SecurityServerId, AuthKeyInfo> AUTH_KEY_CACHE;
+
     static {
         AUTH_KEY_CACHE = CacheBuilder.newBuilder()
                 .maximumSize(1)
@@ -116,6 +116,7 @@ class CachingKeyConfImpl extends KeyConfImpl {
     }
 
 
+    private static final AuthKey NULL_AUTH_KEY = new AuthKey(null, null);
 
     @Override
     public AuthKey getAuthKey() {
@@ -123,58 +124,35 @@ class CachingKeyConfImpl extends KeyConfImpl {
             if (keyConfHasChanged()) {
                 CachingKeyConfImpl.invalidateCaches();
             }
-            if (ownerHasChanged()) {
-                ServerConf.reload();
+
+            final SecurityServerId serverId = ServerConf.getIdentifier();
+            if (serverId == null) {
+                return NULL_AUTH_KEY;
             }
-            AuthKeyInfo info = AUTH_KEY_CACHE.get(AUTH_CACHE_SINGLETON_KEY,
-                    () -> getAuthKeyInfo());
+
+            AuthKeyInfo info = AUTH_KEY_CACHE.get(serverId, () -> getAuthKeyInfo(serverId));
             if (!info.verifyValidity(new Date())) {
                 // we likely got an old auth key from cache, and refresh should fix this
-                AUTH_KEY_CACHE.invalidateAll();
-                info = AUTH_KEY_CACHE.get(AUTH_CACHE_SINGLETON_KEY,
-                        () -> getAuthKeyInfo());
+                AUTH_KEY_CACHE.invalidate(serverId);
+                info = AUTH_KEY_CACHE.get(serverId, () -> getAuthKeyInfo(serverId));
             }
             return info.getAuthKey();
         } catch (Exception e) {
             log.error("Failed to get authentication key", e);
-            return new AuthKey(null, null);
+            return NULL_AUTH_KEY;
         }
     }
 
     boolean keyConfHasChanged() {
         try {
-            boolean changed = keyConfChangeChecker.hasChanged();
-
-            log.trace("KeyConf has{} changed!", !changed ? " not" : "");
-
-            return changed;
+            return keyConfChangeChecker.hasChanged();
         } catch (Exception e) {
             log.error("Failed to check if key conf has changed", e);
-
             return true;
         }
     }
 
-    boolean ownerHasChanged() {
-        try {
-            // Get server id from serverconf database
-            SecurityServerId serverId = ServerConf.getIdentifier();
-            // Does the server id exist in global conf?
-            boolean changed = GlobalConf.getServerOwner(serverId) == null;
-
-            log.trace("Security Server owner has{} changed!", !changed ? " not" : "");
-
-            return changed;
-        } catch (Exception e) {
-            log.error("Failed to check if Security Server owner has changed", e);
-
-            return true;
-        }
-    }
-    protected AuthKeyInfo getAuthKeyInfo() throws Exception {
-        log.debug("getAuthKeyInfo");
-        SecurityServerId serverId = ServerConf.getIdentifier();
-
+    protected AuthKeyInfo getAuthKeyInfo(SecurityServerId serverId) throws Exception {
         log.debug("Retrieving authentication info for security server '{}'", serverId);
 
         ee.ria.xroad.signer.protocol.dto.AuthKeyInfo keyInfo = SignerClient.execute(new GetAuthKey(serverId));
@@ -197,7 +175,6 @@ class CachingKeyConfImpl extends KeyConfImpl {
         X509Certificate cert = readCertificate(signingInfo.getCert().getCertificateBytes());
         OCSPResp ocsp = new OCSPResp(signingInfo.getCert().getOcspBytes());
 
-        return new SigningInfo(signingInfo.getKeyId(), signingInfo.getSignMechanismName(), clientId, cert,
-                ocsp);
+        return new SigningInfo(signingInfo.getKeyId(), signingInfo.getSignMechanismName(), clientId, cert, ocsp);
     }
 }

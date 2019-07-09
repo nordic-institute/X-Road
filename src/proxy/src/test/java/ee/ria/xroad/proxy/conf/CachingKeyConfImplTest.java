@@ -23,6 +23,7 @@
 package ee.ria.xroad.proxy.conf;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.FileContentChangeChecker;
 
 import lombok.extern.slf4j.Slf4j;
@@ -355,7 +356,7 @@ public class CachingKeyConfImplTest {
         }
 
         @Override
-        protected AuthKeyInfo getAuthKeyInfo() throws Exception {
+        protected AuthKeyInfo getAuthKeyInfo(SecurityServerId serverId) throws Exception {
             dataRefreshes.incrementAndGet();
             delay(cacheReadDelayMs);
             return new AuthKeyInfo(null, null, null) {
