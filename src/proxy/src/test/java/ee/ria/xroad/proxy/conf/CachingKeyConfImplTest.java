@@ -22,11 +22,14 @@
  */
 package ee.ria.xroad.proxy.conf;
 
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.FileContentChangeChecker;
+import ee.ria.xroad.proxy.testsuite.EmptyServerConf;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
@@ -65,6 +68,15 @@ public class CachingKeyConfImplTest {
     public static final int NO_LOOPING = 1;
     public static final int NO_DELAY = 0;
 
+    @Before
+    public void before() {
+        ServerConf.reload(new EmptyServerConf() {
+            @Override
+            public SecurityServerId getIdentifier() {
+                return SecurityServerId.create("TEST", "CLASS", "CODE", "SERVER");
+            }
+        });
+    }
 
     @Test(timeout = 5000)
     public void testSigningInfoReads() throws Exception {
