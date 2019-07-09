@@ -3456,10 +3456,11 @@ components:
         - description
       properties:
         id:
-          type: integer
-          format: int64
+          type: string
+          format: text
           description: unique identifier
           example: 123
+          readOnly: true
         code:
           type: string
           format: text
