@@ -136,7 +136,7 @@ Description: X-Road central cluster scripts
 Package: xroad-securityserver-fi
 Conflicts: xroad-centralserver
 Architecture: all
-Depends: xroad-securityserver (=${binary:Version})
+Depends: xroad-securityserver (=${binary:Version}), xroad-addon-opmonitoring (=${binary:Version})
 Description: X-Road security server with Finnish settings
  This is meta-package of X-Road security server with Finnish settings.
 
