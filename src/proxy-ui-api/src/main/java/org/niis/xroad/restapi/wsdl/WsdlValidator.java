@@ -109,8 +109,13 @@ public final class WsdlValidator {
         try {
             exitCode = process.waitFor();
         } catch (InterruptedException e) {
+            // we don't want to throw the InterruptedException from here but we want to retain the interrupted status
+            Thread.currentThread().interrupt();
             throw new WsdlValidationException(e,
                     createValidationWarningMap(WSDL_VALIDATOR_NOT_EXECUTABLE, e.getCause().getMessage()));
+        } finally {
+            // always destroy the process
+            process.destroy();
         }
 
         // if the validator program fails we attach the validator's output into the exception
