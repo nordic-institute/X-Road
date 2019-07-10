@@ -100,6 +100,7 @@ public final class WsdlValidator {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             br.lines().forEach(processOutput::add);
         } catch (IOException e) {
+            process.destroy();
             throw new WsdlValidationException(e,
                     createValidationWarningMap(WSDL_VALIDATOR_NOT_EXECUTABLE, e.getCause().getMessage()));
         }
