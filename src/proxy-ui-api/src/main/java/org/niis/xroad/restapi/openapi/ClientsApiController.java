@@ -43,11 +43,13 @@ import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
+import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
 import org.niis.xroad.restapi.openapi.model.Group;
-import org.niis.xroad.restapi.openapi.model.InlineObject;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
+import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUrl;
 import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.GroupService;
+import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -82,6 +84,7 @@ public class ClientsApiController implements ClientsApi {
     private final TokenService tokenService;
     private final CertificateDetailsConverter certificateDetailsConverter;
     private final ServiceDescriptionConverter serviceDescriptionConverter;
+    private final ServiceDescriptionService serviceDescriptionService;
 
     /**
      * ClientsApiController constructor
@@ -92,13 +95,15 @@ public class ClientsApiController implements ClientsApi {
      * @param groupConverter
      * @param groupsService
      * @param serviceDescriptionConverter
+     * @param serviceDescriptionService
      */
 
     @Autowired
     public ClientsApiController(NativeWebRequest request, ClientService clientService, TokenService tokenService,
             ClientConverter clientConverter, GroupConverter groupConverter, GroupService groupsService,
             CertificateDetailsConverter certificateDetailsConverter,
-            ServiceDescriptionConverter serviceDescriptionConverter) {
+            ServiceDescriptionConverter serviceDescriptionConverter,
+            ServiceDescriptionService serviceDescriptionService) {
         this.request = request;
         this.clientService = clientService;
         this.tokenService = tokenService;
@@ -107,6 +112,7 @@ public class ClientsApiController implements ClientsApi {
         this.groupsService = groupsService;
         this.certificateDetailsConverter = certificateDetailsConverter;
         this.serviceDescriptionConverter = serviceDescriptionConverter;
+        this.serviceDescriptionService = serviceDescriptionService;
     }
 
     /**
@@ -143,9 +149,9 @@ public class ClientsApiController implements ClientsApi {
      * Read one client from DB
      * @param encodedId id that is encoded with the <INSTANCE>:<MEMBER_CLASS>:....
      * encoding
-     * @throws NotFoundException if client does not exist
-     * @throws BadRequestException if encodedId was not proper encoded client ID
      * @return
+     * @throws NotFoundException   if client does not exist
+     * @throws BadRequestException if encodedId was not proper encoded client ID
      */
     private ClientType getClientType(String encodedId) {
         ClientId clientId = clientConverter.convertId(encodedId);
@@ -171,20 +177,19 @@ public class ClientsApiController implements ClientsApi {
         }
     }
 
-
     /**
      * Update a client's connection type
      * @param encodedId
-     * @param inlineObject wrapper object containing the connection type to set
+     * @param connectionTypeWrapper wrapper object containing the connection type to set
      * @return
      */
     @PreAuthorize("hasAuthority('EDIT_CLIENT_INTERNAL_CONNECTION_TYPE')")
     @Override
-    public ResponseEntity<Client> updateClient(String encodedId, InlineObject inlineObject) {
-        if (inlineObject == null || inlineObject.getConnectionType() == null) {
+    public ResponseEntity<Client> updateClient(String encodedId, ConnectionTypeWrapper connectionTypeWrapper) {
+        if (connectionTypeWrapper == null || connectionTypeWrapper.getConnectionType() == null) {
             throw new InvalidParametersException();
         }
-        ConnectionType connectionType = inlineObject.getConnectionType();
+        ConnectionType connectionType = connectionTypeWrapper.getConnectionType();
         ClientId clientId = clientConverter.convertId(encodedId);
         String connectionTypeString = ConnectionTypeMapping.map(connectionType).get();
         ClientType changed = clientService.updateConnectionType(clientId, connectionTypeString);
@@ -273,5 +278,14 @@ public class ClientsApiController implements ClientsApi {
         List<ServiceDescription> serviceDescriptions = serviceDescriptionConverter.convert(
                 clientType.getServiceDescription());
         return new ResponseEntity<>(serviceDescriptions, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('ADD_WSDL')")
+    public ResponseEntity<Void> addClientServiceDescription(String id, Boolean ignoreWarnings,
+            ServiceDescriptionUrl serviceDescriptionUrl) {
+        serviceDescriptionService.addWsdlServiceDescription(clientConverter.convertId(id),
+                serviceDescriptionUrl.getUrl(), ignoreWarnings);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

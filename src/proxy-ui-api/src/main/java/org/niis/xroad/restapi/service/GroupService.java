@@ -79,8 +79,8 @@ public class GroupService {
      * @return LocalGroupType
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
-    public LocalGroupType getLocalGroup(String groupId) {
-        return groupsRepository.getLocalGroup(Long.parseLong(groupId));
+    public LocalGroupType getLocalGroup(Long groupId) {
+        return groupsRepository.getLocalGroup(groupId);
     }
 
     /**
@@ -88,7 +88,7 @@ public class GroupService {
      * @return LocalGroupType
      */
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_DESC')")
-    public LocalGroupType updateDescription(String groupId, String description) {
+    public LocalGroupType updateDescription(Long groupId, String description) {
         LocalGroupType localGroupType = getLocalGroup(groupId);
         if (localGroupType == null) {
             throw new NotFoundException("LocalGroup with id " + groupId + " not found");
@@ -128,7 +128,7 @@ public class GroupService {
      * @param memberIds
      */
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
-    public void addLocalGroupMembers(String groupId, List<ClientId> memberIds) {
+    public void addLocalGroupMembers(Long groupId, List<ClientId> memberIds) {
         LocalGroupType localGroupType = getLocalGroup(groupId);
         if (localGroupType == null) {
             throw new NotFoundException("LocalGroup with id " + groupId + " not found");
@@ -161,7 +161,7 @@ public class GroupService {
      * @param groupId
      */
     @PreAuthorize("hasAuthority('DELETE_LOCAL_GROUP')")
-    public void deleteLocalGroup(String groupId) {
+    public void deleteLocalGroup(Long groupId) {
         LocalGroupType existingLocalGroupType = getLocalGroup(groupId);
         if (existingLocalGroupType == null) {
             throw new NotFoundException("LocalGroup with id " + groupId + " not found");

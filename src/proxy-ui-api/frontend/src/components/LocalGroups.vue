@@ -101,7 +101,7 @@ export default Vue.extend({
     viewGroup(group: any): void {
       this.$router.push({
         name: RouteName.LocalGroup,
-        params: { clientId: this.id, groupId: group.id },
+        params: { clientId: this.id, groupId: group.id.toString() },
       });
     },
 

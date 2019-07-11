@@ -25,11 +25,16 @@
 package org.niis.xroad.restapi.exceptions;
 
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
+import org.niis.xroad.restapi.openapi.model.Warning;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.ResponseStatus;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Translate exceptions to ResponseEntities
@@ -42,6 +47,7 @@ public class ExceptionTranslator {
      * Use provided status or override it with value from
      * Exception's ResponseStatus annotation if one exists
      * @param e
+     * @param defaultStatus
      * @return
      */
     public ResponseEntity<ErrorInfo> toResponseEntity(Exception e, HttpStatus defaultStatus) {
@@ -57,6 +63,19 @@ public class ExceptionTranslator {
         if (e instanceof ErrorCodedException) {
             ErrorCodedException errorCodedException = (ErrorCodedException) e;
             errorDto.setErrorCode(errorCodedException.getErrorCode());
+            // add warnings if they exist
+            Map<String, List<String>> warningMap = errorCodedException.getWarningMap();
+            if (warningMap != null) {
+                List<Warning> warnings = warningMap.entrySet()
+                        .stream()
+                        .map(entry -> {
+                            Warning warning = new Warning().code(entry.getKey());
+                            entry.getValue().forEach(warning::addMetadataItem);
+                            return warning;
+                        })
+                        .collect(Collectors.toList());
+                errorDto.setWarnings(warnings);
+            }
         }
         return new ResponseEntity<ErrorInfo>(errorDto, status);
     }

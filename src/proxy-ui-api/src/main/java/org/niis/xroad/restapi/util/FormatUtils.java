@@ -24,6 +24,16 @@
  */
 package org.niis.xroad.restapi.util;
 
+import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
+
+import org.apache.commons.lang.StringUtils;
+import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.wsdl.WsdlParser;
+
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
@@ -44,5 +54,65 @@ public final class FormatUtils {
      */
     public static OffsetDateTime fromDateToOffsetDateTime(Date date) {
         return date.toInstant().atOffset(ZoneOffset.UTC);
+    }
+
+    /**
+     * @param url
+     * @return true or false depending on the validity of the provided url
+     */
+    public static boolean isValidUrl(String url) {
+        try {
+            URL wsdlUrl = new URL(url);
+            URI uri = wsdlUrl.toURI();
+            uri.parseServerAuthority();
+        } catch (MalformedURLException | URISyntaxException e) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Get the full service name (e.g. myService.v1) from ServiceType object
+     * @param serviceType
+     * @return full service name as String
+     */
+    public static String getServiceFullName(ServiceType serviceType) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(serviceType.getServiceCode());
+        if (!StringUtils.isEmpty(serviceType.getServiceVersion())) {
+            sb.append(".").append(serviceType.getServiceVersion());
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Get the full service name (e.g. myService.v1) from WsdlParser.ServiceInfo object
+     * @param serviceInfo
+     * @return full service name as String
+     */
+    public static String getServiceFullName(WsdlParser.ServiceInfo serviceInfo) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(serviceInfo.name);
+        if (!StringUtils.isEmpty(serviceInfo.version)) {
+            sb.append(".").append(serviceInfo.version);
+        }
+        return sb.toString();
+    }
+
+    /**
+     * in case of NumberFormatException we throw NotFoundException. Client should not
+     * know about id parameter details, such as "it should be numeric" -
+     * the resource with given id just cant be found, and that's all there is to it
+     * @param id as String
+     * @return id as Long
+     */
+    public static Long parseLongIdOrThrowNotFound(String id) throws NotFoundException {
+        Long groupId = null;
+        try {
+            groupId = Long.valueOf(id);
+        } catch (NumberFormatException nfe) {
+            throw new NotFoundException(nfe);
+        }
+        return groupId;
     }
 }

@@ -25,12 +25,9 @@
 package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.exceptions.NotFoundException;
-import org.niis.xroad.restapi.openapi.model.InlineObject10;
-import org.niis.xroad.restapi.openapi.model.InlineObject9;
-import org.niis.xroad.restapi.openapi.model.Service;
-import org.niis.xroad.restapi.openapi.model.ServiceDescription;
+import org.niis.xroad.restapi.openapi.model.ServiceDescriptionDisabledNotice;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,7 +37,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.context.request.NativeWebRequest;
 
 import java.util.Collections;
-import java.util.List;
 
 /**
  * clients api
@@ -69,34 +65,20 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     @Override
     @PreAuthorize("hasAuthority('ENABLE_DISABLE_WSDL')")
     public ResponseEntity<Void> enableServiceDescription(String id) {
-        Long serviceDescriptionId = parseServiceDescriptionId(id);
+        Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
         serviceDescriptionService.enableServices(Collections.singletonList(serviceDescriptionId));
         return new ResponseEntity<Void>(HttpStatus.OK);
     }
 
-    /**
-     * in case of NumberFormatException we throw NotFoundException. Client should not
-     * know about id parameter details, such as "it should be numeric" -
-     * the resource with given id just cant be found, and that's all there is to it
-     */
-    private Long parseServiceDescriptionId(String id) {
-        Long serviceDescriptionId = null;
-        try {
-            serviceDescriptionId = Long.valueOf(id);
-        } catch (NumberFormatException nfe) {
-            throw new NotFoundException(nfe);
-        }
-        return serviceDescriptionId;
-    }
-
     @Override
     @PreAuthorize("hasAuthority('ENABLE_DISABLE_WSDL')")
-    public ResponseEntity<Void> disableServiceDescription(String id, InlineObject10 inlineObject9) {
+    public ResponseEntity<Void> disableServiceDescription(String id,
+            ServiceDescriptionDisabledNotice serviceDescriptionDisabledNotice) {
         String disabledNotice = null;
-        if (inlineObject9 != null) {
-            disabledNotice = inlineObject9.getDisabledNotice();
+        if (serviceDescriptionDisabledNotice != null) {
+            disabledNotice = serviceDescriptionDisabledNotice.getDisabledNotice();
         }
-        Long serviceDescriptionId = parseServiceDescriptionId(id);
+        Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
         serviceDescriptionService.disableServices(Collections.singletonList(serviceDescriptionId),
                 disabledNotice);
         return new ResponseEntity<Void>(HttpStatus.OK);
@@ -105,24 +87,8 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     @Override
     @PreAuthorize("hasAuthority('DELETE_WSDL')")
     public ResponseEntity<Void> deleteServiceDescription(String id) {
-        Long serviceDescriptionId = parseServiceDescriptionId(id);
+        Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
         serviceDescriptionService.deleteServiceDescription(serviceDescriptionId);
         return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
-    }
-
-    @Override
-    public ResponseEntity<List<Service>> getServiceDescriptionServices(String id) {
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<ServiceDescription> refreshServiceDescription(String id, Boolean ignoreWarnings) {
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<ServiceDescription> updateServiceDescription(String id, Boolean ignoreWarnings,
-            InlineObject9 inlineObject9) {
-        return null;
     }
 }

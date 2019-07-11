@@ -1,3 +1,4 @@
+---
 openapi: 3.0.0
 servers:
   - description: X-Road API Design
@@ -594,6 +595,7 @@ paths:
         content:
           application/json:
             schema:
+              title: ConnectionTypeWrapper
               type: object
               description: connection type
               properties:
@@ -818,6 +820,7 @@ paths:
         content:
           application/json:
             schema:
+              title: ServiceClientId
               type: object
               properties:
                 id:
@@ -1147,14 +1150,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                url:
-                  type: string
-                  format: text
-                  description: path for the service description file
-                  minLength: 1
-                  maxLength: 255
+              $ref: '#/components/schemas/ServiceDescriptionUrl'
       responses:
         '201':
           description: service description created
@@ -1309,16 +1305,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                items:
-                  type: array
-                  description: array of members to be added
-                  items:
-                    type: string
-                    format: text
-                    minLength: 1
-                    maxLength: 1023
+              $ref: '#/components/schemas/Members'
       responses:
         '201':
           description: new members added
@@ -1357,16 +1344,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                items:
-                  type: array
-                  description: array of members to be deleted
-                  items:
-                    type: string
-                    format: text
-                    minLength: 1
-                    maxLength: 255
+              $ref: '#/components/schemas/Members'
       responses:
         '201':
           description: members deleted
@@ -1743,6 +1721,41 @@ paths:
         '500':
           description: internal server error
   /services/{id}:
+    get: # ok
+      tags:
+        - security server
+      summary: get service
+      operationId: getService
+      description: Administrator views selected service.
+      parameters:
+        - in: path
+          name: id
+          description: id of the service
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
     put: # ok
       tags:
         - security server
@@ -1906,14 +1919,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                items:
-                  type: array
-                  uniqueItems: true
-                  description: array of subject ids to add for the access right
-                  items:
-                    $ref: '#/components/schemas/Subject'
+              $ref: '#/components/schemas/Subjects'
       responses:
         '201':
           description: access rights added
@@ -1952,13 +1958,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                items:
-                  type: array
-                  description: items to be deleted
-                  items:
-                    $ref: '#/components/schemas/Subject'
+              $ref: '#/components/schemas/Subjects'
       responses:
         '204':
           description: access right(s) deletion was successful
@@ -2032,14 +2032,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                items:
-                  type: array
-                  uniqueItems: true
-                  description: array of subject ids to add for the access right
-                  items:
-                    $ref: '#/components/schemas/Subject'
+              $ref: '#/components/schemas/Subjects'
       responses:
         '201':
           description: access right(s) added
@@ -2079,12 +2072,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                items:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Subject'
+              $ref: '#/components/schemas/Subjects'
       responses:
         '201':
           description: access right(s) deleted
@@ -2102,7 +2090,42 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /service-descriptions/{sd_id}:
+  /service-descriptions/{id}:
+    get: # ok
+      tags:
+        - security server
+      summary: get service description with provided id
+      operationId: getServiceDescription
+      description: Administrator views a service description with a certain id.
+      parameters:
+        - in: path
+          name: id
+          description: id of the service description
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '200':
+          description: wanted service description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceDescription'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
     put: # ok
       tags:
         - security server
@@ -2111,7 +2134,7 @@ paths:
       description: Administrator updates the selected service description.
       parameters:
         - in: path
-          name: sd_id
+          name: id
           description: id of the service description
           required: true
           schema:
@@ -2131,14 +2154,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                url:
-                  type: string
-                  format: text
-                  description: path for the service description file
-                  minLength: 1
-                  maxLength: 255
+              $ref: '#/components/schemas/ServiceDescriptionUrl'
       responses:
         '200':
           description: service description modified
@@ -2173,7 +2189,7 @@ paths:
       description: Administrator deletes the service description.
       parameters:
         - in: path
-          name: sd_id
+          name: id
           description: id of the service description
           required: true
           schema:
@@ -2194,7 +2210,7 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
-  /service-descriptions/{sd_id}/disable:
+  /service-descriptions/{id}/disable:
     put: # ok
       tags:
         - security server
@@ -2203,7 +2219,7 @@ paths:
       description: Administrator disables service description.
       parameters:
         - in: path
-          name: sd_id
+          name: id
           description: id of the service description
           required: true
           schema:
@@ -2216,6 +2232,7 @@ paths:
         content:
           application/json:
             schema:
+              title: ServiceDescriptionDisabledNotice
               type: object
               properties:
                 disabled_notice:
@@ -2239,7 +2256,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /service-descriptions/{sd_id}/enable:
+  /service-descriptions/{id}/enable:
     put: # ok
       tags:
         - security server
@@ -2248,7 +2265,7 @@ paths:
       description: Administrator enables service description.
       parameters:
         - in: path
-          name: sd_id
+          name: id
           description: id of the service description
           required: true
           schema:
@@ -2271,7 +2288,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /service-descriptions/{sd_id}/refresh:
+  /service-descriptions/{id}/refresh:
     put: # ok
       tags:
         - security server
@@ -2280,7 +2297,7 @@ paths:
       description: Administrator refreshes service description.
       parameters:
         - in: path
-          name: sd_id
+          name: id
           description: id of the service description
           required: true
           schema:
@@ -2322,7 +2339,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /service-descriptions/{sd_id}/services:
+  /service-descriptions/{id}/services:
     get: # ok
       tags:
         - security server
@@ -2331,7 +2348,7 @@ paths:
       description: Administrator views the services for the selected service description.
       parameters:
         - in: path
-          name: sd_id
+          name: id
           description: id of the service description
           required: true
           schema:
@@ -2851,6 +2868,7 @@ paths:
         content:
           application/json:
             schema:
+              title: KeyLabel
               type: object
               properties:
                 label:
@@ -2957,7 +2975,7 @@ components:
       in: header
       name: Authorization
       description: X-Road-ApiKey token=<api key>
-      #https://github.com/nordic-institute/X-Road-REST-UI/blob/XRDDEV-237/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#1911-creating-new-api-keys
+      # https://github.com/nordic-institute/X-Road-REST-UI/blob/XRDDEV-237/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#1911-creating-new-api-keys
   schemas:
     AccessRight: # ok
       type: object
@@ -3043,12 +3061,12 @@ components:
       type: object
       description: certificate
       required:
-      - issuer_common_name
-      - not_after
-      - ocsp_status
-      - client_id
-      - hash
-      - status
+        - issuer_common_name
+        - not_after
+        - ocsp_status
+        - client_id
+        - hash
+        - status
       properties:
         issuer_common_name:
           type: string
@@ -3086,22 +3104,22 @@ components:
       type: object
       description: certificate details
       required:
-      - issuer_distinguished_name
-      - issuer_common_name
-      - subject_distinguished_name
-      - subject_common_name
-      - not_before
-      - not_after
-      - serial
-      - version
-      - signature_algorithm
-      - signature
-      - public_key_algorithm
-      - rsa_public_key_modulus
-      - rsa_public_key_exponent
-      - hash
-      - key_usages
-      - status
+        - issuer_distinguished_name
+        - issuer_common_name
+        - subject_distinguished_name
+        - subject_common_name
+        - not_before
+        - not_after
+        - serial
+        - version
+        - signature_algorithm
+        - signature
+        - public_key_algorithm
+        - rsa_public_key_modulus
+        - rsa_public_key_exponent
+        - hash
+        - key_usages
+        - status
       properties:
         issuer_distinguished_name:
           type: string
@@ -3389,10 +3407,11 @@ components:
         - description
       properties:
         id:
-          type: integer
-          format: int64
+          type: string
+          format: text
           description: unique identifier
           example: 123
+          readOnly: true
         code:
           type: string
           format: text
@@ -3552,6 +3571,18 @@ components:
           minLength: 2
           maxLength: 2
           readOnly: true
+    Members: # ok
+      type: object
+      description: request object containing an array of member ids
+      properties:
+        items:
+          type: array
+          description: array of members to be added
+          items:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
     OcspResponders: # ok
       type: object
       description: ocsp responce
@@ -3606,6 +3637,16 @@ components:
           format: text
           description: <instance_id>:<member_class>:<member_code>:<security_server_code>
           example: FI:GOV:123:sserver1
+    ServiceDescriptionUrl:
+      type: object
+      description: request object containing service description url
+      properties:
+        url:
+          type: string
+          format: text
+          description: path for the service description file
+          minLength: 1
+          maxLength: 255
     Service: # ok
       type: object
       description: service for the service description
@@ -3759,6 +3800,16 @@ components:
           description: subject id
           example: 123
           readOnly: true
+    Subjects:
+      type: object
+      description: object containing and array of subject ids
+      properties:
+        items:
+          type: array
+          uniqueItems: true
+          description: array of subject ids
+          items:
+            $ref: '#/components/schemas/Subject'
     System: # ok
       type: object
       description: system parameters
@@ -3836,7 +3887,7 @@ components:
       type: string
       format: enum
       description: timestamping status
-      example:  SUCCESS
+      example: SUCCESS
       enum:
         - SUCCESS # Everything ok
         - ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT # Connection to the timestamp server timed out. Check the network connection to the timestamp server.

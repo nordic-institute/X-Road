@@ -35,8 +35,7 @@ import org.niis.xroad.restapi.converter.GlobalConfWrapper;
 import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.Group;
-import org.niis.xroad.restapi.openapi.model.InlineObject3;
-import org.niis.xroad.restapi.openapi.model.InlineObject4;
+import org.niis.xroad.restapi.openapi.model.Members;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -53,6 +52,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -67,6 +67,7 @@ import static org.mockito.Mockito.when;
 @Slf4j
 public class GroupsApiControllerIntegrationTest {
     private static final String GROUP_ID = "1";
+    private static final String INVALID_GROUP_ID = "NOT_VALID";
     public static final String CLIENT_ID_SS1 = "FI:GOV:M1:SS1";
     public static final String CLIENT_ID_SS2 = "FI:GOV:M1:SS2";
     public static final String GROUP_DESC = "GROUP_DESC";
@@ -112,6 +113,12 @@ public class GroupsApiControllerIntegrationTest {
         ResponseEntity<Group> response =
                 groupsApiController.getGroup(GROUP_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        try {
+            groupsApiController.getGroup(INVALID_GROUP_ID);
+            fail("should throw NotFoundException");
+        } catch (NotFoundException expected) {
+            // nothing should be found
+        }
     }
 
     @Test
@@ -132,6 +139,7 @@ public class GroupsApiControllerIntegrationTest {
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         try {
             groupsApiController.getGroup(GROUP_ID);
+            fail("should throw NotFoundException");
         } catch (NotFoundException expected) {
             // success
         }
@@ -141,11 +149,10 @@ public class GroupsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_CLIENTS", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_MEMBERS" })
     public void addGroupMember() throws Exception {
         ResponseEntity<Void> response =
-                groupsApiController.addGroupMember(GROUP_ID, new InlineObject3()
-                        .items(Collections.singletonList(CLIENT_ID_SS2)));
+                groupsApiController.addGroupMember(GROUP_ID,
+                        new Members().items(Collections.singletonList(CLIENT_ID_SS2)));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        ResponseEntity<Group> localGroupResponse =
-                groupsApiController.getGroup(GROUP_ID);
+        ResponseEntity<Group> localGroupResponse = groupsApiController.getGroup(GROUP_ID);
         assertEquals(1, localGroupResponse.getBody().getMembers().size());
     }
 
@@ -153,12 +160,10 @@ public class GroupsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_CLIENTS", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_MEMBERS" })
     public void addMultipleGroupMembers() throws Exception {
         List<String> membersToBeAdded = Arrays.asList(CLIENT_ID_SS1, CLIENT_ID_SS2, CLIENT_ID_SS1, CLIENT_ID_SS2);
-        ResponseEntity<Void> response =
-                groupsApiController.addGroupMember(GROUP_ID, new InlineObject3()
-                        .items(membersToBeAdded));
+        ResponseEntity<Void> response = groupsApiController.addGroupMember(GROUP_ID,
+                new Members().items(membersToBeAdded));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        ResponseEntity<Group> localGroupResponse =
-                groupsApiController.getGroup(GROUP_ID);
+        ResponseEntity<Group> localGroupResponse = groupsApiController.getGroup(GROUP_ID);
         assertEquals(2, localGroupResponse.getBody().getMembers().size());
     }
 
@@ -166,16 +171,15 @@ public class GroupsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_CLIENTS", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_MEMBERS" })
     public void addDuplicateGroupMember() throws Exception {
         List<String> membersToBeAdded = Arrays.asList(CLIENT_ID_SS1, CLIENT_ID_SS2);
-        ResponseEntity<Void> response =
-                groupsApiController.addGroupMember(GROUP_ID, new InlineObject3()
-                        .items(membersToBeAdded));
+        ResponseEntity<Void> response = groupsApiController.addGroupMember(GROUP_ID,
+                new Members().items(membersToBeAdded));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        ResponseEntity<Group> localGroupResponse =
-                groupsApiController.getGroup(GROUP_ID);
+        ResponseEntity<Group> localGroupResponse = groupsApiController.getGroup(GROUP_ID);
         assertEquals(2, localGroupResponse.getBody().getMembers().size());
         try {
             groupsApiController.addGroupMember(GROUP_ID,
-                    new InlineObject3().items(Collections.singletonList(CLIENT_ID_SS2)));
+                    new Members().items(Collections.singletonList(CLIENT_ID_SS2)));
+            fail("should throw ConflictException");
         } catch (ConflictException expected) {
             // expected exception
         }
@@ -185,15 +189,13 @@ public class GroupsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_CLIENTS", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_MEMBERS" })
     public void deleteGroupMember() throws Exception {
         ResponseEntity<Void> response =
-                groupsApiController.addGroupMember(GROUP_ID, new InlineObject3()
+                groupsApiController.addGroupMember(GROUP_ID, new Members()
                         .items(Collections.singletonList(CLIENT_ID_SS2)));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        ResponseEntity<Void> deleteResponse =
-                groupsApiController.deleteGroupMember(GROUP_ID,
-                        new InlineObject4().items(Collections.singletonList(CLIENT_ID_SS2)));
+        ResponseEntity<Void> deleteResponse = groupsApiController.deleteGroupMember(GROUP_ID,
+                        new Members().items(Collections.singletonList(CLIENT_ID_SS2)));
         assertEquals(HttpStatus.CREATED, deleteResponse.getStatusCode());
-        ResponseEntity<Group> localGroupResponse =
-                groupsApiController.getGroup(GROUP_ID);
+        ResponseEntity<Group> localGroupResponse = groupsApiController.getGroup(GROUP_ID);
         assertEquals(0, localGroupResponse.getBody().getMembers().size());
     }
 }

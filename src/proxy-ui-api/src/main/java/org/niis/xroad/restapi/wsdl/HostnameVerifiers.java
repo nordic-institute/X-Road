@@ -22,41 +22,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.wsdl;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-import java.util.List;
-import java.util.Map;
+import javax.net.ssl.HostnameVerifier;
 
 /**
- * Thrown if client sent bad request.
- * Results in http 400 BAD_REQUEST
+ * Static class for pre-defined HostnameVerifiers
  */
-@ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class BadRequestException extends ErrorCodedRuntimeException {
-    public BadRequestException() {
-    }
+@SuppressWarnings("squid:S3510")
+public final class HostnameVerifiers {
 
-    public BadRequestException(String msg) {
-        super(msg);
-    }
+    public static final HostnameVerifier ACCEPT_ALL = (hostname, session) -> true;
 
-    public BadRequestException(String msg, ErrorCode errorCode) {
-        super(msg, errorCode);
-    }
-
-    public BadRequestException(String msg, Throwable t, ErrorCode errorCode) {
-        super(msg, t, errorCode);
-    }
-
-    public BadRequestException(Throwable t, ErrorCode errorCode,  Map<String, List<String>> warningMap) {
-        super(t, errorCode, warningMap);
-    }
-
-    public BadRequestException(Throwable t, ErrorCode errorCode) {
-        super(t, errorCode);
-    }
-
+    private HostnameVerifiers() { }
 }

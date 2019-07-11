@@ -24,16 +24,25 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * RuntimeException that (possibly) carries error code
  */
 public class ErrorCodedRuntimeException extends RuntimeException implements ErrorCodedException {
 
     private String errorCode;
+    private Map<String, List<String>> warningMap;
 
     @Override
     public String getErrorCode() {
         return errorCode;
+    }
+
+    @Override
+    public Map<String, List<String>> getWarningMap() {
+        return warningMap;
     }
 
     public ErrorCodedRuntimeException() {
@@ -41,10 +50,6 @@ public class ErrorCodedRuntimeException extends RuntimeException implements Erro
 
     public ErrorCodedRuntimeException(String msg) {
         super(msg);
-    }
-
-    public ErrorCodedRuntimeException(ErrorCode errorCode) {
-        this.errorCode = errorCode.getValue();
     }
 
     public ErrorCodedRuntimeException(String msg, ErrorCode errorCode) {
@@ -56,9 +61,23 @@ public class ErrorCodedRuntimeException extends RuntimeException implements Erro
         super(msg, t);
     }
 
+    public ErrorCodedRuntimeException(String msg, Map<String, List<String>> warningMap) {
+        super(msg);
+        this.warningMap = warningMap;
+    }
+
     public ErrorCodedRuntimeException(String msg, Throwable t, ErrorCode errorCode) {
         super(msg, t);
         this.errorCode = errorCode.getValue();
+    }
+
+    public ErrorCodedRuntimeException(ErrorCode errorCode) {
+        this.errorCode = errorCode.getValue();
+    }
+
+    public ErrorCodedRuntimeException(ErrorCode errorCode, Map<String, List<String>> warningMap) {
+        this.errorCode = errorCode.getValue();
+        this.warningMap = warningMap;
     }
 
     public ErrorCodedRuntimeException(Throwable t) {
@@ -68,6 +87,26 @@ public class ErrorCodedRuntimeException extends RuntimeException implements Erro
     public ErrorCodedRuntimeException(Throwable t, ErrorCode errorCode) {
         super(t);
         this.errorCode = errorCode.getValue();
+    }
+
+    public ErrorCodedRuntimeException(Throwable throwable, Map<String, List<String>> warningMap) {
+        super(throwable);
+        this.warningMap = warningMap;
+    }
+
+    /**
+     * @param t
+     * @param errorCode
+     * @param warningMap
+     */
+    public ErrorCodedRuntimeException(Throwable t, ErrorCode errorCode, Map<String, List<String>> warningMap) {
+        super(t);
+        this.warningMap = warningMap;
+        this.errorCode = errorCode.getValue();
+    }
+
+    public ErrorCodedRuntimeException(Map<String, List<String>> warningMap) {
+        this.warningMap = warningMap;
     }
 
 }
