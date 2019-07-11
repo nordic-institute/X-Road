@@ -97,13 +97,18 @@
     "yes": "Yes",
     "removeTitle": "Remove member?",
     "removeText": "Are you sure that you want to remove this member?",
+    "removeAllTitle": "Remove all members?",
+    "removeAllText": "Are you sure that you want to remove all members of this group?",
     "descSaved": "Description saved",
     "groupDeleted": "Group deleted",
     "description": "Description",
     "add": "Add",
     "code": "Code",
     "addLocalGroup": "Add Local Group",
-    "localGroupAdded": "Local group added"
+    "localGroupAdded": "Local group added",
+    "searchOptions": "Search options",
+    "addSelected": "Add selected",
+    "noResults": "Your search found no results."
   },
   "action": {
     "addSubsystem": "add subsystem",
@@ -128,5 +133,10 @@
   "logout": {
     "idleWarning": "You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.",
     "sessionExpired": "Session expired"
-  }
+  },
+  "name": "Name",
+  "member_class": "Member class",
+  "member_name": "Member name",
+  "member_code": "Member code",
+  "subsystem_code": "Subsystem code"
 }

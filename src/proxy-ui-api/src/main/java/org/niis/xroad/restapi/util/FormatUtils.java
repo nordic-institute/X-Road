@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.util;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 
 import org.apache.commons.lang.StringUtils;
+import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
 
 import java.net.MalformedURLException;
@@ -96,5 +97,22 @@ public final class FormatUtils {
             sb.append(".").append(serviceInfo.version);
         }
         return sb.toString();
+    }
+
+    /**
+     * in case of NumberFormatException we throw NotFoundException. Client should not
+     * know about id parameter details, such as "it should be numeric" -
+     * the resource with given id just cant be found, and that's all there is to it
+     * @param id as String
+     * @return id as Long
+     */
+    public static Long parseLongIdOrThrowNotFound(String id) throws NotFoundException {
+        Long groupId = null;
+        try {
+            groupId = Long.valueOf(id);
+        } catch (NumberFormatException nfe) {
+            throw new NotFoundException(nfe);
+        }
+        return groupId;
     }
 }
