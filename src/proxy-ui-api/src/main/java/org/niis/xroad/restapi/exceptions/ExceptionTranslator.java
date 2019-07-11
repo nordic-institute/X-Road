@@ -66,11 +66,11 @@ public class ExceptionTranslator {
             // add warnings if they exist
             Map<String, List<String>> warningMap = errorCodedException.getWarningMap();
             if (warningMap != null) {
-                List<Warning> warnings = errorCodedException.getWarningMap().keySet()
+                List<Warning> warnings = warningMap.entrySet()
                         .stream()
-                        .map(key -> {
-                            Warning warning = new Warning().code(key);
-                            warningMap.get(key).forEach(warning::addMetadataItem);
+                        .map(entry -> {
+                            Warning warning = new Warning().code(entry.getKey());
+                            entry.getValue().forEach(warning::addMetadataItem);
                             return warning;
                         })
                         .collect(Collectors.toList());

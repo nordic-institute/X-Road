@@ -27,8 +27,8 @@ describe('Toolbar', () => {
       localVue,
       router,
       mocks: {
-        $t: () => 'localized text'
-      }
+        $t: () => 'localized text',
+      },
     });
   });
 

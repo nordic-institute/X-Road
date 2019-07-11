@@ -154,6 +154,19 @@ public class ServiceDescriptionService {
     }
 
     /**
+     * Delete one ServiceDescription
+     * @throws NotFoundException if serviceDescriptions with given id was not found
+     */
+    @PreAuthorize("hasAuthority('DELETE_WSDL')")
+    public void deleteServiceDescription(Long id) {
+        ServiceDescriptionType serviceDescriptionType = serviceDescriptionRepository.getServiceDescription(id);
+        if (serviceDescriptionType == null) {
+            throw new NotFoundException("Service description with id " + id + " not found");
+        }
+        serviceDescriptionRepository.delete(serviceDescriptionType);
+    }
+
+    /**
      * Add a new WSDL ServiceDescription
      * @param clientId
      * @param url

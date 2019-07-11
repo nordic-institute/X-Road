@@ -208,7 +208,7 @@ export const actions: ActionTree<ClientState, RootState> = {
   saveConnectionType({ commit, state }, { clientId, connType }) {
 
     return axios.patch(`/clients/${clientId}`, {
-      "connection_type": connType
+      connection_type: connType,
     })
       .then((res) => {
 

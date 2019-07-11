@@ -34,6 +34,7 @@ import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.Group;
 import org.niis.xroad.restapi.openapi.model.Members;
 import org.niis.xroad.restapi.service.GroupService;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -74,41 +75,44 @@ public class GroupsApiController implements GroupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
-    public ResponseEntity<Group> getGroup(String groupId) {
-        LocalGroupType localGroupType = getLocalGroupType(groupId);
+    public ResponseEntity<Group> getGroup(String groupIdString) {
+        LocalGroupType localGroupType = getLocalGroupType(groupIdString);
         return new ResponseEntity<>(groupConverter.convert(localGroupType), HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_DESC')")
-    public ResponseEntity<Group> updateGroup(String groupId, String description) {
+    public ResponseEntity<Group> updateGroup(String groupIdString, String description) {
+        Long groupId = FormatUtils.parseLongIdOrThrowNotFound(groupIdString);
         LocalGroupType localGroupType = groupsService.updateDescription(groupId, description);
         return new ResponseEntity<>(groupConverter.convert(localGroupType), HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
-    public ResponseEntity<Void> addGroupMember(String groupId, Members members) {
+    public ResponseEntity<Void> addGroupMember(String groupIdString, Members members) {
         if (members == null || members.getItems() == null || members.getItems().size() < 1) {
             throw new InvalidParametersException("missing member id");
         }
         // remove duplicates
         List<String> uniqueIds = new ArrayList<>(new HashSet<>(members.getItems()));
+        Long groupId = FormatUtils.parseLongIdOrThrowNotFound(groupIdString);
         groupsService.addLocalGroupMembers(groupId, clientConverter.convertIds(uniqueIds));
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @Override
     @PreAuthorize("hasAuthority('DELETE_LOCAL_GROUP')")
-    public ResponseEntity<Void> deleteGroup(String groupId) {
+    public ResponseEntity<Void> deleteGroup(String groupIdString) {
+        Long groupId = FormatUtils.parseLongIdOrThrowNotFound(groupIdString);
         groupsService.deleteLocalGroup(groupId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
-    public ResponseEntity<Void> deleteGroupMember(String groupId, Members members) {
-        LocalGroupType localGroupType = getLocalGroupType(groupId);
+    public ResponseEntity<Void> deleteGroupMember(String groupIdString, Members members) {
+        LocalGroupType localGroupType = getLocalGroupType(groupIdString);
         groupsService.deleteGroupMember(localGroupType, clientConverter.convertIds(members.getItems()));
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
@@ -117,7 +121,8 @@ public class GroupsApiController implements GroupsApi {
      * Read one group from DB, throw NotFoundException or
      * BadRequestException is needed
      */
-    private LocalGroupType getLocalGroupType(String groupId) {
+    private LocalGroupType getLocalGroupType(String groupIdString) {
+        Long groupId = FormatUtils.parseLongIdOrThrowNotFound(groupIdString);
         LocalGroupType localGroupType = groupsService.getLocalGroup(groupId);
         if (localGroupType == null) {
             throw new NotFoundException("LocalGroup with not found");
