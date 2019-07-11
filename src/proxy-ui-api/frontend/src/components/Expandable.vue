@@ -3,15 +3,17 @@
     <div class="header">
       <div>
         <v-btn flat fab small @click="clicked" class="no-hover">
-          <v-icon v-if="isOpen">expand_more</v-icon>
-          <v-icon v-else>chevron_right</v-icon>
+          <div>
+            <v-icon v-if="isOpen" class="button-icon">expand_more</v-icon>
+            <v-icon v-else class="button-icon">chevron_right</v-icon>
+          </div>
         </v-btn>
       </div>
       <div class="header-link">
         <slot name="link"></slot>
       </div>
 
-      <v-spacer/>
+      <v-spacer />
       <div>
         <slot name="action">
           <v-switch class="switch"></v-switch>
@@ -48,7 +50,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" >
+<style lang="scss" scoped >
 .no-hover:hover:before,
 .no-hover:focus:before {
   background-color: transparent;
