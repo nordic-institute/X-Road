@@ -54,6 +54,7 @@ public class ApplicationExceptionHandler {
         log.error("exception caught", e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
     /**
      * handle auth exceptions
      * @param e

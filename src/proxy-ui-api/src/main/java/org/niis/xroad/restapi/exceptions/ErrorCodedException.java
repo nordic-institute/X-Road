@@ -24,6 +24,9 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Exception which (possibly) knows the detailed error code to send in REST API response body
  */
@@ -32,4 +35,9 @@ public interface ErrorCodedException {
      * Return the error code, if any
      */
     String getErrorCode();
+
+    /**
+     * Return warning map if set
+     */
+    Map<String, List<String>> getWarningMap();
 }
