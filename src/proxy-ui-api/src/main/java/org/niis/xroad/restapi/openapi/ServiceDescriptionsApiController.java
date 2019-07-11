@@ -84,4 +84,11 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         return new ResponseEntity<Void>(HttpStatus.OK);
     }
 
+    @Override
+    @PreAuthorize("hasAuthority('DELETE_WSDL')")
+    public ResponseEntity<Void> deleteServiceDescription(String id) {
+        Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
+        serviceDescriptionService.deleteServiceDescription(serviceDescriptionId);
+        return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+    }
 }
