@@ -110,7 +110,8 @@
     "accessRights": "Access Rights",
     "deleteTitle": "Delete service description?",
     "deleteWsdlText": "Are you sure that you want to delete this WSDL?",
-    "deleteRestText": "Are you sure that you want to delete this REST?"
+    "deleteRestText": "Are you sure that you want to delete this REST?",
+    "noMatches": "No matching records"
   },
   "action": {
     "addSubsystem": "add subsystem",
