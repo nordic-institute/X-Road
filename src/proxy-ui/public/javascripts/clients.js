@@ -160,12 +160,20 @@
 
                           var new_subsystem_warning = "";
                           if (!response.data.subsystem_registered) {
-                              new_subsystem_warning = _("clients.client_add_dialog.new_subsystem", {
-                                  member_name: response.data.member_name || "",
-                                  member_class: regParams.member_class,
-                                  member_code: regParams.member_code,
-                                  subsystem_code: regParams.subsystem_code
-                              });
+                              if(regParams.subsystem_code) {
+                                  new_subsystem_warning = _("clients.client_add_dialog.new_subsystem", {
+                                      member_name: response.data.member_name || "",
+                                      member_class: regParams.member_class,
+                                      member_code: regParams.member_code,
+                                      subsystem_code: regParams.subsystem_code
+                                  });
+                              } else {
+                                  new_subsystem_warning = _("clients.client_add_dialog.new_member", {
+                                      member_name: response.data.member_name || "",
+                                      member_class: regParams.member_class,
+                                      member_code: regParams.member_code
+                                  });
+                              }
                           }
 
                           var confirmParams = {
@@ -658,12 +666,20 @@
 
             var new_subsystem_warning = "";
             if (!$("#details_client_id").data("client").subsystem_registered) {
-                new_subsystem_warning = _("clients.client_add_dialog.new_subsystem", {
-                    member_name: $("#details_member_name").val(),
-                    member_class: params.member_class,
-                    member_code: params.member_code,
-                    subsystem_code: params.subsystem_code
-                });
+                if(params.subsystem_code) {
+                    new_subsystem_warning = _("clients.client_add_dialog.new_subsystem", {
+                        member_name: $("#details_member_name").val(),
+                        member_class: params.member_class,
+                        member_code: params.member_code,
+                        subsystem_code: params.subsystem_code
+                    });
+                } else {
+                    new_subsystem_warning = _("clients.client_add_dialog.new_member", {
+                        member_name: $("#details_member_name").val(),
+                        member_class: params.member_class,
+                        member_code: params.member_code
+                    });
+                }
             }
 
             var confirmParams = {
