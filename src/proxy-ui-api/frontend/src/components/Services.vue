@@ -194,7 +194,6 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['client']),
     showAdd(): boolean {
       return true;
     },
@@ -264,7 +263,6 @@ export default Vue.extend({
     },
 
     getServiceIcon(service: any): string {
-      console.log(service.ssl_auth);
       switch (service.ssl_auth) {
         case undefined:
           return 'lock_open';
@@ -291,35 +289,22 @@ export default Vue.extend({
     },
 
     descClose(descId: string) {
-      console.log('close');
-
       const index = this.expanded.findIndex((element: any) => {
         return element === descId;
       });
-
-      console.log(index);
 
       if (index >= 0) {
         this.expanded.splice(index, 1);
       }
-
-      console.log(this.expanded);
     },
     descOpen(descId: string) {
-      console.log('open');
-      console.log(this.expanded);
-
       const index = this.expanded.findIndex((element: any) => {
         return element === descId;
       });
 
-      console.log(index);
-
       if (index === -1) {
         this.expanded.push(descId);
       }
-
-      console.log(this.expanded);
     },
     isExpanded(descId: string) {
       return this.expanded.includes(descId);
