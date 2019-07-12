@@ -19,8 +19,7 @@ export enum RouteName {
   LocalGroup = 'local-group',
   SubsystemServiceClients = 'subs-clients',
   SubsystemServices = 'subs-services',
-  RestDetails = 'rest-details',
-  WsdlDetails = 'wsdl-details',
+  ServiceDescriptionDetails = 'service-description-details',
   Service = 'service',
 }
 
