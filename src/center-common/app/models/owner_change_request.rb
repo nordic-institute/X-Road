@@ -117,6 +117,14 @@ class OwnerChangeRequest < RequestWithProcessing
             :user => sec_serv_user))
     end
 
+    # New owner must be registered as a client on the security server
+    if !client.security_servers.include?(server)
+      raise InvalidOwnerChangeRequestException.new(
+          I18n.t("requests.not_registered_client",
+            :user => sec_serv_user,
+            :security_server => security_server))
+    end
+
     # Client cannot be the current owner of the security server
     if server.get_server_id.matches_client_id(sec_serv_user)
       raise InvalidOwnerChangeRequestException.new(
