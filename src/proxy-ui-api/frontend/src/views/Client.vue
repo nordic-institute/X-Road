@@ -8,7 +8,7 @@
       <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">{{ $t(tab.name) }}</v-tab>
     </v-tabs>
 
-    <router-view/>
+    <router-view />
   </div>
 </template>
 
@@ -81,8 +81,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" >
-@import '../assets/tables';
-
 .xr-tabs {
   border-bottom: #9b9b9b solid 1px;
 }

@@ -42,7 +42,7 @@
       </table>
     </v-card>
 
-    <certificateDialog :dialog="dialog" :certificate="certificate" @close="closeDialog()"/>
+    <certificateDialog :dialog="dialog" :certificate="certificate" @close="closeDialog()" />
   </div>
 </template>
 
@@ -97,7 +97,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" >
+<style lang="scss" scoped>
 @import '../assets/tables';
 
 .cert-name {

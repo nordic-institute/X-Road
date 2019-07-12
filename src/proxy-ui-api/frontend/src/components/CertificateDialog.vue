@@ -6,13 +6,13 @@
       </v-card-title>
       <v-card-text v-if="certificate">
         {{$t('cert.name')}}: {{certificate.name}}
-        <br>
+        <br />
         {{$t('cert.csp')}}: {{certificate.csp}}
-        <br>
+        <br />
         {{$t('cert.serial')}}: {{certificate.serial}}
-        <br>
+        <br />
         {{$t('cert.state')}}: {{certificate.state}}
-        <br>
+        <br />
         {{$t('cert.expires')}}: {{certificate.expires}}
       </v-card-text>
       <v-card-actions>
@@ -47,7 +47,3 @@ export default Vue.extend({
   },
 });
 </script>
-
-<style lang="scss" >
-</style>
-

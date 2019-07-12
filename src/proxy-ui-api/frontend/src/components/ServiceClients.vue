@@ -2,7 +2,7 @@
   <div>
     <v-card flat>
       Service clients
-      <br>
+      <br />
       ID: {{id}}
     </v-card>
   </div>
@@ -31,7 +31,4 @@ export default Vue.extend({
   methods: {},
 });
 </script>
-
-<style lang="scss" >
-</style>
 

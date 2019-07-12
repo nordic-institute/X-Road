@@ -313,7 +313,9 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" >
+<style lang="scss" scoped>
+@import '../assets/tables';
+
 .wrapper {
   margin-top: 20px;
 }

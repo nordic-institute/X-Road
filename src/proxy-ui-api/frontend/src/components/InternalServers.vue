@@ -23,8 +23,7 @@
           outline
           round
           color="primary"
-          class="text-capitalize table-button rounded-button"
-          type="file"
+          class="rounded-button elevation-0"
           @click="$refs.inputUpload.click()"
         >{{$t('action.add')}}</v-btn>
         <input
@@ -246,7 +245,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" >
+<style lang="scss" scoped>
 @import '../assets/tables';
 @import '../assets/colors';
 

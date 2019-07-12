@@ -1,7 +1,7 @@
 <template>
   <div class="xr-tab-max-width">
     <div>
-      <subViewTitle :title="groupCode" @close="close"/>
+      <subViewTitle :title="groupCode" @close="close" />
 
       <template>
         <div class="cert-hash">
@@ -12,7 +12,6 @@
             round
             color="primary"
             class="xr-big-button"
-            type="file"
             @click="deleteGroup()"
           >{{$t('action.delete')}}</v-btn>
         </div>
@@ -43,7 +42,6 @@
           outline
           color="primary"
           class="xr-big-button"
-          type="file"
           :disabled="!hasMembers"
           @click="removeAllMembers()"
         >{{$t('action.removeAll')}}</v-btn>
@@ -52,7 +50,6 @@
           outline
           color="primary"
           class="xr-big-button"
-          type="file"
           @click="addMembers()"
         >{{$t('localGroup.addMembers')}}</v-btn>
       </div>
@@ -94,7 +91,6 @@
           round
           color="primary"
           class="xr-big-button elevation-0"
-          type="file"
           @click="close()"
         >{{$t('action.close')}}</v-btn>
       </div>
