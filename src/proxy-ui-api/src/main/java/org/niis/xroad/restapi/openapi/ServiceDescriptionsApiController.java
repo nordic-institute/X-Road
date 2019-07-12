@@ -25,7 +25,12 @@
 package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
+import org.niis.xroad.restapi.exceptions.BadRequestException;
+import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionDisabledNotice;
+import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
+import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,17 +54,21 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
 
     private final NativeWebRequest request;
     private final ServiceDescriptionService serviceDescriptionService;
+    private final ServiceDescriptionConverter serviceDescriptionConverter;
 
     /**
      * ServiceDescriptionsApiController constructor
      * @param serviceDescriptionService
+     * @param serviceDescriptionConverter
      */
 
     @Autowired
     public ServiceDescriptionsApiController(NativeWebRequest request,
-            ServiceDescriptionService serviceDescriptionService) {
+            ServiceDescriptionService serviceDescriptionService,
+            ServiceDescriptionConverter serviceDescriptionConverter) {
         this.request = request;
         this.serviceDescriptionService = serviceDescriptionService;
+        this.serviceDescriptionConverter = serviceDescriptionConverter;
     }
 
     @Override
@@ -90,5 +99,22 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
         serviceDescriptionService.deleteServiceDescription(serviceDescriptionId);
         return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('EDIT_WSDL')")
+    public ResponseEntity<ServiceDescription> updateServiceDescription(String id, Boolean ignoreWarnings,
+            ServiceDescriptionUpdate serviceDescriptionUpdate) {
+        Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
+        ServiceDescription serviceDescription;
+        if (serviceDescriptionUpdate.getType() == ServiceType.WSDL) {
+            serviceDescription = serviceDescriptionConverter.convert(serviceDescriptionService.updateWsdlUrl(
+                    serviceDescriptionId, serviceDescriptionUpdate.getUrl(), ignoreWarnings));
+        } else if (serviceDescriptionUpdate.getType() == ServiceType.REST) {
+            return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+        } else {
+            throw new BadRequestException("ServiceType not recognized");
+        }
+        return new ResponseEntity<>(serviceDescription, HttpStatus.OK);
     }
 }

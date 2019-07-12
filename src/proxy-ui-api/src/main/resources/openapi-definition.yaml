@@ -3818,6 +3818,8 @@ components:
           example: exampleServiceCode
           minLength: 1
           maxLength: 255
+        type:
+          $ref: '#/components/schemas/ServiceType'
     ServiceType: # ok
       type: string
       format: text

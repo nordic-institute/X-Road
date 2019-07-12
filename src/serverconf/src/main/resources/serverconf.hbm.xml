@@ -69,7 +69,7 @@
         </id>
 
         <many-to-one name="client" access="field" column="client_id"
-            class="ClientType" cascade="all"/>
+            class="ClientType" cascade="save-update, evict, lock, replicate, merge, persist"/>
 
         <property name="url" access="field" not-null="true"/>
         <property name="disabled" access="field" not-null="true"/>
@@ -96,7 +96,8 @@
         </id>
 
         <many-to-one name="serviceDescription" access="field" column="servicedescription_id"
-                     class="ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType" cascade="all"/>
+                     class="ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType"
+                     cascade="save-update, evict, lock, replicate, merge, persist"/>
 
         <property name="serviceCode" access="field" not-null="true"/>
         <property name="serviceVersion" access="field"/>

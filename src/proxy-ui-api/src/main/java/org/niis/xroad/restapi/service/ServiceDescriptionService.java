@@ -163,7 +163,9 @@ public class ServiceDescriptionService {
         if (serviceDescriptionType == null) {
             throw new NotFoundException("Service description with id " + id + " not found");
         }
-        serviceDescriptionRepository.delete(serviceDescriptionType);
+        ClientType client = serviceDescriptionType.getClient();
+        client.getServiceDescription().remove(serviceDescriptionType);
+        clientRepository.saveOrUpdate(client);
     }
 
     /**
@@ -186,61 +188,84 @@ public class ServiceDescriptionService {
             throw new BadRequestException("Malformed URL", ErrorCode.of(MALFORMED_URL));
         }
 
-        // check if wsdl already exist
+        // check if wsdl already exists
+        checkForExistingWsdl(client, url);
+
+        // parse wsdl
+        Collection<WsdlParser.ServiceInfo> parsedServices = parseWsdl(url);
+
+        // check if services exist
+        checkForExistingServices(client, parsedServices);
+
+        // try to validate wsdl - unless warnings are ignored
+        if (!ignoreWarnings) {
+            validateWsdl(url);
+        }
+
+        // create a new ServiceDescription with parsed services
+        ServiceDescriptionType serviceDescriptionType = buildWsdlServiceDescription(client, parsedServices, url);
+
+        client.getServiceDescription().add(serviceDescriptionType);
+        clientRepository.saveOrUpdate(client);
+    }
+
+    /**
+     * Update the WSDL url of the selected ServiceDescription
+     * @param id
+     * @param url the new url
+     * @return ServiceDescriptionType
+     */
+    @PreAuthorize("hasAuthority('EDIT_WSDL')")
+    public ServiceDescriptionType updateWsdlUrl(Long id, String url, boolean ignoreWarnings) {
+        ServiceDescriptionType serviceDescriptionType = getServiceDescriptiontype(id);
+        if (serviceDescriptionType == null) {
+            throw new NotFoundException("Service description with id " + id.toString() + " not found");
+        }
+
+        if (!FormatUtils.isValidUrl(url)) {
+            throw new BadRequestException("Malformed URL", ErrorCode.of(MALFORMED_URL));
+        }
+
+        ClientType client = serviceDescriptionType.getClient();
+
+        checkForExistingWsdl(client, url);
+
+        Collection<WsdlParser.ServiceInfo> parsedServices = parseWsdl(url);
+
+        // check for existing services but exclude the services in the ServiceDescription that we are updating
+        checkForExistingServices(client, parsedServices, id);
+
+        if (!ignoreWarnings) {
+            validateWsdl(url);
+        }
+
+        serviceDescriptionType.setUrl(url);
+        serviceDescriptionType.setRefreshedDate(new Date());
+
+        // create services
+        List<ServiceType> newServices = parsedServices
+                .stream()
+                .map(serviceInfo -> serviceInfoToServiceType(serviceInfo, serviceDescriptionType))
+                .collect(Collectors.toList());
+
+        // replace all old services with the new ones
+        serviceDescriptionType.getService().clear();
+        serviceDescriptionType.getService().addAll(newServices);
+        clientRepository.saveOrUpdate(client);
+
+        return serviceDescriptionType;
+    }
+
+    private void checkForExistingWsdl(ClientType client, String url) throws ConflictException {
         client.getServiceDescription().forEach(serviceDescription -> {
             if (serviceDescription.getUrl().equalsIgnoreCase(url)) {
                 throw new ConflictException("WSDL URL already exists", ErrorCode.of(WSDL_EXISTS));
             }
         });
+    }
 
-        // parse wsdl
-        Collection<WsdlParser.ServiceInfo> parsedServices;
-        try {
-            parsedServices = WsdlParser.parseWSDL(url);
-        } catch (WsdlParseException e) {
-            Map<String, List<String>> warningMap = new HashMap<>();
-            warningMap.put(INVALID_WSDL, Collections.singletonList(e.getCause().getMessage()));
-            throw new BadRequestException(e, ErrorCode.of(ADDING_WSDL_FAILED), warningMap);
-        } catch (WsdlNotFoundException e) {
-            Map<String, List<String>> warningMap = new HashMap<>();
-            warningMap.put(WSDL_DOWNLOAD_FAILED, Collections.singletonList(e.getCause().getMessage()));
-            throw new BadRequestException(e, ErrorCode.of(ADDING_WSDL_FAILED), warningMap);
-        }
-
-        // check if services already exist
-        List<ServiceType> existingServices = client.getServiceDescription()
-                .stream()
-                .map(ServiceDescriptionType::getService)
-                .flatMap(List::stream).collect(Collectors.toList());
-
-        Set<ServiceType> conflictedServices = parsedServices
-                .stream()
-                .flatMap(newService -> existingServices
-                        .stream()
-                        .filter(existingService -> FormatUtils.getServiceFullName(existingService)
-                                .equalsIgnoreCase(FormatUtils.getServiceFullName(newService))))
-                .collect(Collectors.toSet());
-
-        // create warnings and throw if conflicted
-        if (!conflictedServices.isEmpty()) {
-            Map<String, List<String>> warningMap = new HashMap<>();
-            warningMap.put(SERVICE_EXISTS, new ArrayList<>());
-            conflictedServices.forEach(conflictedService -> warningMap.get(SERVICE_EXISTS)
-                    .add(FormatUtils.getServiceFullName(conflictedService)));
-            throw new ConflictException(ErrorCode.of(ADDING_WSDL_FAILED), warningMap);
-        }
-
-        // try to validate wsdl - unless warnings are ignored
-        if (!ignoreWarnings) {
-            try {
-                new WsdlValidator(url).executeValidator();
-            } catch (WsdlValidationException e) {
-                log.error("WSDL validation failed", e);
-                throw new BadRequestException(e, ErrorCode.of(WSDL_VALIDATION_WARNINGS), e.getWarningMap());
-            }
-        }
-
-        // create new ServiceDescription
+    private ServiceDescriptionType buildWsdlServiceDescription(ClientType client,
+            Collection<WsdlParser.ServiceInfo> parsedServices, String url) {
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptionOfType(client, url, DescriptionType.WSDL);
 
         // create services
@@ -250,8 +275,18 @@ public class ServiceDescriptionService {
                 .collect(Collectors.toList());
 
         serviceDescriptionType.getService().addAll(newServices);
-        client.getServiceDescription().add(serviceDescriptionType);
-        clientRepository.saveOrUpdate(client);
+
+        return serviceDescriptionType;
+    }
+
+    /**
+     * Get one ServiceDescriptionType by id
+     * @param id
+     * @return ServiceDescriptionType
+     */
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
+    public ServiceDescriptionType getServiceDescriptiontype(Long id) {
+        return serviceDescriptionRepository.getServiceDescription(id);
     }
 
     private ServiceDescriptionType getServiceDescriptionOfType(ClientType client, String url,
@@ -276,5 +311,69 @@ public class ServiceDescriptionService {
         newService.setTimeout(DEFAULT_SERVICE_TIMEOUT);
         newService.setServiceDescription(serviceDescriptionType);
         return newService;
+    }
+
+    private Collection<WsdlParser.ServiceInfo> parseWsdl(String url) throws BadRequestException {
+        Collection<WsdlParser.ServiceInfo> parsedServices;
+        try {
+            parsedServices = WsdlParser.parseWSDL(url);
+        } catch (WsdlParseException e) {
+            Map<String, List<String>> warningMap = new HashMap<>();
+            warningMap.put(INVALID_WSDL, Collections.singletonList(e.getCause().getMessage()));
+            throw new BadRequestException(e, ErrorCode.of(ADDING_WSDL_FAILED), warningMap);
+        } catch (WsdlNotFoundException e) {
+            Map<String, List<String>> warningMap = new HashMap<>();
+            warningMap.put(WSDL_DOWNLOAD_FAILED, Collections.singletonList(e.getCause().getMessage()));
+            throw new BadRequestException(e, ErrorCode.of(ADDING_WSDL_FAILED), warningMap);
+        }
+        return parsedServices;
+    }
+
+    private void validateWsdl(String url) throws BadRequestException {
+        try {
+            new WsdlValidator(url).executeValidator();
+        } catch (WsdlValidationException e) {
+            log.error("WSDL validation failed", e);
+            throw new BadRequestException(e, ErrorCode.of(WSDL_VALIDATION_WARNINGS), e.getWarningMap());
+        }
+    }
+
+    private List<ServiceType> getClientsExistingServices(ClientType client, Long idToSkip) {
+        return client.getServiceDescription()
+                .stream()
+                .filter(serviceDescriptionType -> !Objects.equals(serviceDescriptionType.getId(), idToSkip))
+                .map(ServiceDescriptionType::getService)
+                .flatMap(List::stream).collect(Collectors.toList());
+    }
+
+    private List<ServiceType> getClientsExistingServices(ClientType client) {
+        return getClientsExistingServices(client, null);
+    }
+
+    private void checkForExistingServices(ClientType client, Collection<WsdlParser.ServiceInfo> parsedServices,
+            Long idToSkip) throws ConflictException {
+        List<ServiceType> existingServices = getClientsExistingServices(client, idToSkip);
+
+        Set<ServiceType> conflictedServices = parsedServices
+                .stream()
+                .flatMap(newService -> existingServices
+                        .stream()
+                        .filter(existingService -> FormatUtils.getServiceFullName(existingService)
+                                .equalsIgnoreCase(FormatUtils.getServiceFullName(newService))))
+                .collect(Collectors.toSet());
+
+        // create warnings and throw if conflicted
+        if (!conflictedServices.isEmpty()) {
+            Map<String, List<String>> warningMap = new HashMap<>();
+            warningMap.put(SERVICE_EXISTS, new ArrayList<>());
+            conflictedServices.forEach(conflictedService -> warningMap.get(SERVICE_EXISTS)
+                    .add(FormatUtils.getServiceFullName(conflictedService)));
+            throw new ConflictException(ErrorCode.of(ADDING_WSDL_FAILED), warningMap);
+        }
+    }
+
+    private void checkForExistingServices(ClientType client,
+            Collection<WsdlParser.ServiceInfo> parsedServices) throws ConflictException {
+        checkForExistingServices(client, parsedServices, null);
     }
 }
