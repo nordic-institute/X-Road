@@ -107,6 +107,7 @@
     "serviceCode": "Service Code",
     "url": "URL",
     "timeout": "Timeout",
+    "accessRights": "Access Rights",
     "deleteTitle": "Delete service description?",
     "deleteWsdlText": "Are you sure that you want to delete this WSDL?",
     "deleteRestText": "Are you sure that you want to delete this REST?"
@@ -126,7 +127,8 @@
     "refresh": "Refresh",
     "delete": "Delete",
     "remove": "Remove",
-    "removeAll": "Remove All"
+    "removeAll": "Remove All",
+    "save": "Save"
   },
   "login": {
     "username": "Username",
