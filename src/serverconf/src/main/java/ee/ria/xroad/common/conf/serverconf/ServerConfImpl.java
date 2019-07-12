@@ -71,30 +71,16 @@ public class ServerConfImpl implements ServerConfProvider {
     // default service connection timeout in seconds
     private static final int DEFAULT_SERVICE_TIMEOUT = 30;
 
-    private static SecurityServerId identifier;
-
-    // ------------------------------------------------------------------------
-
     @Override
     public SecurityServerId getIdentifier() {
-        synchronized (this) {
-            return tx(session -> {
-                if (identifier == null) {
-                    ServerConfType confType = getConf();
-
-                    ClientType owner = confType.getOwner();
-                    if (owner == null) {
-                        throw new CodedException(X_MALFORMED_SERVERCONF,
-                                "Owner is not set");
-                    }
-
-                    identifier = SecurityServerId.create(owner.getIdentifier(),
-                            confType.getServerCode());
-                }
-
-                return identifier;
-            });
-        }
+        return tx(session -> {
+            ServerConfType confType = getConf();
+            ClientType owner = confType.getOwner();
+            if (owner == null) {
+                throw new CodedException(X_MALFORMED_SERVERCONF, "Owner is not set");
+            }
+            return SecurityServerId.create(owner.getIdentifier(), confType.getServerCode());
+        });
     }
 
     @Override

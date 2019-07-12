@@ -357,6 +357,37 @@ class ClientsController < ApplicationController
     })
   end
 
+  def owner_change_request
+    audit_log("Change owner", audit_log_data = {})
+
+    authorize!(:send_owner_change_req)
+
+    validate_params({
+      :member_class => [:required],
+      :member_code => [:required]
+    })
+
+    client_id = ClientId.create(
+      xroad_instance,
+      params[:member_class],
+      params[:member_code])
+
+    audit_log_data[:clientIdentifier] = client_id
+
+    if client_id == owner_identifier
+      raise t('clients.already_owner')
+    end
+
+    request_id = change_owner(client_id)
+    audit_log_data[:managementRequestId] = request_id
+
+    client = get_client(client_id.toString)
+
+    audit_log_data[:clientStatus] = client.clientStatus
+
+    render_json(client_to_json(client))
+  end
+
   def client_delete_certs
     audit_log("Delete client certificates", audit_log_data = {})
 
@@ -451,6 +482,10 @@ class ClientsController < ApplicationController
         [ClientType::STATUS_SAVED,
          ClientType::STATUS_DELINPROG,
          ClientType::STATUS_GLOBALERR].include?(client.clientStatus),
+      :owner_change_enabled =>
+          serverconf.owner.id != client.id &&
+          !is_subsystem &&
+          [ClientType::STATUS_REGISTERED].include?(client.clientStatus),
       :owner => serverconf.owner.id == client.id,
       :can_view_client_details_dialog =>
           can?(:view_client_details_dialog),

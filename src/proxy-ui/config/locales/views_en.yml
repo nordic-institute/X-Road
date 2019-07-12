@@ -25,6 +25,7 @@ en:
       new_client: "New Client"
       send_regreq: "Do you want to send a client registration request for the added client?<br/>{{new_subsystem_warning}}"
       new_subsystem: "New subsystem '%{subsystem_code}' will be submitted for registration for member '%{member_name} %{member_class}: %{member_code}'."
+      new_member: "New member '%{member_name} %{member_class}: %{member_code}' will be submitted for registration."
 
     client_select_dialog:
       select_client: "Select Client"
@@ -47,9 +48,11 @@ en:
       expires: "Expires"
       register: "Register"
       unregister: "Unregister"
+      set_as_owner: "Make Owner"
       delete: "Delete"
       send_regreq_confirm: "Are you sure you want to send a client registration request?<br/>{{new_subsystem_warning}}"
       send_delreq_confirm: "Are you sure you want to send a request to unregister the client?<br/>"
+      send_owner_change_confirm: "Are you sure you want to send a request to change this member as the owner of this Security Server?<br/>"
       delete_client: "Request sent. Do you want to delete the client?"
       delete_client_confirm: "Are you sure you want to delete the client?"
       delete_certs_title: "Certificate deletion"
