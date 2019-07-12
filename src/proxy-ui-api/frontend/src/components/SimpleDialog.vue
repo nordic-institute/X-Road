@@ -1,6 +1,6 @@
 <template>
   <v-dialog :value="dialog" :width="width" persistent>
-    <v-card class="xroad-card">
+    <v-card class="xrd-card">
       <v-card-title>
         <span class="headline">{{title}}</span>
         <v-spacer />
@@ -9,7 +9,7 @@
       <v-card-text>
         <slot name="content"></slot>
       </v-card-text>
-      <v-card-actions class="xr-card-actions">
+      <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
         <v-btn
           color="primary"

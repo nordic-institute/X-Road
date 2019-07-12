@@ -1,6 +1,6 @@
 <template>
   <v-dialog :value="dialog" width="750" scrollable persistent>
-    <v-card class="xroad-card">
+    <v-card class="xrd-card">
       <v-card-title>
         <span class="headline">{{$t('localGroup.addMembers')}}</span>
         <v-spacer />
@@ -102,7 +102,7 @@
           <p>{{$t('localGroup.noResults')}}</p>
         </div>
       </v-card-text>
-      <v-card-actions class="xr-card-actions">
+      <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
         <v-btn
           color="primary"

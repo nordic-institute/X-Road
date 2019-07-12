@@ -11,7 +11,7 @@
     </v-layout>
 
     <v-dialog v-model="logoutDialog" width="500" lazy persistent>
-      <v-card class="xroad-card">
+      <v-card class="xrd-card">
         <v-card-title>
           <span class="headline">{{$t('logout.sessionExpired')}}</span>
         </v-card-title>

@@ -22,7 +22,6 @@ $large-button-width: 140px;
   text-transform: capitalize;
 }
 
-
 .xr-table-button {
   margin-top: auto;
   margin-bottom: auto;
@@ -35,13 +34,17 @@ $large-button-width: 140px;
   margin-right: 10px;
 }
 
+.xrd-tabs {
+  border-bottom: #9b9b9b solid 1px;
+}
+
 // Override vuetify styling in alert dialog card
-.xroad-card {
+.xrd-card {
   .v-card__title {
     border-bottom: solid $XRoad-Purple 2px;
   }
 
-  .xr-card-actions {
+  .xrd-card-actions {
     border-top: 1px $XRoad-Grey20 solid;
     padding-top: 20px;
   }
