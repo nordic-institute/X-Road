@@ -103,6 +103,8 @@
   "services": {
     "addWsdl": "Add WSDL",
     "addRest": "Add REST",
+    "disableNotice": "Disable notice",
+    "disableTitle": "Disable?",
     "service": "Service",
     "serviceCode": "Service Code",
     "url": "URL",

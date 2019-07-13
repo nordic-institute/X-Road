@@ -15,7 +15,7 @@
         <v-btn
           v-if="showAdd"
           color="primary"
-          @click="addRest"
+          @click="showAddRestDialog"
           outline
           round
           class="rounded-button elevation-0 rest-button"
@@ -24,7 +24,7 @@
         <v-btn
           v-if="showAdd"
           color="primary"
-          @click="addWsdl"
+          @click="showAddWsdlDialog"
           outline
           round
           class="ma-0 rounded-button elevation-0"
@@ -32,11 +32,11 @@
       </div>
     </div>
 
-    <div v-if="filtered.length < 1">No matching records</div>
+    <div v-if="filtered && filtered.length < 1">{{$t('services.noMatchesp')}}</div>
 
-    <transition-group name="fade">
+    <template v-if="filtered">
       <expandable
-        v-for="serviceDesc in filtered"
+        v-for="(serviceDesc, index) in filtered"
         v-bind:key="serviceDesc.id"
         class="expandable"
         @open="descOpen(serviceDesc.id)"
@@ -44,7 +44,12 @@
         :isOpen="isExpanded(serviceDesc.id)"
       >
         <template v-slot:action>
-          <v-switch class="switch" @change="switchChanged($event, serviceDesc)"></v-switch>
+          <v-switch
+            class="switch"
+            :input-value="!serviceDesc.disabled"
+            @change="switchChanged($event, serviceDesc, index)"
+            :key="componentKey"
+          ></v-switch>
         </template>
 
         <template v-slot:link>
@@ -65,43 +70,63 @@
               >{{$t('action.refresh')}}</v-btn>
             </div>
 
-            <table class="xrd-table members-table">
+            <table class="xrd-table">
               <thead>
                 <tr>
                   <th>{{$t('services.serviceCode')}}</th>
                   <th>{{$t('services.url')}}</th>
                   <th>{{$t('services.timeout')}}</th>
+                  <th style="text-align:center">{{$t('services.accessRights')}}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="service in serviceDesc.services" v-bind:key="service.id">
                   <td class="service-code" @click="serviceClick(service)">{{service.code}}</td>
                   <td>
-                    <v-icon small :color="getServiceIconClass(service)">{{getServiceIcon(service)}}</v-icon>
+                    <v-icon small :color="getServiceIconColor(service)">{{getServiceIcon(service)}}</v-icon>
                     {{service.url}}
                   </td>
                   <td>{{service.timeout}}</td>
+                  <td style="text-align:center">-</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </template>
       </expandable>
-    </transition-group>
+    </template>
+
+    <addWsdlDialog :dialog="addWsdlDialog" @save="wsdlSave" @cancel="wsdlCancel" />
+    <addRestDialog :dialog="addRestDialog" @save="restSave" @cancel="restCancel" />
+    <disableServiceDescDialog
+      :dialog="disableDescDialog"
+      @cancel="disableDescCancel"
+      @save="disableDescSave"
+      :subject="selectedServiceDesc"
+      :subjectIndex="selectedIndex"
+    />
   </div>
 </template>
 
 <script lang="ts">
+// View for services tab
 import Vue from 'vue';
-
-import { mapGetters } from 'vuex';
-import { Permissions } from '@/global';
+import axios from 'axios';
+import { Permissions, RouteName } from '@/global';
 import Expandable from '@/components/Expandable.vue';
+import AddWsdlDialog from '@/components/AddWsdlDialog.vue';
+import AddRestDialog from '@/components/AddRestDialog.vue';
+import DisableServiceDescDialog from '@/components/DisableServiceDescDialog.vue';
 
 import _ from 'lodash';
 
 export default Vue.extend({
-  components: { Expandable },
+  components: {
+    Expandable,
+    AddWsdlDialog,
+    AddRestDialog,
+    DisableServiceDescDialog,
+  },
   props: {
     id: {
       type: String,
@@ -111,86 +136,14 @@ export default Vue.extend({
   data() {
     return {
       search: '',
-      expanded: [],
-      serviceDescriptions: [
-        {
-          url: 'http://dev.xroad.rocks/services.wsdl',
-
-          type: 'WSDL',
-          id: '12323123',
-          disabled: true,
-          disabled_notice: 'default_disabled_service_notice',
-          refreshed_date: '2018-12-15T00:00:00.001Z',
-          services: [
-            {
-              id: 'uniq65ueId',
-              code: 'sslauth true',
-              timeout: 60,
-              ssl_auth: true,
-              url: 'https://domain.com/service',
-            },
-            {
-              id: 'uniq75ueId',
-              code: 'sslauth false',
-              timeout: 60,
-              ssl_auth: false,
-              url: 'https://domain.com/service',
-            },
-            {
-              id: 'un65iqueId',
-              code: 'sslauth gone',
-              timeout: 60,
-              url: 'https://domain.com/service',
-            },
-          ],
-          client_id: 'FI:GOV:123:ABC',
-        },
-
-        {
-          url: 'http://dev.xroad.kivittaa/services.wsdl',
-          type: 'WSDL',
-          id: '98723123',
-          disabled: true,
-          disabled_notice: 'default_disabled_service_notice',
-          refreshed_date: '2018-12-15T00:00:00.001Z',
-          services: [
-            {
-              id: 'uniqueId',
-              code: 'jhgjhghjg',
-              timeout: 60,
-              ssl_auth: true,
-              url: 'https://domain.com/service',
-            },
-          ],
-          client_id: 'FI:GOV:123:ABC',
-        },
-
-        {
-          url: 'http://dev.xroad.rocks/services.rest',
-          type: 'REST',
-          disabled: false,
-          id: 'oi8323123',
-          disabled_notice: 'default_disabled_service_notice',
-          refreshed_date: '2018-12-15T00:00:00.001Z',
-          services: [
-            {
-              id: 'uniikkio12',
-              code: 'eiheiheihei',
-              timeout: 60,
-              ssl_auth: true,
-              url: 'https://domain.com/service',
-            },
-            {
-              id: 'uniqueId8976',
-              code: 'pooopooiiuu',
-              timeout: 60,
-              ssl_auth: true,
-              url: 'https://domain.com/service',
-            },
-          ],
-          client_id: 'FI:GOV:123:ABC',
-        },
-      ],
+      addWsdlDialog: false,
+      addRestDialog: false,
+      disableDescDialog: false,
+      selectedServiceDesc: undefined,
+      selectedIndex: -1,
+      componentKey: 0,
+      expanded: [] as string[],
+      serviceDescriptions: [] as any[],
     };
   },
   computed: {
@@ -198,7 +151,22 @@ export default Vue.extend({
       return true;
     },
     filtered(): any {
-      const arr = _.cloneDeep(this.serviceDescriptions);
+      if (!this.serviceDescriptions || this.serviceDescriptions.length === 0) {
+        return [];
+      }
+
+      // Sort array by id:s so it doesn't jump around. Order of items in the backend reply changes between requests.
+      const arr = _.cloneDeep(this.serviceDescriptions).sort((a, b) => {
+        if (a.id < b.id) {
+          return -1;
+        }
+        if (a.id > b.id) {
+          return 1;
+        }
+
+        // equal id:s. (should not happen)
+        return 0;
+      });
 
       if (!this.search) {
         return arr;
@@ -210,6 +178,7 @@ export default Vue.extend({
         return arr;
       }
 
+      // Filter out service deascriptions that don't include search term
       const filtered = arr.filter((element: any) => {
         return element.services.find((service: any) => {
           return service.code
@@ -219,7 +188,8 @@ export default Vue.extend({
         });
       });
 
-      filtered.forEach(function(element) {
+      // Filter out services that don't include search term
+      filtered.forEach((element) => {
         const filteredServices = element.services.filter((service: any) => {
           return service.code
             .toString()
@@ -237,24 +207,123 @@ export default Vue.extend({
     descriptionClick(desc: any): void {
       // TODO: will be implemented on later task
       console.log(desc);
+      this.$router.push({
+        name: RouteName.ServiceDescriptionDetails,
+        params: { id: desc.id },
+      });
     },
     serviceClick(service: any): void {
       // TODO: will be implemented on later task
       console.log(service);
+      this.$router.push({
+        name: RouteName.Service,
+        params: { serviceId: service.id },
+      });
     },
-    switchChanged(event: any, serviceDesc: any): void {
-      // TODO: will be implemented on later task
-      console.log(event, serviceDesc.id);
+    switchChanged(event: any, serviceDesc: any, index: number): void {
+      if (serviceDesc.disabled === false) {
+        //If user wants to disable service description:
+        //- cancel the switch change
+        //- show confirmation dialog instead
+        this.selectedServiceDesc = serviceDesc;
+        this.selectedIndex = index;
+        this.disableDescDialog = true;
+        this.forceUpdateSwitch(index, false);
+        return;
+      }
+
+      axios
+        .put(`/service-descriptions/${serviceDesc.id}/enable`)
+        .then((res) => {
+          this.$bus.$emit('show-success', 'enabled!');
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        })
+        .finally(() => {
+          // Whatever happens, refresh the data
+          this.fetchData();
+        });
     },
 
-    addRest(): void {
-      // TODO: will be implemented on later task
-      console.log('add rest');
+    disableDescCancel(subject: any, index: number): void {
+      // User cancels the change from dialog. Switch must be returned to original position.
+      this.disableDescDialog = false;
+      this.forceUpdateSwitch(index, false);
     },
 
-    addWsdl(): void {
-      // TODO: will be implemented on later task
-      console.log('add wsdl');
+    disableDescSave(subject: any, index: number): void {
+      this.disableDescDialog = false;
+      this.forceUpdateSwitch(index, true);
+
+      axios
+        .put(`/service-descriptions/${subject.id}/disable`, {
+          disabled_notice: 'blabla',
+        })
+        .then((res) => {
+          this.$bus.$emit('show-success', 'disabled!');
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        })
+        .finally(() => {
+          this.fetchData();
+        });
+    },
+
+    forceUpdateSwitch(index: number, value: boolean): void {
+      // "force updating" the switch is needed for smooth
+      this.filtered[index].disabled = value;
+      this.componentKey += 1;
+    },
+
+    showAddRestDialog(): void {
+      this.addRestDialog = true;
+    },
+
+    showAddWsdlDialog(): void {
+      this.addWsdlDialog = true;
+    },
+
+    wsdlSave(url: string): void {
+      axios
+        .post(`/clients/${this.id}/service-descriptions`, {
+          url: url,
+          type: 'WSDL',
+        })
+        .then((res) => {
+          this.$bus.$emit('show-success', 'WSDL added');
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
+
+      this.addWsdlDialog = false;
+    },
+
+    wsdlCancel(): void {
+      this.addWsdlDialog = false;
+    },
+
+    restSave(rest: any): void {
+      axios
+        .post(`/clients/${this.id}/service-descriptions`, {
+          url: rest.url,
+          rest_service_code: rest.serviceCode,
+          type: 'REST',
+        })
+        .then((res) => {
+          this.$bus.$emit('show-success', 'WSDL added');
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
+
+      this.addRestDialog = false;
+    },
+
+    restCancel(): void {
+      this.addRestDialog = false;
     },
 
     refreshWsdl(wsdl: any): void {
@@ -275,7 +344,7 @@ export default Vue.extend({
       }
     },
 
-    getServiceIconClass(service: any): string {
+    getServiceIconColor(service: any): string {
       switch (service.ssl_auth) {
         case undefined:
           return '';
@@ -309,6 +378,21 @@ export default Vue.extend({
     isExpanded(descId: string) {
       return this.expanded.includes(descId);
     },
+
+    fetchData(): void {
+      axios
+        .get(`/clients/${this.id}/service-descriptions`)
+        .then((res) => {
+          this.serviceDescriptions = res.data;
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
+    },
+  },
+
+  created() {
+    this.fetchData();
   },
 });
 </script>

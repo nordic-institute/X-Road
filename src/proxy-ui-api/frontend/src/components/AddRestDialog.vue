@@ -76,7 +76,7 @@ export default Vue.extend({
       this.clear();
     },
     save(): void {
-      this.$emit('save');
+      this.$emit('save', { url: this.url, serviceCode: this.serviceCode });
       this.clear();
     },
     clear(): void {
