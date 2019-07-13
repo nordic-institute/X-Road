@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import axios from 'axios';
+import VeeValidate from 'vee-validate';
 import './plugins/vuetify';
-import './plugins/vee-validate';
 import './filters';
 import App from './App.vue';
 import router from './router';
@@ -10,6 +10,7 @@ import 'roboto-fontface/css/roboto/roboto-fontface.css';
 import '@fortawesome/fontawesome-free/css/all.css';
 import 'material-design-icons-iconfont/dist/material-design-icons.css';
 import i18n from './i18n';
+import validationMessagesEN from 'vee-validate/dist/locale/en';
 
 Vue.config.productionTip = false;
 
@@ -25,6 +26,14 @@ Object.defineProperties(Vue.prototype, {
     get() {
       return EventBus;
     },
+  },
+});
+
+Vue.use(VeeValidate, {
+  i18nRootKey: 'validations', // customize the root path for validation messages.
+  i18n,
+  dictionary: {
+    en: validationMessagesEN,
   },
 });
 
