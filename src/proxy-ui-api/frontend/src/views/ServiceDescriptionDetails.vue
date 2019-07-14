@@ -101,11 +101,7 @@ export default Vue.extend({
     return {
       confirmDelete: false,
       canSave: false,
-      serviceDesc: {
-        url: 'adljksajhkdhj',
-        type: 'REST',
-        code: 'koodii',
-      },
+      serviceDesc: undefined,
     };
   },
   computed: {
