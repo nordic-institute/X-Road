@@ -205,8 +205,6 @@ export default Vue.extend({
   },
   methods: {
     descriptionClick(desc: any): void {
-      // TODO: will be implemented on later task
-      console.log(desc);
       this.$router.push({
         name: RouteName.ServiceDescriptionDetails,
         params: { id: desc.id },
@@ -214,11 +212,11 @@ export default Vue.extend({
     },
     serviceClick(service: any): void {
       // TODO: will be implemented on later task
-      console.log(service);
+      /*
       this.$router.push({
         name: RouteName.Service,
         params: { serviceId: service.id },
-      });
+      }); */
     },
     switchChanged(event: any, serviceDesc: any, index: number): void {
       if (serviceDesc.disabled === false) {
