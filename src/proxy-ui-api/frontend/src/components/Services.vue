@@ -236,9 +236,9 @@ export default Vue.extend({
     },
     switchChanged(event: any, serviceDesc: any, index: number): void {
       if (serviceDesc.disabled === false) {
-        //If user wants to disable service description:
-        //- cancel the switch change
-        //- show confirmation dialog instead
+        // If user wants to disable service description:
+        // - cancel the switch change
+        // - show confirmation dialog instead
         this.selectedServiceDesc = serviceDesc;
         this.selectedIndex = index;
         this.disableDescDialog = true;
@@ -302,7 +302,7 @@ export default Vue.extend({
     wsdlSave(url: string): void {
       axios
         .post(`/clients/${this.id}/service-descriptions`, {
-          url: url,
+          url,
           type: 'WSDL',
         })
         .then((res) => {
