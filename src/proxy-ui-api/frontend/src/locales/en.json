@@ -113,7 +113,11 @@
     "deleteTitle": "Delete service description?",
     "deleteWsdlText": "Are you sure that you want to delete this WSDL?",
     "deleteRestText": "Are you sure that you want to delete this REST?",
-    "noMatches": "No matching records"
+    "noMatches": "No matching records",
+    "disableSuccess": "Service description disabled",
+    "enableSuccess": "Service description enabled",
+    "restAdded": "REST added",
+    "wsdlAdded": "WSDL added"
   },
   "action": {
     "addSubsystem": "add subsystem",

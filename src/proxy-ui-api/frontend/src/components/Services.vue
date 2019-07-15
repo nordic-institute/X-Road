@@ -249,7 +249,7 @@ export default Vue.extend({
       axios
         .put(`/service-descriptions/${serviceDesc.id}/enable`)
         .then((res) => {
-          this.$bus.$emit('show-success', 'enabled!');
+          this.$bus.$emit('show-success', 'services.enableSuccess');
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
@@ -275,7 +275,7 @@ export default Vue.extend({
           disabled_notice: notice,
         })
         .then((res) => {
-          this.$bus.$emit('show-success', 'disabled!');
+          this.$bus.$emit('show-success', 'services.disableSuccess');
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
@@ -306,7 +306,7 @@ export default Vue.extend({
           type: 'WSDL',
         })
         .then((res) => {
-          this.$bus.$emit('show-success', 'WSDL added');
+          this.$bus.$emit('show-success', 'services.wsdlAdded');
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
@@ -327,7 +327,7 @@ export default Vue.extend({
           type: 'REST',
         })
         .then((res) => {
-          this.$bus.$emit('show-success', 'WSDL added');
+          this.$bus.$emit('show-success', 'services.restAdded');
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
