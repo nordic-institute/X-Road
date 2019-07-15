@@ -32,7 +32,7 @@
       </div>
     </div>
 
-    <div v-if="filtered && filtered.length < 1">{{$t('services.noMatchesp')}}</div>
+    <div v-if="filtered && filtered.length < 1">{{$t('services.noMatches')}}</div>
 
     <template v-if="filtered">
       <expandable
