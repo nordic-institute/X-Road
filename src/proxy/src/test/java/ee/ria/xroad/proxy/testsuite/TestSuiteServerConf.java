@@ -63,7 +63,7 @@ public class TestSuiteServerConf extends EmptyServerConf {
     }
 
     @Override
-    public boolean isQueryAllowed(ClientId sender, ServiceId service) {
+    public boolean isQueryAllowed(ClientId sender, ServiceId service, String method, String path) {
         return currentTestCase().isQueryAllowed(sender, service);
     }
 

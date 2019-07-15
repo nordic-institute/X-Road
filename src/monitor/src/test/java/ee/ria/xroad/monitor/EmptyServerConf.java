@@ -52,7 +52,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public boolean isQueryAllowed(ClientId sender, ServiceId service) {
+    public boolean isQueryAllowed(ClientId sender, ServiceId service, String method, String path) {
         return true;
     }
 

@@ -133,10 +133,12 @@ public interface ServerConfProvider {
     /**
      * @param sender the sender identifier
      * @param service the service identifier
+     * @param method the request method (can be null)
+     * @param path the request path (can be null)
      * @return true, if member <code>sender</code> is allowed
      * to invoke service <code>serviceName</code>
      */
-    boolean isQueryAllowed(ClientId sender, ServiceId service);
+    boolean isQueryAllowed(ClientId sender, ServiceId service, String method, String path);
 
     /**
      * @param service the service identifier

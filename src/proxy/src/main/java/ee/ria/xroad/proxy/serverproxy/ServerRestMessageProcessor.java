@@ -269,7 +269,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
 
         try {
-            CertChain chain = CertChain.create(instanceIdentifier, (X509Certificate[]) ArrayUtils.add(clientSslCerts,
+            CertChain chain = CertChain.create(instanceIdentifier, (X509Certificate[])ArrayUtils.add(clientSslCerts,
                     trustAnchor));
             CertHelper.verifyAuthCert(chain, requestMessage.getOcspResponses(), requestMessage.getRest().getClientId());
         } catch (Exception e) {
@@ -290,7 +290,11 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                     "Service is a SOAP service and cannot be called using REST interface");
         }
 
-        if (!ServerConf.isQueryAllowed(requestMessage.getRest().getClientId(), requestServiceId)) {
+        if (!ServerConf.isQueryAllowed(
+                requestMessage.getRest().getClientId(),
+                requestServiceId,
+                requestMessage.getRest().getVerb().name(),
+                requestMessage.getRest().getServicePath())) {
             throw new CodedException(X_ACCESS_DENIED, "Request is not allowed: %s", requestServiceId);
         }
 
@@ -363,7 +367,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
 
         if (req instanceof HttpEntityEnclosingRequest && requestMessage.hasRestBody()) {
-            ((HttpEntityEnclosingRequest) req).setEntity(new InputStreamEntity(requestMessage.getRestBody()));
+            ((HttpEntityEnclosingRequest)req).setEntity(new InputStreamEntity(requestMessage.getRestBody()));
         }
 
         preprocess();
@@ -396,7 +400,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                 statusLine.getReasonPhrase(),
                 Arrays.asList(response.getAllHeaders()),
                 xRequestId
-                );
+        );
         encoder.restResponse(restResponse);
 
         if (response.getEntity() != null) {
@@ -451,7 +455,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             CodedException exception;
 
             if (ex instanceof CodedException.Fault) {
-                exception = (CodedException.Fault) ex;
+                exception = (CodedException.Fault)ex;
             } else {
                 exception = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
             }
