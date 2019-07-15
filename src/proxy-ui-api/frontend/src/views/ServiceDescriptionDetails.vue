@@ -106,12 +106,7 @@ export default Vue.extend({
   },
   computed: {
     showDelete(): boolean {
-      // TODO
-      /*
-
-      return this.$store.getters.hasPermission(Permissions.DELETE_LOCAL_GROUP);
-      */
-      return true;
+      return this.$store.getters.hasPermission(Permissions.DELETE_WSDL);
     },
   },
   methods: {
