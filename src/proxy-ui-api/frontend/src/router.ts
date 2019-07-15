@@ -20,6 +20,7 @@ import LocalGroups from '@/components/LocalGroups.vue';
 import LocalGroup from '@/views/LocalGroup.vue';
 import Services from '@/components/Services.vue';
 import ServiceClients from '@/components/ServiceClients.vue';
+import ServiceDescriptionDetails from '@/views/ServiceDescriptionDetails.vue';
 import store from './store';
 import { RouteName, Permissions } from '@/global';
 
@@ -172,6 +173,14 @@ const router = new Router({
           path: '/localgroup/:clientId/:groupId',
           components: {
             default: LocalGroup,
+          },
+          props: { default: true },
+        },
+        {
+          name: RouteName.ServiceDescriptionDetails,
+          path: '/services/details/:id',
+          components: {
+            default: ServiceDescriptionDetails,
           },
           props: { default: true },
         },
