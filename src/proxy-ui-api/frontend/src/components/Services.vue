@@ -310,6 +310,9 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
+        })
+        .finally(() => {
+          this.fetchData();
         });
 
       this.addWsdlDialog = false;
@@ -331,6 +334,9 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
+        })
+        .finally(() => {
+          this.fetchData();
         });
 
       this.addRestDialog = false;
