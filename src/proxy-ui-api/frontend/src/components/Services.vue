@@ -13,7 +13,7 @@
 
       <div>
         <v-btn
-          v-if="showAdd"
+          v-if="showAddButton"
           color="primary"
           @click="showAddRestDialog"
           outline
@@ -22,7 +22,7 @@
         >{{$t('services.addRest')}}</v-btn>
 
         <v-btn
-          v-if="showAdd"
+          v-if="showAddButton"
           color="primary"
           @click="showAddWsdlDialog"
           outline
@@ -49,11 +49,17 @@
             :input-value="!serviceDesc.disabled"
             @change="switchChanged($event, serviceDesc, index)"
             :key="componentKey"
+            :disabled="!canDisable"
           ></v-switch>
         </template>
 
         <template v-slot:link>
-          <div @click="descriptionClick(serviceDesc)">{{serviceDesc.type}} ({{serviceDesc.url}})</div>
+          <div
+            class="clickable-link"
+            v-if="canEditServiceDesc"
+            @click="descriptionClick(serviceDesc)"
+          >{{serviceDesc.type}} ({{serviceDesc.url}})</div>
+          <div v-else>{{serviceDesc.type}} ({{serviceDesc.url}})</div>
         </template>
 
         <template v-slot:content>
@@ -61,6 +67,7 @@
             <div v-if="serviceDesc.type.toLowerCase() === 'wsdl'" class="refresh-row">
               <div class="refresh-time">{{serviceDesc.refreshed_date | formatDateTime}}</div>
               <v-btn
+                v-if="showRefreshButton"
                 small
                 outline
                 round
@@ -147,8 +154,17 @@ export default Vue.extend({
     };
   },
   computed: {
-    showAdd(): boolean {
-      return true;
+    showAddButton(): boolean {
+      return this.$store.getters.hasPermission(Permissions.ADD_WSDL);
+    },
+    showRefreshButton(): boolean {
+      return this.$store.getters.hasPermission(Permissions.REFRESH_WSDL);
+    },
+    canEditServiceDesc(): boolean {
+      return this.$store.getters.hasPermission(Permissions.EDIT_WSDL);
+    },
+    canDisable(): boolean {
+      return this.$store.getters.hasPermission(Permissions.ENABLE_DISABLE_WSDL);
     },
     filtered(): any {
       if (!this.serviceDescriptions || this.serviceDescriptions.length === 0) {
@@ -419,6 +435,11 @@ export default Vue.extend({
 
 .search-input {
   max-width: 300px;
+}
+
+.clickable-link {
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .refresh-row {

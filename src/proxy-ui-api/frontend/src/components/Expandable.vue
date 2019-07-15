@@ -64,11 +64,6 @@ export default Vue.extend({
   border-radius: 4px;
   background-color: #ededed;
   box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.2);
-
-  .header-link {
-    text-decoration: underline;
-    cursor: pointer;
-  }
 }
 
 .switch {
