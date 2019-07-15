@@ -250,13 +250,13 @@ export default Vue.extend({
       this.forceUpdateSwitch(index, false);
     },
 
-    disableDescSave(subject: any, index: number): void {
+    disableDescSave(subject: any, index: number, notice: string): void {
       this.disableDescDialog = false;
       this.forceUpdateSwitch(index, true);
 
       axios
         .put(`/service-descriptions/${subject.id}/disable`, {
-          disabled_notice: 'blabla',
+          disabled_notice: notice,
         })
         .then((res) => {
           this.$bus.$emit('show-success', 'disabled!');

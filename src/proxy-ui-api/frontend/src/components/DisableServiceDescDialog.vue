@@ -48,7 +48,7 @@ export default Vue.extend({
       this.clear();
     },
     save(): void {
-      this.$emit('save', this.subject, this.subjectIndex);
+      this.$emit('save', this.subject, this.subjectIndex, this.notice);
       this.clear();
     },
     clear(): void {
