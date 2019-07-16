@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.moduleGetInstance;
 
@@ -119,31 +120,25 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
 
         log.info("Module '{}' got {} slots", module.getType(), slots.length);
 
-        // HSM slots defined in module data
-        List<Integer> slotIndexes = module.getSlotIndexes();
+        // HSM slot ids defined in module data
+        Set<String> slotIds = module.getSlotIds();
 
-        // If no HSM slot configuration was provided, we scan all the slots
-        if (slotIndexes.isEmpty()) {
-            for (int i = 0; i < slots.length; i++) {
-                slotIndexes.add(i);
-            }
-        }
-
-        log.info("Slot configuration for module '{}' defined as {}", module.getType(), slotIndexes.toString());
+        log.info("Slot configuration for module '{}' defined as {}", module.getType(), slotIds.toString());
 
         Map<String, TokenType> tokens = new HashMap<>();
-        for (Integer slotIndex : slotIndexes) {
+        for (int slotIndex = 0; slotIndex < slots.length; slotIndex++) {
             TokenType token = createToken(slots, slotIndex);
-            TokenType previous = tokens.putIfAbsent(token.getId(), token);
-            if (previous == null) {
-                log.info("Module '{}' slot #{} has token with ID '{}': {}", module.getType(), slotIndex, token.getId(),
-                        token);
-            } else {
-                log.info("Module '{}' slot #{} has token with ID '{}' but token with that ID is already registered",
-                        module.getType(), slotIndex, token.getId());
+            if (slotIds.isEmpty() || slotIds.contains(token.getId())) {
+                TokenType previous = tokens.putIfAbsent(token.getId(), token);
+                if (previous == null) {
+                    log.info("Module '{}' slot #{} has token with ID '{}': {}", module.getType(), slotIndex,
+                            token.getId(), token);
+                } else {
+                    log.info("Module '{}' slot #{} has token with ID '{}' but token with that ID is already registered",
+                            module.getType(), slotIndex, token.getId());
+                }
             }
         }
-
         return new ArrayList<>(tokens.values());
     }
 
