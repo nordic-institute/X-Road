@@ -51,6 +51,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped >
+@import '../assets/colors';
+
 .no-hover:hover:before,
 .no-hover:focus:before {
   background-color: transparent;
@@ -62,7 +64,7 @@ export default Vue.extend({
   height: 48px;
   width: 850px;
   border-radius: 4px;
-  background-color: #ededed;
+  background-color: $XRoad-Grey10;
   box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.2);
 }
 
