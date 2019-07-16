@@ -34,11 +34,15 @@ import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 import static ee.ria.xroad.common.SystemProperties.getDeviceConfFile;
 
@@ -92,6 +96,7 @@ public final class ModuleConf {
     private static final String PRIV_KEY_ATTRIBUTE_NEVER_EXTRACTABLE_PARAM = "priv_key_attribute_never_extractable";
     private static final String PRIV_KEY_ATTRIBUTE_WRAP_WITH_TRUSTED_PARAM = "priv_key_attribute_wrap_with_trusted";
     private static final String PRIV_KEY_ATTRIBUTE_ALLOWED_MECHANISMS_PARAM = "priv_key_attribute_allowed_mechanisms";
+    private static final String SLOT_INDEXES_PARAM = "slot_indexes";
 
     private static FileContentChangeChecker changeChecker = null;
 
@@ -252,8 +257,20 @@ public final class ModuleConf {
             return;
         }
 
+        List<Integer> results = new ArrayList<>();
+        String hsmSlotIndexes = section.getString(SLOT_INDEXES_PARAM);
+        try {
+            StringTokenizer tokenizer = new StringTokenizer(hsmSlotIndexes, ",");
+            while (tokenizer.hasMoreTokens()) {
+                results.add(Integer.valueOf(tokenizer.nextToken().trim()));
+            }
+            Collections.sort(results);
+        } catch (NumberFormatException ex) {
+            results.clear();
+        }
+
         MODULES.put(uid, new HardwareModuleType(uid, library, libraryCantCreateOsThreads, osLockingOk, tokenIdFormat,
-                verifyPin, batchSigning, readOnly, signMechanismName, privKeyAttributes, pubKeyAttributes));
+                verifyPin, batchSigning, readOnly, signMechanismName, privKeyAttributes, pubKeyAttributes, results));
     }
 
     private static PubKeyAttributes loadPubKeyAttributes(SubnodeConfiguration section) {

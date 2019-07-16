@@ -26,11 +26,7 @@ package ee.ria.xroad.common;
 
 import ee.ria.xroad.common.util.CryptoUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.StringTokenizer;
 
 /**
  * Contains system-wide constants for system properties.
@@ -362,9 +358,6 @@ public final class SystemProperties {
             PREFIX + "signer.module-manager-update-interval";
 
     public static final String DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL = "60";
-
-    public static final String HSM_SLOT_INDEXES =
-            PREFIX + "signer.hsm-slot-indexes-";
 
     // AntiDos ----------------------------------------------------------------
 
@@ -874,24 +867,6 @@ public final class SystemProperties {
     public static int getModuleManagerUpdateInterval() {
         return Integer.parseInt(System.getProperty(SIGNER_MODULE_MANAGER_UPDATE_INTERVAL,
                 DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL));
-    }
-
-    /**
-     * @return List of HSM device slot indexes to use, empty list by default
-     */
-    public static List<Integer> getHSMSlotIndexes(String device) {
-        List<Integer> results = new ArrayList<>();
-        String hsmSlotIndexes = System.getProperty(HSM_SLOT_INDEXES + device, "");
-        try {
-            StringTokenizer tokenizer = new StringTokenizer(hsmSlotIndexes, ",");
-            while (tokenizer.hasMoreTokens()) {
-                results.add(Integer.valueOf(tokenizer.nextToken().trim()));
-            }
-            Collections.sort(results);
-        } catch (NumberFormatException ex) {
-            results.clear();
-        }
-        return results;
     }
 
     /**

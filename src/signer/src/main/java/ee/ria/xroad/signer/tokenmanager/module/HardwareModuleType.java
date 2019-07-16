@@ -26,6 +26,8 @@ package ee.ria.xroad.signer.tokenmanager.module;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * Module type for hardware modules.
  */
@@ -53,4 +55,6 @@ public class HardwareModuleType implements ModuleType {
     private final PrivKeyAttributes privKeyAttributes;
 
     private final PubKeyAttributes pubKeyAttributes;
+
+    private final List<Integer> slotIndexes;
 }

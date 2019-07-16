@@ -24,7 +24,6 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.signer.tokenmanager.token.HardwareToken;
 import ee.ria.xroad.signer.tokenmanager.token.HardwareTokenType;
 import ee.ria.xroad.signer.tokenmanager.token.TokenType;
@@ -120,8 +119,8 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
 
         log.info("Module '{}' got {} slots", module.getType(), slots.length);
 
-        // HSM slots defined in signer configuration
-        List<Integer> slotIndexes = SystemProperties.getHSMSlotIndexes(module.getType());
+        // HSM slots defined in module data
+        List<Integer> slotIndexes = module.getSlotIndexes();
 
         // If no HSM slot configuration was provided, we scan all the slots
         if (slotIndexes.isEmpty()) {
