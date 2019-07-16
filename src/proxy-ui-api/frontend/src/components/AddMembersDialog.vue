@@ -1,16 +1,16 @@
 <template>
   <v-dialog :value="dialog" width="750" scrollable persistent>
-    <v-card class="xroad-card">
+    <v-card class="xrd-card">
       <v-card-title>
         <span class="headline">{{$t('localGroup.addMembers')}}</span>
-        <v-spacer/>
+        <v-spacer />
         <i @click="cancel()" id="close-x"></i>
       </v-card-title>
       <v-card-text style="height: 500px;">
         <v-expansion-panel class="elevation-0" expand v-model="expandPanel">
           <v-expansion-panel-content>
             <template v-slot:header>
-              <v-spacer/>
+              <v-spacer />
               <div class="exp-title">{{$t('localGroup.searchOptions')}}</div>
             </template>
 
@@ -102,7 +102,7 @@
           <p>{{$t('localGroup.noResults')}}</p>
         </div>
       </v-card-text>
-      <v-card-actions class="xr-card-actions">
+      <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
         <v-btn
           color="primary"
@@ -110,7 +110,7 @@
           outline
           class="mb-2 rounded-button elevation-0 xr-big-button button-margin"
           @click="cancel()"
-        >{{$t('localGroup.cancel')}}</v-btn>
+        >{{$t('action.cancel')}}</v-btn>
 
         <v-btn
           color="primary"

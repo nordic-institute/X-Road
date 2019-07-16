@@ -1,55 +1,32 @@
 <template>
-  <v-dialog :value="dialog" width="550" persistent>
-    <v-card class="xroad-card">
-      <v-card-title>
-        <span class="headline">{{$t('localGroup.addLocalGroup')}}</span>
-        <v-spacer/>
-        <i @click="cancel()" id="close-x"></i>
-      </v-card-title>
-      <v-card-text>
-        <div class="edit-row">
-          <div class="row-title">{{$t('localGroup.code')}}</div>
-          <v-text-field
-            v-model="code"
-            hint="insert code"
-            single-line
-            hide-details
-            class="row-input"
-          ></v-text-field>
-        </div>
+  <simpleDialog
+    :dialog="dialog"
+    :title="$t('localGroup.addLocalGroup')"
+    @save="save"
+    @cancel="cancel"
+    :disableSave="!formReady"
+  >
+    <div slot="content">
+      <div class="dlg-edit-row">
+        <div class="dlg-row-title">{{$t('localGroup.code')}}</div>
+        <v-text-field v-model="code" single-line class="dlg-row-input"></v-text-field>
+      </div>
 
-        <div class="edit-row">
-          <div class="row-title">{{$t('localGroup.description')}}</div>
-          <v-text-field v-model="description" hint single-line hide-details class="row-input"></v-text-field>
-        </div>
-      </v-card-text>
-      <v-card-actions class="xr-card-actions">
-        <v-spacer></v-spacer>
-        <v-btn
-          color="primary"
-          round
-          outline
-          class="mb-2 rounded-button elevation-0 xr-big-button button-margin"
-          @click="cancel()"
-        >{{$t('localGroup.cancel')}}</v-btn>
-
-        <v-btn
-          color="primary"
-          round
-          class="mb-2 rounded-button elevation-0 xr-big-button button-margin"
-          :disabled="!formReady"
-          @click="save()"
-        >{{$t('localGroup.add')}}</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+      <div class="dlg-edit-row">
+        <div class="dlg-row-title">{{$t('localGroup.description')}}</div>
+        <v-text-field v-model="description" hint single-line class="dlg-row-input"></v-text-field>
+      </div>
+    </div>
+  </simpleDialog>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import axios from 'axios';
+import SimpleDialog from '@/components/SimpleDialog.vue';
 
 export default Vue.extend({
+  components: { SimpleDialog },
   props: {
     id: {
       type: String,
@@ -106,43 +83,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/colors';
-
-.edit-row {
-  display: flex;
-  align-content: center;
-  align-items: flex-end;
-  margin-top: 0px;
-  margin-bottom: 20px;
-
-  .row-title {
-    min-width: 100px;
-  }
-
-  .row-input {
-    margin-left: 10px;
-  }
-}
-
-.button-margin {
-  margin-right: 14px;
-}
-
-#close-x {
-  font-family: Roboto;
-  font-size: 34px;
-  font-weight: 300;
-  letter-spacing: 0.5px;
-  line-height: 21px;
-
-  cursor: pointer;
-  font-style: normal;
-  font-size: 50px;
-  color: $XRoad-Grey40;
-}
-
-#close-x:before {
-  content: '\00d7';
-}
+@import '../assets/dialogs';
 </style>
 
