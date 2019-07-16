@@ -419,7 +419,7 @@ paths:
           schema:
             type: string
             format: text
-            minLength: 1
+            minLength: 0
             maxLength: 255
         - in: query
           name: instance
@@ -428,7 +428,7 @@ paths:
           schema:
             type: string
             format: text
-            minLength: 1
+            minLength: 0
             maxLength: 255
         - in: query
           name: member_class
@@ -437,7 +437,7 @@ paths:
           schema:
             type: string
             format: text
-            minLength: 1
+            minLength: 0
             maxLength: 255
         - in: query
           name: member_code
@@ -446,7 +446,7 @@ paths:
           schema:
             type: string
             format: text
-            minLength: 1
+            minLength: 0
             maxLength: 255
         - in: query
           name: subsystem_code
@@ -455,7 +455,7 @@ paths:
           schema:
             type: string
             format: text
-            minLength: 1
+            minLength: 0
             maxLength: 255
         - in: query
           name: show_members
