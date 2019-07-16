@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide
 
-Version: 2.9  
+Version: 2.10  
 Doc. ID: UG-CS
 
 
@@ -34,6 +34,7 @@ Doc. ID: UG-CS
 | 15.11.2018 | 2.7     | Minor corrections for Ubuntu 18 | Jarkko Hyöty |
 | 23.01.2019 | 2.8     | Information about automatic approval of auth cert registration requests added. Updates in Chapters 6-8. | Petteri Kivimäki |
 | 06.02.2019 | 2.9     | Information about automatic approval of security server client registration requests added. Updates in Chapters 6-8. | Petteri Kivimäki |
+| 02.07.2019 | 2.10    | Security Server owner change added (Chapter 7.10) | Petteri Kivimäki |
 
 ## Table of Contents
 <!-- toc -->
@@ -85,6 +86,7 @@ Doc. ID: UG-CS
   * [7.7 Changing the Global Group Membership of an X-Road Member’s Subsystem](#77-changing-the-global-group-membership-of-an-x-road-members-subsystem)
   * [7.8 Deleting a Subsystem](#78-deleting-a-subsystem)
   * [7.9 Deleting an X-Road Member](#79-deleting-an-x-road-member)
+  * [7.10 Changing a Security Server's Owner](#710-changing-a-security-servers-owner)
 - [8. Managing the Security Servers](#8-managing-the-security-servers)
   * [8.1 Viewing the Security Server Details](#81-viewing-the-security-server-details)
   * [8.2 Changing the Security Server Address](#82-changing-the-security-server-address)
@@ -463,13 +465,15 @@ As the registration of associations in the X-Road governing authority is securit
 
 - The registration request must be submitted to the X-Road governing authority over two channels, or in other words, the registration wish must be expressed through two complementary requests:
 one request is submitted to the X-Road central server through the security server,
-the other request is submitted to the X-Road governing authority through means independent of the X-Road (for example, over a digitally signed e-mail). This request must be formalized in the central server by the central server administrator.
+the other request is submitted to the X-Road governing authority through means independent of the X-Road (for example, over a digitally signed e-mail). This request must be formalized in the central server by the central server administrator. 
+  - Security server owner change request is an exception - it is enough to submit one request through security server and the complementary request is generated automatically. Manual approval is still required by default.
 - The association must be approved by the X-Road governing authority.
 
-There are two types of registration requests:
+There are three types of registration requests:
 
 - authentication certificate registration request (see Sections 7.4 and 8.3);
-- security server client registration request (see Section 7.5).
+- security server client registration request (see Section 7.5);
+- security server owner change request (see Section 7.10)
 
 It is possible to streamline the registration process of authentication certificates and security server clients by enabling automatic approval.
  
@@ -481,7 +485,11 @@ It is possible to streamline the registration process of authentication certific
   - When automatic approval is enabled, it is enough to submit a security server client registration request to the X-Road central server through the security server, and the request will be automatically approved immediately.
   - Automatic approval is applied to existing members only. In addition, automatic approval is applied only if the client registration request has been signed by the member owning the subsystem to be registered as a security server client.
   - By default, automatic approval of security server client registration requests is disabled. It can be enabled by setting the `auto-approve-client-reg-requests` property value to `true` on central server.
-
+- security server owner change requests
+    - When automatic approval is enabled, it is enough to submit a security server owner change request to the X-Road central server through the security server, and the request will be automatically approved immediately.
+    - Automatic approval is applied to existing members only.
+    - By default, automatic approval of security server owner change requests is disabled. It can be enabled by setting the `auto-approve-owner-change-requests` property value to `true` on central server.
+    
 ### 6.1.1 State Machine Model for Registration Requests
 
 A registration request can be in one of the following states. See Figure 1 for the state machine diagram.
@@ -758,6 +766,25 @@ When an X-Road member is deleted, information about all security servers in its 
 To delete an X-Road member, follow these steps.
 1. On the Configuration menu, select Members, select a member that you wish to delete, and click Details.
 2. In the view that opens, locate the Member Details section and click Delete. In the confirmation window that opens, click Confirm.
+
+## 7.10 Changing a Security Server's Owner
+
+Access rights: Registration Officer
+
+The actions required to change a security server's owner depend on whether automatic approval of security server owner change requests is enabled or disabled (_default_).
+
+When automatic approval of security server owner change requests is enabled, the following action must be taken:
+- A security server owner chang request must be sent from the security server to the central server by the security server administrator.
+
+Automatic approval of security server owner change requests is disabled by default. In that case, to change the owner of a security server, the following actions must be taken.
+- A security server owner change request must be sent from the security server to the central server by the security server administrator;
+- The complementary security server owner change request is formalized in the central server automatically;
+- The complimentary requests must be approved by the central server administrator, on the appeal of the security server's owner.
+
+Registration requests in the state "Submitted for approval" can be approved or rejected by the central server administrator.
+
+- To approve a request open one of its complementary requests in detail view and click Approve. On the approval of the request, the complementary requests move to the "Approved" state. 
+- To decline a request, open one of the complementary requests in detail view and click Decline. Upon declining a request, its complementary requests move to the "Declined" state.
 
 # 8. Managing the Security Servers
 ## 8.1 Viewing the Security Server Details

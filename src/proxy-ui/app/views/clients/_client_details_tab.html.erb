@@ -1,4 +1,7 @@
 <div class="ui-tabs-panel-actions">
+  <% if can?(:send_owner_change_req) %>
+  <button id="owner_change"><%= t '.set_as_owner' %></button>
+  <% end %>
   <% if can?(:send_client_reg_req) %>
   <button id="client_register"><%= t '.register' %></button>
   <% end %>
