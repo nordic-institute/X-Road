@@ -80,6 +80,7 @@ public class ServiceDescriptionService {
     public static final String WSDL_EXISTS = "clients.wsdl_exists";
     public static final String SERVICE_EXISTS = "clients.service_exists";
     public static final String MALFORMED_URL = "clients.malformed_wsdl_url";
+    public static final String WRONG_TYPE = "clients.servicedescription_wrong_type";
 
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final ClientService clientService;
@@ -220,6 +221,12 @@ public class ServiceDescriptionService {
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptiontype(id);
         if (serviceDescriptionType == null) {
             throw new NotFoundException("Service description with id " + id.toString() + " not found");
+        }
+
+        // Shouldn't be able to edit e.g. REST service descriptions with a WSDL URL
+        if (serviceDescriptionType.getType() != DescriptionType.WSDL) {
+            throw new BadRequestException("Existing service description (id: " + id.toString() + " is not WSDL",
+                    ErrorCode.of(WRONG_TYPE));
         }
 
         if (!FormatUtils.isValidUrl(url)) {
