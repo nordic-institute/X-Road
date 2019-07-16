@@ -308,6 +308,7 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '../assets/colors';
+@import '../assets/tables';
 
 .edit-row {
   display: flex;

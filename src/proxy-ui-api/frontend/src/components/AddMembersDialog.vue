@@ -224,6 +224,7 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '../assets/colors';
+@import '../assets/tables';
 
 .exp-title {
   text-align: right;
