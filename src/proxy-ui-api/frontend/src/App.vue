@@ -45,7 +45,7 @@ export default Vue.extend({
 
     // Custom validators for vee-validate
     this.$validator.extend('restUrl', {
-      getMessage: (field, args) => 'REST url is not valid',
+      getMessage: (field, args) => this.$t('validation.invalidRest') as string,
       validate: (value, args) => {
         if (Helpers.isValidRestURL(value)) {
           return true;
@@ -55,7 +55,7 @@ export default Vue.extend({
     });
 
     this.$validator.extend('wsdlUrl', {
-      getMessage: (field, args) => 'WSDL url is not valid',
+      getMessage: (field, args) => this.$t('validation.invalidWsdl') as string,
       validate: (value, args) => {
         if (Helpers.isValidWsdlURL(value)) {
           return true;
