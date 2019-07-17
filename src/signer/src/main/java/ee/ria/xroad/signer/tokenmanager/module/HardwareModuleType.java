@@ -56,5 +56,5 @@ public class HardwareModuleType implements ModuleType {
 
     private final PubKeyAttributes pubKeyAttributes;
 
-    private final Set<String> slotIds;
+    private final Set<Long> slotIds;
 }

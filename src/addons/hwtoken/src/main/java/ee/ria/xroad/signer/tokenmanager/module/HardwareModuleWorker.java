@@ -119,23 +119,25 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
         }
 
         log.info("Module '{}' got {} slots", module.getType(), slots.length);
+        for (int i = 0; i < slots.length; i++) {
+            log.info("Module '{}' Slot {} ID: {}", module.getType(), i, slots[i].getSlotID());
+        }
 
         // HSM slot ids defined in module data
-        Set<String> slotIds = module.getSlotIds();
-
+        Set<Long> slotIds = module.getSlotIds();
         log.info("Slot configuration for module '{}' defined as {}", module.getType(), slotIds.toString());
 
         Map<String, TokenType> tokens = new HashMap<>();
         for (int slotIndex = 0; slotIndex < slots.length; slotIndex++) {
-            TokenType token = createToken(slots, slotIndex);
-            if (slotIds.isEmpty() || slotIds.contains(token.getId())) {
+            if (slotIds.isEmpty() || slotIds.contains(slots[slotIndex].getSlotID())) {
+                TokenType token = createToken(slots, slotIndex);
                 TokenType previous = tokens.putIfAbsent(token.getId(), token);
                 if (previous == null) {
                     log.info("Module '{}' slot #{} has token with ID '{}': {}", module.getType(), slotIndex,
                             token.getId(), token);
                 } else {
-                    log.info("Module '{}' slot #{} has token with ID '{}' but token with that ID is already registered",
-                            module.getType(), slotIndex, token.getId());
+                    log.info("Module '{}' slot #{} has token with ID '{}' but token with that ID is "
+                            + " already registered", module.getType(), slotIndex, token.getId());
                 }
             }
         }

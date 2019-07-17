@@ -38,8 +38,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.SystemProperties.getDeviceConfFile;
 
@@ -254,7 +256,8 @@ public final class ModuleConf {
             return;
         }
 
-        Set<String> slotIds = new HashSet<>(Arrays.asList(getStringArray(section, SLOT_IDS_PARAM)));
+        List<String> slotIdStrings = Arrays.asList(getStringArray(section, SLOT_IDS_PARAM));
+        Set<Long> slotIds = slotIdStrings.stream().map(Long::parseLong).collect(Collectors.toSet());
 
         MODULES.put(uid, new HardwareModuleType(uid, library, libraryCantCreateOsThreads, osLockingOk, tokenIdFormat,
                 verifyPin, batchSigning, readOnly, signMechanismName, privKeyAttributes, pubKeyAttributes, slotIds));
