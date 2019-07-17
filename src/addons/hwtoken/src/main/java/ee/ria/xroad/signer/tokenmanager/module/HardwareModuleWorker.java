@@ -121,13 +121,13 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
 
         log.info("Module '{}' got {} slots", module.getType(), slots.length);
         for (int i = 0; i < slots.length; i++) {
-            log.info("Module '{}' Slot {} ID: {} (0x{})", module.getType(), i, slots[i].getSlotID(),
+            log.debug("Module '{}' Slot {} ID: {} (0x{})", module.getType(), i, slots[i].getSlotID(),
                     Functions.toHexString(slots[i].getSlotID()));
         }
 
         // HSM slot ids defined in module data
         Set<Long> slotIds = module.getSlotIds();
-        log.info("Slot configuration for module '{}' defined as {}", module.getType(), slotIds.toString());
+        log.debug("Slot configuration for module '{}' defined as {}", module.getType(), slotIds.toString());
 
         Map<String, TokenType> tokens = new HashMap<>();
         for (int slotIndex = 0; slotIndex < slots.length; slotIndex++) {
