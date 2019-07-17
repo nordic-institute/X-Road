@@ -125,10 +125,11 @@
 
     <!-- Add new members dialog -->
     <addMembersDialog
+      v-if="group"
       :dialog="addMembersDialogVisible"
-      :groupId="groupId"
-      @cancel="closeMembersDialog()"
-      @membersAdded="membersAdded()"
+      :filtered="group.members"
+      @cancel="closeMembersDialog"
+      @membersAdded="doAddMembers"
     />
   </div>
 </template>
@@ -141,6 +142,24 @@ import { Permissions } from '@/global';
 import SubViewTitle from '@/components/SubViewTitle.vue';
 import AddMembersDialog from '@/components/AddMembersDialog.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+
+interface IGroupMember {
+  id: string;
+  name: string;
+  created_at: string;
+}
+
+interface ILocalGroup {
+  id: number;
+  code: string;
+  description: string;
+  member_count: number;
+  updated_at: string;
+  members: IGroupMember[];
+}
+
+type GroupMember = undefined | IGroupMember;
+type LocalGroup = undefined | ILocalGroup;
 
 export default Vue.extend({
   components: {
@@ -163,9 +182,9 @@ export default Vue.extend({
       confirmGroup: false,
       confirmMember: false,
       confirmAllMembers: false,
-      selectedMember: undefined,
+      selectedMember: undefined as GroupMember,
       description: undefined,
-      group: undefined,
+      group: undefined as LocalGroup,
       groupCode: '',
       addMembersDialogVisible: false,
     };
@@ -231,8 +250,22 @@ export default Vue.extend({
       this.addMembersDialogVisible = true;
     },
 
-    membersAdded(): void {
+    doAddMembers(selectedIds: string[]): void {
       this.addMembersDialogVisible = false;
+
+      axios
+        .post(`/groups/${this.groupId}/members`, {
+          items: selectedIds,
+        })
+        .then((res) => {
+          this.fetchData(this.clientId, this.groupId);
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
+    },
+
+    membersAdded(): void {
       this.fetchData(this.clientId, this.groupId);
     },
 
@@ -245,22 +278,25 @@ export default Vue.extend({
     },
 
     doRemoveAllMembers(): void {
-      const ids: any = [];
-      const tempGroup: any = this.group;
-      tempGroup.members.forEach((member: any) => {
-        ids.push(member.id);
-      });
+      const ids: string[] = [];
+      const tempGroup: LocalGroup = this.group;
 
-      this.removeArrayOfMembers(ids);
+      if (tempGroup) {
+        tempGroup.members.forEach((member: IGroupMember) => {
+          ids.push(member.id);
+        });
+        this.removeArrayOfMembers(ids);
+      }
+
       this.confirmAllMembers = false;
     },
 
-    removeMember(member: any): void {
+    removeMember(member: IGroupMember): void {
       this.confirmMember = true;
-      this.selectedMember = member;
+      this.selectedMember = member as GroupMember;
     },
     doRemoveMember() {
-      const member: any = this.selectedMember;
+      const member: GroupMember = this.selectedMember;
 
       if (member && member.id) {
         this.removeArrayOfMembers([member.id]);
@@ -270,7 +306,7 @@ export default Vue.extend({
       this.selectedMember = undefined;
     },
 
-    removeArrayOfMembers(members: any) {
+    removeArrayOfMembers(members: string[]) {
       axios
         .post(`/groups/${this.groupId}/members/delete`, {
           items: members,

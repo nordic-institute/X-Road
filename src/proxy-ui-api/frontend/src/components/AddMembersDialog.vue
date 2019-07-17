@@ -138,20 +138,19 @@ function initialState() {
     instances: [],
     expandPanel: [true],
     members: [],
-    selectedIds: [] as any,
+    selectedIds: [] as string[],
     noResults: false,
   };
 }
 
 export default Vue.extend({
   props: {
-    groupId: {
-      type: String,
-      required: true,
-    },
     dialog: {
       type: Boolean,
       required: true,
+    },
+    filtered: {
+      type: Array,
     },
   },
 
@@ -159,7 +158,7 @@ export default Vue.extend({
     return initialState();
   },
   computed: {
-    canSave() {
+    canSave(): boolean {
       if (this.selectedIds.length > 0) {
         return true;
       }
@@ -168,25 +167,35 @@ export default Vue.extend({
   },
 
   methods: {
-    checkboxChange(id: any, event: any): void {
+    checkboxChange(id: string, event: any): void {
       if (event === true) {
         this.selectedIds.push(id);
       } else {
-        this.selectedIds.pop(id);
+        const index = this.selectedIds.indexOf(id);
+        if (index > -1) {
+          this.selectedIds.splice(index, 1);
+        }
       }
     },
     search(): void {
       this.noResults = false;
       axios
         .get(
-          `/clients?name=${this.name}&instance=${this.instance}&member_class=${
-            this.memberClass
-          }&member_code=${this.memberCode}&subsystem_code=${
-            this.subsystemCode
-          }&show_members=false&internal_search=false`,
+          `/clients?name=${this.name}&instance=${this.instance}&member_class=${this.memberClass}&member_code=${this.memberCode}&subsystem_code=${this.subsystemCode}&show_members=false&internal_search=false`,
         )
         .then((res) => {
-          this.members = res.data;
+          if (this.filtered && this.filtered.length > 0) {
+            // Filter out members that are already added
+            this.members = res.data.filter((member: any) => {
+              this.filtered.find((item: any) => {
+                return item.id === member.id;
+              });
+            });
+          } else {
+            // Show results straight if there is nothing to filter
+            this.members = res.data;
+          }
+
           if (this.members.length < 1) {
             this.noResults = true;
           }
@@ -201,17 +210,8 @@ export default Vue.extend({
       this.$emit('cancel');
     },
     save(): void {
-      axios
-        .post(`/groups/${this.groupId}/members`, {
-          items: this.selectedIds,
-        })
-        .then((res) => {
-          this.clearForm();
-          this.$emit('membersAdded');
-        })
-        .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
-        });
+      this.$emit('membersAdded', this.selectedIds);
+      this.clearForm();
     },
 
     clearForm(): void {
