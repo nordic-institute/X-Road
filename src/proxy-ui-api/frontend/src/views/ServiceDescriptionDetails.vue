@@ -1,5 +1,5 @@
 <template>
-  <div class="xr-tab-max-width">
+  <div class="xrd-tab-max-width">
     <div>
       <subViewTitle title="WSDL details" @close="close" />
       <template>
@@ -9,7 +9,7 @@
             outline
             round
             color="primary"
-            class="xr-big-button"
+            class="xrd-big-button"
             @click="confirmDelete = true"
           >{{$t('action.delete')}}</v-btn>
         </div>
@@ -64,11 +64,11 @@
 
     <v-card flat>
       <div class="close-button-wrap">
-        <v-btn outline round color="primary" class="xr-big-button" @click="close()">cancel</v-btn>
+        <v-btn outline round color="primary" class="xrd-big-button" @click="close()">cancel</v-btn>
         <v-btn
           round
           color="primary"
-          class="xr-big-button elevation-0"
+          class="xrd-big-button elevation-0"
           @click="save()"
           :disabled="!canSave"
         >save</v-btn>

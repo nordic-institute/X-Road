@@ -7,7 +7,7 @@
       max-height="64"
       max-width="128"
       @click="home()"
-      class="xr-logo"
+      class="xrd-logo"
     ></v-img>
     <div class="separator"></div>
     <div class="server-type">Security Server</div>
@@ -65,7 +65,7 @@ export default Vue.extend({
   background-color: white;
 }
 
-.xr-logo {
+.xrd-logo {
   cursor: pointer;
 }
 

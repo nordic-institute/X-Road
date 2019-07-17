@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-card flat>
-      <table class="detail-table" v-if="client">
+      <table class="xrd-table detail-table" v-if="client">
         <tr>
           <td>{{$t('client.memberName')}}</td>
           <td>{{client.member_name}}</td>
@@ -99,6 +99,14 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '../assets/tables';
+
+.detail-table {
+  margin-top: 40px;
+
+  tr td:first-child {
+    width: 20%;
+  }
+}
 
 .cert-name {
   text-decoration: underline;

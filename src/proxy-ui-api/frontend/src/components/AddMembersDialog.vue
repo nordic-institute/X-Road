@@ -61,7 +61,7 @@
                 <v-btn
                   color="primary"
                   round
-                  class="mb-2 rounded-button elevation-0 xr-big-button"
+                  class="mb-2 rounded-button elevation-0 xrd-big-button"
                   @click="search()"
                 >{{$t('action.search')}}</v-btn>
               </div>
@@ -108,14 +108,14 @@
           color="primary"
           round
           outline
-          class="mb-2 rounded-button elevation-0 xr-big-button button-margin"
+          class="mb-2 rounded-button elevation-0 xrd-big-button button-margin"
           @click="cancel()"
         >{{$t('action.cancel')}}</v-btn>
 
         <v-btn
           color="primary"
           round
-          class="mb-2 rounded-button elevation-0 xr-big-button button-margin"
+          class="mb-2 rounded-button elevation-0 xrd-big-button button-margin"
           :disabled="!canSave"
           @click="save()"
         >{{$t('localGroup.addSelected')}}</v-btn>

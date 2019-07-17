@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-card flat class="xr-card" v-if="showConnectionType">
+    <v-card flat class="xrd-card" v-if="showConnectionType">
       <v-flex>
         <h1 class="title mb-3">{{$t('internalServers.connectionType')}}</h1>
         <v-select
@@ -15,7 +15,7 @@
       <div class="conn-info">{{$t('internalServers.connectionInfo')}}</div>
     </v-card>
 
-    <v-card flat class="xr-card">
+    <v-card flat class="xrd-card">
       <div class="tls-title-wrap">
         <h1 class="title mb-3">{{$t('internalServers.tlsTitle')}}</h1>
         <v-btn
@@ -54,7 +54,7 @@
       </table>
     </v-card>
 
-    <v-card v-if="canViewSSCert" flat class="xr-card">
+    <v-card v-if="canViewSSCert" flat class="xrd-card">
       <h1 class="title mb-3">{{$t('internalServers.ssCertTitle')}}</h1>
       <div class="cert-table-title">{{$t('internalServers.certHash')}}</div>
       <table class="certificate-table server-certificates">
@@ -74,7 +74,7 @@
                 outline
                 round
                 color="primary"
-                class="xr-small-button"
+                class="xrd-small-button"
                 @click="exportSSCertificate(ssCertificate.hash)"
               >{{$t('action.export')}}</v-btn>
             </td>
@@ -259,7 +259,7 @@ export default Vue.extend({
   justify-content: space-between;
 }
 
-.xr-card {
+.xrd-card {
   margin-top: 50px;
 }
 

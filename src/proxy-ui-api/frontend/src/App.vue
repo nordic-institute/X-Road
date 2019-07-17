@@ -1,5 +1,5 @@
 <template>
-  <v-app class="xr-app">
+  <v-app class="xrd-app">
     <div>
       <transition name="fade" mode="out-in">
         <router-view />
@@ -85,7 +85,7 @@ export default Vue.extend({
 }
 
 // Set the app background color
-.theme--light.application.xr-app {
+.theme--light.application.xrd-app {
   background: white;
 }
 </style>

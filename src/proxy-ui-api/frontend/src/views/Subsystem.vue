@@ -1,5 +1,5 @@
 <template>
-  <div class="xr-tab-max-width">
+  <div class="xrd-tab-max-width">
     <v-flex mb-4>
       <h1 v-if="client" class="display-1 mb-3">{{client.subsystem_code}} (subsystem)</h1>
     </v-flex>

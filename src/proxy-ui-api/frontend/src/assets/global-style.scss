@@ -8,13 +8,13 @@
 
 $large-button-width: 140px;
 
-.xr-big-button {
+.xrd-big-button {
   min-width: $large-button-width;
   border-radius: 4px;
   text-transform: uppercase;
 }
 
-.xr-small-button {
+.xrd-small-button {
   height: 24px;
   border-radius: 4px;
   margin-right: 4px;
@@ -22,12 +22,12 @@ $large-button-width: 140px;
   text-transform: capitalize;
 }
 
-.xr-table-button {
+.xrd-table-button {
   margin-top: auto;
   margin-bottom: auto;
 }
 
-.xr-tab-max-width {
+.xrd-tab-max-width {
   max-width: 850px;
   width: 100%;
   margin-left: 10px;

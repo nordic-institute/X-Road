@@ -1,5 +1,5 @@
 <template>
-  <v-container class="xr-tab-max-width">
+  <v-container class="xrd-tab-max-width">
     <v-layout text-xs-center wrap column>
       <v-flex mb-4>
         <h1 class="display-1 font-weight-bold mb-3">Add a Subsystem</h1>

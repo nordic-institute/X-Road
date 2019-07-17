@@ -1,5 +1,5 @@
 <template>
-  <div class="xr-tab-max-width">
+  <div class="xrd-tab-max-width">
     <div>
       <subViewTitle :title="groupCode" @close="close" />
 
@@ -11,7 +11,7 @@
             outline
             round
             color="primary"
-            class="xr-big-button"
+            class="xrd-big-button"
             @click="deleteGroup()"
           >{{$t('action.delete')}}</v-btn>
         </div>
@@ -41,7 +41,7 @@
           v-if="canEditMembers"
           outline
           color="primary"
-          class="xr-big-button"
+          class="xrd-big-button"
           :disabled="!hasMembers"
           @click="removeAllMembers()"
         >{{$t('action.removeAll')}}</v-btn>
@@ -49,7 +49,7 @@
           v-if="canEditMembers"
           outline
           color="primary"
-          class="xr-big-button"
+          class="xrd-big-button"
           @click="addMembers()"
         >{{$t('localGroup.addMembers')}}</v-btn>
       </div>
@@ -77,7 +77,7 @@
                   outline
                   round
                   color="primary"
-                  class="xr-small-button"
+                  class="xrd-small-button"
                   @click="removeMember(groupMember)"
                 >{{$t('action.remove')}}</v-btn>
               </div>
@@ -90,7 +90,7 @@
         <v-btn
           round
           color="primary"
-          class="xr-big-button elevation-0"
+          class="xrd-big-button elevation-0"
           @click="close()"
         >{{$t('action.close')}}</v-btn>
       </div>

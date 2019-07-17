@@ -72,7 +72,7 @@
                 outline
                 round
                 color="primary"
-                class="xr-small-button xr-table-button refresh-button"
+                class="xrd-small-button xrd-table-button refresh-button"
                 @click="refreshWsdl(serviceDesc)"
               >{{$t('action.refresh')}}</v-btn>
             </div>
