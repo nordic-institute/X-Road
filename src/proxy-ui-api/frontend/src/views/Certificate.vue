@@ -1,7 +1,7 @@
 <template>
   <div class="wrapper">
     <div class="new-content">
-      <subViewTitle :title="$t('cert.certificate')" @close="close"/>
+      <subViewTitle :title="$t('cert.certificate')" @close="close" />
       <template v-if="certificate">
         <div class="cert-hash">
           <div>
@@ -15,20 +15,19 @@
             round
             color="primary"
             class="text-capitalize table-button rounded-button"
-            type="file"
             @click="deleteCertificate()"
-          >{{$t('cert.delete')}}</v-btn>
+          >{{$t('action.delete')}}</v-btn>
         </div>
 
-        <certificate-line childKey="version" :sourceObject="certificate"/>
-        <certificate-line childKey="serial" :sourceObject="certificate"/>
-        <certificate-line childKey="signature_algorithm" :sourceObject="certificate"/>
-        <certificate-line childKey="issuer_distinguished_name" :sourceObject="certificate"/>
-        <certificate-line childKey="not_before" :sourceObject="certificate" date/>
-        <certificate-line childKey="not_after" :sourceObject="certificate" date/>
-        <certificate-line childKey="subject_distinguished_name" :sourceObject="certificate"/>
+        <certificate-line childKey="version" :sourceObject="certificate" />
+        <certificate-line childKey="serial" :sourceObject="certificate" />
+        <certificate-line childKey="signature_algorithm" :sourceObject="certificate" />
+        <certificate-line childKey="issuer_distinguished_name" :sourceObject="certificate" />
+        <certificate-line childKey="not_before" :sourceObject="certificate" date />
+        <certificate-line childKey="not_after" :sourceObject="certificate" date />
+        <certificate-line childKey="subject_distinguished_name" :sourceObject="certificate" />
 
-        <certificate-line childKey="public_key_algorithm" :sourceObject="certificate"/>
+        <certificate-line childKey="public_key_algorithm" :sourceObject="certificate" />
         <certificate-line
           childKey="rsa_public_key_modulus"
           :label="$t('cert.rsaModulus')"
@@ -42,9 +41,9 @@
           :sourceObject="certificate"
         />
 
-        <certificate-line childKey="state" :sourceObject="certificate"/>
-        <certificate-line childKey="key_usages" arrayType :sourceObject="certificate"/>
-        <certificate-line childKey="signature" :sourceObject="certificate" chunk/>
+        <certificate-line childKey="state" :sourceObject="certificate" />
+        <certificate-line childKey="key_usages" arrayType :sourceObject="certificate" />
+        <certificate-line childKey="signature" :sourceObject="certificate" chunk />
       </template>
     </div>
     <v-dialog v-model="confirm" persistent max-width="290">

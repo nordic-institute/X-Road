@@ -35,11 +35,11 @@ export default Vue.extend({
     },
     cancelButtonText: {
       type: String,
-      default: 'localGroup.cancel',
+      default: 'action.cancel',
     },
     acceptButtonText: {
       type: String,
-      default: 'localGroup.yes',
+      default: 'action.yes',
     },
     maxWidth: {
       type: String,

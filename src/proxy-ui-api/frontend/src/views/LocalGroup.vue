@@ -1,7 +1,7 @@
 <template>
   <div class="xr-tab-max-width">
     <div>
-      <subViewTitle :title="groupCode" @close="close"/>
+      <subViewTitle :title="groupCode" @close="close" />
 
       <template>
         <div class="cert-hash">
@@ -12,9 +12,8 @@
             round
             color="primary"
             class="xr-big-button"
-            type="file"
             @click="deleteGroup()"
-          >{{$t('localGroup.delete')}}</v-btn>
+          >{{$t('action.delete')}}</v-btn>
         </div>
       </template>
     </div>
@@ -43,16 +42,14 @@
           outline
           color="primary"
           class="xr-big-button"
-          type="file"
           :disabled="!hasMembers"
           @click="removeAllMembers()"
-        >{{$t('localGroup.removeAll')}}</v-btn>
+        >{{$t('action.removeAll')}}</v-btn>
         <v-btn
           v-if="canEditMembers"
           outline
           color="primary"
           class="xr-big-button"
-          type="file"
           @click="addMembers()"
         >{{$t('localGroup.addMembers')}}</v-btn>
       </div>
@@ -82,7 +79,7 @@
                   color="primary"
                   class="xr-small-button"
                   @click="removeMember(groupMember)"
-                >{{$t('localGroup.remove')}}</v-btn>
+                >{{$t('action.remove')}}</v-btn>
               </div>
             </td>
           </tr>
@@ -94,9 +91,8 @@
           round
           color="primary"
           class="xr-big-button elevation-0"
-          type="file"
           @click="close()"
-        >{{$t('localGroup.close')}}</v-btn>
+        >{{$t('action.close')}}</v-btn>
       </div>
     </v-card>
 
@@ -141,7 +137,6 @@
 import Vue from 'vue';
 import _ from 'lodash';
 import axios from 'axios';
-import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
 import SubViewTitle from '@/components/SubViewTitle.vue';
 import AddMembersDialog from '@/components/AddMembersDialog.vue';
@@ -176,7 +171,6 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['tlsCertificates']),
     showDelete(): boolean {
       return this.$store.getters.hasPermission(Permissions.DELETE_LOCAL_GROUP);
     },

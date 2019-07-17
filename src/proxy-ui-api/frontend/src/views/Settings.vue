@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <tabContent/>
+    <tabContent />
   </v-container>
 </template>
 
@@ -16,5 +16,3 @@ export default Vue.extend({
 });
 </script>
 
-<style>
-</style>

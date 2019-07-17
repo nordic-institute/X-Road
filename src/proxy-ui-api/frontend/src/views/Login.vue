@@ -123,8 +123,10 @@ export default Vue.extend({
                 msg: this.$t('login.errorMsg401') as string,
               });
 
+              // Clear inputs
               this.username = '';
               this.password = '';
+              // Set inputs to error state
               this.errors.first('username');
               this.errors.first('password');
             }
@@ -184,6 +186,5 @@ export default Vue.extend({
 .set-width {
   max-width: 420px;
 }
-
 </style>
 

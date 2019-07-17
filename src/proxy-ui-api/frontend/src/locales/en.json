@@ -36,10 +36,8 @@
     "connectionType": "Connection type",
     "connectionInfo": "Connection type for servers in service provider role is set in the Services tab by the service URL (http/https)",
     "tlsTitle": "Information System TLS certificate",
-    "add": "Add",
     "certHash": "Certificate Hash (SHA/1)",
     "ssCertTitle": "Security Server certificate",
-    "export": "Export",
     "connTypeUpdated": "Connection type updated"
   },
   "cert": {
@@ -65,7 +63,6 @@
     "csp": "csp",
     "serial": "Serial",
     "hashInfo": "Hash (SHA-1)",
-    "delete": "Delete",
     "rsaModulus": "RSA Public Key Modulus",
     "rsaExp": "RSA Public Key Exponent",
     "deleteCertTitle": "Delete certificate?",
@@ -81,20 +78,14 @@
   },
   "localGroup": {
     "localGroup": "Local group",
-    "delete": "Delete",
     "editDesc": "Edit description",
     "groupMembers": "Group Members",
-    "removeAll": "Remove All",
     "addMembers": "Add Members",
     "name": "Member Name",
     "id": "Id",
     "accessDate": "Access Rights Given",
-    "remove": "Remove",
-    "close": "Close",
     "deleteTitle": "Delete group?",
     "deleteText": "Are you sure that you want to delete this group?",
-    "cancel": "Cancel",
-    "yes": "Yes",
     "removeTitle": "Remove member?",
     "removeText": "Are you sure that you want to remove this member?",
     "removeAllTitle": "Remove all members?",
@@ -102,13 +93,31 @@
     "descSaved": "Description saved",
     "groupDeleted": "Group deleted",
     "description": "Description",
-    "add": "Add",
     "code": "Code",
     "addLocalGroup": "Add Local Group",
     "localGroupAdded": "Local group added",
     "searchOptions": "Search options",
     "addSelected": "Add selected",
     "noResults": "Your search found no results."
+  },
+  "services": {
+    "addWsdl": "Add WSDL",
+    "addRest": "Add REST",
+    "disableNotice": "Disable notice",
+    "disableTitle": "Disable?",
+    "service": "Service",
+    "serviceCode": "Service Code",
+    "url": "URL",
+    "timeout": "Timeout",
+    "accessRights": "Access Rights",
+    "deleteTitle": "Delete service description?",
+    "deleteWsdlText": "Are you sure that you want to delete this WSDL?",
+    "deleteRestText": "Are you sure that you want to delete this REST?",
+    "noMatches": "No matching records",
+    "disableSuccess": "Service description disabled",
+    "enableSuccess": "Service description enabled",
+    "restAdded": "REST added",
+    "wsdlAdded": "WSDL added"
   },
   "action": {
     "addSubsystem": "add subsystem",
@@ -121,7 +130,12 @@
     "ok": "Ok",
     "close": "Close",
     "cancel": "Cancel",
-    "yes": "Yes"
+    "yes": "Yes",
+    "refresh": "Refresh",
+    "delete": "Delete",
+    "remove": "Remove",
+    "removeAll": "Remove All",
+    "save": "Save"
   },
   "login": {
     "username": "Username",
@@ -133,6 +147,10 @@
   "logout": {
     "idleWarning": "You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.",
     "sessionExpired": "Session expired"
+  },
+  "validation": {
+    "invalidRest": "REST URL is not valid",
+    "invalidWsdl": "WSDL URL is not valid"
   },
   "name": "Name",
   "member_class": "Member class",

@@ -1,17 +1,17 @@
 <template>
   <div>
-    <toolbar/>
-    <router-view name="top"/>
+    <toolbar />
+    <router-view name="top" />
     <v-layout align-center justify-center>
       <v-layout mt-5 align-center justify-center class="base-full-width frame">
         <transition name="fade" mode="out-in">
-          <router-view/>
+          <router-view />
         </transition>
       </v-layout>
     </v-layout>
 
     <v-dialog v-model="logoutDialog" width="500" lazy persistent>
-      <v-card class="xroad-card">
+      <v-card class="xrd-card">
         <v-card-title>
           <span class="headline">{{$t('logout.sessionExpired')}}</span>
         </v-card-title>
@@ -71,9 +71,6 @@ export default Vue.extend({
   },
 });
 </script>
-
-<style lang="scss">
-</style>
 
 <style lang="scss" scoped>
 @import '../assets/shared';

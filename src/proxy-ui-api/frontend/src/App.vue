@@ -2,7 +2,7 @@
   <v-app class="xr-app">
     <div>
       <transition name="fade" mode="out-in">
-        <router-view/>
+        <router-view />
       </transition>
     </div>
     <snackbar ref="snackbar"></snackbar>
@@ -14,6 +14,7 @@ import Vue from 'vue';
 import axios from 'axios';
 import SnackbarMixin from './components/SnackbarMixin.vue';
 import { RouteName } from '@/global';
+import * as Helpers from '@/util/helpers';
 
 export default Vue.extend({
   name: 'App',
@@ -41,6 +42,27 @@ export default Vue.extend({
         throw error;
       },
     );
+
+    // Custom validators for vee-validate
+    this.$validator.extend('restUrl', {
+      getMessage: (field, args) => this.$t('validation.invalidRest') as string,
+      validate: (value, args) => {
+        if (Helpers.isValidRestURL(value)) {
+          return true;
+        }
+        return false;
+      },
+    });
+
+    this.$validator.extend('wsdlUrl', {
+      getMessage: (field, args) => this.$t('validation.invalidWsdl') as string,
+      validate: (value, args) => {
+        if (Helpers.isValidWsdlURL(value)) {
+          return true;
+        }
+        return false;
+      },
+    });
   },
 });
 </script>

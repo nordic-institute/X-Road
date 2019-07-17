@@ -24,6 +24,7 @@ const store: StoreOptions<RootState> = {
     clientsModule,
     clientModule,
   },
+  // @ts-ignore
   plugins: [vuexLocal.plugin],
 };
 
