@@ -148,6 +148,10 @@
     "idleWarning": "You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.",
     "sessionExpired": "Session expired"
   },
+  "validation": {
+    "invalidRest": "REST URL is not valid",
+    "invalidWsdl": "WSDL URL is not valid"
+  },
   "name": "Name",
   "member_class": "Member class",
   "member_name": "Member name",
