@@ -20,12 +20,25 @@
       <template>
         <div>Edit URL</div>
         <v-text-field
-          v-if="serviceDesc"
+          v-if="serviceDesc && serviceDesc.type === 'WSDL'"
           v-model="serviceDesc.url"
           single-line
           hide-details
           class="url-input"
-          v-validate="'required|url'"
+          v-validate="'required|wsdlUrl'"
+          data-vv-as="field"
+          name="url_field"
+          type="text"
+          :error-messages="errors.collect('url_field')"
+          @change="canSave = true"
+        ></v-text-field>
+        <v-text-field
+          v-if="serviceDesc && serviceDesc.type === 'REST'"
+          v-model="serviceDesc.url"
+          single-line
+          hide-details
+          class="url-input"
+          v-validate="'required|restUrl'"
           data-vv-as="field"
           name="url_field"
           type="text"
