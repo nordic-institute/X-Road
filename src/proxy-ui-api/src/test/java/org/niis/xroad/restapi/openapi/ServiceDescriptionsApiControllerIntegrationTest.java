@@ -24,26 +24,41 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.stubbing.Answer;
+import org.niis.xroad.restapi.converter.GlobalConfWrapper;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.openapi.model.Client;
+import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionDisabledNotice;
+import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
+import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 /**
  * Test ServiceDescriptionsApiController
@@ -56,12 +71,31 @@ import static org.junit.Assert.fail;
 public class ServiceDescriptionsApiControllerIntegrationTest {
 
     public static final String CLIENT_ID_SS1 = "FI:GOV:M1:SS1";
+    // services from initial test data: src/test/resources/data.sql
+    public static final String GET_RANDOM = "getRandom";
+    public static final String CALCULATE_PRIME = "calculatePrime";
+    // services from wsdl test file: src/test/resources/testservice.wsdl
+    public static final String XROAD_GET_RANDOM = "xroadGetRandom";
+    public static final String BMI = "bodyMassIndex";
 
     @Autowired
     private ServiceDescriptionsApiController serviceDescriptionsApiController;
 
     @Autowired
     private ClientsApiController clientsApiController;
+
+    @MockBean
+    private GlobalConfWrapper globalConfWrapper;
+
+    @Before
+    public void setup() {
+        when(globalConfWrapper.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
+            Object[] args = invocation.getArguments();
+            ClientId identifier = (ClientId) args[0];
+            return identifier.getSubsystemCode() != null ? identifier.getSubsystemCode() + "NAME"
+                    : "test-member" + "NAME";
+        });
+    }
 
     @Test
     @WithMockUser(authorities = { "ENABLE_DISABLE_WSDL", "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
@@ -141,10 +175,48 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "DELETE_WSDL", "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
     public void deleteServiceDescription() {
+        Client client = clientsApiController.getClient(CLIENT_ID_SS1).getBody();
+        assertNotNull(client);
         serviceDescriptionsApiController.deleteServiceDescription("2");
-        try {
-            clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1);
-            fail("should throw NotFoundException");
-        } catch (NotFoundException expected) { }
+        List<ServiceDescription> serviceDescriptions =
+                clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1).getBody();
+        assertEquals(1, serviceDescriptions.size());
+        client = clientsApiController.getClient(CLIENT_ID_SS1).getBody();
+        assertNotNull(client);
+    }
+
+    @Test
+    @WithMockUser(authorities = { "EDIT_WSDL", "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
+    public void updateServiceDescription() {
+        Client client = clientsApiController.getClient(CLIENT_ID_SS1).getBody();
+        assertNotNull(client);
+        ServiceDescription serviceDescription = getServiceDescription(
+                clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1).getBody(), "1").get();
+        assertEquals("https://soapservice.com/v1/Endpoint?wsdl", serviceDescription.getUrl());
+        Set<String> serviceCodes = serviceDescription.getServices()
+                .stream()
+                .map(Service::getCode)
+                .collect(Collectors.toSet());
+        assertEquals(2, serviceCodes.size());
+        assertTrue(serviceCodes.contains(GET_RANDOM));
+        assertTrue(serviceCodes.contains(CALCULATE_PRIME));
+
+        ServiceDescriptionUpdate serviceDescriptionUpdate = new ServiceDescriptionUpdate()
+                .url("file:src/test/resources/testservice.wsdl").type(ServiceType.WSDL);
+        serviceDescriptionsApiController.updateServiceDescription("1", false, serviceDescriptionUpdate);
+        client = clientsApiController.getClient(CLIENT_ID_SS1).getBody();
+        assertNotNull(client);
+        serviceDescription = getServiceDescription(
+                clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1).getBody(), "1").get();
+        assertEquals("file:src/test/resources/testservice.wsdl", serviceDescription.getUrl());
+        serviceCodes = serviceDescription.getServices()
+                .stream()
+                .map(Service::getCode)
+                .collect(Collectors.toSet());
+        assertEquals(2, serviceCodes.size());
+        assertFalse(serviceCodes.contains(GET_RANDOM));
+        assertFalse(serviceCodes.contains(CALCULATE_PRIME));
+        assertTrue(serviceCodes.contains(XROAD_GET_RANDOM));
+        assertTrue(serviceCodes.contains(BMI));
     }
 }
