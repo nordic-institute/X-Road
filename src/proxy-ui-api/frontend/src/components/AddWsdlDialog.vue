@@ -13,7 +13,7 @@
           v-model="url"
           single-line
           class="dlg-row-input"
-          v-validate="'required|url'"
+          v-validate="'required|wsdlUrl'"
           data-vv-as="url"
           name="url"
           type="text"
