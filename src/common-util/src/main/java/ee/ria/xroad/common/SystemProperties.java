@@ -1214,7 +1214,7 @@ public final class SystemProperties {
      * @return protocols.
      */
     public static String[] getProxyClientTLSProtocols() {
-        return System.getProperty(PROXY_CLIENT_TLS_PROTOCOLS, "TLSv1.2").split(",");
+        return System.getProperty(PROXY_CLIENT_TLS_PROTOCOLS, "TLSv1.2").split("\\s*,\\s*");
     }
 
     private static final String DEFAULT_CLIENT_SSL_CIPHER_SUITES = "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,"
@@ -1232,7 +1232,7 @@ public final class SystemProperties {
      * @return cipher suites.
      */
     public static String[] getProxyClientTLSCipherSuites() {
-        return System.getProperty(PROXY_CLIENT_TLS_CIPHERS, DEFAULT_CLIENT_SSL_CIPHER_SUITES).split(",");
+        return System.getProperty(PROXY_CLIENT_TLS_CIPHERS, DEFAULT_CLIENT_SSL_CIPHER_SUITES).split("\\s*,\\s*");
     }
 
     private static final String DEFAULT_XROAD_SSL_CIPHER_SUITES = "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,"
@@ -1244,7 +1244,7 @@ public final class SystemProperties {
      * @return cipher suites.
      */
     public static String[] getXroadTLSCipherSuites() {
-        return System.getProperty(PROXY_XROAD_TLS_CIPHERS, DEFAULT_XROAD_SSL_CIPHER_SUITES).split(",");
+        return System.getProperty(PROXY_XROAD_TLS_CIPHERS, DEFAULT_XROAD_SSL_CIPHER_SUITES).split("\\s*,\\s*");
     }
 
     /**
