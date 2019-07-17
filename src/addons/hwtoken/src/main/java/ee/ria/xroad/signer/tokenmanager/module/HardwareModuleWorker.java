@@ -35,6 +35,7 @@ import iaik.pkcs.pkcs11.DefaultInitializeArgs;
 import iaik.pkcs.pkcs11.InitializeArgs;
 import iaik.pkcs.pkcs11.Module;
 import iaik.pkcs.pkcs11.Slot;
+import iaik.pkcs.pkcs11.wrapper.Functions;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import lombok.RequiredArgsConstructor;
@@ -120,7 +121,8 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
 
         log.info("Module '{}' got {} slots", module.getType(), slots.length);
         for (int i = 0; i < slots.length; i++) {
-            log.info("Module '{}' Slot {} ID: {}", module.getType(), i, slots[i].getSlotID());
+            log.info("Module '{}' Slot {} ID: {} (0x{})", module.getType(), i, slots[i].getSlotID(),
+                    Functions.toHexString(slots[i].getSlotID()));
         }
 
         // HSM slot ids defined in module data

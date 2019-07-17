@@ -257,7 +257,7 @@ public final class ModuleConf {
         }
 
         List<String> slotIdStrings = Arrays.asList(getStringArray(section, SLOT_IDS_PARAM));
-        Set<Long> slotIds = slotIdStrings.stream().map(Long::parseLong).collect(Collectors.toSet());
+        Set<Long> slotIds = slotIdStrings.stream().map(String::trim).map(Long::parseLong).collect(Collectors.toSet());
 
         MODULES.put(uid, new HardwareModuleType(uid, library, libraryCantCreateOsThreads, osLockingOk, tokenIdFormat,
                 verifyPin, batchSigning, readOnly, signMechanismName, privKeyAttributes, pubKeyAttributes, slotIds));
