@@ -419,7 +419,7 @@ paths:
           schema:
             type: string
             format: text
-            minLength: 1
+            minLength: 0
             maxLength: 255
         - in: query
           name: instance
@@ -428,7 +428,7 @@ paths:
           schema:
             type: string
             format: text
-            minLength: 1
+            minLength: 0
             maxLength: 255
         - in: query
           name: member_class
@@ -437,7 +437,7 @@ paths:
           schema:
             type: string
             format: text
-            minLength: 1
+            minLength: 0
             maxLength: 255
         - in: query
           name: member_code
@@ -446,7 +446,7 @@ paths:
           schema:
             type: string
             format: text
-            minLength: 1
+            minLength: 0
             maxLength: 255
         - in: query
           name: subsystem_code
@@ -455,7 +455,7 @@ paths:
           schema:
             type: string
             format: text
-            minLength: 1
+            minLength: 0
             maxLength: 255
         - in: query
           name: show_members
@@ -2126,7 +2126,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    put: # ok
+    patch: # ok
       tags:
         - security server
       summary: update url or service code for the selected service description
@@ -3818,6 +3818,8 @@ components:
           example: exampleServiceCode
           minLength: 1
           maxLength: 255
+        type:
+          $ref: '#/components/schemas/ServiceType'
     ServiceType: # ok
       type: string
       format: text
