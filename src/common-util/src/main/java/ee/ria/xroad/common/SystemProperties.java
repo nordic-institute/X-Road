@@ -28,7 +28,6 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import java.util.Arrays;
 
-
 /**
  * Contains system-wide constants for system properties.
  */
