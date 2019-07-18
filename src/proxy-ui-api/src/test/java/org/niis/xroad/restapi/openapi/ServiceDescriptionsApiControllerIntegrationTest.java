@@ -71,9 +71,12 @@ import static org.mockito.Mockito.when;
 public class ServiceDescriptionsApiControllerIntegrationTest {
 
     public static final String CLIENT_ID_SS1 = "FI:GOV:M1:SS1";
+    public static final String CLIENT_ID_SS2 = "FI:GOV:M1:SS2";
     // services from initial test data: src/test/resources/data.sql
     public static final String GET_RANDOM = "getRandom";
     public static final String CALCULATE_PRIME = "calculatePrime";
+    public static final String XROAD_GET_RANDOM_OLD = "xroadGetRandomOld";
+    public static final String BMI_OLD = "bodyMassIndexOld";
     // services from wsdl test file: src/test/resources/testservice.wsdl
     public static final String XROAD_GET_RANDOM = "xroadGetRandom";
     public static final String BMI = "bodyMassIndex";
@@ -218,5 +221,33 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         assertFalse(serviceCodes.contains(CALCULATE_PRIME));
         assertTrue(serviceCodes.contains(XROAD_GET_RANDOM));
         assertTrue(serviceCodes.contains(BMI));
+    }
+
+    @Test
+    @WithMockUser(authorities = { "REFRESH_WSDL", "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
+    public void refreshServiceDescription() {
+        ServiceDescription serviceDescription = getServiceDescription(
+                clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS2).getBody(), "3").get();
+        Set<String> serviceCodes = serviceDescription.getServices()
+                .stream()
+                .map(Service::getCode)
+                .collect(Collectors.toSet());
+        assertEquals(2, serviceCodes.size());
+        assertTrue(serviceCodes.contains(XROAD_GET_RANDOM_OLD));
+        assertTrue(serviceCodes.contains(BMI_OLD));
+
+        ServiceDescription refreshed = serviceDescriptionsApiController.refreshServiceDescription("3", false).getBody();
+        assertEquals(serviceDescription.getId(), refreshed.getId());
+        serviceCodes = refreshed.getServices()
+                .stream()
+                .map(Service::getCode)
+                .collect(Collectors.toSet());
+        assertEquals(2, serviceCodes.size());
+        // refreshed wsdl has updated servicecodes and the refreshedDate should be updated
+        assertFalse(serviceCodes.contains(XROAD_GET_RANDOM_OLD));
+        assertFalse(serviceCodes.contains(BMI_OLD));
+        assertTrue(serviceCodes.contains(XROAD_GET_RANDOM));
+        assertTrue(serviceCodes.contains(BMI));
+        assertTrue(refreshed.getRefreshedDate().isAfter(serviceDescription.getRefreshedDate()));
     }
 }

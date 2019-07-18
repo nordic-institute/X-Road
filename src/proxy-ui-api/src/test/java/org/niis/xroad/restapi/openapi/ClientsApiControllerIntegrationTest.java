@@ -516,7 +516,7 @@ public class ClientsApiControllerIntegrationTest {
         // client with 0 services
         ResponseEntity<List<ServiceDescription>> descriptions =
                 clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS2);
-        assertEquals(0, descriptions.getBody().size());
+        assertEquals(1, descriptions.getBody().size());
 
         // client not found
         try {

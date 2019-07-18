@@ -31,6 +31,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.ErrorCode;
@@ -246,8 +247,8 @@ public class ServiceDescriptionService {
             validateWsdl(url);
         }
 
-        serviceDescriptionType.setUrl(url);
         serviceDescriptionType.setRefreshedDate(new Date());
+        serviceDescriptionType.setUrl(url);
 
         // create services
         List<ServiceType> newServices = parsedServices
@@ -382,5 +383,55 @@ public class ServiceDescriptionService {
     private void checkForExistingServices(ClientType client,
             Collection<WsdlParser.ServiceInfo> parsedServices) throws ConflictException {
         checkForExistingServices(client, parsedServices, null);
+    }
+
+    /**
+     * Refresh a ServiceDescription
+     * @param id
+     * @param ignoreWarnings
+     * @return {@link ServiceDescriptionType}
+     */
+    @PreAuthorize("hasAuthority('REFRESH_WSDL')")
+    public ServiceDescriptionType refreshServiceDescription(Long id, boolean ignoreWarnings) {
+        ServiceDescriptionType serviceDescriptionType = getServiceDescriptiontype(id);
+        if (serviceDescriptionType == null) {
+            throw new NotFoundException("Service description with id " + id.toString() + " not found");
+        }
+
+        if (serviceDescriptionType.getType() == DescriptionType.WSDL) {
+            return refreshWsdl(serviceDescriptionType, ignoreWarnings);
+        }
+
+        // we only have two types at the moment so the type must be OPENAPI3 if we end up this far
+        throw new NotImplementedException("REST ServiceDescription refresh not implemented yet");
+    }
+
+    private ServiceDescriptionType refreshWsdl(ServiceDescriptionType serviceDescriptionType, boolean ignoreWarnings) {
+        ClientType client = serviceDescriptionType.getClient();
+
+        String wsdlUrl = serviceDescriptionType.getUrl();
+
+        Collection<WsdlParser.ServiceInfo> parsedServices = parseWsdl(wsdlUrl);
+
+        checkForExistingServices(client, parsedServices, serviceDescriptionType.getId());
+
+        if (!ignoreWarnings) {
+            validateWsdl(wsdlUrl);
+        }
+
+        serviceDescriptionType.setRefreshedDate(new Date());
+
+        // create services
+        List<ServiceType> newServices = parsedServices
+                .stream()
+                .map(serviceInfo -> serviceInfoToServiceType(serviceInfo, serviceDescriptionType))
+                .collect(Collectors.toList());
+
+        // replace all old services with the new ones
+        serviceDescriptionType.getService().clear();
+        serviceDescriptionType.getService().addAll(newServices);
+        clientRepository.saveOrUpdate(client);
+
+        return serviceDescriptionType;
     }
 }

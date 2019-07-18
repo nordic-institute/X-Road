@@ -117,4 +117,13 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         }
         return new ResponseEntity<>(serviceDescription, HttpStatus.OK);
     }
+
+    @Override
+    @PreAuthorize("hasAuthority('REFRESH_WSDL')")
+    public ResponseEntity<ServiceDescription> refreshServiceDescription(String id, Boolean ignoreWarnings) {
+        Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
+        ServiceDescription serviceDescription = serviceDescriptionConverter.convert(
+                serviceDescriptionService.refreshServiceDescription(serviceDescriptionId, ignoreWarnings));
+        return new ResponseEntity<>(serviceDescription, HttpStatus.OK);
+    }
 }
