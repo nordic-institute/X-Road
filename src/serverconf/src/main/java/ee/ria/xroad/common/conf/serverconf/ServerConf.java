@@ -147,6 +147,17 @@ public class ServerConf {
 
     /**
      * @param serviceProvider the service provider identifier
+     * @return all the services offered by a service provider filtered by description type
+     */
+    public static List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider,
+                                                               DescriptionType descriptionType) {
+        log.trace("getServicesByDescriptionType({}, {})", serviceProvider, descriptionType);
+
+        return getInstance().getServicesByDescriptionType(serviceProvider, descriptionType);
+    }
+
+    /**
+     * @param serviceProvider the service provider identifier
      * @param client          the client identifier
      * @return all the services by a service provider that the caller
      * has permission to invoke.
@@ -156,6 +167,19 @@ public class ServerConf {
         log.trace("getAllowedServices({}, {})", serviceProvider, client);
 
         return getInstance().getAllowedServices(serviceProvider, client);
+    }
+
+    /**
+     * @param serviceProvider the service provider identifier
+     * @param client          the client identifier
+     * @return all the services by a service provider that the caller
+     * has permission to invoke filtered by description type
+     */
+    public static List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider,
+                                                     ClientId client, DescriptionType descriptionType) {
+        log.trace("getAllowedServicesByDescriptionType({}, {}, {})", serviceProvider, client, descriptionType);
+
+        return getInstance().getAllowedServicesByDescriptionType(serviceProvider, client, descriptionType);
     }
 
     /**

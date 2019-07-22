@@ -25,6 +25,7 @@
 package ee.ria.xroad.proxy.testsuite.testcases;
 
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -94,7 +95,8 @@ public class ListMethodsMessage extends MessageTestCase {
 
         ServerConf.reload(new TestSuiteServerConf() {
             @Override
-            public List<ServiceId> getAllServices(ClientId serviceProvider) {
+            public List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider,
+                                                                DescriptionType descriptionType) {
                 assertThat("Client id does not match expected", serviceProvider, is(expectedClientId));
                 return expectedServices;
             }

@@ -107,8 +107,6 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
     @Override
     public void process() throws Exception {
-        log.trace("process()");
-
         opMonitoringData.setXRequestId(xRequestId);
         updateOpMonitoringClientSecurityServerAddress();
 
@@ -158,20 +156,15 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     }
 
     private void processRequest() throws Exception {
-        log.trace("processRequest()");
-
         if (restRequest.getQueryId() == null) {
             restRequest.setQueryId(GlobalConf.getInstanceIdentifier() + "-" + UUID.randomUUID().toString());
         }
-
         updateOpMonitoringDataByRestRequest(opMonitoringData, restRequest);
-
         try (HttpSender httpSender = createHttpSender()) {
             sendRequest(httpSender);
             parseResponse(httpSender);
             checkConsistency(getHashAlgoId(httpSender));
         }
-
         logResponseMessage();
     }
 
@@ -197,10 +190,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     }
 
     private void parseResponse(HttpSender httpSender) throws Exception {
-        log.trace("parseResponse()");
-
         response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE));
-
         ProxyMessageDecoder decoder = new ProxyMessageDecoder(response, httpSender.getResponseContentType(),
                 getHashAlgoId(httpSender));
         try {
@@ -208,25 +198,19 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         } catch (CodedException ex) {
             throw ex.withPrefix(X_SERVICE_FAILED_X);
         }
-
         updateOpMonitoringDataByResponse(decoder);
         // Ensure we have the required parts.
         checkResponse();
-
         decoder.verify(requestServiceId.getClientId(), response.getSignature());
     }
 
     private void checkResponse() {
-        log.trace("checkResponse()");
-
         if (response.getFault() != null) {
             throw response.getFault().toCodedException();
         }
-
         if (response.getRestResponse() == null) {
             throw new CodedException(X_MISSING_REST, "Response does not have REST message");
         }
-
         if (response.getSignature() == null) {
             throw new CodedException(X_MISSING_SIGNATURE, "Response does not have signature");
         }
@@ -266,7 +250,6 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     }
 
     private void logResponseMessage() {
-        log.trace("logResponseMessage()");
         MessageLog.log(restRequest,
                 response.getRestResponse(),
                 response.getSignature(),

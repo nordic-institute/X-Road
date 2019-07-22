@@ -2,15 +2,15 @@
 
 ---
 
-# X-Road: Service Metadata Protocol
+# X-Road: Service Metadata Protocol <!-- omit in toc --> 
 **Technical Specification**
 
-Version: 2.7  
+Version: 2.8  
 Doc. ID: PR-META
 
 ---
 
-## Version history
+## Version history <!-- omit in toc --> 
 
  Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
@@ -26,39 +26,40 @@ Doc. ID: PR-META
  06.03.2018 | 2.5     | Added terms section, terms doc reference and link               | Tatu Repo
  15.10.2018 | 2.6     | Update Annex B                                                  | Petteri Kivimäki
  05.06.2019 | 2.7     | Add JSON response for listClients metadata API                  | Jarkko Hyöty
+ 30.07.2019 | 2.8     | Update listMethods and allowedMethods descriptions              | Ilkka Seppälä
 
-## Table of Contents
+## Table of Contents <!-- omit in toc --> 
 
 <!-- toc -->
 <!-- vim-markdown-toc GFM -->
 
-* [License](#license)
-* [1 Introduction](#1-introduction)
-  * [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
-  * [1.2 References](#12-references)
-* [2 Retrieving List of Service Providers](#2-retrieving-list-of-service-providers)
-* [3 Retrieving List of Central Services](#3-retrieving-list-of-central-services)
-* [4 Retrieving List of Services](#4-retrieving-list-of-services)
-* [5 Retrieving the WSDL of a Service](#5-retrieving-the-wsdl-of-a-service)
-    * [X-Road protocol POST-request](#x-road-protocol-post-request)
-    * [HTTP GET-request](#http-get-request)
-    * [WSDL-information modifications](#wsdl-information-modifications)
-* [Annex A XML Schema for Messages](#annex-a-xml-schema-for-messages)
-* [Annex B listMethods, allowedMethods, and getWsdl service descriptions](#annex-b-listmethods-allowedmethods-and-getwsdl-service-descriptions)
-  * [WSDL](#wsdl)
-  * [OpenAPI definition](#openapi-definition)
-* [Annex C Example Messages](#annex-c-example-messages)
-  * [C.1 listClients Response](#c1-listclients-response)
-    * [XML Response](#xml-response)
-    * [JSON Response](#json-response)
-  * [C.2 listCentralServices Response](#c2-listcentralservices-response)
-  * [C.3 listMethods Request](#c3-listmethods-request)
-  * [C.4 listMethods Response](#c4-listmethods-response)
-  * [C.5 allowedMethods Request](#c5-allowedmethods-request)
-  * [C.6 allowedMethods Response](#c6-allowedmethods-response)
-  * [C.7 getWsdl Request](#c7-getwsdl-request)
-  * [C.8 getWsdl Response](#c8-getwsdl-response)
-  * [C.9 getWsdl Response attachment](#c9-getwsdl-response-attachment)
+- [License](#license)
+- [1 Introduction](#1-introduction)
+  - [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
+  - [1.2 References](#12-references)
+- [2 Retrieving List of Service Providers](#2-retrieving-list-of-service-providers)
+- [3 Retrieving List of Central Services](#3-retrieving-list-of-central-services)
+- [4 Retrieving List of Services](#4-retrieving-list-of-services)
+- [5 Retrieving the WSDL of a Service](#5-retrieving-the-wsdl-of-a-service)
+    - [X-Road protocol POST-request](#x-road-protocol-post-request)
+    - [HTTP GET-request](#http-get-request)
+    - [WSDL-information modifications](#wsdl-information-modifications)
+- [Annex A XML Schema for Messages](#annex-a-xml-schema-for-messages)
+- [Annex B listMethods, allowedMethods, and getWsdl service descriptions](#annex-b-listmethods-allowedmethods-and-getwsdl-service-descriptions)
+  - [WSDL](#wsdl)
+  - [OpenAPI definition](#openapi-definition)
+- [Annex C Example Messages](#annex-c-example-messages)
+  - [C.1 listClients Response](#c1-listclients-response)
+    - [XML Response](#xml-response)
+    - [JSON Response](#json-response)
+  - [C.2 listCentralServices Response](#c2-listcentralservices-response)
+  - [C.3 listMethods Request](#c3-listmethods-request)
+  - [C.4 listMethods Response](#c4-listmethods-response)
+  - [C.5 allowedMethods Request](#c5-allowedmethods-request)
+  - [C.6 allowedMethods Response](#c6-allowedmethods-response)
+  - [C.7 getWsdl Request](#c7-getwsdl-request)
+  - [C.8 getWsdl Response](#c8-getwsdl-response)
+  - [C.9 getWsdl Response attachment](#c9-getwsdl-response-attachment)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -120,7 +121,7 @@ Security server clients can retrieve a list of all central services defined in a
 The request URL is `http://SECURITYSERVER/listCentralServices` or `https://SECURITYSERVER/listCentralServices` depending on whether the HTTPS protocol is configured for interaction between the security server and the information system.
 When making the request, the address `SECURITYSERVER` must be replaced with the actual address of the security server.
 
-In addition, it is possible to retrieve a list of security servers in other, federated X-Road instances by adding the following HTTP parameter:
+In addition, it is possible to retrieve a list of central services in other, federated X-Road instances by adding the following HTTP parameter:
 
 * `xRoadInstance` – code that identifies the X-Road instance.
 
@@ -147,13 +148,13 @@ The `XRoadCentralServiceIdentifierType` represents a globally unique identifier 
 
 ## 4 Retrieving List of Services
 
-X-Road provides two methods for getting the list of services offered by an X-Road client:
+X-Road provides two methods for getting the list of SOAP services offered by an X-Road client:
 
-* `listMethods` lists all services offered by a service provider; and
+* `listMethods` lists all SOAP services offered by a service provider; and
 
-* `allowedMethods` lists all services offered by a service provider that the caller has permission to invoke.
+* `allowedMethods` lists all SOAP services offered by a service provider that the caller has permission to invoke.
 
-Both methods are invoked as regular X-Road services (see specification \[[PR-MESS](#Ref_PR-MESS)\] for details on the X-Road protocol).
+Both methods are invoked as regular X-Road SOAP services (see specification \[[PR-MESS](#Ref_PR-MESS)\] for details on the X-Road SOAP protocol).
 The service SOAP header MUST contain the identifier of the target service provider and the value of the serviceCode element MUST be either `listMethods` or `allowedMethods`.
 The body of the request MUST contain an appropriately named empty XML element (either `listMethods` or `allowedMethods`).
 Annexes [C.3](#c3-listmethods-request) and [C.5](#c5-allowedmethods-request) contain example request messages for services, respectively.
