@@ -24,16 +24,16 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
-import ee.ria.xroad.common.identifier.ServiceId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
-import org.niis.xroad.restapi.repository.ServiceRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -41,6 +41,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -54,24 +55,39 @@ public class ServiceService {
 
     private static final String HTTPS = "https";
 
-    private ServiceRepository serviceRepository;
+    private ClientService clientService;
     private ServiceDescriptionRepository serviceDescriptionRepository;
 
     @Autowired
-    public ServiceService(ServiceRepository serviceRepository,
+    public ServiceService(ClientService clientService,
             ServiceDescriptionRepository serviceDescriptionRepository) {
-        this.serviceRepository = serviceRepository;
+        this.clientService = clientService;
         this.serviceDescriptionRepository = serviceDescriptionRepository;
     }
 
+    /**
+     * get ServiceType by ClientId and service code that includes service version
+     * see {@link FormatUtils#getServiceFullName(ServiceType)}
+     * @param clientId
+     * @param fullServiceCode
+     * @return
+     */
     @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
-    public ServiceType getService(ServiceId serviceId) {
-        return serviceRepository.getService(serviceId);
+    public ServiceType getService(ClientId clientId, String fullServiceCode) {
+        ClientType client = clientService.getClient(clientId);
+        Optional<ServiceType> foundService = client.getServiceDescription()
+                .stream()
+                .map(ServiceDescriptionType::getService)
+                .flatMap(List::stream)
+                .filter(serviceType -> FormatUtils.getServiceFullName(serviceType).equals(fullServiceCode))
+                .findFirst();
+        return foundService.orElse(null);
     }
 
     /**
      * update a Service
-     * @param serviceId
+     * @param clientId
+     * @param fullServiceCode
      * @param url
      * @param urlAll
      * @param timeout
@@ -83,14 +99,17 @@ public class ServiceService {
      * @return ServiceType
      */
     @PreAuthorize("hasAuthority('EDIT_SERVICE_PARAMS')")
-    public ServiceType update(ServiceId serviceId, String url, boolean urlAll, Integer timeout, boolean timeoutAll,
+    public ServiceType update(ClientId clientId, String fullServiceCode, String url, boolean urlAll, Integer timeout,
+            boolean timeoutAll,
             List<String> securityCategory, boolean securityCategoryAll, boolean sslAuth, boolean sslAuthAll) {
-        ServiceType serviceType = serviceRepository.getService(serviceId);
-        if (serviceType == null) {
-            throw new NotFoundException("Service with id " + serviceId.toShortString() + " not found");
-        }
         if (!FormatUtils.isValidUrl(url)) {
             throw new BadRequestException("URL is not valid: " + url);
+        }
+
+        ServiceType serviceType = getService(clientId, fullServiceCode);
+
+        if (serviceType == null) {
+            throw new NotFoundException("Service " + fullServiceCode + " not found");
         }
 
         String xroadInstance = serviceType.getServiceDescription().getClient().getIdentifier().getXRoadInstance();

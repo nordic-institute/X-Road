@@ -26,7 +26,6 @@ package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.apache.commons.lang3.StringUtils;
@@ -48,10 +47,8 @@ import java.util.stream.Collectors;
 @Component
 public class ServiceConverter {
 
-    public static final int SERVICE_CODE_INDEX = 0;
     public static final int FULL_SERVICE_CODE_INDEX = 4;
     public static final char ENCODED_SERVICE_ID_SEPARATOR = ':';
-    public static final String ENCODED_SERVICE_VERSION_SEPARATOR = "\\.";
 
     private ClientConverter clientConverter;
 
@@ -92,27 +89,38 @@ public class ServiceConverter {
     }
 
     /**
-     * Convert encoded service id into ServiceId
+     * parse ClientId from encoded service id
      * @param encodedId
-     * @return ServiceId
+     * @return ClientId
      * @throws BadRequestException if encoded id could not be decoded
      */
-    public ServiceId convertId(String encodedId) throws BadRequestException {
+    public ClientId parseClientId(String encodedId) {
+        validateEncodedString(encodedId);
+        List<String> parts = new ArrayList<>(
+                Arrays.asList(encodedId.split(String.valueOf(ENCODED_SERVICE_ID_SEPARATOR))));
+        parts.remove(FULL_SERVICE_CODE_INDEX);
+        ClientId clientId = clientConverter.convertId(
+                StringUtils.join(parts, ClientConverter.ENCODED_CLIENT_ID_SEPARATOR));
+        return clientId;
+    }
+
+    /**
+     * parse service code including version from encoded service id
+     * @param encodedId
+     * @return ClientId
+     * @throws BadRequestException if encoded id could not be decoded
+     */
+    public String parseFullServiceCode(String encodedId) {
+        validateEncodedString(encodedId);
+        List<String> parts = new ArrayList<>(
+                Arrays.asList(encodedId.split(String.valueOf(ENCODED_SERVICE_ID_SEPARATOR))));
+        return parts.get(parts.size() - 1);
+    }
+
+    private void validateEncodedString(String encodedId) {
         int separators = FormatUtils.countOccurences(encodedId, ENCODED_SERVICE_ID_SEPARATOR);
         if (separators != FULL_SERVICE_CODE_INDEX) {
             throw new BadRequestException("Invalid service id " + encodedId);
         }
-        List<String> parts = new ArrayList<>(
-                Arrays.asList(encodedId.split(String.valueOf(ENCODED_SERVICE_ID_SEPARATOR))));
-        List<String> serviceParts = new ArrayList<>(
-                Arrays.asList(parts.remove(FULL_SERVICE_CODE_INDEX).split(ENCODED_SERVICE_VERSION_SEPARATOR)));
-
-        ClientId clientId = clientConverter.convertId(
-                StringUtils.join(parts, ClientConverter.ENCODED_CLIENT_ID_SEPARATOR));
-
-        String serviceCode = serviceParts.remove(SERVICE_CODE_INDEX);
-        String serviceVersion = serviceParts.size() > 0 ? serviceParts.get(0) : null;
-
-        return ServiceId.create(clientId, serviceCode, serviceVersion);
     }
 }

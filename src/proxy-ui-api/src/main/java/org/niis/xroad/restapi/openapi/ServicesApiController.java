@@ -25,7 +25,7 @@
 package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.ServiceConverter;
@@ -70,17 +70,20 @@ public class ServicesApiController implements ServicesApi {
     @Override
     @PreAuthorize("hasAuthority('EDIT_SERVICE_PARAMS')")
     public ResponseEntity<Service> updateService(String id, ServiceUpdate serviceUpdate) {
-        ServiceId serviceId = serviceConverter.convertId(id);
+        ClientId clientId = serviceConverter.parseClientId(id);
+        String fullServiceCode = serviceConverter.parseFullServiceCode(id);
         Service service = serviceUpdate.getService();
         Service updatedService = serviceConverter.convert(
-                serviceService.update(serviceId, service.getUrl(), serviceUpdate.getUrlAll(), service.getTimeout(),
-                        serviceUpdate.getTimeoutAll(), service.getSecurityCategory(),
+                serviceService.update(clientId, fullServiceCode, service.getUrl(), serviceUpdate.getUrlAll(),
+                        service.getTimeout(), serviceUpdate.getTimeoutAll(), service.getSecurityCategory(),
                         serviceUpdate.getSecurityCategoryAll(), service.getSslAuth(), serviceUpdate.getSslAuthAll()));
         return new ResponseEntity<>(updatedService, HttpStatus.OK);
     }
 
     private ServiceType getServiceType(String id) {
-        ServiceType serviceType = serviceService.getService(serviceConverter.convertId(id));
+        ClientId clientId = serviceConverter.parseClientId(id);
+        String fullServiceCode = serviceConverter.parseFullServiceCode(id);
+        ServiceType serviceType = serviceService.getService(clientId, fullServiceCode);
         if (serviceType == null) {
             throw new NotFoundException("Service with id " + id + " not found");
         }

@@ -63,7 +63,7 @@ public class ServicesApiControllerIntegrationTest {
     private ServicesApiController servicesApiController;
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS" })
+    @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS", "VIEW_CLIENT_DETAILS" })
     public void updateService() {
         Service service = servicesApiController.getService(SS1_GET_RANDOM).getBody();
         assertEquals(60, service.getTimeout().intValue());
@@ -83,7 +83,7 @@ public class ServicesApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS" })
+    @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS", "VIEW_CLIENT_DETAILS" })
     public void updateServiceAll() {
         Service service = servicesApiController.getService(SS1_GET_RANDOM).getBody();
         assertEquals(60, service.getTimeout().intValue());
@@ -112,7 +112,7 @@ public class ServicesApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS" })
+    @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS", "VIEW_CLIENT_DETAILS" })
     public void updateServiceOnlyUrlAll() {
         Service service = servicesApiController.getService(SS1_GET_RANDOM).getBody();
         assertEquals(60, service.getTimeout().intValue());
