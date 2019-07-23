@@ -33,6 +33,7 @@ import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -106,7 +107,7 @@ public class ClientConverter {
      * @throws BadRequestException if encoded id could not be decoded
      */
     public ClientId convertId(String encodedId) throws BadRequestException {
-        int separators = countOccurences(encodedId, ENCODED_CLIENT_ID_SEPARATOR);
+        int separators = FormatUtils.countOccurences(encodedId, ENCODED_CLIENT_ID_SEPARATOR);
         if (separators != MEMBER_CODE_INDEX && separators != SUBSYSTEM_CODE_INDEX) {
             throw new BadRequestException("Invalid client id " + encodedId);
         }
@@ -159,10 +160,4 @@ public class ClientConverter {
     public List<Client> convertMemberInfosToClients(List<MemberInfo> memberInfos) {
         return memberInfos.stream().map(this::convertMemberInfoToClient).collect(Collectors.toList());
     }
-
-    private int countOccurences(String from, char searched) {
-        String removed = from.replace(String.valueOf(searched), "");
-        return from.length() - removed.length();
-    }
-
 }

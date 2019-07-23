@@ -258,7 +258,7 @@ public class ServiceDescriptionService {
         // replace all old services with the new ones
         serviceDescriptionType.getService().clear();
         serviceDescriptionType.getService().addAll(newServices);
-        clientRepository.saveOrUpdate(client);
+        serviceDescriptionRepository.saveOrUpdate(serviceDescriptionType);
 
         return serviceDescriptionType;
     }
