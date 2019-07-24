@@ -43,9 +43,9 @@ dependencies {
     compile "com.typesafe.akka:akka-remote_2.11:$akkaVersion"
     compile "com.typesafe.akka:akka-slf4j_2.11:$akkaVersion"
 
-    compile 'com.google.guava:guava:26.0-jre'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.9.1'
     compile 'com.google.code.gson:gson:2.8.5'
+    compile 'com.google.guava:guava:28.0-jre'
 
     testCompile 'org.powermock:powermock-module-junit4:1.7.4'
     testCompile 'org.powermock:powermock-api-mockito:1.7.4'
