@@ -24,8 +24,8 @@ dependencies {
     compile project(':monitoring-conf')
 
     // Using HSQLDB for an in-memory database in tests.
-    testCompile 'org.hsqldb:hsqldb:2.4.1'
     testCompile 'commons-cli:commons-cli:1.2'
+    testCompile 'org.hsqldb:hsqldb:2.5.0'
 
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
     xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
