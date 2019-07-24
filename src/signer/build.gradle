@@ -35,8 +35,8 @@ dependencies {
     testCompile 'org.powermock:powermock-module-junit4:1.6.5'
     testCompile 'org.powermock:powermock-api-mockito:1.6.5'
 
-    xjc 'org.glassfish.jaxb:jaxb-xjc:2.2.11'
-    xjc 'org.glassfish.jaxb:jaxb-runtime:2.2.11'
+    xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
+    xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
     //testsuiteCompile project(':common-test')
 }
 
