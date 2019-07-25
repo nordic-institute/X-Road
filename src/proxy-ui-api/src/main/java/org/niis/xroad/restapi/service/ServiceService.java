@@ -87,7 +87,8 @@ public class ServiceService {
     /**
      * update a Service
      * @param clientId
-     * @param fullServiceCode
+     * @param fullServiceCode service code that includes service version
+     *                        see {@link FormatUtils#getServiceFullName(ServiceType)}
      * @param url
      * @param urlAll
      * @param timeout

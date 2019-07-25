@@ -47,8 +47,11 @@ import java.util.stream.Collectors;
 @Component
 public class ServiceConverter {
 
+    /**
+     * Encoded service id consists of <encoded client id>:<full service code>
+     * Separator ':' is ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR
+     */
     public static final int FULL_SERVICE_CODE_INDEX = 4;
-    public static final char ENCODED_SERVICE_ID_SEPARATOR = ':';
 
     private ClientConverter clientConverter;
 
@@ -97,10 +100,11 @@ public class ServiceConverter {
     public ClientId parseClientId(String encodedId) {
         validateEncodedString(encodedId);
         List<String> parts = new ArrayList<>(
-                Arrays.asList(encodedId.split(String.valueOf(ENCODED_SERVICE_ID_SEPARATOR))));
+                Arrays.asList(encodedId.split(
+                        String.valueOf(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR))));
         parts.remove(FULL_SERVICE_CODE_INDEX);
         ClientId clientId = clientConverter.convertId(
-                StringUtils.join(parts, ClientConverter.ENCODED_CLIENT_ID_SEPARATOR));
+                StringUtils.join(parts, ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR));
         return clientId;
     }
 
@@ -113,12 +117,14 @@ public class ServiceConverter {
     public String parseFullServiceCode(String encodedId) {
         validateEncodedString(encodedId);
         List<String> parts = new ArrayList<>(
-                Arrays.asList(encodedId.split(String.valueOf(ENCODED_SERVICE_ID_SEPARATOR))));
+                Arrays.asList(encodedId.split(
+                        String.valueOf(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR))));
         return parts.get(parts.size() - 1);
     }
 
     private void validateEncodedString(String encodedId) {
-        int separators = FormatUtils.countOccurences(encodedId, ENCODED_SERVICE_ID_SEPARATOR);
+        int separators = FormatUtils.countOccurences(encodedId,
+                ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
         if (separators != FULL_SERVICE_CODE_INDEX) {
             throw new BadRequestException("Invalid service id " + encodedId);
         }

@@ -54,7 +54,7 @@ public class ClientConverter {
     public static final int MEMBER_CLASS_INDEX = 1;
     public static final int MEMBER_CODE_INDEX = 2;
     public static final int SUBSYSTEM_CODE_INDEX = 3;
-    public static final char ENCODED_CLIENT_ID_SEPARATOR = ':';
+    public static final char ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR = ':';
 
     @Autowired
     public ClientConverter(GlobalConfWrapper globalConfWrapper) {
@@ -89,12 +89,12 @@ public class ClientConverter {
     public String convertId(ClientId clientId) {
         StringBuilder builder = new StringBuilder();
         builder.append(clientId.getXRoadInstance())
-                .append(ENCODED_CLIENT_ID_SEPARATOR)
+                .append(ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR)
                 .append(clientId.getMemberClass())
-                .append(ENCODED_CLIENT_ID_SEPARATOR)
+                .append(ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR)
                 .append(clientId.getMemberCode());
         if (StringUtils.isNotEmpty(clientId.getSubsystemCode())) {
-            builder.append(ENCODED_CLIENT_ID_SEPARATOR)
+            builder.append(ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR)
                     .append(clientId.getSubsystemCode());
         }
         return builder.toString().trim();
@@ -107,11 +107,11 @@ public class ClientConverter {
      * @throws BadRequestException if encoded id could not be decoded
      */
     public ClientId convertId(String encodedId) throws BadRequestException {
-        int separators = FormatUtils.countOccurences(encodedId, ENCODED_CLIENT_ID_SEPARATOR);
+        int separators = FormatUtils.countOccurences(encodedId, ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
         if (separators != MEMBER_CODE_INDEX && separators != SUBSYSTEM_CODE_INDEX) {
             throw new BadRequestException("Invalid client id " + encodedId);
         }
-        List<String> parts = Arrays.asList(encodedId.split(String.valueOf(ENCODED_CLIENT_ID_SEPARATOR)));
+        List<String> parts = Arrays.asList(encodedId.split(String.valueOf(ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR)));
         String instance = parts.get(INSTANCE_INDEX);
         String memberClass = parts.get(MEMBER_CLASS_INDEX);
         String memberCode = parts.get(MEMBER_CODE_INDEX);
