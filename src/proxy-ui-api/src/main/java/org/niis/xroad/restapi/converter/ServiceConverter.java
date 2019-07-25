@@ -27,8 +27,6 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
-
-import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -99,12 +97,9 @@ public class ServiceConverter {
      */
     public ClientId parseClientId(String encodedId) {
         validateEncodedString(encodedId);
-        List<String> parts = new ArrayList<>(
-                Arrays.asList(encodedId.split(
-                        String.valueOf(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR))));
-        parts.remove(FULL_SERVICE_CODE_INDEX);
-        ClientId clientId = clientConverter.convertId(
-                StringUtils.join(parts, ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR));
+        String encodedClientId = encodedId.substring(0, encodedId.lastIndexOf(
+                ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR));
+        ClientId clientId = clientConverter.convertId(encodedClientId);
         return clientId;
     }
 

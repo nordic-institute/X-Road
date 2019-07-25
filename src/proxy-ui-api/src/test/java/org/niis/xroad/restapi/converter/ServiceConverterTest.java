@@ -59,6 +59,21 @@ public class ServiceConverterTest {
     }
 
     @Test
+    public void convertStringIdWithCommasInServiceCode() throws Exception {
+        String serviceCode = "aa.bb.cc";
+        String serviceVersion = "v2.0.1-SNAPSHOT";
+        String encodedFullServiceCode = serviceCode + "." + serviceVersion;
+        String encodedServiceId = CLIENT_ID_PREFIX_SS1 + encodedFullServiceCode;
+        ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
+        assertEquals("XRD2", clientId.getXRoadInstance());
+        assertEquals("GOV", clientId.getMemberClass());
+        assertEquals("M4", clientId.getMemberCode());
+
+        String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
+        assertEquals(encodedFullServiceCode, fullServiceCode);
+    }
+
+    @Test
     public void convertDifficultStringId() throws Exception {
         String difficultServiceCode = "FOO SS-;/?@=&-X<!-- o -->BAR";
         String serviceVersion = "v2";
