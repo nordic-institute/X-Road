@@ -36,9 +36,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -53,10 +50,6 @@ public class ServicesApiControllerIntegrationTest {
 
     public static final String SS1_GET_RANDOM = "FI:GOV:M1:SS1:getRandom.v1";
     public static final String SS1_CALCULATE_PRIME = "FI:GOV:M1:SS1:calculatePrime.v1";
-    public static final String SEC_CATEGORY1 = "SecurityCategory1";
-    public static final String SEC_CATEGORY2 = "SecurityCategory2";
-    public static final String SEC_CATEGORY1_SHORT_STRING = "FI/SecurityCategory1";
-    public static final String SEC_CATEGORY2_SHORT_STRING = "FI/SecurityCategory2";
     public static final String NEW_SERVICE_URL = "https://foo.bar";
 
     @Autowired
@@ -69,15 +62,12 @@ public class ServicesApiControllerIntegrationTest {
         assertEquals(60, service.getTimeout().intValue());
 
         service.setTimeout(10);
-        service.setSecurityCategory(Arrays.asList(SEC_CATEGORY1, SEC_CATEGORY2));
         service.setSslAuth(false);
         service.setUrl(NEW_SERVICE_URL);
         ServiceUpdate serviceUpdate = new ServiceUpdate().service(service);
 
         Service updatedService = servicesApiController.updateService(SS1_GET_RANDOM, serviceUpdate).getBody();
         assertEquals(10, updatedService.getTimeout().intValue());
-        assertEquals(Arrays.asList(SEC_CATEGORY1_SHORT_STRING, SEC_CATEGORY2_SHORT_STRING),
-                updatedService.getSecurityCategory());
         assertEquals(false, updatedService.getSslAuth());
         assertEquals(NEW_SERVICE_URL, updatedService.getUrl());
     }
@@ -89,24 +79,19 @@ public class ServicesApiControllerIntegrationTest {
         assertEquals(60, service.getTimeout().intValue());
 
         service.setTimeout(10);
-        service.setSecurityCategory(Arrays.asList(SEC_CATEGORY1, SEC_CATEGORY2));
         service.setSslAuth(false);
         service.setUrl(NEW_SERVICE_URL);
-        ServiceUpdate serviceUpdate = new ServiceUpdate().service(service).securityCategoryAll(true).urlAll(true)
+        ServiceUpdate serviceUpdate = new ServiceUpdate().service(service).urlAll(true)
                 .sslAuthAll(true).timeoutAll(true);
 
         Service updatedService = servicesApiController.updateService(SS1_GET_RANDOM, serviceUpdate).getBody();
         assertEquals(10, updatedService.getTimeout().intValue());
-        assertEquals(Arrays.asList(SEC_CATEGORY1_SHORT_STRING, SEC_CATEGORY2_SHORT_STRING),
-                updatedService.getSecurityCategory());
         assertEquals(false, updatedService.getSslAuth());
         assertEquals(NEW_SERVICE_URL, updatedService.getUrl());
 
         Service otherServiceFromSameServiceDesc = servicesApiController.getService(SS1_CALCULATE_PRIME).getBody();
 
         assertEquals(10, otherServiceFromSameServiceDesc.getTimeout().intValue());
-        assertEquals(Arrays.asList(SEC_CATEGORY1_SHORT_STRING, SEC_CATEGORY2_SHORT_STRING),
-                otherServiceFromSameServiceDesc.getSecurityCategory());
         assertEquals(false, otherServiceFromSameServiceDesc.getSslAuth());
         assertEquals(NEW_SERVICE_URL, otherServiceFromSameServiceDesc.getUrl());
     }
@@ -117,7 +102,6 @@ public class ServicesApiControllerIntegrationTest {
         Service service = servicesApiController.getService(SS1_GET_RANDOM).getBody();
         assertEquals(60, service.getTimeout().intValue());
 
-        service.setSecurityCategory(Arrays.asList(SEC_CATEGORY1, SEC_CATEGORY2));
         service.setTimeout(10);
         service.setSslAuth(true);
         service.setUrl(NEW_SERVICE_URL);
@@ -125,15 +109,12 @@ public class ServicesApiControllerIntegrationTest {
 
         Service updatedService = servicesApiController.updateService(SS1_GET_RANDOM, serviceUpdate).getBody();
         assertEquals(10, updatedService.getTimeout().intValue());
-        assertEquals(Arrays.asList(SEC_CATEGORY1_SHORT_STRING, SEC_CATEGORY2_SHORT_STRING),
-                updatedService.getSecurityCategory());
         assertEquals(true, updatedService.getSslAuth());
         assertEquals(NEW_SERVICE_URL, updatedService.getUrl());
 
         Service otherServiceFromSameServiceDesc = servicesApiController.getService(SS1_CALCULATE_PRIME).getBody();
 
         assertEquals(60, otherServiceFromSameServiceDesc.getTimeout().intValue());
-        assertEquals(new ArrayList<>(), otherServiceFromSameServiceDesc.getSecurityCategory());
         assertEquals(false, otherServiceFromSameServiceDesc.getSslAuth());
         assertEquals(NEW_SERVICE_URL, otherServiceFromSameServiceDesc.getUrl());
     }

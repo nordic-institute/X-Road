@@ -28,7 +28,6 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
@@ -42,7 +41,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * service class for handling services
@@ -93,8 +91,6 @@ public class ServiceService {
      * @param urlAll
      * @param timeout
      * @param timeoutAll
-     * @param securityCategory
-     * @param securityCategoryAll
      * @param sslAuth
      * @param sslAuthAll
      * @return ServiceType
@@ -102,7 +98,7 @@ public class ServiceService {
     @PreAuthorize("hasAuthority('EDIT_SERVICE_PARAMS')")
     public ServiceType updateService(ClientId clientId, String fullServiceCode,
             String url, boolean urlAll, Integer timeout, boolean timeoutAll,
-            List<String> securityCategory, boolean securityCategoryAll, boolean sslAuth, boolean sslAuthAll) {
+            boolean sslAuth, boolean sslAuthAll) {
         if (!FormatUtils.isValidUrl(url)) {
             throw new BadRequestException("URL is not valid: " + url);
         }
@@ -113,8 +109,6 @@ public class ServiceService {
             throw new NotFoundException("Service " + fullServiceCode + " not found");
         }
 
-        String xroadInstance = serviceType.getServiceDescription().getClient().getIdentifier().getXRoadInstance();
-
         ServiceDescriptionType serviceDescriptionType = serviceType.getServiceDescription();
 
         serviceDescriptionType.getService().forEach(service -> {
@@ -124,14 +118,6 @@ public class ServiceService {
             }
             if (timeoutAll || serviceMatch) {
                 service.setTimeout(timeout);
-            }
-            if (securityCategoryAll || serviceMatch) {
-                List<SecurityCategoryId> securityCategories = securityCategory
-                        .stream()
-                        .map(one -> SecurityCategoryId.create(xroadInstance, one))
-                        .collect(Collectors.toList());
-                service.getRequiredSecurityCategory().clear();
-                service.getRequiredSecurityCategory().addAll(securityCategories);
             }
             if (sslAuthAll || serviceMatch) {
                 if (service.getUrl().startsWith(HTTPS)) {

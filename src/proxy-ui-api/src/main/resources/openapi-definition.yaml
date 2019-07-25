@@ -3584,7 +3584,6 @@ components:
         - url
         - timeout
         - ssl_auth
-        - security_category
       properties:
         id:
           type: string
@@ -3604,15 +3603,6 @@ components:
           type: boolean
           description: service ssl auth
           example: true
-        security_category:
-          type: array
-          description: service security category
-          uniqueItems: true
-          items:
-            type: string
-            format: text
-            minLength: 0
-            maxLength: 255
         subjects_count:
           type: integer
           format: uint
@@ -3636,22 +3626,17 @@ components:
         service:
           $ref: '#/components/schemas/Service'
         url_all:
-          description: url for all services
+          description: url is applied for all services
           type: boolean
           example: false
           default: false
         timeout_all:
-          description: timeout value for all services
-          type: boolean
-          example: false
-          default: false
-        security_category_all:
-          description: security category for all services
+          description: timeout value is applied for all services
           type: boolean
           example: false
           default: false
         ssl_auth_all:
-          description: ssl authentication for all services
+          description: ssl authentication is applied for all services
           type: boolean
           example: false
           default: false

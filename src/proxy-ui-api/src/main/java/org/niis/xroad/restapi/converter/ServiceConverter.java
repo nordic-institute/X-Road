@@ -26,7 +26,6 @@ package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Service;
@@ -77,11 +76,6 @@ public class ServiceConverter {
     public Service convert(ServiceType serviceType) {
         Service service = new Service();
 
-        List<String> securityCategories = serviceType.getRequiredSecurityCategory()
-                .stream()
-                .map(XRoadId::toShortString)
-                .collect(Collectors.toList());
-        service.setSecurityCategory(securityCategories);
         service.setId(FormatUtils.getServiceFullName(serviceType));
         service.setSslAuth(serviceType.getSslAuthentication());
         service.setTimeout(serviceType.getTimeout());

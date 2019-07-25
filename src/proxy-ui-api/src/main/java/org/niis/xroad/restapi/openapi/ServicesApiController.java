@@ -75,8 +75,8 @@ public class ServicesApiController implements ServicesApi {
         Service service = serviceUpdate.getService();
         Service updatedService = serviceConverter.convert(
                 serviceService.updateService(clientId, fullServiceCode, service.getUrl(), serviceUpdate.getUrlAll(),
-                        service.getTimeout(), serviceUpdate.getTimeoutAll(), service.getSecurityCategory(),
-                        serviceUpdate.getSecurityCategoryAll(), service.getSslAuth(), serviceUpdate.getSslAuthAll()));
+                        service.getTimeout(), serviceUpdate.getTimeoutAll(),
+                        service.getSslAuth(), serviceUpdate.getSslAuthAll()));
         return new ResponseEntity<>(updatedService, HttpStatus.OK);
     }
 
