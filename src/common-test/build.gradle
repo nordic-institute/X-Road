@@ -1,6 +1,6 @@
 dependencies {
     compile project(':common-verifier')
-    compile 'org.antlr:ST4:4.1'
+    compile 'org.antlr:ST4:4.0.8'
     // JUnit is needed for ExpectedCodedException
     compile 'junit:junit:4.12'
     compile 'com.google.code.gson:gson:2.8.5'
