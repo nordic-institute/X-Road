@@ -85,8 +85,8 @@ public class ServiceService {
     }
 
     /**
-     * update a Service
-     * @param clientId
+     * update a Service. clientId and fullServiceCode identify the updated service.
+     * @param clientId clientId of the client associated with the service
      * @param fullServiceCode service code that includes service version
      *                        see {@link FormatUtils#getServiceFullName(ServiceType)}
      * @param url
@@ -100,8 +100,8 @@ public class ServiceService {
      * @return ServiceType
      */
     @PreAuthorize("hasAuthority('EDIT_SERVICE_PARAMS')")
-    public ServiceType update(ClientId clientId, String fullServiceCode, String url, boolean urlAll, Integer timeout,
-            boolean timeoutAll,
+    public ServiceType updateService(ClientId clientId, String fullServiceCode,
+            String url, boolean urlAll, Integer timeout, boolean timeoutAll,
             List<String> securityCategory, boolean securityCategoryAll, boolean sslAuth, boolean sslAuthAll) {
         if (!FormatUtils.isValidUrl(url)) {
             throw new BadRequestException("URL is not valid: " + url);

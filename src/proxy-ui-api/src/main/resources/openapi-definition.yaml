@@ -1737,7 +1737,7 @@ paths:
             example: CS:ORG:Client:myService.v1
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1535
       responses:
         '200':
           description: ok
@@ -1770,10 +1770,10 @@ paths:
           required: true
           schema:
             type: string
-            example: myService.v1
+            example: CS:ORG:Client:myService.v1
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1535
       requestBody:
         content:
           application/json:
@@ -3590,9 +3590,9 @@ components:
           type: string
           format: text
           description: service id
-          example: clientReg.v1
+          example: CS:ORG:Client:myService.v1
           minLength: 1
-          maxLength: 255
+          maxLength: 1535
         timeout:
           type: integer
           format: uint
