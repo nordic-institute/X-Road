@@ -24,20 +24,48 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
+import lombok.Getter;
+
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
- * Exception which (possibly) knows the detailed error code to send in REST API response body
+ * Container for a deviation (error or warning).
+ * Contains a code (identifier for the deviation)
+ * and possible metadata describing the deviation details.
  */
-public interface ErrorCodedException {
-    /**
-     * Return the error code, if any
-     */
-    String getErrorCode();
+@Getter
+public class Deviation {
+    private final String code;
+    private final List<String> metadata;
 
     /**
-     * Return warning map if set
+     * Create new deviation with metadata
+     * @param code
+     * @param metadata
      */
-    Map<String, List<String>> getWarningMap();
+    public Deviation(String code, List<String> metadata) {
+        this.code = code;
+        this.metadata = metadata;
+    }
+
+    /**
+     * Create new deviation with a single metadata item
+     * @param code
+     * @param metadataItem
+     */
+    public Deviation(String code, String metadataItem) {
+        this.code = code;
+        this.metadata = Collections.singletonList(metadataItem);
+    }
+
+
+    /**
+     * Create new deviation without metadata
+     * @param code
+     */
+    public Deviation(String code) {
+        this.code = code;
+        this.metadata = null;
+    }
 }

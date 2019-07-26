@@ -596,7 +596,7 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, serviceDescription);
             fail("should have thrown ConflictException");
         } catch (ConflictException expected) {
-            assertEquals(ServiceDescriptionService.WSDL_EXISTS, expected.getErrorCode());
+            assertEquals(ServiceDescriptionService.WSDL_EXISTS, expected.getError().getCode());
         }
         serviceDescription = new ServiceDescriptionAdd().url("file:src/test/resources/testservice.wsdl");
         serviceDescription.setType(ServiceType.WSDL);
@@ -604,8 +604,8 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, serviceDescription);
             fail("should have thrown ConflictException");
         } catch (ConflictException expected) {
-            assertEquals(ServiceDescriptionService.ADDING_WSDL_FAILED, expected.getErrorCode());
-            assertNotNull(expected.getWarningMap().get(ServiceDescriptionService.SERVICE_EXISTS));
+            assertEquals(ServiceDescriptionService.ADDING_WSDL_FAILED, expected.getError().getCode());
+            assertNotNull(TestUtils.findWarning(ServiceDescriptionService.SERVICE_EXISTS, expected.getWarnings()));
         }
     }
 
@@ -619,8 +619,8 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            assertEquals(ServiceDescriptionService.ADDING_WSDL_FAILED, expected.getErrorCode());
-            assertNotNull(expected.getWarningMap().get(ServiceDescriptionService.INVALID_WSDL));
+            assertEquals(ServiceDescriptionService.ADDING_WSDL_FAILED, expected.getError().getCode());
+            assertNotNull(TestUtils.findWarning(ServiceDescriptionService.INVALID_WSDL, expected.getWarnings()));
         }
     }
 
@@ -634,8 +634,8 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            assertEquals(WsdlValidator.WSDL_VALIDATION_WARNINGS, expected.getErrorCode());
-            assertNotNull(expected.getWarningMap().get(WsdlValidator.WSDL_VALIDATION_FAILED));
+            assertEquals(WsdlValidator.WSDL_VALIDATION_WARNINGS, expected.getError().getCode());
+            assertNotNull(TestUtils.findWarning(WsdlValidator.WSDL_VALIDATION_FAILED, expected.getWarnings()));
         }
     }
 

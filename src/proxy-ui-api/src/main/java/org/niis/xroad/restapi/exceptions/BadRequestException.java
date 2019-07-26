@@ -27,15 +27,14 @@ package org.niis.xroad.restapi.exceptions;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import java.util.List;
-import java.util.Map;
+import java.util.Collection;
 
 /**
  * Thrown if client sent bad request.
  * Results in http 400 BAD_REQUEST
  */
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class BadRequestException extends ErrorCodedRuntimeException {
+public class BadRequestException extends DeviationAwareRuntimeException {
     public BadRequestException() {
     }
 
@@ -51,8 +50,8 @@ public class BadRequestException extends ErrorCodedRuntimeException {
         super(msg, t, errorCode);
     }
 
-    public BadRequestException(Throwable t, ErrorCode errorCode,  Map<String, List<String>> warningMap) {
-        super(t, errorCode, warningMap);
+    public BadRequestException(Throwable t, ErrorCode errorCode, Collection<Deviation> warnings) {
+        super(t, errorCode, warnings);
     }
 
     public BadRequestException(Throwable t, ErrorCode errorCode) {

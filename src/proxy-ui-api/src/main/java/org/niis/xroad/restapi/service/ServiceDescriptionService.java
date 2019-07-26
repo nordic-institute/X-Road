@@ -33,6 +33,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.ConflictException;
+import org.niis.xroad.restapi.exceptions.Deviation;
 import org.niis.xroad.restapi.exceptions.ErrorCode;
 import org.niis.xroad.restapi.exceptions.InvalidParametersException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
@@ -51,12 +52,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -325,13 +323,13 @@ public class ServiceDescriptionService {
         try {
             parsedServices = WsdlParser.parseWSDL(url);
         } catch (WsdlParseException e) {
-            Map<String, List<String>> warningMap = new HashMap<>();
-            warningMap.put(INVALID_WSDL, Collections.singletonList(e.getCause().getMessage()));
-            throw new BadRequestException(e, ErrorCode.of(ADDING_WSDL_FAILED), warningMap);
+            List<Deviation> warnings = new ArrayList();
+            warnings.add(new Deviation(INVALID_WSDL, e.getCause().getMessage()));
+            throw new BadRequestException(e, ErrorCode.of(ADDING_WSDL_FAILED), warnings);
         } catch (WsdlNotFoundException e) {
-            Map<String, List<String>> warningMap = new HashMap<>();
-            warningMap.put(WSDL_DOWNLOAD_FAILED, Collections.singletonList(e.getCause().getMessage()));
-            throw new BadRequestException(e, ErrorCode.of(ADDING_WSDL_FAILED), warningMap);
+            List<Deviation> warnings = new ArrayList();
+            warnings.add(new Deviation(WSDL_DOWNLOAD_FAILED, e.getCause().getMessage()));
+            throw new BadRequestException(e, ErrorCode.of(ADDING_WSDL_FAILED), warnings);
         }
         return parsedServices;
     }
@@ -341,7 +339,7 @@ public class ServiceDescriptionService {
             new WsdlValidator(url).executeValidator();
         } catch (WsdlValidationException e) {
             log.error("WSDL validation failed", e);
-            throw new BadRequestException(e, ErrorCode.of(WSDL_VALIDATION_WARNINGS), e.getWarningMap());
+            throw new BadRequestException(e, ErrorCode.of(WSDL_VALIDATION_WARNINGS), e.getWarnings());
         }
     }
 
@@ -371,11 +369,12 @@ public class ServiceDescriptionService {
 
         // create warnings and throw if conflicted
         if (!conflictedServices.isEmpty()) {
-            Map<String, List<String>> warningMap = new HashMap<>();
-            warningMap.put(SERVICE_EXISTS, new ArrayList<>());
-            conflictedServices.forEach(conflictedService -> warningMap.get(SERVICE_EXISTS)
-                    .add(FormatUtils.getServiceFullName(conflictedService)));
-            throw new ConflictException(ErrorCode.of(ADDING_WSDL_FAILED), warningMap);
+            List<Deviation> warnings = new ArrayList();
+            List<String> conflictedServiceNames = conflictedServices.stream()
+                    .map(conflictedService -> FormatUtils.getServiceFullName(conflictedService))
+                    .collect(Collectors.toList());
+            warnings.add(new Deviation(SERVICE_EXISTS, conflictedServiceNames));
+            throw new ConflictException(ErrorCode.of(ADDING_WSDL_FAILED), warnings);
         }
     }
 

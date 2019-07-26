@@ -26,6 +26,7 @@ package org.niis.xroad.restapi.wsdl;
 
 import org.junit.Test;
 import org.niis.xroad.restapi.exceptions.WsdlValidationException;
+import org.niis.xroad.restapi.util.TestUtils;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertNotNull;
@@ -44,7 +45,7 @@ public class WsdlValidatorTest {
             wsdlValidator.executeValidator();
             fail("should have thrown WsdlValidationException");
         } catch (WsdlValidationException expected) {
-            assertNotNull(expected.getWarningMap().get(WsdlValidator.WSDL_VALIDATOR_NOT_EXECUTABLE));
+            assertNotNull(TestUtils.findWarning(WsdlValidator.WSDL_VALIDATOR_NOT_EXECUTABLE, expected.getWarnings()));
         }
     }
 
@@ -56,7 +57,7 @@ public class WsdlValidatorTest {
             wsdlValidator.executeValidator();
             fail("should have thrown WsdlValidationException");
         } catch (WsdlValidationException expected) {
-            assertNotNull(expected.getWarningMap().get(WsdlValidator.WSDL_VALIDATION_FAILED));
+            assertNotNull(TestUtils.findWarning(WsdlValidator.WSDL_VALIDATION_FAILED, expected.getWarnings()));
         }
     }
 

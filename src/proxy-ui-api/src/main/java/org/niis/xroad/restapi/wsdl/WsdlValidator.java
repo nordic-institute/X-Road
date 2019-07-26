@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.wsdl;
 import ee.ria.xroad.common.SystemProperties;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.exceptions.Deviation;
 import org.niis.xroad.restapi.exceptions.ErrorCode;
 import org.niis.xroad.restapi.exceptions.WsdlValidationException;
 import org.springframework.stereotype.Component;
@@ -37,9 +38,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * WsdlValidator as done in X-Road addons: wsdlvalidator
@@ -91,8 +90,8 @@ public final class WsdlValidator {
         try {
             process = pb.start();
         } catch (IOException e) {
-            throw new WsdlValidationException(e,
-                    createValidationWarningMap(WSDL_VALIDATOR_NOT_EXECUTABLE, e.getCause().getMessage()));
+            throw new WsdlValidationException(e, ErrorCode.of(WSDL_VALIDATOR_NOT_EXECUTABLE),
+                    createValidationWarnings(WSDL_VALIDATOR_NOT_EXECUTABLE, e.getCause().getMessage()));
         }
 
         // gather output into a list of string - needed when returning warnings to the end user
@@ -101,8 +100,8 @@ public final class WsdlValidator {
             br.lines().forEach(processOutput::add);
         } catch (IOException e) {
             process.destroy();
-            throw new WsdlValidationException(e,
-                    createValidationWarningMap(WSDL_VALIDATOR_NOT_EXECUTABLE, e.getCause().getMessage()));
+            throw new WsdlValidationException(e, ErrorCode.of(WSDL_VALIDATOR_NOT_EXECUTABLE),
+                    createValidationWarnings(WSDL_VALIDATOR_NOT_EXECUTABLE, e.getCause().getMessage()));
         }
 
         int exitCode;
@@ -112,8 +111,8 @@ public final class WsdlValidator {
         } catch (InterruptedException e) {
             // we don't want to throw the InterruptedException from here but we want to retain the interrupted status
             Thread.currentThread().interrupt();
-            throw new WsdlValidationException(e,
-                    createValidationWarningMap(WSDL_VALIDATOR_NOT_EXECUTABLE, e.getCause().getMessage()));
+            throw new WsdlValidationException(e, ErrorCode.of(WSDL_VALIDATOR_NOT_EXECUTABLE),
+                    createValidationWarnings(WSDL_VALIDATOR_NOT_EXECUTABLE, e.getCause().getMessage()));
         } finally {
             // always destroy the process
             process.destroy();
@@ -121,7 +120,10 @@ public final class WsdlValidator {
 
         // if the validator program fails we attach the validator's output into the exception
         if (exitCode != 0) {
-            throw new WsdlValidationException(createValidationWarningMap(WSDL_VALIDATION_FAILED, processOutput));
+            // TO DO: WsdlValidationExceptions should be DeviationAwareException since those will not
+            // be sent to API
+            throw new WsdlValidationException(null, ErrorCode.of(WSDL_VALIDATION_FAILED),
+                    createValidationWarnings(WSDL_VALIDATION_FAILED, processOutput));
         }
     }
 
@@ -141,13 +143,11 @@ public final class WsdlValidator {
         this.args = args;
     }
 
-    private Map<String, List<String>> createValidationWarningMap(String error, List<String> warningList) {
-        Map<String, List<String>> warningMap = new HashMap<>();
-        warningMap.put(error, warningList);
-        return warningMap;
+    private List<Deviation> createValidationWarnings(String warningCode, List<String> warningList) {
+        return Collections.singletonList(new Deviation(warningCode, warningList));
     }
 
-    private Map<String, List<String>> createValidationWarningMap(String error, String warning) {
-        return createValidationWarningMap(error, Collections.singletonList(warning));
+    private List<Deviation> createValidationWarnings(String warningCode, String warning) {
+        return createValidationWarnings(warningCode, Collections.singletonList(warning));
     }
 }
