@@ -42,11 +42,11 @@ public class ConflictException extends DeviationAwareRuntimeException {
         super(msg);
     }
 
-    public ConflictException(ErrorCode errorCode, Collection<Deviation> warnings) {
-        super(errorCode, warnings);
+    public ConflictException(Error error, Collection<Warning> warnings) {
+        super(error, warnings);
     }
 
-    public ConflictException(String msg, ErrorCode errorCode) {
-        super(msg, errorCode);
+    public ConflictException(String msg, Error error) {
+        super(msg, error);
     }
 }

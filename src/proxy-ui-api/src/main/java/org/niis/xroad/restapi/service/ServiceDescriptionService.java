@@ -33,10 +33,10 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.ConflictException;
-import org.niis.xroad.restapi.exceptions.Deviation;
-import org.niis.xroad.restapi.exceptions.ErrorCode;
+import org.niis.xroad.restapi.exceptions.Error;
 import org.niis.xroad.restapi.exceptions.InvalidParametersException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.exceptions.Warning;
 import org.niis.xroad.restapi.exceptions.WsdlNotFoundException;
 import org.niis.xroad.restapi.exceptions.WsdlParseException;
 import org.niis.xroad.restapi.exceptions.WsdlValidationException;
@@ -184,7 +184,7 @@ public class ServiceDescriptionService {
 
         // check for valid url (is this not enough??)
         if (!FormatUtils.isValidUrl(url)) {
-            throw new BadRequestException("Malformed URL", ErrorCode.of(MALFORMED_URL));
+            throw new BadRequestException("Malformed URL", new Error(MALFORMED_URL));
         }
 
         // check if wsdl already exists
@@ -224,11 +224,11 @@ public class ServiceDescriptionService {
         // Shouldn't be able to edit e.g. REST service descriptions with a WSDL URL
         if (serviceDescriptionType.getType() != DescriptionType.WSDL) {
             throw new BadRequestException("Existing service description (id: " + id.toString() + " is not WSDL",
-                    ErrorCode.of(WRONG_TYPE));
+                    new Error(WRONG_TYPE));
         }
 
         if (!FormatUtils.isValidUrl(url)) {
-            throw new BadRequestException("Malformed URL", ErrorCode.of(MALFORMED_URL));
+            throw new BadRequestException("Malformed URL", new Error(MALFORMED_URL));
         }
 
         ClientType client = serviceDescriptionType.getClient();
@@ -264,7 +264,7 @@ public class ServiceDescriptionService {
     private void checkForExistingWsdl(ClientType client, String url) throws ConflictException {
         client.getServiceDescription().forEach(serviceDescription -> {
             if (serviceDescription.getUrl().equalsIgnoreCase(url)) {
-                throw new ConflictException("WSDL URL already exists", ErrorCode.of(WSDL_EXISTS));
+                throw new ConflictException("WSDL URL already exists", new Error(WSDL_EXISTS));
             }
         });
     }
@@ -323,13 +323,13 @@ public class ServiceDescriptionService {
         try {
             parsedServices = WsdlParser.parseWSDL(url);
         } catch (WsdlParseException e) {
-            List<Deviation> warnings = new ArrayList();
-            warnings.add(new Deviation(INVALID_WSDL, e.getCause().getMessage()));
-            throw new BadRequestException(e, ErrorCode.of(ADDING_WSDL_FAILED), warnings);
+            List<Warning> warnings = new ArrayList();
+            warnings.add(new Warning(INVALID_WSDL, e.getCause().getMessage()));
+            throw new BadRequestException(e, new Error(ADDING_WSDL_FAILED), warnings);
         } catch (WsdlNotFoundException e) {
-            List<Deviation> warnings = new ArrayList();
-            warnings.add(new Deviation(WSDL_DOWNLOAD_FAILED, e.getCause().getMessage()));
-            throw new BadRequestException(e, ErrorCode.of(ADDING_WSDL_FAILED), warnings);
+            List<Warning> warnings = new ArrayList();
+            warnings.add(new Warning(WSDL_DOWNLOAD_FAILED, e.getCause().getMessage()));
+            throw new BadRequestException(e, new Error(ADDING_WSDL_FAILED), warnings);
         }
         return parsedServices;
     }
@@ -339,7 +339,7 @@ public class ServiceDescriptionService {
             new WsdlValidator(url).executeValidator();
         } catch (WsdlValidationException e) {
             log.error("WSDL validation failed", e);
-            throw new BadRequestException(e, ErrorCode.of(WSDL_VALIDATION_WARNINGS), e.getWarnings());
+            throw new BadRequestException(e, new Error(WSDL_VALIDATION_WARNINGS), e.getWarnings());
         }
     }
 
@@ -369,12 +369,12 @@ public class ServiceDescriptionService {
 
         // create warnings and throw if conflicted
         if (!conflictedServices.isEmpty()) {
-            List<Deviation> warnings = new ArrayList();
+            List<Warning> warnings = new ArrayList();
             List<String> conflictedServiceNames = conflictedServices.stream()
                     .map(conflictedService -> FormatUtils.getServiceFullName(conflictedService))
                     .collect(Collectors.toList());
-            warnings.add(new Deviation(SERVICE_EXISTS, conflictedServiceNames));
-            throw new ConflictException(ErrorCode.of(ADDING_WSDL_FAILED), warnings);
+            warnings.add(new Warning(SERVICE_EXISTS, conflictedServiceNames));
+            throw new ConflictException(new Error(ADDING_WSDL_FAILED), warnings);
         }
     }
 

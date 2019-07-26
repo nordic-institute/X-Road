@@ -41,12 +41,12 @@ public class NotFoundException extends DeviationAwareRuntimeException {
         super(msg);
     }
 
-    public NotFoundException(ErrorCode errorCode) {
-        super(errorCode);
+    public NotFoundException(Error error) {
+        super(error);
     }
 
-    public NotFoundException(String msg, ErrorCode errorCode) {
-        super(msg, errorCode);
+    public NotFoundException(String msg, Error error) {
+        super(msg, error);
     }
 
     public NotFoundException(String msg, Throwable t) {

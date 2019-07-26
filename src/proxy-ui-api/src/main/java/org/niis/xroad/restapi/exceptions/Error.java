@@ -24,38 +24,21 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-import java.util.Collection;
+import java.util.List;
 
 /**
- * Thrown if client sent bad request.
- * Results in http 400 BAD_REQUEST
+ * An error that can't be ignored
  */
-@ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class BadRequestException extends DeviationAwareRuntimeException {
-    public BadRequestException() {
+public class Error extends Deviation {
+    public Error(String code, List<String> metadata) {
+        super(code, metadata);
     }
 
-    public BadRequestException(String msg) {
-        super(msg);
+    public Error(String code, String metadataItem) {
+        super(code, metadataItem);
     }
 
-    public BadRequestException(String msg, Error error) {
-        super(msg, error);
+    public Error(String code) {
+        super(code);
     }
-
-    public BadRequestException(String msg, Throwable t, Error error) {
-        super(msg, t, error);
-    }
-
-    public BadRequestException(Throwable t, Error error, Collection<Warning> warnings) {
-        super(t, error, warnings);
-    }
-
-    public BadRequestException(Throwable t, Error error) {
-        super(t, error);
-    }
-
 }

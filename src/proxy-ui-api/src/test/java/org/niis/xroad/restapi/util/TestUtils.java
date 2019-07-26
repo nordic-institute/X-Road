@@ -27,7 +27,7 @@ package org.niis.xroad.restapi.util;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 
-import org.niis.xroad.restapi.exceptions.Deviation;
+import org.niis.xroad.restapi.exceptions.Warning;
 
 import java.util.Collection;
 
@@ -84,7 +84,7 @@ public final class TestUtils {
      * @param warnings
      * @return
      */
-    public static Deviation findWarning(String code, Collection<Deviation> warnings) {
+    public static Warning findWarning(String code, Collection<Warning> warnings) {
         if (warnings != null) {
             return warnings.stream()
                     .filter(warning -> code.equals(warning.getCode()))

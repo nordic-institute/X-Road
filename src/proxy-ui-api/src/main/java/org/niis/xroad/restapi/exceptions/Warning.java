@@ -24,22 +24,21 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import java.util.List;
 
 /**
- * Container for detailed error code.
- * Used to distinguish between exception messages and
- * error codes.
- *
- * TO DO: refactor out, we dont need it
+ * A warning that can be ignored
  */
-@Getter
-@AllArgsConstructor
-public class ErrorCode {
-    private final String value;
+public class Warning extends Deviation {
+    public Warning(String code, List<String> metadata) {
+        super(code, metadata);
+    }
 
-    public static ErrorCode of(String value) {
-        return new ErrorCode(value);
+    public Warning(String code, String metadataItem) {
+        super(code, metadataItem);
+    }
+
+    public Warning(String code) {
+        super(code);
     }
 }
