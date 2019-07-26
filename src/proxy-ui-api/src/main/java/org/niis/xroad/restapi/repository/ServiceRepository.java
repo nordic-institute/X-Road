@@ -40,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class ServiceRepository {
 
-    private PersistenceUtils persistenceUtils;
+    private final PersistenceUtils persistenceUtils;
 
     @Autowired
     public ServiceRepository(PersistenceUtils persistenceUtils) {

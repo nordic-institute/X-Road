@@ -49,8 +49,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @PreAuthorize("denyAll")
 public class ServicesApiController implements ServicesApi {
 
-    private ServiceConverter serviceConverter;
-    private ServiceService serviceService;
+    private final ServiceConverter serviceConverter;
+    private final ServiceService serviceService;
 
     @Autowired
     public ServicesApiController(ServiceConverter serviceConverter,

@@ -53,8 +53,8 @@ public class ServiceService {
 
     private static final String HTTPS = "https";
 
-    private ClientService clientService;
-    private ServiceDescriptionRepository serviceDescriptionRepository;
+    private final ClientService clientService;
+    private final ServiceDescriptionRepository serviceDescriptionRepository;
 
     @Autowired
     public ServiceService(ClientService clientService,

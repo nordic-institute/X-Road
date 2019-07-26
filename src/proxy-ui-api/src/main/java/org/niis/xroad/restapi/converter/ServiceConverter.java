@@ -94,8 +94,7 @@ public class ServiceConverter {
         validateEncodedString(encodedId);
         String encodedClientId = encodedId.substring(0, encodedId.lastIndexOf(
                 ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR));
-        ClientId clientId = clientConverter.convertId(encodedClientId);
-        return clientId;
+        return clientConverter.convertId(encodedClientId);
     }
 
     /**

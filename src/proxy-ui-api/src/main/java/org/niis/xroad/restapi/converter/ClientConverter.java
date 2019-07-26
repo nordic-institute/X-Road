@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
 @Component
 public class ClientConverter {
 
-    private GlobalConfWrapper globalConfWrapper;
+    private final GlobalConfWrapper globalConfWrapper;
 
     public static final int INSTANCE_INDEX = 0;
     public static final int MEMBER_CLASS_INDEX = 1;
