@@ -115,4 +115,15 @@ public final class FormatUtils {
         }
         return groupId;
     }
+
+    /**
+     * Count occurrences of
+     * @param from
+     * @param searched
+     * @return
+     */
+    public static int countOccurences(String from, char searched) {
+        String removed = from.replace(String.valueOf(searched), "");
+        return from.length() - removed.length();
+    }
 }
