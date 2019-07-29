@@ -56,6 +56,7 @@ import org.niis.xroad.restapi.repository.TokenRepository;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
+import org.niis.xroad.restapi.wsdl.WsdlValidatorTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -73,6 +74,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -604,8 +606,12 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, serviceDescription);
             fail("should have thrown ConflictException");
         } catch (ConflictException expected) {
-            assertEquals(ServiceDescriptionService.ADDING_WSDL_FAILED, expected.getError().getCode());
-            assertNotNull(TestUtils.findWarning(ServiceDescriptionService.SERVICE_EXISTS, expected.getWarnings()));
+            assertEquals(ServiceDescriptionService.SERVICE_EXISTS, expected.getError().getCode());
+            assertNotNull(expected.getError().getMetadata());
+            // metadata should contain service code and existing service's description url
+            assertEquals("xroadGetRandom.v1", expected.getError().getMetadata().get(0));
+            assertEquals("file:src/test/resources/valid.wsdl", expected.getError().getMetadata().get(1));
+            assertEquals(2, expected.getError().getMetadata().size());
         }
     }
 
@@ -619,8 +625,8 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            assertEquals(ServiceDescriptionService.ADDING_WSDL_FAILED, expected.getError().getCode());
-            assertNotNull(TestUtils.findWarning(ServiceDescriptionService.INVALID_WSDL, expected.getWarnings()));
+            assertEquals(ServiceDescriptionService.INVALID_WSDL, expected.getError().getCode());
+            assertNull(expected.getError().getMetadata());
         }
     }
 
@@ -634,8 +640,10 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            assertEquals(WsdlValidator.WSDL_VALIDATION_WARNINGS, expected.getError().getCode());
-            assertNotNull(TestUtils.findWarning(WsdlValidator.WSDL_VALIDATION_FAILED, expected.getWarnings()));
+            assertEquals(WsdlValidator.WSDL_VALIDATION_FAILED, expected.getError().getCode());
+            assertNotNull(expected.getError().getMetadata());
+            assertEquals(Collections.singletonList(WsdlValidatorTest.MOCK_VALIDATOR_ERROR),
+                    expected.getError().getMetadata());
         }
     }
 

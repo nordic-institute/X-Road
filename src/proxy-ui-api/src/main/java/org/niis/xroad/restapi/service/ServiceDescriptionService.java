@@ -36,7 +36,6 @@ import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.Error;
 import org.niis.xroad.restapi.exceptions.InvalidParametersException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
-import org.niis.xroad.restapi.exceptions.Warning;
 import org.niis.xroad.restapi.exceptions.WsdlNotFoundException;
 import org.niis.xroad.restapi.exceptions.WsdlParseException;
 import org.niis.xroad.restapi.exceptions.WsdlValidationException;
@@ -59,8 +58,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.niis.xroad.restapi.wsdl.WsdlValidator.WSDL_VALIDATION_WARNINGS;
-
 /**
  * ServiceDescription service
  */
@@ -72,7 +69,6 @@ public class ServiceDescriptionService {
 
     public static final int DEFAULT_SERVICE_TIMEOUT = 60;
     public static final String DEFAULT_DISABLED_NOTICE = "Out of order";
-    public static final String ADDING_WSDL_FAILED = "clients.adding_wsdl_failed";
     public static final String INVALID_WSDL = "clients.invalid_wsdl";
     public static final String WSDL_DOWNLOAD_FAILED = "clients.wsdl_download_failed";
     public static final String WSDL_EXISTS = "clients.wsdl_exists";
@@ -323,23 +319,20 @@ public class ServiceDescriptionService {
         try {
             parsedServices = WsdlParser.parseWSDL(url);
         } catch (WsdlParseException e) {
-            List<Warning> warnings = new ArrayList();
-            warnings.add(new Warning(INVALID_WSDL, e.getCause().getMessage()));
-            throw new BadRequestException(e, new Error(ADDING_WSDL_FAILED), warnings);
+            throw new BadRequestException(e, new Error(INVALID_WSDL));
         } catch (WsdlNotFoundException e) {
-            List<Warning> warnings = new ArrayList();
-            warnings.add(new Warning(WSDL_DOWNLOAD_FAILED, e.getCause().getMessage()));
-            throw new BadRequestException(e, new Error(ADDING_WSDL_FAILED), warnings);
+            throw new BadRequestException(e, new Error(WSDL_DOWNLOAD_FAILED));
         }
         return parsedServices;
     }
 
     private void validateWsdl(String url) throws BadRequestException {
         try {
-            new WsdlValidator(url).executeValidator();
+            boolean ignoreWarnings = false; // parameter does not exist yet
+            new WsdlValidator(url).executeValidator(ignoreWarnings);
         } catch (WsdlValidationException e) {
             log.error("WSDL validation failed", e);
-            throw new BadRequestException(e, new Error(WSDL_VALIDATION_WARNINGS), e.getWarnings());
+            throw new BadRequestException(e, e.getError(), e.getWarnings());
         }
     }
 
@@ -367,14 +360,15 @@ public class ServiceDescriptionService {
                                 .equalsIgnoreCase(FormatUtils.getServiceFullName(newService))))
                 .collect(Collectors.toSet());
 
-        // create warnings and throw if conflicted
+        // throw error with service metadata if conflicted
         if (!conflictedServices.isEmpty()) {
-            List<Warning> warnings = new ArrayList();
-            List<String> conflictedServiceNames = conflictedServices.stream()
-                    .map(conflictedService -> FormatUtils.getServiceFullName(conflictedService))
-                    .collect(Collectors.toList());
-            warnings.add(new Warning(SERVICE_EXISTS, conflictedServiceNames));
-            throw new ConflictException(new Error(ADDING_WSDL_FAILED), warnings);
+            List<String> errorMetadata = new ArrayList();
+            for (ServiceType conflictedService: conflictedServices) {
+                // error metadata contains service name and service description url
+                errorMetadata.add(FormatUtils.getServiceFullName(conflictedService));
+                errorMetadata.add(conflictedService.getServiceDescription().getUrl());
+            }
+            throw new ConflictException(new Error(SERVICE_EXISTS, errorMetadata));
         }
     }
 

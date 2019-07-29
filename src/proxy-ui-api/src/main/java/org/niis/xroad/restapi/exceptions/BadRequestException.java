@@ -58,4 +58,12 @@ public class BadRequestException extends DeviationAwareRuntimeException {
         super(t, error);
     }
 
+    /**
+     * Use deviation data from original exception
+     * @param e
+     */
+    public BadRequestException(DeviationAwareRuntimeException e) {
+        this(e, e.getError(), e.getWarnings());
+    }
+
 }

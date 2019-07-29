@@ -49,4 +49,9 @@ public class ConflictException extends DeviationAwareRuntimeException {
     public ConflictException(String msg, Error error) {
         super(msg, error);
     }
+
+    public ConflictException(Error error) {
+        super(error);
+    }
+
 }

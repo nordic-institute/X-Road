@@ -41,6 +41,9 @@ public class WsdlValidationException extends DeviationAwareRuntimeException {
         super(error);
     }
 
+    public WsdlValidationException(Throwable throwable, Error error) {
+        super(throwable, error);
+    }
     public WsdlValidationException(Throwable throwable, Error error, Collection<Warning> warnings) {
         super(throwable, error, warnings);
     }
