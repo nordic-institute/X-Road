@@ -25,19 +25,20 @@
 package org.niis.xroad.restapi.exceptions;
 
 import java.util.List;
-import java.util.Map;
 
 /**
- * Exception which (possibly) knows the detailed error code to send in REST API response body
+ * A warning that can be ignored
  */
-public interface ErrorCodedException {
-    /**
-     * Return the error code, if any
-     */
-    String getErrorCode();
+public class Warning extends Deviation {
+    public Warning(String code, List<String> metadata) {
+        super(code, metadata);
+    }
 
-    /**
-     * Return warning map if set
-     */
-    Map<String, List<String>> getWarningMap();
+    public Warning(String code, String metadataItem) {
+        super(code, metadataItem);
+    }
+
+    public Warning(String code) {
+        super(code);
+    }
 }

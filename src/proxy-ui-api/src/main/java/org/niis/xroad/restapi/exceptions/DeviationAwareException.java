@@ -24,18 +24,22 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import java.util.Collection;
 
 /**
- * detailed error code
+ * Exception which (possibly) knows the detailed error code & metadata,
+ * and warning codes & metadata, to send in REST API response body
  */
-@Getter
-@AllArgsConstructor
-public class ErrorCode {
-    private final String value;
+public interface DeviationAwareException {
+    /**
+     * Return the error details, if any
+     * @return
+     */
+    Error getError();
 
-    public static ErrorCode of(String value) {
-        return new ErrorCode(value);
-    }
+    /**
+     * Return warnings, if any
+     * @return
+     */
+    Collection<Warning> getWarnings();
 }

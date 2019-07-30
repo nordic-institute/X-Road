@@ -27,6 +27,10 @@ package org.niis.xroad.restapi.util;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import org.niis.xroad.restapi.exceptions.Warning;
+
+import java.util.Collection;
+
 /**
  * Test utils for generic object creation
  */
@@ -73,4 +77,22 @@ public final class TestUtils {
         return new MemberInfo(getClientId(instance, memberClass, memberCode, subsystem),
                 subsystem != null ? subsystem + NAME_APPENDIX : null);
     }
+
+    /**
+     * Finds warning with matching code, or returns null
+     * @param code
+     * @param warnings
+     * @return
+     */
+    public static Warning findWarning(String code, Collection<Warning> warnings) {
+        if (warnings != null) {
+            return warnings.stream()
+                    .filter(warning -> code.equals(warning.getCode()))
+                    .findFirst()
+                    .orElse(null);
+        }
+        return null;
+    }
+
+
 }

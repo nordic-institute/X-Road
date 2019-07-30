@@ -24,46 +24,48 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import lombok.Getter;
 
-import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
- * Thrown if client sent bad request.
- * Results in http 400 BAD_REQUEST
+ * Container for a deviation (error or warning).
+ * Contains a code (identifier for the deviation)
+ * and possible metadata describing the deviation details.
  */
-@ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class BadRequestException extends DeviationAwareRuntimeException {
-    public BadRequestException() {
-    }
+@Getter
+public class Deviation {
+    private final String code;
+    private final List<String> metadata;
 
-    public BadRequestException(String msg) {
-        super(msg);
-    }
-
-    public BadRequestException(String msg, Error error) {
-        super(msg, error);
-    }
-
-    public BadRequestException(String msg, Throwable t, Error error) {
-        super(msg, t, error);
-    }
-
-    public BadRequestException(Throwable t, Error error, Collection<Warning> warnings) {
-        super(t, error, warnings);
-    }
-
-    public BadRequestException(Throwable t, Error error) {
-        super(t, error);
+    /**
+     * Create new deviation with metadata
+     * @param code
+     * @param metadata
+     */
+    public Deviation(String code, List<String> metadata) {
+        this.code = code;
+        this.metadata = metadata;
     }
 
     /**
-     * Use deviation data from original exception
-     * @param e
+     * Create new deviation with a single metadata item
+     * @param code
+     * @param metadataItem
      */
-    public BadRequestException(DeviationAwareRuntimeException e) {
-        this(e, e.getError(), e.getWarnings());
+    public Deviation(String code, String metadataItem) {
+        this.code = code;
+        this.metadata = Collections.singletonList(metadataItem);
     }
 
+
+    /**
+     * Create new deviation without metadata
+     * @param code
+     */
+    public Deviation(String code) {
+        this.code = code;
+        this.metadata = null;
+    }
 }

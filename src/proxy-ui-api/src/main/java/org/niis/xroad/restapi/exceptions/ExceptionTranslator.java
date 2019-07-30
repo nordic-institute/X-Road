@@ -24,17 +24,16 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
+import org.niis.xroad.restapi.openapi.model.CodeWithMetadata;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
-import org.niis.xroad.restapi.openapi.model.Warning;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Translate exceptions to ResponseEntities
@@ -60,23 +59,34 @@ public class ExceptionTranslator {
         }
         ErrorInfo errorDto = new ErrorInfo();
         errorDto.setStatus(status.value());
-        if (e instanceof ErrorCodedException) {
-            ErrorCodedException errorCodedException = (ErrorCodedException) e;
-            errorDto.setErrorCode(errorCodedException.getErrorCode());
-            // add warnings if they exist
-            Map<String, List<String>> warningMap = errorCodedException.getWarningMap();
-            if (warningMap != null) {
-                List<Warning> warnings = warningMap.entrySet()
-                        .stream()
-                        .map(entry -> {
-                            Warning warning = new Warning().code(entry.getKey());
-                            entry.getValue().forEach(warning::addMetadataItem);
-                            return warning;
-                        })
-                        .collect(Collectors.toList());
-                errorDto.setWarnings(warnings);
+        if (e instanceof DeviationAwareException) {
+            // add information about errors and warnings
+            DeviationAwareException errorCodedException = (DeviationAwareException) e;
+            if (errorCodedException.getError() != null) {
+                errorDto.setError(convert(errorCodedException.getError()));
+            }
+            if (errorCodedException.getWarnings() != null) {
+                for (Deviation warning: errorCodedException.getWarnings()) {
+                    errorDto.addWarningsItem(convert(warning));
+
+                }
             }
         }
         return new ResponseEntity<ErrorInfo>(errorDto, status);
+    }
+
+    private CodeWithMetadata convert(Deviation deviation) {
+        CodeWithMetadata result = new CodeWithMetadata();
+        if (deviation != null) {
+            result.setCode(deviation.getCode());
+            if (deviation.getMetadata() != null && !deviation.getMetadata().isEmpty()) {
+                List<String> metadata = new ArrayList<>();
+                for (String metadataItem: deviation.getMetadata()) {
+                    metadata.add(metadataItem);
+                }
+                result.setMetadata(metadata);
+            }
+        }
+        return result;
     }
 }
