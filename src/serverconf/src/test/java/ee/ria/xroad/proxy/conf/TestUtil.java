@@ -233,6 +233,22 @@ public final class TestUtil {
             LocalGroupId lg = LocalGroupId.create("testGroup" + i);
             client.getAcl().add(createAccessRight(serviceCode, lg));
 
+            //rest service
+            ServiceDescriptionType serviceDescription = new ServiceDescriptionType();
+            serviceDescription.setClient(client);
+            serviceDescription.setUrl(SERVICEDESCRIPTION_URL + "rest");
+            serviceDescription.setType(DescriptionType.OPENAPI3);
+
+            ServiceType service = new ServiceType();
+            service.setServiceDescription(serviceDescription);
+            service.setTitle(SERVICE_TITLE + "REST");
+            service.setServiceCode("rest");
+
+            client.getAcl().add(
+                    createAccessRight(service.getServiceCode(), client.getIdentifier(), "GET", "/api/**"));
+            client.getAcl().add(
+                    createAccessRight(service.getServiceCode(), client.getIdentifier(), "POST", "/api/test/*"));
+
             LocalGroupType localGroup = new LocalGroupType();
             localGroup.setGroupCode("localGroup" + i);
             localGroup.setDescription("local group description");
@@ -295,13 +311,22 @@ public final class TestUtil {
         return SERVICE_CODE + "-" + serviceDescriptionIdx + "-" + serviceIdx;
     }
 
-    static AccessRightType createAccessRight(String serviceCode,
-            XRoadId xRoadId) {
+    static AccessRightType createAccessRight(String serviceCode, XRoadId xRoadId) {
         AccessRightType accessRight = new AccessRightType();
         accessRight.setServiceCode(serviceCode);
         accessRight.setSubjectId(xRoadId);
         accessRight.setRightsGiven(new Date());
 
+        return accessRight;
+    }
+
+    static AccessRightType createAccessRight(String serviceCode, XRoadId xRoadId, String method, String path) {
+        AccessRightType accessRight = new AccessRightType();
+        accessRight.setServiceCode(serviceCode);
+        accessRight.setSubjectId(xRoadId);
+        accessRight.setRightsGiven(new Date());
+        accessRight.setMethod(method);
+        accessRight.setPath(path);
         return accessRight;
     }
 

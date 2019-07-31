@@ -44,18 +44,29 @@ public final class UriUtils {
      * sub-delims    = "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="
      * pct-encoded   = "%" HEXDIG HEXDIG
      * </pre>
-     *
      * @see <a href="https://tools.ietf.org/html/rfc3986#section-3.3">RFC 3986</a>
      */
-    @SuppressWarnings("checkstyle:magicnumber")
     public static String uriSegmentPercentDecode(final String src) {
+        return uriPathPercentDecode(src, false);
+    }
+
+    /**
+     * Percent-decodes a URI path, assuming UTF-8 character set; optionally allows a path separator ('/').
+     * @param src            URI path to percent-decode
+     * @param allowSeparator If true, path separators are allowed and any %2d ('/') escape sequence is preserved
+     *                       (normalized to %2D) so that it is possible to distinguish literal '/' from an encoded one.
+     *                       If false, unencoded path separators are not allowed (becomes a path segment decoder).
+     * @see #uriSegmentPercentDecode(String)
+     */
+    @SuppressWarnings("checkstyle:magicnumber")
+    public static String uriPathPercentDecode(final String src, final boolean allowSeparator) {
         final int length = src.length();
         if (length == 0) {
             return src;
         }
 
         /* the result can not be longer than the source:
-           - %XY -> one byte (-2)
+           - %XY -> one byte (-2) or kept as is (allowSlash, +-0)
            - safe chars copied as is (+-0)
            - other chars rejected */
         final byte[] buf = new byte[length];
@@ -65,20 +76,30 @@ public final class UriUtils {
 
         while (i < length) {
             char ch = src.charAt(i);
-            if (ch == '%') {
+
+            if (ch == '/' && allowSeparator) {
+                buf[pos++] = (byte)ch;
+                i++;
+            } else if (ch == '%') {
                 if (i + 2 >= length) {
-                    throw new IllegalArgumentException("Invalid percent encoding");
+                    throw new IllegalArgumentException("Incomplete percent encoding");
                 }
                 final int d1 = hexdigit(src.charAt(i + 1));
                 final int d2 = hexdigit(src.charAt(i + 2));
                 if (d1 == -1 || d2 == -1) {
                     throw new IllegalArgumentException("Invalid percent encoding");
                 }
-                buf[pos++] = (byte) ((d1 << 4) + d2);
+                if (allowSeparator && d1 == 0x02 && d2 == 0x0D) {
+                    buf[pos++] = '%';
+                    buf[pos++] = '2';
+                    buf[pos++] = 'D';
+                } else {
+                    buf[pos++] = (byte)((d1 << 4) + d2);
+                }
                 i += 3;
                 changed = true;
             } else if (safeChar(ch)) {
-                buf[pos++] = (byte) ch;
+                buf[pos++] = (byte)ch;
                 i++;
             } else {
                 throw new IllegalArgumentException("Invalid character in path segment");

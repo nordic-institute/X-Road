@@ -154,7 +154,7 @@ public class DAOImplTest {
     public void getAcl() throws Exception {
         ClientId id = createTestClientId(client(1));
         List<AccessRightType> acl = getClient(id).getAcl();
-        assertEquals(4, acl.size());
+        assertEquals(6, acl.size());
 
         assertTrue(acl.get(0).getSubjectId() instanceof ClientId);
         assertTrue(acl.get(1).getSubjectId() instanceof ClientId);
