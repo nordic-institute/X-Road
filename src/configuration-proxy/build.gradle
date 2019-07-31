@@ -6,7 +6,7 @@ dependencies {
     compile project(':common-util')
     compile project(':signer-protocol')
 
-    compile 'commons-cli:commons-cli:1.2'
+    compile 'commons-cli:commons-cli:1.4'
 
     testCompile project(':common-test')
 }

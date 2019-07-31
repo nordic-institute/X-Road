@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    compile 'commons-cli:commons-cli:1.2'
+    compile 'commons-cli:commons-cli:1.4'
 
     compile project(':signer-protocol')
 
