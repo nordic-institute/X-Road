@@ -91,6 +91,8 @@ public class ClientProxy implements StartStop {
     private static final String CLIENT_HTTP_CONNECTOR_NAME = "ClientConnector";
     private static final String CLIENT_HTTPS_CONNECTOR_NAME = "ClientSSLConnector";
 
+    private static final String REST_HANDLER_PREFIX = "Rest";
+
     private Server server = new Server();
 
     private CloseableHttpClient client;
@@ -245,9 +247,10 @@ public class ClientProxy implements StartStop {
                         .getHttpConfiguration().setSendServerVersion(false));
     }
 
-    private void createHandlers() throws Exception {
+    private void createHandlers() {
         log.trace("createHandlers()");
 
+        log.trace("Loading log handler");
         final Slf4jRequestLog reqLog = new Slf4jRequestLog();
         reqLog.setLoggerName(getClass().getPackage().getName() + ".RequestLog");
         reqLog.setExtended(true);
@@ -261,6 +264,10 @@ public class ClientProxy implements StartStop {
 
         getClientHandlers().forEach(handlers::addHandler);
 
+        for (Handler h : handlers.getHandlers()) {
+            log.trace("handler: {}", h.getClass().getName());
+        }
+
         server.setHandler(handlers);
     }
 
@@ -268,14 +275,21 @@ public class ClientProxy implements StartStop {
         List<Handler> handlers = new ArrayList<>();
         String handlerClassNames = System.getProperty(CLIENTPROXY_HANDLERS);
 
+        log.trace("Loading rest client handler");
         handlers.add(new ClientRestMessageHandler(client));
 
         if (!StringUtils.isBlank(handlerClassNames)) {
             for (String handlerClassName : handlerClassNames.split(",")) {
                 try {
                     log.trace("Loading client handler {}", handlerClassName);
-
-                    handlers.add(loadHandler(handlerClassName, client));
+                    String clsName = handlerClassName.substring(handlerClassName.lastIndexOf(".") + 1);
+                    log.trace("clsName={}", clsName);
+                    if (clsName.startsWith(REST_HANDLER_PREFIX)) {
+                        // Rest handlers should be first, right after the log handler
+                        handlers.add(0, loadHandler(handlerClassName, client));
+                    } else {
+                        handlers.add(loadHandler(handlerClassName, client));
+                    }
                 } catch (Exception e) {
                     throw new RuntimeException("Failed to load client handler: " + handlerClassName, e);
                 }

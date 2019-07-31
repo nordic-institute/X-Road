@@ -30,47 +30,44 @@ import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
-import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
-import com.google.gson.stream.JsonWriter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
-import org.eclipse.jetty.http.HttpStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 
 /**
- * Handles client messages. This handler must be the last handler in the
- * handler collection, since it will not pass handling of the request to
- * the next handler (i.e. throws exception instead), if it cannot process
- * the request itself.
+ * Handler for REST metadata services
  */
 @Slf4j
-class ClientRestMessageHandler extends AbstractClientProxyHandler {
+public class RestMetadataHandler extends AbstractClientProxyHandler {
 
-    ClientRestMessageHandler(HttpClient client) {
-        super(client, true);
+    /**
+     * Constructor
+     */
+    public RestMetadataHandler(HttpClient client) {
+        super(client, false);
     }
 
     @Override
     MessageProcessorBase createRequestProcessor(String target,
-            HttpServletRequest request, HttpServletResponse response,
-            OpMonitoringData opMonitoringData) throws Exception {
-
+                                                HttpServletRequest request, HttpServletResponse response,
+                                                OpMonitoringData opMonitoringData) throws Exception {
         log.trace("createRequestProcessor({})", target);
 
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
             verifyCanProcess();
-            return new ClientRestMessageProcessor(request, response, client,
-                    getIsAuthenticationData(request), opMonitoringData);
+            RestMetadataClientRequestProcessor restProcessor
+                    = new RestMetadataClientRequestProcessor(request, response);
+            if (restProcessor.canProcess()) {
+                log.trace("Processing with RestMetadataClientRequestProcessor");
+                return restProcessor;
+            }
         }
         return null;
     }
@@ -88,25 +85,4 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
                     "Security server has no valid authentication certificate");
         }
     }
-
-    @Override
-    public void sendErrorResponse(HttpServletResponse response, CodedException ex) throws IOException {
-        if (ex.getFaultCode().startsWith("Server.")) {
-            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
-        } else {
-            response.setStatus(HttpStatus.BAD_REQUEST_400);
-        }
-        response.setContentType("application/json");
-        response.setCharacterEncoding(MimeUtils.UTF8);
-        response.setHeader("X-Road-Error", ex.getFaultCode());
-
-        final JsonWriter writer = new JsonWriter(new PrintWriter(response.getOutputStream()));
-        writer.beginObject()
-                .name("type").value(ex.getFaultCode())
-                .name("message").value(ex.getFaultString())
-                .name("detail").value(ex.getFaultDetail())
-                .endObject()
-                .close();
-    }
-
 }
