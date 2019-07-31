@@ -47,11 +47,13 @@ import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
+import ee.ria.xroad.common.util.UriUtils;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 
+import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
@@ -131,7 +133,7 @@ public class ServerConfImpl implements ServerConfProvider {
             List<ServiceId> allServices =
                     new ServiceDAOImpl().getServices(session, serviceProvider);
             return allServices.stream()
-                    .filter(s -> internalIsQueryAllowed(session, client, s))
+                    .filter(s -> internalIsQueryAllowed(session, client, s, null, null))
                     .collect(Collectors.toList());
         });
     }
@@ -143,7 +145,7 @@ public class ServerConfImpl implements ServerConfProvider {
             List<ServiceId> allServices =
                     new ServiceDAOImpl().getServicesByDescriptionType(session, serviceProvider, descriptionType);
             return allServices.stream()
-                    .filter(s -> internalIsQueryAllowed(session, client, s))
+                    .filter(s -> internalIsQueryAllowed(session, client, s, null, null))
                     .collect(Collectors.toList());
         });
     }
@@ -236,8 +238,8 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public boolean isQueryAllowed(ClientId client, ServiceId service) {
-        return tx(session -> internalIsQueryAllowed(session, client, service));
+    public boolean isQueryAllowed(ClientId client, ServiceId service, String method, String path) {
+        return tx(session -> internalIsQueryAllowed(session, client, service, method, path));
     }
 
     @Override
@@ -290,7 +292,8 @@ public class ServerConfImpl implements ServerConfProvider {
         return new ServiceDescriptionDAOImpl().getServiceDescription(session, service);
     }
 
-    private boolean internalIsQueryAllowed(Session session, ClientId client, ServiceId service) {
+    private boolean internalIsQueryAllowed(Session session, ClientId client, ServiceId service, String method,
+            String path) {
 
         if (client == null) {
             return false;
@@ -301,10 +304,18 @@ public class ServerConfImpl implements ServerConfProvider {
             return false;
         }
 
-        return checkAccessRights(clientType, session, client, service);
+        return checkAccessRights(clientType, session, client, service, method, path);
     }
 
-    private boolean checkAccessRights(ClientType clientType, Session session, ClientId client, ServiceId service) {
+    private boolean checkAccessRights(ClientType clientType, Session session, ClientId client, ServiceId service,
+            String method, String path) {
+
+        final String normalizedPath;
+        if (path == null) {
+            normalizedPath = null;
+        } else {
+            normalizedPath = UriUtils.uriPathPercentDecode(URI.create(path).normalize().getRawPath(), true);
+        }
 
         for (AccessRightType accessRight : clientType.getAcl()) {
             if (!StringUtils.equals(service.getServiceCode(),
@@ -315,13 +326,20 @@ public class ServerConfImpl implements ServerConfProvider {
             XRoadId subjectId = accessRight.getSubjectId();
 
             if (subjectId instanceof GlobalGroupId
-                    && GlobalConf.isSubjectInGlobalGroup(client, (GlobalGroupId) subjectId)) {
-                return true;
+                    && !GlobalConf.isSubjectInGlobalGroup(client, (GlobalGroupId)subjectId)) {
+                continue;
             } else if (subjectId instanceof LocalGroupId
-                    && isMemberInLocalGroup(session, client, (LocalGroupId) subjectId, service)) {
-                return true;
-            } else if (subjectId instanceof ClientId
-                    && client.equals(subjectId)) {
+                    && !isMemberInLocalGroup(session, client, (LocalGroupId)subjectId, service)) {
+                continue;
+            } else if (!client.equals(subjectId)) {
+                continue;
+            }
+
+            if (accessRight.getMethod() != null && !accessRight.getMethod().equalsIgnoreCase(method)) {
+                continue;
+            }
+
+            if (accessRight.getPath() == null || PathGlob.matches(accessRight.getPath(), normalizedPath)) {
                 return true;
             }
         }

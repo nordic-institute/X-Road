@@ -342,7 +342,11 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                     "Service is a SOAP service and cannot be called using REST interface");
         }
 
-        if (!ServerConf.isQueryAllowed(requestMessage.getRest().getClientId(), requestServiceId)) {
+        if (!ServerConf.isQueryAllowed(
+                requestMessage.getRest().getClientId(),
+                requestServiceId,
+                requestMessage.getRest().getVerb().name(),
+                requestMessage.getRest().getServicePath())) {
             throw new CodedException(X_ACCESS_DENIED, "Request is not allowed: %s", requestServiceId);
         }
 

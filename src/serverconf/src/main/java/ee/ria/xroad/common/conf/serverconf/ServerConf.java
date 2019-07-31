@@ -99,8 +99,18 @@ public class ServerConf {
      */
     public static boolean isQueryAllowed(ClientId sender, ServiceId service) {
         log.trace("isQueryAllowed({}, {})", sender, service);
+        return isQueryAllowed(sender, service, null, null);
+    }
 
-        return getInstance().isQueryAllowed(sender, service);
+    /**
+     * @param sender  the sender identifier
+     * @param service the service identifier
+     * @return true, if member <code>sender</code> is allowed
+     * to invoke service <code>serviceName</code>
+     */
+    public static boolean isQueryAllowed(ClientId sender, ServiceId service, String method, String path) {
+        log.trace("isQueryAllowed({}, {})", sender, service);
+        return getInstance().isQueryAllowed(sender, service, method, path);
     }
 
     /**
