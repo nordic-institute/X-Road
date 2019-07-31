@@ -94,9 +94,9 @@ by [RIA](https://www.ria.ee) (X-tee) and [VRK](https://www.vrk.fi) (Suomi.fi-pal
 Consultation services for deploying independent X-Road instances should be obtained from enterprises with such services. Known organizations are:
 
 * [Aktors OÜ](http://www.aktors.ee)
-* [Cybercom Finland Oy](http://www.cybercom.fi)
 * [Cybernetica AS](https://cyber.ee)
 * [Gofore Oyj](https://www.gofore.com)
+* [Opin Kerfi](https://opinkerfi.is/en/)
 * [Planetway Corp.](https://planetway.com/en/)
 * [Roksnet Solutions OÜ](https://roksnet.com)
 

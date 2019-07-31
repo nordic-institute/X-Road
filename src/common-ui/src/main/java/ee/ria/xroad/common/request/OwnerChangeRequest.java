@@ -22,39 +22,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.tokenmanager.module;
+package ee.ria.xroad.common.request;
 
-import lombok.Data;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.message.SoapMessageImpl;
 
-import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 
-/**
- * Module type for hardware modules.
- */
-@Data
-public class HardwareModuleType implements ModuleType {
+@Slf4j
+class OwnerChangeRequest extends GenericClientRequest {
 
-    private final String type;
+    OwnerChangeRequest(ClientId client, SoapMessageImpl request) throws Exception {
+        super(client, request);
+    }
 
-    private final String pkcs11LibraryPath;
-
-    // Library initialization boolean flags.
-    private final Boolean libraryCantCreateOsThreads;
-    private final Boolean osLockingOk;
-
-    private final String tokenIdFormat;
-
-    private final boolean pinVerificationPerSigning;
-
-    private final boolean batchSigningEnabled;
-
-    private final boolean forceReadOnly;
-
-    private final String signMechanismName;
-
-    private final PrivKeyAttributes privKeyAttributes;
-
-    private final PubKeyAttributes pubKeyAttributes;
-
-    private final Set<Long> slotIds;
 }

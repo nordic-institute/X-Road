@@ -34,11 +34,14 @@ import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.SystemProperties.getDeviceConfFile;
 
@@ -92,6 +95,7 @@ public final class ModuleConf {
     private static final String PRIV_KEY_ATTRIBUTE_NEVER_EXTRACTABLE_PARAM = "priv_key_attribute_never_extractable";
     private static final String PRIV_KEY_ATTRIBUTE_WRAP_WITH_TRUSTED_PARAM = "priv_key_attribute_wrap_with_trusted";
     private static final String PRIV_KEY_ATTRIBUTE_ALLOWED_MECHANISMS_PARAM = "priv_key_attribute_allowed_mechanisms";
+    private static final String SLOT_IDS_PARAM = "slot_ids";
 
     private static FileContentChangeChecker changeChecker = null;
 
@@ -252,8 +256,11 @@ public final class ModuleConf {
             return;
         }
 
+        List<String> slotIdStrings = Arrays.asList(getStringArray(section, SLOT_IDS_PARAM));
+        Set<Long> slotIds = slotIdStrings.stream().map(String::trim).map(Long::parseLong).collect(Collectors.toSet());
+
         MODULES.put(uid, new HardwareModuleType(uid, library, libraryCantCreateOsThreads, osLockingOk, tokenIdFormat,
-                verifyPin, batchSigning, readOnly, signMechanismName, privKeyAttributes, pubKeyAttributes));
+                verifyPin, batchSigning, readOnly, signMechanismName, privKeyAttributes, pubKeyAttributes, slotIds));
     }
 
     private static PubKeyAttributes loadPubKeyAttributes(SubnodeConfiguration section) {

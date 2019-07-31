@@ -9,6 +9,7 @@
     <element name="authCertDeletion" type="tns:AuthCertDeletionRequestType"/>
     <element name="clientReg" type="tns:ClientRequestType"/>
     <element name="clientDeletion" type="tns:ClientRequestType"/>
+    <element name="ownerChange" type="tns:ClientRequestType"/>
 
     <complexType name="AuthCertRegRequestType">
         <sequence>

@@ -24,6 +24,8 @@
  */
 package ee.ria.xroad.common.identifier;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
@@ -105,6 +107,7 @@ public class ServiceId extends XRoadId {
      * Returns the provider client ID of this service.
      * @return ClientId
      */
+    @JsonIgnore
     public ClientId getClientId() {
         return ClientId.create(getXRoadInstance(),
                 memberClass, memberCode, subsystemCode);

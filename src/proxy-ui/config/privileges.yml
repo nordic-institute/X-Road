@@ -14,6 +14,7 @@
 - view_clients: [xroad-security-officer, xroad-registration-officer, xroad-service-administrator, xroad-securityserver-observer]
 -   add_client: [xroad-registration-officer]
 -   send_client_reg_req: [xroad-registration-officer]
+-   send_owner_change_req: [xroad-registration-officer]
 -   view_client_details_dialog: [xroad-registration-officer, xroad-service-administrator, xroad-securityserver-observer]
 -     send_client_del_req: [xroad-registration-officer]
 -     delete_client: [xroad-registration-officer]
