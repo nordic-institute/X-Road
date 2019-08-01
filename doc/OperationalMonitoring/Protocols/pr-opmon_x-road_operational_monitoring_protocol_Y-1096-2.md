@@ -1134,6 +1134,18 @@ properties:
           description: SOAP fault code in case SOAPFault received
           type: string
           maxLength: 255
+        requestRestSize:
+          description: Size of the request (bytes)
+          type: integer
+          minimum: 0
+        responseRestSize:
+          description: Size of the response (bytes)
+          type: integer
+          minimum: 0
+        statusCode:
+          description: Response HTTP status code
+          type: integer
+          minimum: 0
 required:
 - records
 ```
