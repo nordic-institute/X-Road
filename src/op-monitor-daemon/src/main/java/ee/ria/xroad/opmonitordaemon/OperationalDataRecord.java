@@ -229,4 +229,8 @@ public class OperationalDataRecord {
     @Setter
     private String xRequestId;
 
+    @Getter
+    @Setter
+    private Integer statusCode;
+
 }

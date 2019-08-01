@@ -186,6 +186,11 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     }
 
     @Override
+    public boolean verifyMessageExchangeSucceeded() {
+        return restResponse != null && !restResponse.isErrorResponse();
+    }
+
+    @Override
     protected void preprocess() throws Exception {
         encoder = new ProxyMessageEncoder(servletResponse.getOutputStream(), CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
         servletResponse.setContentType(encoder.getContentType());
@@ -193,8 +198,9 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     }
 
     @Override
-    protected void postprocess() throws Exception {
-        opMonitoringData.setSucceeded(true);
+    protected void postprocess() {
+        opMonitoringData.setSucceeded(verifyMessageExchangeSucceeded());
+        opMonitoringData.setRestResponseStatusCode(restResponse.getResponseCode());
     }
 
     private void readMessage() throws Exception {

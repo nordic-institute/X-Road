@@ -212,8 +212,15 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         updateOpMonitoringDataByResponse(decoder);
         // Ensure we have the required parts.
         checkResponse();
-
+        opMonitoringData.setRestResponseStatusCode(response.getRestResponse().getResponseCode());
         decoder.verify(requestServiceId.getClientId(), response.getSignature());
+    }
+
+    @Override
+    public boolean verifyMessageExchangeSucceeded() {
+        return response != null
+                && response.getRestResponse() != null
+                && !response.getRestResponse().isErrorResponse();
     }
 
     private void checkResponse() {
@@ -277,7 +284,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         final RestResponse rest = response.getRestResponse();
         if (servletResponse instanceof Response) {
             // the standard API for setting reason and code is deprecated
-            ((Response)servletResponse).setStatusWithReason(
+            ((Response) servletResponse).setStatusWithReason(
                     rest.getResponseCode(),
                     rest.getReason());
         } else {
@@ -383,7 +390,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
     private List<Header> headers(HttpServletRequest req) {
         //Use jetty request to keep the original order
-        Request jrq = (Request)req;
+        Request jrq = (Request) req;
         return jrq.getHttpFields().stream()
                 .map(f -> new BasicHeader(f.getName(), f.getValue()))
                 .collect(Collectors.toCollection(ArrayList::new));

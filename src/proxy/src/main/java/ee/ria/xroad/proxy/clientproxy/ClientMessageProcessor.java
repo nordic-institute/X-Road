@@ -208,6 +208,11 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
+    @Override
+    public boolean verifyMessageExchangeSucceeded() {
+        return response != null && response.getFault() == null;
+    }
+
     private void updateOpMonitoringClientSecurityServerAddress() {
         try {
             opMonitoringData.setClientSecurityServerAddress(getSecurityServerAddress());
