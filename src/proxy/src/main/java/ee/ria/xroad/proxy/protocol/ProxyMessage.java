@@ -78,7 +78,6 @@ public class ProxyMessage implements ProxyMessageConsumer {
     private boolean hasBeenConsumed;
     private RestRequest restMessage;
     private RestResponse restResponse;
-    private ByteArrayInputStream restBody;
 
     /**
      * Constructs new proxy message with the original message content type.

@@ -94,8 +94,15 @@ class ServerProxyHandler extends HandlerBase {
 
             logProxyVersion(request);
             baseRequest.getHttpChannel().setIdleTimeout(idleTimeout);
-            createRequestProcessor(request, response, start, opMonitoringData).process();
+            final MessageProcessorBase processor = createRequestProcessor(request, response, opMonitoringData);
+            processor.process();
 
+            final MessageInfo messageInfo = processor.createRequestMessageInfo();
+            if (processor.verifyMessageExchangeSucceeded()) {
+                MonitorAgent.success(messageInfo, new Date(start), new Date());
+            } else {
+                MonitorAgent.failure(messageInfo, null, null);
+            }
         } catch (Throwable e) { // We want to catch serious errors as well
             CodedException cex = translateWithPrefix(SERVER_SERVERPROXY_X, e);
 
@@ -116,28 +123,14 @@ class ServerProxyHandler extends HandlerBase {
     }
 
     private MessageProcessorBase createRequestProcessor(HttpServletRequest request, HttpServletResponse response,
-            final long start, OpMonitoringData opMonitoringData) throws Exception {
+            OpMonitoringData opMonitoringData) throws Exception {
 
         if (VALUE_MESSAGE_TYPE_REST.equals(request.getHeader(HEADER_MESSAGE_TYPE))) {
             return new ServerRestMessageProcessor(request, response, client, getClientSslCertChain(request),
-                    opMonitoringData) {
-                @Override
-                protected void postprocess() throws Exception {
-                    super.postprocess();
-                    MessageInfo messageInfo = createRequestMessageInfo();
-                    MonitorAgent.success(messageInfo, new Date(start), new Date());
-                }
-            };
+                    opMonitoringData);
         } else {
             return new ServerMessageProcessor(request, response, client, getClientSslCertChain(request),
-                    opMonitorClient, opMonitoringData) {
-                @Override
-                protected void postprocess() throws Exception {
-                    super.postprocess();
-                    MessageInfo messageInfo = createRequestMessageInfo();
-                    MonitorAgent.success(messageInfo, new Date(start), new Date());
-                }
-            };
+                    opMonitorClient, opMonitoringData);
         }
     }
 
