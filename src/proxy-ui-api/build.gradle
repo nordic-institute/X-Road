@@ -2,7 +2,9 @@ buildscript {
     ext {
         springBootVersion = '2.1.3.RELEASE'
         openapiGeneratorVersion = '4.0.1'
-        nodePluginVersion = '1.1.0'
+        nodePluginVersion = '1.3.1'
+        nodeVersion = '10.16.1'
+        npmVersion = '6.9.0'
     }
     repositories {
         mavenCentral()
@@ -74,7 +76,9 @@ ext['hibernate.version'] = '5.3.10.Final'
 ext['hikaricp.version'] = '3.2.0'
 
 node {
-    download = false
+    download = true
+    version = nodeVersion
+    npmVersion = npmVersion
     npmWorkDir = file("frontend")
     nodeModulesDir = file("frontend/node_modules")
 }
