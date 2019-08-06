@@ -549,7 +549,8 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(1, serviceDescription.getServices().size());
 
         Service service = serviceDescription.getServices().iterator().next();
-        assertEquals("test-rest-servicecode.v1", service.getId());
+        assertEquals(CLIENT_ID_SS1 + ":test-rest-servicecode.v1", service.getId());
+        assertEquals("test-rest-servicecode.v1", service.getServiceCode());
         assertEquals(Integer.valueOf(60), service.getTimeout());
         assertEquals(true, service.getSslAuth());
         assertEquals("https://restservice.com/api/v1", service.getUrl());

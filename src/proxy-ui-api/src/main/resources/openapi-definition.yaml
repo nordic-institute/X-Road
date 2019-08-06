@@ -3598,6 +3598,7 @@ components:
       description: service for the service description
       required:
         - id
+        - service_code
         - url
         - timeout
         - ssl_auth
@@ -3605,10 +3606,17 @@ components:
         id:
           type: string
           format: text
-          description: service id
+          description: encoded service id, including client id
           example: CS:ORG:Client:myService.v1
           minLength: 1
           maxLength: 1535
+        service_code:
+          type: string
+          format: text
+          description: encoded service code and version
+          example: myService.v1
+          minLength: 1
+          maxLength: 511
         timeout:
           type: integer
           format: uint

@@ -63,7 +63,8 @@ public class ServicesApiController implements ServicesApi {
     @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
     public ResponseEntity<Service> getService(String id) {
         ServiceType serviceType = getServiceType(id);
-        Service service = serviceConverter.convert(serviceType);
+        ClientId clientId = serviceConverter.parseClientId(id);
+        Service service = serviceConverter.convert(serviceType, clientId);
         return new ResponseEntity<>(service, HttpStatus.OK);
     }
 
@@ -76,7 +77,8 @@ public class ServicesApiController implements ServicesApi {
         Service updatedService = serviceConverter.convert(
                 serviceService.updateService(clientId, fullServiceCode, service.getUrl(), serviceUpdate.getUrlAll(),
                         service.getTimeout(), serviceUpdate.getTimeoutAll(),
-                        service.getSslAuth(), serviceUpdate.getSslAuthAll()));
+                        service.getSslAuth(), serviceUpdate.getSslAuthAll()),
+                clientId);
         return new ResponseEntity<>(updatedService, HttpStatus.OK);
     }
 

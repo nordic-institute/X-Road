@@ -198,13 +198,14 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         ServiceDescription serviceDescription = getServiceDescription(
                 clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1).getBody(), "1").get();
         assertEquals("https://soapservice.com/v1/Endpoint?wsdl", serviceDescription.getUrl());
-        Set<String> serviceIds = serviceDescription.getServices()
-                .stream()
-                .map(Service::getId)
-                .collect(Collectors.toSet());
+        Set<String> serviceIds = getServiceIds(serviceDescription);
+        Set<String> serviceCodes = getServiceCodes(serviceDescription);
         assertEquals(2, serviceIds.size());
-        assertTrue(serviceIds.contains(GET_RANDOM));
-        assertTrue(serviceIds.contains(CALCULATE_PRIME));
+        assertTrue(serviceIds.contains(CLIENT_ID_SS1 + ":" + GET_RANDOM));
+        assertTrue(serviceIds.contains(CLIENT_ID_SS1 + ":" + CALCULATE_PRIME));
+        assertEquals(2, serviceCodes.size());
+        assertTrue(serviceCodes.contains(GET_RANDOM));
+        assertTrue(serviceCodes.contains(CALCULATE_PRIME));
 
         ServiceDescriptionUpdate serviceDescriptionUpdate = new ServiceDescriptionUpdate()
                 .url("file:src/test/resources/testservice.wsdl").type(ServiceType.WSDL);
@@ -214,15 +215,19 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         serviceDescription = getServiceDescription(
                 clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1).getBody(), "1").get();
         assertEquals("file:src/test/resources/testservice.wsdl", serviceDescription.getUrl());
-        serviceIds = serviceDescription.getServices()
-                .stream()
-                .map(Service::getId)
-                .collect(Collectors.toSet());
+        serviceIds = getServiceIds(serviceDescription);
+        serviceCodes = getServiceCodes(serviceDescription);
         assertEquals(2, serviceIds.size());
-        assertFalse(serviceIds.contains(GET_RANDOM));
-        assertFalse(serviceIds.contains(CALCULATE_PRIME));
-        assertTrue(serviceIds.contains(XROAD_GET_RANDOM));
-        assertTrue(serviceIds.contains(BMI));
+        assertFalse(serviceIds.contains(CLIENT_ID_SS1 + ":" + GET_RANDOM));
+        assertFalse(serviceIds.contains(CLIENT_ID_SS1 + ":" + CALCULATE_PRIME));
+        assertTrue(serviceIds.contains(CLIENT_ID_SS1 + ":" + XROAD_GET_RANDOM));
+        assertTrue(serviceIds.contains(CLIENT_ID_SS1 + ":" + BMI));
+
+        assertEquals(2, serviceCodes.size());
+        assertFalse(serviceCodes.contains(GET_RANDOM));
+        assertFalse(serviceCodes.contains(CALCULATE_PRIME));
+        assertTrue(serviceCodes.contains(XROAD_GET_RANDOM));
+        assertTrue(serviceCodes.contains(BMI));
     }
 
     @Test
@@ -230,26 +235,45 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
     public void refreshServiceDescription() {
         ServiceDescription serviceDescription = getServiceDescription(
                 clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS2).getBody(), "3").get();
-        Set<String> serviceIds = serviceDescription.getServices()
-                .stream()
-                .map(Service::getId)
-                .collect(Collectors.toSet());
+        Set<String> serviceIds = getServiceIds(serviceDescription);
+        Set<String> serviceCodes = getServiceCodes(serviceDescription);
         assertEquals(2, serviceIds.size());
-        assertTrue(serviceIds.contains(XROAD_GET_RANDOM_OLD));
-        assertTrue(serviceIds.contains(BMI_OLD));
+        assertTrue(serviceIds.contains(CLIENT_ID_SS2 + ":" + XROAD_GET_RANDOM_OLD));
+        assertTrue(serviceIds.contains(CLIENT_ID_SS2 + ":" + BMI_OLD));
+        assertEquals(2, serviceCodes.size());
+        assertTrue(serviceCodes.contains(XROAD_GET_RANDOM_OLD));
+        assertTrue(serviceCodes.contains(BMI_OLD));
 
         ServiceDescription refreshed = serviceDescriptionsApiController.refreshServiceDescription("3", false).getBody();
         assertEquals(serviceDescription.getId(), refreshed.getId());
-        serviceIds = refreshed.getServices()
+        serviceIds = getServiceIds(refreshed);
+        serviceCodes = getServiceCodes(refreshed);
+        assertEquals(2, serviceIds.size());
+        // refreshed wsdl has updated serviceIds and the refreshedDate should be updated
+        assertFalse(serviceIds.contains(CLIENT_ID_SS2 + ":" + XROAD_GET_RANDOM_OLD));
+        assertFalse(serviceIds.contains(CLIENT_ID_SS2 + ":" + BMI_OLD));
+        assertTrue(serviceIds.contains(CLIENT_ID_SS2 + ":" + XROAD_GET_RANDOM));
+        assertTrue(serviceIds.contains(CLIENT_ID_SS2 + ":" + BMI));
+
+        assertEquals(2, serviceCodes.size());
+        // refreshed wsdl has updated serviceCodes and the refreshedDate should be updated
+        assertFalse(serviceCodes.contains(XROAD_GET_RANDOM_OLD));
+        assertFalse(serviceCodes.contains(BMI_OLD));
+        assertTrue(serviceCodes.contains(XROAD_GET_RANDOM));
+        assertTrue(serviceCodes.contains(BMI));
+        assertTrue(refreshed.getRefreshedDate().isAfter(serviceDescription.getRefreshedDate()));
+    }
+
+    private Set<String> getServiceIds(ServiceDescription serviceDescription) {
+        return serviceDescription.getServices()
                 .stream()
                 .map(Service::getId)
                 .collect(Collectors.toSet());
-        assertEquals(2, serviceIds.size());
-        // refreshed wsdl has updated servicecodes and the refreshedDate should be updated
-        assertFalse(serviceIds.contains(XROAD_GET_RANDOM_OLD));
-        assertFalse(serviceIds.contains(BMI_OLD));
-        assertTrue(serviceIds.contains(XROAD_GET_RANDOM));
-        assertTrue(serviceIds.contains(BMI));
-        assertTrue(refreshed.getRefreshedDate().isAfter(serviceDescription.getRefreshedDate()));
+    }
+    private Set<String> getServiceCodes(ServiceDescription serviceDescription) {
+        return serviceDescription.getServices()
+                .stream()
+                .map(Service::getServiceCode)
+                .collect(Collectors.toSet());
     }
 }
