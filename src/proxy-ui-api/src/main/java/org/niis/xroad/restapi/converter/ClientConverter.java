@@ -33,6 +33,7 @@ import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -47,13 +48,13 @@ import java.util.stream.Collectors;
 @Component
 public class ClientConverter {
 
-    private GlobalConfWrapper globalConfWrapper;
+    private final GlobalConfWrapper globalConfWrapper;
 
     public static final int INSTANCE_INDEX = 0;
     public static final int MEMBER_CLASS_INDEX = 1;
     public static final int MEMBER_CODE_INDEX = 2;
     public static final int SUBSYSTEM_CODE_INDEX = 3;
-    public static final char ENCODED_CLIENT_ID_SEPARATOR = ':';
+    public static final char ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR = ':';
 
     @Autowired
     public ClientConverter(GlobalConfWrapper globalConfWrapper) {
@@ -88,12 +89,12 @@ public class ClientConverter {
     public String convertId(ClientId clientId) {
         StringBuilder builder = new StringBuilder();
         builder.append(clientId.getXRoadInstance())
-                .append(ENCODED_CLIENT_ID_SEPARATOR)
+                .append(ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR)
                 .append(clientId.getMemberClass())
-                .append(ENCODED_CLIENT_ID_SEPARATOR)
+                .append(ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR)
                 .append(clientId.getMemberCode());
         if (StringUtils.isNotEmpty(clientId.getSubsystemCode())) {
-            builder.append(ENCODED_CLIENT_ID_SEPARATOR)
+            builder.append(ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR)
                     .append(clientId.getSubsystemCode());
         }
         return builder.toString().trim();
@@ -106,11 +107,11 @@ public class ClientConverter {
      * @throws BadRequestException if encoded id could not be decoded
      */
     public ClientId convertId(String encodedId) throws BadRequestException {
-        int separators = countOccurences(encodedId, ENCODED_CLIENT_ID_SEPARATOR);
+        int separators = FormatUtils.countOccurences(encodedId, ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
         if (separators != MEMBER_CODE_INDEX && separators != SUBSYSTEM_CODE_INDEX) {
             throw new BadRequestException("Invalid client id " + encodedId);
         }
-        List<String> parts = Arrays.asList(encodedId.split(String.valueOf(ENCODED_CLIENT_ID_SEPARATOR)));
+        List<String> parts = Arrays.asList(encodedId.split(String.valueOf(ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR)));
         String instance = parts.get(INSTANCE_INDEX);
         String memberClass = parts.get(MEMBER_CLASS_INDEX);
         String memberCode = parts.get(MEMBER_CODE_INDEX);
@@ -159,10 +160,4 @@ public class ClientConverter {
     public List<Client> convertMemberInfosToClients(List<MemberInfo> memberInfos) {
         return memberInfos.stream().map(this::convertMemberInfoToClient).collect(Collectors.toList());
     }
-
-    private int countOccurences(String from, char searched) {
-        String removed = from.replace(String.valueOf(searched), "");
-        return from.length() - removed.length();
-    }
-
 }

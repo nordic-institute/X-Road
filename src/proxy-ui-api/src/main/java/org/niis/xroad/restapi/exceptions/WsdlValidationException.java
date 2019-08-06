@@ -27,26 +27,24 @@ package org.niis.xroad.restapi.exceptions;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import java.util.List;
-import java.util.Map;
+import java.util.Collection;
 
 /**
  * Thrown if WSDL validation fails
  */
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class WsdlValidationException extends ErrorCodedRuntimeException {
+public class WsdlValidationException extends DeviationAwareRuntimeException {
     public WsdlValidationException() {
     }
 
-    public WsdlValidationException(ErrorCode errorCode) {
-        super(errorCode);
+    public WsdlValidationException(Error error) {
+        super(error);
     }
 
-    public WsdlValidationException(Throwable throwable, Map<String, List<String>> warningMap) {
-        super(throwable, warningMap);
+    public WsdlValidationException(Throwable throwable, Error error) {
+        super(throwable, error);
     }
-
-    public WsdlValidationException(Map<String, List<String>> warningMap) {
-        super(warningMap);
+    public WsdlValidationException(Throwable throwable, Error error, Collection<Warning> warnings) {
+        super(throwable, error, warnings);
     }
 }

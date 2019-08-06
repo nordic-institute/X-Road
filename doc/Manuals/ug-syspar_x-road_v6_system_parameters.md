@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.46
+Version: 2.47  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -56,6 +56,7 @@ Doc. ID: UG-SYSPAR
 | 02.04.2019 | 2.44     | Added new message log parameter *clean-transaction-batch* | Jarkko Hyöty |
 | 08.04.2019 | 2.45     | Update REST related message log parameters' descriptions | Petteri Kivimäki |
 | 30.04.2019 | 2.46     | Added new parameter *timestamp-retry-delay* | Petteri Kivimäki |
+| 02.07.2019 | 2.47     | Added new Central Server parameter *auto-approve-owner-change-requests* | Petteri Kivimäki |
 
 ## Table of Contents
 
@@ -416,6 +417,7 @@ For instructions on how to change the parameter values, see section [Changing th
 | minimum-global-configuration-version | 2                          | The minimum supported global configuration version on the central server. This parameter is used if the central server needs to generate multiple versions of global configuration. Note that the support for global configuration V1 has been dropped in X-Road 6.20.0 and since that version the minimum value for this parameter is 2. |
 | auto-approve-auth-cert-reg-requests | false                       | True if automatic approval of auth cert registration requests is enabled for this X-Road instance. Automatic approval is applied to existing members only. |
 | auto-approve-client-reg-requests | false                          | True if automatic approval of client registration requests is enabled for this X-Road instance. Automatic approval is applied to existing members only. In addition, automatic approval is applied only if the client registration request has been signed by the member owning the subsystem to be registered as a security server client. |
+| auto-approve-owner-change-requests | false                        | True if automatic approval of owner change requests is enabled for this X-Road instance. Automatic approval is applied to existing members only. |
 
 #### 4.1.3 Signer parameters: `[signer]`
 

@@ -27,15 +27,14 @@ package org.niis.xroad.restapi.exceptions;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import java.util.List;
-import java.util.Map;
+import java.util.Collection;
 
 /**
  * Thrown if client sent bad request.
  * Results in http 400 BAD_REQUEST
  */
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class BadRequestException extends ErrorCodedRuntimeException {
+public class BadRequestException extends DeviationAwareRuntimeException {
     public BadRequestException() {
     }
 
@@ -43,20 +42,28 @@ public class BadRequestException extends ErrorCodedRuntimeException {
         super(msg);
     }
 
-    public BadRequestException(String msg, ErrorCode errorCode) {
-        super(msg, errorCode);
+    public BadRequestException(String msg, Error error) {
+        super(msg, error);
     }
 
-    public BadRequestException(String msg, Throwable t, ErrorCode errorCode) {
-        super(msg, t, errorCode);
+    public BadRequestException(String msg, Throwable t, Error error) {
+        super(msg, t, error);
     }
 
-    public BadRequestException(Throwable t, ErrorCode errorCode,  Map<String, List<String>> warningMap) {
-        super(t, errorCode, warningMap);
+    public BadRequestException(Throwable t, Error error, Collection<Warning> warnings) {
+        super(t, error, warnings);
     }
 
-    public BadRequestException(Throwable t, ErrorCode errorCode) {
-        super(t, errorCode);
+    public BadRequestException(Throwable t, Error error) {
+        super(t, error);
+    }
+
+    /**
+     * Use deviation data from original exception
+     * @param e
+     */
+    public BadRequestException(DeviationAwareRuntimeException e) {
+        this(e, e.getError(), e.getWarnings());
     }
 
 }

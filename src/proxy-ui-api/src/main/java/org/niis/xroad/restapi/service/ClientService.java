@@ -34,7 +34,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.GlobalConfWrapper;
 import org.niis.xroad.restapi.exceptions.ConflictException;
-import org.niis.xroad.restapi.exceptions.ErrorCode;
+import org.niis.xroad.restapi.exceptions.Error;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -132,7 +132,7 @@ public class ClientService {
         ClientType clientType = clientRepository.getClient(id);
         if (clientType == null) {
             throw new NotFoundException(("client with id " + id + " not found"),
-                    ErrorCode.of(CLIENT_NOT_FOUND_ERROR_CODE));
+                    new Error(CLIENT_NOT_FOUND_ERROR_CODE));
         }
         return clientType;
     }
@@ -211,7 +211,7 @@ public class ClientService {
                 .findAny()
                 .orElseThrow(() ->
                         new NotFoundException("certificate with hash " + certificateHash + " not found",
-                                ErrorCode.of(CERTIFICATE_NOT_FOUND_ERROR_CODE)));
+                                new Error(CERTIFICATE_NOT_FOUND_ERROR_CODE)));
 
         clientType.getIsCert().remove(certificateType);
         clientRepository.saveOrUpdate(clientType);

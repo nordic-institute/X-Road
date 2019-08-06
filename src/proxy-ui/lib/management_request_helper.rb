@@ -47,6 +47,10 @@ module ManagementRequestHelper
     request_sender.sendAuthCertDeletionRequest(server_id, cert_bytes)
   end
 
+  def change_owner(client_id)
+    request_sender.sendOwnerChangeRequest(server_id, client_id)
+  end
+
   def request_sender
     GlobalConf.verifyValidity
 

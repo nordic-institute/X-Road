@@ -73,13 +73,15 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
     public static final String CLIENT_ID_SS1 = "FI:GOV:M1:SS1";
     public static final String CLIENT_ID_SS2 = "FI:GOV:M1:SS2";
     // services from initial test data: src/test/resources/data.sql
-    public static final String GET_RANDOM = "getRandom";
-    public static final String CALCULATE_PRIME = "calculatePrime";
-    public static final String XROAD_GET_RANDOM_OLD = "xroadGetRandomOld";
-    public static final String BMI_OLD = "bodyMassIndexOld";
+    public static final String XROAD_GET_RANDOM_OLD = "xroadGetRandomOld.v1";
+    public static final String BMI_OLD = "bodyMassIndexOld.v1";
+
+    public static final String GET_RANDOM = "getRandom.v1";
+    public static final String CALCULATE_PRIME = "calculatePrime.v1";
+
     // services from wsdl test file: src/test/resources/testservice.wsdl
-    public static final String XROAD_GET_RANDOM = "xroadGetRandom";
-    public static final String BMI = "bodyMassIndex";
+    public static final String XROAD_GET_RANDOM = "xroadGetRandom.v1";
+    public static final String BMI = "bodyMassIndex.v1";
 
     @Autowired
     private ServiceDescriptionsApiController serviceDescriptionsApiController;
@@ -196,13 +198,13 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         ServiceDescription serviceDescription = getServiceDescription(
                 clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1).getBody(), "1").get();
         assertEquals("https://soapservice.com/v1/Endpoint?wsdl", serviceDescription.getUrl());
-        Set<String> serviceCodes = serviceDescription.getServices()
+        Set<String> serviceIds = serviceDescription.getServices()
                 .stream()
-                .map(Service::getCode)
+                .map(Service::getId)
                 .collect(Collectors.toSet());
-        assertEquals(2, serviceCodes.size());
-        assertTrue(serviceCodes.contains(GET_RANDOM));
-        assertTrue(serviceCodes.contains(CALCULATE_PRIME));
+        assertEquals(2, serviceIds.size());
+        assertTrue(serviceIds.contains(GET_RANDOM));
+        assertTrue(serviceIds.contains(CALCULATE_PRIME));
 
         ServiceDescriptionUpdate serviceDescriptionUpdate = new ServiceDescriptionUpdate()
                 .url("file:src/test/resources/testservice.wsdl").type(ServiceType.WSDL);
@@ -212,15 +214,15 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         serviceDescription = getServiceDescription(
                 clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1).getBody(), "1").get();
         assertEquals("file:src/test/resources/testservice.wsdl", serviceDescription.getUrl());
-        serviceCodes = serviceDescription.getServices()
+        serviceIds = serviceDescription.getServices()
                 .stream()
-                .map(Service::getCode)
+                .map(Service::getId)
                 .collect(Collectors.toSet());
-        assertEquals(2, serviceCodes.size());
-        assertFalse(serviceCodes.contains(GET_RANDOM));
-        assertFalse(serviceCodes.contains(CALCULATE_PRIME));
-        assertTrue(serviceCodes.contains(XROAD_GET_RANDOM));
-        assertTrue(serviceCodes.contains(BMI));
+        assertEquals(2, serviceIds.size());
+        assertFalse(serviceIds.contains(GET_RANDOM));
+        assertFalse(serviceIds.contains(CALCULATE_PRIME));
+        assertTrue(serviceIds.contains(XROAD_GET_RANDOM));
+        assertTrue(serviceIds.contains(BMI));
     }
 
     @Test
@@ -228,26 +230,26 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
     public void refreshServiceDescription() {
         ServiceDescription serviceDescription = getServiceDescription(
                 clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS2).getBody(), "3").get();
-        Set<String> serviceCodes = serviceDescription.getServices()
+        Set<String> serviceIds = serviceDescription.getServices()
                 .stream()
-                .map(Service::getCode)
+                .map(Service::getId)
                 .collect(Collectors.toSet());
-        assertEquals(2, serviceCodes.size());
-        assertTrue(serviceCodes.contains(XROAD_GET_RANDOM_OLD));
-        assertTrue(serviceCodes.contains(BMI_OLD));
+        assertEquals(2, serviceIds.size());
+        assertTrue(serviceIds.contains(XROAD_GET_RANDOM_OLD));
+        assertTrue(serviceIds.contains(BMI_OLD));
 
         ServiceDescription refreshed = serviceDescriptionsApiController.refreshServiceDescription("3", false).getBody();
         assertEquals(serviceDescription.getId(), refreshed.getId());
-        serviceCodes = refreshed.getServices()
+        serviceIds = refreshed.getServices()
                 .stream()
-                .map(Service::getCode)
+                .map(Service::getId)
                 .collect(Collectors.toSet());
-        assertEquals(2, serviceCodes.size());
+        assertEquals(2, serviceIds.size());
         // refreshed wsdl has updated servicecodes and the refreshedDate should be updated
-        assertFalse(serviceCodes.contains(XROAD_GET_RANDOM_OLD));
-        assertFalse(serviceCodes.contains(BMI_OLD));
-        assertTrue(serviceCodes.contains(XROAD_GET_RANDOM));
-        assertTrue(serviceCodes.contains(BMI));
+        assertFalse(serviceIds.contains(XROAD_GET_RANDOM_OLD));
+        assertFalse(serviceIds.contains(BMI_OLD));
+        assertTrue(serviceIds.contains(XROAD_GET_RANDOM));
+        assertTrue(serviceIds.contains(BMI));
         assertTrue(refreshed.getRefreshedDate().isAfter(serviceDescription.getRefreshedDate()));
     }
 }

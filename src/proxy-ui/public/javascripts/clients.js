@@ -20,7 +20,7 @@
             var client = oClients.getFocusData();
 
             var clientActions =
-                $("#client_register, #client_unregister, #client_delete");
+                $("#client_register, #client_unregister, #client_delete", "#owner_change");
 
             clientActions.css("visibility", "visible");
 
@@ -40,6 +40,12 @@
                 $("#client_delete").show();
             } else {
                 $("#client_delete").hide();
+            }
+
+            if (client.owner_change_enabled) {
+                $("#owner_change").show();
+            } else {
+                $("#owner_change").hide();
             }
 
             if (client.owner) {
@@ -154,12 +160,20 @@
 
                           var new_subsystem_warning = "";
                           if (!response.data.subsystem_registered) {
-                              new_subsystem_warning = _("clients.client_add_dialog.new_subsystem", {
-                                  member_name: response.data.member_name || "",
-                                  member_class: regParams.member_class,
-                                  member_code: regParams.member_code,
-                                  subsystem_code: regParams.subsystem_code
-                              });
+                              if(regParams.subsystem_code) {
+                                  new_subsystem_warning = _("clients.client_add_dialog.new_subsystem", {
+                                      member_name: response.data.member_name || "",
+                                      member_class: regParams.member_class,
+                                      member_code: regParams.member_code,
+                                      subsystem_code: regParams.subsystem_code
+                                  });
+                              } else {
+                                  new_subsystem_warning = _("clients.client_add_dialog.new_member", {
+                                      member_name: response.data.member_name || "",
+                                      member_class: regParams.member_class,
+                                      member_code: regParams.member_code
+                                  });
+                              }
                           }
 
                           var confirmParams = {
@@ -652,12 +666,20 @@
 
             var new_subsystem_warning = "";
             if (!$("#details_client_id").data("client").subsystem_registered) {
-                new_subsystem_warning = _("clients.client_add_dialog.new_subsystem", {
-                    member_name: $("#details_member_name").val(),
-                    member_class: params.member_class,
-                    member_code: params.member_code,
-                    subsystem_code: params.subsystem_code
-                });
+                if(params.subsystem_code) {
+                    new_subsystem_warning = _("clients.client_add_dialog.new_subsystem", {
+                        member_name: $("#details_member_name").val(),
+                        member_class: params.member_class,
+                        member_code: params.member_code,
+                        subsystem_code: params.subsystem_code
+                    });
+                } else {
+                    new_subsystem_warning = _("clients.client_add_dialog.new_member", {
+                        member_name: $("#details_member_name").val(),
+                        member_class: params.member_class,
+                        member_code: params.member_code
+                    });
+                }
             }
 
             var confirmParams = {
@@ -689,6 +711,19 @@
 
         $("#client_delete").live('click', function() {
             confirmDelete("clients.client_details_tab.delete_client_confirm");
+        });
+
+        $("#owner_change").live('click', function() {
+            var params = {
+                member_class: $("#details_member_class").val(),
+                member_code: $("#details_member_code").val()
+            };
+
+            confirm("clients.client_details_tab.send_owner_change_confirm", null, function() {
+                $.post(action("owner_change_request"), params, function(response) {
+                    oClients.fnUpdate(response.data, oClients.getFocus());
+                }, "json");
+            });
         });
 
         initTestability();

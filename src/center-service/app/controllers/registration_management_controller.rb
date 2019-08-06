@@ -49,6 +49,8 @@ class RegistrationManagementController < ManagementRequestController
                 handle_client_registration
             when ManagementRequests::CLIENT_DELETION
                 handle_client_deletion
+            when ManagementRequests::OWNER_CHANGE
+                handle_owner_change
             else
                 raise "Unknown service code '#{service}'"
         end
@@ -143,8 +145,51 @@ class RegistrationManagementController < ManagementRequestController
         req.id
     end
 
+    def handle_owner_change
+        req_type = ManagementRequestParser.parseOwnerChangeRequest(@request_soap)
+        security_server = security_server_id(req_type.getServer())
+        server_user = client_id(req_type.getClient())
+
+        verify_xroad_instance(security_server)
+        verify_xroad_instance(server_user)
+
+        verify_owner(security_server)
+
+        req = nil
+        owner_change_request = nil
+
+        new_owner = SecurityServerClient.find_by_id(member_id(req_type.getClient()))
+
+        # Auto-approval must be enabled and new owner must be registered on Central Server
+        auto_approve_and_new_owner_exists = auto_approve_owner_change_requests? && !new_owner.nil?
+
+        @@client_registration_mutex.synchronize do
+            req = OwnerChangeRequest.new(
+                :security_server => security_server,
+                :sec_serv_user => server_user,
+                :origin => Request::SECURITY_SERVER)
+            req.register()
+
+            owner_change_request = OwnerChangeRequest.new(
+                :security_server => security_server,
+                :sec_serv_user => server_user,
+                :origin => Request::CENTER)
+            owner_change_request.register()
+        end
+
+        if auto_approve_and_new_owner_exists
+            RequestWithProcessing.approve(owner_change_request.id)
+        end
+
+        req.id
+    end
+
     def auto_approve_client_reg_requests?
         Java::ee.ria.xroad.common.SystemProperties::getCenterAutoApproveClientRegRequests
+    end
+
+    def auto_approve_owner_change_requests?
+        Java::ee.ria.xroad.common.SystemProperties::getCenterAutoApproveOwnerChangeRequests
     end
 
 end

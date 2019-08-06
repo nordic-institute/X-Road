@@ -92,6 +92,11 @@ en:
     client_not_found: "Client not found: %{client}"
     request_with_same_cert_already_exists: "Certificate is already submitted for registration with request '%{id}'"
     security_server_exists: "Certificate is already registered, request id '%{id}"
+    duplicate_owner_change_requests: "A request for registering '%{user}', as the owner of the security server '%{security_server}' has already been submitted (%{received}, request ID: '%{id}')"
+    must_be_member: "'%{user}' is a subsystem. New owner must be a member"
+    already_owner: "'%{user}' is already the owner of the security server '%{security_server}'"
+    server_code_exists: "Member '%{member_class} : %{member_code}' already owns a security server with server code '%{server_code}'"
+    not_registered_client: "'%{user}' is not registered as a client on the security server '%{security_server}'"
 
   errors:
     format: "%{message}"

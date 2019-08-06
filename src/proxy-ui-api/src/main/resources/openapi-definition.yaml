@@ -1734,9 +1734,10 @@ paths:
           required: true
           schema:
             type: string
+            example: CS:ORG:Client:myService.v1
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 1535
       responses:
         '200':
           description: ok
@@ -1756,7 +1757,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    put: # ok
+    patch: # ok
       tags:
         - security server
       summary: update service
@@ -1769,77 +1770,15 @@ paths:
           required: true
           schema:
             type: string
+            example: CS:ORG:Client:myService.v1
             format: text
             minLength: 1
-            maxLength: 255
-        - in: query
-          name: url
-          description: service url
-          required: false
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-        - in: query
-          name: url_all
-          description: url for all services
-          required: false
-          schema:
-            type: boolean
-            example: false
-            default: false
-        - in: query
-          name: timeout
-          description: service timeout value
-          required: false
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-            maximum: 10000
-        - in: query
-          name: timeout_all
-          description: timeout value for all services
-          required: false
-          schema:
-            type: boolean
-            example: false
-            default: false
-        - in: query
-          name: security_category
-          description: service security category
-          required: false
-          schema:
-            type: string
-            format: text
-            minLength: 0
-            maxLength: 255
-        - in: query
-          name: security_category_all
-          description: security category for all services
-          required: false
-          schema:
-            type: string
-            format: text
-            minLength: 0
-            maxLength: 255
-        - in: query
-          name: ssl_auth
-          description: service ssl authentication
-          required: false
-          schema:
-            type: boolean
-            example: true
-            default: true
-        - in: query
-          name: ssl_auth_all
-          description: ssl authentication for all services
-          required: false
-          schema:
-            type: boolean
-            example: false
-            default: false
+            maxLength: 1535
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceUpdate'
       responses:
         '200':
           description: service modified
@@ -3334,6 +3273,26 @@ components:
         - ERROR_CODE_EXPIRED_CONF # The downloaded global configuration has expired."
         - ERROR_CODE_CANNOT_DOWNLOAD_CONF # Unable to download global configuration. Check network connection to global configuration provider."
         - ERROR_CODE_MISSING_PRIVATE_PARAM # The downloaded global configuration did not contain private parameters
+    CodeWithMetadata:
+      type: object
+      description: object that contains a code identifier and possibly collection of
+        associated metadata. Used to relay error and warning information.
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          format: text
+          description: identifier of the item (for example errorcode)
+          example: adding_services
+        metadata:
+          type: array
+          description: array containing metadata associated with the item. For example names of services
+            were attempted to add, but failed
+          uniqueItems: true
+          items:
+            type: string
+            format: text
     ConnectionType: # ok
       type: string
       format: enum
@@ -3364,17 +3323,14 @@ components:
           format: int32
           description: http status code
           example: 400
-        error_code:
-          type: string
-          format: text
-          description: detailed error code
-          example: certificate_not_found
+        error:
+          $ref: '#/components/schemas/CodeWithMetadata'
         warnings:
           type: array
           description: warnings that could be ignored
           uniqueItems: true
           items:
-            $ref: '#/components/schemas/Warning'
+            $ref: '#/components/schemas/CodeWithMetadata'
     GlobalConfiguration: # ok
       type: object
       description: global configuration
@@ -3641,27 +3597,18 @@ components:
       type: object
       description: service for the service description
       required:
+        - id
         - url
-        - code
         - timeout
         - ssl_auth
-        - security_category
-        - service_id
       properties:
         id:
           type: string
           format: text
           description: service id
-          example: uniqueId
+          example: CS:ORG:Client:myService.v1
           minLength: 1
-          maxLength: 255
-        code:
-          type: string
-          format: text
-          description: service code
-          example: ClientReg
-          minLength: 1
-          maxLength: 255
+          maxLength: 1535
         timeout:
           type: integer
           format: uint
@@ -3673,12 +3620,6 @@ components:
           type: boolean
           description: service ssl auth
           example: true
-        security_category:
-          type: string
-          format: text
-          description: service security category
-          minLength: 0
-          maxLength: 255
         subjects_count:
           type: integer
           format: uint
@@ -3693,6 +3634,29 @@ components:
           example: https://domain.com/service
           minLength: 1
           maxLength: 255
+    ServiceUpdate: # ok
+      type: object
+      description: object for updating a service or all services within service description
+      required:
+        - service
+      properties:
+        service:
+          $ref: '#/components/schemas/Service'
+        url_all:
+          description: url is applied for all services
+          type: boolean
+          example: false
+          default: false
+        timeout_all:
+          description: timeout value is applied for all services
+          type: boolean
+          example: false
+          default: false
+        ssl_auth_all:
+          description: ssl authentication is applied for all services
+          type: boolean
+          example: false
+          default: false
     ServiceClient: # ok
       type: object
       description: service client
@@ -4035,25 +3999,5 @@ components:
           example: Security Server version 6.21.0-SNAPSHOT-20190411git32add470
           minLength: 1
           maxLength: 255
-    Warning:
-      type: object
-      description: warning, primarily from service description validation
-      required:
-        - type
-        - metadata
-      properties:
-        code:
-          type: string
-          format: text
-          description: identifier of the warning type
-          example: adding_services
-        metadata:
-          type: array
-          description: array containing metadata associated with the warning. For example names of services that
-            are to be added
-          uniqueItems: true
-          items:
-            type: string
-            format: text
 security:
   - ApiKeyAuth: []

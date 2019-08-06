@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * Results in http 404 NOT_FOUND
  */
 @ResponseStatus(value = HttpStatus.NOT_FOUND)
-public class NotFoundException extends ErrorCodedRuntimeException {
+public class NotFoundException extends DeviationAwareRuntimeException {
 
     public NotFoundException() {
     }
@@ -41,12 +41,12 @@ public class NotFoundException extends ErrorCodedRuntimeException {
         super(msg);
     }
 
-    public NotFoundException(ErrorCode errorCode) {
-        super(errorCode);
+    public NotFoundException(Error error) {
+        super(error);
     }
 
-    public NotFoundException(String msg, ErrorCode errorCode) {
-        super(msg, errorCode);
+    public NotFoundException(String msg, Error error) {
+        super(msg, error);
     }
 
     public NotFoundException(String msg, Throwable t) {
