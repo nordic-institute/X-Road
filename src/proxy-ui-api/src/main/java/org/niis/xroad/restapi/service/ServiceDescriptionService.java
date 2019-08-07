@@ -37,6 +37,7 @@ import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.Error;
 import org.niis.xroad.restapi.exceptions.InvalidParametersException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.exceptions.Warning;
 import org.niis.xroad.restapi.exceptions.WsdlNotFoundException;
 import org.niis.xroad.restapi.exceptions.WsdlParseException;
 import org.niis.xroad.restapi.exceptions.WsdlValidationException;
@@ -49,6 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -76,10 +78,14 @@ public class ServiceDescriptionService {
     public static final String SERVICE_EXISTS = "clients.service_exists";
     public static final String MALFORMED_URL = "clients.malformed_wsdl_url";
     public static final String WRONG_TYPE = "clients.servicedescription_wrong_type";
+    public static final String WARNING_ADDING_SERVICES = "clients.adding_services";
+    public static final String WARNING_DELETING_SERVICES = "clients.deleting_services";
+    public static final String ERROR_WARNINGS_DETECTED = "clients.warnings_detected";
 
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final ClientService clientService;
     private final ClientRepository clientRepository;
+    private final ServiceChangeChecker serviceChangeChecker;
 
     /**
      * ServiceDescriptionService constructor
@@ -89,10 +95,12 @@ public class ServiceDescriptionService {
      */
     @Autowired
     public ServiceDescriptionService(ServiceDescriptionRepository serviceDescriptionRepository,
-            ClientService clientService, ClientRepository clientRepository) {
+            ClientService clientService, ClientRepository clientRepository,
+            ServiceChangeChecker serviceChangeChecker) {
         this.serviceDescriptionRepository = serviceDescriptionRepository;
         this.clientService = clientService;
         this.clientRepository = clientRepository;
+        this.serviceChangeChecker = serviceChangeChecker;
     }
 
     /**
@@ -246,12 +254,40 @@ public class ServiceDescriptionService {
                 .map(serviceInfo -> serviceInfoToServiceType(serviceInfo, serviceDescriptionType))
                 .collect(Collectors.toList());
 
+        // find what services were added or removed
+        ServiceChangeChecker.ServiceChanges serviceChanges = serviceChangeChecker.check(
+                serviceDescriptionType.getService(),
+                newServices);
+
+        if (!ignoreWarnings && !serviceChanges.isEmpty()) {
+            throw createServiceChangeException(serviceChanges);
+        }
+
         // replace all old services with the new ones
         serviceDescriptionType.getService().clear();
         serviceDescriptionType.getService().addAll(newServices);
         serviceDescriptionRepository.saveOrUpdate(serviceDescriptionType);
 
         return serviceDescriptionType;
+    }
+
+    /**
+     * throws BadRequestException carrying information about service changes
+     * @return
+     */
+    private BadRequestException createServiceChangeException(ServiceChangeChecker.ServiceChanges changes) {
+        List<Warning> warnings = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(changes.getAddedServices())) {
+            Warning addedServicesWarning = new Warning(WARNING_ADDING_SERVICES,
+                    changes.getAddedServices());
+            warnings.add(addedServicesWarning);
+        }
+        if (!CollectionUtils.isEmpty(changes.getRemovedServices())) {
+            Warning deletedServicesWarning = new Warning(WARNING_DELETING_SERVICES,
+                    changes.getRemovedServices());
+            warnings.add(deletedServicesWarning);
+        }
+        return new BadRequestException(new Error(ERROR_WARNINGS_DETECTED), warnings);
     }
 
     private void checkForExistingWsdl(ClientType client, String url) throws ConflictException {
@@ -323,6 +359,13 @@ public class ServiceDescriptionService {
         return parsedServices;
     }
 
+    /**
+     * Should return warnings instead of throwing them, to make it possible
+     * to report both "changed services" and "validation warnings" warnings
+     * @param url
+     * @param ignoreWarnings
+     * @throws BadRequestException
+     */
     private void validateWsdl(String url, boolean ignoreWarnings) throws BadRequestException {
         try {
             new WsdlValidator(url).executeValidator(ignoreWarnings);
@@ -412,6 +455,15 @@ public class ServiceDescriptionService {
                 .stream()
                 .map(serviceInfo -> serviceInfoToServiceType(serviceInfo, serviceDescriptionType))
                 .collect(Collectors.toList());
+
+        // find what services were added or removed
+        ServiceChangeChecker.ServiceChanges serviceChanges = serviceChangeChecker.check(
+                serviceDescriptionType.getService(),
+                newServices);
+
+        if (!ignoreWarnings && !serviceChanges.isEmpty()) {
+            throw createServiceChangeException(serviceChanges);
+        }
 
         // replace all old services with the new ones
         serviceDescriptionType.getService().clear();

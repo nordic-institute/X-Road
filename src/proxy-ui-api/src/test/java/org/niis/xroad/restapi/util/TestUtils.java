@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.util;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import org.niis.xroad.restapi.exceptions.DeviationAware;
 import org.niis.xroad.restapi.exceptions.Warning;
 
 import java.util.Collection;
@@ -94,5 +95,17 @@ public final class TestUtils {
         return null;
     }
 
+    /**
+     * Finds warning with matching code, or returns null
+     * @param code
+     * @param deviationAware
+     * @return
+     */
+    public static Warning findWarning(String code, DeviationAware deviationAware) {
+        if (deviationAware != null) {
+            return findWarning(code, deviationAware.getWarnings());
+        }
+        return null;
+    }
 
 }

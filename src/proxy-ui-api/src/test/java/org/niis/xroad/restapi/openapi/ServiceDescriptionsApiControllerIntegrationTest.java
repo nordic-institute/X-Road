@@ -209,7 +209,8 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
 
         ServiceDescriptionUpdate serviceDescriptionUpdate = new ServiceDescriptionUpdate()
                 .url("file:src/test/resources/testservice.wsdl").type(ServiceType.WSDL);
-        serviceDescriptionsApiController.updateServiceDescription("1", false, serviceDescriptionUpdate);
+        // ignore warnings about adding and removing services
+        serviceDescriptionsApiController.updateServiceDescription("1", true, serviceDescriptionUpdate);
         client = clientsApiController.getClient(CLIENT_ID_SS1).getBody();
         assertNotNull(client);
         serviceDescription = getServiceDescription(
@@ -244,7 +245,8 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         assertTrue(serviceCodes.contains(XROAD_GET_RANDOM_OLD));
         assertTrue(serviceCodes.contains(BMI_OLD));
 
-        ServiceDescription refreshed = serviceDescriptionsApiController.refreshServiceDescription("3", false).getBody();
+        // ignore warnings (about adding and deleting services)
+        ServiceDescription refreshed = serviceDescriptionsApiController.refreshServiceDescription("3", true).getBody();
         assertEquals(serviceDescription.getId(), refreshed.getId());
         serviceIds = getServiceIds(refreshed);
         serviceCodes = getServiceCodes(refreshed);
