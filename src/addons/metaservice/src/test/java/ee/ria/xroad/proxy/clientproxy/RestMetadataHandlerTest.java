@@ -44,6 +44,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CLIENT_ID;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
@@ -78,10 +79,11 @@ public class RestMetadataHandlerTest {
     @Test
     public void shouldReturnProcessorWhenAbleToProcess() throws Exception {
 
-        List<String> keys = Arrays.asList("foo", "bar", "baz");
+        List<String> keys = Arrays.asList(HEADER_CLIENT_ID);
         when(mockRequest.getHeaderNames()).thenReturn(Collections.enumeration(keys));
 
         when(mockRequest.getMethod()).thenReturn("GET");
+        when(mockRequest.getHeader(HEADER_CLIENT_ID)).thenReturn("FI/COM/111/CLIENT");
 
         when(mockRequest.getRequestURI()).thenReturn("/r1/FI/COM/111/SERVICE/getOpenAPI");
         when(mockRequest.getQueryString()).thenReturn("serviceCode=foobar");
@@ -99,10 +101,11 @@ public class RestMetadataHandlerTest {
     @Test
     public void shouldNotReturnProcessorWhenRequestNotRest() throws Exception {
 
-        List<String> keys = Arrays.asList("foo", "bar", "baz");
+        List<String> keys = Arrays.asList(HEADER_CLIENT_ID);
         when(mockRequest.getHeaderNames()).thenReturn(Collections.enumeration(keys));
 
         when(mockRequest.getMethod()).thenReturn("GET");
+        when(mockRequest.getHeader(HEADER_CLIENT_ID)).thenReturn("FI/COM/111/CLIENT");
 
         when(mockRequest.getRequestURI()).thenReturn("/getWsdl");
         when(mockRequest.getQueryString()).thenReturn("serviceCode=foobar");
@@ -120,10 +123,11 @@ public class RestMetadataHandlerTest {
     @Test
     public void shouldNotCreateProcessorWhenMethodUnsupported() throws Exception {
 
-        List<String> keys = Arrays.asList("foo", "bar", "baz");
+        List<String> keys = Arrays.asList(HEADER_CLIENT_ID);
         when(mockRequest.getHeaderNames()).thenReturn(Collections.enumeration(keys));
 
         when(mockRequest.getMethod()).thenReturn("POST");
+        when(mockRequest.getHeader(HEADER_CLIENT_ID)).thenReturn("FI/COM/111/CLIENT");
 
         when(mockRequest.getRequestURI()).thenReturn("/r1/FI/COM/111/SERVICE/getOpenAPI");
         when(mockRequest.getQueryString()).thenReturn("serviceCode=foobar");
@@ -138,4 +142,25 @@ public class RestMetadataHandlerTest {
         assertNull("Was expecting a null return value", returnValue);
     }
 
+    @Test
+    public void shouldNotCreateProcessorWhenClientHeaderMissing() throws Exception {
+
+        List<String> keys = Arrays.asList(HEADER_CLIENT_ID);
+        when(mockRequest.getHeaderNames()).thenReturn(Collections.enumeration(keys));
+
+        when(mockRequest.getMethod()).thenReturn("POST");
+        when(mockRequest.getHeader(HEADER_CLIENT_ID)).thenReturn(null);
+
+        when(mockRequest.getRequestURI()).thenReturn("/r1/FI/COM/111/SERVICE/getOpenAPI");
+        when(mockRequest.getQueryString()).thenReturn("serviceCode=foobar");
+
+        RestMetadataHandler handlerToTest = new RestMetadataHandler(httpClientMock);
+
+        String target = "/r" + RestMessage.PROTOCOL_VERSION + "/foobar";
+
+        MessageProcessorBase returnValue = handlerToTest.createRequestProcessor(
+                target, mockRequest, mockResponse, null);
+
+        assertNull("Was expecting a null return value", returnValue);
+    }
 }

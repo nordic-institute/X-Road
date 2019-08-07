@@ -40,6 +40,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CLIENT_ID;
 
 /**
  * Handler for REST metadata services
@@ -61,12 +62,15 @@ public class RestMetadataHandler extends AbstractClientProxyHandler {
         log.trace("createRequestProcessor({})", target);
 
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
-            verifyCanProcess();
-            RestMetadataClientRequestProcessor restProcessor
-                    = new RestMetadataClientRequestProcessor(request, response);
-            if (restProcessor.canProcess()) {
-                log.trace("Processing with RestMetadataClientRequestProcessor");
-                return restProcessor;
+            if (request.getHeader(HEADER_CLIENT_ID) != null
+                    && !request.getHeader(HEADER_CLIENT_ID).isEmpty()) {
+                verifyCanProcess();
+                RestMetadataClientRequestProcessor restProcessor
+                        = new RestMetadataClientRequestProcessor(request, response);
+                if (restProcessor.canProcess()) {
+                    log.trace("Processing with RestMetadataClientRequestProcessor");
+                    return restProcessor;
+                }
             }
         }
         return null;
