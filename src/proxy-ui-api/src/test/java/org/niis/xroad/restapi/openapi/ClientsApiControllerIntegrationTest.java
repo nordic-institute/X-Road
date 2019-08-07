@@ -41,6 +41,7 @@ import org.niis.xroad.restapi.converter.GlobalConfWrapper;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.exceptions.Warning;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.CertificateStatus;
 import org.niis.xroad.restapi.openapi.model.Client;
@@ -633,6 +634,32 @@ public class ClientsApiControllerIntegrationTest {
 
     @Test
     @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
+    public void addWsdlServiceDescriptionWithWarnings() {
+        ServiceDescriptionAdd serviceDescription =
+                new ServiceDescriptionAdd().url("file:src/test/resources/warning.wsdl");
+        serviceDescription.setType(ServiceType.WSDL);
+        try {
+            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, serviceDescription);
+            fail("should have thrown BadRequestException");
+        } catch (BadRequestException expected) {
+            assertEquals(WsdlValidator.WSDL_VALIDATION_FAILED, expected.getError().getCode());
+            assertNull(expected.getError().getMetadata());
+            assertNotNull(expected.getWarnings());
+            assertEquals(1, expected.getWarnings().size());
+            Warning warning = expected.getWarnings().iterator().next();
+            assertEquals(WsdlValidator.WSDL_VALIDATION_WARNINGS, warning.getCode());
+            assertNotNull(warning.getMetadata());
+        }
+
+        // now lets ignore the warnings
+        clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, serviceDescription);
+        ResponseEntity<List<ServiceDescription>> descriptions =
+                clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1);
+        assertEquals(3, descriptions.getBody().size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
     public void addWsdlServiceDescriptionValidationFail() {
         ServiceDescriptionAdd serviceDescription =
                 new ServiceDescriptionAdd().url("file:src/test/resources/error.wsdl");
@@ -646,6 +673,18 @@ public class ClientsApiControllerIntegrationTest {
             assertEquals(Collections.singletonList(WsdlValidatorTest.MOCK_VALIDATOR_ERROR),
                     expected.getError().getMetadata());
         }
+
+        // cannot ignore these fatal errors
+        try {
+            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, serviceDescription);
+            fail("should have thrown BadRequestException");
+        } catch (BadRequestException expected) {
+            assertEquals(WsdlValidator.WSDL_VALIDATION_FAILED, expected.getError().getCode());
+            assertNotNull(expected.getError().getMetadata());
+            assertEquals(Collections.singletonList(WsdlValidatorTest.MOCK_VALIDATOR_ERROR),
+                    expected.getError().getMetadata());
+        }
+
     }
 
     @Test
@@ -654,9 +693,14 @@ public class ClientsApiControllerIntegrationTest {
         ServiceDescriptionAdd serviceDescription =
                 new ServiceDescriptionAdd().url("file:src/test/resources/error.wsdl");
         serviceDescription.setType(ServiceType.WSDL);
-        clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, serviceDescription);
-        ResponseEntity<List<ServiceDescription>> descriptions =
-                clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1);
-        assertEquals(3, descriptions.getBody().size());
+        try {
+            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, serviceDescription);
+            fail("should have thrown BadRequestException");
+        } catch (BadRequestException expected) {
+            assertEquals(WsdlValidator.WSDL_VALIDATION_FAILED, expected.getError().getCode());
+            assertNotNull(expected.getError().getMetadata());
+            assertEquals(Collections.singletonList(WsdlValidatorTest.MOCK_VALIDATOR_ERROR),
+                    expected.getError().getMetadata());
+        }
     }
 }

@@ -193,10 +193,8 @@ public class ServiceDescriptionService {
         // check if services exist
         checkForExistingServices(client, parsedServices);
 
-        // try to validate wsdl - unless warnings are ignored
-        if (!ignoreWarnings) {
-            validateWsdl(url);
-        }
+        // validate wsdl
+        validateWsdl(url, ignoreWarnings);
 
         // create a new ServiceDescription with parsed services
         ServiceDescriptionType serviceDescriptionType = buildWsdlServiceDescription(client, parsedServices, url);
@@ -237,9 +235,7 @@ public class ServiceDescriptionService {
         // check for existing services but exclude the services in the ServiceDescription that we are updating
         checkForExistingServices(client, parsedServices, id);
 
-        if (!ignoreWarnings) {
-            validateWsdl(url);
-        }
+        validateWsdl(url, ignoreWarnings);
 
         serviceDescriptionType.setRefreshedDate(new Date());
         serviceDescriptionType.setUrl(url);
@@ -327,9 +323,8 @@ public class ServiceDescriptionService {
         return parsedServices;
     }
 
-    private void validateWsdl(String url) throws BadRequestException {
+    private void validateWsdl(String url, boolean ignoreWarnings) throws BadRequestException {
         try {
-            boolean ignoreWarnings = false; // parameter does not exist yet
             new WsdlValidator(url).executeValidator(ignoreWarnings);
         } catch (WsdlValidationException e) {
             log.error("WSDL validation failed", e);
@@ -408,9 +403,7 @@ public class ServiceDescriptionService {
 
         checkForExistingServices(client, parsedServices, serviceDescriptionType.getId());
 
-        if (!ignoreWarnings) {
-            validateWsdl(wsdlUrl);
-        }
+        validateWsdl(wsdlUrl, ignoreWarnings);
 
         serviceDescriptionType.setRefreshedDate(new Date());
 
