@@ -25,6 +25,7 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
@@ -52,6 +53,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -151,6 +153,9 @@ public class RestMetadataClientRequestProcessor extends MessageProcessorBase {
         // try to resolve content type
         try {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            // Use the same timeouts as client proxy to server proxy connections.
+            connection.setConnectTimeout(SystemProperties.getClientProxyTimeout());
+            connection.setReadTimeout(SystemProperties.getClientProxyHttpClientTimeout());
             connection.setRequestMethod("HEAD");
             connection.connect();
             servletResponse.setContentType(connection.getContentType());
@@ -163,7 +168,10 @@ public class RestMetadataClientRequestProcessor extends MessageProcessorBase {
         byte[] buffer = new byte[BUFFER_SIZE_BYTES];
         OutputStream outputStream = servletResponse.getOutputStream();
         log.trace("outputStream={}", outputStream);
-        try (InputStream inputStream = url.openStream()) {
+        URLConnection urlConnection = url.openConnection();
+        urlConnection.setConnectTimeout(SystemProperties.getClientProxyTimeout());
+        urlConnection.setReadTimeout(SystemProperties.getClientProxyHttpClientTimeout());
+        try (InputStream inputStream = urlConnection.getInputStream()) {
             int length;
             do {
                 length = inputStream.read(buffer);
