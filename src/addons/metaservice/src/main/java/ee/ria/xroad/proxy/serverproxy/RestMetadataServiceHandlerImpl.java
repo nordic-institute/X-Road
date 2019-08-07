@@ -33,7 +33,8 @@ import ee.ria.xroad.common.metadata.MethodListType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
@@ -45,11 +46,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.EnglishReasonPhraseCatalog;
-import org.bouncycastle.operator.DigestCalculator;
+import org.apache.http.message.BasicHeader;
 
 import javax.servlet.http.HttpServletRequest;
 
-import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Locale;
 
@@ -105,28 +105,16 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
                               ProxyMessageDecoder messageDecoder, ProxyMessageEncoder messageEncoder,
                               HttpClient restClient, HttpClient opMonitorClient,
                               OpMonitoringData opMonitoringData) throws Exception {
-        //calculate request hash
-        byte[] requestDigest;
-        if (messageDecoder.getRestBodyDigest() != null) {
-            final DigestCalculator dc = CryptoUtils.createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
-            try (OutputStream out = dc.getOutputStream()) {
-                out.write(requestProxyMessage.getRest().getHash());
-                out.write(messageDecoder.getRestBodyDigest());
-            }
-            requestDigest = dc.getDigest();
-        } else {
-            requestDigest = requestProxyMessage.getRest().getHash();
-        }
-
         restResponse = new RestResponse(requestProxyMessage.getRest().getClientId(),
                 requestProxyMessage.getRest().getQueryId(),
-                requestDigest,
+                requestProxyMessage.getRest().getHash(),
                 requestProxyMessage.getRest().getServiceId(),
                 HttpStatus.SC_OK,
                 EnglishReasonPhraseCatalog.INSTANCE.getReason(HttpStatus.SC_OK, Locale.ENGLISH),
                 requestProxyMessage.getRest().getHeaders(),
                 servletRequest.getHeader(HEADER_REQUEST_ID)
         );
+        restResponse.getHeaders().add(new BasicHeader(MimeUtils.HEADER_CONTENT_TYPE, MimeTypes.JSON));
         messageEncoder.restResponse(restResponse);
 
         restResponseBody = new CachingStream();
