@@ -34,6 +34,7 @@ java_import Java::ee.ria.xroad.common.conf.serverconf.model.DescriptionType
 java_import Java::ee.ria.xroad.common.identifier.SecurityCategoryId
 java_import Java::ee.ria.xroad.proxyui.InternalServerTestUtil
 java_import Java::ee.ria.xroad.proxyui.WSDLParser
+java_import Java::ee.ria.xroad.proxyui.OpenApiParser
 java_import Java::java.net.URL
 
 
@@ -108,10 +109,25 @@ module Clients::Services
       :service_type => [:required]
     })
 
+    url = params[:openapi3_add_url]
+    check_openapi3_url(url)
+
     client = get_client(params[:client_id])
 
+    result = parse_openapi(url)
+
+    if result.warnings.size > 0
+      warnings = ""
+      result.warnings.each do |line|
+        warnings += "#{Encode.forHtml(line)}<br/>"
+      end
+
+      warn("openapi_validation_warnings", t("clients.openapi_validation_warnings",
+        { :url => Encode.forHtml(url), :warnings => warnings }))
+    end
+
     servicedescription = ServiceDescriptionType.new
-    servicedescription.url = params[:openapi3_add_url]
+    servicedescription.url = url
     servicedescription.disabled = true
     servicedescription.disabledNotice = t('clients.default_disabled_service_notice')
     servicedescription.refreshedDate = Date.new
@@ -128,12 +144,11 @@ module Clients::Services
     service.serviceCode = params[:openapi3_service_code]
     service.serviceVersion = nil
     service.title = nil
-    service.url = params[:openapi3_add_url]
+    service.url = result.base_url
     service.timeout = DEFAULT_SERVICE_TIMEOUT
     service.serviceDescription = servicedescription
     servicedescription.service.add(service)
 
-    check_openapi3_url(servicedescription.url)
     check_duplicate_url(servicedescription)
     check_duplicate_service_codes(servicedescription)
 
@@ -709,7 +724,6 @@ module Clients::Services
     clean_service_acls(client, deleted_codes, nil)
   end
 
-
   def check_openapi3_url(uri)
     begin
       uri = URL.new(uri)
@@ -891,4 +905,13 @@ module Clients::Services
       logger.error("Checking internal server certs failed: #{$!.message}")
     end
   end
+
+  def parse_openapi(url)
+    begin
+      OpenApiParser.new(url).parse
+    rescue OpenApiParser::ParsingException
+      raise $!.message
+    end
+  end
+
 end

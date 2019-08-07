@@ -95,6 +95,7 @@ en:
     wsdl_validator_not_executable: "Running WSDL validator failed. Command not executable."
     wsdl_validation_failed: "WSDL (%{wsdl}) validation failed"
     wsdl_validation_warnings: "WSDL (%{wsdl}) validation gave the following warnings:<p><b>%{warnings}</b></p>Do you want to continue?"
+    openapi_validation_warnings: "OpenAPI (%{url}) validation gave the following warnings:<p><b>%{warnings}</b></p>Do you want to continue?"
     default_disabled_service_notice: "Out of order"
     service_exists: "Duplicate service. Service '%{service}' already exists at %{wsdl}"
     service_exists_refresh: "New service '%{service}' at %{wsdl1} also exists at %{wsdl2}"

@@ -35,10 +35,37 @@ import java.net.URL;
 public class OpenApiParserTest {
 
     @Test
-    public void shouldParseOpenAPI() throws OpenApiParser.ParsingException {
-        URL url = getClass().getResource("/valid.yml");
-        final OpenApiParser.Result result = new OpenApiParser(url.toString()).parse();
+    public void shouldParseOpenApiYaml() throws OpenApiParser.ParsingException {
+        URL url = getClass().getResource("/valid.yaml");
+        final OpenApiParser.Result result = new TestOpenApiParser(url.toString()).parse();
+        Assert.assertFalse(result.hasWarnings());
         Assert.assertEquals("https://example.org/api", result.getBaseUrl());
+    }
+
+    @Test
+    public void shouldParseOpenApiJson() throws OpenApiParser.ParsingException {
+        URL url = getClass().getResource("/valid.json");
+        final OpenApiParser.Result result = new TestOpenApiParser(url.toString()).parse();
+        Assert.assertFalse(result.hasWarnings());
+        Assert.assertEquals("https://example.org/api", result.getBaseUrl());
+    }
+
+    @Test(expected = OpenApiParser.ParsingException.class)
+    public void shouldFailIfInvalidProtocol() throws OpenApiParser.ParsingException {
+        URL url = getClass().getResource("/valid.json");
+        final OpenApiParser.Result result = new OpenApiParser(url.toString()).parse();
+    }
+
+    static class TestOpenApiParser extends OpenApiParser {
+
+        TestOpenApiParser(String openApiUrl) {
+            super(openApiUrl);
+        }
+
+        @Override
+        boolean allowProtocol(String protocol) {
+            return true;
+        }
     }
 
 }
