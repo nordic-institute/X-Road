@@ -283,11 +283,11 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('ADD_WSDL')")
-    public ResponseEntity<Void> addClientServiceDescription(String id, Boolean ignoreWarnings,
+    public ResponseEntity<Void> addClientServiceDescription(String id,
             ServiceDescriptionAdd serviceDescription) {
         if (serviceDescription.getType() == ServiceType.WSDL) {
             serviceDescriptionService.addWsdlServiceDescription(clientConverter.convertId(id),
-                    serviceDescription.getUrl(), ignoreWarnings);
+                    serviceDescription.getUrl(), serviceDescription.getIgnoreWarnings());
         } else if (serviceDescription.getType() == ServiceType.REST) {
             return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
         }

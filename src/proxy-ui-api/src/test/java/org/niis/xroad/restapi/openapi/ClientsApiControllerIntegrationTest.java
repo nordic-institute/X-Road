@@ -595,12 +595,15 @@ public class ClientsApiControllerIntegrationTest {
         ServiceDescriptionAdd serviceDescription = new ServiceDescriptionAdd()
                 .url("file:src/test/resources/valid.wsdl");
         serviceDescription.setType(ServiceType.WSDL);
-        clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, serviceDescription);
+        serviceDescription.setIgnoreWarnings(false);
+
+        clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
         ResponseEntity<List<ServiceDescription>> descriptions =
                 clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1);
         assertEquals(3, descriptions.getBody().size());
         try {
-            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, serviceDescription);
+            serviceDescription.setIgnoreWarnings(true);
+            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown ConflictException");
         } catch (ConflictException expected) {
             assertEquals(ServiceDescriptionService.WSDL_EXISTS, expected.getError().getCode());
@@ -608,7 +611,8 @@ public class ClientsApiControllerIntegrationTest {
         serviceDescription = new ServiceDescriptionAdd().url("file:src/test/resources/testservice.wsdl");
         serviceDescription.setType(ServiceType.WSDL);
         try {
-            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, serviceDescription);
+            serviceDescription.setIgnoreWarnings(false);
+            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown ConflictException");
         } catch (ConflictException expected) {
             assertEquals(ServiceDescriptionService.SERVICE_EXISTS, expected.getError().getCode());
@@ -627,7 +631,8 @@ public class ClientsApiControllerIntegrationTest {
                 new ServiceDescriptionAdd().url("file:src/test/resources/invalid.wsdl");
         serviceDescription.setType(ServiceType.WSDL);
         try {
-            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, serviceDescription);
+            serviceDescription.setIgnoreWarnings(true);
+            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
             assertEquals(ServiceDescriptionService.INVALID_WSDL, expected.getError().getCode());
@@ -642,7 +647,8 @@ public class ClientsApiControllerIntegrationTest {
                 new ServiceDescriptionAdd().url("file:src/test/resources/warning.wsdl");
         serviceDescription.setType(ServiceType.WSDL);
         try {
-            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, serviceDescription);
+            serviceDescription.setIgnoreWarnings(false);
+            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
             assertEquals(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected.getError().getCode());
@@ -655,7 +661,8 @@ public class ClientsApiControllerIntegrationTest {
         }
 
         // now lets ignore the warnings
-        clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, serviceDescription);
+        serviceDescription.setIgnoreWarnings(true);
+        clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
         ResponseEntity<List<ServiceDescription>> descriptions =
                 clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1);
         assertEquals(3, descriptions.getBody().size());
@@ -668,7 +675,8 @@ public class ClientsApiControllerIntegrationTest {
                 new ServiceDescriptionAdd().url("file:src/test/resources/error.wsdl");
         serviceDescription.setType(ServiceType.WSDL);
         try {
-            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, serviceDescription);
+            serviceDescription.setIgnoreWarnings(false);
+            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
             assertEquals(WsdlValidator.WSDL_VALIDATION_FAILED, expected.getError().getCode());
@@ -679,7 +687,8 @@ public class ClientsApiControllerIntegrationTest {
 
         // cannot ignore these fatal errors
         try {
-            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, serviceDescription);
+            serviceDescription.setIgnoreWarnings(true);
+            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
             assertEquals(WsdlValidator.WSDL_VALIDATION_FAILED, expected.getError().getCode());
@@ -697,7 +706,8 @@ public class ClientsApiControllerIntegrationTest {
                 new ServiceDescriptionAdd().url("file:src/test/resources/error.wsdl");
         serviceDescription.setType(ServiceType.WSDL);
         try {
-            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, serviceDescription);
+            serviceDescription.setIgnoreWarnings(true);
+            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
             assertEquals(WsdlValidator.WSDL_VALIDATION_FAILED, expected.getError().getCode());

@@ -500,21 +500,12 @@ paths:
       summary: adds new client for the security server
       operationId: addClient
       description: Adds new client to the system
-      parameters:
-        - in: query
-          name: ignore_warnings
-          description: if true, any warnings are ignored. if false (or missing),
-            any warnings cause request to fail
-          required: false
-          schema:
-            default: false
-            type: boolean
       requestBody:
         description: client to add
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Client'
+              $ref: '#/components/schemas/ClientAdd'
       responses:
         '201':
           description: new client created
@@ -1138,14 +1129,6 @@ paths:
             format: text
             minLength: 1
             maxLength: 1023
-        - in: query
-          name: ignore_warnings
-          description: if true, any warnings are ignored. if false (or missing),
-            any warnings cause request to fail
-          required: false
-          schema:
-            default: false
-            type: boolean
       requestBody:
         content:
           application/json:
@@ -2081,14 +2064,6 @@ paths:
             format: text
             minLength: 1
             maxLength: 255
-        - in: query
-          name: ignore_warnings
-          description: if true, any warnings are ignored. if false (or missing),
-            any warnings cause request to fail
-          required: false
-          schema:
-            default: false
-            type: boolean
       requestBody:
         content:
           application/json:
@@ -2244,14 +2219,18 @@ paths:
             format: text
             minLength: 1
             maxLength: 255
-        - in: query
-          name: ignore_warnings
-          description: if true, any warnings are ignored. if false (or missing),
-            any warnings cause request to fail
-          required: false
-          schema:
-            default: false
-            type: boolean
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: IgnoreWarnings
+              type: object
+              properties:
+                ignore_warnings:
+                  type: boolean
+                  default: false
+                  description: if true, any ignorable warnings are ignored. if false (or missing),
+                    any warnings cause request to fail
       responses:
         '200':
           description: service description refreshed
@@ -3249,6 +3228,19 @@ components:
           $ref: '#/components/schemas/ConnectionType'
         status:
           $ref: '#/components/schemas/ClientStatus'
+    ClientAdd: # ok
+      type: object
+      description: request to add client. Carries a Client and ignore warnings parameter
+      required:
+        - client
+      properties:
+        client:
+          $ref: '#/components/schemas/Client'
+        ignore_warnings:
+          type: boolean
+          default: false
+          description: if true, any ignorable warnings are ignored. if false (or missing),
+            any warnings cause request to fail
     ClientStatus: # ok
       type: string
       format: enum
@@ -3770,6 +3762,11 @@ components:
           example: exampleServiceCode
           minLength: 1
           maxLength: 255
+        ignore_warnings:
+          type: boolean
+          description: if true, any ignorable warnings are ignored. if false (or missing),
+            any warnings cause request to fail
+          default: false
         type:
           $ref: '#/components/schemas/ServiceType'
     ServiceDescriptionUpdate:
@@ -3790,6 +3787,11 @@ components:
           example: exampleServiceCode
           minLength: 1
           maxLength: 255
+        ignore_warnings:
+          type: boolean
+          description: if true, any ignorable warnings are ignored. if false (or missing),
+            any warnings cause request to fail
+          default: false
         type:
           $ref: '#/components/schemas/ServiceType'
     ServiceType: # ok

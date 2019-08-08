@@ -34,6 +34,7 @@ import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.converter.GlobalConfWrapper;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.Client;
+import org.niis.xroad.restapi.openapi.model.IgnoreWarnings;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionDisabledNotice;
@@ -210,7 +211,8 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         ServiceDescriptionUpdate serviceDescriptionUpdate = new ServiceDescriptionUpdate()
                 .url("file:src/test/resources/testservice.wsdl").type(ServiceType.WSDL);
         // ignore warnings about adding and removing services
-        serviceDescriptionsApiController.updateServiceDescription("1", true, serviceDescriptionUpdate);
+        serviceDescriptionUpdate.setIgnoreWarnings(true);
+        serviceDescriptionsApiController.updateServiceDescription("1", serviceDescriptionUpdate);
         client = clientsApiController.getClient(CLIENT_ID_SS1).getBody();
         assertNotNull(client);
         serviceDescription = getServiceDescription(
@@ -246,7 +248,8 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         assertTrue(serviceCodes.contains(BMI_OLD));
 
         // ignore warnings (about adding and deleting services)
-        ServiceDescription refreshed = serviceDescriptionsApiController.refreshServiceDescription("3", true).getBody();
+        ServiceDescription refreshed = serviceDescriptionsApiController.refreshServiceDescription("3",
+                new IgnoreWarnings().ignoreWarnings(true)).getBody();
         assertEquals(serviceDescription.getId(), refreshed.getId());
         serviceIds = getServiceIds(refreshed);
         serviceCodes = getServiceCodes(refreshed);
