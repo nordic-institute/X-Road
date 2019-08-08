@@ -221,15 +221,121 @@ public class ServiceDescriptionServiceIntegrationTest {
     }
 
     @Test
-    public void addWsdlServiceDescription() {
+    @WithMockUser(authorities = { "ADD_WSDL", "REFRESH_WSDL",
+            "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
+    public void addWsdlServiceDescription() throws Exception {
+        // check that validation warnings work for adding, too
+        File testServiceWsdl = tempFolder.newFile("test.wsdl");
+        File getRandomWsdl = getTestResouceFile("valid-getrandom.wsdl");
+        FileUtils.copyFile(getRandomWsdl, testServiceWsdl);
+        String url = testServiceWsdl.toURI().toURL().toString();
+        // start mocking validation failures, when ignoreFailures = false
+        List<String> mockValidationFailures = Arrays.asList("mock warning", "mock warning 2");
+        doReturn(mockValidationFailures)
+                .when(wsdlValidator).executeValidator(anyString());
+
+        try {
+            serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
+                    url, false);
+            fail("should get warnings");
+        } catch (DeviationAwareRuntimeException expected) {
+            // we should get 1 warning
+            assertErrorWithoutMetadata(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected);
+            assertEquals(1, expected.getWarnings().size());
+            assertWarning(ServiceDescriptionService.WARNING_WSDL_VALIDATION_WARNINGS, expected,
+                    "mock warning", "mock warning 2");
+        }
+        // can be ignored
+        serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
+                url, true);
+        ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
+        ServiceDescriptionType serviceDescriptionType = getServiceDescription(url, clientType);
+        assertServiceCodes(serviceDescriptionType, GET_RANDOM_SERVICECODE);
     }
 
+    /**
+     * Same tests as {@link #refreshServiceDetectsAllWarnings()}, but triggered by update wsdl url
+     */
     @Test
-    public void updateWsdlUrl() {
+    @WithMockUser(authorities = { "ADD_WSDL", "EDIT_WSDL",
+            "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
+    public void updateWsdlUrlWithWarnings() throws Exception {
+        // start with wsdl containing getrandom
+        // then switch to one with smallattachment
+        // and mock some warnings
+        File oldTestServiceWsdl = tempFolder.newFile("old-test.wsdl");
+        File newTestServiceWsdl = tempFolder.newFile("new-test.wsdl");
+        File getRandomWsdl = getTestResouceFile("valid-getrandom.wsdl");
+        File smallWsdl = getTestResouceFile("valid-smallattachment.wsdl");
+        FileUtils.copyFile(getRandomWsdl, oldTestServiceWsdl);
+        FileUtils.copyFile(smallWsdl, newTestServiceWsdl);
+        String oldUrl = oldTestServiceWsdl.toURI().toURL().toString();
+        String newUrl = newTestServiceWsdl.toURI().toURL().toString();
+        serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
+                oldUrl, false);
+        ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
+        ServiceDescriptionType serviceDescriptionType = getServiceDescription(oldUrl, clientType);
+
+        // start mocking validation failures, when ignoreFailures = false
+        List<String> mockValidationFailures = Arrays.asList("mock warning", "mock warning 2");
+        doReturn(mockValidationFailures)
+                .when(wsdlValidator).executeValidator(anyString());
+
+        try {
+            serviceDescriptionService.updateWsdlUrl(serviceDescriptionType.getId(),
+                    newUrl, false);
+            fail("should get warnings");
+        } catch (DeviationAwareRuntimeException expected) {
+            // we should get 3 warnings
+            assertErrorWithoutMetadata(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected);
+            assertEquals(3, expected.getWarnings().size());
+            assertWarning(ServiceDescriptionService.WARNING_ADDING_SERVICES, expected,
+                    SMALL_ATTACHMENT_V1_SERVICECODE);
+            assertWarning(ServiceDescriptionService.WARNING_DELETING_SERVICES, expected,
+                    GET_RANDOM_V1_SERVICECODE);
+            assertWarning(ServiceDescriptionService.WARNING_WSDL_VALIDATION_WARNINGS, expected,
+                    "mock warning", "mock warning 2");
+        }
+
+        // ignore warnings is tested with updateWsdlUrlAndIgnoreWarnings
     }
 
+    /**
+     * Separate from {@link #updateWsdlUrlWithWarnings()}, since the failed update prevents
+     * next update (running inside same transaction, no rollback)
+     */
     @Test
-    public void refreshServiceDescription() {
+    @WithMockUser(authorities = { "ADD_WSDL", "EDIT_WSDL",
+            "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
+    public void updateWsdlUrlAndIgnoreWarnings() throws Exception {
+        // start with wsdl containing getrandom
+        // then switch to one with smallattachment
+        // and mock some warnings
+        File oldTestServiceWsdl = tempFolder.newFile("old-test.wsdl");
+        File newTestServiceWsdl = tempFolder.newFile("new-test.wsdl");
+        File getRandomWsdl = getTestResouceFile("valid-getrandom.wsdl");
+        File smallWsdl = getTestResouceFile("valid-smallattachment.wsdl");
+        FileUtils.copyFile(getRandomWsdl, oldTestServiceWsdl);
+        FileUtils.copyFile(smallWsdl, newTestServiceWsdl);
+        String oldUrl = oldTestServiceWsdl.toURI().toURL().toString();
+        String newUrl = newTestServiceWsdl.toURI().toURL().toString();
+        serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
+                oldUrl, false);
+        ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
+        ServiceDescriptionType serviceDescriptionType = getServiceDescription(oldUrl, clientType);
+
+        // start mocking validation failures, when ignoreFailures = false
+        List<String> mockValidationFailures = Arrays.asList("mock warning", "mock warning 2");
+        doReturn(mockValidationFailures)
+                .when(wsdlValidator).executeValidator(anyString());
+
+        // should be able to ignore them all
+        serviceDescriptionService.updateWsdlUrl(serviceDescriptionType.getId(),
+                newUrl, true);
+        serviceDescriptionType = getServiceDescription(newUrl, clientType);
+        assertServiceCodes(serviceDescriptionType,
+                SMALL_ATTACHMENT_SERVICECODE);
+
     }
 
     /**
