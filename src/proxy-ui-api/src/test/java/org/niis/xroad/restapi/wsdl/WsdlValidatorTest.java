@@ -35,6 +35,10 @@ import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithMetadata;
+import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithoutMetadata;
+import static org.niis.xroad.restapi.wsdl.WsdlValidator.WSDL_VALIDATION_FAILED;
+import static org.niis.xroad.restapi.wsdl.WsdlValidator.WSDL_VALIDATOR_NOT_EXECUTABLE;
 
 /**
  * Test WSDLValidator
@@ -53,8 +57,7 @@ public class WsdlValidatorTest {
             wsdlValidator.executeValidator("src/test/resources/wsdl/error.wsdl");
             fail("should have thrown WsdlValidationException");
         } catch (WsdlValidationException expected) {
-            assertEquals(WsdlValidator.WSDL_VALIDATOR_NOT_EXECUTABLE, expected.getError().getCode());
-            assertNull(expected.getError().getMetadata());
+            assertErrorWithoutMetadata(WSDL_VALIDATOR_NOT_EXECUTABLE, expected);
             assertNull(expected.getWarnings());
         }
     }
@@ -77,9 +80,7 @@ public class WsdlValidatorTest {
             wsdlValidator.executeValidator("src/test/resources/wsdl/error.wsdl");
             fail("should have thrown WsdlValidationException");
         } catch (WsdlValidationException expected) {
-            assertEquals(WsdlValidator.WSDL_VALIDATION_FAILED, expected.getError().getCode());
-            assertNotNull(expected.getError().getMetadata());
-            assertEquals(Collections.singletonList(MOCK_VALIDATOR_ERROR), expected.getError().getMetadata());
+            assertErrorWithMetadata(WSDL_VALIDATION_FAILED, MOCK_VALIDATOR_ERROR, expected);
         }
     }
 

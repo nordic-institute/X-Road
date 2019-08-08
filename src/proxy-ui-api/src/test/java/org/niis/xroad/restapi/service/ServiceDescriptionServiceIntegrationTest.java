@@ -34,10 +34,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.exceptions.DeviationAware;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
-import org.niis.xroad.restapi.exceptions.Warning;
-import org.niis.xroad.restapi.util.TestUtils;
+import org.niis.xroad.restapi.util.DeviationTestUtils;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -53,9 +51,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -116,9 +111,9 @@ public class ServiceDescriptionServiceIntegrationTest {
                     false);
             fail("should throw exception warning about service addition");
         } catch (DeviationAwareRuntimeException expected) {
-            assertErrorWithoutMetadata(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected);
+            DeviationTestUtils.assertErrorWithoutMetadata(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected);
             assertEquals(1, expected.getWarnings().size());
-            assertWarning(ServiceDescriptionService.WARNING_ADDING_SERVICES, expected,
+            DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_ADDING_SERVICES, expected,
                     BIG_ATTACHMENT_V1_SERVICECODE, SMALL_ATTACHMENT_V1_SERVICECODE);
         }
 
@@ -153,9 +148,9 @@ public class ServiceDescriptionServiceIntegrationTest {
                     false);
             fail("should throw exception warning about service addition");
         } catch (DeviationAwareRuntimeException expected) {
-            assertErrorWithoutMetadata(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected);
+            DeviationTestUtils.assertErrorWithoutMetadata(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected);
             assertEquals(1, expected.getWarnings().size());
-            assertWarning(ServiceDescriptionService.WARNING_DELETING_SERVICES, expected,
+            DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_DELETING_SERVICES, expected,
                     BIG_ATTACHMENT_V1_SERVICECODE, SMALL_ATTACHMENT_V1_SERVICECODE);
         }
 
@@ -202,13 +197,13 @@ public class ServiceDescriptionServiceIntegrationTest {
             fail("should get warnings");
         } catch (DeviationAwareRuntimeException expected) {
             // we should get 3 warnings
-            assertErrorWithoutMetadata(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected);
+            DeviationTestUtils.assertErrorWithoutMetadata(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected);
             assertEquals(3, expected.getWarnings().size());
-            assertWarning(ServiceDescriptionService.WARNING_ADDING_SERVICES, expected,
+            DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_ADDING_SERVICES, expected,
                     SMALL_ATTACHMENT_V1_SERVICECODE);
-            assertWarning(ServiceDescriptionService.WARNING_DELETING_SERVICES, expected,
+            DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_DELETING_SERVICES, expected,
                     GET_RANDOM_V1_SERVICECODE);
-            assertWarning(ServiceDescriptionService.WARNING_WSDL_VALIDATION_WARNINGS, expected,
+            DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_WSDL_VALIDATION_WARNINGS, expected,
                     "mock warning", "mock warning 2");
         }
 
@@ -240,9 +235,9 @@ public class ServiceDescriptionServiceIntegrationTest {
             fail("should get warnings");
         } catch (DeviationAwareRuntimeException expected) {
             // we should get 1 warning
-            assertErrorWithoutMetadata(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected);
+            DeviationTestUtils.assertErrorWithoutMetadata(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected);
             assertEquals(1, expected.getWarnings().size());
-            assertWarning(ServiceDescriptionService.WARNING_WSDL_VALIDATION_WARNINGS, expected,
+            DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_WSDL_VALIDATION_WARNINGS, expected,
                     "mock warning", "mock warning 2");
         }
         // can be ignored
@@ -287,13 +282,13 @@ public class ServiceDescriptionServiceIntegrationTest {
             fail("should get warnings");
         } catch (DeviationAwareRuntimeException expected) {
             // we should get 3 warnings
-            assertErrorWithoutMetadata(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected);
+            DeviationTestUtils.assertErrorWithoutMetadata(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected);
             assertEquals(3, expected.getWarnings().size());
-            assertWarning(ServiceDescriptionService.WARNING_ADDING_SERVICES, expected,
+            DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_ADDING_SERVICES, expected,
                     SMALL_ATTACHMENT_V1_SERVICECODE);
-            assertWarning(ServiceDescriptionService.WARNING_DELETING_SERVICES, expected,
+            DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_DELETING_SERVICES, expected,
                     GET_RANDOM_V1_SERVICECODE);
-            assertWarning(ServiceDescriptionService.WARNING_WSDL_VALIDATION_WARNINGS, expected,
+            DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_WSDL_VALIDATION_WARNINGS, expected,
                     "mock warning", "mock warning 2");
         }
 
@@ -351,25 +346,6 @@ public class ServiceDescriptionServiceIntegrationTest {
         assertEquals(Arrays.asList(expectedCodes), serviceCodes);
     }
 
-    /**
-     * assert that DeviationAware contains correct warning, with given metadata
-     * @param warningCode
-     * @param deviationAware
-     * @param metadata
-     */
-    private void assertWarning(String warningCode,
-                               DeviationAware deviationAware,
-                               String...metadata) {
-        List<String> metadataList = Arrays.asList(metadata);
-        Warning warning = TestUtils.findWarning(warningCode, deviationAware);
-        assertNotNull(warning);
-        // should contain the added service codes
-        assertEquals(metadataList.size(), warning.getMetadata().size());
-        for (String m: metadataList) {
-            assertTrue(warning.getMetadata().contains(m));
-        }
-    }
-
     private ServiceDescriptionType getServiceDescription(String url, ClientType clientType) {
         return clientType.getServiceDescription()
                 .stream()
@@ -381,12 +357,5 @@ public class ServiceDescriptionServiceIntegrationTest {
         return new File(this.getClass().getClassLoader().getResource(fileName)
                 .getFile());
     }
-
-    private void assertErrorWithoutMetadata(String errorCode, DeviationAware deviationAware) {
-        assertEquals(errorCode, deviationAware.getError().getCode());
-        assertNull(deviationAware.getError().getMetadata());
-    }
-
-
 
 }
