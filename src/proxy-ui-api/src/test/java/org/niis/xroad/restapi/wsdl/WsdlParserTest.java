@@ -43,7 +43,7 @@ public class WsdlParserTest {
      */
     @Test
     public void readValidWsdl() throws Exception {
-        Collection<WsdlParser.ServiceInfo> si = WsdlParser.parseWSDL("file:src/test/resources/valid.wsdl");
+        Collection<WsdlParser.ServiceInfo> si = WsdlParser.parseWSDL("file:src/test/resources/wsdl/valid.wsdl");
         assertEquals(3, si.size());
     }
 
@@ -53,7 +53,7 @@ public class WsdlParserTest {
      */
     @Test(expected = WsdlParseException.class)
     public void readInvalidWsdl() throws Exception {
-        WsdlParser.parseWSDL("file:src/test/resources/invalid.wsdl");
+        WsdlParser.parseWSDL("file:src/test/resources/wsdl/invalid.wsdl");
     }
 
     /**
@@ -80,6 +80,6 @@ public class WsdlParserTest {
      */
     @Test(expected = WsdlNotFoundException.class)
     public void tryReadNotFoundWsdl() throws Exception {
-        WsdlParser.parseWSDL("file:src/test/resources/notfound.wsdl");
+        WsdlParser.parseWSDL("file:src/test/resources/wsdl/notfound.wsdl");
     }
 }

@@ -593,7 +593,7 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
     public void addWsdlServiceDescription() {
         ServiceDescriptionAdd serviceDescription = new ServiceDescriptionAdd()
-                .url("file:src/test/resources/valid.wsdl");
+                .url("file:src/test/resources/wsdl/valid.wsdl");
         serviceDescription.setType(ServiceType.WSDL);
         serviceDescription.setIgnoreWarnings(false);
 
@@ -608,7 +608,7 @@ public class ClientsApiControllerIntegrationTest {
         } catch (ConflictException expected) {
             assertEquals(ServiceDescriptionService.WSDL_EXISTS, expected.getError().getCode());
         }
-        serviceDescription = new ServiceDescriptionAdd().url("file:src/test/resources/testservice.wsdl");
+        serviceDescription = new ServiceDescriptionAdd().url("file:src/test/resources/wsdl/testservice.wsdl");
         serviceDescription.setType(ServiceType.WSDL);
         try {
             serviceDescription.setIgnoreWarnings(false);
@@ -619,7 +619,7 @@ public class ClientsApiControllerIntegrationTest {
             assertNotNull(expected.getError().getMetadata());
             // metadata should contain service code and existing service's description url
             assertEquals("xroadGetRandom.v1", expected.getError().getMetadata().get(0));
-            assertEquals("file:src/test/resources/valid.wsdl", expected.getError().getMetadata().get(1));
+            assertEquals("file:src/test/resources/wsdl/valid.wsdl", expected.getError().getMetadata().get(1));
             assertEquals(2, expected.getError().getMetadata().size());
         }
     }
@@ -628,7 +628,7 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
     public void addWsdlServiceDescriptionParserFail() {
         ServiceDescriptionAdd serviceDescription =
-                new ServiceDescriptionAdd().url("file:src/test/resources/invalid.wsdl");
+                new ServiceDescriptionAdd().url("file:src/test/resources/wsdl/invalid.wsdl");
         serviceDescription.setType(ServiceType.WSDL);
         try {
             serviceDescription.setIgnoreWarnings(true);
@@ -644,7 +644,7 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
     public void addWsdlServiceDescriptionWithWarnings() {
         ServiceDescriptionAdd serviceDescription =
-                new ServiceDescriptionAdd().url("file:src/test/resources/warning.wsdl");
+                new ServiceDescriptionAdd().url("file:src/test/resources/wsdl/warning.wsdl");
         serviceDescription.setType(ServiceType.WSDL);
         try {
             serviceDescription.setIgnoreWarnings(false);
@@ -672,7 +672,7 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
     public void addWsdlServiceDescriptionValidationFail() {
         ServiceDescriptionAdd serviceDescription =
-                new ServiceDescriptionAdd().url("file:src/test/resources/error.wsdl");
+                new ServiceDescriptionAdd().url("file:src/test/resources/wsdl/error.wsdl");
         serviceDescription.setType(ServiceType.WSDL);
         try {
             serviceDescription.setIgnoreWarnings(false);
@@ -703,7 +703,7 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
     public void addWsdlServiceDescriptionSkipValidation() {
         ServiceDescriptionAdd serviceDescription =
-                new ServiceDescriptionAdd().url("file:src/test/resources/error.wsdl");
+                new ServiceDescriptionAdd().url("file:src/test/resources/wsdl/error.wsdl");
         serviceDescription.setType(ServiceType.WSDL);
         try {
             serviceDescription.setIgnoreWarnings(true);

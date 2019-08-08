@@ -209,7 +209,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         assertTrue(serviceCodes.contains(CALCULATE_PRIME));
 
         ServiceDescriptionUpdate serviceDescriptionUpdate = new ServiceDescriptionUpdate()
-                .url("file:src/test/resources/testservice.wsdl").type(ServiceType.WSDL);
+                .url("file:src/test/resources/wsdl/testservice.wsdl").type(ServiceType.WSDL);
         // ignore warnings about adding and removing services
         serviceDescriptionUpdate.setIgnoreWarnings(true);
         serviceDescriptionsApiController.updateServiceDescription("1", serviceDescriptionUpdate);
@@ -217,7 +217,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         assertNotNull(client);
         serviceDescription = getServiceDescription(
                 clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1).getBody(), "1").get();
-        assertEquals("file:src/test/resources/testservice.wsdl", serviceDescription.getUrl());
+        assertEquals("file:src/test/resources/wsdl/testservice.wsdl", serviceDescription.getUrl());
         serviceIds = getServiceIds(serviceDescription);
         serviceCodes = getServiceCodes(serviceDescription);
         assertEquals(2, serviceIds.size());

@@ -50,7 +50,7 @@ public class WsdlValidatorTest {
         WsdlValidator wsdlValidator = new WsdlValidator();
         wsdlValidator.setWsdlValidatorCommand("/bin/foobar-validator");
         try {
-            wsdlValidator.executeValidator("src/test/resources/error.wsdl");
+            wsdlValidator.executeValidator("src/test/resources/wsdl/error.wsdl");
             fail("should have thrown WsdlValidationException");
         } catch (WsdlValidationException expected) {
             assertEquals(WsdlValidator.WSDL_VALIDATOR_NOT_EXECUTABLE, expected.getError().getCode());
@@ -63,7 +63,7 @@ public class WsdlValidatorTest {
     public void shouldHandleWarnings() {
         WsdlValidator wsdlValidator = new WsdlValidator();
         wsdlValidator.setWsdlValidatorCommand("src/test/resources/validator/mock-wsdlvalidator.sh");
-        List<String> warnings = wsdlValidator.executeValidator("src/test/resources/warning.wsdl");
+        List<String> warnings = wsdlValidator.executeValidator("src/test/resources/wsdl/warning.wsdl");
         assertNotNull(warnings);
         assertEquals(1, warnings.size());
         assertEquals(Collections.singletonList(MOCK_VALIDATOR_WARNING), warnings);
@@ -74,7 +74,7 @@ public class WsdlValidatorTest {
         WsdlValidator wsdlValidator = new WsdlValidator();
         wsdlValidator.setWsdlValidatorCommand("src/test/resources/validator/mock-wsdlvalidator.sh");
         try {
-            wsdlValidator.executeValidator("src/test/resources/error.wsdl");
+            wsdlValidator.executeValidator("src/test/resources/wsdl/error.wsdl");
             fail("should have thrown WsdlValidationException");
         } catch (WsdlValidationException expected) {
             assertEquals(WsdlValidator.WSDL_VALIDATION_FAILED, expected.getError().getCode());
@@ -88,7 +88,7 @@ public class WsdlValidatorTest {
     public void shouldPassValidation() {
         WsdlValidator wsdlValidator = new WsdlValidator();
         wsdlValidator.setWsdlValidatorCommand("src/test/resources/validator/mock-wsdlvalidator.sh");
-        List<String> warnings = wsdlValidator.executeValidator("src/test/resources/testservice.wsdl");
+        List<String> warnings = wsdlValidator.executeValidator("src/test/resources/wsdl/testservice.wsdl");
         assertEquals(new ArrayList(), warnings);
     }
 }

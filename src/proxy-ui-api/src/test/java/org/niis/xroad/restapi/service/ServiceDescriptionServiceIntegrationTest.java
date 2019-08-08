@@ -98,8 +98,8 @@ public class ServiceDescriptionServiceIntegrationTest {
             "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
     public void refreshServiceDetectsAddedService() throws Exception {
         File testServiceWsdl = tempFolder.newFile("test.wsdl");
-        File getRandomWsdl = getTestResouceFile("valid-getrandom.wsdl");
-        File threeServicesWsdl = getTestResouceFile("valid.wsdl");
+        File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
+        File threeServicesWsdl = getTestResouceFile("wsdl/valid.wsdl");
         FileUtils.copyFile(getRandomWsdl, testServiceWsdl);
         String url = testServiceWsdl.toURI().toURL().toString();
         serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
@@ -135,8 +135,8 @@ public class ServiceDescriptionServiceIntegrationTest {
             "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
     public void refreshServiceDetectsRemovedService() throws Exception {
         File testServiceWsdl = tempFolder.newFile("test.wsdl");
-        File getRandomWsdl = getTestResouceFile("valid-getrandom.wsdl");
-        File threeServicesWsdl = getTestResouceFile("valid.wsdl");
+        File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
+        File threeServicesWsdl = getTestResouceFile("wsdl/valid.wsdl");
         FileUtils.copyFile(threeServicesWsdl, testServiceWsdl);
         String url = testServiceWsdl.toURI().toURL().toString();
         serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
@@ -180,8 +180,8 @@ public class ServiceDescriptionServiceIntegrationTest {
         // then switch to one with smallattachment
         // and mock some warnings
         File testServiceWsdl = tempFolder.newFile("test.wsdl");
-        File getRandomWsdl = getTestResouceFile("valid-getrandom.wsdl");
-        File smallWsdl = getTestResouceFile("valid-smallattachment.wsdl");
+        File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
+        File smallWsdl = getTestResouceFile("wsdl/valid-smallattachment.wsdl");
         FileUtils.copyFile(getRandomWsdl, testServiceWsdl);
         String url = testServiceWsdl.toURI().toURL().toString();
         serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
@@ -226,7 +226,7 @@ public class ServiceDescriptionServiceIntegrationTest {
     public void addWsdlServiceDescription() throws Exception {
         // check that validation warnings work for adding, too
         File testServiceWsdl = tempFolder.newFile("test.wsdl");
-        File getRandomWsdl = getTestResouceFile("valid-getrandom.wsdl");
+        File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
         FileUtils.copyFile(getRandomWsdl, testServiceWsdl);
         String url = testServiceWsdl.toURI().toURL().toString();
         // start mocking validation failures, when ignoreFailures = false
@@ -265,8 +265,8 @@ public class ServiceDescriptionServiceIntegrationTest {
         // and mock some warnings
         File oldTestServiceWsdl = tempFolder.newFile("old-test.wsdl");
         File newTestServiceWsdl = tempFolder.newFile("new-test.wsdl");
-        File getRandomWsdl = getTestResouceFile("valid-getrandom.wsdl");
-        File smallWsdl = getTestResouceFile("valid-smallattachment.wsdl");
+        File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
+        File smallWsdl = getTestResouceFile("wsdl/valid-smallattachment.wsdl");
         FileUtils.copyFile(getRandomWsdl, oldTestServiceWsdl);
         FileUtils.copyFile(smallWsdl, newTestServiceWsdl);
         String oldUrl = oldTestServiceWsdl.toURI().toURL().toString();
@@ -313,8 +313,8 @@ public class ServiceDescriptionServiceIntegrationTest {
         // and mock some warnings
         File oldTestServiceWsdl = tempFolder.newFile("old-test.wsdl");
         File newTestServiceWsdl = tempFolder.newFile("new-test.wsdl");
-        File getRandomWsdl = getTestResouceFile("valid-getrandom.wsdl");
-        File smallWsdl = getTestResouceFile("valid-smallattachment.wsdl");
+        File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
+        File smallWsdl = getTestResouceFile("wsdl/valid-smallattachment.wsdl");
         FileUtils.copyFile(getRandomWsdl, oldTestServiceWsdl);
         FileUtils.copyFile(smallWsdl, newTestServiceWsdl);
         String oldUrl = oldTestServiceWsdl.toURI().toURL().toString();
