@@ -140,7 +140,7 @@ public class RestMetadataClientRequestProcessor extends MessageProcessorBase {
                     X_INTERNAL_ERROR,
                     String.format("Service not found: %s", targetServiceId.toString()));
         }
-        if (descriptionType != DescriptionType.REST) {
+        if (descriptionType != DescriptionType.OPENAPI3_DESCRIPTION) {
             servletResponse.setHeader(MimeUtils.HEADER_ERROR, "Server.ClientProxy.InternalError");
             throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                     X_INTERNAL_ERROR,

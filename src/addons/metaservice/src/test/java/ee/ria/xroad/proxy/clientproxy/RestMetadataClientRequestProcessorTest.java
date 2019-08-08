@@ -93,7 +93,7 @@ public class RestMetadataClientRequestProcessorTest {
         ServerConf.reload(new TestSuiteServerConf() {
             @Override
             public DescriptionType getDescriptionType(ServiceId service) {
-                return DescriptionType.REST;
+                return DescriptionType.OPENAPI3_DESCRIPTION;
             }
             @Override
             public String getServiceDescriptionURL(ServiceId service) {
@@ -255,7 +255,7 @@ public class RestMetadataClientRequestProcessorTest {
     }
 
     @Test
-    public void shouldNotBeAbleToProcessGetOpenAPIWhenDescriptionTypeNotRest() throws Exception {
+    public void shouldNotBeAbleToProcessGetOpenAPIWhenDescriptionTypeNotOpenApiDescription() throws Exception {
 
         ServerConf.reload(new TestSuiteServerConf() {
             @Override
