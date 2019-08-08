@@ -54,6 +54,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -80,12 +81,14 @@ public class ServiceDescriptionService {
     public static final String WRONG_TYPE = "clients.servicedescription_wrong_type";
     public static final String WARNING_ADDING_SERVICES = "clients.adding_services";
     public static final String WARNING_DELETING_SERVICES = "clients.deleting_services";
+    public static final String WARNING_WSDL_VALIDATION_WARNINGS = "clients.wsdl_validation_warnings";
     public static final String ERROR_WARNINGS_DETECTED = "clients.warnings_detected";
 
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final ClientService clientService;
     private final ClientRepository clientRepository;
     private final ServiceChangeChecker serviceChangeChecker;
+    private final WsdlValidator wsdlValidator;
 
     /**
      * ServiceDescriptionService constructor
@@ -96,11 +99,13 @@ public class ServiceDescriptionService {
     @Autowired
     public ServiceDescriptionService(ServiceDescriptionRepository serviceDescriptionRepository,
             ClientService clientService, ClientRepository clientRepository,
-            ServiceChangeChecker serviceChangeChecker) {
+            ServiceChangeChecker serviceChangeChecker,
+            WsdlValidator wsdlValidator) {
         this.serviceDescriptionRepository = serviceDescriptionRepository;
         this.clientService = clientService;
         this.clientRepository = clientRepository;
         this.serviceChangeChecker = serviceChangeChecker;
+        this.wsdlValidator = wsdlValidator;
     }
 
     /**
@@ -202,7 +207,14 @@ public class ServiceDescriptionService {
         checkForExistingServices(client, parsedServices);
 
         // validate wsdl
-        validateWsdl(url, ignoreWarnings);
+        List<String> validationWarnings = validateWsdl(url);
+
+        if (!ignoreWarnings && !validationWarnings.isEmpty()) {
+            Warning validationWarning = new Warning(WARNING_WSDL_VALIDATION_WARNINGS,
+                    validationWarnings);
+            throw new BadRequestException(new Error(ERROR_WARNINGS_DETECTED),
+                    Collections.singletonList(validationWarning));
+        }
 
         // create a new ServiceDescription with parsed services
         ServiceDescriptionType serviceDescriptionType = buildWsdlServiceDescription(client, parsedServices, url);
@@ -243,7 +255,14 @@ public class ServiceDescriptionService {
         // check for existing services but exclude the services in the ServiceDescription that we are updating
         checkForExistingServices(client, parsedServices, id);
 
-        validateWsdl(url, ignoreWarnings);
+        List<String> validationWarningMessages = validateWsdl(url);
+        List<Warning> warnings = new ArrayList<>();
+
+        if (!validationWarningMessages.isEmpty()) {
+            Warning validationWarning = new Warning(WARNING_WSDL_VALIDATION_WARNINGS,
+                    validationWarningMessages);
+            warnings.add(validationWarning);
+        }
 
         serviceDescriptionType.setRefreshedDate(new Date());
         serviceDescriptionType.setUrl(url);
@@ -259,8 +278,13 @@ public class ServiceDescriptionService {
                 serviceDescriptionType.getService(),
                 newServices);
 
-        if (!ignoreWarnings && !serviceChanges.isEmpty()) {
-            throw createServiceChangeException(serviceChanges);
+        if (!serviceChanges.isEmpty()) {
+            warnings.addAll(createServiceChangeWarnings(serviceChanges));
+        }
+
+        if (!ignoreWarnings && !warnings.isEmpty()) {
+            throw new BadRequestException(new Error(ERROR_WARNINGS_DETECTED),
+                    warnings);
         }
 
         // replace all old services with the new ones
@@ -272,10 +296,9 @@ public class ServiceDescriptionService {
     }
 
     /**
-     * throws BadRequestException carrying information about service changes
-     * @return
+     * @return warnings about adding or deleting services
      */
-    private BadRequestException createServiceChangeException(ServiceChangeChecker.ServiceChanges changes) {
+    private List<Warning> createServiceChangeWarnings(ServiceChangeChecker.ServiceChanges changes) {
         List<Warning> warnings = new ArrayList<>();
         if (!CollectionUtils.isEmpty(changes.getAddedServices())) {
             Warning addedServicesWarning = new Warning(WARNING_ADDING_SERVICES,
@@ -287,7 +310,7 @@ public class ServiceDescriptionService {
                     changes.getRemovedServices());
             warnings.add(deletedServicesWarning);
         }
-        return new BadRequestException(new Error(ERROR_WARNINGS_DETECTED), warnings);
+        return warnings;
     }
 
     private void checkForExistingWsdl(ClientType client, String url) throws ConflictException {
@@ -363,12 +386,13 @@ public class ServiceDescriptionService {
      * Should return warnings instead of throwing them, to make it possible
      * to report both "changed services" and "validation warnings" warnings
      * @param url
-     * @param ignoreWarnings
+     * @return list of validation warnings that can be ignored by choice
+     *
      * @throws BadRequestException
      */
-    private void validateWsdl(String url, boolean ignoreWarnings) throws BadRequestException {
+    private List<String> validateWsdl(String url) throws BadRequestException {
         try {
-            new WsdlValidator(url).executeValidator(ignoreWarnings);
+            return wsdlValidator.executeValidator(url);
         } catch (WsdlValidationException e) {
             log.error("WSDL validation failed", e);
             throw new BadRequestException(e, e.getError(), e.getWarnings());
@@ -446,7 +470,14 @@ public class ServiceDescriptionService {
 
         checkForExistingServices(client, parsedServices, serviceDescriptionType.getId());
 
-        validateWsdl(wsdlUrl, ignoreWarnings);
+        List<String> validationWarningMessages = validateWsdl(wsdlUrl);
+        List<Warning> warnings = new ArrayList<>();
+
+        if (!validationWarningMessages.isEmpty()) {
+            Warning validationWarning = new Warning(WARNING_WSDL_VALIDATION_WARNINGS,
+                    validationWarningMessages);
+            warnings.add(validationWarning);
+        }
 
         serviceDescriptionType.setRefreshedDate(new Date());
 
@@ -461,8 +492,13 @@ public class ServiceDescriptionService {
                 serviceDescriptionType.getService(),
                 newServices);
 
-        if (!ignoreWarnings && !serviceChanges.isEmpty()) {
-            throw createServiceChangeException(serviceChanges);
+        if (!serviceChanges.isEmpty()) {
+            warnings.addAll(createServiceChangeWarnings(serviceChanges));
+        }
+
+        if (!ignoreWarnings && !warnings.isEmpty()) {
+            throw new BadRequestException(new Error(ERROR_WARNINGS_DETECTED),
+                    warnings);
         }
 
         // replace all old services with the new ones

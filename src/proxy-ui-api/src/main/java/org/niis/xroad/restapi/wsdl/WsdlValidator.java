@@ -28,7 +28,6 @@ import ee.ria.xroad.common.SystemProperties;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.Error;
-import org.niis.xroad.restapi.exceptions.Warning;
 import org.niis.xroad.restapi.exceptions.WsdlValidationException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -37,7 +36,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -45,21 +43,16 @@ import java.util.List;
  */
 @Slf4j
 @Component
-public final class WsdlValidator {
+public class WsdlValidator {
     // errors
     public static final String WSDL_VALIDATOR_NOT_EXECUTABLE = "clients.wsdl_validator_not_executable";
     public static final String WSDL_VALIDATION_FAILED = "clients.wsdl_validation_failed";
     public static final String WSDL_URL_MISSING = "clients.wsdl_url_missing";
-    // warnings
-    public static final String WSDL_VALIDATION_WARNINGS = "clients.wsdl_validation_warnings";
-
-    private final String wsdlUrl;
 
     private String wsdlValidatorCommand;
     private List<String> args;
 
-    public WsdlValidator(String wsdlUrl) {
-        this.wsdlUrl = wsdlUrl;
+    public WsdlValidator() {
         wsdlValidatorCommand = SystemProperties.getWsdlValidatorCommand();
     }
 
@@ -69,18 +62,20 @@ public final class WsdlValidator {
      *                                 wsdl url is missing, there are errors when trying
      *                                 to execute the validator or if the validation itself fails.
      *                                 ErrorCodes are attached to the exception
+     * @return List of validation warnings that could be ignored by choice
      */
-    public void executeValidator(boolean ignoreWarnings) throws WsdlValidationException {
+    public List<String> executeValidator(String wsdlUrl) throws WsdlValidationException {
+        List<String> warnings = new ArrayList<>();
         // validator not set - this is ok since validator is optional
-        if (StringUtils.isEmpty(wsdlValidatorCommand)) {
-            return;
+        if (StringUtils.isEmpty(getWsdlValidatorCommand())) {
+            return warnings;
         }
         if (StringUtils.isEmpty(wsdlUrl)) {
             throw new WsdlValidationException(new Error(WSDL_URL_MISSING));
         }
 
         List<String> command = new ArrayList<>();
-        command.add(wsdlValidatorCommand);
+        command.add(getWsdlValidatorCommand());
         if (args != null && args.size() > 0) {
             command.addAll(args);
         }
@@ -122,13 +117,9 @@ public final class WsdlValidator {
             throw new WsdlValidationException(new Error(WSDL_VALIDATION_FAILED, processOutput));
         } else if (processOutput != null && processOutput.size() > 0) {
             // exitCode was 0 but there were some warnings in the output
-            if (ignoreWarnings) {
-                log.info("ignoring wsdl validator warnings");
-            } else {
-                throw new WsdlValidationException(null, new Error(WSDL_VALIDATION_FAILED),
-                        createValidationWarnings(WSDL_VALIDATION_WARNINGS, processOutput));
-            }
+            warnings.addAll(processOutput);
         }
+        return warnings;
     }
 
     public String getWsdlValidatorCommand() {
@@ -145,13 +136,5 @@ public final class WsdlValidator {
 
     public void setArgs(List<String> args) {
         this.args = args;
-    }
-
-    private List<Warning> createValidationWarnings(String warningCode, List<String> warningList) {
-        return Collections.singletonList(new Warning(warningCode, warningList));
-    }
-
-    private List<Warning> createValidationWarnings(String warningCode, String warning) {
-        return createValidationWarnings(warningCode, Collections.singletonList(warning));
     }
 }

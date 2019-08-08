@@ -24,7 +24,6 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
@@ -62,6 +61,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -141,6 +141,11 @@ public class ClientsApiControllerIntegrationTest {
     @MockBean
     private TokenRepository tokenRepository;
 
+    @SpyBean
+    // partial mocking, just override getValidatorCommand()
+    private WsdlValidator wsdlValidator;
+
+
     @Before
     public void setup() throws Exception {
         when(globalConfWrapper.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
@@ -160,9 +165,7 @@ public class ClientsApiControllerIntegrationTest {
         ));
         List<TokenInfo> mockTokens = createMockTokenInfos(null);
         when(tokenRepository.getTokens()).thenReturn(mockTokens);
-        System.setProperty(
-                SystemProperties.WSDL_VALIDATOR_COMMAND,
-                "src/test/resources/validator/mock-wsdlvalidator.sh");
+        when(wsdlValidator.getWsdlValidatorCommand()).thenReturn("src/test/resources/validator/mock-wsdlvalidator.sh");
     }
 
     @Autowired
@@ -642,12 +645,12 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            assertEquals(WsdlValidator.WSDL_VALIDATION_FAILED, expected.getError().getCode());
+            assertEquals(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected.getError().getCode());
             assertNull(expected.getError().getMetadata());
             assertNotNull(expected.getWarnings());
             assertEquals(1, expected.getWarnings().size());
             Warning warning = expected.getWarnings().iterator().next();
-            assertEquals(WsdlValidator.WSDL_VALIDATION_WARNINGS, warning.getCode());
+            assertEquals(ServiceDescriptionService.WARNING_WSDL_VALIDATION_WARNINGS, warning.getCode());
             assertNotNull(warning.getMetadata());
         }
 

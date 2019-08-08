@@ -25,10 +25,11 @@
 package org.niis.xroad.restapi.wsdl;
 
 import org.junit.Test;
-import org.niis.xroad.restapi.exceptions.Warning;
 import org.niis.xroad.restapi.exceptions.WsdlValidationException;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
@@ -41,17 +42,15 @@ import static org.junit.Assert.assertNull;
  */
 public class WsdlValidatorTest {
 
-    private static final boolean DONT_IGNORE_WARNINGS = false;
-    private static final boolean IGNORE_WARNINGS = true;
     public static final String MOCK_VALIDATOR_ERROR = "ERROR: this is not fine";
     public static final String MOCK_VALIDATOR_WARNING = "WARNING: this can be ignored";
 
     @Test
     public void validatorNotExecutable() {
-        WsdlValidator wsdlValidator = new WsdlValidator("src/test/resources/error.wsdl");
+        WsdlValidator wsdlValidator = new WsdlValidator();
         wsdlValidator.setWsdlValidatorCommand("/bin/foobar-validator");
         try {
-            wsdlValidator.executeValidator(DONT_IGNORE_WARNINGS);
+            wsdlValidator.executeValidator("src/test/resources/error.wsdl");
             fail("should have thrown WsdlValidationException");
         } catch (WsdlValidationException expected) {
             assertEquals(WsdlValidator.WSDL_VALIDATOR_NOT_EXECUTABLE, expected.getError().getCode());
@@ -62,31 +61,20 @@ public class WsdlValidatorTest {
 
     @Test
     public void shouldHandleWarnings() {
-        WsdlValidator wsdlValidator = new WsdlValidator("src/test/resources/warning.wsdl");
+        WsdlValidator wsdlValidator = new WsdlValidator();
         wsdlValidator.setWsdlValidatorCommand("src/test/resources/validator/mock-wsdlvalidator.sh");
-        try {
-            wsdlValidator.executeValidator(DONT_IGNORE_WARNINGS);
-            fail("should have thrown WsdlValidationException");
-        } catch (WsdlValidationException expected) {
-            assertEquals(WsdlValidator.WSDL_VALIDATION_FAILED, expected.getError().getCode());
-            assertNull(expected.getError().getMetadata());
-            assertNotNull(expected.getWarnings());
-            assertEquals(1, expected.getWarnings().size());
-            Warning warning = expected.getWarnings().iterator().next();
-            assertEquals(WsdlValidator.WSDL_VALIDATION_WARNINGS, warning.getCode());
-            assertNotNull(warning.getMetadata());
-            assertEquals(Collections.singletonList(MOCK_VALIDATOR_WARNING), warning.getMetadata());
-        }
-        // with ignore warnings, should not throw exceptions
-        wsdlValidator.executeValidator(IGNORE_WARNINGS);
+        List<String> warnings = wsdlValidator.executeValidator("src/test/resources/warning.wsdl");
+        assertNotNull(warnings);
+        assertEquals(1, warnings.size());
+        assertEquals(Collections.singletonList(MOCK_VALIDATOR_WARNING), warnings);
     }
 
     @Test
     public void shouldFailValidation() {
-        WsdlValidator wsdlValidator = new WsdlValidator("src/test/resources/error.wsdl");
+        WsdlValidator wsdlValidator = new WsdlValidator();
         wsdlValidator.setWsdlValidatorCommand("src/test/resources/validator/mock-wsdlvalidator.sh");
         try {
-            wsdlValidator.executeValidator(DONT_IGNORE_WARNINGS);
+            wsdlValidator.executeValidator("src/test/resources/error.wsdl");
             fail("should have thrown WsdlValidationException");
         } catch (WsdlValidationException expected) {
             assertEquals(WsdlValidator.WSDL_VALIDATION_FAILED, expected.getError().getCode());
@@ -98,8 +86,9 @@ public class WsdlValidatorTest {
 
     @Test
     public void shouldPassValidation() {
-        WsdlValidator wsdlValidator = new WsdlValidator("src/test/resources/testservice.wsdl");
+        WsdlValidator wsdlValidator = new WsdlValidator();
         wsdlValidator.setWsdlValidatorCommand("src/test/resources/validator/mock-wsdlvalidator.sh");
-        wsdlValidator.executeValidator(DONT_IGNORE_WARNINGS);
+        List<String> warnings = wsdlValidator.executeValidator("src/test/resources/testservice.wsdl");
+        assertEquals(new ArrayList(), warnings);
     }
 }
