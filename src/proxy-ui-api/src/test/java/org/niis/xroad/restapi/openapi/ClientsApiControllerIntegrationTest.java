@@ -83,11 +83,11 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.service.ServiceDescriptionService.ERROR_INVALID_WSDL;
+import static org.niis.xroad.restapi.service.ServiceDescriptionService.ERROR_SERVICE_EXISTS;
 import static org.niis.xroad.restapi.service.ServiceDescriptionService.ERROR_WARNINGS_DETECTED;
-import static org.niis.xroad.restapi.service.ServiceDescriptionService.INVALID_WSDL;
-import static org.niis.xroad.restapi.service.ServiceDescriptionService.SERVICE_EXISTS;
+import static org.niis.xroad.restapi.service.ServiceDescriptionService.ERROR_WSDL_EXISTS;
 import static org.niis.xroad.restapi.service.ServiceDescriptionService.WARNING_WSDL_VALIDATION_WARNINGS;
-import static org.niis.xroad.restapi.service.ServiceDescriptionService.WSDL_EXISTS;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithMetadata;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithoutMetadata;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertWarning;
@@ -611,7 +611,7 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown ConflictException");
         } catch (ConflictException expected) {
-            assertEquals(WSDL_EXISTS, expected.getError().getCode());
+            assertEquals(ERROR_WSDL_EXISTS, expected.getError().getCode());
         }
         serviceDescription = new ServiceDescriptionAdd().url("file:src/test/resources/wsdl/testservice.wsdl");
         serviceDescription.setType(ServiceType.WSDL);
@@ -620,7 +620,7 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown ConflictException");
         } catch (ConflictException expected) {
-            assertErrorWithMetadata(SERVICE_EXISTS, expected,
+            assertErrorWithMetadata(ERROR_SERVICE_EXISTS, expected,
                     "xroadGetRandom.v1", "file:src/test/resources/wsdl/valid.wsdl");
         }
     }
@@ -636,7 +636,7 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            assertErrorWithoutMetadata(INVALID_WSDL, expected);
+            assertErrorWithoutMetadata(ERROR_INVALID_WSDL, expected);
         }
     }
 
@@ -677,7 +677,7 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            assertErrorWithMetadata(WsdlValidator.WSDL_VALIDATION_FAILED,
+            assertErrorWithMetadata(WsdlValidator.ERROR_WSDL_VALIDATION_FAILED,
                     WsdlValidatorTest.MOCK_VALIDATOR_ERROR, expected);
         }
 
@@ -687,7 +687,7 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            assertErrorWithMetadata(WsdlValidator.WSDL_VALIDATION_FAILED,
+            assertErrorWithMetadata(WsdlValidator.ERROR_WSDL_VALIDATION_FAILED,
                     WsdlValidatorTest.MOCK_VALIDATOR_ERROR, expected);
         }
 
@@ -704,7 +704,7 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            assertErrorWithMetadata(WsdlValidator.WSDL_VALIDATION_FAILED,
+            assertErrorWithMetadata(WsdlValidator.ERROR_WSDL_VALIDATION_FAILED,
                     WsdlValidatorTest.MOCK_VALIDATOR_ERROR, expected);
         }
     }

@@ -73,16 +73,18 @@ public class ServiceDescriptionService {
 
     public static final int DEFAULT_SERVICE_TIMEOUT = 60;
     public static final String DEFAULT_DISABLED_NOTICE = "Out of order";
-    public static final String INVALID_WSDL = "clients.invalid_wsdl";
-    public static final String WSDL_DOWNLOAD_FAILED = "clients.wsdl_download_failed";
-    public static final String WSDL_EXISTS = "clients.wsdl_exists";
-    public static final String SERVICE_EXISTS = "clients.service_exists";
-    public static final String MALFORMED_URL = "clients.malformed_wsdl_url";
-    public static final String WRONG_TYPE = "clients.servicedescription_wrong_type";
+
+    public static final String ERROR_INVALID_WSDL = "clients.invalid_wsdl";
+    public static final String ERROR_WSDL_DOWNLOAD_FAILED = "clients.wsdl_download_failed";
+    public static final String ERROR_WSDL_EXISTS = "clients.wsdl_exists";
+    public static final String ERROR_SERVICE_EXISTS = "clients.service_exists";
+    public static final String ERROR_MALFORMED_URL = "clients.malformed_wsdl_url";
+    public static final String ERROR_WRONG_TYPE = "clients.servicedescription_wrong_type";
+    public static final String ERROR_WARNINGS_DETECTED = "clients.warnings_detected";
+
     public static final String WARNING_ADDING_SERVICES = "clients.adding_services";
     public static final String WARNING_DELETING_SERVICES = "clients.deleting_services";
     public static final String WARNING_WSDL_VALIDATION_WARNINGS = "clients.wsdl_validation_warnings";
-    public static final String ERROR_WARNINGS_DETECTED = "clients.warnings_detected";
 
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final ClientService clientService;
@@ -270,7 +272,7 @@ public class ServiceDescriptionService {
         if (serviceDescriptionType.getType() != DescriptionType.WSDL) {
             throw new BadRequestException("Existing service description (id: "
                     + serviceDescriptionType.getId().toString() + " is not WSDL",
-                    new Error(WRONG_TYPE));
+                    new Error(ERROR_WRONG_TYPE));
         }
 
         ClientType client = serviceDescriptionType.getClient();
@@ -335,7 +337,7 @@ public class ServiceDescriptionService {
         client.getServiceDescription().forEach(serviceDescription -> {
             if (!serviceDescription.getId().equals(updatedServiceDescriptionId)) {
                 if (serviceDescription.getUrl().equalsIgnoreCase(url)) {
-                    throw new ConflictException("WSDL URL already exists", new Error(WSDL_EXISTS));
+                    throw new ConflictException("WSDL URL already exists", new Error(ERROR_WSDL_EXISTS));
                 }
             }
         });
@@ -386,9 +388,9 @@ public class ServiceDescriptionService {
         try {
             parsedServices = WsdlParser.parseWSDL(url);
         } catch (WsdlParseException e) {
-            throw new BadRequestException(e, new Error(INVALID_WSDL));
+            throw new BadRequestException(e, new Error(ERROR_INVALID_WSDL));
         } catch (WsdlNotFoundException e) {
-            throw new BadRequestException(e, new Error(WSDL_DOWNLOAD_FAILED));
+            throw new BadRequestException(e, new Error(ERROR_WSDL_DOWNLOAD_FAILED));
         }
         return parsedServices;
     }
@@ -443,7 +445,7 @@ public class ServiceDescriptionService {
                 errorMetadata.add(FormatUtils.getServiceFullName(conflictedService));
                 errorMetadata.add(conflictedService.getServiceDescription().getUrl());
             }
-            throw new ConflictException(new Error(SERVICE_EXISTS, errorMetadata));
+            throw new ConflictException(new Error(ERROR_SERVICE_EXISTS, errorMetadata));
         }
     }
 
@@ -471,7 +473,7 @@ public class ServiceDescriptionService {
         WsdlProcessingResult result = new WsdlProcessingResult();
         // check for valid url (is this not enough??)
         if (!FormatUtils.isValidUrl(url)) {
-            throw new BadRequestException("Malformed URL", new Error(MALFORMED_URL));
+            throw new BadRequestException("Malformed URL", new Error(ERROR_MALFORMED_URL));
         }
         // check if wsdl already exists
         checkForExistingWsdl(client, url, updatedServiceDescriptionId);

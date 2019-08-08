@@ -45,9 +45,9 @@ import java.util.List;
 @Component
 public class WsdlValidator {
     // errors
-    public static final String WSDL_VALIDATOR_NOT_EXECUTABLE = "clients.wsdl_validator_not_executable";
-    public static final String WSDL_VALIDATION_FAILED = "clients.wsdl_validation_failed";
-    public static final String WSDL_URL_MISSING = "clients.wsdl_url_missing";
+    public static final String ERROR_WSDL_VALIDATOR_NOT_EXECUTABLE = "clients.wsdl_validator_not_executable";
+    public static final String ERROR_WSDL_VALIDATION_FAILED = "clients.wsdl_validation_failed";
+    public static final String ERROR_WSDL_URL_MISSING = "clients.wsdl_url_missing";
 
     private String wsdlValidatorCommand;
     private List<String> args;
@@ -71,7 +71,7 @@ public class WsdlValidator {
             return warnings;
         }
         if (StringUtils.isEmpty(wsdlUrl)) {
-            throw new WsdlValidationException(new Error(WSDL_URL_MISSING));
+            throw new WsdlValidationException(new Error(ERROR_WSDL_URL_MISSING));
         }
 
         List<String> command = new ArrayList<>();
@@ -87,7 +87,7 @@ public class WsdlValidator {
         try {
             process = pb.start();
         } catch (IOException e) {
-            throw new WsdlValidationException(e, new Error(WSDL_VALIDATOR_NOT_EXECUTABLE));
+            throw new WsdlValidationException(e, new Error(ERROR_WSDL_VALIDATOR_NOT_EXECUTABLE));
         }
 
         // gather output into a list of string - needed when returning warnings to the end user
@@ -96,7 +96,7 @@ public class WsdlValidator {
             br.lines().forEach(processOutput::add);
         } catch (IOException e) {
             process.destroy();
-            throw new WsdlValidationException(e, new Error(WSDL_VALIDATOR_NOT_EXECUTABLE));
+            throw new WsdlValidationException(e, new Error(ERROR_WSDL_VALIDATOR_NOT_EXECUTABLE));
         }
 
         int exitCode;
@@ -106,7 +106,8 @@ public class WsdlValidator {
         } catch (InterruptedException e) {
             // we don't want to throw the InterruptedException from here but we want to retain the interrupted status
             Thread.currentThread().interrupt();
-            throw new WsdlValidationException(e, new Error(WSDL_VALIDATOR_NOT_EXECUTABLE, e.getCause().getMessage()));
+            throw new WsdlValidationException(e, new Error(ERROR_WSDL_VALIDATOR_NOT_EXECUTABLE,
+                    e.getCause().getMessage()));
         } finally {
             // always destroy the process
             process.destroy();
@@ -114,7 +115,7 @@ public class WsdlValidator {
 
         // if the validator program fails we attach the validator's output into the exception
         if (exitCode != 0) {
-            throw new WsdlValidationException(new Error(WSDL_VALIDATION_FAILED, processOutput));
+            throw new WsdlValidationException(new Error(ERROR_WSDL_VALIDATION_FAILED, processOutput));
         } else if (processOutput != null && processOutput.size() > 0) {
             // exitCode was 0 but there were some warnings in the output
             warnings.addAll(processOutput);
