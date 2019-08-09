@@ -117,12 +117,13 @@ umask 007
 mkdir -p /var/lib/xroad/backup
 su - xroad -c "test -O /var/lib/xroad && test -G /var/lib/xroad" || chown xroad:xroad /var/lib/xroad
 chown xroad:xroad /var/lib/xroad/backup
-chmod 0775 /var/lib/xroad
+chmod 0755 /var/lib/xroad
 
 # nicer log directory permissions
-mkdir -p -m1770 /var/log/xroad
-chmod 1770 /var/log/xroad
+mkdir -p -m1750 /var/log/xroad
+chmod 1750 /var/log/xroad
 chown xroad:adm /var/log/xroad
+chmod -R 1750 /var/log/xroad
 
 #tmp folder
 mkdir -p /var/tmp/xroad
