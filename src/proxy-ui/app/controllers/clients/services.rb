@@ -104,26 +104,18 @@ module Clients::Services
     authorize!(:add_openapi3)
     validate_params({
       :client_id => [:required],
-      :openapi3_add_url => [:required],
+      :openapi3_add_url => [:required, :url],
       :openapi3_service_code => [:required],
       :service_type => [:required]
     })
 
     url = params[:openapi3_add_url]
-    check_openapi3_url(url)
-
+    base_url = url
     client = get_client(params[:client_id])
 
-    result = parse_openapi(url)
-
-    if result.warnings.size > 0
-      warnings = ""
-      result.warnings.each do |line|
-        warnings += "#{Encode.forHtml(line)}<br/>"
-      end
-
-      warn("openapi_validation_warnings", t("clients.openapi_validation_warnings",
-        { :url => Encode.forHtml(url), :warnings => warnings }))
+    if "OPENAPI3" == params(:service_type)
+      result = parse_openapi(url)
+      base_url = result.base_url
     end
 
     servicedescription = ServiceDescriptionType.new
@@ -144,7 +136,7 @@ module Clients::Services
     service.serviceCode = params[:openapi3_service_code]
     service.serviceVersion = nil
     service.title = nil
-    service.url = result.base_url
+    service.url = base_url
     service.timeout = DEFAULT_SERVICE_TIMEOUT
     service.serviceDescription = servicedescription
     servicedescription.service.add(service)
@@ -216,7 +208,7 @@ module Clients::Services
       :client_id => [:required],
       :wsdl_id => [:required],
       :openapi3_old_service_code => [:required],
-      :openapi3_new_url => [:required],
+      :openapi3_new_url => [:required, :url],
       :openapi3_new_service_code => [:required],
       :service_type => [:required]
     })
@@ -228,18 +220,24 @@ module Clients::Services
     servicedescription = client.serviceDescription.detect { |servicedescription|
       DescriptionType::OPENAPI3 == servicedescription.type &&
         servicedescription.url == params[:wsdl_id]
-    }
-    client.serviceDescription.remove(servicedescription)
+    } or raise t("clients.service_description_does_not_exist")
+
+    base_url = params[:openapi3_new_url]
+    if "OPENAPI3" == params[:service_type]
+      if params[:openapi3_new_url] != servicedescription.url
+        result = parse_openapi(base_url)
+        base_url = result.base_url
+      else
+        base_url = servicedescription.service.first.url
+      end
+    end
 
     servicedescription.url = params[:openapi3_new_url]
-    servicedescription.service.first.url = params[:openapi3_new_url]
+    servicedescription.service.first.url = base_url
     servicedescription.service.first.service_code = params[:openapi3_new_service_code]
 
-    check_openapi3_url(servicedescription.url)
     check_duplicate_url(servicedescription)
     check_duplicate_service_codes(servicedescription)
-
-    client.serviceDescription.add(servicedescription)
 
     client.acl.each do |item|
       if params[:openapi3_old_service_code] == item.serviceCode
@@ -724,20 +722,10 @@ module Clients::Services
     clean_service_acls(client, deleted_codes, nil)
   end
 
-  def check_openapi3_url(uri)
-    begin
-      uri = URL.new(uri)
-      scheme = uri.getProtocol()
-      if uri.getHost().to_s.empty? || scheme.empty? || !(scheme == "http" || scheme == "https")
-        raise t('clients.malformed_openapi3_url')
-      end
-    rescue Java::java.net.MalformedURLException
-      raise t('clients.malformed_openapi3_url')
-    end
-  end
-
   def check_duplicate_url(reviewedService)
     reviewedService.client.serviceDescription.each do |other_servicedescription|
+      next if reviewedService.equal? other_servicedescription
+
       if reviewedService.url == other_servicedescription.url
         raise t('clients.url_exists')
       end
@@ -746,6 +734,8 @@ module Clients::Services
 
   def check_duplicate_service_codes(reviewedService)
     reviewedService.client.serviceDescription.each do |other_service|
+      next if reviewedService.equal? other_service
+
       reviewedService.service.each do |reviewedItem|
         other_service.service.each do |otherItem|
           if reviewedItem.service_code == otherItem.service_code &&
@@ -908,7 +898,17 @@ module Clients::Services
 
   def parse_openapi(url)
     begin
-      OpenApiParser.new(url).parse
+      result = OpenApiParser.new(url).parse
+      if result.warnings.size > 0
+        warnings = ""
+        result.warnings.each do |line|
+          warnings += "#{Encode.forHtml(line)}<br/>"
+        end
+
+        warn("openapi_validation_warnings", t("clients.openapi_validation_warnings",
+          { :url => Encode.forHtml(url), :warnings => warnings }))
+      end
+      result
     rescue OpenApiParser::ParsingException
       raise $!.message
     end

@@ -41,7 +41,8 @@ import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
@@ -60,10 +61,17 @@ import java.util.Optional;
 @Slf4j
 public class OpenApiParser {
 
-    private final String openApiUrl;
+    private final URI openApiUrl;
 
-    public OpenApiParser(String openApiUrl) {
-        this.openApiUrl = openApiUrl;
+    /**
+     * Create a OpenAPI parser
+     */
+    public OpenApiParser(String openApiUrl) throws ParsingException {
+        try {
+            this.openApiUrl = new URI(openApiUrl);
+        } catch (URISyntaxException e) {
+            throw new ParsingException("Invalid URL", e);
+        }
     }
 
     /**
@@ -78,9 +86,10 @@ public class OpenApiParser {
         final SwaggerParseResult result = new OpenAPIV3Parser().readContents(readOpenAPIDescription(), null, options);
         validate(result);
 
-        final String baseUrl = Optional.ofNullable(result.getOpenAPI().getServers())
+        final URI baseUrl = Optional.ofNullable(result.getOpenAPI().getServers())
                 .flatMap(s -> s.stream().findFirst())
                 .map(Server::getUrl)
+                .map(URI::create)
                 .orElse(openApiUrl);
 
         final List<Operation> operations;
@@ -93,7 +102,7 @@ public class OpenApiParser {
                             operations.add(new Operation(method.name(), path))));
         }
 
-        return new Result(baseUrl, operations, result.getMessages());
+        return new Result(openApiUrl.resolve(baseUrl).toString(), operations, result.getMessages());
     }
 
     private void validate(SwaggerParseResult result) throws ParsingException {
@@ -111,12 +120,10 @@ public class OpenApiParser {
         URLConnection conn = null;
         try {
 
-            final URL url = new URL(openApiUrl);
-            if (!allowProtocol(url.getProtocol())) {
-                throw new ParsingException("Invalid protocol: " + url.getProtocol());
+            if (!allowProtocol(openApiUrl.getScheme())) {
+                throw new ParsingException("Invalid protocol: " + openApiUrl.getScheme());
             }
-
-            conn = url.openConnection();
+            conn = openApiUrl.toURL().openConnection();
             if (conn instanceof HttpURLConnection) {
                 configureHttp((HttpURLConnection)conn);
             }

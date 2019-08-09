@@ -84,6 +84,7 @@ en:
     already_owner: "This member is already security server owner"
     cannot_register_another_member: "Security Server can have only two members"
     cert_exists: "Certificate already exists"
+    service_description_does_not_exist: "Service description does not exist"
     wsdl_exists: "WSDL address already exists."
     openapi3_exists: "REST address already exists."
     url_exists: "URL already exists."

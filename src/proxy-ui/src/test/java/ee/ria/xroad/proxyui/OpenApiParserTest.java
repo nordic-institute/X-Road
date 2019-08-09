@@ -58,7 +58,7 @@ public class OpenApiParserTest {
 
     static class TestOpenApiParser extends OpenApiParser {
 
-        TestOpenApiParser(String openApiUrl) {
+        TestOpenApiParser(String openApiUrl) throws ParsingException {
             super(openApiUrl);
         }
 
