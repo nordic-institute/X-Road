@@ -69,7 +69,7 @@ module Clients::Services
 
     validate_params({
       :client_id => [:required],
-      :wsdl_add_url => [:required],
+      :wsdl_add_url => [:required, :url],
       :service_type => [:required]
     })
 
@@ -218,8 +218,7 @@ module Clients::Services
     audit_log_data[:clientIdentifier] = client.identifier
 
     servicedescription = client.serviceDescription.detect { |servicedescription|
-      DescriptionType::OPENAPI3 == servicedescription.type &&
-        servicedescription.url == params[:wsdl_id]
+      DescriptionType::OPENAPI3 == servicedescription.type && servicedescription.url == params[:wsdl_id]
     } or raise t("clients.service_description_does_not_exist")
 
     base_url = params[:openapi3_new_url]
@@ -258,7 +257,7 @@ module Clients::Services
     validate_params({
       :client_id => [:required],
       :wsdl_id => [:required],
-      :new_url => [:required],
+      :new_url => [:required, :url],
       :service_type => [:required]
     })
     client = get_client(params[:client_id])

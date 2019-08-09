@@ -31,13 +31,6 @@ import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -46,10 +39,6 @@ import java.net.URISyntaxException;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -62,6 +51,8 @@ import java.util.Optional;
 public class OpenApiParser {
 
     private final URI openApiUrl;
+    private static final int BUF_SIZE = 8192;
+    private static final long MAX_DESCRIPTION_SIZE = 10 * 1024 * 1024;
 
     /**
      * Create a OpenAPI parser
@@ -119,13 +110,12 @@ public class OpenApiParser {
     private String readOpenAPIDescription() throws ParsingException {
         URLConnection conn = null;
         try {
-
             if (!allowProtocol(openApiUrl.getScheme())) {
                 throw new ParsingException("Invalid protocol: " + openApiUrl.getScheme());
             }
             conn = openApiUrl.toURL().openConnection();
             if (conn instanceof HttpURLConnection) {
-                configureHttp((HttpURLConnection)conn);
+                HttpUrlConnectionConfig.apply((HttpURLConnection)conn);
             }
             conn.connect();
             try (InputStreamReader in = new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8)) {
@@ -157,32 +147,6 @@ public class OpenApiParser {
     // package private for testability
     boolean allowProtocol(String protocol) {
         return "http".equals(protocol) || "https".equals(protocol);
-    }
-
-    private void configureHttp(HttpURLConnection conn) {
-        if (conn instanceof HttpsURLConnection) {
-            ((HttpsURLConnection)conn).setSSLSocketFactory(SSL_SOCKET_FACTORY);
-            ((HttpsURLConnection)conn).setHostnameVerifier(HostnameVerifiers.ACCEPT_ALL);
-        }
-        conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
-        conn.setReadTimeout(READ_TIMEOUT_MS);
-    }
-
-    private static final SSLSocketFactory SSL_SOCKET_FACTORY;
-    private static final int BUF_SIZE = 8192;
-    private static final int CONNECT_TIMEOUT_MS = 30_000;
-    private static final int READ_TIMEOUT_MS = 30_000;
-    private static final long MAX_DESCRIPTION_SIZE = 10 * 1024 * 1024;
-
-    static {
-        try {
-            final SSLContext ctx = SSLContext.getInstance("TLSv1.2");
-            ctx.init(new KeyManager[] {new ClientSslKeyManager()}, new TrustManager[] {new NoopTrustManager()},
-                    new SecureRandom());
-            SSL_SOCKET_FACTORY = ctx.getSocketFactory();
-        } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            throw new IllegalStateException("FATAL: Unable to create socket factory", e);
-        }
     }
 
     /**
@@ -233,20 +197,4 @@ public class OpenApiParser {
         }
     }
 
-    static class NoopTrustManager implements X509TrustManager {
-        @Override
-        public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {
-            //NOP
-        }
-
-        @Override
-        public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {
-            //NOP
-        }
-
-        @Override
-        public X509Certificate[] getAcceptedIssuers() {
-            return new X509Certificate[0];
-        }
-    }
 }
