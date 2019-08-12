@@ -44,6 +44,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -186,7 +188,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         serviceDescriptionsApiController.deleteServiceDescription("2");
         List<ServiceDescription> serviceDescriptions =
                 clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1).getBody();
-        assertEquals(1, serviceDescriptions.size());
+        assertEquals(2, serviceDescriptions.size());
         client = clientsApiController.getClient(CLIENT_ID_SS1).getBody();
         assertNotNull(client);
     }
@@ -269,6 +271,68 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         assertTrue(refreshed.getRefreshedDate().isAfter(serviceDescription.getRefreshedDate()));
     }
 
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES" })
+    public void getServiceDescription() {
+        ResponseEntity<ServiceDescription> response =
+                serviceDescriptionsApiController.getServiceDescription("1");
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        ServiceDescription serviceDescription = response.getBody();
+        assertEquals("https://soapservice.com/v1/Endpoint?wsdl", serviceDescription.getUrl());
+        Set<String> serviceIds = getServiceIds(serviceDescription);
+        Set<String> serviceCodes = getServiceCodes(serviceDescription);
+        assertEquals(2, serviceIds.size());
+        assertTrue(serviceIds.contains(CLIENT_ID_SS1 + ":" + GET_RANDOM));
+        assertTrue(serviceIds.contains(CLIENT_ID_SS1 + ":" + CALCULATE_PRIME));
+        assertEquals(2, serviceCodes.size());
+        assertTrue(serviceCodes.contains(GET_RANDOM));
+        assertTrue(serviceCodes.contains(CALCULATE_PRIME));
+
+        try {
+            clientsApiController.getClient("123451");
+            fail("should throw NotFoundException to 404");
+        } catch (NotFoundException expected) {
+        }
+
+        try {
+            clientsApiController.getClient("ugh");
+            fail("should throw NotFoundException to 404");
+        } catch (NotFoundException expected) {
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES" })
+    public void getServiceDescriptionServices() {
+        ResponseEntity<List<Service>> response =
+                serviceDescriptionsApiController.getServiceDescriptionServices("1");
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        List<Service> services = response.getBody();
+        assertEquals(2, services.size());
+        Service getRandomService = getService(services, CLIENT_ID_SS1 + ":" + GET_RANDOM);
+        assertEquals("https://soapservice.com/v1/Endpoint", getRandomService.getUrl());
+        assertEquals(GET_RANDOM, getRandomService.getServiceCode());
+
+        // test one without services - should return OK but empty list
+        // (resource exists, but is an empty collection)
+        response = serviceDescriptionsApiController.getServiceDescriptionServices("4");
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(0, response.getBody().size());
+
+        try {
+            clientsApiController.getClient("123451");
+            fail("should throw NotFoundException to 404");
+        } catch (NotFoundException expected) {
+        }
+
+        try {
+            clientsApiController.getClient("ugh");
+            fail("should throw NotFoundException to 404");
+        } catch (NotFoundException expected) {
+        }
+    }
+
+
     private Set<String> getServiceIds(ServiceDescription serviceDescription) {
         return serviceDescription.getServices()
                 .stream()
@@ -280,5 +344,10 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
                 .stream()
                 .map(Service::getServiceCode)
                 .collect(Collectors.toSet());
+    }
+    private Service getService(List<Service> services, String id) {
+        return services.stream()
+                .filter(s -> id.equals(s.getId()))
+                .findFirst().get();
     }
 }

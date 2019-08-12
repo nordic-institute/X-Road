@@ -546,7 +546,7 @@ public class ClientsApiControllerIntegrationTest {
         // client with some services
         descriptions = clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1);
         assertEquals(HttpStatus.OK, descriptions.getStatusCode());
-        assertEquals(2, descriptions.getBody().size());
+        assertEquals(3, descriptions.getBody().size());
         ServiceDescription serviceDescription = getDescription(descriptions.getBody(),
                 "https://restservice.com/api/v1")
                 .get();
@@ -605,7 +605,7 @@ public class ClientsApiControllerIntegrationTest {
         clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
         ResponseEntity<List<ServiceDescription>> descriptions =
                 clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1);
-        assertEquals(3, descriptions.getBody().size());
+        assertEquals(4, descriptions.getBody().size());
         try {
             serviceDescription.setIgnoreWarnings(true);
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
@@ -663,7 +663,7 @@ public class ClientsApiControllerIntegrationTest {
         clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
         ResponseEntity<List<ServiceDescription>> descriptions =
                 clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1);
-        assertEquals(3, descriptions.getBody().size());
+        assertEquals(4, descriptions.getBody().size());
     }
 
     @Test

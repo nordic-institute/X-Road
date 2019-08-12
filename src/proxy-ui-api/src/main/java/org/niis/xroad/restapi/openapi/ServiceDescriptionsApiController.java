@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.IgnoreWarnings;
+import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionDisabledNotice;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
@@ -43,6 +44,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.context.request.NativeWebRequest;
 
 import java.util.Collections;
+import java.util.List;
 
 /**
  * service descriptions api
@@ -128,5 +130,28 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
                 serviceDescriptionService.refreshServiceDescription(serviceDescriptionId,
                         ignoreWarnings.getIgnoreWarnings()));
         return new ResponseEntity<>(serviceDescription, HttpStatus.OK);
+    }
+
+    @Override
+    /**
+     * Returns one service description, using primary key id.
+     * {@inheritDoc}
+     *
+     * @param id primary key of service description
+     */
+    public ResponseEntity<ServiceDescription> getServiceDescription(String id) {
+        return null;
+    }
+
+    /**
+     * Returns services of one service description.
+     * Id = primary key of service description.
+     * {@inheritDoc}
+     *
+     * @param id primary key of service description
+     */
+    @Override
+    public ResponseEntity<List<Service>> getServiceDescriptionServices(String id) {
+        return null;
     }
 }
