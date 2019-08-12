@@ -289,13 +289,13 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         assertTrue(serviceCodes.contains(CALCULATE_PRIME));
 
         try {
-            clientsApiController.getClient("123451");
+            serviceDescriptionsApiController.getServiceDescription("123451");
             fail("should throw NotFoundException to 404");
         } catch (NotFoundException expected) {
         }
 
         try {
-            clientsApiController.getClient("ugh");
+            serviceDescriptionsApiController.getServiceDescription("ugh");
             fail("should throw NotFoundException to 404");
         } catch (NotFoundException expected) {
         }
@@ -320,13 +320,13 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         assertEquals(0, response.getBody().size());
 
         try {
-            clientsApiController.getClient("123451");
+            serviceDescriptionsApiController.getServiceDescriptionServices("123451");
             fail("should throw NotFoundException to 404");
         } catch (NotFoundException expected) {
         }
 
         try {
-            clientsApiController.getClient("ugh");
+            serviceDescriptionsApiController.getServiceDescriptionServices("ugh");
             fail("should throw NotFoundException to 404");
         } catch (NotFoundException expected) {
         }

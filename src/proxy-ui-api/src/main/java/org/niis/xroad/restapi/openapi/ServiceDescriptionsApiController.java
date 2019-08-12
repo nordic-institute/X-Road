@@ -24,9 +24,14 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
+import ee.ria.xroad.common.identifier.ClientId;
+
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.ServiceConverter;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
+import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.IgnoreWarnings;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
@@ -46,6 +51,8 @@ import org.springframework.web.context.request.NativeWebRequest;
 import java.util.Collections;
 import java.util.List;
 
+import static java.util.stream.Collectors.toList;
+
 /**
  * service descriptions api
  */
@@ -58,20 +65,24 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     private final NativeWebRequest request;
     private final ServiceDescriptionService serviceDescriptionService;
     private final ServiceDescriptionConverter serviceDescriptionConverter;
+    private final ServiceConverter serviceConverter;
 
     /**
      * ServiceDescriptionsApiController constructor
      * @param serviceDescriptionService
      * @param serviceDescriptionConverter
+     * @param serviceConverter
      */
 
     @Autowired
     public ServiceDescriptionsApiController(NativeWebRequest request,
             ServiceDescriptionService serviceDescriptionService,
-            ServiceDescriptionConverter serviceDescriptionConverter) {
+            ServiceDescriptionConverter serviceDescriptionConverter,
+            ServiceConverter serviceConverter) {
         this.request = request;
         this.serviceDescriptionService = serviceDescriptionService;
         this.serviceDescriptionConverter = serviceDescriptionConverter;
+        this.serviceConverter = serviceConverter;
     }
 
     @Override
@@ -132,15 +143,20 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         return new ResponseEntity<>(serviceDescription, HttpStatus.OK);
     }
 
-    @Override
     /**
      * Returns one service description, using primary key id.
      * {@inheritDoc}
      *
      * @param id primary key of service description
      */
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
     public ResponseEntity<ServiceDescription> getServiceDescription(String id) {
-        return null;
+        ServiceDescriptionType serviceDescriptionType =
+                getServiceDescriptionType(id);
+        return new ResponseEntity<>(
+                serviceDescriptionConverter.convert(serviceDescriptionType),
+                HttpStatus.OK);
     }
 
     /**
@@ -151,7 +167,29 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
      * @param id primary key of service description
      */
     @Override
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
     public ResponseEntity<List<Service>> getServiceDescriptionServices(String id) {
-        return null;
+        ServiceDescriptionType serviceDescriptionType =
+                getServiceDescriptionType(id);
+        ClientId clientId = serviceDescriptionType.getClient().getIdentifier();
+        List<Service> services = serviceDescriptionType.getService().stream()
+                .map(serviceType -> serviceConverter.convert(serviceType, clientId))
+                .collect(toList());
+        return new ResponseEntity<>(services, HttpStatus.OK);
     }
+
+    /**
+     * return matching ServiceDescriptionType, or throw NotFoundException
+     */
+    private ServiceDescriptionType getServiceDescriptionType(String id) {
+        Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
+        ServiceDescriptionType serviceDescriptionType =
+                serviceDescriptionService.getServiceDescriptiontype(serviceDescriptionId);
+        if (serviceDescriptionType == null) {
+            throw new NotFoundException();
+        }
+        return serviceDescriptionType;
+    }
+
+
 }
