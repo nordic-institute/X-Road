@@ -94,7 +94,7 @@ rm -rf %{buildroot}
 %verifyscript
 
 %post
-umask 007
+umask 027
 
 # ensure home directory ownership
 mkdir -p /var/lib/xroad/backup
