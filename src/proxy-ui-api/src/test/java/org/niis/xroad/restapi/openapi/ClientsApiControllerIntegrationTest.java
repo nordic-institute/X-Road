@@ -90,7 +90,7 @@ import static org.mockito.Mockito.when;
  * Test ClientsApiController
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @AutoConfigureTestDatabase
 @Transactional
 @Slf4j
@@ -432,8 +432,12 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_LOCAL_GROUP" })
     public void addLocalGroup() throws Exception {
-        ResponseEntity<Void> response = clientsApiController.addClientGroup(CLIENT_ID_SS1, createGroup(NEW_GROUPCODE));
+        ResponseEntity<Group> response = clientsApiController.addClientGroup(CLIENT_ID_SS1, createGroup(NEW_GROUPCODE));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        Group group = response.getBody();
+        assertEquals(NEW_GROUPCODE, group.getCode());
+        assertEquals(Collections.singletonList("http://localhost/api/groups/" + group.getId()),
+                response.getHeaders().get("Location"));
     }
 
     @Test

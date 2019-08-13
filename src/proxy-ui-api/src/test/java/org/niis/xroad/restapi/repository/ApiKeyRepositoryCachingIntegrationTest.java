@@ -57,7 +57,7 @@ import static org.mockito.Mockito.when;
  * Test api key repository caching while mocking DB
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @AutoConfigureTestDatabase
 @Slf4j
 @Transactional

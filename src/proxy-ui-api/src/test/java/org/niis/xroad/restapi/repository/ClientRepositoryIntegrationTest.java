@@ -43,7 +43,7 @@ import static org.junit.Assert.assertEquals;
  * test ClientRepository
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @AutoConfigureTestDatabase
 @Slf4j
 @Transactional

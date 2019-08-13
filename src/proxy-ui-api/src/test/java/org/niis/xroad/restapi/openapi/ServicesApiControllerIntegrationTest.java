@@ -42,7 +42,7 @@ import static org.junit.Assert.assertEquals;
  * Test ServicesApiController
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @AutoConfigureTestDatabase
 @Transactional
 @Slf4j

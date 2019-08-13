@@ -60,8 +60,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import javax.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
+import java.net.URI;
 import java.security.cert.CertificateException;
 import java.util.List;
 import java.util.Optional;
@@ -256,12 +260,32 @@ public class ClientsApiController implements ClientsApi {
         return Optional.ofNullable(request);
     }
 
+    private HttpServletRequest getHttpServletRequest() {
+        return getRequest()
+                       .get()
+                       .getNativeRequest(HttpServletRequest.class);
+    }
+
+    @Autowired
+    private HttpServletRequest autowired;
+
     @Override
     @PreAuthorize("hasAuthority('ADD_LOCAL_GROUP')")
-    public ResponseEntity<Void> addClientGroup(String id, Group group) {
+    public ResponseEntity<Group> addClientGroup(String id, Group group) {
         ClientType clientType = getClientType(id);
-        groupsService.addLocalGroup(clientType.getIdentifier(), groupConverter.convert(group));
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        LocalGroupType localGroupType = groupsService.addLocalGroup(clientType.getIdentifier(),
+                groupConverter.convert(group));
+
+        System.out.println("autowired=" + autowired);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                         .replacePath("/api/groups/{id}")
+                         .buildAndExpand(localGroupType.getId())
+                         .toUri();
+        Group createdGroup = groupConverter.convert(localGroupType);
+        return ResponseEntity.created(location)
+                .body(createdGroup);
     }
 
     @Override

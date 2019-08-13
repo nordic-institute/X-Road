@@ -43,7 +43,7 @@ import static org.junit.Assert.assertEquals;
  * Test GroupConverter
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 public class GroupConverterTest {
 
     public static final String MEMBER_NAME_PREFIX = "member-name-for-";

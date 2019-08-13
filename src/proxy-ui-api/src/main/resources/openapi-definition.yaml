@@ -714,6 +714,10 @@ paths:
       responses:
         '201':
           description: local group created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
         '400':
           description: request was invalid
         '401':
