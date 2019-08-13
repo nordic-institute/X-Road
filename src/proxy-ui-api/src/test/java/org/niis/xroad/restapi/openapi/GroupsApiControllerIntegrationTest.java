@@ -56,6 +56,7 @@ import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.util.TestUtils.assertMissingLocationHeader;
 
 /**
  * Test GroupsApiController
@@ -148,10 +149,15 @@ public class GroupsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENTS", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_MEMBERS" })
     public void addGroupMember() throws Exception {
-        ResponseEntity<Void> response =
+        ResponseEntity<Members> response =
                 groupsApiController.addGroupMember(GROUP_ID,
                         new Members().items(Collections.singletonList(CLIENT_ID_SS2)));
+
+        List<String> addedMembers = response.getBody().getItems();
+        assertEquals(Collections.singletonList(CLIENT_ID_SS2), addedMembers);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertMissingLocationHeader(response);
+
         ResponseEntity<Group> localGroupResponse = groupsApiController.getGroup(GROUP_ID);
         assertEquals(1, localGroupResponse.getBody().getMembers().size());
     }
@@ -160,8 +166,13 @@ public class GroupsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_CLIENTS", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_MEMBERS" })
     public void addMultipleGroupMembers() throws Exception {
         List<String> membersToBeAdded = Arrays.asList(CLIENT_ID_SS1, CLIENT_ID_SS2, CLIENT_ID_SS1, CLIENT_ID_SS2);
-        ResponseEntity<Void> response = groupsApiController.addGroupMember(GROUP_ID,
+        ResponseEntity<Members> response = groupsApiController.addGroupMember(GROUP_ID,
                 new Members().items(membersToBeAdded));
+        List<String> addedMembers = response.getBody().getItems();
+        assertEquals(membersToBeAdded, addedMembers);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertMissingLocationHeader(response);
+
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         ResponseEntity<Group> localGroupResponse = groupsApiController.getGroup(GROUP_ID);
         assertEquals(2, localGroupResponse.getBody().getMembers().size());
@@ -171,7 +182,7 @@ public class GroupsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_CLIENTS", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_MEMBERS" })
     public void addDuplicateGroupMember() throws Exception {
         List<String> membersToBeAdded = Arrays.asList(CLIENT_ID_SS1, CLIENT_ID_SS2);
-        ResponseEntity<Void> response = groupsApiController.addGroupMember(GROUP_ID,
+        ResponseEntity<Members> response = groupsApiController.addGroupMember(GROUP_ID,
                 new Members().items(membersToBeAdded));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         ResponseEntity<Group> localGroupResponse = groupsApiController.getGroup(GROUP_ID);
@@ -188,7 +199,7 @@ public class GroupsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENTS", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_MEMBERS" })
     public void deleteGroupMember() throws Exception {
-        ResponseEntity<Void> response =
+        ResponseEntity<Members> response =
                 groupsApiController.addGroupMember(GROUP_ID, new Members()
                         .items(Collections.singletonList(CLIENT_ID_SS2)));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());

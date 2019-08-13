@@ -28,8 +28,14 @@ import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.niis.xroad.restapi.exceptions.Warning;
+import org.springframework.http.ResponseEntity;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * Test utils for generic object creation
@@ -92,6 +98,27 @@ public final class TestUtils {
                     .orElse(null);
         }
         return null;
+    }
+
+    /**
+     * assert that path <code>http://http://localhost/api</code> + endpointPathEnd
+     * exists in header <code>Location</code>
+     * @param endpointPath
+     * @param response
+     */
+    public static void assertLocationHeader(String endpointPath, ResponseEntity response) {
+        assertEquals(Collections.singletonList(TEST_API_URL + endpointPath),
+                response.getHeaders().get("Location"));
+    }
+    private static final String TEST_API_URL = "http://localhost/api";
+
+    /**
+     * assert that request does not have <code>Location</code> headers
+     * @param response
+     */
+    public static void assertMissingLocationHeader(ResponseEntity response) {
+        List<String> locationHeaders = response.getHeaders().get("Location");
+        assertNull(locationHeaders);
     }
 
 

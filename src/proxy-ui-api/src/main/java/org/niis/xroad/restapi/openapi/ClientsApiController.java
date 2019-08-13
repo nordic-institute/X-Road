@@ -62,8 +62,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import javax.servlet.http.HttpServletRequest;
-
 import java.io.IOException;
 import java.net.URI;
 import java.security.cert.CertificateException;
@@ -207,7 +205,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('ADD_CLIENT_INTERNAL_CERT')")
-    public ResponseEntity<Void> addClientTlsCertificate(String encodedId,
+    public ResponseEntity<CertificateDetails> addClientTlsCertificate(String encodedId,
             Resource body) {
         byte[] certificateBytes;
         try {
@@ -260,23 +258,12 @@ public class ClientsApiController implements ClientsApi {
         return Optional.ofNullable(request);
     }
 
-    private HttpServletRequest getHttpServletRequest() {
-        return getRequest()
-                       .get()
-                       .getNativeRequest(HttpServletRequest.class);
-    }
-
-    @Autowired
-    private HttpServletRequest autowired;
-
     @Override
     @PreAuthorize("hasAuthority('ADD_LOCAL_GROUP')")
     public ResponseEntity<Group> addClientGroup(String id, Group group) {
         ClientType clientType = getClientType(id);
         LocalGroupType localGroupType = groupsService.addLocalGroup(clientType.getIdentifier(),
                 groupConverter.convert(group));
-
-        System.out.println("autowired=" + autowired);
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -307,7 +294,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('ADD_WSDL')")
-    public ResponseEntity<Void> addClientServiceDescription(String id, Boolean ignoreWarnings,
+    public ResponseEntity<ServiceDescription> addClientServiceDescription(String id, Boolean ignoreWarnings,
             ServiceDescriptionAdd serviceDescription) {
         if (serviceDescription.getType() == ServiceType.WSDL) {
             serviceDescriptionService.addWsdlServiceDescription(clientConverter.convertId(id),

@@ -85,6 +85,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.util.TestUtils.assertLocationHeader;
 
 /**
  * Test ClientsApiController
@@ -349,10 +350,16 @@ public class ClientsApiControllerIntegrationTest {
     public void addTlsCert() throws Exception {
         ResponseEntity<List<CertificateDetails>> certs = clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1);
         assertEquals(0, certs.getBody().size());
-        ResponseEntity<Void> response =
+        ResponseEntity<CertificateDetails> response =
                 clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1,
                         getResourceToCert(VALID_CERT));
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        CertificateDetails certificateDetails = response.getBody();
+        assertEquals("wrong, update later", certificateDetails.getHash());
+        assertEquals("wrong, update later", certificateDetails.getIssuerCommonName());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertLocationHeader("/certificates/" + certificateDetails.getHash(), response);
+
         assertEquals(1, clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1).getBody().size());
         // cert already exists
         try {
@@ -378,7 +385,7 @@ public class ClientsApiControllerIntegrationTest {
             "DELETE_CLIENT_INTERNAL_CERT",
             "VIEW_CLIENT_INTERNAL_CERTS" })
     public void deleteTlsCert() throws Exception {
-        ResponseEntity<Void> response =
+        ResponseEntity<CertificateDetails> response =
                 clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1,
                         getResourceToCert(VALID_CERT));
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -404,7 +411,7 @@ public class ClientsApiControllerIntegrationTest {
             "VIEW_CLIENT_INTERNAL_CERT_DETAILS",
             "VIEW_CLIENT_INTERNAL_CERTS" })
     public void findTlsCert() throws Exception {
-        ResponseEntity<Void> response =
+        ResponseEntity<CertificateDetails> response =
                 clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1,
                         getResourceToCert(VALID_CERT));
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -436,8 +443,7 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         Group group = response.getBody();
         assertEquals(NEW_GROUPCODE, group.getCode());
-        assertEquals(Collections.singletonList("http://localhost/api/groups/" + group.getId()),
-                response.getHeaders().get("Location"));
+        assertLocationHeader("/groups/" + group.getId(), response);
     }
 
     @Test
@@ -594,7 +600,14 @@ public class ClientsApiControllerIntegrationTest {
         ServiceDescriptionAdd serviceDescription = new ServiceDescriptionAdd()
                 .url("file:src/test/resources/valid.wsdl");
         serviceDescription.setType(ServiceType.WSDL);
-        clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, serviceDescription);
+        ResponseEntity<ServiceDescription> response = clientsApiController.addClientServiceDescription(
+                CLIENT_ID_SS1, false, serviceDescription);
+        ServiceDescription addedServiceDescription = response.getBody();
+        assertNotNull(addedServiceDescription.getId());
+        assertEquals(serviceDescription.getUrl(), addedServiceDescription.getUrl());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertLocationHeader("/service-descriptions/" + addedServiceDescription.getId(), response);
+
         ResponseEntity<List<ServiceDescription>> descriptions =
                 clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1);
         assertEquals(3, descriptions.getBody().size());

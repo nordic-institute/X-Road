@@ -90,7 +90,7 @@ public class GroupsApiController implements GroupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
-    public ResponseEntity<Void> addGroupMember(String groupIdString, Members members) {
+    public ResponseEntity<Members> addGroupMember(String groupIdString, Members members) {
         if (members == null || members.getItems() == null || members.getItems().size() < 1) {
             throw new InvalidParametersException("missing member id");
         }
