@@ -98,7 +98,7 @@ public class GroupsApiController implements GroupsApi {
         List<String> uniqueIds = new ArrayList<>(new HashSet<>(members.getItems()));
         Long groupId = FormatUtils.parseLongIdOrThrowNotFound(groupIdString);
         groupsService.addLocalGroupMembers(groupId, clientConverter.convertIds(uniqueIds));
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        return new ResponseEntity<>(members, HttpStatus.CREATED);
     }
 
     @Override
