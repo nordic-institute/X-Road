@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
@@ -60,15 +61,14 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.context.request.NativeWebRequest;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
-import java.net.URI;
 import java.security.cert.CertificateException;
 import java.util.List;
 import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.restapi.openapi.ApiUtil.createCreatedResponse;
 
 /**
  * clients api
@@ -221,13 +221,7 @@ public class ClientsApiController implements ClientsApi {
             throw new BadRequestException(c, new Error(INVALID_CERT_ERROR_CODE));
         }
         CertificateDetails certificateDetails = certificateDetailsConverter.convert(certificateType);
-        URI location = ServletUriComponentsBuilder
-                               .fromCurrentRequest()
-                               .replacePath("/api/certificates/{hash}")
-                               .buildAndExpand(certificateDetails.getHash())
-                               .toUri();
-        return ResponseEntity.created(location)
-                       .body(certificateDetails);
+        return createCreatedResponse("/api/certificates/{hash}", certificateDetails, certificateDetails.getHash());
     }
 
     @Override
@@ -272,15 +266,8 @@ public class ClientsApiController implements ClientsApi {
         ClientType clientType = getClientType(id);
         LocalGroupType localGroupType = groupsService.addLocalGroup(clientType.getIdentifier(),
                 groupConverter.convert(group));
-
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                         .replacePath("/api/groups/{id}")
-                         .buildAndExpand(localGroupType.getId())
-                         .toUri();
         Group createdGroup = groupConverter.convert(localGroupType);
-        return ResponseEntity.created(location)
-                .body(createdGroup);
+        return createCreatedResponse("/api/groups/{id}", createdGroup, localGroupType.getId());
     }
 
     @Override
@@ -304,12 +291,17 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('ADD_WSDL')")
     public ResponseEntity<ServiceDescription> addClientServiceDescription(String id, Boolean ignoreWarnings,
             ServiceDescriptionAdd serviceDescription) {
+        ServiceDescriptionType addedServiceDescriptionType = null;
         if (serviceDescription.getType() == ServiceType.WSDL) {
-            serviceDescriptionService.addWsdlServiceDescription(clientConverter.convertId(id),
+            addedServiceDescriptionType = serviceDescriptionService.addWsdlServiceDescription(
+                    clientConverter.convertId(id),
                     serviceDescription.getUrl(), ignoreWarnings);
         } else if (serviceDescription.getType() == ServiceType.REST) {
             return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
         }
-        return new ResponseEntity<>(HttpStatus.OK);
+        ServiceDescription addedServiceDescription = serviceDescriptionConverter.convert(
+                addedServiceDescriptionType);
+        return createCreatedResponse("/api/service-descriptions/{id}", addedServiceDescription,
+                addedServiceDescription.getId());
     }
 }

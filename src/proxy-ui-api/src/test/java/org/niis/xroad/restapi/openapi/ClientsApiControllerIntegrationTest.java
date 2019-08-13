@@ -361,7 +361,7 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals("O=Internet Widgits Pty Ltd, ST=Some-State, C=AU",
                 certificateDetails.getSubjectDistinguishedName());
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertLocationHeader("/certificates/" + certificateDetails.getHash(), response);
+        assertLocationHeader("/api/certificates/" + certificateDetails.getHash(), response);
 
         assertEquals(1, clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1).getBody().size());
         // cert already exists
@@ -446,7 +446,7 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         Group group = response.getBody();
         assertEquals(NEW_GROUPCODE, group.getCode());
-        assertLocationHeader("/groups/" + group.getId(), response);
+        assertLocationHeader("/api/groups/" + group.getId(), response);
     }
 
     @Test
@@ -609,7 +609,7 @@ public class ClientsApiControllerIntegrationTest {
         assertNotNull(addedServiceDescription.getId());
         assertEquals(serviceDescription.getUrl(), addedServiceDescription.getUrl());
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertLocationHeader("/service-descriptions/" + addedServiceDescription.getId(), response);
+        assertLocationHeader("/api/service-descriptions/" + addedServiceDescription.getId(), response);
 
         ResponseEntity<List<ServiceDescription>> descriptions =
                 clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1);

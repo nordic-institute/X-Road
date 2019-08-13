@@ -24,19 +24,23 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.net.URI;
 
 /**
  * api util
  */
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class ApiUtil {
+
     /**
-     * checkstyle
+     * Create a specified example response, to return from endpoints not implemented yet
      * @param req
      * @param contentType
      * @param example
@@ -51,4 +55,28 @@ public class ApiUtil {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Creates a ResponseEntity with status code 201 CREATED
+     * with response body <code>body</code> and <code>Location</code>
+     * header that points to <code>path</code>, which has been expanded with
+     * <code>uriVariableValues</code>
+     * @param path
+     * @param body
+     * @param uriVariableValues
+     * @param <T>
+     * @return
+     */
+    public static  <T> ResponseEntity<T> createCreatedResponse(String path,
+            T body, Object... uriVariableValues) {
+        URI location = ServletUriComponentsBuilder
+                               .fromCurrentRequest()
+                               .replacePath(path)
+                               .buildAndExpand(uriVariableValues)
+                               .toUri();
+        return ResponseEntity.created(location)
+                       .body(body);
+    }
+
+
 }

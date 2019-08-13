@@ -101,16 +101,16 @@ public final class TestUtils {
     }
 
     /**
-     * assert that path <code>http://http://localhost/api</code> + endpointPathEnd
+     * assert that path <code>http://http://localhost</code> + endpointPathEnd
      * exists in header <code>Location</code> (true for our integration tests)
-     * @param endpointPath
+     * @param endpointPath for example "/api/service-descriptions/12"
      * @param response
      */
     public static void assertLocationHeader(String endpointPath, ResponseEntity response) {
         assertEquals(Collections.singletonList(TEST_API_URL + endpointPath),
                 response.getHeaders().get("Location"));
     }
-    private static final String TEST_API_URL = "http://localhost/api";
+    private static final String TEST_API_URL = "http://localhost";
 
     /**
      * assert that request does not have <code>Location</code> headers
