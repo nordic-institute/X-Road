@@ -102,7 +102,7 @@ public final class TestUtils {
 
     /**
      * assert that path <code>http://http://localhost/api</code> + endpointPathEnd
-     * exists in header <code>Location</code>
+     * exists in header <code>Location</code> (true for our integration tests)
      * @param endpointPath
      * @param response
      */

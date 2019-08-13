@@ -135,6 +135,35 @@ public class ClientsApiControllerIntegrationTest {
             + "wREOMPwTZy68CZEaEQyE4M9KezCeVJMCXmnJt1I9oudsw3xPDjq+aYzRORW74RvNFf+sztBjPGhkqFnkl+glbEK6otefyJP\n"
             + "n5vVwjz/+ywyqzx8YJM0vPkD/PghmJxunsJObbvif9FNZaxOaEzI9QDw0nWzbgvsCAqdcHqRjMEQwtU75fzfg==");
 
+    // base64 example certs
+    public static final String VALID_CERT_HASH = "63A104B2BAC14667873C5DBD54BE25BC687B3702";
+    private static final String VALID_CERT =
+            "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIwekNDQVgyZ0F3SUJBZ0lKQU0ra0lkTDRqSTYx"
+                    + "TUEwR0NTcUdTSWIzRFFFQkN3VUFNRVV4Q3pBSkJnTlYKQkFZVEFrRlZNUk13RVFZRFZRUUlE"
+                    + "QXBUYjIxbExWTjBZWFJsTVNFd0h3WURWUVFLREJoSmJuUmxjbTVsZENCWAphV1JuYVhSeklG"
+                    + "QjBlU0JNZEdRd0hoY05NVGt3TkRJME1EWTFPVEF5V2hjTk1qQXdOREl6TURZMU9UQXlXakJG"
+                    + "Ck1Rc3dDUVlEVlFRR0V3SkJWVEVUTUJFR0ExVUVDQXdLVTI5dFpTMVRkR0YwWlRFaE1COEdB"
+                    + "MVVFQ2d3WVNXNTAKWlhKdVpYUWdWMmxrWjJsMGN5QlFkSGtnVEhSa01Gd3dEUVlKS29aSWh2"
+                    + "Y05BUUVCQlFBRFN3QXdTQUpCQU1uRAp5bkQ1dHp5K0YyNUZKbDVOUFJaMlRrclBJV2lmdmR3"
+                    + "aVJCYXFudjNYSlNsWllNeHVTbERlblBNYmIwdHhXMUM4CjBxeDVnVVlDRk5xcU5qV0hWSlVD"
+                    + "QXdFQUFhTlFNRTR3SFFZRFZSME9CQllFRkxMQ3hCbExXekFIZVE5U1o3b3gKbFYvUE9JUHZN"
+                    + "QjhHQTFVZEl3UVlNQmFBRkxMQ3hCbExXekFIZVE5U1o3b3hsVi9QT0lQdk1Bd0dBMVVkRXdR"
+                    + "RgpNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEUVFBY2xuR2JkdGJhVXNOTmEvWHRHYlhD"
+                    + "WFpjZERRaWo2SGx3Cmp1ZGRqKzdmR2psSnZMMWF5OUlaYjIxblRJOHpOQXhsb25Ld2YrT1g0"
+                    + "ODRQM2ZBVHFCMGIKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=";
+    private static final String INVALID_CERT =
+            "dG90YWwgMzYKZHJ3eHJ3eHIteCAzIGphbm5lIGphbm5lIDQwOTYgaHVodGkgMjQgMTY6MjEgLgpkcnd4cn"
+                    + "d4ci14IDkgamFubmUgamFubmUgNDA5NiBodWh0aSAyNCAxMToxNSAuLgotcnctcnctci0tIDEg"
+                    + "amFubmUgamFubmUgMzEwNSBodWh0aSAyNCAxNjowOSBkZWNvZGVkCi1ydy1ydy1yLS0gMSBqYW"
+                    + "5uZSBqYW5uZSAyMjUyIGh1aHRpIDIzIDE0OjEyIGdvb2dsZS1jZXJ0LmRlcgotcnctcnctci0t"
+                    + "IDEgamFubmUgamFubmUgMzAwNCBodWh0aSAyNCAxNjowOSBnb29nbGUtY2VydC5kZXIuYmFzZT"
+                    + "Y0Ci1ydy1ydy1yLS0gMSBqYW5uZSBqYW5uZSAzMTA1IGh1aHRpIDIzIDE0OjA5IGdvb2dsZS1j"
+                    + "ZXJ0LnBlbQotcnctcnctci0tIDEgamFubmUgamFubmUgNDE0MCBodWh0aSAyNCAxNjowOSBnb2"
+                    + "9nbGUtY2VydC5wZW0uYmFzZTY0Ci1ydy1ydy1yLS0gMSBqYW5uZSBqYW5uZSAgICAwIGh1aHRp"
+                    + "IDI0IDE2OjIxIG5vbi1jZXJ0CmRyd3hyd3hyLXggMiBqYW5uZSBqYW5uZSA0MDk2IGh1aHRpID"
+                    + "I0IDE2OjIxIHRpbnkK";
+
+
     @MockBean
     private GlobalConfWrapper globalConfWrapper;
 
@@ -308,32 +337,6 @@ public class ClientsApiControllerIntegrationTest {
         return mockTokens;
     }
 
-    // base64 example certs
-    private static final String VALID_CERT =
-            "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIwekNDQVgyZ0F3SUJBZ0lKQU0ra0lkTDRqSTYx"
-                    + "TUEwR0NTcUdTSWIzRFFFQkN3VUFNRVV4Q3pBSkJnTlYKQkFZVEFrRlZNUk13RVFZRFZRUUlE"
-                    + "QXBUYjIxbExWTjBZWFJsTVNFd0h3WURWUVFLREJoSmJuUmxjbTVsZENCWAphV1JuYVhSeklG"
-                    + "QjBlU0JNZEdRd0hoY05NVGt3TkRJME1EWTFPVEF5V2hjTk1qQXdOREl6TURZMU9UQXlXakJG"
-                    + "Ck1Rc3dDUVlEVlFRR0V3SkJWVEVUTUJFR0ExVUVDQXdLVTI5dFpTMVRkR0YwWlRFaE1COEdB"
-                    + "MVVFQ2d3WVNXNTAKWlhKdVpYUWdWMmxrWjJsMGN5QlFkSGtnVEhSa01Gd3dEUVlKS29aSWh2"
-                    + "Y05BUUVCQlFBRFN3QXdTQUpCQU1uRAp5bkQ1dHp5K0YyNUZKbDVOUFJaMlRrclBJV2lmdmR3"
-                    + "aVJCYXFudjNYSlNsWllNeHVTbERlblBNYmIwdHhXMUM4CjBxeDVnVVlDRk5xcU5qV0hWSlVD"
-                    + "QXdFQUFhTlFNRTR3SFFZRFZSME9CQllFRkxMQ3hCbExXekFIZVE5U1o3b3gKbFYvUE9JUHZN"
-                    + "QjhHQTFVZEl3UVlNQmFBRkxMQ3hCbExXekFIZVE5U1o3b3hsVi9QT0lQdk1Bd0dBMVVkRXdR"
-                    + "RgpNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEUVFBY2xuR2JkdGJhVXNOTmEvWHRHYlhD"
-                    + "WFpjZERRaWo2SGx3Cmp1ZGRqKzdmR2psSnZMMWF5OUlaYjIxblRJOHpOQXhsb25Ld2YrT1g0"
-                    + "ODRQM2ZBVHFCMGIKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=";
-    private static final String INVALID_CERT =
-            "dG90YWwgMzYKZHJ3eHJ3eHIteCAzIGphbm5lIGphbm5lIDQwOTYgaHVodGkgMjQgMTY6MjEgLgpkcnd4cn"
-                    + "d4ci14IDkgamFubmUgamFubmUgNDA5NiBodWh0aSAyNCAxMToxNSAuLgotcnctcnctci0tIDEg"
-                    + "amFubmUgamFubmUgMzEwNSBodWh0aSAyNCAxNjowOSBkZWNvZGVkCi1ydy1ydy1yLS0gMSBqYW"
-                    + "5uZSBqYW5uZSAyMjUyIGh1aHRpIDIzIDE0OjEyIGdvb2dsZS1jZXJ0LmRlcgotcnctcnctci0t"
-                    + "IDEgamFubmUgamFubmUgMzAwNCBodWh0aSAyNCAxNjowOSBnb29nbGUtY2VydC5kZXIuYmFzZT"
-                    + "Y0Ci1ydy1ydy1yLS0gMSBqYW5uZSBqYW5uZSAzMTA1IGh1aHRpIDIzIDE0OjA5IGdvb2dsZS1j"
-                    + "ZXJ0LnBlbQotcnctcnctci0tIDEgamFubmUgamFubmUgNDE0MCBodWh0aSAyNCAxNjowOSBnb2"
-                    + "9nbGUtY2VydC5wZW0uYmFzZTY0Ci1ydy1ydy1yLS0gMSBqYW5uZSBqYW5uZSAgICAwIGh1aHRp"
-                    + "IDI0IDE2OjIxIG5vbi1jZXJ0CmRyd3hyd3hyLXggMiBqYW5uZSBqYW5uZSA0MDk2IGh1aHRpID"
-                    + "I0IDE2OjIxIHRpbnkK";
 
     /**
      * Return a Resource for reading a cert, given as base64 encoded string param
@@ -353,10 +356,10 @@ public class ClientsApiControllerIntegrationTest {
         ResponseEntity<CertificateDetails> response =
                 clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1,
                         getResourceToCert(VALID_CERT));
-        assertEquals(HttpStatus.OK, response.getStatusCode());
         CertificateDetails certificateDetails = response.getBody();
-        assertEquals("wrong, update later", certificateDetails.getHash());
-        assertEquals("wrong, update later", certificateDetails.getIssuerCommonName());
+        assertEquals(VALID_CERT_HASH, certificateDetails.getHash());
+        assertEquals("O=Internet Widgits Pty Ltd, ST=Some-State, C=AU",
+                certificateDetails.getSubjectDistinguishedName());
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertLocationHeader("/certificates/" + certificateDetails.getHash(), response);
 
@@ -388,17 +391,17 @@ public class ClientsApiControllerIntegrationTest {
         ResponseEntity<CertificateDetails> response =
                 clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1,
                         getResourceToCert(VALID_CERT));
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(1, clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1).getBody().size());
         ResponseEntity<Void> deleteResponse =
                 clientsApiController.deleteClientTlsCertificate(CLIENT_ID_SS1,
-                        "63A104B2BAC14667873C5DBD54BE25BC687B3702");
+                        VALID_CERT_HASH);
         assertEquals(HttpStatus.OK, deleteResponse.getStatusCode());
         assertEquals(0, clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1).getBody().size());
         // cert does not exist
         try {
             clientsApiController.deleteClientTlsCertificate(CLIENT_ID_SS1,
-                    "63A104B2BAC14667873C5DBD54BE25BC687B3702");
+                    VALID_CERT_HASH);
             fail("should have thrown NotFoundException");
         } catch (NotFoundException expected) {
         }
@@ -414,19 +417,19 @@ public class ClientsApiControllerIntegrationTest {
         ResponseEntity<CertificateDetails> response =
                 clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1,
                         getResourceToCert(VALID_CERT));
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(1, clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1).getBody().size());
         ResponseEntity<CertificateDetails> findResponse =
                 clientsApiController.getClientTlsCertificate(CLIENT_ID_SS1,
-                        "63A104B2BAC14667873C5DBD54BE25BC687B3702");
+                        VALID_CERT_HASH);
         assertEquals(HttpStatus.OK, findResponse.getStatusCode());
-        assertEquals("63A104B2BAC14667873C5DBD54BE25BC687B3702", findResponse.getBody().getHash());
+        assertEquals(VALID_CERT_HASH, findResponse.getBody().getHash());
         // case insensitive
         findResponse =
                 clientsApiController.getClientTlsCertificate(CLIENT_ID_SS1,
                         "63a104b2bac14667873c5dbd54be25bc687b3702");
         assertEquals(HttpStatus.OK, findResponse.getStatusCode());
-        assertEquals("63A104B2BAC14667873C5DBD54BE25BC687B3702", findResponse.getBody().getHash());
+        assertEquals(VALID_CERT_HASH, findResponse.getBody().getHash());
         // not found
         try {
             clientsApiController.getClientTlsCertificate(CLIENT_ID_SS1,

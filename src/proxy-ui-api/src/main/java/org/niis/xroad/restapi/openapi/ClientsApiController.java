@@ -214,12 +214,20 @@ public class ClientsApiController implements ClientsApi {
             throw new BadRequestException("cannot read certificate data", ex, new Error(INVALID_UPLOAD_ERROR_CODE));
         }
         ClientId clientId = clientConverter.convertId(encodedId);
+        CertificateType certificateType = null;
         try {
-            clientService.addTlsCertificate(clientId, certificateBytes);
+            certificateType = clientService.addTlsCertificate(clientId, certificateBytes);
         } catch (CertificateException c) {
             throw new BadRequestException(c, new Error(INVALID_CERT_ERROR_CODE));
         }
-        return new ResponseEntity<>(HttpStatus.OK);
+        CertificateDetails certificateDetails = certificateDetailsConverter.convert(certificateType);
+        URI location = ServletUriComponentsBuilder
+                               .fromCurrentRequest()
+                               .replacePath("/api/certificates/{hash}")
+                               .buildAndExpand(certificateDetails.getHash())
+                               .toUri();
+        return ResponseEntity.created(location)
+                       .body(certificateDetails);
     }
 
     @Override
