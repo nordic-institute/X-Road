@@ -20,16 +20,20 @@ die () {
 }
 
 create_database_backup () {
-  if [ -x ${DATABASE_BACKUP_SCRIPT} ] ; then
-    echo "CREATING DATABASE DUMP TO ${DATABASE_DUMP_FILENAME}"
-    ${DATABASE_BACKUP_SCRIPT} ${DATABASE_DUMP_FILENAME}
-    if [ $? -ne 0 ] ; then
-      die "Database backup failed!" \
-          "Please check the error messages and fix them before trying again!"
-    fi
-    BACKED_UP_PATHS="${BACKED_UP_PATHS} ${DATABASE_DUMP_FILENAME}"
+  if [ -n ${SKIP_DB_BACKUP} ] && [[ ${SKIP_DB_BACKUP} = true ]] ; then
+    echo "SKIPPING DB BACKUP AS REQUESTED"
   else
-    die "Failed to execute the database backup script at ${DATABASE_BACKUP_SCRIPT}"
+    if [ -x ${DATABASE_BACKUP_SCRIPT} ] ; then
+      echo "CREATING DATABASE DUMP TO ${DATABASE_DUMP_FILENAME}"
+      ${DATABASE_BACKUP_SCRIPT} ${DATABASE_DUMP_FILENAME}
+      if [ $? -ne 0 ] ; then
+        die "Database backup failed!" \
+            "Please check the error messages and fix them before trying again!"
+      fi
+      BACKED_UP_PATHS="${BACKED_UP_PATHS} ${DATABASE_DUMP_FILENAME}"
+    else
+      die "Failed to execute the database backup script at ${DATABASE_BACKUP_SCRIPT}"
+    fi
   fi
 }
 
@@ -45,8 +49,11 @@ create_backup_tarball () {
   echo "Backup file saved to ${BACKUP_FILENAME}"
 }
 
-while getopts ":t:i:s:n:f:b" opt ; do
+while getopts ":t:i:s:n:f:bS" opt ; do
   case $opt in
+    S)
+      SKIP_DB_BACKUP=true
+      ;;
     t)
       SERVER_TYPE=$OPTARG
       ;;
