@@ -92,7 +92,7 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
     public List<ServiceId> getServicesByDescriptionType(Session session,
                                        ClientId serviceProvider, DescriptionType descriptionType) {
         StringBuilder qb = new StringBuilder();
-        qb.append("select s.serviceCode, s.serviceVersion from ServiceType s");
+        qb.append("select s from ServiceType s");
         qb.append(" join s.serviceDescription w");
         qb.append(" join w.client c");
 
@@ -105,13 +105,14 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
         if (descriptionType != null) {
             qb.append(" and w.type = :descriptionType");
         }
-
         Query<ServiceType> q = session.createQuery(qb.toString(), ServiceType.class);
 
         q.setParameter("clientInstance", serviceProvider.getXRoadInstance());
         q.setParameter("clientClass", serviceProvider.getMemberClass());
         q.setParameter("clientCode", serviceProvider.getMemberCode());
-        q.setParameter("descriptionType", descriptionType);
+        if (descriptionType != null) {
+            q.setParameter("descriptionType", descriptionType);
+        }
         setString(q, CLIENT_SUBSYSTEM_CODE, serviceProvider.getSubsystemCode());
 
         List<ServiceId> services = new ArrayList<>();
