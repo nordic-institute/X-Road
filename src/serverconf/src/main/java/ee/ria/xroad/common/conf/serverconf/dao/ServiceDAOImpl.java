@@ -79,46 +79,22 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
      */
     public List<ServiceId> getServices(Session session,
             ClientId serviceProvider) {
-        StringBuilder qb = new StringBuilder();
-        qb.append("select s from ServiceType s");
-        qb.append(" inner join fetch s.serviceDescription w");
-        qb.append(" inner join fetch w.client c");
-
-        qb.append(" where c.identifier.xRoadInstance = :clientInstance ");
-        qb.append(" and c.identifier.memberClass = :clientClass");
-        qb.append(" and c.identifier.memberCode = :clientCode");
-        qb.append(" and c.identifier.subsystemCode "
-                + nullOrName(serviceProvider.getSubsystemCode(),
-                CLIENT_SUBSYSTEM_CODE));
-
-        Query<ServiceType> q = session.createQuery(qb.toString(), ServiceType.class);
-
-        q.setParameter("clientInstance", serviceProvider.getXRoadInstance());
-        q.setParameter("clientClass", serviceProvider.getMemberClass());
-        q.setParameter("clientCode", serviceProvider.getMemberCode());
-        setString(q, CLIENT_SUBSYSTEM_CODE, serviceProvider.getSubsystemCode());
-
-        List<ServiceId> services = new ArrayList<>();
-        for (ServiceType service : findMany(q)) {
-            services.add(ServiceId.create(serviceProvider,
-                    service.getServiceCode(), service.getServiceVersion()));
-        }
-
-        return services;
+        return getServicesByDescriptionType(session, serviceProvider, null);
     }
 
     /**
      * Returns the services of the specified service provider filtered by type.
      * @param session the session
      * @param serviceProvider the service provider
+     * @param descriptionType filter results by description type
      * @return services of the specified service provider
      */
     public List<ServiceId> getServicesByDescriptionType(Session session,
                                        ClientId serviceProvider, DescriptionType descriptionType) {
         StringBuilder qb = new StringBuilder();
-        qb.append("select s from ServiceType s");
-        qb.append(" inner join fetch s.serviceDescription w");
-        qb.append(" inner join fetch w.client c");
+        qb.append("select s.serviceCode, s.serviceVersion from ServiceType s");
+        qb.append(" join s.serviceDescription w");
+        qb.append(" join w.client c");
 
         qb.append(" where c.identifier.xRoadInstance = :clientInstance ");
         qb.append(" and c.identifier.memberClass = :clientClass");
@@ -126,7 +102,9 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
         qb.append(" and c.identifier.subsystemCode "
                 + nullOrName(serviceProvider.getSubsystemCode(),
                 CLIENT_SUBSYSTEM_CODE));
-        qb.append(" and w.type = :descriptionType");
+        if (descriptionType != null) {
+            qb.append(" and w.type = :descriptionType");
+        }
 
         Query<ServiceType> q = session.createQuery(qb.toString(), ServiceType.class);
 

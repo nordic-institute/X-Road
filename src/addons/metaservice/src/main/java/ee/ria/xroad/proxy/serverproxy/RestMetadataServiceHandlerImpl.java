@@ -45,13 +45,11 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
-import org.apache.http.impl.EnglishReasonPhraseCatalog;
 import org.apache.http.message.BasicHeader;
 
 import javax.servlet.http.HttpServletRequest;
 
 import java.util.Arrays;
-import java.util.Locale;
 
 import static ee.ria.xroad.common.metadata.MetadataRequests.ALLOWED_METHODS;
 import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_METHODS;
@@ -110,7 +108,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
                 requestProxyMessage.getRest().getHash(),
                 requestProxyMessage.getRest().getServiceId(),
                 HttpStatus.SC_OK,
-                EnglishReasonPhraseCatalog.INSTANCE.getReason(HttpStatus.SC_OK, Locale.ENGLISH),
+                "OK",
                 requestProxyMessage.getRest().getHeaders(),
                 servletRequest.getHeader(HEADER_REQUEST_ID)
         );
