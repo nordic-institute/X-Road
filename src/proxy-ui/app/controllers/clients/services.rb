@@ -26,6 +26,7 @@ require "shellwords"
 
 java_import Java::ee.ria.xroad.common.SystemProperties
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.AccessRightType
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.EndpointType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.DescriptionType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServiceType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType
@@ -92,6 +93,9 @@ module Clients::Services
 
     client.serviceDescription.add(servicedescription)
 
+    servicedescription.service.each { |service|
+      create_endpoint(client.endpoint, service.service_code)
+    }
     serverconf_save
 
     render_json(read_services(client))
@@ -138,8 +142,9 @@ module Clients::Services
     check_duplicate_service_codes(servicedescription)
 
     client.serviceDescription.add(servicedescription)
-    serverconf_save
+    create_endpoint(client.endpoint, service.service_code)
 
+    serverconf_save
     render_json(read_services(client))
   end
 
@@ -226,7 +231,7 @@ module Clients::Services
 
     client.serviceDescription.add(servicedescription)
 
-    client.acl.each do |item|
+    client.endpoint.each do |item|
       if params[:openapi3_old_service_code] == item.serviceCode
         item.serviceCode = params[:openapi3_new_service_code]
       end
@@ -472,20 +477,22 @@ module Clients::Services
 
     audit_log_data[:clientIdentifier] = client.identifier
     audit_log_data[:serviceCode] = params[:service_code]
-    audit_log_data[:serviceCode] = params[:service_code]
     audit_log_data[:subjectIds] = []
 
     now = Date.new
 
     params[:subject_ids].each do |subject_id|
-      access_right = AccessRightType.new
-      access_right.subjectId = get_cached_subject_id(subject_id)
-      access_right.serviceCode = params[:service_code]
-      access_right.rightsGiven = now
+      endpoint = create_endpoint(client.endpoint, params[:service_code])
+      if !contains_subject(client.acl, subject_id, endpoint)
+        access_right = AccessRightType.new
+        access_right.subjectId = get_cached_subject_id(subject_id)
+        access_right.endpoint = endpoint
+        access_right.rightsGiven = now
 
-      audit_log_data[:subjectIds] << access_right.subject_id.toString
+        audit_log_data[:subjectIds] << access_right.subject_id.toString
 
-      client.acl.add(access_right)
+        client.acl.add(access_right)
+      end
     end
 
     serverconf_save
@@ -596,7 +603,7 @@ module Clients::Services
     i = 0
 
     client.acl.each do |access_right|
-      i = i + 1 if access_right.serviceCode == service_code
+      i = i + 1 if access_right.endpoint.serviceCode == service_code
     end
 
     return i
@@ -703,6 +710,8 @@ module Clients::Services
         service.serviceDescription = wsdl
 
         wsdl.service.add(service)
+        create_endpoint(client.endpoint, service.service_code)
+
       end if added_objs.has_key?(wsdl.url)
     end
 
@@ -877,7 +886,10 @@ module Clients::Services
       end
     end
 
-    remove_access_rights(client.acl, nil, service_codes) if !service_codes.empty?
+    unless service_codes.empty?
+      remove_access_rights(client.acl, nil, service_codes)
+      remove_endpoints(client.endpoint, service_codes)
+    end
   end
 
   def check_internal_server_certs(client, url)

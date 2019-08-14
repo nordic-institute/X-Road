@@ -26,6 +26,7 @@
 java_import Java::java.util.Date
 
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.AccessRightType
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.EndpointType
 java_import Java::ee.ria.xroad.common.identifier.ClientId
 java_import Java::ee.ria.xroad.common.identifier.GlobalGroupId
 java_import Java::ee.ria.xroad.common.identifier.LocalGroupId
@@ -139,7 +140,7 @@ module Clients::AclSubjects
     else
       subjects.select! do |subject|
         (match(subject[:instance], params[:subject_search_instance], true) ||
-         subject[:type] == XRoadObjectType::LOCALGROUP.toString) &&
+          subject[:type] == XRoadObjectType::LOCALGROUP.toString) &&
           match(subject[:member_group_code], params[:subject_search_code]) &&
           match(subject[:name_description], params[:subject_search_description]) &&
           match(subject[:member_class], params[:subject_search_class], true) &&
@@ -185,13 +186,14 @@ module Clients::AclSubjects
     now = Date.new
 
     params[:service_codes].each do |service_code|
-      if !contains_subject(client.acl, subject_id, service_code)
+      endpoint = create_endpoint(client.endpoint, service_code)
+      if !contains_subject(client.acl, subject_id, endpoint)
         access_right = AccessRightType.new
         access_right.subjectId = subject_id
-        access_right.serviceCode = service_code
+        access_right.endpoint = endpoint
         access_right.rightsGiven = now
 
-        audit_log_data[:serviceCodes] << access_right.serviceCode
+        audit_log_data[:serviceCodes] << service_code
 
         client.acl.add(access_right)
       end
@@ -200,6 +202,17 @@ module Clients::AclSubjects
     serverconf_save
 
     render_json(read_subject_services(client, subject_id))
+  end
+
+  def create_endpoint(endpoints, service_code, method = "*", path = "**")
+    endpoint = endpoints.detect { |ep|
+      ep.service_code == service_code && ep.method == method && ep.path == path
+    }
+    if (endpoint == nil)
+      endpoint = EndpointType.new(service_code, method, path);
+      endpoints.add(endpoint);
+    end
+    endpoint
   end
 
   def acl_subject_open_services_remove
@@ -222,7 +235,7 @@ module Clients::AclSubjects
     audit_log_data[:clientIdentifier] = client.identifier
     audit_log_data[:subjectId] = subject_id.toString
     audit_log_data[:serviceCodes] = removed_access_rights.map do |access_right|
-      access_right.serviceCode
+      access_right.endpoint.serviceCode
     end
 
     serverconf_save
@@ -243,7 +256,7 @@ module Clients::AclSubjects
     clear_cached_subject_ids
 
     client.acl.each do |access_right|
-      next if service_code && access_right.serviceCode != service_code
+      next if service_code && access_right.endpoint.serviceCode != service_code
 
       subject_id = access_right.subjectId
 
@@ -298,8 +311,8 @@ module Clients::AclSubjects
       next unless access_right.subjectId == subject_id
 
       services << {
-        :service_code => access_right.serviceCode,
-        :title => get_service_title(client, access_right.serviceCode),
+        :service_code => access_right.endpoint.serviceCode,
+        :title => get_service_title(client, access_right.endpoint.serviceCode),
         :rights_given => format_time(access_right.rightsGiven)
       }
     end
@@ -327,7 +340,7 @@ module Clients::AclSubjects
     return false if !data || data.empty?
 
     return exact ? data == filter :
-      data.mb_chars.downcase.include?(filter.mb_chars.downcase)
+             data.mb_chars.downcase.include?(filter.mb_chars.downcase)
   end
 
   def cache_subject_id(subject_id)
@@ -349,10 +362,10 @@ module Clients::AclSubjects
     Time.at(time.getTime / 1000).strftime("%F")
   end
 
-  def contains_subject(access_right, subject_id, service_code)
+  def contains_subject(access_right, subject_id, endpoint)
     access_right.each do |access_right|
       if access_right.subjectId == subject_id &&
-         access_right.serviceCode == service_code
+        access_right.endpoint == endpoint
         return access_right
       end
     end
@@ -368,7 +381,7 @@ module Clients::AclSubjects
 
     access_rights.each do |access_right|
       if (subject_ids.empty? || subject_ids.include?(access_right.subjectId)) &&
-         (service_codes.empty? || service_codes.include?(access_right.serviceCode))
+        (service_codes.empty? || service_codes.include?(access_right.endpoint.serviceCode))
 
         removed_access_rights << access_right
       end
@@ -376,5 +389,12 @@ module Clients::AclSubjects
 
     access_rights.removeAll(removed_access_rights)
     removed_access_rights
+  end
+
+  def remove_endpoints(endpoints, service_codes)
+    it = endpoints.iterator
+    while it.has_next?
+      it.remove if service_codes.include? it.next.service_code
+    end
   end
 end
