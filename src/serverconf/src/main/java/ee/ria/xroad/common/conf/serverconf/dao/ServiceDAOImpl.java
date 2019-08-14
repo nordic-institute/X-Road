@@ -24,7 +24,9 @@
  */
 package ee.ria.xroad.common.conf.serverconf.dao;
 
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -33,6 +35,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
+
+import javax.persistence.Tuple;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -91,36 +100,35 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
      */
     public List<ServiceId> getServicesByDescriptionType(Session session,
                                        ClientId serviceProvider, DescriptionType descriptionType) {
-        StringBuilder qb = new StringBuilder();
-        qb.append("select s from ServiceType s");
-        qb.append(" join s.serviceDescription w");
-        qb.append(" join w.client c");
-
-        qb.append(" where c.identifier.xRoadInstance = :clientInstance ");
-        qb.append(" and c.identifier.memberClass = :clientClass");
-        qb.append(" and c.identifier.memberCode = :clientCode");
-        qb.append(" and c.identifier.subsystemCode "
-                + nullOrName(serviceProvider.getSubsystemCode(),
-                CLIENT_SUBSYSTEM_CODE));
-        if (descriptionType != null) {
-            qb.append(" and w.type = :descriptionType");
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Tuple> tq = builder.createTupleQuery();
+        Root<ServiceType> root = tq.from(ServiceType.class);
+        Join<ServiceType, ServiceDescriptionType> joinServiceDescription = root.join("serviceDescription");
+        Join<ServiceDescriptionType, ClientType> joinClient = joinServiceDescription.join("client");
+        tq.multiselect(root.get("serviceCode"), root.get("serviceVersion"));
+        List<Predicate> predicates = new ArrayList<>();
+        predicates.add(builder.equal(joinClient.get("identifier").<String>get("xRoadInstance"),
+                serviceProvider.getXRoadInstance()));
+        predicates.add(builder.equal(joinClient.get("identifier").<String>get("memberClass"),
+                serviceProvider.getMemberClass()));
+        predicates.add(builder.equal(joinClient.get("identifier").<String>get("memberCode"),
+                serviceProvider.getMemberCode()));
+        if (serviceProvider.getSubsystemCode() == null) {
+            predicates.add(builder.isNull(joinClient.get("identifier").<String>get("subsystemCode")));
+        } else {
+            predicates.add(builder.equal(joinClient.get("identifier").<String>get("subsystemCode"),
+                    serviceProvider.getSubsystemCode()));
         }
-        Query<ServiceType> q = session.createQuery(qb.toString(), ServiceType.class);
-
-        q.setParameter("clientInstance", serviceProvider.getXRoadInstance());
-        q.setParameter("clientClass", serviceProvider.getMemberClass());
-        q.setParameter("clientCode", serviceProvider.getMemberCode());
         if (descriptionType != null) {
-            q.setParameter("descriptionType", descriptionType);
+            predicates.add(builder.equal(joinServiceDescription.get("type"), descriptionType));
         }
-        setString(q, CLIENT_SUBSYSTEM_CODE, serviceProvider.getSubsystemCode());
-
+        tq.where(predicates.toArray(new Predicate[]{}));
+        List<Tuple> resultList = session.createQuery(tq).getResultList();
         List<ServiceId> services = new ArrayList<>();
-        for (ServiceType service : findMany(q)) {
-            services.add(ServiceId.create(serviceProvider,
-                    service.getServiceCode(), service.getServiceVersion()));
+        for (Tuple tuple : resultList) {
+            services.add(ServiceId.create(serviceProvider, (String) tuple.get(0),
+                    (String) tuple.get(1)));
         }
-
         return services;
     }
 
