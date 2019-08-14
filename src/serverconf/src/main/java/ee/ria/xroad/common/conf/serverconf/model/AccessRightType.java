@@ -39,10 +39,11 @@ import java.util.Date;
 public class AccessRightType {
 
     private Long id;
+    private XRoadId subjectId;
 
     private String serviceCode;
-
-    private XRoadId subjectId;
+    private String method;
+    private String path;
 
     private Date rightsGiven;
 }

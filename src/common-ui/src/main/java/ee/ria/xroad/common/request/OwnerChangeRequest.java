@@ -22,20 +22,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package ee.ria.xroad.common.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.message.SoapMessageImpl;
 
-/**
- * detailed error code
- */
-@Getter
-@AllArgsConstructor
-public class ErrorCode {
-    private final String value;
+import lombok.extern.slf4j.Slf4j;
 
-    public static ErrorCode of(String value) {
-        return new ErrorCode(value);
+@Slf4j
+class OwnerChangeRequest extends GenericClientRequest {
+
+    OwnerChangeRequest(ClientId client, SoapMessageImpl request) throws Exception {
+        super(client, request);
     }
+
 }

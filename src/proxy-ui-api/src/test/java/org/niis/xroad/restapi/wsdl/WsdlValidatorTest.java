@@ -27,8 +27,12 @@ package org.niis.xroad.restapi.wsdl;
 import org.junit.Test;
 import org.niis.xroad.restapi.exceptions.WsdlValidationException;
 
+import java.util.Collections;
+
 import static junit.framework.TestCase.fail;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * Test WSDLValidator
@@ -36,15 +40,20 @@ import static org.junit.Assert.assertNotNull;
  */
 public class WsdlValidatorTest {
 
+    private static final boolean DONT_IGNORE_WARNINGS = false; // no tests for ignoring yet
+    public static final String MOCK_VALIDATOR_ERROR = "ERROR: this is not fine";
+
     @Test
     public void validatorNotExecutable() {
         WsdlValidator wsdlValidator = new WsdlValidator("src/test/resources/error.wsdl");
         wsdlValidator.setWsdlValidatorCommand("/bin/foobar-validator");
         try {
-            wsdlValidator.executeValidator();
+            wsdlValidator.executeValidator(DONT_IGNORE_WARNINGS);
             fail("should have thrown WsdlValidationException");
         } catch (WsdlValidationException expected) {
-            assertNotNull(expected.getWarningMap().get(WsdlValidator.WSDL_VALIDATOR_NOT_EXECUTABLE));
+            assertEquals(WsdlValidator.WSDL_VALIDATOR_NOT_EXECUTABLE, expected.getError().getCode());
+            assertNull(expected.getError().getMetadata());
+            assertNull(expected.getWarnings());
         }
     }
 
@@ -53,10 +62,12 @@ public class WsdlValidatorTest {
         WsdlValidator wsdlValidator = new WsdlValidator("src/test/resources/error.wsdl");
         wsdlValidator.setWsdlValidatorCommand("src/test/resources/validator/mock-wsdlvalidator.sh");
         try {
-            wsdlValidator.executeValidator();
+            wsdlValidator.executeValidator(DONT_IGNORE_WARNINGS);
             fail("should have thrown WsdlValidationException");
         } catch (WsdlValidationException expected) {
-            assertNotNull(expected.getWarningMap().get(WsdlValidator.WSDL_VALIDATION_FAILED));
+            assertEquals(WsdlValidator.WSDL_VALIDATION_FAILED, expected.getError().getCode());
+            assertNotNull(expected.getError().getMetadata());
+            assertEquals(Collections.singletonList(MOCK_VALIDATOR_ERROR), expected.getError().getMetadata());
         }
     }
 
@@ -64,6 +75,6 @@ public class WsdlValidatorTest {
     public void shouldPassValidation() {
         WsdlValidator wsdlValidator = new WsdlValidator("src/test/resources/testservice.wsdl");
         wsdlValidator.setWsdlValidatorCommand("src/test/resources/validator/mock-wsdlvalidator.sh");
-        wsdlValidator.executeValidator();
+        wsdlValidator.executeValidator(DONT_IGNORE_WARNINGS);
     }
 }

@@ -96,6 +96,14 @@ var XROAD_REQUEST_EDIT = function(){
                 fillClientData(response.data);
             }, "json");
             break;
+        case 'OwnerChangeRequest':
+            $.get("requests/get_owner_change_request_data", params,
+                    function(response) {
+                openRequestEditDialog(
+                    $("#owner_change_request_edit_dialog"));
+                fillClientData(response.data);
+            }, "json");
+            break;
         default:
             // Should not reach this point!
             alert("Type '" + requestData.type + "'is not supported");
@@ -211,6 +219,18 @@ var XROAD_REQUEST_EDIT = function(){
 
     function declineRegRequest(dialog) {
         handleManagementRequestDialogAction(
+            "decline_owner_change_request", dialog,
+            "management_requests.details.decline_confirm");
+    }
+
+    function approveOwnerChangeRequest(dialog) {
+        handleManagementRequestDialogAction(
+            "approve_owner_change_request", dialog,
+            "management_requests.details.approve_confirm");
+    }
+
+    function declineOwnerChangeRequest(dialog) {
+        handleManagementRequestDialogAction(
             "decline_reg_request", dialog,
             "management_requests.details.decline_confirm");
     }
@@ -236,6 +256,7 @@ var XROAD_REQUEST_EDIT = function(){
         initClientRegRequestEditDialog();
         initAuthCertDeletionRequestEditDialog();
         initClientDeletionRequestEditDialog();
+        initOwnerChangeRequestEditDialog();
     }
 
     function initAuthCertRegRequestEditDialog() {
@@ -341,6 +362,35 @@ var XROAD_REQUEST_EDIT = function(){
               }]
         });
     }
+
+    function initOwnerChangeRequestEditDialog() {
+        $("#owner_change_request_edit_dialog").initDialog({
+            autoOpen: false,
+            modal: true,
+            height: "auto",
+            width: 600,
+            minWidth: 500,
+            buttons: [
+              { text: _("common.approve"),
+                  class: "reg_request_post_submit",
+                  click: function() {
+                      approveOwnerChangeRequest($(this));
+                  }
+              },
+              { text: _("common.decline"),
+                  class: "reg_request_post_submit",
+                  click: function() {
+                      declineOwnerChangeRequest($(this));
+                  }
+              },
+              { text: _("common.close"),
+                  class: "right",
+                  click: function() {
+                      $(this).dialog("close");
+                  }
+              }]
+        });
+    }
     /* -- DIALOGS - END -- */
     function initTestability() {
         // add data-name attributes to improve testability
@@ -348,6 +398,7 @@ var XROAD_REQUEST_EDIT = function(){
         $("#client_reg_request_edit_dialog").parent().attr("data-name", "client_reg_request_edit_dialog");
         $("#auth_cert_deletion_request_edit_dialog").parent().attr("data-name", "auth_cert_deletion_request_edit_dialog");
         $("#client_deletion_request_edit_dialog").parent().attr("data-name", "client_deletion_request_edit_dialog");
+        $("#owner_change_request_edit_dialog").parent().attr("data-name", "owner_change_request_edit_dialog");
         $("button span:contains('Close')").parent().attr("data-name", "close");
         $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
         $("button span:contains('OK')").parent().attr("data-name", "ok");

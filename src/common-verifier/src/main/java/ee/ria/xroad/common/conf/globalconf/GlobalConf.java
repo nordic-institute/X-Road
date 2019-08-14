@@ -469,10 +469,7 @@ public final class GlobalConf {
      * or null if the given id does not match an existing server
      * @throws Exception if an error occurs
      */
-    public static ClientId getServerOwner(SecurityServerId serverId)
-            throws Exception {
-        log.trace("getOwner({})", serverId);
-
+    public static ClientId getServerOwner(SecurityServerId serverId) {
         return getInstance().getServerOwner(serverId);
     }
 

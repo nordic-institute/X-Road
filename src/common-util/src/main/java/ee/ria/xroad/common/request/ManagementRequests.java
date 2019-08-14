@@ -41,4 +41,6 @@ public final class ManagementRequests {
 
     public static final String CLIENT_DELETION = "clientDeletion";
 
+    public static final String OWNER_CHANGE = "ownerChange";
+
 }

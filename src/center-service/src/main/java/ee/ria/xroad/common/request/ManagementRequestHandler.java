@@ -52,6 +52,8 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.request.ManagementRequests.CLIENT_REG;
+import static ee.ria.xroad.common.request.ManagementRequests.OWNER_CHANGE;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 /**
@@ -149,7 +151,16 @@ public final class ManagementRequestHandler {
 
     private static void verifyClientRegRequest(DecoderCallback cb) throws Exception {
         log.info("verifyClientRegRequest");
+        verifyClientRequestTypeRequest(cb, CLIENT_REG);
+    }
 
+    private static void verifyOwnerChangeRequest(DecoderCallback cb) throws Exception {
+        log.info("verifyOwnerChangeRequest");
+        verifyClientRequestTypeRequest(cb, OWNER_CHANGE);
+    }
+
+    private static void verifyClientRequestTypeRequest(DecoderCallback cb, String managementRequestName)
+            throws Exception {
         SoapMessageImpl soap = cb.getSoapMessage();
         byte[] dataToVerify = soap.getBytes();
 
@@ -166,16 +177,23 @@ public final class ManagementRequestHandler {
         OCSPResp clientCertOcsp = new OCSPResp(cb.getClientCertOcsp());
         verifyCertificate(clientCert, clientCertOcsp);
 
-        // verify that the subject id from the certificate matches the one
+        // Verify that the subject id from the certificate matches the one
         // in the request (client). The certificate must belong to the member
-        // that owns the subsystem to be registered.
-        ClientRequestType req = ManagementRequestParser.parseClientRegRequest(soap);
+        // that is used as a client.
+        ClientRequestType req = ManagementRequestParser.parseRequest(soap, managementRequestName);
 
         ClientId idFromCert = getClientIdFromCert(clientCert);
 
         ClientId idFromReq = req.getClient();
 
-        if (!idFromReq.subsystemContainsMember(idFromCert)) {
+        // Separate conditions are needed when the client is 1) subsystem and 2) member:
+        //
+        // 1. When client is a subsystem, idFromReq is the subsystem code of the client
+        // and idFromCert is the member code from the sign cert. The subsystem must
+        // be owned by the member that signed the request.
+        // 2. When client is a member, idFromReq is the member code of the client
+        // and idFromCert is the member code from the sign cert. The member codes must match.
+        if (!idFromReq.subsystemContainsMember(idFromCert) && !idFromReq.equals(idFromCert)) {
             throw new CodedException(X_INVALID_REQUEST,
                     "Subject identifier (%s) in certificate does not match"
                             + " client's member identifier (%s) in request",
@@ -286,7 +304,8 @@ public final class ManagementRequestHandler {
                 } else {
                     throw new CodedException(X_INTERNAL_ERROR, "Unexpected content in multipart");
                 }
-            } else if (ManagementRequests.CLIENT_REG.equalsIgnoreCase(serviceCode)) {
+            } else if (ManagementRequests.CLIENT_REG.equalsIgnoreCase(serviceCode)
+                    || ManagementRequests.OWNER_CHANGE.equalsIgnoreCase(serviceCode)) {
                 if (clientSignature == null) {
                     log.info("Reading client signature");
 
@@ -351,6 +370,21 @@ public final class ManagementRequestHandler {
                     clientRegRequestSignedAndVerified = true;
                 } catch (Exception e) {
                     log.error("Failed to verify client reg request", e);
+
+                    throw translateException(e);
+                }
+            } else if (ManagementRequests.OWNER_CHANGE.equalsIgnoreCase(serviceCode)) {
+
+                verifyMessagePart(clientSignature, "Client signature is missing");
+
+                verifyMessagePart(clientCert, "Client certificate is missing");
+
+                verifyMessagePart(clientCertOcsp, "Client certificate OCSP is missing");
+
+                try {
+                    verifyOwnerChangeRequest(this);
+                } catch (Exception e) {
+                    log.error("Failed to verify owner change request", e);
 
                     throw translateException(e);
                 }

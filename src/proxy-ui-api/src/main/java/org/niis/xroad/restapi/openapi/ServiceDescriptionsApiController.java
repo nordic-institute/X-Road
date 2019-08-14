@@ -44,7 +44,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import java.util.Collections;
 
 /**
- * clients api
+ * service descriptions api
  */
 @Controller
 @RequestMapping("/api")

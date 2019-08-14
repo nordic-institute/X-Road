@@ -161,6 +161,8 @@
             not-null="true" cascade="save-update" lazy="false"/>
 
         <property name="rightsGiven" access="field" not-null="true"/>
+        <property name="method" access="field"/>
+        <property name="path" access="field"/>
     </class>
 
     <class name="TspType" table="TSP">

@@ -24,20 +24,22 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
-import java.util.List;
-import java.util.Map;
+import java.util.Collection;
 
 /**
- * Exception which (possibly) knows the detailed error code to send in REST API response body
+ * Exception which (possibly) knows the detailed error code & metadata,
+ * and warning codes & metadata, to send in REST API response body
  */
-public interface ErrorCodedException {
+public interface DeviationAwareException {
     /**
-     * Return the error code, if any
+     * Return the error details, if any
+     * @return
      */
-    String getErrorCode();
+    Error getError();
 
     /**
-     * Return warning map if set
+     * Return warnings, if any
+     * @return
      */
-    Map<String, List<String>> getWarningMap();
+    Collection<Warning> getWarnings();
 }
