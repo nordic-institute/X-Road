@@ -285,8 +285,8 @@ public final class TestUtil {
     }
 
     static ServiceId createTestServiceId(ClientId member, String serviceCode,
-            String serviceVerison) {
-        return ServiceId.create(member, serviceCode, serviceVerison);
+            String serviceVersion) {
+        return ServiceId.create(member, serviceCode, serviceVersion);
     }
 
     static ClientId createTestClientId() {
