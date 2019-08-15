@@ -34,7 +34,6 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.converter.GlobalConfWrapper;
 import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.repository.ClientRepository;
@@ -86,7 +85,7 @@ public class ClientServiceIntegrationTest {
 
     @Before
     public void setup() throws Exception {
-        GlobalConfWrapper globalConfWrapper = new GlobalConfWrapper() {
+        GlobalConfService globalConfService = new GlobalConfService() {
             @Override
             public List<MemberInfo> getGlobalMembers(String... instanceIdentifiers) {
                 return new ArrayList<>(Arrays.asList(
@@ -106,7 +105,7 @@ public class ClientServiceIntegrationTest {
                         : "test-member" + NAME_APPENDIX;
             }
         };
-        clientService = new ClientService(clientRepository, globalConfWrapper);
+        clientService = new ClientService(clientRepository, globalConfService);
         pemBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
                 getResourceAsStream("google-cert.pem"));
         derBytes = IOUtils.toByteArray(this.getClass().getClassLoader().

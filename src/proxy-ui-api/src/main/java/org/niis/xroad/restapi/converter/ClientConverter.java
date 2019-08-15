@@ -33,6 +33,7 @@ import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
+import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -48,7 +49,7 @@ import java.util.stream.Collectors;
 @Component
 public class ClientConverter {
 
-    private final GlobalConfWrapper globalConfWrapper;
+    private final GlobalConfService globalConfService;
 
     public static final int INSTANCE_INDEX = 0;
     public static final int MEMBER_CLASS_INDEX = 1;
@@ -57,8 +58,8 @@ public class ClientConverter {
     public static final char ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR = ':';
 
     @Autowired
-    public ClientConverter(GlobalConfWrapper globalConfWrapper) {
-        this.globalConfWrapper = globalConfWrapper;
+    public ClientConverter(GlobalConfService globalConfService) {
+        this.globalConfService = globalConfService;
     }
 
     /**
@@ -72,7 +73,7 @@ public class ClientConverter {
         client.setMemberClass(clientType.getIdentifier().getMemberClass());
         client.setMemberCode(clientType.getIdentifier().getMemberCode());
         client.setSubsystemCode(clientType.getIdentifier().getSubsystemCode());
-        client.setMemberName(globalConfWrapper.getMemberName(clientType.getIdentifier()));
+        client.setMemberName(globalConfService.getMemberName(clientType.getIdentifier()));
         Optional<ClientStatus> status = ClientStatusMapping.map(clientType.getClientStatus());
         client.setStatus(status.get());
         Optional<ConnectionType> connectionTypeEnum =

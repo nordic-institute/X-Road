@@ -29,6 +29,7 @@ import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 
 import org.niis.xroad.restapi.openapi.model.Group;
 import org.niis.xroad.restapi.openapi.model.GroupMember;
+import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -44,12 +45,12 @@ import java.util.stream.Collectors;
 public class GroupConverter {
 
     private final ClientConverter clientConverter;
-    private final GlobalConfWrapper globalConfWrapper;
+    private final GlobalConfService globalConfService;
 
     @Autowired
-    public GroupConverter(ClientConverter clientConverter, GlobalConfWrapper globalConfWrapper) {
+    public GroupConverter(ClientConverter clientConverter, GlobalConfService globalConfService) {
         this.clientConverter = clientConverter;
-        this.globalConfWrapper = globalConfWrapper;
+        this.globalConfService = globalConfService;
     }
 
     /**
@@ -122,7 +123,7 @@ public class GroupConverter {
         GroupMember groupMember = new GroupMember();
         groupMember.setId(clientConverter.convertId(groupMemberType.getGroupMemberId()));
         groupMember.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(groupMemberType.getAdded()));
-        groupMember.setName(globalConfWrapper.getMemberName(groupMemberType.getGroupMemberId()));
+        groupMember.setName(globalConfService.getMemberName(groupMemberType.getGroupMemberId()));
         return groupMember;
     }
 }

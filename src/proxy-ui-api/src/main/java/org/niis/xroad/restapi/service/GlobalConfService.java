@@ -22,21 +22,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.converter;
+package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 
-import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 /**
- * wrap static methods to make things more testable
+ * global configuration service
  */
-@Component
-public class GlobalConfWrapper {
+@Slf4j
+@Service
+@Transactional
+@PreAuthorize("denyAll")
+public class GlobalConfService {
+
     /**
      * get member name
      */
@@ -49,5 +57,28 @@ public class GlobalConfWrapper {
      */
     public List<MemberInfo> getGlobalMembers(String... instanceIdentifiers) {
         return GlobalConf.getMembers(instanceIdentifiers);
+    }
+
+    /**
+     * @param instanceIdentifiers the optional instance identifiers
+     * @return member classes for given instance or all member classes if
+     * no instance identifiers are specified
+     */
+    public Set<String> getMemberClasses(String...instanceIdentifiers) {
+        return GlobalConf.getMemberClasses(instanceIdentifiers);
+    }
+
+    /**
+     * @return the instance identifier for this configuration source
+     */
+    public String getInstanceIdentifier() {
+        return GlobalConf.getInstanceIdentifier();
+    }
+
+    /**
+     * @return member classes for current instance
+     */
+    public Set<String> getMemberClassesForThisInstance() {
+        return GlobalConf.getMemberClasses(getInstanceIdentifier());
     }
 }

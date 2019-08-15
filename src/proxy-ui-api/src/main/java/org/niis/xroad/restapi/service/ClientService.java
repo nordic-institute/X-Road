@@ -32,7 +32,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.converter.GlobalConfWrapper;
 import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.Error;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
@@ -65,17 +64,17 @@ public class ClientService {
     public static final String CERTIFICATE_NOT_FOUND_ERROR_CODE = "certificate_not_found";
 
     private final ClientRepository clientRepository;
-    private final GlobalConfWrapper globalConfWrapper;
+    private final GlobalConfService globalConfService;
 
     /**
      * ClientService constructor
      * @param clientRepository
-     * @param globalConfWrapper
+     * @param globalConfService
      */
     @Autowired
-    public ClientService(ClientRepository clientRepository, GlobalConfWrapper globalConfWrapper) {
+    public ClientService(ClientRepository clientRepository, GlobalConfService globalConfService) {
         this.clientRepository = clientRepository;
-        this.globalConfWrapper = globalConfWrapper;
+        this.globalConfService = globalConfService;
     }
 
     /**
@@ -93,7 +92,7 @@ public class ClientService {
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public List<MemberInfo> getAllGlobalClients() {
-        return globalConfWrapper.getGlobalMembers();
+        return globalConfService.getGlobalMembers();
     }
 
     /**
@@ -307,7 +306,7 @@ public class ClientService {
                     showMembers)
                     .stream()
                     .map(clientType -> new MemberInfo(clientType.getIdentifier(),
-                            globalConfWrapper.getMemberName(clientType.getIdentifier())))
+                            globalConfService.getMemberName(clientType.getIdentifier())))
                     .collect(Collectors.toList());
         }
         // else find only from global clients (globalconf also includes registered local clients)
@@ -319,7 +318,7 @@ public class ClientService {
         List<Predicate<ClientType>> searchPredicates = new ArrayList<>();
         if (!StringUtils.isEmpty(name)) {
             searchPredicates.add(ct -> {
-                String memberName = globalConfWrapper.getMemberName(ct.getIdentifier());
+                String memberName = globalConfService.getMemberName(ct.getIdentifier());
                 return memberName != null && memberName.toLowerCase().contains(name.toLowerCase());
             });
         }
