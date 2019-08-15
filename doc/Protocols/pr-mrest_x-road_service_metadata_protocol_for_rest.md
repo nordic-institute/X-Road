@@ -2,21 +2,21 @@
 
 ---
 
-# X-Road: Service Metadata Protocol for REST <!-- omit in toc --> 
-**Technical Specification**  
+# X-Road: Service Metadata Protocol for REST <!-- omit in toc -->
+**Technical Specification**
 
 Version: 0.1  
-Doc. ID: PR-MREST  
+Doc. ID: PR-MREST
 
 ---
 
-## Version history <!-- omit in toc --> 
+## Version history <!-- omit in toc -->
 
  Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
  29.07.2019 | 0.1     | Initial version                                                 | Ilkka Seppälä
- 
-## Table of Contents <!-- omit in toc --> 
+
+## Table of Contents <!-- omit in toc -->
 
 - [License](#license)
 - [1 Introduction](#1-introduction)
@@ -104,9 +104,18 @@ info:
   title: X-Road Service Metadata API for REST
   version: '0.1'
 servers:
-  - url: 'https://{securityserver}/r1'
+  - url: https://{securityserver}/r1
+    variables:
+      securityserver:
+        default: ''
+        description: 'security server address'
 paths:
-  /{instanceId}/{memberClass}/{memberCode}/{subsystemCode}/listMethods:
+  /{xRoadInstance}/{memberClass}/{memberCode}/{subsystemCode}/listMethods:
+    parameters:
+      - $ref: '#/components/parameters/xRoadInstance'
+      - $ref: '#/components/parameters/memberClass'
+      - $ref: '#/components/parameters/memberCode'
+      - $ref: '#/components/parameters/subsystemCode'
     get:
       tags:
         - metaservices
@@ -128,7 +137,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/methodList'
-  /{instanceId}/{memberClass}/{memberCode}/{subsystemCode}/allowedMethods:
+  /{xRoadInstance}/{memberClass}/{memberCode}/{subsystemCode}/allowedMethods:
+    parameters:
+      - $ref: '#/components/parameters/xRoadInstance'
+      - $ref: '#/components/parameters/memberClass'
+      - $ref: '#/components/parameters/memberCode'
+      - $ref: '#/components/parameters/subsystemCode'
     get:
       tags:
         - metaservices
@@ -151,6 +165,31 @@ paths:
               schema:
                 $ref: '#/components/schemas/methodList'
 components:
+  parameters:
+    xRoadInstance:
+      name: xRoadInstance
+      required: true
+      in: path
+      schema:
+        type: string
+    memberClass:
+      name: memberClass
+      required: true
+      in: path
+      schema:
+        type: string
+    memberCode:
+      name: memberCode
+      required: true
+      in: path
+      schema:
+        type: string
+    subsystemCode:
+      name: subsystemCode
+      required: true
+      in: path
+      schema:
+        type: string
   schemas:
     methodList:
       type: object
