@@ -104,9 +104,9 @@ info:
   title: X-Road Service Metadata API for REST
   version: '0.1'
 servers:
-  - url: 'https://{securityserver}/'
+  - url: 'https://{securityserver}/r1'
 paths:
-  /listMethods:
+  /{instanceId}/{memberClass}/{memberCode}/{subsystemCode}/listMethods:
     get:
       tags:
         - metaservices
@@ -128,7 +128,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/methodList'
-  /allowedMethods:
+  /{instanceId}/{memberClass}/{memberCode}/{subsystemCode}/allowedMethods:
     get:
       tags:
         - metaservices
