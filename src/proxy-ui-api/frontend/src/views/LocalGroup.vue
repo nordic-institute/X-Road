@@ -366,7 +366,7 @@ export default Vue.extend({
 .row-title {
   width: 100%;
   justify-content: space-between;
-  color: #202020;
+  color: $XRoad-Black;
   font-family: Roboto;
   font-size: 20px;
   font-weight: 500;
@@ -376,31 +376,11 @@ export default Vue.extend({
   display: flex;
 }
 
-.wrapper {
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  padding-top: 60px;
-  height: 100%;
-}
-
-.cert-dialog-header {
-  display: flex;
-  justify-content: center;
-  border-bottom: 1px solid #9b9b9b;
-  color: #4a4a4a;
-  font-family: Roboto;
-  font-size: 34px;
-  font-weight: 300;
-  letter-spacing: 0.5px;
-  line-height: 51px;
-}
-
 .cert-hash {
   margin-top: 50px;
   display: flex;
   justify-content: space-between;
-  color: #202020;
+  color: $XRoad-Black;
   font-family: Roboto;
   font-size: 20px;
   font-weight: 500;
