@@ -172,6 +172,11 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
     }
 
+    @Override
+    public boolean verifyMessageExchangeSucceeded() {
+        return responseSoap != null && responseFault == null;
+    }
+
     private void updateOpMonitoringClientSecurityServerAddress() {
         try {
             X509Certificate authCert = getClientAuthCert();

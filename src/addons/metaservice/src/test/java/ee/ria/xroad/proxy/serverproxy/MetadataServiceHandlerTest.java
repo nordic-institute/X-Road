@@ -291,7 +291,8 @@ public class MetadataServiceHandlerTest {
 
         ServerConf.reload(new TestSuiteServerConf() {
             @Override
-            public List<ServiceId> getAllServices(ClientId serviceProvider) {
+            public List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider,
+                                                                DescriptionType descriptionType) {
                 assertThat("Client id does not match expected", serviceProvider, is(expectedClient));
                 return expectedServices;
             }
@@ -350,7 +351,8 @@ public class MetadataServiceHandlerTest {
         ServerConf.reload(new TestSuiteServerConf() {
 
             @Override
-            public List<ServiceId> getAllowedServices(ClientId serviceProvider, ClientId client) {
+            public List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
+                                                                       DescriptionType descriptionType) {
 
                 assertThat("Wrong client in query", client, is(expectedClient));
 

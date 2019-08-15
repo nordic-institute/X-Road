@@ -79,11 +79,26 @@ public interface ServerConfProvider {
 
     /**
      * @param serviceProvider the service provider identifier
+     * @return all the services offered by a service provider.
+     */
+    List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType);
+
+    /**
+     * @param serviceProvider the service provider identifier
      * @param client the client identifier
      * @return all the services by a service provider that the caller
      * has permission to invoke.
      */
     List<ServiceId> getAllowedServices(ClientId serviceProvider, ClientId client);
+
+    /**
+     * @param serviceProvider the service provider identifier
+     * @param client the client identifier
+     * @return all the services by a service provider that the caller
+     * has permission to invoke filtered by description type
+     */
+    List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
+                                                        DescriptionType descriptionType);
 
     /**
      * @param client the client identifier

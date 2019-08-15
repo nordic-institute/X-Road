@@ -129,9 +129,18 @@ info:
   title: X-Road Service Metadata API for REST
   version: '0.2'
 servers:
-  - url: 'https://{securityserver}/'
+  - url: https://{securityserver}/r1
+    variables:
+      securityserver:
+        default: ''
+        description: 'security server address'
 paths:
-  /listMethods:
+  /{xRoadInstance}/{memberClass}/{memberCode}/{subsystemCode}/listMethods:
+    parameters:
+      - $ref: '#/components/parameters/xRoadInstance'
+      - $ref: '#/components/parameters/memberClass'
+      - $ref: '#/components/parameters/memberCode'
+      - $ref: '#/components/parameters/subsystemCode'
     get:
       tags:
         - metaservices
@@ -153,7 +162,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/methodList'
-  /allowedMethods:
+  /{xRoadInstance}/{memberClass}/{memberCode}/{subsystemCode}/allowedMethods:
+    parameters:
+      - $ref: '#/components/parameters/xRoadInstance'
+      - $ref: '#/components/parameters/memberClass'
+      - $ref: '#/components/parameters/memberCode'
+      - $ref: '#/components/parameters/subsystemCode'
     get:
       tags:
         - metaservices
@@ -205,6 +219,31 @@ paths:
         '500':
         description: Internal error
 components:
+  parameters:
+    xRoadInstance:
+      name: xRoadInstance
+      required: true
+      in: path
+      schema:
+        type: string
+    memberClass:
+      name: memberClass
+      required: true
+      in: path
+      schema:
+        type: string
+    memberCode:
+      name: memberCode
+      required: true
+      in: path
+      schema:
+        type: string
+    subsystemCode:
+      name: subsystemCode
+      required: true
+      in: path
+      schema:
+        type: string
   schemas:
     methodList:
       type: object
@@ -365,4 +404,5 @@ components:
           type: integer
           format: int32
         message:
-          type: string```
+          type: string
+```

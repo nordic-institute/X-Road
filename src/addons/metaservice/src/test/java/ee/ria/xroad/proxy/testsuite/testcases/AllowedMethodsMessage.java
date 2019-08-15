@@ -25,6 +25,7 @@
 package ee.ria.xroad.proxy.testsuite.testcases;
 
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -98,7 +99,8 @@ public class AllowedMethodsMessage extends MessageTestCase {
         ServerConf.reload(new TestSuiteServerConf() {
 
             @Override
-            public List<ServiceId> getAllowedServices(ClientId serviceProvider, ClientId client) {
+            public List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
+                                                                       DescriptionType descriptionType) {
 
                 assertThat("Wrong client in query", client, is(expectedClientQuery));
 

@@ -122,10 +122,28 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
+    public List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
+        return tx(session -> new ServiceDAOImpl().getServicesByDescriptionType(session,
+                serviceProvider, descriptionType));
+    }
+
+    @Override
     public List<ServiceId> getAllowedServices(ClientId serviceProvider, ClientId client) {
         return tx(session -> {
             List<ServiceId> allServices =
                     new ServiceDAOImpl().getServices(session, serviceProvider);
+            return allServices.stream()
+                    .filter(s -> internalIsQueryAllowed(session, client, s, null, null))
+                    .collect(Collectors.toList());
+        });
+    }
+
+    @Override
+    public List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
+                                                               DescriptionType descriptionType) {
+        return tx(session -> {
+            List<ServiceId> allServices =
+                    new ServiceDAOImpl().getServicesByDescriptionType(session, serviceProvider, descriptionType);
             return allServices.stream()
                     .filter(s -> internalIsQueryAllowed(session, client, s, null, null))
                     .collect(Collectors.toList());
