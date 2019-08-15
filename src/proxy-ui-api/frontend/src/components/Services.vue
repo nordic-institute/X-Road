@@ -349,6 +349,18 @@ export default Vue.extend({
     refreshWsdl(wsdl: any): void {
       // TODO: will be implemented on later task
       console.log('refresh wsdl');
+
+      axios
+        .put(`/service-descriptions/${wsdl.id}/refresh`, wsdl)
+        .then((res) => {
+          this.$bus.$emit('show-success', 'refreshedd');
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        })
+        .finally(() => {
+          this.fetchData();
+        });
     },
 
     getServiceIcon(service: any): string {
