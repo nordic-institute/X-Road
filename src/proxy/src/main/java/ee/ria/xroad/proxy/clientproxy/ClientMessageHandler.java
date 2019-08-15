@@ -32,7 +32,6 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 
 import javax.servlet.http.HttpServletRequest;
@@ -47,7 +46,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
  * the next handler (i.e. throws exception instead), if it cannot process
  * the request itself.
  */
-@Slf4j
 class ClientMessageHandler extends AbstractClientProxyHandler {
 
     ClientMessageHandler(HttpClient client) {
@@ -58,8 +56,6 @@ class ClientMessageHandler extends AbstractClientProxyHandler {
     MessageProcessorBase createRequestProcessor(String target,
             HttpServletRequest request, HttpServletResponse response,
             OpMonitoringData opMonitoringData) throws Exception {
-        log.trace("createRequestProcessor({})", target);
-
         verifyCanProcess(request);
 
         return new ClientMessageProcessor(request, response, client,

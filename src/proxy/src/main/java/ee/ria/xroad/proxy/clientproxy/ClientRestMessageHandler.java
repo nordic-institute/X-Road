@@ -35,7 +35,6 @@ import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import com.google.gson.stream.JsonWriter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.http.HttpStatus;
 
@@ -53,7 +52,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
  * the next handler (i.e. throws exception instead), if it cannot process
  * the request itself.
  */
-@Slf4j
 class ClientRestMessageHandler extends AbstractClientProxyHandler {
 
     ClientRestMessageHandler(HttpClient client) {
@@ -64,8 +62,6 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
     MessageProcessorBase createRequestProcessor(String target,
             HttpServletRequest request, HttpServletResponse response,
             OpMonitoringData opMonitoringData) throws Exception {
-
-        log.trace("createRequestProcessor({})", target);
 
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
             verifyCanProcess();

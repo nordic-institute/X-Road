@@ -189,7 +189,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/methodList'
-  /getOpenAPI:
+  /{xRoadInstance}/{memberClass}/{memberCode}/{subsystemCode}/getOpenAPI:
     get:
       tags:
         - metaservices
