@@ -33,6 +33,9 @@ values (1, 2, 'https://soapservice.com/v1/Endpoint?wsdl', false, 'Out of order',
 INSERT INTO SERVICEDESCRIPTION (ID, CLIENT_ID, URL, DISABLED, DISABLED_NOTICE, REFRESHED_DATE, TYPE)
 values (2, 2, 'https://restservice.com/api/v1', true, 'Kaputt', now(), 'OPENAPI3');
 
+INSERT INTO SERVICEDESCRIPTION (ID, CLIENT_ID, URL, DISABLED, DISABLED_NOTICE, REFRESHED_DATE, TYPE)
+values (3, 3, 'file:src/test/resources/wsdl/testservice.wsdl', true, 'Do not use!', now(), 'WSDL');
+
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
 values (1, 1, 'getRandom', 'v1', 'getrandom-title', 'https://soapservice.com/v1/Endpoint', true, 60);
 
@@ -42,3 +45,8 @@ values (2, 1, 'calculatePrime', 'v1', null, 'https://soapservice.com/v1/Endpoint
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
 values (3, 2, 'test-rest-servicecode', 'v1', null, 'https://restservice.com/api/v1', true, 60);
 
+INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
+values (4, 3, 'xroadGetRandomOld', 'v1', null, 'http://xroad-lxd-web.lxd:8088/xroadGetRandom', true, 60);
+
+INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
+values (5, 3, 'bodyMassIndexOld', 'v1', null, 'http://xroad-lxd-web.lxd:8088/bodyMassIndex', true, 60);

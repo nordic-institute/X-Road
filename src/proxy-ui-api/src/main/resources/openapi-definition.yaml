@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.8"
+  version: "1.0.9"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -506,21 +506,12 @@ paths:
       summary: adds new client for the security server
       operationId: addClient
       description: Adds new client to the system
-      parameters:
-        - in: query
-          name: ignore_warnings
-          description: if true, any warnings are ignored. if false (or missing),
-            any warnings cause request to fail
-          required: false
-          schema:
-            default: false
-            type: boolean
       requestBody:
         description: client to add
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Client'
+              $ref: '#/components/schemas/ClientAdd'
       responses:
         '201':
           description: new client created
@@ -1160,14 +1151,6 @@ paths:
             format: text
             minLength: 1
             maxLength: 1023
-        - in: query
-          name: ignore_warnings
-          description: if true, any warnings are ignored. if false (or missing),
-            any warnings cause request to fail
-          required: false
-          schema:
-            default: false
-            type: boolean
       requestBody:
         content:
           application/json:
@@ -2131,14 +2114,6 @@ paths:
             format: text
             minLength: 1
             maxLength: 255
-        - in: query
-          name: ignore_warnings
-          description: if true, any warnings are ignored. if false (or missing),
-            any warnings cause request to fail
-          required: false
-          schema:
-            default: false
-            type: boolean
       requestBody:
         content:
           application/json:
@@ -2294,14 +2269,18 @@ paths:
             format: text
             minLength: 1
             maxLength: 255
-        - in: query
-          name: ignore_warnings
-          description: if true, any warnings are ignored. if false (or missing),
-            any warnings cause request to fail
-          required: false
-          schema:
-            default: false
-            type: boolean
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: IgnoreWarnings
+              type: object
+              properties:
+                ignore_warnings:
+                  type: boolean
+                  default: false
+                  description: if true, any ignorable warnings are ignored. if false (or missing),
+                    any warnings cause request to fail
       responses:
         '200':
           description: service description refreshed
@@ -3315,6 +3294,19 @@ components:
           $ref: '#/components/schemas/ConnectionType'
         status:
           $ref: '#/components/schemas/ClientStatus'
+    ClientAdd: # ok
+      type: object
+      description: request to add client. Carries a Client and ignore warnings parameter
+      required:
+        - client
+      properties:
+        client:
+          $ref: '#/components/schemas/Client'
+        ignore_warnings:
+          type: boolean
+          default: false
+          description: if true, any ignorable warnings are ignored. if false (or missing),
+            any warnings cause request to fail
     ClientStatus: # ok
       type: string
       format: enum
@@ -3664,6 +3656,7 @@ components:
       description: service for the service description
       required:
         - id
+        - service_code
         - url
         - timeout
         - ssl_auth
@@ -3671,10 +3664,17 @@ components:
         id:
           type: string
           format: text
-          description: service id
+          description: encoded service id, including client id
           example: CS:ORG:Client:myService.v1
           minLength: 1
           maxLength: 1535
+        service_code:
+          type: string
+          format: text
+          description: encoded service code and version
+          example: myService.v1
+          minLength: 1
+          maxLength: 511
         timeout:
           type: integer
           format: uint
@@ -3828,6 +3828,11 @@ components:
           example: exampleServiceCode
           minLength: 1
           maxLength: 255
+        ignore_warnings:
+          type: boolean
+          description: if true, any ignorable warnings are ignored. if false (or missing),
+            any warnings cause request to fail
+          default: false
         type:
           $ref: '#/components/schemas/ServiceType'
     ServiceDescriptionUpdate:
@@ -3848,6 +3853,11 @@ components:
           example: exampleServiceCode
           minLength: 1
           maxLength: 255
+        ignore_warnings:
+          type: boolean
+          description: if true, any ignorable warnings are ignored. if false (or missing),
+            any warnings cause request to fail
+          default: false
         type:
           $ref: '#/components/schemas/ServiceType'
     ServiceType: # ok

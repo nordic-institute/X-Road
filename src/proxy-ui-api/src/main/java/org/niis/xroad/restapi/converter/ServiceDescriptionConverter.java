@@ -78,7 +78,8 @@ public class ServiceDescriptionConverter {
         serviceDescription.setDisabledNotice(serviceDescriptionType.getDisabledNotice());
         serviceDescription.setRefreshedDate(FormatUtils.fromDateToOffsetDateTime(
                 serviceDescriptionType.getRefreshedDate()));
-        serviceDescription.setServices(serviceConverter.convertServices(serviceDescriptionType.getService()));
+        serviceDescription.setServices(serviceConverter.convertServices(serviceDescriptionType.getService(),
+                serviceDescriptionType.getClient().getIdentifier()));
         serviceDescription.setType(ServiceTypeMapping.map(serviceDescriptionType.getType()).get());
         serviceDescription.setUrl(serviceDescriptionType.getUrl());
 

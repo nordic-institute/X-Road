@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.openapi;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
+import org.niis.xroad.restapi.openapi.model.IgnoreWarnings;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionDisabledNotice;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
@@ -103,18 +104,29 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_WSDL')")
-    public ResponseEntity<ServiceDescription> updateServiceDescription(String id, Boolean ignoreWarnings,
+    public ResponseEntity<ServiceDescription> updateServiceDescription(String id,
             ServiceDescriptionUpdate serviceDescriptionUpdate) {
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
         ServiceDescription serviceDescription;
         if (serviceDescriptionUpdate.getType() == ServiceType.WSDL) {
             serviceDescription = serviceDescriptionConverter.convert(serviceDescriptionService.updateWsdlUrl(
-                    serviceDescriptionId, serviceDescriptionUpdate.getUrl(), ignoreWarnings));
+                    serviceDescriptionId, serviceDescriptionUpdate.getUrl(),
+                    serviceDescriptionUpdate.getIgnoreWarnings()));
         } else if (serviceDescriptionUpdate.getType() == ServiceType.REST) {
             return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
         } else {
             throw new BadRequestException("ServiceType not recognized");
         }
+        return new ResponseEntity<>(serviceDescription, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('REFRESH_WSDL')")
+    public ResponseEntity<ServiceDescription> refreshServiceDescription(String id, IgnoreWarnings ignoreWarnings) {
+        Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
+        ServiceDescription serviceDescription = serviceDescriptionConverter.convert(
+                serviceDescriptionService.refreshServiceDescription(serviceDescriptionId,
+                        ignoreWarnings.getIgnoreWarnings()));
         return new ResponseEntity<>(serviceDescription, HttpStatus.OK);
     }
 }

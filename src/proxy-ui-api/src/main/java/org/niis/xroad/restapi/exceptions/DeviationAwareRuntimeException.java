@@ -27,9 +27,10 @@ package org.niis.xroad.restapi.exceptions;
 import java.util.Collection;
 
 /**
- * RuntimeException that (possibly) carries error code
+ * RuntimeException that (possibly) carries error code.
+ * Root of all deviation aware exceptions
  */
-public class DeviationAwareRuntimeException extends RuntimeException implements DeviationAwareException {
+public class DeviationAwareRuntimeException extends RuntimeException implements DeviationAware {
 
     private final Error error;
     private final Collection<Warning> warnings;

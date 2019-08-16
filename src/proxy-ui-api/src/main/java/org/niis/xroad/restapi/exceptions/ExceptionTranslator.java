@@ -59,9 +59,9 @@ public class ExceptionTranslator {
         }
         ErrorInfo errorDto = new ErrorInfo();
         errorDto.setStatus(status.value());
-        if (e instanceof DeviationAwareException) {
+        if (e instanceof DeviationAware) {
             // add information about errors and warnings
-            DeviationAwareException errorCodedException = (DeviationAwareException) e;
+            DeviationAware errorCodedException = (DeviationAware) e;
             if (errorCodedException.getError() != null) {
                 errorDto.setError(convert(errorCodedException.getError()));
             }

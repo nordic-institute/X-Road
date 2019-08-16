@@ -63,25 +63,43 @@ public class ServiceConverter {
      * @param serviceTypes
      * @return
      */
-    public List<Service> convertServices(Collection<ServiceType> serviceTypes) {
+    public List<Service> convertServices(Collection<ServiceType> serviceTypes, ClientId clientId) {
         return serviceTypes.stream()
-                .map(this::convert).collect(Collectors.toList());
+                .map(serviceType -> convert(serviceType, clientId))
+                .collect(Collectors.toList());
     }
 
     /**
      * Convert a ServiceType into Service.
      * @param serviceType
+     * @param clientId
      * @return
      */
-    public Service convert(ServiceType serviceType) {
+    public Service convert(ServiceType serviceType, ClientId clientId) {
         Service service = new Service();
 
-        service.setId(FormatUtils.getServiceFullName(serviceType));
+        service.setId(convertId(serviceType, clientId));
+        service.setServiceCode(FormatUtils.getServiceFullName(serviceType));
         service.setSslAuth(serviceType.getSslAuthentication());
         service.setTimeout(serviceType.getTimeout());
         service.setUrl(serviceType.getUrl());
 
         return service;
+    }
+
+    /**
+     * Convert service and client information into encoded client-service-id,
+     * e.g. <code>CS:ORG:Client:myService.v1</code>
+     * @param serviceType
+     * @param clientId
+     * @return
+     */
+    public String convertId(ServiceType serviceType, ClientId clientId) {
+        StringBuffer buffer = new StringBuffer();
+        buffer.append(clientConverter.convertId(clientId));
+        buffer.append(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
+        buffer.append(FormatUtils.getServiceFullName(serviceType));
+        return buffer.toString();
     }
 
     /**
