@@ -28,7 +28,7 @@
 import Vue from 'vue';
 import axios from 'axios';
 import SimpleDialog from '@/components/SimpleDialog.vue';
-import { isValidURL } from '@/util/helpers';
+import { isValidWsdlURL } from '@/util/helpers';
 
 export default Vue.extend({
   components: { SimpleDialog },
@@ -47,7 +47,7 @@ export default Vue.extend({
 
   computed: {
     isValid(): boolean {
-      return isValidURL(this.url);
+      return isValidWsdlURL(this.url);
     },
   },
 
