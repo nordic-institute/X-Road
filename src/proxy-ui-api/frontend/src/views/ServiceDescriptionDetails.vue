@@ -1,7 +1,16 @@
 <template>
   <div class="xrd-tab-max-width">
     <div>
-      <subViewTitle title="WSDL details" @close="close" />
+      <subViewTitle
+        v-if="serviceDesc && serviceDesc.type === 'WSDL'"
+        :title="$t('services.wsdlDetails')"
+        @close="close"
+      />
+      <subViewTitle
+        v-if="serviceDesc && serviceDesc.type === 'REST'"
+        :title="$t('services.restDetails')"
+        @close="close"
+      />
       <template>
         <div class="delete-wrap">
           <v-btn
@@ -30,7 +39,7 @@
           name="url_field"
           type="text"
           :error-messages="errors.collect('url_field')"
-          @change="canSave = true"
+          @input="touched = true"
         ></v-text-field>
         <v-text-field
           v-if="serviceDesc && serviceDesc.type === 'REST'"
@@ -43,7 +52,7 @@
           name="url_field"
           type="text"
           :error-messages="errors.collect('url_field')"
-          @change="canSave = true"
+          @input="touched = true"
         ></v-text-field>
       </template>
     </div>
@@ -58,6 +67,7 @@
           class="code-input"
           :maxlength="255"
           v-validate="'required'"
+          @input="touched = true"
         ></v-text-field>
       </template>
     </div>
@@ -83,6 +93,20 @@
       @cancel="confirmDelete = false"
       @accept="doDeleteServiceDesc()"
     />
+    <!-- Confirm dialog for warnings when editing WSDL -->
+    <warningDialog
+      :dialog="confirmEditWarning"
+      title="warning"
+      @cancel="confirmEditWarning = false"
+      @accept="acceptEditWarning()"
+    >
+      <div slot="content">
+        <div v-for="warning in warningInfo" :key="warning.code">
+          <div class="dlg-warning-header">{{$t("services."+warning.code)}}</div>
+          <span v-for="meta in warning.metadata" :key="meta">{{meta}},&#32;</span>
+        </div>
+      </div>
+    </warningDialog>
   </div>
 </template>
 
@@ -98,11 +122,13 @@ import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
 import SubViewTitle from '@/components/SubViewTitle.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import WarningDialog from '@/components/WarningDialog.vue';
 
 export default Vue.extend({
   components: {
     SubViewTitle,
     ConfirmDialog,
+    WarningDialog,
   },
   props: {
     id: {
@@ -113,13 +139,21 @@ export default Vue.extend({
   data() {
     return {
       confirmDelete: false,
-      canSave: false,
+      confirmEditWarning: false,
+      warningInfo: '',
+      touched: false,
       serviceDesc: undefined,
     };
   },
   computed: {
     showDelete(): boolean {
       return this.$store.getters.hasPermission(Permissions.DELETE_WSDL);
+    },
+    canSave(): boolean {
+      if (this.touched && !this.errors.any()) {
+        return true;
+      }
+      return false;
     },
   },
   methods: {
@@ -129,13 +163,20 @@ export default Vue.extend({
 
     save(): void {
       axios
-        .put(`/service-descriptions/${this.id}`, this.serviceDesc)
+        .patch(`/service-descriptions/${this.id}`, this.serviceDesc)
         .then((res) => {
           this.$bus.$emit('show-success', 'localGroup.descSaved');
           this.$router.go(-1);
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          console.log(error);
+          console.log(error.response);
+          if (error.response.data.warnings) {
+            this.warningInfo = error.response.data.warnings;
+            this.confirmEditWarning = true;
+          } else {
+            this.$bus.$emit('show-error', error.message);
+          }
         });
     },
 
@@ -155,7 +196,27 @@ export default Vue.extend({
       axios
         .delete(`/service-descriptions/${this.id}`)
         .then(() => {
-          this.$bus.$emit('show-success', 'localGroup.groupDeleted');
+          this.$bus.$emit('show-success', 'services.deleted');
+          this.$router.go(-1);
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
+    },
+
+    acceptEditWarning(): void {
+      const tempDesc: any = this.serviceDesc;
+
+      if (!tempDesc) {
+        return;
+      }
+
+      tempDesc.ignore_warnings = true;
+
+      axios
+        .patch(`/service-descriptions/${this.id}`, tempDesc)
+        .then((res) => {
+          this.$bus.$emit('show-success', 'localGroup.descSaved');
           this.$router.go(-1);
         })
         .catch((error) => {
@@ -171,6 +232,7 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '../assets/colors';
+@import '../assets/dialogs';
 
 .edit-row {
   display: flex;
