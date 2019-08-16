@@ -60,12 +60,26 @@ public class GlobalConfService {
     }
 
     /**
-     * @param instanceIdentifiers the optional instance identifiers
-     * @return member classes for given instance or all member classes if
+     * @param instanceIdentifier the instance identifier
+     * @return member classes for given instance
+     */
+    public Set<String> getMemberClasses(String instanceIdentifier) {
+        return GlobalConf.getMemberClasses(instanceIdentifier);
+    }
+
+    /**
+     * @return member classes for all member classes if
      * no instance identifiers are specified
      */
-    public Set<String> getMemberClasses(String...instanceIdentifiers) {
-        return GlobalConf.getMemberClasses(instanceIdentifiers);
+    public Set<String> getMemberClasses() {
+        return GlobalConf.getMemberClasses();
+    }
+
+    /**
+     * @return member classes for current instance
+     */
+    public Set<String> getMemberClassesForThisInstance() {
+        return GlobalConf.getMemberClasses(getInstanceIdentifier());
     }
 
     /**
@@ -76,9 +90,9 @@ public class GlobalConfService {
     }
 
     /**
-     * @return member classes for current instance
+     * @return all known instance identifiers
      */
-    public Set<String> getMemberClassesForThisInstance() {
-        return GlobalConf.getMemberClasses(getInstanceIdentifier());
+    public List<String> getInstanceIdentifiers() {
+        return GlobalConf.getInstanceIdentifiers();
     }
 }

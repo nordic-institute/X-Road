@@ -50,8 +50,10 @@ import java.util.Map;
 import java.util.Set;
 
 import static junit.framework.TestCase.fail;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 /**
@@ -70,6 +72,8 @@ public class MemberClassesApiControllerIntegrationTest {
     private static final String INSTANCE_A = "instance_a";
     private static final String INSTANCE_B = "instance_b";
     private static final String INSTANCE_C = "instance_c";
+    private static final List<String> INSTANCE_IDS =
+            Arrays.asList(INSTANCE_A, INSTANCE_B, INSTANCE_C);
 
     private static final List<String> A_MEMBER_CLASSES = Arrays.asList("CODE1", "CODE2");
     private static final List<String> B_MEMBER_CLASSES = Arrays.asList("CODE3", "CODE2");
@@ -87,18 +91,23 @@ public class MemberClassesApiControllerIntegrationTest {
         instanceMemberClasses.put(INSTANCE_A, A_MEMBER_CLASSES);
         instanceMemberClasses.put(INSTANCE_B, B_MEMBER_CLASSES);
         instanceMemberClasses.put(INSTANCE_C, new ArrayList<>());
-        when(globalConfService.getMemberClasses(any())).thenAnswer((Answer<Set<String>>) invocation -> {
-            Set<String> result = new HashSet();
-            for (Object object: invocation.getArguments()) {
-                List<String> memberClasses = instanceMemberClasses.get(object);
-                if (memberClasses != null) {
-                    result.addAll(memberClasses);
-                }
-            }
-            return result;
-        });
+        when(globalConfService.getMemberClasses(anyString()))
+                .thenAnswer((Answer<Set<String>>) invocation -> {
+                    List<String> classes = instanceMemberClasses.get(invocation.getArgument(0));
+                    if (classes == null) {
+                        return new HashSet<>();
+                    }
+                    return new HashSet(classes);
+                });
+
+        when(globalConfService.getMemberClasses())
+                .thenReturn(UNION_MEMBER_CLASSES);
+
+        when(globalConfService.getInstanceIdentifiers())
+                .thenReturn(INSTANCE_IDS);
+
         when(globalConfService.getMemberClassesForThisInstance())
-                .thenReturn(new HashSet<String>(A_MEMBER_CLASSES));
+                .thenReturn(new HashSet<>(A_MEMBER_CLASSES));
     }
 
     @Test
@@ -107,11 +116,13 @@ public class MemberClassesApiControllerIntegrationTest {
         ResponseEntity<List<String>> response =
                 memberClassesApiController.getMemberClassesForInstance(INSTANCE_A);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(A_MEMBER_CLASSES, response.getBody());
+        assertThat("List equality without order",
+                response.getBody(), containsInAnyOrder(A_MEMBER_CLASSES.toArray()));
 
         response = memberClassesApiController.getMemberClassesForInstance(INSTANCE_B);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(B_MEMBER_CLASSES, response.getBody());
+        assertThat("List equality without order",
+                response.getBody(), containsInAnyOrder(B_MEMBER_CLASSES.toArray()));
 
         response = memberClassesApiController.getMemberClassesForInstance(INSTANCE_C);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -131,10 +142,12 @@ public class MemberClassesApiControllerIntegrationTest {
         ResponseEntity<List<String>> response =
                 memberClassesApiController.getMemberClasses(true);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(A_MEMBER_CLASSES, response.getBody());
+        assertThat("List equality without order",
+                response.getBody(), containsInAnyOrder(A_MEMBER_CLASSES.toArray()));
 
-        memberClassesApiController.getMemberClasses(false);
+        response = memberClassesApiController.getMemberClasses(false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(UNION_MEMBER_CLASSES, response.getBody());
+        assertThat("List equality without order",
+                response.getBody(), containsInAnyOrder(UNION_MEMBER_CLASSES.toArray()));
     }
 }

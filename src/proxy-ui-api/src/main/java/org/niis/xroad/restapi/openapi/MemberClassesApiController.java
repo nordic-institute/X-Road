@@ -25,14 +25,17 @@
 package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.service.GlobalConfService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.context.request.NativeWebRequest;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * backups controller
@@ -41,30 +44,38 @@ import java.util.Optional;
 @RequestMapping("/api")
 @Slf4j
 @PreAuthorize("denyAll")
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class MemberClassesApiController implements MemberClassesApi {
 
-    private final NativeWebRequest request;
+    private final GlobalConfService globalConfService;
 
-    @org.springframework.beans.factory.annotation.Autowired
-    public MemberClassesApiController(NativeWebRequest request) {
-        this.request = request;
-    }
-
-    @Override
-    public Optional<NativeWebRequest> getRequest() {
-        return Optional.ofNullable(request);
+    /**
+     * Constructor
+     * @param globalConfService
+     */
+    @Autowired
+    public MemberClassesApiController(GlobalConfService globalConfService) {
+        this.globalConfService = globalConfService;
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
     public ResponseEntity<List<String>> getMemberClasses(Boolean currentInstance) {
-        return null;
+        List<String> memberClasses = null;
+        if (currentInstance) {
+            memberClasses = new ArrayList(globalConfService.getMemberClassesForThisInstance());
+        } else {
+            memberClasses = new ArrayList(globalConfService.getMemberClasses());
+        }
+        return new ResponseEntity<>(memberClasses, HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
-    public ResponseEntity<List<String>> getMemberClassesForInstance(String id) {
-        return null;
+    public ResponseEntity<List<String>> getMemberClassesForInstance(String instanceId) {
+        if (!globalConfService.getInstanceIdentifiers().contains(instanceId)) {
+            throw new NotFoundException("instance identifier not found: " + instanceId);
+        }
+        List<String> memberClasses = new ArrayList(globalConfService.getMemberClasses(instanceId));
+        return new ResponseEntity<>(memberClasses, HttpStatus.OK);
     }
 }
