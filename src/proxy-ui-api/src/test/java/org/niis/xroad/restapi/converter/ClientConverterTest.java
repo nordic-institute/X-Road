@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
+import org.niis.xroad.restapi.service.GlobalConfService;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -45,13 +46,13 @@ public class ClientConverterTest {
 
     @Before
     public void setup() {
-        GlobalConfWrapper globalConfWrapper = new GlobalConfWrapper() {
+        GlobalConfService globalConfService = new GlobalConfService() {
             @Override
             public String getMemberName(ClientId identifier) {
                 return MEMBER_NAME_PREFIX + identifier.getMemberCode();
             }
         };
-        clientConverter = new ClientConverter(globalConfWrapper);
+        clientConverter = new ClientConverter(globalConfService);
     }
 
     @Test

@@ -1639,6 +1639,91 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /member-classes:
+    get: # ok
+      tags:
+        - security server
+      summary: get list of known member classes
+      operationId: getMemberClasses
+      description: Administrator lists member classes.
+      parameters:
+        - in: query
+          name: current_instance
+          description: if true, return member classes for this instance.
+            if false (default), return member classes for all instances
+          required: false
+          schema:
+            default: false
+            type: boolean
+      responses:
+        '200':
+          description: key object
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of member classes
+                uniqueItems: true
+                items:
+                  type: string
+                  format: text
+                  minLength: 1
+                  maxLength: 255
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /member-classes/{id}:
+    get: # ok
+      tags:
+        - security server
+      summary: get list of known member classes for a given instance
+      operationId: getMemberClassesForInstance
+      description: Administrator lists member classes for a given instance.
+      parameters:
+        - in: path
+          name: id
+          description: instance id
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '200':
+          description: key object
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of member classes
+                uniqueItems: true
+                items:
+                  type: string
+                  format: text
+                  minLength: 1
+                  maxLength: 255
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /language:
     put: # ok
       tags:

@@ -32,6 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.Group;
+import org.niis.xroad.restapi.service.GlobalConfService;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -53,14 +54,14 @@ public class GroupConverterTest {
 
     @Before
     public void setup() {
-        GlobalConfWrapper globalConfWrapper = new GlobalConfWrapper() {
+        GlobalConfService globalConfService = new GlobalConfService() {
             @Override
             public String getMemberName(ClientId identifier) {
                 return MEMBER_NAME_PREFIX + identifier.getMemberCode();
             }
         };
-        clientConverter = new ClientConverter(globalConfWrapper);
-        groupConverter = new GroupConverter(clientConverter, globalConfWrapper);
+        clientConverter = new ClientConverter(globalConfService);
+        groupConverter = new GroupConverter(clientConverter, globalConfService);
     }
 
     @Test
