@@ -31,7 +31,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
@@ -41,13 +40,13 @@ import java.util.Set;
  */
 @Slf4j
 @Service
-@Transactional
 @PreAuthorize("denyAll")
 public class GlobalConfService {
 
     /**
      * get member name
      */
+    @PreAuthorize("isAuthenticated")
     public String getMemberName(ClientId identifier) {
         return GlobalConf.getMemberName(identifier);
     }
@@ -55,6 +54,7 @@ public class GlobalConfService {
     /**
      * get global members
      */
+    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public List<MemberInfo> getGlobalMembers(String... instanceIdentifiers) {
         return GlobalConf.getMembers(instanceIdentifiers);
     }
@@ -63,6 +63,7 @@ public class GlobalConfService {
      * @param instanceIdentifier the instance identifier
      * @return member classes for given instance
      */
+    @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
     public Set<String> getMemberClasses(String instanceIdentifier) {
         return GlobalConf.getMemberClasses(instanceIdentifier);
     }
@@ -71,6 +72,7 @@ public class GlobalConfService {
      * @return member classes for all member classes if
      * no instance identifiers are specified
      */
+    @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
     public Set<String> getMemberClasses() {
         return GlobalConf.getMemberClasses();
     }
@@ -78,6 +80,7 @@ public class GlobalConfService {
     /**
      * @return member classes for current instance
      */
+    @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
     public Set<String> getMemberClassesForThisInstance() {
         return GlobalConf.getMemberClasses(getInstanceIdentifier());
     }
@@ -92,6 +95,7 @@ public class GlobalConfService {
     /**
      * @return all known instance identifiers
      */
+    @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
     public List<String> getInstanceIdentifiers() {
         return GlobalConf.getInstanceIdentifiers();
     }
