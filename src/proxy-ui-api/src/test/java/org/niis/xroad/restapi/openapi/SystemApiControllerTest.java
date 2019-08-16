@@ -49,7 +49,7 @@ import static org.mockito.BDDMockito.given;
  * test system api
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @Transactional
 @Slf4j
 public class SystemApiControllerTest {

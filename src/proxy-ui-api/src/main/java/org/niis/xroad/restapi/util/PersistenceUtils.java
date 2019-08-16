@@ -46,4 +46,8 @@ public final class PersistenceUtils {
     public Session getCurrentSession() {
         return entityManager.unwrap(Session.class);
     }
+
+    public void flush() {
+        entityManager.flush();
+    }
 }

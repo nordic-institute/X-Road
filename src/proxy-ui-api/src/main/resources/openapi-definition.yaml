@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.7"
+  version: "1.0.8"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -57,6 +57,10 @@ paths:
       responses:
         '201':
           description: item created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Backup'
         '202':
           description: item accepted
         '400':
@@ -91,6 +95,10 @@ paths:
       responses:
         '201':
           description: item created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Backup'
         '202':
           description: item accepted
         '400':
@@ -125,8 +133,6 @@ paths:
             minLength: 1
             maxLength: 255
       responses:
-        '202':
-          description: item accepted for deletion
         '204':
           description: deletion was successful
         '400':
@@ -518,6 +524,10 @@ paths:
       responses:
         '201':
           description: new client created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
         '400':
           description: there are warnings or errors related to the service description
           content:
@@ -714,6 +724,10 @@ paths:
       responses:
         '201':
           description: local group created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
         '400':
           description: request was invalid
         '401':
@@ -832,6 +846,10 @@ paths:
       responses:
         '201':
           description: service client added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceClient'
         '400':
           description: request was invalid
         '401':
@@ -953,6 +971,10 @@ paths:
       responses:
         '201':
           description: certificate added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
         '400':
           description: request was invalid
         '401':
@@ -1154,6 +1176,10 @@ paths:
       responses:
         '201':
           description: service description created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceDescription'
         '400':
           description: there are warnings or errors related to the service description
           content:
@@ -1309,6 +1335,10 @@ paths:
       responses:
         '201':
           description: new members added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Members'
         '400':
           description: request was invalid
         '401':
@@ -1346,7 +1376,7 @@ paths:
             schema:
               $ref: '#/components/schemas/Members'
       responses:
-        '201':
+        '204':
           description: members deleted
         '400':
           description: request was invalid
@@ -1499,6 +1529,10 @@ paths:
       responses:
         '201':
           description: certificate created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
         '400':
           description: request was invalid
         '401':
@@ -1862,6 +1896,14 @@ paths:
       responses:
         '201':
           description: access rights added
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of added service client objects
+                items:
+                  $ref: '#/components/schemas/ServiceClient'
         '400':
           description: request was invalid
         '401':
@@ -1975,6 +2017,14 @@ paths:
       responses:
         '201':
           description: access right(s) added
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of added access right objects
+                items:
+                  $ref: '#/components/schemas/AccessRight'
         '400':
           description: request was invalid
         '401':
@@ -2013,7 +2063,7 @@ paths:
             schema:
               $ref: '#/components/schemas/Subjects'
       responses:
-        '201':
+        '204':
           description: access right(s) deleted
         '400':
           description: request was invalid
@@ -2389,6 +2439,10 @@ paths:
       responses:
         '201':
           description: configuration anchor uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Anchor'
         '400':
           description: request was invalid
         '401':
@@ -2547,6 +2601,10 @@ paths:
       responses:
         '201':
           description: tls certificate imported
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
         '400':
           description: request was invalid
         '401':
@@ -2606,6 +2664,10 @@ paths:
       responses:
         '201':
           description: timestamping service created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimestampingService'
         '400':
           description: request was invalid
         '401':
@@ -2821,6 +2883,10 @@ paths:
       responses:
         '201':
           description: key created for the token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Key'
         '400':
           description: request was invalid
         '401':

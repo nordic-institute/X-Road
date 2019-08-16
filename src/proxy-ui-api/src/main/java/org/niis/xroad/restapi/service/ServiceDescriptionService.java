@@ -168,11 +168,12 @@ public class ServiceDescriptionService {
      * @param clientId
      * @param url
      * @param ignoreWarnings
+     * @return created {@link ServiceDescriptionType}, with id populated
      * @throws InvalidParametersException if URL is malformed
      * @throws ConflictException          URL already exists
      */
     @PreAuthorize("hasAuthority('ADD_WSDL')")
-    public void addWsdlServiceDescription(ClientId clientId, String url, boolean ignoreWarnings) {
+    public ServiceDescriptionType addWsdlServiceDescription(ClientId clientId, String url, boolean ignoreWarnings) {
         ClientType client = clientService.getClient(clientId);
         if (client == null) {
             throw new NotFoundException("Client with id " + clientId.toShortString() + " not found");
@@ -201,7 +202,8 @@ public class ServiceDescriptionService {
         ServiceDescriptionType serviceDescriptionType = buildWsdlServiceDescription(client, parsedServices, url);
 
         client.getServiceDescription().add(serviceDescriptionType);
-        clientRepository.saveOrUpdate(client);
+        clientRepository.saveOrUpdateAndFlush(client);
+        return serviceDescriptionType;
     }
 
     /**

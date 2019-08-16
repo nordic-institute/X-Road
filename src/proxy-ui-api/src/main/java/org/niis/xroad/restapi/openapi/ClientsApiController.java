@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
@@ -67,6 +68,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.restapi.openapi.ApiUtil.createCreatedResponse;
 
 /**
  * clients api
@@ -203,7 +205,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('ADD_CLIENT_INTERNAL_CERT')")
-    public ResponseEntity<Void> addClientTlsCertificate(String encodedId,
+    public ResponseEntity<CertificateDetails> addClientTlsCertificate(String encodedId,
             Resource body) {
         byte[] certificateBytes;
         try {
@@ -212,12 +214,14 @@ public class ClientsApiController implements ClientsApi {
             throw new BadRequestException("cannot read certificate data", ex, new Error(INVALID_UPLOAD_ERROR_CODE));
         }
         ClientId clientId = clientConverter.convertId(encodedId);
+        CertificateType certificateType = null;
         try {
-            clientService.addTlsCertificate(clientId, certificateBytes);
+            certificateType = clientService.addTlsCertificate(clientId, certificateBytes);
         } catch (CertificateException c) {
             throw new BadRequestException(c, new Error(INVALID_CERT_ERROR_CODE));
         }
-        return new ResponseEntity<>(HttpStatus.OK);
+        CertificateDetails certificateDetails = certificateDetailsConverter.convert(certificateType);
+        return createCreatedResponse("/api/certificates/{hash}", certificateDetails, certificateDetails.getHash());
     }
 
     @Override
@@ -258,10 +262,12 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('ADD_LOCAL_GROUP')")
-    public ResponseEntity<Void> addClientGroup(String id, Group group) {
+    public ResponseEntity<Group> addClientGroup(String id, Group group) {
         ClientType clientType = getClientType(id);
-        groupsService.addLocalGroup(clientType.getIdentifier(), groupConverter.convert(group));
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        LocalGroupType localGroupType = groupsService.addLocalGroup(clientType.getIdentifier(),
+                groupConverter.convert(group));
+        Group createdGroup = groupConverter.convert(localGroupType);
+        return createCreatedResponse("/api/groups/{id}", createdGroup, localGroupType.getId());
     }
 
     @Override
@@ -283,14 +289,19 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('ADD_WSDL')")
-    public ResponseEntity<Void> addClientServiceDescription(String id, Boolean ignoreWarnings,
+    public ResponseEntity<ServiceDescription> addClientServiceDescription(String id, Boolean ignoreWarnings,
             ServiceDescriptionAdd serviceDescription) {
+        ServiceDescriptionType addedServiceDescriptionType = null;
         if (serviceDescription.getType() == ServiceType.WSDL) {
-            serviceDescriptionService.addWsdlServiceDescription(clientConverter.convertId(id),
+            addedServiceDescriptionType = serviceDescriptionService.addWsdlServiceDescription(
+                    clientConverter.convertId(id),
                     serviceDescription.getUrl(), ignoreWarnings);
         } else if (serviceDescription.getType() == ServiceType.REST) {
             return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
         }
-        return new ResponseEntity<>(HttpStatus.OK);
+        ServiceDescription addedServiceDescription = serviceDescriptionConverter.convert(
+                addedServiceDescriptionType);
+        return createCreatedResponse("/api/service-descriptions/{id}", addedServiceDescription,
+                addedServiceDescription.getId());
     }
 }

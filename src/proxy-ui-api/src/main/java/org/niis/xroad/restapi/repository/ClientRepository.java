@@ -58,7 +58,26 @@ public class ClientRepository {
      * @param clientType
      */
     public void saveOrUpdate(ClientType clientType) {
+        saveOrUpdate(clientType, false);
+    }
+
+    /**
+     * Executes a Hibernate saveOrUpdate(client) and flushes whole entityManager
+     * @param clientType
+     */
+    public void saveOrUpdateAndFlush(ClientType clientType) {
+        saveOrUpdate(clientType, true);
+    }
+
+    /**
+     * Executes a Hibernate saveOrUpdate(client) and flushes whole entityManager
+     * @param clientType
+     */
+    public void saveOrUpdate(ClientType clientType, boolean flush) {
         persistenceUtils.getCurrentSession().saveOrUpdate(clientType);
+        if (flush) {
+            persistenceUtils.flush();
+        }
     }
 
     /**

@@ -38,7 +38,7 @@ import static org.junit.Assert.assertEquals;
  * test ServiceConverter
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 public class ServiceConverterTest {
 
     public static final String CLIENT_ID_PREFIX_SS1 = "XRD2:GOV:M4:SS1:";

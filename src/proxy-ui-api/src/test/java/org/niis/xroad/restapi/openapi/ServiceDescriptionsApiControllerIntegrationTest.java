@@ -64,7 +64,7 @@ import static org.mockito.Mockito.when;
  * Test ServiceDescriptionsApiController
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @AutoConfigureTestDatabase
 @Transactional
 @Slf4j
