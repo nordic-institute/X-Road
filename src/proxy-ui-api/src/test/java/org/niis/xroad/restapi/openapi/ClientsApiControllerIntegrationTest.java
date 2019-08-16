@@ -24,7 +24,6 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
@@ -53,7 +52,6 @@ import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.repository.TokenRepository;
 import org.niis.xroad.restapi.service.GlobalConfService;
-import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
 import org.niis.xroad.restapi.wsdl.WsdlValidatorTest;
@@ -61,6 +59,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -74,7 +73,6 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -85,12 +83,21 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.service.ServiceDescriptionService.ERROR_INVALID_WSDL;
+import static org.niis.xroad.restapi.service.ServiceDescriptionService.ERROR_SERVICE_EXISTS;
+import static org.niis.xroad.restapi.service.ServiceDescriptionService.ERROR_WARNINGS_DETECTED;
+import static org.niis.xroad.restapi.service.ServiceDescriptionService.ERROR_WSDL_EXISTS;
+import static org.niis.xroad.restapi.service.ServiceDescriptionService.WARNING_WSDL_VALIDATION_WARNINGS;
+import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithMetadata;
+import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithoutMetadata;
+import static org.niis.xroad.restapi.util.DeviationTestUtils.assertWarning;
+import static org.niis.xroad.restapi.util.TestUtils.assertLocationHeader;
 
 /**
  * Test ClientsApiController
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @AutoConfigureTestDatabase
 @Transactional
 @Slf4j
@@ -134,11 +141,45 @@ public class ClientsApiControllerIntegrationTest {
             + "wREOMPwTZy68CZEaEQyE4M9KezCeVJMCXmnJt1I9oudsw3xPDjq+aYzRORW74RvNFf+sztBjPGhkqFnkl+glbEK6otefyJP\n"
             + "n5vVwjz/+ywyqzx8YJM0vPkD/PghmJxunsJObbvif9FNZaxOaEzI9QDw0nWzbgvsCAqdcHqRjMEQwtU75fzfg==");
 
+    // base64 example certs
+    public static final String VALID_CERT_HASH = "63A104B2BAC14667873C5DBD54BE25BC687B3702";
+    private static final String VALID_CERT =
+            "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIwekNDQVgyZ0F3SUJBZ0lKQU0ra0lkTDRqSTYx"
+                    + "TUEwR0NTcUdTSWIzRFFFQkN3VUFNRVV4Q3pBSkJnTlYKQkFZVEFrRlZNUk13RVFZRFZRUUlE"
+                    + "QXBUYjIxbExWTjBZWFJsTVNFd0h3WURWUVFLREJoSmJuUmxjbTVsZENCWAphV1JuYVhSeklG"
+                    + "QjBlU0JNZEdRd0hoY05NVGt3TkRJME1EWTFPVEF5V2hjTk1qQXdOREl6TURZMU9UQXlXakJG"
+                    + "Ck1Rc3dDUVlEVlFRR0V3SkJWVEVUTUJFR0ExVUVDQXdLVTI5dFpTMVRkR0YwWlRFaE1COEdB"
+                    + "MVVFQ2d3WVNXNTAKWlhKdVpYUWdWMmxrWjJsMGN5QlFkSGtnVEhSa01Gd3dEUVlKS29aSWh2"
+                    + "Y05BUUVCQlFBRFN3QXdTQUpCQU1uRAp5bkQ1dHp5K0YyNUZKbDVOUFJaMlRrclBJV2lmdmR3"
+                    + "aVJCYXFudjNYSlNsWllNeHVTbERlblBNYmIwdHhXMUM4CjBxeDVnVVlDRk5xcU5qV0hWSlVD"
+                    + "QXdFQUFhTlFNRTR3SFFZRFZSME9CQllFRkxMQ3hCbExXekFIZVE5U1o3b3gKbFYvUE9JUHZN"
+                    + "QjhHQTFVZEl3UVlNQmFBRkxMQ3hCbExXekFIZVE5U1o3b3hsVi9QT0lQdk1Bd0dBMVVkRXdR"
+                    + "RgpNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEUVFBY2xuR2JkdGJhVXNOTmEvWHRHYlhD"
+                    + "WFpjZERRaWo2SGx3Cmp1ZGRqKzdmR2psSnZMMWF5OUlaYjIxblRJOHpOQXhsb25Ld2YrT1g0"
+                    + "ODRQM2ZBVHFCMGIKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=";
+    private static final String INVALID_CERT =
+            "dG90YWwgMzYKZHJ3eHJ3eHIteCAzIGphbm5lIGphbm5lIDQwOTYgaHVodGkgMjQgMTY6MjEgLgpkcnd4cn"
+                    + "d4ci14IDkgamFubmUgamFubmUgNDA5NiBodWh0aSAyNCAxMToxNSAuLgotcnctcnctci0tIDEg"
+                    + "amFubmUgamFubmUgMzEwNSBodWh0aSAyNCAxNjowOSBkZWNvZGVkCi1ydy1ydy1yLS0gMSBqYW"
+                    + "5uZSBqYW5uZSAyMjUyIGh1aHRpIDIzIDE0OjEyIGdvb2dsZS1jZXJ0LmRlcgotcnctcnctci0t"
+                    + "IDEgamFubmUgamFubmUgMzAwNCBodWh0aSAyNCAxNjowOSBnb29nbGUtY2VydC5kZXIuYmFzZT"
+                    + "Y0Ci1ydy1ydy1yLS0gMSBqYW5uZSBqYW5uZSAzMTA1IGh1aHRpIDIzIDE0OjA5IGdvb2dsZS1j"
+                    + "ZXJ0LnBlbQotcnctcnctci0tIDEgamFubmUgamFubmUgNDE0MCBodWh0aSAyNCAxNjowOSBnb2"
+                    + "9nbGUtY2VydC5wZW0uYmFzZTY0Ci1ydy1ydy1yLS0gMSBqYW5uZSBqYW5uZSAgICAwIGh1aHRp"
+                    + "IDI0IDE2OjIxIG5vbi1jZXJ0CmRyd3hyd3hyLXggMiBqYW5uZSBqYW5uZSA0MDk2IGh1aHRpID"
+                    + "I0IDE2OjIxIHRpbnkK";
+
+
     @MockBean
     private GlobalConfService globalConfService;
 
     @MockBean
     private TokenRepository tokenRepository;
+
+    @SpyBean
+    // partial mocking, just override getValidatorCommand()
+    private WsdlValidator wsdlValidator;
+
 
     @Before
     public void setup() throws Exception {
@@ -159,9 +200,7 @@ public class ClientsApiControllerIntegrationTest {
         ));
         List<TokenInfo> mockTokens = createMockTokenInfos(null);
         when(tokenRepository.getTokens()).thenReturn(mockTokens);
-        System.setProperty(
-                SystemProperties.WSDL_VALIDATOR_COMMAND,
-                "src/test/resources/validator/mock-wsdlvalidator.sh");
+        when(wsdlValidator.getWsdlValidatorCommand()).thenReturn("src/test/resources/validator/mock-wsdlvalidator.sh");
     }
 
     @Autowired
@@ -307,33 +346,6 @@ public class ClientsApiControllerIntegrationTest {
         return mockTokens;
     }
 
-    // base64 example certs
-    private static final String VALID_CERT =
-            "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIwekNDQVgyZ0F3SUJBZ0lKQU0ra0lkTDRqSTYx"
-                    + "TUEwR0NTcUdTSWIzRFFFQkN3VUFNRVV4Q3pBSkJnTlYKQkFZVEFrRlZNUk13RVFZRFZRUUlE"
-                    + "QXBUYjIxbExWTjBZWFJsTVNFd0h3WURWUVFLREJoSmJuUmxjbTVsZENCWAphV1JuYVhSeklG"
-                    + "QjBlU0JNZEdRd0hoY05NVGt3TkRJME1EWTFPVEF5V2hjTk1qQXdOREl6TURZMU9UQXlXakJG"
-                    + "Ck1Rc3dDUVlEVlFRR0V3SkJWVEVUTUJFR0ExVUVDQXdLVTI5dFpTMVRkR0YwWlRFaE1COEdB"
-                    + "MVVFQ2d3WVNXNTAKWlhKdVpYUWdWMmxrWjJsMGN5QlFkSGtnVEhSa01Gd3dEUVlKS29aSWh2"
-                    + "Y05BUUVCQlFBRFN3QXdTQUpCQU1uRAp5bkQ1dHp5K0YyNUZKbDVOUFJaMlRrclBJV2lmdmR3"
-                    + "aVJCYXFudjNYSlNsWllNeHVTbERlblBNYmIwdHhXMUM4CjBxeDVnVVlDRk5xcU5qV0hWSlVD"
-                    + "QXdFQUFhTlFNRTR3SFFZRFZSME9CQllFRkxMQ3hCbExXekFIZVE5U1o3b3gKbFYvUE9JUHZN"
-                    + "QjhHQTFVZEl3UVlNQmFBRkxMQ3hCbExXekFIZVE5U1o3b3hsVi9QT0lQdk1Bd0dBMVVkRXdR"
-                    + "RgpNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEUVFBY2xuR2JkdGJhVXNOTmEvWHRHYlhD"
-                    + "WFpjZERRaWo2SGx3Cmp1ZGRqKzdmR2psSnZMMWF5OUlaYjIxblRJOHpOQXhsb25Ld2YrT1g0"
-                    + "ODRQM2ZBVHFCMGIKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=";
-    private static final String INVALID_CERT =
-            "dG90YWwgMzYKZHJ3eHJ3eHIteCAzIGphbm5lIGphbm5lIDQwOTYgaHVodGkgMjQgMTY6MjEgLgpkcnd4cn"
-                    + "d4ci14IDkgamFubmUgamFubmUgNDA5NiBodWh0aSAyNCAxMToxNSAuLgotcnctcnctci0tIDEg"
-                    + "amFubmUgamFubmUgMzEwNSBodWh0aSAyNCAxNjowOSBkZWNvZGVkCi1ydy1ydy1yLS0gMSBqYW"
-                    + "5uZSBqYW5uZSAyMjUyIGh1aHRpIDIzIDE0OjEyIGdvb2dsZS1jZXJ0LmRlcgotcnctcnctci0t"
-                    + "IDEgamFubmUgamFubmUgMzAwNCBodWh0aSAyNCAxNjowOSBnb29nbGUtY2VydC5kZXIuYmFzZT"
-                    + "Y0Ci1ydy1ydy1yLS0gMSBqYW5uZSBqYW5uZSAzMTA1IGh1aHRpIDIzIDE0OjA5IGdvb2dsZS1j"
-                    + "ZXJ0LnBlbQotcnctcnctci0tIDEgamFubmUgamFubmUgNDE0MCBodWh0aSAyNCAxNjowOSBnb2"
-                    + "9nbGUtY2VydC5wZW0uYmFzZTY0Ci1ydy1ydy1yLS0gMSBqYW5uZSBqYW5uZSAgICAwIGh1aHRp"
-                    + "IDI0IDE2OjIxIG5vbi1jZXJ0CmRyd3hyd3hyLXggMiBqYW5uZSBqYW5uZSA0MDk2IGh1aHRpID"
-                    + "I0IDE2OjIxIHRpbnkK";
-
     /**
      * Return a Resource for reading a cert, given as base64 encoded string param
      */
@@ -349,10 +361,16 @@ public class ClientsApiControllerIntegrationTest {
     public void addTlsCert() throws Exception {
         ResponseEntity<List<CertificateDetails>> certs = clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1);
         assertEquals(0, certs.getBody().size());
-        ResponseEntity<Void> response =
+        ResponseEntity<CertificateDetails> response =
                 clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1,
                         getResourceToCert(VALID_CERT));
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        CertificateDetails certificateDetails = response.getBody();
+        assertEquals(VALID_CERT_HASH, certificateDetails.getHash());
+        assertEquals("O=Internet Widgits Pty Ltd, ST=Some-State, C=AU",
+                certificateDetails.getSubjectDistinguishedName());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertLocationHeader("/api/certificates/" + certificateDetails.getHash(), response);
+
         assertEquals(1, clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1).getBody().size());
         // cert already exists
         try {
@@ -378,20 +396,20 @@ public class ClientsApiControllerIntegrationTest {
             "DELETE_CLIENT_INTERNAL_CERT",
             "VIEW_CLIENT_INTERNAL_CERTS" })
     public void deleteTlsCert() throws Exception {
-        ResponseEntity<Void> response =
+        ResponseEntity<CertificateDetails> response =
                 clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1,
                         getResourceToCert(VALID_CERT));
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(1, clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1).getBody().size());
         ResponseEntity<Void> deleteResponse =
                 clientsApiController.deleteClientTlsCertificate(CLIENT_ID_SS1,
-                        "63A104B2BAC14667873C5DBD54BE25BC687B3702");
+                        VALID_CERT_HASH);
         assertEquals(HttpStatus.OK, deleteResponse.getStatusCode());
         assertEquals(0, clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1).getBody().size());
         // cert does not exist
         try {
             clientsApiController.deleteClientTlsCertificate(CLIENT_ID_SS1,
-                    "63A104B2BAC14667873C5DBD54BE25BC687B3702");
+                    VALID_CERT_HASH);
             fail("should have thrown NotFoundException");
         } catch (NotFoundException expected) {
         }
@@ -404,22 +422,22 @@ public class ClientsApiControllerIntegrationTest {
             "VIEW_CLIENT_INTERNAL_CERT_DETAILS",
             "VIEW_CLIENT_INTERNAL_CERTS" })
     public void findTlsCert() throws Exception {
-        ResponseEntity<Void> response =
+        ResponseEntity<CertificateDetails> response =
                 clientsApiController.addClientTlsCertificate(CLIENT_ID_SS1,
                         getResourceToCert(VALID_CERT));
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(1, clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1).getBody().size());
         ResponseEntity<CertificateDetails> findResponse =
                 clientsApiController.getClientTlsCertificate(CLIENT_ID_SS1,
-                        "63A104B2BAC14667873C5DBD54BE25BC687B3702");
+                        VALID_CERT_HASH);
         assertEquals(HttpStatus.OK, findResponse.getStatusCode());
-        assertEquals("63A104B2BAC14667873C5DBD54BE25BC687B3702", findResponse.getBody().getHash());
+        assertEquals(VALID_CERT_HASH, findResponse.getBody().getHash());
         // case insensitive
         findResponse =
                 clientsApiController.getClientTlsCertificate(CLIENT_ID_SS1,
                         "63a104b2bac14667873c5dbd54be25bc687b3702");
         assertEquals(HttpStatus.OK, findResponse.getStatusCode());
-        assertEquals("63A104B2BAC14667873C5DBD54BE25BC687B3702", findResponse.getBody().getHash());
+        assertEquals(VALID_CERT_HASH, findResponse.getBody().getHash());
         // not found
         try {
             clientsApiController.getClientTlsCertificate(CLIENT_ID_SS1,
@@ -432,8 +450,11 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_LOCAL_GROUP" })
     public void addLocalGroup() throws Exception {
-        ResponseEntity<Void> response = clientsApiController.addClientGroup(CLIENT_ID_SS1, createGroup(NEW_GROUPCODE));
+        ResponseEntity<Group> response = clientsApiController.addClientGroup(CLIENT_ID_SS1, createGroup(NEW_GROUPCODE));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        Group group = response.getBody();
+        assertEquals(NEW_GROUPCODE, group.getCode());
+        assertLocationHeader("/api/groups/" + group.getId(), response);
     }
 
     @Test
@@ -518,7 +539,7 @@ public class ClientsApiControllerIntegrationTest {
         // client with 0 services
         ResponseEntity<List<ServiceDescription>> descriptions =
                 clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS2);
-        assertEquals(0, descriptions.getBody().size());
+        assertEquals(1, descriptions.getBody().size());
 
         // client not found
         try {
@@ -549,7 +570,8 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(1, serviceDescription.getServices().size());
 
         Service service = serviceDescription.getServices().iterator().next();
-        assertEquals("test-rest-servicecode.v1", service.getId());
+        assertEquals(CLIENT_ID_SS1 + ":test-rest-servicecode.v1", service.getId());
+        assertEquals("test-rest-servicecode.v1", service.getServiceCode());
         assertEquals(Integer.valueOf(60), service.getTimeout());
         assertEquals(true, service.getSslAuth());
         assertEquals("https://restservice.com/api/v1", service.getUrl());
@@ -588,30 +610,37 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
     public void addWsdlServiceDescription() {
         ServiceDescriptionAdd serviceDescription = new ServiceDescriptionAdd()
-                .url("file:src/test/resources/valid.wsdl");
+                .url("file:src/test/resources/wsdl/valid.wsdl");
         serviceDescription.setType(ServiceType.WSDL);
-        clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, serviceDescription);
+        serviceDescription.setIgnoreWarnings(false);
+
+        ResponseEntity<ServiceDescription> response = clientsApiController.addClientServiceDescription(
+                CLIENT_ID_SS1, serviceDescription);
+        ServiceDescription addedServiceDescription = response.getBody();
+        assertNotNull(addedServiceDescription.getId());
+        assertEquals(serviceDescription.getUrl(), addedServiceDescription.getUrl());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertLocationHeader("/api/service-descriptions/" + addedServiceDescription.getId(), response);
+
         ResponseEntity<List<ServiceDescription>> descriptions =
                 clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1);
         assertEquals(3, descriptions.getBody().size());
         try {
-            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, serviceDescription);
+            serviceDescription.setIgnoreWarnings(true);
+            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown ConflictException");
         } catch (ConflictException expected) {
-            assertEquals(ServiceDescriptionService.WSDL_EXISTS, expected.getError().getCode());
+            assertEquals(ERROR_WSDL_EXISTS, expected.getError().getCode());
         }
-        serviceDescription = new ServiceDescriptionAdd().url("file:src/test/resources/testservice.wsdl");
+        serviceDescription = new ServiceDescriptionAdd().url("file:src/test/resources/wsdl/testservice.wsdl");
         serviceDescription.setType(ServiceType.WSDL);
         try {
-            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, serviceDescription);
+            serviceDescription.setIgnoreWarnings(false);
+            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown ConflictException");
         } catch (ConflictException expected) {
-            assertEquals(ServiceDescriptionService.SERVICE_EXISTS, expected.getError().getCode());
-            assertNotNull(expected.getError().getMetadata());
-            // metadata should contain service code and existing service's description url
-            assertEquals("xroadGetRandom.v1", expected.getError().getMetadata().get(0));
-            assertEquals("file:src/test/resources/valid.wsdl", expected.getError().getMetadata().get(1));
-            assertEquals(2, expected.getError().getMetadata().size());
+            assertErrorWithMetadata(ERROR_SERVICE_EXISTS, expected,
+                    "xroadGetRandom.v1", "file:src/test/resources/wsdl/valid.wsdl");
         }
     }
 
@@ -619,43 +648,83 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
     public void addWsdlServiceDescriptionParserFail() {
         ServiceDescriptionAdd serviceDescription =
-                new ServiceDescriptionAdd().url("file:src/test/resources/invalid.wsdl");
+                new ServiceDescriptionAdd().url("file:src/test/resources/wsdl/invalid.wsdl");
         serviceDescription.setType(ServiceType.WSDL);
         try {
-            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, serviceDescription);
+            serviceDescription.setIgnoreWarnings(true);
+            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            assertEquals(ServiceDescriptionService.INVALID_WSDL, expected.getError().getCode());
-            assertNull(expected.getError().getMetadata());
+            assertErrorWithoutMetadata(ERROR_INVALID_WSDL, expected);
         }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
+    public void addWsdlServiceDescriptionWithWarnings() {
+        ServiceDescriptionAdd serviceDescription =
+                new ServiceDescriptionAdd().url("file:src/test/resources/wsdl/warning.wsdl");
+        serviceDescription.setType(ServiceType.WSDL);
+        try {
+            serviceDescription.setIgnoreWarnings(false);
+            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
+            fail("should have thrown BadRequestException");
+        } catch (BadRequestException expected) {
+            assertErrorWithoutMetadata(ERROR_WARNINGS_DETECTED,
+                    expected);
+            assertWarning(WARNING_WSDL_VALIDATION_WARNINGS,
+                    WsdlValidatorTest.MOCK_VALIDATOR_WARNING,
+                    expected);
+        }
+
+        // now lets ignore the warnings
+        serviceDescription.setIgnoreWarnings(true);
+        clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
+        ResponseEntity<List<ServiceDescription>> descriptions =
+                clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1);
+        assertEquals(3, descriptions.getBody().size());
     }
 
     @Test
     @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
     public void addWsdlServiceDescriptionValidationFail() {
         ServiceDescriptionAdd serviceDescription =
-                new ServiceDescriptionAdd().url("file:src/test/resources/error.wsdl");
+                new ServiceDescriptionAdd().url("file:src/test/resources/wsdl/error.wsdl");
         serviceDescription.setType(ServiceType.WSDL);
         try {
-            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, false, serviceDescription);
+            serviceDescription.setIgnoreWarnings(false);
+            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            assertEquals(WsdlValidator.WSDL_VALIDATION_FAILED, expected.getError().getCode());
-            assertNotNull(expected.getError().getMetadata());
-            assertEquals(Collections.singletonList(WsdlValidatorTest.MOCK_VALIDATOR_ERROR),
-                    expected.getError().getMetadata());
+            assertErrorWithMetadata(WsdlValidator.ERROR_WSDL_VALIDATION_FAILED,
+                    WsdlValidatorTest.MOCK_VALIDATOR_ERROR, expected);
         }
+
+        // cannot ignore these fatal errors
+        try {
+            serviceDescription.setIgnoreWarnings(true);
+            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
+            fail("should have thrown BadRequestException");
+        } catch (BadRequestException expected) {
+            assertErrorWithMetadata(WsdlValidator.ERROR_WSDL_VALIDATION_FAILED,
+                    WsdlValidatorTest.MOCK_VALIDATOR_ERROR, expected);
+        }
+
     }
 
     @Test
     @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
     public void addWsdlServiceDescriptionSkipValidation() {
         ServiceDescriptionAdd serviceDescription =
-                new ServiceDescriptionAdd().url("file:src/test/resources/error.wsdl");
+                new ServiceDescriptionAdd().url("file:src/test/resources/wsdl/error.wsdl");
         serviceDescription.setType(ServiceType.WSDL);
-        clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, true, serviceDescription);
-        ResponseEntity<List<ServiceDescription>> descriptions =
-                clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1);
-        assertEquals(3, descriptions.getBody().size());
+        try {
+            serviceDescription.setIgnoreWarnings(true);
+            clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
+            fail("should have thrown BadRequestException");
+        } catch (BadRequestException expected) {
+            assertErrorWithMetadata(WsdlValidator.ERROR_WSDL_VALIDATION_FAILED,
+                    WsdlValidatorTest.MOCK_VALIDATOR_ERROR, expected);
+        }
     }
 }

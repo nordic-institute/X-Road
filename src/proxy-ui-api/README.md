@@ -1,7 +1,9 @@
 # Building
 
 Default build does frontend `npm run build` and packages the built frontend assets from `frontend/dist`
-inside the spring boot jar. You can access the frontend from `http://localhost:8020/index.html`
+inside the spring boot jar. 
+Build installs project-local versions of `node` and `npm` using 
+https://github.com/srs/gradle-node-plugin, and uses those to build the package.
 
 ```
 ../gradlew clean build

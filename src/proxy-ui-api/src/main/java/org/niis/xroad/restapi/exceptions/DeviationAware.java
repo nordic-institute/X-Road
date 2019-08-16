@@ -27,10 +27,10 @@ package org.niis.xroad.restapi.exceptions;
 import java.util.Collection;
 
 /**
- * Exception which (possibly) knows the detailed error code & metadata,
+ * A thing (an Exception) which (possibly) knows the detailed error code & metadata,
  * and warning codes & metadata, to send in REST API response body
  */
-public interface DeviationAwareException {
+public interface DeviationAware {
     /**
      * Return the error details, if any
      * @return

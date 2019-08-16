@@ -49,7 +49,7 @@ import static org.junit.Assert.assertEquals;
  * Test api key repository
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @AutoConfigureTestDatabase
 @Slf4j
 @Transactional

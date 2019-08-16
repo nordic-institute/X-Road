@@ -139,12 +139,12 @@ public class ClientService {
     /**
      * @param id
      * @param certBytes either PEM or DER -encoded certificate
-     * @return
+     * @return created CertificateType with id populated
      * @throws CertificateException if certBytes was not a valid PEM or DER encoded certificate
      * @throws ConflictException    if the certificate already exists
      */
     @PreAuthorize("hasAuthority('ADD_CLIENT_INTERNAL_CERT')")
-    public ClientType addTlsCertificate(ClientId id, byte[] certBytes) throws CertificateException {
+    public CertificateType addTlsCertificate(ClientId id, byte[] certBytes) throws CertificateException {
         X509Certificate x509Certificate;
         try {
             x509Certificate = CryptoUtils.readCertificate(certBytes);
@@ -167,8 +167,8 @@ public class ClientService {
             throw new RuntimeException(ex);
         }
         clientType.getIsCert().add(certificateType);
-        clientRepository.saveOrUpdate(clientType);
-        return clientType;
+        clientRepository.saveOrUpdateAndFlush(clientType);
+        return certificateType;
     }
 
     /**

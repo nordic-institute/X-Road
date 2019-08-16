@@ -54,6 +54,10 @@ public class BadRequestException extends DeviationAwareRuntimeException {
         super(t, error, warnings);
     }
 
+    public BadRequestException(Error error, Collection<Warning> warnings) {
+        super(error, warnings);
+    }
+
     public BadRequestException(Throwable t, Error error) {
         super(t, error);
     }
