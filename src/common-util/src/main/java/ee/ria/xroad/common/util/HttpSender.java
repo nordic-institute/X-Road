@@ -140,7 +140,6 @@ public class HttpSender extends AbstractHttpSender {
         }
 
         try {
-            log.info("client: {} request: {} context: {}", client, request, context);
             HttpResponse response = client.execute(request, context);
             handleResponse(response);
         } catch (Exception ex) {

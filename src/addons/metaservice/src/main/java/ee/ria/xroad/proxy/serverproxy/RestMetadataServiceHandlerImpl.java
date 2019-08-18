@@ -174,11 +174,11 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
             throws URISyntaxException, IOException {
         // parse query string
         String fullURL = getFullURL(servletRequest) + "?" + requestProxyMessage.getRest().getQuery();
-        log.info("fullURL={}", fullURL);
+        log.trace("fullURL={}", fullURL);
         List<NameValuePair> pairs = URLEncodedUtils.parse(new URI(fullURL), Charset.forName("UTF-8"));
         String targetServiceCode = null;
         for (NameValuePair pair : pairs) {
-            log.info("{} : {}", pair.getName(), pair.getValue());
+            log.trace("{} : {}", pair.getName(), pair.getValue());
             if (pair.getName().equalsIgnoreCase(QUERY_PARAM_SERVICECODE)) {
                 targetServiceCode = pair.getValue();
             }
@@ -191,7 +191,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
 
         ServiceId targetServiceId = ServiceId.create(requestProxyMessage.getRest().getServiceId().getClientId(),
                 targetServiceCode);
-        log.info("targetServiceId={}", targetServiceId);
+        log.trace("targetServiceId={}", targetServiceId);
 
         DescriptionType descriptionType = ServerConf.getDescriptionType(targetServiceId);
         if (descriptionType == null) {
@@ -216,11 +216,11 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
             connection.connect();
             restResponse.getHeaders().add(new BasicHeader(MimeUtils.HEADER_CONTENT_TYPE,
                     connection.getContentType()));
-            log.info("contentType={}", connection.getContentType());
+            log.trace("contentType={}", connection.getContentType());
         } catch (Exception e) {
             restResponse.getHeaders().add(new BasicHeader(MimeUtils.HEADER_CONTENT_TYPE,
                     DEFAULT_GETOPENAPI_CONTENT_TYPE));
-            log.info("Using default content type {}", DEFAULT_GETOPENAPI_CONTENT_TYPE);
+            log.trace("Using default content type {}", DEFAULT_GETOPENAPI_CONTENT_TYPE);
         }
 
         byte[] buffer = new byte[BUFFER_SIZE_BYTES];
@@ -231,10 +231,10 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
             int length;
             do {
                 length = inputStream.read(buffer);
-                log.info("read length={}", length);
+                log.trace("read length={}", length);
                 if (length > 0) {
                     restResponseBody.write(buffer, 0, length);
-                    log.info("wrote length={}", length);
+                    log.trace("wrote length={}", length);
                 }
             } while (length > 0);
         } catch (IOException e) {
