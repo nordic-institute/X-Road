@@ -61,6 +61,11 @@
             <key column="client_id"/>
             <one-to-many class="AccessRightType"/>
         </bag>
+
+        <bag name="endpoint" access="field" cascade="all-delete-orphan">
+            <key column="client_id"/>
+            <one-to-many class="EndpointType"/>
+        </bag>
     </class>
 
     <class name="ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType" table="SERVICEDESCRIPTION">
@@ -151,17 +156,22 @@
         <id name="id" type="long" access="field">
             <generator class="native"/>
         </id>
-
-        <property name="serviceCode" access="field" not-null="true"/>
-
-        <many-to-one name="subjectId" access="field"
-                     class="ee.ria.xroad.common.identifier.XRoadId"
-                     not-null="true" cascade="save-update" lazy="false"/>
-
+        <many-to-one name="subjectId" access="field" class="ee.ria.xroad.common.identifier.XRoadId" not-null="true"
+                     cascade="save-update" lazy="false"/>
+        <many-to-one name="endpoint" column="endpoint_id" access="field" class="EndpointType" not-null="true"
+                     cascade="save-update" lazy="false"/>
         <property name="rightsGiven" access="field" not-null="true"/>
-        <property name="method" access="field"/>
-        <property name="path" access="field"/>
     </class>
+
+    <class name="EndpointType" table="ENDPOINT">
+        <id name="id" type="long" access="field">
+            <generator class="native"/>
+        </id>
+        <property name="serviceCode" access="field" not-null="true"/>
+        <property name="method" access="field" not-null="true"/>
+        <property name="path" access="field" not-null="true"/>
+    </class>
+
 
     <class name="TspType" table="TSP">
         <id name="id" type="long" access="field">

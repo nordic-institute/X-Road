@@ -40,10 +40,6 @@ public class AccessRightType {
 
     private Long id;
     private XRoadId subjectId;
-
-    private String serviceCode;
-    private String method;
-    private String path;
-
+    private EndpointType endpoint;
     private Date rightsGiven;
 }
