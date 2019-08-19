@@ -20,6 +20,13 @@ $large-button-width: 140px;
   margin-right: 4px;
   min-width: 120px;
   text-transform: capitalize;
+  
+  .v-btn__loading {
+    .v-progress-circular {
+      width: 16px  !important;
+      height: 16px  !important;
+    }
+  }
 }
 
 .xrd-table-button {

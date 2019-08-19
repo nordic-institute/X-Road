@@ -96,17 +96,10 @@
     <!-- Confirm dialog for warnings when editing WSDL -->
     <warningDialog
       :dialog="confirmEditWarning"
-      title="warning"
+      :warnings="warningInfo"
       @cancel="confirmEditWarning = false"
       @accept="acceptEditWarning()"
-    >
-      <div slot="content">
-        <div v-for="warning in warningInfo" :key="warning.code">
-          <div class="dlg-warning-header">{{$t("services."+warning.code)}}</div>
-          <span v-for="meta in warning.metadata" :key="meta">{{meta}},&#32;</span>
-        </div>
-      </div>
-    </warningDialog>
+    ></warningDialog>
   </div>
 </template>
 

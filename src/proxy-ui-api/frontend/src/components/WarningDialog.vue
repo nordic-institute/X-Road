@@ -30,7 +30,6 @@ export default Vue.extend({
     },
     warnings: {
       type: Array,
-      required: true,
     },
     cancelButtonText: {
       type: String,

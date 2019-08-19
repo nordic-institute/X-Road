@@ -24,6 +24,7 @@
         <v-btn
           v-if="showAddButton"
           color="primary"
+          :loading="addWsdlBusy"
           @click="showAddWsdlDialog"
           outline
           round
@@ -71,6 +72,7 @@
                 small
                 outline
                 round
+                :loading="refreshWsdlBusy"
                 color="primary"
                 class="xrd-small-button xrd-table-button refresh-button"
                 @click="refreshWsdl(serviceDesc)"
@@ -116,14 +118,14 @@
     <warningDialog
       :dialog="saveWarningDialog"
       :warnings="warningInfo"
-      @cancel="saveWarningDialog = false"
+      @cancel="cancelSaveWarning()"
       @accept="acceptSaveWarning()"
     />
     <!-- Accept "refresh WSDL" warnings -->
     <warningDialog
       :dialog="refreshWarningDialog"
       :warnings="warningInfo"
-      @cancel="refreshWarningDialog = false"
+      @cancel="cancelRefresh()"
       @accept="acceptRefreshWarning()"
     />
   </div>
@@ -174,6 +176,8 @@ export default Vue.extend({
       refreshWarningDialog: false,
       wsdlUrl: '',
       wsdlRefreshId: '',
+      addWsdlBusy: false,
+      refreshWsdlBusy: false,
     };
   },
   computed: {
@@ -324,6 +328,7 @@ export default Vue.extend({
 
     wsdlSave(url: string): void {
       this.wsdlUrl = url;
+      this.addWsdlBusy = true;
       axios
         .post(`/clients/${this.id}/service-descriptions`, {
           url,
@@ -331,6 +336,7 @@ export default Vue.extend({
         })
         .then((res) => {
           this.$bus.$emit('show-success', 'services.wsdlAdded');
+          this.addWsdlBusy = false;
           this.fetchData();
         })
         .catch((error) => {
@@ -339,6 +345,7 @@ export default Vue.extend({
             this.saveWarningDialog = true;
           } else {
             this.$bus.$emit('show-error', error.message);
+            this.addWsdlBusy = false;
           }
         });
 
@@ -360,8 +367,14 @@ export default Vue.extend({
         })
         .finally(() => {
           this.fetchData();
+          this.addWsdlBusy = false;
         });
 
+      this.saveWarningDialog = false;
+    },
+
+    cancelSaveWarning(): void {
+      this.addWsdlBusy = false;
       this.saveWarningDialog = false;
     },
 
@@ -394,11 +407,13 @@ export default Vue.extend({
     },
 
     refreshWsdl(wsdl: any): void {
+      this.refreshWsdlBusy = true;
       axios
         .put(`/service-descriptions/${wsdl.id}/refresh`, wsdl)
         .then((res) => {
           this.$bus.$emit('show-success', 'services.wsdlRefreshed');
           this.fetchData();
+          this.refreshWsdlBusy = false;
         })
         .catch((error) => {
           if (error.response.data.warnings) {
@@ -407,6 +422,7 @@ export default Vue.extend({
             this.wsdlRefreshId = wsdl.id;
           } else {
             this.$bus.$emit('show-error', error.message);
+            this.refreshWsdlBusy = false;
             this.fetchData();
           }
         });
@@ -424,9 +440,15 @@ export default Vue.extend({
           this.$bus.$emit('show-error', error.message);
         })
         .finally(() => {
+          this.refreshWsdlBusy = false;
           this.fetchData();
         });
 
+      this.refreshWarningDialog = false;
+    },
+
+    cancelRefresh(): void {
+      this.refreshWsdlBusy = false;
       this.refreshWarningDialog = false;
     },
 
