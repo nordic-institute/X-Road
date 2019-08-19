@@ -277,7 +277,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
     private String getWsdlUrl(ServiceId service) throws Exception {
         ServiceDescriptionType wsdl = ServerConfDatabaseCtx.doInTransaction(
                 session -> new ServiceDescriptionDAOImpl().getServiceDescription(session, service));
-        if (wsdl != null && wsdl.getType() == DescriptionType.OPENAPI3) {
+        if (wsdl != null && wsdl.getType() != DescriptionType.WSDL) {
             throw new CodedException(X_INVALID_SERVICE_TYPE,
                     "Service is a REST service and does not have a WSDL");
         }

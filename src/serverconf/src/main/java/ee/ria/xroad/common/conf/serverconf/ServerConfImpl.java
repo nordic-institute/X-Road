@@ -275,6 +275,17 @@ public class ServerConfImpl implements ServerConfProvider {
         });
     }
 
+    @Override
+    public String getServiceDescriptionURL(ServiceId service) {
+        return tx(session -> {
+            ServiceType serviceType = getService(session, service);
+            if (serviceType != null && serviceType.getServiceDescription() != null) {
+                return serviceType.getServiceDescription().getUrl();
+            }
+            return null;
+        });
+    }
+
     // ------------------------------------------------------------------------
 
     protected ServerConfType getConf() {
