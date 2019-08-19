@@ -29,6 +29,7 @@ import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
@@ -41,6 +42,7 @@ import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
+import org.hibernate.Session;
 import org.hibernate.query.Query;
 
 import java.util.Date;
@@ -125,7 +127,7 @@ public final class TestUtil {
         }
 
         doInTransaction(session -> {
-            ServerConfType conf = createTestData();
+            ServerConfType conf = createTestData(session);
             session.save(conf);
             return null;
         });
@@ -142,7 +144,7 @@ public final class TestUtil {
         });
     }
 
-    static ServerConfType createTestData() {
+    static ServerConfType createTestData(Session session) {
         ServerConfType conf = new ServerConfType();
         conf.setServerCode(SERVER_CODE);
 
@@ -219,19 +221,23 @@ public final class TestUtil {
             }
 
             String serviceCode = service(1, 1);
+            final EndpointType endpoint = new EndpointType(serviceCode, "*", "**");
+            session.persist(endpoint);
+
+            client.getEndpoint().add(endpoint);
 
             client.getAcl().add(
-                    createAccessRight(serviceCode, client.getIdentifier()));
+                    createAccessRight(endpoint, client.getIdentifier()));
 
             ClientId cl = ClientId.create("XX", "memberClass", "memberCode" + i);
-            client.getAcl().add(createAccessRight(serviceCode, cl));
+            client.getAcl().add(createAccessRight(endpoint, cl));
 
             ServiceId se = ServiceId.create("XX", "memberClass",
                     "memberCode" + i, null, "serviceCode" + i);
-            client.getAcl().add(createAccessRight(serviceCode, se));
+            client.getAcl().add(createAccessRight(endpoint, se));
 
             LocalGroupId lg = LocalGroupId.create("testGroup" + i);
-            client.getAcl().add(createAccessRight(serviceCode, lg));
+            client.getAcl().add(createAccessRight(endpoint, lg));
 
             //rest service
             ServiceDescriptionType serviceDescription = new ServiceDescriptionType();
@@ -244,10 +250,13 @@ public final class TestUtil {
             service.setTitle(SERVICE_TITLE + "REST");
             service.setServiceCode("rest");
 
-            client.getAcl().add(
-                    createAccessRight(service.getServiceCode(), client.getIdentifier(), "GET", "/api/**"));
-            client.getAcl().add(
-                    createAccessRight(service.getServiceCode(), client.getIdentifier(), "POST", "/api/test/*"));
+            EndpointType restEndpoint = new EndpointType(service.getServiceCode(), "GET", "/api/**");
+            session.persist(restEndpoint);
+            client.getAcl().add(createAccessRight(restEndpoint, client.getIdentifier()));
+
+            EndpointType restEndpoint2 = new EndpointType(service.getServiceCode(), "POST", "/api/test/*");
+            session.persist(restEndpoint2);
+            client.getAcl().add(createAccessRight(restEndpoint2, client.getIdentifier()));
 
             LocalGroupType localGroup = new LocalGroupType();
             localGroup.setGroupCode("localGroup" + i);
@@ -285,8 +294,8 @@ public final class TestUtil {
     }
 
     static ServiceId createTestServiceId(ClientId member, String serviceCode,
-            String serviceVerison) {
-        return ServiceId.create(member, serviceCode, serviceVerison);
+            String serviceVersion) {
+        return ServiceId.create(member, serviceCode, serviceVersion);
     }
 
     static ClientId createTestClientId() {
@@ -311,22 +320,12 @@ public final class TestUtil {
         return SERVICE_CODE + "-" + serviceDescriptionIdx + "-" + serviceIdx;
     }
 
-    static AccessRightType createAccessRight(String serviceCode, XRoadId xRoadId) {
+    static AccessRightType createAccessRight(EndpointType endpoint, XRoadId xRoadId) {
         AccessRightType accessRight = new AccessRightType();
-        accessRight.setServiceCode(serviceCode);
+        accessRight.setEndpoint(endpoint);
         accessRight.setSubjectId(xRoadId);
         accessRight.setRightsGiven(new Date());
 
-        return accessRight;
-    }
-
-    static AccessRightType createAccessRight(String serviceCode, XRoadId xRoadId, String method, String path) {
-        AccessRightType accessRight = new AccessRightType();
-        accessRight.setServiceCode(serviceCode);
-        accessRight.setSubjectId(xRoadId);
-        accessRight.setRightsGiven(new Date());
-        accessRight.setMethod(method);
-        accessRight.setPath(path);
         return accessRight;
     }
 

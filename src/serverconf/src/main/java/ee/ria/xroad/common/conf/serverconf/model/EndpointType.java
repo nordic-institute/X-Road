@@ -24,44 +24,43 @@
  */
 package ee.ria.xroad.common.conf.serverconf.model;
 
-import ee.ria.xroad.common.identifier.ClientId;
-
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Client.
+ * Access right.
  */
 @Getter
 @Setter
-public class ClientType {
+@EqualsAndHashCode(exclude = "id")
+public class EndpointType {
+    public static final String ANY_METHOD = "*";
+    public static final String ANY_PATH = "**";
 
-    public static final String STATUS_SAVED = "saved";
-    public static final String STATUS_REGINPROG = "registration in progress";
-    public static final String STATUS_REGISTERED = "registered";
-    public static final String STATUS_DELINPROG = "deletion in progress";
-    public static final String STATUS_GLOBALERR = "global error";
-
-    private final List<ServiceDescriptionType> serviceDescription = new ArrayList<>();
-    private final List<LocalGroupType> localGroup = new ArrayList<>();
-    private final List<CertificateType> isCert = new ArrayList<>();
-    private final List<AccessRightType> acl = new ArrayList<>();
-    private final List<EndpointType> endpoint = new ArrayList<>();
-
+    @Setter(AccessLevel.NONE)
     private Long id;
+    private String serviceCode;
+    private String method;
+    private String path;
 
-    private ServerConfType conf;
+    protected EndpointType() {
+        //JPA
+    }
 
-    private ClientId identifier;
-
-    private String clientStatus;
-    private String isAuthentication;
-
-    @Override
-    public String toString() {
-        return String.format("Client(%s)", id);
+    /**
+     * Create an endpoint
+     * @param serviceCode
+     * @param method
+     * @param path
+     */
+    public EndpointType(String serviceCode, String method, String path) {
+        if (serviceCode == null || method == null || path == null) {
+            throw new IllegalArgumentException("Endpoint parts can not be null");
+        }
+        this.serviceCode = serviceCode;
+        this.method = method;
+        this.path = path;
     }
 }

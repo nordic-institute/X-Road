@@ -35,6 +35,7 @@ import ee.ria.xroad.common.conf.serverconf.dao.ServiceDescriptionDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
@@ -122,10 +123,28 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
+    public List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
+        return tx(session -> new ServiceDAOImpl().getServicesByDescriptionType(session,
+                serviceProvider, descriptionType));
+    }
+
+    @Override
     public List<ServiceId> getAllowedServices(ClientId serviceProvider, ClientId client) {
         return tx(session -> {
             List<ServiceId> allServices =
                     new ServiceDAOImpl().getServices(session, serviceProvider);
+            return allServices.stream()
+                    .filter(s -> internalIsQueryAllowed(session, client, s, null, null))
+                    .collect(Collectors.toList());
+        });
+    }
+
+    @Override
+    public List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
+                                                               DescriptionType descriptionType) {
+        return tx(session -> {
+            List<ServiceId> allServices =
+                    new ServiceDAOImpl().getServicesByDescriptionType(session, serviceProvider, descriptionType);
             return allServices.stream()
                     .filter(s -> internalIsQueryAllowed(session, client, s, null, null))
                     .collect(Collectors.toList());
@@ -300,8 +319,8 @@ public class ServerConfImpl implements ServerConfProvider {
         }
 
         for (AccessRightType accessRight : clientType.getAcl()) {
-            if (!StringUtils.equals(service.getServiceCode(),
-                    accessRight.getServiceCode())) {
+            final EndpointType endpoint = accessRight.getEndpoint();
+            if (!StringUtils.equals(service.getServiceCode(), endpoint.getServiceCode())) {
                 continue;
             }
 
@@ -317,11 +336,13 @@ public class ServerConfImpl implements ServerConfProvider {
                 continue;
             }
 
-            if (accessRight.getMethod() != null && !accessRight.getMethod().equalsIgnoreCase(method)) {
+            if (!EndpointType.ANY_METHOD.equals(endpoint.getMethod())
+                    && !endpoint.getMethod().equalsIgnoreCase(method)) {
                 continue;
             }
 
-            if (accessRight.getPath() == null || PathGlob.matches(accessRight.getPath(), normalizedPath)) {
+            if (EndpointType.ANY_PATH.equals(endpoint.getPath())
+                    || PathGlob.matches(endpoint.getPath(), normalizedPath)) {
                 return true;
             }
         }

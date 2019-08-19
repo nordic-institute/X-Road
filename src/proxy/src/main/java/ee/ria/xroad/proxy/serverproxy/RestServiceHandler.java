@@ -22,46 +22,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.serverconf.model;
+package ee.ria.xroad.proxy.serverproxy;
 
-import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.RestResponse;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.util.CachingStream;
+import ee.ria.xroad.proxy.protocol.ProxyMessage;
+import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
+import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 
-import lombok.Getter;
-import lombok.Setter;
+import org.apache.http.client.HttpClient;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 
 /**
- * Client.
+ * Rest service handler interface
  */
-@Getter
-@Setter
-public class ClientType {
+public interface RestServiceHandler {
+    boolean shouldVerifyAccess();
+    boolean shouldVerifySignature();
+    boolean shouldLogSignature();
 
-    public static final String STATUS_SAVED = "saved";
-    public static final String STATUS_REGINPROG = "registration in progress";
-    public static final String STATUS_REGISTERED = "registered";
-    public static final String STATUS_DELINPROG = "deletion in progress";
-    public static final String STATUS_GLOBALERR = "global error";
+    boolean canHandle(ServiceId requestServiceId, ProxyMessage requestMessage);
 
-    private final List<ServiceDescriptionType> serviceDescription = new ArrayList<>();
-    private final List<LocalGroupType> localGroup = new ArrayList<>();
-    private final List<CertificateType> isCert = new ArrayList<>();
-    private final List<AccessRightType> acl = new ArrayList<>();
-    private final List<EndpointType> endpoint = new ArrayList<>();
+    void startHandling(HttpServletRequest servletRequest,
+                       ProxyMessage requestMessage,
+                       ProxyMessageDecoder messageDecoder,
+                       ProxyMessageEncoder messageEncoder,
+                       HttpClient restClient,
+                       HttpClient opMonitorClient,
+                       OpMonitoringData opMonitoringData) throws Exception;
 
-    private Long id;
+    RestResponse getRestResponse();
 
-    private ServerConfType conf;
+    CachingStream getRestResponseBody();
 
-    private ClientId identifier;
-
-    private String clientStatus;
-    private String isAuthentication;
-
-    @Override
-    public String toString() {
-        return String.format("Client(%s)", id);
-    }
+    void finishHandling() throws Exception;
 }

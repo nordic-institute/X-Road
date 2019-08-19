@@ -22,46 +22,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.serverconf.model;
-
-import ee.ria.xroad.common.identifier.ClientId;
-
-import lombok.Getter;
-import lombok.Setter;
-
-import java.util.ArrayList;
-import java.util.List;
+package ee.ria.xroad.proxy.serverproxy;
 
 /**
- * Client.
+ * Dynamic loader for rest service handlers
  */
-@Getter
-@Setter
-public class ClientType {
+public final class RestServiceHandlerLoader {
 
-    public static final String STATUS_SAVED = "saved";
-    public static final String STATUS_REGINPROG = "registration in progress";
-    public static final String STATUS_REGISTERED = "registered";
-    public static final String STATUS_DELINPROG = "deletion in progress";
-    public static final String STATUS_GLOBALERR = "global error";
+    private RestServiceHandlerLoader() { }
 
-    private final List<ServiceDescriptionType> serviceDescription = new ArrayList<>();
-    private final List<LocalGroupType> localGroup = new ArrayList<>();
-    private final List<CertificateType> isCert = new ArrayList<>();
-    private final List<AccessRightType> acl = new ArrayList<>();
-    private final List<EndpointType> endpoint = new ArrayList<>();
-
-    private Long id;
-
-    private ServerConfType conf;
-
-    private ClientId identifier;
-
-    private String clientStatus;
-    private String isAuthentication;
-
-    @Override
-    public String toString() {
-        return String.format("Client(%s)", id);
+    static RestServiceHandler load(String className) {
+        try {
+            Class<?> clazz = Class.forName(className);
+            return (RestServiceHandler) clazz.newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load rest service handler: "
+                    + className, e);
+        }
     }
 }
