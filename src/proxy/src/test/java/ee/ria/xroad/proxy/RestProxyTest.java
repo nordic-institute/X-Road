@@ -27,6 +27,7 @@ package ee.ria.xroad.proxy;
 
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.util.MimeUtils;
@@ -233,6 +234,34 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .then()
                 .statusCode(500)
                 .header("X-Road-Error", "Server.ServerProxy.ServiceType");
+    }
+
+    @Test
+    public void shouldNotAllowPATCH() {
+        ServerConf.reload(new TestServerConf(servicePort) {
+            @Override
+            public boolean isQueryAllowed(ClientId sender, ServiceId service, String method, String path) {
+                if ("PATCH".equalsIgnoreCase(method)) return false;
+                return super.isQueryAllowed(sender, service, method, path);
+            }
+        });
+
+        given()
+                .baseUri("http://127.0.0.1")
+                .port(proxyClientPort)
+                .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
+                .get(PREFIX + "/EE/BUSINESS/producer/sub/service")
+                .then()
+                .statusCode(200);
+
+        given()
+                .baseUri("http://127.0.0.1")
+                .port(proxyClientPort)
+                .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
+                .patch(PREFIX + "/EE/BUSINESS/producer/sub/service")
+                .then()
+                .statusCode(500)
+                .header("X-Road-Error", "Server.ServerProxy.AccessDenied");
     }
 
 

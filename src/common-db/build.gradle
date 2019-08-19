@@ -5,7 +5,7 @@ dependencies {
     compile 'org.postgresql:postgresql:42.2.5'
 
     // DB layer tests use HSQLDB with in-memory tables
-    testCompile 'org.hsqldb:hsqldb:2.4.1'
+    testCompile 'org.hsqldb:hsqldb:2.5.0'
     testCompile project(':common-test')
 }
     

@@ -79,11 +79,26 @@ public interface ServerConfProvider {
 
     /**
      * @param serviceProvider the service provider identifier
+     * @return all the services offered by a service provider.
+     */
+    List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType);
+
+    /**
+     * @param serviceProvider the service provider identifier
      * @param client the client identifier
      * @return all the services by a service provider that the caller
      * has permission to invoke.
      */
     List<ServiceId> getAllowedServices(ClientId serviceProvider, ClientId client);
+
+    /**
+     * @param serviceProvider the service provider identifier
+     * @param client the client identifier
+     * @return all the services by a service provider that the caller
+     * has permission to invoke filtered by description type
+     */
+    List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
+                                                        DescriptionType descriptionType);
 
     /**
      * @param client the client identifier
@@ -133,10 +148,12 @@ public interface ServerConfProvider {
     /**
      * @param sender the sender identifier
      * @param service the service identifier
+     * @param method the request method (can be null)
+     * @param path the request path (can be null)
      * @return true, if member <code>sender</code> is allowed
      * to invoke service <code>serviceName</code>
      */
-    boolean isQueryAllowed(ClientId sender, ServiceId service);
+    boolean isQueryAllowed(ClientId sender, ServiceId service, String method, String path);
 
     /**
      * @param service the service identifier

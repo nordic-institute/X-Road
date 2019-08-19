@@ -118,6 +118,8 @@
 
         <property name="xRequestId" column="x_request_id" type="string" />
 
+        <property name="statusCode" column="status_code" type="int"/>
+
     </class>
 
 </hibernate-mapping>

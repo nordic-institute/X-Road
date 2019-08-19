@@ -52,7 +52,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public boolean isQueryAllowed(ClientId sender, ServiceId service) {
+    public boolean isQueryAllowed(ClientId sender, ServiceId service, String method, String path) {
         return true;
     }
 
@@ -127,8 +127,19 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
+    public List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
+        return emptyList();
+    }
+
+    @Override
     public List<ServiceId> getAllowedServices(ClientId serviceProvider,
             ClientId client) {
+        return emptyList();
+    }
+
+    @Override
+    public List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider,
+                                                               ClientId client, DescriptionType descriptionType) {
         return emptyList();
     }
 

@@ -11,6 +11,7 @@ PATH
   specs:
     common-ui (0.0.1)
       addressable (~> 2.4.0)
+      psych (~> 3.0.3)
       rack-cache (~> 1.6.0)
       rails (~> 3.2.0)
 
@@ -59,6 +60,7 @@ GEM
       activerecord (>= 3.0.0)
     hike (1.2.3)
     i18n (0.7.0)
+    jar-dependencies (0.4.0)
     jdbc-postgres (9.2.1002.1)
     jdbc-sqlite3 (3.7.2.1)
     journey (1.0.4)
@@ -69,6 +71,8 @@ GEM
     mime-types (1.25.1)
     multi_json (1.12.1)
     polyglot (0.3.5)
+    psych (3.0.3-java)
+      jar-dependencies (>= 0.1.7)
     rack (1.4.7)
     rack-cache (1.6.1)
       rack (>= 0.4)
@@ -121,4 +125,4 @@ DEPENDENCIES
   rails (~> 3.2.10)
 
 BUNDLED WITH
-   1.12.5
+   1.14.6

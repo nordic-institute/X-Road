@@ -224,11 +224,27 @@ public class ServerConfTest {
                 service(1, 1), SERVICE_VERSION);
         ServiceId serviceX = createTestServiceId(client1.getMemberCode(),
                 SERVICE_CODE + "X", SERVICE_VERSION + "X");
+        ServiceId serviceRest = createTestServiceId(client1.getMemberCode(), "rest", null);
 
         assertTrue(ServerConf.isQueryAllowed(client1, service1));
+        assertTrue(ServerConf.isQueryAllowed(client1, service1, "POST", "/"));
         assertFalse(ServerConf.isQueryAllowed(clientX, service1));
         assertFalse(ServerConf.isQueryAllowed(clientX, serviceX));
         assertFalse(ServerConf.isQueryAllowed(client1, serviceX));
+
+        assertTrue(ServerConf.isQueryAllowed(client1, serviceRest, "GET", "/api/foo"));
+
+        assertTrue(ServerConf.isQueryAllowed(client1, serviceRest, "POST", "/api/test/foo"));
+        assertTrue(ServerConf.isQueryAllowed(client1, serviceRest, "POST", "/api/t%65st/foo"));
+        assertTrue(ServerConf.isQueryAllowed(client1, serviceRest, "POST", "/api/t%65st/foo%2dbar"));
+        assertTrue(ServerConf.isQueryAllowed(client1, serviceRest, "POST", "/api/test/foo/../bar"));
+
+        assertFalse(ServerConf.isQueryAllowed(client1, serviceRest, "POST", "/api/test%2Dbar"));
+        assertFalse(ServerConf.isQueryAllowed(client1, serviceRest, "POST", "/api/test/../bar"));
+        assertFalse(ServerConf.isQueryAllowed(client1, serviceRest, "GET", "/api/test/../../../api/test"));
+        assertFalse(ServerConf.isQueryAllowed(client1, serviceRest, "POST", "/api/test/foo/bar"));
+        assertFalse(ServerConf.isQueryAllowed(client1, serviceRest, "DELETE", "/api/test"));
+        assertFalse(ServerConf.isQueryAllowed(client1, serviceRest));
     }
 
     /**

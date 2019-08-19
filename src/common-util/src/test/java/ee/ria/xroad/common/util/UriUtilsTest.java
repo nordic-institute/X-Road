@@ -28,6 +28,7 @@ import com.google.common.net.UrlEscapers;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
+import static ee.ria.xroad.common.util.UriUtils.uriPathPercentDecode;
 import static ee.ria.xroad.common.util.UriUtils.uriSegmentPercentDecode;
 import static org.junit.Assert.assertEquals;
 
@@ -74,5 +75,15 @@ public class UriUtilsTest {
         final String expected = b.toString();
         final String escaped = UrlEscapers.urlPathSegmentEscaper().escape(expected);
         assertEquals(expected, uriSegmentPercentDecode(escaped));
+    }
+
+    @Test
+    public void shouldKeepPathSeparator() {
+        assertEquals("/foo/bar/zy%2Dggy", uriPathPercentDecode("/foo/bar/zy%2dggy", true));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldFailIfPathSeparatorPresent() {
+        uriPathPercentDecode("zy%2dggy/", false);
     }
 }

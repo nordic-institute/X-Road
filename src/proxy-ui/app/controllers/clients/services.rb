@@ -26,6 +26,7 @@ require "shellwords"
 
 java_import Java::ee.ria.xroad.common.SystemProperties
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.AccessRightType
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.EndpointType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.DescriptionType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServiceType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType
@@ -34,6 +35,7 @@ java_import Java::ee.ria.xroad.common.conf.serverconf.model.DescriptionType
 java_import Java::ee.ria.xroad.common.identifier.SecurityCategoryId
 java_import Java::ee.ria.xroad.proxyui.InternalServerTestUtil
 java_import Java::ee.ria.xroad.proxyui.WSDLParser
+java_import Java::ee.ria.xroad.proxyui.OpenApiParser
 java_import Java::java.net.URL
 
 
@@ -68,7 +70,7 @@ module Clients::Services
 
     validate_params({
       :client_id => [:required],
-      :wsdl_add_url => [:required],
+      :wsdl_add_url => [:required, :url],
       :service_type => [:required]
     })
 
@@ -92,6 +94,9 @@ module Clients::Services
 
     client.serviceDescription.add(servicedescription)
 
+    servicedescription.service.each { |service|
+      create_endpoint(client.endpoint, service.service_code)
+    }
     serverconf_save
 
     render_json(read_services(client))
@@ -103,15 +108,22 @@ module Clients::Services
     authorize!(:add_openapi3)
     validate_params({
       :client_id => [:required],
-      :openapi3_add_url => [:required],
+      :openapi3_add_url => [:required, :url],
       :openapi3_service_code => [:required],
       :service_type => [:required]
     })
 
+    url = params[:openapi3_add_url]
+    base_url = url
     client = get_client(params[:client_id])
 
+    if "OPENAPI3" == params(:service_type)
+      result = parse_openapi(url)
+      base_url = result.base_url
+    end
+
     servicedescription = ServiceDescriptionType.new
-    servicedescription.url = params[:openapi3_add_url]
+    servicedescription.url = url
     servicedescription.disabled = true
     servicedescription.disabledNotice = t('clients.default_disabled_service_notice')
     servicedescription.refreshedDate = Date.new
@@ -128,18 +140,18 @@ module Clients::Services
     service.serviceCode = params[:openapi3_service_code]
     service.serviceVersion = nil
     service.title = nil
-    service.url = params[:openapi3_add_url]
+    service.url = base_url
     service.timeout = DEFAULT_SERVICE_TIMEOUT
     service.serviceDescription = servicedescription
     servicedescription.service.add(service)
 
-    check_openapi3_url(servicedescription.url)
     check_duplicate_url(servicedescription)
     check_duplicate_service_codes(servicedescription)
 
     client.serviceDescription.add(servicedescription)
-    serverconf_save
+    create_endpoint(client.endpoint, service.service_code)
 
+    serverconf_save
     render_json(read_services(client))
   end
 
@@ -201,7 +213,7 @@ module Clients::Services
       :client_id => [:required],
       :wsdl_id => [:required],
       :openapi3_old_service_code => [:required],
-      :openapi3_new_url => [:required],
+      :openapi3_new_url => [:required, :url],
       :openapi3_new_service_code => [:required],
       :service_type => [:required]
     })
@@ -211,22 +223,27 @@ module Clients::Services
     audit_log_data[:clientIdentifier] = client.identifier
 
     servicedescription = client.serviceDescription.detect { |servicedescription|
-      DescriptionType::OPENAPI3 == servicedescription.type &&
-        servicedescription.url == params[:wsdl_id]
-    }
-    client.serviceDescription.remove(servicedescription)
+      DescriptionType::OPENAPI3 == servicedescription.type && servicedescription.url == params[:wsdl_id]
+    } or raise t("clients.service_description_does_not_exist")
+
+    base_url = params[:openapi3_new_url]
+    if "OPENAPI3" == params[:service_type]
+      if params[:openapi3_new_url] != servicedescription.url
+        result = parse_openapi(base_url)
+        base_url = result.base_url
+      else
+        base_url = servicedescription.service.first.url
+      end
+    end
 
     servicedescription.url = params[:openapi3_new_url]
-    servicedescription.service.first.url = params[:openapi3_new_url]
+    servicedescription.service.first.url = base_url
     servicedescription.service.first.service_code = params[:openapi3_new_service_code]
 
-    check_openapi3_url(servicedescription.url)
     check_duplicate_url(servicedescription)
     check_duplicate_service_codes(servicedescription)
 
-    client.serviceDescription.add(servicedescription)
-
-    client.acl.each do |item|
+    client.endpoint.each do |item|
       if params[:openapi3_old_service_code] == item.serviceCode
         item.serviceCode = params[:openapi3_new_service_code]
       end
@@ -245,7 +262,7 @@ module Clients::Services
     validate_params({
       :client_id => [:required],
       :wsdl_id => [:required],
-      :new_url => [:required],
+      :new_url => [:required, :url],
       :service_type => [:required]
     })
     client = get_client(params[:client_id])
@@ -472,20 +489,22 @@ module Clients::Services
 
     audit_log_data[:clientIdentifier] = client.identifier
     audit_log_data[:serviceCode] = params[:service_code]
-    audit_log_data[:serviceCode] = params[:service_code]
     audit_log_data[:subjectIds] = []
 
     now = Date.new
 
     params[:subject_ids].each do |subject_id|
-      access_right = AccessRightType.new
-      access_right.subjectId = get_cached_subject_id(subject_id)
-      access_right.serviceCode = params[:service_code]
-      access_right.rightsGiven = now
+      endpoint = create_endpoint(client.endpoint, params[:service_code])
+      if !contains_subject(client.acl, subject_id, endpoint)
+        access_right = AccessRightType.new
+        access_right.subjectId = get_cached_subject_id(subject_id)
+        access_right.endpoint = endpoint
+        access_right.rightsGiven = now
 
-      audit_log_data[:subjectIds] << access_right.subject_id.toString
+        audit_log_data[:subjectIds] << access_right.subject_id.toString
 
-      client.acl.add(access_right)
+        client.acl.add(access_right)
+      end
     end
 
     serverconf_save
@@ -596,7 +615,7 @@ module Clients::Services
     i = 0
 
     client.acl.each do |access_right|
-      i = i + 1 if access_right.serviceCode == service_code
+      i = i + 1 if access_right.endpoint.serviceCode == service_code
     end
 
     return i
@@ -703,27 +722,18 @@ module Clients::Services
         service.serviceDescription = wsdl
 
         wsdl.service.add(service)
+        create_endpoint(client.endpoint, service.service_code)
+
       end if added_objs.has_key?(wsdl.url)
     end
 
     clean_service_acls(client, deleted_codes, nil)
   end
 
-
-  def check_openapi3_url(uri)
-    begin
-      uri = URL.new(uri)
-      scheme = uri.getProtocol()
-      if uri.getHost().to_s.empty? || scheme.empty? || !(scheme == "http" || scheme == "https")
-        raise t('clients.malformed_openapi3_url')
-      end
-    rescue Java::java.net.MalformedURLException
-      raise t('clients.malformed_openapi3_url')
-    end
-  end
-
   def check_duplicate_url(reviewedService)
     reviewedService.client.serviceDescription.each do |other_servicedescription|
+      next if reviewedService.equal? other_servicedescription
+
       if reviewedService.url == other_servicedescription.url
         raise t('clients.url_exists')
       end
@@ -732,6 +742,8 @@ module Clients::Services
 
   def check_duplicate_service_codes(reviewedService)
     reviewedService.client.serviceDescription.each do |other_service|
+      next if reviewedService.equal? other_service
+
       reviewedService.service.each do |reviewedItem|
         other_service.service.each do |otherItem|
           if reviewedItem.service_code == otherItem.service_code &&
@@ -877,7 +889,10 @@ module Clients::Services
       end
     end
 
-    remove_access_rights(client.acl, nil, service_codes) if !service_codes.empty?
+    unless service_codes.empty?
+      remove_access_rights(client.acl, nil, service_codes)
+      remove_endpoints(client.endpoint, service_codes)
+    end
   end
 
   def check_internal_server_certs(client, url)
@@ -891,4 +906,23 @@ module Clients::Services
       logger.error("Checking internal server certs failed: #{$!.message}")
     end
   end
+
+  def parse_openapi(url)
+    begin
+      result = OpenApiParser.new(url).parse
+      if result.warnings.size > 0
+        warnings = ""
+        result.warnings.each do |line|
+          warnings += "#{Encode.forHtml(line)}<br/>"
+        end
+
+        warn("openapi_validation_warnings", t("clients.openapi_validation_warnings",
+          { :url => Encode.forHtml(url), :warnings => warnings }))
+      end
+      result
+    rescue OpenApiParser::ParsingException
+      raise $!.message
+    end
+  end
+
 end

@@ -147,6 +147,12 @@ public abstract class MessageProcessorBase {
         }
     }
 
+    /**
+     * Check that message transfer was successful.
+     */
+    public boolean verifyMessageExchangeSucceeded() {
+        return true;
+    }
 
     protected static String getSecurityServerAddress() {
         return GlobalConf.getSecurityServerAddress(ServerConf.getIdentifier());

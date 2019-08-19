@@ -5,16 +5,17 @@ buildscript {
 
     dependencies {
         classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
-        classpath 'org.owasp:dependency-check-gradle:5.2.0'
+        classpath 'org.owasp:dependency-check-gradle:5.2.1'
     }
 }
 
 plugins {
-    id "org.sonarqube" version "2.6.2"
+    id "org.sonarqube" version "2.7.1"
 }
 
 apply plugin: 'idea'
 apply plugin: 'jacoco'
+apply plugin: 'org.owasp.dependencycheck'
 
 def getRubySourceCheckCommand(def projectPath) {
     return ["$rootDir/check_ruby_source.sh", "$projectPath"]
@@ -31,47 +32,41 @@ sonarqube {
         property "sonar.projectName", "X-Road-REST-UI"
         property "sonar.projectDescription", "Data Exchange Layer"
         property "sonar.projectVersion", xroadVersion
+        property "sonar.dependencyCheck.reportPath", "build/reports/owasp-dependency-check/dependency-check-report.xml"
+        property "sonar.dependencyCheck.htmlReportPath", "build/reports/owasp-dependency-check/dependency-check-report.html"
+        property "sonar.exclusions", "**/build/generated-sources/**"
     }
 }
 
+dependencyCheck {
+  outputDirectory = "${project.buildDir}/reports/owasp-dependency-check"
+    format = "ALL"
+    suppressionFile = "${project.rootDir}/dependencycheck-suppressions.xml"
+    analyzers {
+      experimentalEnabled = false
+      archiveEnabled = false
+      jarEnabled = true
+      centralEnabled = true
+      bundleAuditEnabled = true
+      nexusEnabled = false
+      nuspecEnabled = false
+      assemblyEnabled = false
+      pyDistributionEnabled = false
+      pyPackageEnabled = false
+      rubygemsEnabled = false
+      cmakeEnabled = false
+      autoconfEnabled = false
+      composerEnabled = false
+      nodeEnabled = false
+  }
+}
+
+
 allprojects {
-    apply plugin: 'org.owasp.dependencycheck'
-    dependencyCheck {
-        outputDirectory = "${project.buildDir}/reports/owasp-dependency-check"
-        format = "ALL"
-        suppressionFile = "${project.rootDir}/dependencycheck-suppressions.xml"
-        analyzers {
-            experimentalEnabled = true
-            archiveEnabled = true
-            jarEnabled = true
-            centralEnabled = true
-            nexusEnabled = false
-            nuspecEnabled = false
-            assemblyEnabled = false
-            pyDistributionEnabled = false
-            pyPackageEnabled = false
-            rubygemsEnabled = true
-            cmakeEnabled = false
-            autoconfEnabled = false
-            composerEnabled = false
-            nodeEnabled = false
-        }
-    }
-
-    sonarqube {
-        properties {
-            property "sonar.dependencyCheck.reportPath", "build/reports/owasp-dependency-check/dependency-check-report.xml"
-        }
-    }
-
     task allDependencies(type: DependencyReportTask) {}
 }
 
 subprojects {
-
-    dependencyCheck {
-        autoUpdate = false
-    }
 
     apply plugin: 'eclipse'
     apply plugin: 'java'
@@ -83,7 +78,7 @@ subprojects {
     version = '1.0'
 
     jacoco {
-        toolVersion = "0.8.3"
+        toolVersion = "0.8.4"
     }
 
     repositories {
@@ -115,7 +110,7 @@ subprojects {
         testCompile 'junit:junit:4.12'
         testCompile 'org.hamcrest:hamcrest-all:1.3'
 
-        provided 'org.projectlombok:lombok:1.16.6'
+        provided 'org.projectlombok:lombok:1.18.8'
 
     }
 
@@ -162,7 +157,7 @@ subprojects {
     }
 
     checkstyle {
-        toolVersion = "8.2"
+        toolVersion = "8.22"
         configDir=file("${project.rootDir}/config/checkstyle")
         configFile=file("${configDir}/checkstyle.xml")
         ignoreFailures = false
