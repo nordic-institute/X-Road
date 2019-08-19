@@ -55,7 +55,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -206,23 +205,6 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         String serviceDescriptionURL = ServerConf.getServiceDescriptionURL(targetServiceId);
         URL url = new URL(serviceDescriptionURL);
 
-        // try to resolve content type
-        try {
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            // Use the same timeouts as client proxy to server proxy connections.
-            connection.setConnectTimeout(SystemProperties.getClientProxyTimeout());
-            connection.setReadTimeout(SystemProperties.getClientProxyHttpClientTimeout());
-            connection.setRequestMethod("HEAD");
-            connection.connect();
-            restResponse.getHeaders().add(new BasicHeader(MimeUtils.HEADER_CONTENT_TYPE,
-                    connection.getContentType()));
-            log.trace("contentType={}", connection.getContentType());
-        } catch (Exception e) {
-            restResponse.getHeaders().add(new BasicHeader(MimeUtils.HEADER_CONTENT_TYPE,
-                    DEFAULT_GETOPENAPI_CONTENT_TYPE));
-            log.trace("Using default content type {}", DEFAULT_GETOPENAPI_CONTENT_TYPE);
-        }
-
         byte[] buffer = new byte[BUFFER_SIZE_BYTES];
         URLConnection urlConnection = url.openConnection();
         urlConnection.setConnectTimeout(SystemProperties.getClientProxyTimeout());
@@ -240,6 +222,15 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         } catch (IOException e) {
             throw new CodedException(X_INTERNAL_ERROR,
                     String.format("Failed reading service description from: %s", serviceDescriptionURL));
+        }
+        if (urlConnection.getContentType() != null) {
+            restResponse.getHeaders().add(new BasicHeader(MimeUtils.HEADER_CONTENT_TYPE,
+                    urlConnection.getContentType()));
+            log.trace("contentType={}", urlConnection.getContentType());
+        } else {
+            restResponse.getHeaders().add(new BasicHeader(MimeUtils.HEADER_CONTENT_TYPE,
+                    DEFAULT_GETOPENAPI_CONTENT_TYPE));
+            log.trace("Using default content type {}", DEFAULT_GETOPENAPI_CONTENT_TYPE);
         }
     }
 
