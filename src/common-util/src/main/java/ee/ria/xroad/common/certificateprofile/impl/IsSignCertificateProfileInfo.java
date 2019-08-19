@@ -30,49 +30,39 @@ import ee.ria.xroad.common.util.IsSubjectClientIdDecoder;
 import java.security.cert.X509Certificate;
 
 /**
- * Default implementation (EJBCA) of SignCertificateProfileInfo.
- * adaped for Iceland 060718 JJB It ráðgjöf ehf.
+ * Default implementation (EJBCA) of SignCertificateProfileInfo. adaped for
+ * Iceland 060718 JJB It ráðgjöf ehf.
  */
-public class IsSignCertificateProfileInfo
-        extends AbstractCertificateProfileInfo
-        implements SignCertificateProfileInfo {
+public class IsSignCertificateProfileInfo extends AbstractCertificateProfileInfo implements SignCertificateProfileInfo {
 
     protected final Parameters params;
 
     /**
      * Constructor.
+     * 
      * @param params the parameters
      */
     public IsSignCertificateProfileInfo(Parameters params) {
         super(new DnFieldDescription[] {
                 // Country Code
-                new DnFieldDescriptionImpl("C", "Country code (C)",
-                        "IS"
-                ).setReadOnly(true),
+                new DnFieldDescriptionImpl("C", "Country code (C)", "IS").setReadOnly(true),
 
                 // Organization name
-                new DnFieldDescriptionImpl("O", "Organization name (O)",
-                        ""
-                ).setReadOnly(false),
+                new DnFieldDescriptionImpl("O", "Organization name (O)", "").setReadOnly(false),
                 // Organisation Unit
                 new DnFieldDescriptionImpl("OU", "Organization Unit (OU)",
-                    "instanceIdentifier=" + params.getServerId().getXRoadInstance() + " serverCode="
-                    + params.getServerId().getServerCode() + "memberClass="
-                    + params.getServerId().getMemberClass()
-                ).setReadOnly(true),
+                        "instanceIdentifier=" + params.getServerId().getXRoadInstance() + " serverCode="
+                                + params.getServerId().getServerCode() + "memberClass="
+                                + params.getServerId().getMemberClass()).setReadOnly(true),
                 // Serialnumber
-                new DnFieldDescriptionImpl("serialNumber", "Serial number",
-                   ""
-                ).setReadOnly(true),
+                new DnFieldDescriptionImpl("serialNumber", "Serial number", "").setReadOnly(true),
 
                 // Member code
-                new DnFieldDescriptionImpl("CN", "Member code",
-                        params.getClientId().getMemberCode()
-                ).setReadOnly(true)
-            }
-        );
+                new DnFieldDescriptionImpl("CN", "Member code", params.getClientId().getMemberCode())
+                        .setReadOnly(true) });
         this.params = params;
     }
+
     @Override
     public ClientId getSubjectIdentifier(X509Certificate certificate) {
         return IsSubjectClientIdDecoder.getSubjectClientId(certificate);

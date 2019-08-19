@@ -28,41 +28,29 @@ import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 /**
  * Default implementation (EJBCA) of AuthCertificateProfileInfo.
  */
-public class IsAuthCertificateProfileInfo
-        extends AbstractCertificateProfileInfo
-        implements AuthCertificateProfileInfo {
+public class IsAuthCertificateProfileInfo extends AbstractCertificateProfileInfo implements AuthCertificateProfileInfo {
 
     /**
      * Constructor.
+     * 
      * @param params the parameters
      */
     public IsAuthCertificateProfileInfo(Parameters params) {
         super(new DnFieldDescription[] {
                 // Country Code
-                new DnFieldDescriptionImpl("C", "Country code (C)",
-                    "IS"
-                ).setReadOnly(true),
+                new DnFieldDescriptionImpl("C", "Country code (C)", "IS").setReadOnly(true),
 
                 // Organization name
-                new DnFieldDescriptionImpl("O", "Organization name (O)",
-                    ""
-                ).setReadOnly(false),
+                new DnFieldDescriptionImpl("O", "Organization name (O)", "").setReadOnly(false),
                 // Organisation Unit
                 new DnFieldDescriptionImpl("OU", "Organization Unit (OU)",
-                    "instanceIdentifier=" + params.getServerId().getXRoadInstance() + " serverCode="
-                    + params.getServerId().getServerCode() + " memberClass="
-                    + params.getServerId().getMemberClass()
-                ).setReadOnly(true),
+                        "instanceIdentifier=" + params.getServerId().getXRoadInstance() + " serverCode="
+                                + params.getServerId().getServerCode() + " memberClass="
+                                + params.getServerId().getMemberClass()).setReadOnly(true),
                 // Serialnumber
-                new DnFieldDescriptionImpl("serialNumber", "Serial number",
-                    ""
-                ).setReadOnly(true),
+                new DnFieldDescriptionImpl("serialNumber", "Serial number", "").setReadOnly(true),
 
                 // Server code
-                new DnFieldDescriptionImpl("CN", "Server DNS name (CN)",
-                    ""
-                ).setReadOnly(false)
-            }
-        );
+                new DnFieldDescriptionImpl("CN", "Server DNS name (CN)", "").setReadOnly(false) });
     }
 }

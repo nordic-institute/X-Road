@@ -27,21 +27,18 @@ import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 
 /**
- * Default implementation of CertificateProfileInfoProvider.
- * changed for Icelandic provider, 060718 JJB It ráðgjöf ehf.
+ * Default implementation of CertificateProfileInfoProvider. changed for
+ * Icelandic provider, 060718 JJB It ráðgjöf ehf.
  */
-public class IsCertificateProfileInfoProvider
-        implements CertificateProfileInfoProvider {
+public class IsCertificateProfileInfoProvider implements CertificateProfileInfoProvider {
 
     @Override
-    public AuthCertificateProfileInfo getAuthCertProfile(
-            AuthCertificateProfileInfo.Parameters params) {
+    public AuthCertificateProfileInfo getAuthCertProfile(AuthCertificateProfileInfo.Parameters params) {
         return new IsAuthCertificateProfileInfo(params);
     }
 
     @Override
-    public SignCertificateProfileInfo getSignCertProfile(
-            SignCertificateProfileInfo.Parameters params) {
+    public SignCertificateProfileInfo getSignCertProfile(SignCertificateProfileInfo.Parameters params) {
         return new IsSignCertificateProfileInfo(params);
     }
 

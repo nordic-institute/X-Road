@@ -37,15 +37,15 @@ import java.util.regex.Pattern;
 import static ee.ria.xroad.common.util.CertUtils.getRDNValue;
 
 /**
- * Helper class for decoding ClientId from Finnish X-Road instance signing certificates.
- * adapted to Iceland 060718 JJB It ráðgjöf ehf.
+ * Helper class for decoding ClientId from Finnish X-Road instance signing
+ * certificates. adapted to Iceland 060718 JJB It ráðgjöf ehf.
  */
 public final class IsSubjectClientIdDecoder {
 
     public static final int NUM_COMPONENTS = 3;
 
     private IsSubjectClientIdDecoder() {
-        //utility class
+        // utility class
     }
 
     /**
@@ -66,13 +66,10 @@ public final class IsSubjectClientIdDecoder {
     }
 
     /*
-     * The encoding for clientID:
-     * <ul>
-     *  <li>C = FI (country code must be 'FI' when using this decoder)</li>
-     *  <li>O = organization (must be present)
-     *  <li>CN = memberCode (business code without "Y" prefix)</li>
-     *  <li>serialNumber = instanceIdentifier;serverCode;memberClass
-     * </ul>
+     * The encoding for clientID: <ul> <li>C = FI (country code must be 'FI' when
+     * using this decoder)</li> <li>O = organization (must be present) <li>CN =
+     * memberCode (business code without "Y" prefix)</li> <li>serialNumber =
+     * instanceIdentifier;serverCode;memberClass </ul>
      */
 
     private static final Pattern SPLIT_PATTERN = Pattern.compile("=");
@@ -94,11 +91,10 @@ public final class IsSubjectClientIdDecoder {
             throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
                     "Certificate subject name does not contain common name");
         }
-/* added 060718 JJB */
-        String OU = getRDNValue(x500name, BCStyle.OU);
-        if (OU == null) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
-                    "Certificate OU incorrect");
+        /* added 060718 JJB */
+        String ou = getRDNValue(x500name, BCStyle.OU);
+        if (ou == null) {
+            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE, "Certificate OU incorrect");
         }
 
         String serialNumber = getRDNValue(x500name, BCStyle.SERIALNUMBER);
@@ -107,28 +103,27 @@ public final class IsSubjectClientIdDecoder {
                     "Certificate subject name does not contain serial number");
         }
 
-        final String[] components = SPLIT_PATTERN.split(OU);
+        final String[] components = SPLIT_PATTERN.split(ou);
         if (components.length != NUM_COMPONENTS) {
             throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
                     "Certificate subject name's attribute OU has invalid value");
         }
 
         // Note. components[1] = serverCode, unused
-        /* OU=instanceIdentifier=xroad-island serverCode=skra.is memberClass=island-gov*/
-        return ClientId.create(
-                components[1].substring(0,11), // instanceId
-                components[3], // memberClass
-                memberCode);              
+        /*
+         * OU=instanceIdentifier=xroad-island serverCode=skra.is memberClass=island-gov
+         */
+        final int instanceIdString = 11;
+        final int memberClassString = 3;
+        return ClientId.create(components[1].substring(0, instanceIdString), // instanceId
+                components[memberClassString], // memberClass
+                memberCode);
     }
 
-
     /*
-     * The legacy encoding for clientID:
-     * <ul>
-     *  <li>C = FI (country code must be 'FI' when using this decoder)</li>
-     *  <li>O = instanceId</li>
-     *  <li>OU = memberClass</li>
-     *  <li>CN = memberCode (business code without "Y" prefix)</li>
+     * The legacy encoding for clientID: <ul> <li>C = FI (country code must be 'FI'
+     * when using this decoder)</li> <li>O = instanceId</li> <li>OU =
+     * memberClass</li> <li>CN = memberCode (business code without "Y" prefix)</li>
      * </ul>
      */
     private static ClientId parseClientIdFromLegacyName(X500Name x500name) {
