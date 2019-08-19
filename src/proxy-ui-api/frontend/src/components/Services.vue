@@ -397,7 +397,7 @@ export default Vue.extend({
       axios
         .put(`/service-descriptions/${wsdl.id}/refresh`, wsdl)
         .then((res) => {
-          this.$bus.$emit('show-success', 'refreshedd');
+          this.$bus.$emit('show-success', 'services.wsdlRefreshed');
           this.fetchData();
         })
         .catch((error) => {
@@ -418,7 +418,7 @@ export default Vue.extend({
           ignore_warnings: true,
         })
         .then((res) => {
-          this.$bus.$emit('show-success', 'refreshedd');
+          this.$bus.$emit('show-success', 'services.wsdlRefreshed');
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
