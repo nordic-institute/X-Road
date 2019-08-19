@@ -73,6 +73,9 @@ public class ServiceService {
     @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
     public ServiceType getService(ClientId clientId, String fullServiceCode) {
         ClientType client = clientService.getClient(clientId);
+        if (client == null) {
+            return null;
+        }
         Optional<ServiceType> foundService = client.getServiceDescription()
                 .stream()
                 .map(ServiceDescriptionType::getService)
