@@ -1,9 +1,13 @@
 <template>
   <v-dialog :value="dialog" persistent :max-width="maxWidth">
     <v-card>
-      <v-card-title class="headline">{{$t(title)}}</v-card-title>
+      <v-card-title class="headline">{{$t('warning')}}</v-card-title>
       <v-card-text>
-        <slot name="content"></slot>
+        <div v-for="warning in warnings" :key="warning.code">
+          <!-- create the localisation key from warning code -->
+          <div class="dlg-warning-header">{{$t("services."+warning.code)}}</div>
+          <span v-for="meta in warning.metadata" :key="meta">{{meta}},&#32;</span>
+        </div>
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
@@ -15,10 +19,7 @@
 </template>
 
 <script lang="ts">
-/**
- * A dialog for simple "accept or cancel" functions
- */
-
+// A dialog for backend warnings
 import Vue from 'vue';
 
 export default Vue.extend({
@@ -27,9 +28,9 @@ export default Vue.extend({
       type: Boolean,
       required: true,
     },
-    title: {
-      type: String,
-      default: 'warning',
+    warnings: {
+      type: Object,
+      required: true,
     },
     cancelButtonText: {
       type: String,
@@ -57,6 +58,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/colors';
+@import '../assets/dialogs';
 </style>
 
