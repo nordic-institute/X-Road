@@ -25,7 +25,6 @@
 package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -45,20 +44,23 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
+import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 
 import javax.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
@@ -90,6 +92,8 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
         MAPPER = mapper;
     }
+
+    private HttpClientCreator httpClientCreator = new HttpClientCreator();
 
     private RestResponse restResponse;
     private CachingStream restResponseBody;
@@ -138,7 +142,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         } else if (requestProxyMessage.getRest().getServiceId().getServiceCode().equals(ALLOWED_METHODS)) {
             handleAllowedMethods(requestProxyMessage);
         } else if (requestProxyMessage.getRest().getServiceId().getServiceCode().equals(GET_OPENAPI)) {
-            handleGetOpenApi(servletRequest, requestProxyMessage);
+            handleGetOpenApi(requestProxyMessage);
         }
 
         messageEncoder.restResponse(restResponse);
@@ -169,12 +173,10 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         MAPPER.writeValue(restResponseBody, methodList);
     }
 
-    private void handleGetOpenApi(HttpServletRequest servletRequest, ProxyMessage requestProxyMessage)
-            throws URISyntaxException, IOException {
-        // parse query string
-        String fullURL = getFullURL(servletRequest) + "?" + requestProxyMessage.getRest().getQuery();
-        log.trace("fullURL={}", fullURL);
-        List<NameValuePair> pairs = URLEncodedUtils.parse(new URI(fullURL), Charset.forName("UTF-8"));
+    private void handleGetOpenApi(ProxyMessage requestProxyMessage) throws IOException,
+            HttpClientCreator.HttpClientCreatorException, URISyntaxException {
+        List<NameValuePair> pairs = URLEncodedUtils.parse(requestProxyMessage.getRest().getQuery(),
+                Charset.forName("UTF-8"));
         String targetServiceCode = null;
         for (NameValuePair pair : pairs) {
             log.trace("{} : {}", pair.getName(), pair.getValue());
@@ -203,34 +205,32 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         }
 
         String serviceDescriptionURL = ServerConf.getServiceDescriptionURL(targetServiceId);
-        URL url = new URL(serviceDescriptionURL);
 
-        byte[] buffer = new byte[BUFFER_SIZE_BYTES];
-        URLConnection urlConnection = url.openConnection();
-        urlConnection.setConnectTimeout(SystemProperties.getClientProxyTimeout());
-        urlConnection.setReadTimeout(SystemProperties.getClientProxyHttpClientTimeout());
-        try (InputStream inputStream = urlConnection.getInputStream()) {
-            int length;
-            do {
-                length = inputStream.read(buffer);
-                log.trace("read length={}", length);
-                if (length > 0) {
-                    restResponseBody.write(buffer, 0, length);
-                    log.trace("wrote length={}", length);
-                }
-            } while (length > 0);
-        } catch (IOException e) {
+        HttpClient client = httpClientCreator.getHttpClient();
+
+        HttpContext httpContext = new BasicHttpContext();
+
+        // ServerMessageProcessor uses the same method to pass the ServiceId to CustomSSLSocketFactory
+        httpContext.setAttribute(ServiceId.class.getName(), targetServiceId);
+
+        HttpResponse response = client.execute(new HttpGet(new URI(serviceDescriptionURL)), httpContext);
+
+        StatusLine statusLine = response.getStatusLine();
+
+        if (HttpStatus.SC_OK != statusLine.getStatusCode()) {
             throw new CodedException(X_INTERNAL_ERROR,
-                    String.format("Failed reading service description from: %s", serviceDescriptionURL));
+                    String.format("Failed reading service description from %s. Status: %s Reason: %s",
+                            serviceDescriptionURL, statusLine.getStatusCode(), statusLine.getReasonPhrase()));
         }
-        if (urlConnection.getContentType() != null) {
+
+        IOUtils.copy(response.getEntity().getContent(), restResponseBody);
+
+        if (response.containsHeader(MimeUtils.HEADER_CONTENT_TYPE)) {
             restResponse.getHeaders().add(new BasicHeader(MimeUtils.HEADER_CONTENT_TYPE,
-                    urlConnection.getContentType()));
-            log.trace("contentType={}", urlConnection.getContentType());
+                    response.getFirstHeader(MimeUtils.HEADER_CONTENT_TYPE).getValue()));
         } else {
             restResponse.getHeaders().add(new BasicHeader(MimeUtils.HEADER_CONTENT_TYPE,
                     DEFAULT_GETOPENAPI_CONTENT_TYPE));
-            log.trace("Using default content type {}", DEFAULT_GETOPENAPI_CONTENT_TYPE);
         }
     }
 
@@ -245,17 +245,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
     }
 
     @Override
-    public void finishHandling() throws Exception {
+    public void finishHandling() {
         // NOP
-    }
-
-    private String getFullURL(HttpServletRequest request) {
-        StringBuilder builder = new StringBuilder(request.getRequestURL().toString());
-        String queryString = request.getQueryString();
-        if (queryString == null || queryString.isEmpty()) {
-            return builder.toString();
-        } else {
-            return builder.append('?').append(queryString).toString();
-        }
     }
 }
