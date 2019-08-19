@@ -79,6 +79,7 @@
           round
           color="primary"
           class="xrd-big-button elevation-0"
+          :loading="saveBusy"
           @click="save()"
           :disabled="!canSave"
         >save</v-btn>
@@ -97,7 +98,7 @@
     <warningDialog
       :dialog="confirmEditWarning"
       :warnings="warningInfo"
-      @cancel="confirmEditWarning = false"
+      @cancel="cancelEditWarning()"
       @accept="acceptEditWarning()"
     ></warningDialog>
   </div>
@@ -136,6 +137,7 @@ export default Vue.extend({
       warningInfo: '',
       touched: false,
       serviceDesc: undefined,
+      saveBusy: false,
     };
   },
   computed: {
@@ -155,10 +157,12 @@ export default Vue.extend({
     },
 
     save(): void {
+      this.saveBusy = true;
       axios
         .patch(`/service-descriptions/${this.id}`, this.serviceDesc)
         .then((res) => {
           this.$bus.$emit('show-success', 'localGroup.descSaved');
+          this.saveBusy = false;
           this.$router.go(-1);
         })
         .catch((error) => {
@@ -169,6 +173,7 @@ export default Vue.extend({
             this.confirmEditWarning = true;
           } else {
             this.$bus.$emit('show-error', error.message);
+            this.saveBusy = false;
           }
         });
     },
@@ -214,7 +219,15 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
+        })
+        .finally(() => {
+          this.saveBusy = false;
         });
+    },
+
+    cancelEditWarning(): void {
+      this.confirmEditWarning = false;
+      this.saveBusy = false;
     },
   },
   created() {
