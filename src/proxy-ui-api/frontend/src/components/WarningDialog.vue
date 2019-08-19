@@ -29,7 +29,7 @@ export default Vue.extend({
       required: true,
     },
     warnings: {
-      type: Object,
+      type: Array,
       required: true,
     },
     cancelButtonText: {
