@@ -90,7 +90,7 @@
                 <tr v-for="service in serviceDesc.services" v-bind:key="service.id">
                   <td class="service-code" @click="serviceClick(service)">{{service.code}}</td>
                   <td>
-                    <v-icon small :color="getServiceIconColor(service)">{{getServiceIcon(service)}}</v-icon>
+                    <serviceIcon :service="service" />
                     {{service.url}}
                   </td>
                   <td>{{service.timeout}}</td>
@@ -103,14 +103,28 @@
       </expandable>
     </template>
 
-    <addWsdlDialog :dialog="addWsdlDialog" @save="wsdlSave" @cancel="wsdlCancel" />
-    <addRestDialog :dialog="addRestDialog" @save="restSave" @cancel="restCancel" />
+    <addWsdlDialog :dialog="addWsdlDialog" @save="wsdlSave" @cancel="cancelAddWsdl" />
+    <addRestDialog :dialog="addRestDialog" @save="restSave" @cancel="cancelAddRest" />
     <disableServiceDescDialog
       :dialog="disableDescDialog"
       @cancel="disableDescCancel"
       @save="disableDescSave"
       :subject="selectedServiceDesc"
       :subjectIndex="selectedIndex"
+    />
+    <!-- Accept "save WSDL" warnings -->
+    <warningDialog
+      :dialog="saveWarningDialog"
+      :warnings="warningInfo"
+      @cancel="saveWarningDialog = false"
+      @accept="acceptSaveWarning()"
+    />
+    <!-- Accept "refresh WSDL" warnings -->
+    <warningDialog
+      :dialog="refreshWarningDialog"
+      :warnings="warningInfo"
+      @cancel="refreshWarningDialog = false"
+      @accept="acceptRefreshWarning()"
     />
   </div>
 </template>
@@ -124,6 +138,8 @@ import Expandable from '@/components/Expandable.vue';
 import AddWsdlDialog from '@/components/AddWsdlDialog.vue';
 import AddRestDialog from '@/components/AddRestDialog.vue';
 import DisableServiceDescDialog from '@/components/DisableServiceDescDialog.vue';
+import WarningDialog from '@/components/WarningDialog.vue';
+import ServiceIcon from '@/components/ServiceIcon.vue';
 
 import _ from 'lodash';
 
@@ -133,6 +149,8 @@ export default Vue.extend({
     AddWsdlDialog,
     AddRestDialog,
     DisableServiceDescDialog,
+    WarningDialog,
+    ServiceIcon,
   },
   props: {
     id: {
@@ -151,6 +169,11 @@ export default Vue.extend({
       componentKey: 0,
       expanded: [] as string[],
       serviceDescriptions: [] as any[],
+      warningInfo: undefined,
+      saveWarningDialog: false,
+      refreshWarningDialog: false,
+      wsdlUrl: '',
+      wsdlRefreshId: '',
     };
   },
   computed: {
@@ -300,10 +323,34 @@ export default Vue.extend({
     },
 
     wsdlSave(url: string): void {
+      this.wsdlUrl = url;
       axios
         .post(`/clients/${this.id}/service-descriptions`, {
           url,
           type: 'WSDL',
+        })
+        .then((res) => {
+          this.$bus.$emit('show-success', 'services.wsdlAdded');
+          this.fetchData();
+        })
+        .catch((error) => {
+          if (error.response.data.warnings) {
+            this.warningInfo = error.response.data.warnings;
+            this.saveWarningDialog = true;
+          } else {
+            this.$bus.$emit('show-error', error.message);
+          }
+        });
+
+      this.addWsdlDialog = false;
+    },
+
+    acceptSaveWarning(): void {
+      axios
+        .post(`/clients/${this.id}/service-descriptions`, {
+          url: this.wsdlUrl,
+          type: 'WSDL',
+          ignore_warnings: true,
         })
         .then((res) => {
           this.$bus.$emit('show-success', 'services.wsdlAdded');
@@ -315,10 +362,10 @@ export default Vue.extend({
           this.fetchData();
         });
 
-      this.addWsdlDialog = false;
+      this.saveWarningDialog = false;
     },
 
-    wsdlCancel(): void {
+    cancelAddWsdl(): void {
       this.addWsdlDialog = false;
     },
 
@@ -342,16 +389,34 @@ export default Vue.extend({
       this.addRestDialog = false;
     },
 
-    restCancel(): void {
+    cancelAddRest(): void {
       this.addRestDialog = false;
     },
 
     refreshWsdl(wsdl: any): void {
-      // TODO: will be implemented on later task
-      console.log('refresh wsdl');
-
       axios
         .put(`/service-descriptions/${wsdl.id}/refresh`, wsdl)
+        .then((res) => {
+          this.$bus.$emit('show-success', 'refreshedd');
+          this.fetchData();
+        })
+        .catch((error) => {
+          if (error.response.data.warnings) {
+            this.warningInfo = error.response.data.warnings;
+            this.refreshWarningDialog = true;
+            this.wsdlRefreshId = wsdl.id;
+          } else {
+            this.$bus.$emit('show-error', error.message);
+            this.fetchData();
+          }
+        });
+    },
+
+    acceptRefreshWarning(): void {
+      axios
+        .put(`/service-descriptions/${this.wsdlRefreshId}/refresh`, {
+          ignore_warnings: true,
+        })
         .then((res) => {
           this.$bus.$emit('show-success', 'refreshedd');
         })
@@ -361,32 +426,8 @@ export default Vue.extend({
         .finally(() => {
           this.fetchData();
         });
-    },
 
-    getServiceIcon(service: any): string {
-      switch (service.ssl_auth) {
-        case undefined:
-          return 'lock_open';
-        case true:
-          return 'lock';
-        case false:
-          return 'lock';
-        default:
-          return '';
-      }
-    },
-
-    getServiceIconColor(service: any): string {
-      switch (service.ssl_auth) {
-        case undefined:
-          return '';
-        case true:
-          return '#00e500';
-        case false:
-          return '#ffd200';
-        default:
-          return '';
-      }
+      this.refreshWarningDialog = false;
     },
 
     descClose(descId: string) {
