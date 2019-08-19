@@ -121,6 +121,7 @@
     "deleted": "Service description deleted",
     "restDetails": "REST details",
     "wsdlDetails": "WSDL details",
+    "wsdlRefreshed": "WSDL refreshed",
     "clients": {
       "deleting_services": "Deleting services:",
       "adding_services": "Adding services:",
