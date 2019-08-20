@@ -90,7 +90,7 @@
               </thead>
               <tbody>
                 <tr v-for="service in serviceDesc.services" v-bind:key="service.id">
-                  <td class="service-code" @click="serviceClick(service)">{{service.code}}</td>
+                  <td class="service-code" @click="serviceClick(service)">{{service.service_code}}</td>
                   <td>
                     <serviceIcon :service="service" />
                     {{service.url}}
