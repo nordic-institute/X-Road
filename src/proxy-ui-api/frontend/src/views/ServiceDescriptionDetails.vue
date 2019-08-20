@@ -11,55 +11,51 @@
         :title="$t('services.restDetails')"
         @close="close"
       />
-      <template>
-        <div class="delete-wrap">
-          <v-btn
-            v-if="showDelete"
-            outline
-            round
-            color="primary"
-            class="xrd-big-button"
-            @click="confirmDelete = true"
-          >{{$t('action.delete')}}</v-btn>
-        </div>
-      </template>
+      <div class="delete-wrap">
+        <v-btn
+          v-if="showDelete"
+          outline
+          round
+          color="primary"
+          class="xrd-big-button"
+          @click="confirmDelete = true"
+        >{{$t('action.delete')}}</v-btn>
+      </div>
     </div>
 
     <div class="edit-row">
-      <template>
-        <div>Edit URL</div>
-        <v-text-field
-          v-if="serviceDesc && serviceDesc.type === 'WSDL'"
-          v-model="serviceDesc.url"
-          single-line
-          hide-details
-          class="url-input"
-          v-validate="'required|wsdlUrl'"
-          data-vv-as="field"
-          name="url_field"
-          type="text"
-          :error-messages="errors.collect('url_field')"
-          @input="touched = true"
-        ></v-text-field>
-        <v-text-field
-          v-if="serviceDesc && serviceDesc.type === 'REST'"
-          v-model="serviceDesc.url"
-          single-line
-          hide-details
-          class="url-input"
-          v-validate="'required|restUrl'"
-          data-vv-as="field"
-          name="url_field"
-          type="text"
-          :error-messages="errors.collect('url_field')"
-          @input="touched = true"
-        ></v-text-field>
-      </template>
+      <div>{{$t('services.editUrl')}}</div>
+      <v-text-field
+        v-if="serviceDesc && serviceDesc.type === 'WSDL'"
+        v-model="serviceDesc.url"
+        single-line
+        hide-details
+        class="url-input"
+        v-validate="'required|wsdlUrl'"
+        data-vv-as="field"
+        name="url_field"
+        type="text"
+        :error-messages="errors.collect('url_field')"
+        @input="touched = true"
+      ></v-text-field>
+      <v-text-field
+        v-if="serviceDesc && serviceDesc.type === 'REST'"
+        v-model="serviceDesc.url"
+        single-line
+        hide-details
+        class="url-input"
+        v-validate="'required|restUrl'"
+        data-vv-as="field"
+        name="url_field"
+        type="text"
+        :error-messages="errors.collect('url_field')"
+        @input="touched = true"
+      ></v-text-field>
     </div>
 
     <div class="edit-row">
       <template v-if="serviceDesc && serviceDesc.type === 'REST'">
-        <div>Edit Service code</div>
+        <div>{{$t('services.editServiceCode')}}</div>
         <v-text-field
           v-model="serviceDesc.code"
           single-line
@@ -134,7 +130,7 @@ export default Vue.extend({
     return {
       confirmDelete: false,
       confirmEditWarning: false,
-      warningInfo: '',
+      warningInfo: [],
       touched: false,
       serviceDesc: undefined,
       saveBusy: false,
@@ -166,8 +162,6 @@ export default Vue.extend({
           this.$router.go(-1);
         })
         .catch((error) => {
-          console.log(error);
-          console.log(error.response);
           if (error.response.data.warnings) {
             this.warningInfo = error.response.data.warnings;
             this.confirmEditWarning = true;
