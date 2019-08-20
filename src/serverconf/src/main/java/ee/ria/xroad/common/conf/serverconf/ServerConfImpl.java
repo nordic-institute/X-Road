@@ -337,12 +337,10 @@ public class ServerConfImpl implements ServerConfProvider {
 
             XRoadId subjectId = accessRight.getSubjectId();
 
-            if (subjectId instanceof GlobalGroupId
-                    && !GlobalConf.isSubjectInGlobalGroup(client, (GlobalGroupId)subjectId)) {
-                continue;
-            } else if (subjectId instanceof LocalGroupId
-                    && !isMemberInLocalGroup(session, client, (LocalGroupId)subjectId, service)) {
-                continue;
+            if (subjectId instanceof GlobalGroupId) {
+                if (!GlobalConf.isSubjectInGlobalGroup(client, (GlobalGroupId)subjectId)) continue;
+            } else if (subjectId instanceof LocalGroupId) {
+                if (!isMemberInLocalGroup(session, client, (LocalGroupId)subjectId, service)) continue;
             } else if (!client.equals(subjectId)) {
                 continue;
             }

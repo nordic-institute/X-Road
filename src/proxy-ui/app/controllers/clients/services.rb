@@ -27,17 +27,13 @@ require "shellwords"
 java_import Java::ee.ria.xroad.common.SystemProperties
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.AccessRightType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.EndpointType
-java_import Java::ee.ria.xroad.common.conf.serverconf.model.DescriptionType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServiceType
-java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.DescriptionType
 java_import Java::ee.ria.xroad.common.identifier.SecurityCategoryId
 java_import Java::ee.ria.xroad.proxyui.InternalServerTestUtil
 java_import Java::ee.ria.xroad.proxyui.WSDLParser
 java_import Java::ee.ria.xroad.proxyui.OpenApiParser
-java_import Java::java.net.URL
-
 
 module Clients::Services
 
@@ -56,9 +52,11 @@ module Clients::Services
   end
 
   def servicedescription_add
-    if "OPENAPI3" == params[:service_type]
+    service_type = DescriptionType.value_of(params[:service_type])
+    if DescriptionType::OPENAPI3 == service_type ||
+      DescriptionType::OPENAPI3_DESCRIPTION == service_type
       servicedescription_openapi3_add(params)
-    elsif "WSDL" == params[:service_type]
+    elsif DescriptionType::WSDL == service_type
       servicedescription_wsdl_add(params)
     end
   end
@@ -86,7 +84,7 @@ module Clients::Services
 
     audit_log_data[:clientIdentifier] = client.identifier
     audit_log_data[:wsdlUrl] = servicedescription.url
-    audit_log_data[:disabled] = servicedescription.disabled
+    audit_log_data[:disabled] = servicedescription.disabled?
     audit_log_data[:refreshedDate] =
       Time.at(servicedescription.refreshedDate.getTime / 1000).iso8601
 
@@ -116,10 +114,11 @@ module Clients::Services
     url = params[:openapi3_add_url]
     base_url = url
     client = get_client(params[:client_id])
+    openapi = nil
 
-    if "OPENAPI3" == params(:service_type)
-      result = parse_openapi(url)
-      base_url = result.base_url
+    if DescriptionType::OPENAPI3_DESCRIPTION.name == params[:service_type]
+      openapi = parse_openapi(url)
+      base_url = openapi.base_url
     end
 
     servicedescription = ServiceDescriptionType.new
@@ -128,13 +127,12 @@ module Clients::Services
     servicedescription.disabledNotice = t('clients.default_disabled_service_notice')
     servicedescription.refreshedDate = Date.new
     servicedescription.client = client
-    servicedescription.type = DescriptionType::OPENAPI3
+    servicedescription.type = openapi ? DescriptionType::OPENAPI3_DESCRIPTION : DescriptionType::OPENAPI3
 
     audit_log_data[:clientIdentifier] = client.identifier
     audit_log_data[:wsdlUrl] = servicedescription.url
-    audit_log_data[:disabled] = servicedescription.disabled
-    audit_log_data[:refreshedDate] =
-      Time.at(servicedescription.refreshedDate.getTime / 1000).iso8601
+    audit_log_data[:disabled] = servicedescription.disabled?
+    audit_log_data[:refreshedDate] = Time.at(servicedescription.refreshedDate.getTime / 1000).iso8601
 
     service = ServiceType.new
     service.serviceCode = params[:openapi3_service_code]
@@ -150,6 +148,10 @@ module Clients::Services
 
     client.serviceDescription.add(servicedescription)
     create_endpoint(client.endpoint, service.service_code)
+
+    openapi.operations.each do |oper|
+      create_endpoint(client.endpoint, service.service_code, oper.method, oper.path, true)
+    end if openapi
 
     serverconf_save
     render_json(read_services(client))
@@ -197,9 +199,11 @@ module Clients::Services
   end
 
   def servicedescription_edit
-    if "OPENAPI3" == params[:service_type]
+    service_type = DescriptionType.value_of(params[:service_type])
+    if DescriptionType::OPENAPI3 == service_type ||
+      DescriptionType::OPENAPI3_DESCRIPTION == service_type
       servicedescription_openapi3_edit(params)
-    elsif "WSDL" == params[:service_type]
+    elsif DescriptionType::WSDL == service_type
       servicedescription_wsdl_edit(params)
     end
   end
@@ -219,39 +223,67 @@ module Clients::Services
     })
 
     client = get_client(params[:client_id])
+    service_type = DescriptionType.value_of(params[:service_type])
 
     audit_log_data[:clientIdentifier] = client.identifier
 
     servicedescription = client.serviceDescription.detect { |servicedescription|
-      DescriptionType::OPENAPI3 == servicedescription.type && servicedescription.url == params[:wsdl_id]
+      [DescriptionType::OPENAPI3, DescriptionType::OPENAPI3_DESCRIPTION].include?(servicedescription.type) &&
+        servicedescription.url == params[:wsdl_id]
     } or raise t("clients.service_description_does_not_exist")
 
     base_url = params[:openapi3_new_url]
-    if "OPENAPI3" == params[:service_type]
-      if params[:openapi3_new_url] != servicedescription.url
-        result = parse_openapi(base_url)
-        base_url = result.base_url
+    openapi = nil
+
+    if DescriptionType::OPENAPI3_DESCRIPTION == service_type
+      if params[:openapi3_new_url] != servicedescription.url || servicedescription.type != service_type
+        openapi = parse_openapi(base_url)
+        base_url = openapi.base_url
       else
         base_url = servicedescription.service.first.url
       end
     end
 
+    service_code = params[:openapi3_new_service_code]
     servicedescription.url = params[:openapi3_new_url]
+    servicedescription.type = service_type
     servicedescription.service.first.url = base_url
-    servicedescription.service.first.service_code = params[:openapi3_new_service_code]
+    servicedescription.service.first.service_code = service_code
 
     check_duplicate_url(servicedescription)
     check_duplicate_service_codes(servicedescription)
 
     client.endpoint.each do |item|
       if params[:openapi3_old_service_code] == item.serviceCode
-        item.serviceCode = params[:openapi3_new_service_code]
+        item.serviceCode = service_code
       end
+    end
+
+    endpoints = []
+    endpoints << create_endpoint(client.endpoint, service_code)
+    openapi.operations.each do |oper|
+      endpoints << create_endpoint(client.endpoint, service_code, oper.method, oper.path, true)
+    end if openapi
+
+    iterate(client.acl) do |item, it|
+      it.remove if item.endpoint.generated? && item.endpoint.service_code == service_code &&
+        !endpoints.include?(item.endpoint)
+    end
+
+    iterate(client.endpoint) do |item, it|
+      it.remove if item.generated? && item.service_code == service_code && !endpoints.include?(item)
     end
 
     serverconf_save
     render_json(read_services(client))
+  end
 
+  ## helper function to iterate Java collections
+  def iterate(iterable)
+    it = iterable.iterator
+    while it.has_next?
+      yield(it.next, it)
+    end
   end
 
   def servicedescription_wsdl_edit(params)
@@ -492,9 +524,8 @@ module Clients::Services
     audit_log_data[:subjectIds] = []
 
     now = Date.new
-
+    endpoint = create_endpoint(client.endpoint, params[:service_code])
     params[:subject_ids].each do |subject_id|
-      endpoint = create_endpoint(client.endpoint, params[:service_code])
       if !contains_subject(client.acl, subject_id, endpoint)
         access_right = AccessRightType.new
         access_right.subjectId = get_cached_subject_id(subject_id)

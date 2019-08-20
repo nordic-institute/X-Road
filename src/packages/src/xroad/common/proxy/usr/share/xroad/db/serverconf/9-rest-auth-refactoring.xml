@@ -72,4 +72,10 @@
         </createIndex>
 
     </changeSet>
+
+    <changeSet id="xrddev-615" author="niis">
+        <addColumn tableName="endpoint">
+            <column name="generated" type="boolean" value="true"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

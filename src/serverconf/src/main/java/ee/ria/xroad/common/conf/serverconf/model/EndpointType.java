@@ -25,16 +25,14 @@
 package ee.ria.xroad.common.conf.serverconf.model;
 
 import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Access right.
+ * Endpoint
  */
 @Getter
 @Setter
-@EqualsAndHashCode(exclude = "id")
 public class EndpointType {
     public static final String ANY_METHOD = "*";
     public static final String ANY_PATH = "**";
@@ -44,6 +42,7 @@ public class EndpointType {
     private String serviceCode;
     private String method;
     private String path;
+    private boolean generated;
 
     protected EndpointType() {
         //JPA
@@ -55,12 +54,13 @@ public class EndpointType {
      * @param method
      * @param path
      */
-    public EndpointType(String serviceCode, String method, String path) {
+    public EndpointType(String serviceCode, String method, String path, boolean generated) {
         if (serviceCode == null || method == null || path == null) {
             throw new IllegalArgumentException("Endpoint parts can not be null");
         }
         this.serviceCode = serviceCode;
         this.method = method;
         this.path = path;
+        this.generated = generated;
     }
 }
