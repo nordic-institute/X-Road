@@ -1,7 +1,7 @@
 <template>
   <v-layout class="main-content" align-center justify-center column>
     <v-tabs v-model="tab" class="main-tabs" color="white" grow mb-10>
-      <v-tabs-slider color="secondary" class="xr-main-tabs-slider"></v-tabs-slider>
+      <v-tabs-slider color="secondary" class="xrd-main-tabs-slider"></v-tabs-slider>
 
       <template v-for="tab in allowedTabs">
         <v-tab v-bind:key="tab.key" :to="tab.to">{{ $t(tab.name) }}</v-tab>
@@ -27,7 +27,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
-.v-tabs__slider.xr-main-tabs-slider {
+.v-tabs__slider.xrd-main-tabs-slider {
   height: 4px;
   width: 40px;
   margin-left: auto;

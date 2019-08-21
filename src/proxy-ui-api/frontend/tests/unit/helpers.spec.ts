@@ -24,6 +24,6 @@ describe('helper functions', () => {
     expect(Helpers.isValidWsdlURL('https://foo.bar')).toEqual(true);
     expect(Helpers.isValidWsdlURL('http://foo.bar')).toEqual(true);
     expect(Helpers.isValidWsdlURL('ftp://foo.bar')).toEqual(true);
-    expect(Helpers.isValidWsdlURL('file://foo.bar')).toEqual(true);
+    expect(Helpers.isValidWsdlURL('file:///foo.bar')).toEqual(true);
   });
 });

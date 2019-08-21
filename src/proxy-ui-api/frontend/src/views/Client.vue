@@ -1,5 +1,5 @@
 <template>
-  <div class="xr-tab-max-width">
+  <div class="xrd-tab-max-width">
     <v-flex mb-4>
       <h1 v-if="client" class="display-1 mb-3">{{client.member_name}} ({{ $t("client.owner") }})</h1>
     </v-flex>

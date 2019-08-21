@@ -10,7 +10,7 @@ exports[`Toolbar snapshot test 1`] = `
     style="height: 64px;"
   >
     <div
-      class="v-responsive v-image xr-logo"
+      class="v-responsive v-image xrd-logo"
       style="height: 64px; max-height: 64px; max-width: 128px; width: 128px;"
     >
       <div

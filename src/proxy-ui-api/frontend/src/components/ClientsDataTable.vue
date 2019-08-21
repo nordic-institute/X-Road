@@ -95,7 +95,7 @@
               outline
               round
               color="primary"
-              class="xr-small-button xr-table-button"
+              class="xrd-small-button xrd-table-button"
               @click="addSubsystem(props.item)"
             >{{$t('action.addSubsystem')}}</v-btn>
           </td>
@@ -149,21 +149,21 @@ export default Vue.extend({
           text: this.$t('client.name'),
           align: 'left',
           value: 'sortNameAsc',
-          class: 'xr-table-header',
+          class: 'xrd-table-header',
         },
         {
           text: this.$t('client.id'),
           align: 'left',
           value: 'id',
-          class: 'xr-table-header',
+          class: 'xrd-table-header',
         },
         {
           text: this.$t('client.status'),
           align: 'left',
           value: 'status',
-          class: 'xr-table-header',
+          class: 'xrd-table-header',
         },
-        { text: '', value: '', sortable: false, class: 'xr-table-header' },
+        { text: '', value: '', sortable: false, class: 'xrd-table-header' },
       ];
     },
   },
@@ -289,7 +289,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
-.xr-table-header {
+.xrd-table-header {
   border-bottom: 1px solid #9c9c9c;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="xr-tab-max-width">
+  <div class="xrd-tab-max-width">
     <div>
       <subViewTitle :title="groupCode" @close="close" />
 
@@ -11,7 +11,7 @@
             outline
             round
             color="primary"
-            class="xr-big-button"
+            class="xrd-big-button"
             @click="deleteGroup()"
           >{{$t('action.delete')}}</v-btn>
         </div>
@@ -41,7 +41,7 @@
           v-if="canEditMembers"
           outline
           color="primary"
-          class="xr-big-button"
+          class="xrd-big-button"
           :disabled="!hasMembers"
           @click="removeAllMembers()"
         >{{$t('action.removeAll')}}</v-btn>
@@ -49,7 +49,7 @@
           v-if="canEditMembers"
           outline
           color="primary"
-          class="xr-big-button"
+          class="xrd-big-button"
           @click="addMembers()"
         >{{$t('localGroup.addMembers')}}</v-btn>
       </div>
@@ -77,7 +77,7 @@
                   outline
                   round
                   color="primary"
-                  class="xr-small-button"
+                  class="xrd-small-button"
                   @click="removeMember(groupMember)"
                 >{{$t('action.remove')}}</v-btn>
               </div>
@@ -90,7 +90,7 @@
         <v-btn
           round
           color="primary"
-          class="xr-big-button elevation-0"
+          class="xrd-big-button elevation-0"
           @click="close()"
         >{{$t('action.close')}}</v-btn>
       </div>
@@ -125,10 +125,11 @@
 
     <!-- Add new members dialog -->
     <addMembersDialog
+      v-if="group"
       :dialog="addMembersDialogVisible"
-      :groupId="groupId"
-      @cancel="closeMembersDialog()"
-      @membersAdded="membersAdded()"
+      :filtered="group.members"
+      @cancel="closeMembersDialog"
+      @membersAdded="doAddMembers"
     />
   </div>
 </template>
@@ -141,6 +142,24 @@ import { Permissions } from '@/global';
 import SubViewTitle from '@/components/SubViewTitle.vue';
 import AddMembersDialog from '@/components/AddMembersDialog.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+
+interface IGroupMember {
+  id: string;
+  name: string;
+  created_at: string;
+}
+
+interface ILocalGroup {
+  id: number;
+  code: string;
+  description: string;
+  member_count: number;
+  updated_at: string;
+  members: IGroupMember[];
+}
+
+type GroupMember = undefined | IGroupMember;
+type LocalGroup = undefined | ILocalGroup;
 
 export default Vue.extend({
   components: {
@@ -163,9 +182,9 @@ export default Vue.extend({
       confirmGroup: false,
       confirmMember: false,
       confirmAllMembers: false,
-      selectedMember: undefined,
+      selectedMember: undefined as GroupMember,
       description: undefined,
-      group: undefined,
+      group: undefined as LocalGroup,
       groupCode: '',
       addMembersDialogVisible: false,
     };
@@ -231,8 +250,22 @@ export default Vue.extend({
       this.addMembersDialogVisible = true;
     },
 
-    membersAdded(): void {
+    doAddMembers(selectedIds: string[]): void {
       this.addMembersDialogVisible = false;
+
+      axios
+        .post(`/groups/${this.groupId}/members`, {
+          items: selectedIds,
+        })
+        .then((res) => {
+          this.fetchData(this.clientId, this.groupId);
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
+    },
+
+    membersAdded(): void {
       this.fetchData(this.clientId, this.groupId);
     },
 
@@ -245,22 +278,25 @@ export default Vue.extend({
     },
 
     doRemoveAllMembers(): void {
-      const ids: any = [];
-      const tempGroup: any = this.group;
-      tempGroup.members.forEach((member: any) => {
-        ids.push(member.id);
-      });
+      const ids: string[] = [];
+      const tempGroup: LocalGroup = this.group;
 
-      this.removeArrayOfMembers(ids);
+      if (tempGroup) {
+        tempGroup.members.forEach((member: IGroupMember) => {
+          ids.push(member.id);
+        });
+        this.removeArrayOfMembers(ids);
+      }
+
       this.confirmAllMembers = false;
     },
 
-    removeMember(member: any): void {
+    removeMember(member: IGroupMember): void {
       this.confirmMember = true;
-      this.selectedMember = member;
+      this.selectedMember = member as GroupMember;
     },
     doRemoveMember() {
-      const member: any = this.selectedMember;
+      const member: GroupMember = this.selectedMember;
 
       if (member && member.id) {
         this.removeArrayOfMembers([member.id]);
@@ -270,7 +306,7 @@ export default Vue.extend({
       this.selectedMember = undefined;
     },
 
-    removeArrayOfMembers(members: any) {
+    removeArrayOfMembers(members: string[]) {
       axios
         .post(`/groups/${this.groupId}/members/delete`, {
           items: members,
@@ -308,6 +344,7 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '../assets/colors';
+@import '../assets/tables';
 
 .edit-row {
   display: flex;
@@ -329,7 +366,7 @@ export default Vue.extend({
 .row-title {
   width: 100%;
   justify-content: space-between;
-  color: #202020;
+  color: $XRoad-Black;
   font-family: Roboto;
   font-size: 20px;
   font-weight: 500;
@@ -339,31 +376,11 @@ export default Vue.extend({
   display: flex;
 }
 
-.wrapper {
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  padding-top: 60px;
-  height: 100%;
-}
-
-.cert-dialog-header {
-  display: flex;
-  justify-content: center;
-  border-bottom: 1px solid #9b9b9b;
-  color: #4a4a4a;
-  font-family: Roboto;
-  font-size: 34px;
-  font-weight: 300;
-  letter-spacing: 0.5px;
-  line-height: 51px;
-}
-
 .cert-hash {
   margin-top: 50px;
   display: flex;
   justify-content: space-between;
-  color: #202020;
+  color: $XRoad-Black;
   font-family: Roboto;
   font-size: 20px;
   font-weight: 500;

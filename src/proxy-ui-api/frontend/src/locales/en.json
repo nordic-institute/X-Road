@@ -117,7 +117,16 @@
     "disableSuccess": "Service description disabled",
     "enableSuccess": "Service description enabled",
     "restAdded": "REST added",
-    "wsdlAdded": "WSDL added"
+    "wsdlAdded": "WSDL added",
+    "deleted": "Service description deleted",
+    "restDetails": "REST details",
+    "wsdlDetails": "WSDL details",
+    "wsdlRefreshed": "WSDL refreshed",
+    "clients": {
+      "deleting_services": "Deleting services:",
+      "adding_services": "Adding services:",
+      "wsdl_validation_warnings": "Validation warnings:"
+    }
   },
   "action": {
     "addSubsystem": "add subsystem",
@@ -135,7 +144,8 @@
     "delete": "Delete",
     "remove": "Remove",
     "removeAll": "Remove All",
-    "save": "Save"
+    "save": "Save",
+    "continue": "Continue"
   },
   "login": {
     "username": "Username",
@@ -156,5 +166,6 @@
   "member_class": "Member class",
   "member_name": "Member name",
   "member_code": "Member code",
-  "subsystem_code": "Subsystem code"
+  "subsystem_code": "Subsystem code",
+  "warning": "Warning"
 }

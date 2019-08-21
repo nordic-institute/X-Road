@@ -15,14 +15,14 @@
           color="primary"
           round
           outline
-          class="mb-2 rounded-button elevation-0 xr-big-button dlg-button-margin"
+          class="mb-2 rounded-button elevation-0 xrd-big-button dlg-button-margin"
           @click="cancel()"
         >{{$t('action.cancel')}}</v-btn>
 
         <v-btn
           color="primary"
           round
-          class="mb-2 rounded-button elevation-0 xr-big-button dlg-button-margin"
+          class="mb-2 rounded-button elevation-0 xrd-big-button dlg-button-margin"
           @click="save()"
           :disabled="disableSaveButton"
         >{{$t(saveButtonLabel)}}</v-btn>
