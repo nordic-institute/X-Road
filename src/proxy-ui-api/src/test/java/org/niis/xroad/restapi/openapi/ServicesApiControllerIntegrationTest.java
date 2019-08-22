@@ -40,6 +40,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 /**
@@ -55,27 +56,45 @@ public class ServicesApiControllerIntegrationTest {
     public static final String SS0_GET_RANDOM = "FI:GOV:M1:SS0:getRandom.v1";
     public static final String SS1_GET_RANDOM = "FI:GOV:M1:SS1:getRandom.v1";
     public static final String SS1_CALCULATE_PRIME = "FI:GOV:M1:SS1:calculatePrime.v1";
-    public static final String NEW_SERVICE_URL = "https://foo.bar";
     public static final String SS1_PREDICT_WINNING_LOTTERY_NUMBERS = "FI:GOV:M1:SS1:predictWinningLotteryNumbers.v1";
+    public static final String NEW_SERVICE_URL_HTTPS = "https://foo.bar";
+    public static final String NEW_SERVICE_URL_HTTP = "http://foo.bar";
 
     @Autowired
     private ServicesApiController servicesApiController;
 
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS", "VIEW_CLIENT_DETAILS" })
-    public void updateService() {
+    public void updateServiceHttps() {
         Service service = servicesApiController.getService(SS1_GET_RANDOM).getBody();
         assertEquals(60, service.getTimeout().intValue());
 
         service.setTimeout(10);
         service.setSslAuth(false);
-        service.setUrl(NEW_SERVICE_URL);
+        service.setUrl(NEW_SERVICE_URL_HTTPS);
         ServiceUpdate serviceUpdate = new ServiceUpdate().service(service);
 
         Service updatedService = servicesApiController.updateService(SS1_GET_RANDOM, serviceUpdate).getBody();
         assertEquals(10, updatedService.getTimeout().intValue());
         assertEquals(false, updatedService.getSslAuth());
-        assertEquals(NEW_SERVICE_URL, updatedService.getUrl());
+        assertEquals(NEW_SERVICE_URL_HTTPS, updatedService.getUrl());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS", "VIEW_CLIENT_DETAILS" })
+    public void updateServiceHttp() {
+        Service service = servicesApiController.getService(SS1_GET_RANDOM).getBody();
+        assertEquals(60, service.getTimeout().intValue());
+
+        service.setTimeout(10);
+        service.setSslAuth(true); // value does not matter if http - will aways be set to null
+        service.setUrl(NEW_SERVICE_URL_HTTP);
+        ServiceUpdate serviceUpdate = new ServiceUpdate().service(service);
+
+        Service updatedService = servicesApiController.updateService(SS1_GET_RANDOM, serviceUpdate).getBody();
+        assertEquals(10, updatedService.getTimeout().intValue());
+        assertNull(updatedService.getSslAuth());
+        assertEquals(NEW_SERVICE_URL_HTTP, updatedService.getUrl());
     }
 
     @Test
@@ -86,20 +105,20 @@ public class ServicesApiControllerIntegrationTest {
 
         service.setTimeout(10);
         service.setSslAuth(false);
-        service.setUrl(NEW_SERVICE_URL);
+        service.setUrl(NEW_SERVICE_URL_HTTPS);
         ServiceUpdate serviceUpdate = new ServiceUpdate().service(service).urlAll(true)
                 .sslAuthAll(true).timeoutAll(true);
 
         Service updatedService = servicesApiController.updateService(SS1_GET_RANDOM, serviceUpdate).getBody();
         assertEquals(10, updatedService.getTimeout().intValue());
         assertEquals(false, updatedService.getSslAuth());
-        assertEquals(NEW_SERVICE_URL, updatedService.getUrl());
+        assertEquals(NEW_SERVICE_URL_HTTPS, updatedService.getUrl());
 
         Service otherServiceFromSameServiceDesc = servicesApiController.getService(SS1_CALCULATE_PRIME).getBody();
 
         assertEquals(10, otherServiceFromSameServiceDesc.getTimeout().intValue());
         assertEquals(false, otherServiceFromSameServiceDesc.getSslAuth());
-        assertEquals(NEW_SERVICE_URL, otherServiceFromSameServiceDesc.getUrl());
+        assertEquals(NEW_SERVICE_URL_HTTPS, otherServiceFromSameServiceDesc.getUrl());
     }
 
     @Test
@@ -110,19 +129,19 @@ public class ServicesApiControllerIntegrationTest {
 
         service.setTimeout(10);
         service.setSslAuth(true);
-        service.setUrl(NEW_SERVICE_URL);
+        service.setUrl(NEW_SERVICE_URL_HTTPS);
         ServiceUpdate serviceUpdate = new ServiceUpdate().service(service).urlAll(true);
 
         Service updatedService = servicesApiController.updateService(SS1_GET_RANDOM, serviceUpdate).getBody();
         assertEquals(10, updatedService.getTimeout().intValue());
         assertEquals(true, updatedService.getSslAuth());
-        assertEquals(NEW_SERVICE_URL, updatedService.getUrl());
+        assertEquals(NEW_SERVICE_URL_HTTPS, updatedService.getUrl());
 
         Service otherServiceFromSameServiceDesc = servicesApiController.getService(SS1_CALCULATE_PRIME).getBody();
 
         assertEquals(60, otherServiceFromSameServiceDesc.getTimeout().intValue());
         assertEquals(false, otherServiceFromSameServiceDesc.getSslAuth());
-        assertEquals(NEW_SERVICE_URL, otherServiceFromSameServiceDesc.getUrl());
+        assertEquals(NEW_SERVICE_URL_HTTPS, otherServiceFromSameServiceDesc.getUrl());
     }
 
     @Test

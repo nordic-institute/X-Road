@@ -130,6 +130,8 @@ public class ServiceService {
             if (sslAuthAll || serviceMatch) {
                 if (service.getUrl().startsWith(HTTPS)) {
                     service.setSslAuthentication(sslAuth);
+                } else {
+                    service.setSslAuthentication(null);
                 }
             }
         });

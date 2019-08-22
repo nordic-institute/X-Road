@@ -3777,7 +3777,6 @@ components:
         - service_code
         - url
         - timeout
-        - ssl_auth
       properties:
         id:
           type: string
