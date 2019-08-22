@@ -101,7 +101,7 @@ else
 
     if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='$db_user'\" "` == "1" ]]
     then
-        echo  "$db user exists, skipping schema creation"
+        echo  "$db_user exists, skipping schema creation"
         echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
     else
         echo "CREATE ROLE $db_user LOGIN PASSWORD '$db_passwd';" | su - postgres -c psql postgres
@@ -126,8 +126,6 @@ fi
 
 chown xroad:xroad ${db_properties}
 chmod 640 ${db_properties}
-
-su postgres -c 'psql messagelog -tAc "CREATE EXTENSION IF NOT EXISTS lo"'
 
 echo "running ${db_name} database migrations"
 cd /usr/share/xroad/db/
