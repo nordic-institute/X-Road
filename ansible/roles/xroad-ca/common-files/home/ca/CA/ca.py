@@ -108,7 +108,7 @@ class CAHandler(BaseHTTPRequestHandler):
 
 if __name__ == '__main__':
     from BaseHTTPServer import HTTPServer
-    server = HTTPServer(('0.0.0.0', 9998), CAHandler)
+    server = HTTPServer(('localhost', 9998), CAHandler)
     print 'Starting server...'
     server.serve_forever()
 
