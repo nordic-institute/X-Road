@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
+import org.niis.xroad.restapi.exceptions.Error;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -74,7 +75,8 @@ public class ServiceService {
     public ServiceType getService(ClientId clientId, String fullServiceCode) {
         ClientType client = clientService.getClient(clientId);
         if (client == null) {
-            return null;
+            throw new NotFoundException("Client " + clientId.toShortString() + " not found",
+                    new Error(ClientService.CLIENT_NOT_FOUND_ERROR_CODE));
         }
         Optional<ServiceType> foundService = client.getServiceDescription()
                 .stream()
@@ -89,7 +91,7 @@ public class ServiceService {
      * update a Service. clientId and fullServiceCode identify the updated service.
      * @param clientId clientId of the client associated with the service
      * @param fullServiceCode service code that includes service version
-     *                        see {@link FormatUtils#getServiceFullName(ServiceType)}
+     * see {@link FormatUtils#getServiceFullName(ServiceType)}
      * @param url
      * @param urlAll
      * @param timeout

@@ -50,7 +50,7 @@ public class XroadInstancesApiController implements XroadInstancesApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
+    @PreAuthorize("hasAuthority('VIEW_XROAD_INSTANCES')")
     public ResponseEntity<List<String>> getXroadInstances() {
         List<String> xroadInstances = globalConfService.getInstanceIdentifiers();
         return new ResponseEntity<>(xroadInstances, HttpStatus.OK);

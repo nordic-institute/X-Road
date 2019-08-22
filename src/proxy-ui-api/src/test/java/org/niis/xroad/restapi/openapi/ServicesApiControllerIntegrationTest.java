@@ -27,8 +27,10 @@ package org.niis.xroad.restapi.openapi;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
+import org.niis.xroad.restapi.service.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,6 +39,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * Test ServicesApiController
@@ -48,6 +51,7 @@ import static org.junit.Assert.assertEquals;
 @Slf4j
 public class ServicesApiControllerIntegrationTest {
 
+    public static final String SS0_GET_RANDOM = "FI:GOV:M1:SS0:getRandom.v1";
     public static final String SS1_GET_RANDOM = "FI:GOV:M1:SS1:getRandom.v1";
     public static final String SS1_CALCULATE_PRIME = "FI:GOV:M1:SS1:calculatePrime.v1";
     public static final String NEW_SERVICE_URL = "https://foo.bar";
@@ -117,5 +121,16 @@ public class ServicesApiControllerIntegrationTest {
         assertEquals(60, otherServiceFromSameServiceDesc.getTimeout().intValue());
         assertEquals(false, otherServiceFromSameServiceDesc.getSslAuth());
         assertEquals(NEW_SERVICE_URL, otherServiceFromSameServiceDesc.getUrl());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
+    public void getServiceClientNotFound() {
+        try {
+            servicesApiController.getService(SS0_GET_RANDOM).getBody();
+            fail("should throw NotFoundException");
+        } catch (NotFoundException expected) {
+            assertEquals(ClientService.CLIENT_NOT_FOUND_ERROR_CODE, expected.getError().getCode());
+        }
     }
 }
