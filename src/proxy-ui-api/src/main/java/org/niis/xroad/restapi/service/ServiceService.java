@@ -52,6 +52,8 @@ import java.util.Optional;
 @PreAuthorize("denyAll")
 public class ServiceService {
 
+    public static final String SERVICE_NOT_FOUND_ERROR_CODE = "service_not_found";
+
     private static final String HTTPS = "https";
 
     private final ClientService clientService;
@@ -84,7 +86,8 @@ public class ServiceService {
                 .flatMap(List::stream)
                 .filter(serviceType -> FormatUtils.getServiceFullName(serviceType).equals(fullServiceCode))
                 .findFirst();
-        return foundService.orElse(null);
+        return foundService.orElseThrow(() -> new NotFoundException("Client " + clientId.toShortString() + " not found",
+                new Error(SERVICE_NOT_FOUND_ERROR_CODE)));
     }
 
     /**

@@ -31,6 +31,7 @@ import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
 import org.niis.xroad.restapi.service.ClientService;
+import org.niis.xroad.restapi.service.ServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -55,6 +56,7 @@ public class ServicesApiControllerIntegrationTest {
     public static final String SS1_GET_RANDOM = "FI:GOV:M1:SS1:getRandom.v1";
     public static final String SS1_CALCULATE_PRIME = "FI:GOV:M1:SS1:calculatePrime.v1";
     public static final String NEW_SERVICE_URL = "https://foo.bar";
+    public static final String SS1_PREDICT_WINNING_LOTTERY_NUMBERS = "FI:GOV:M1:SS1:predictWinningLotteryNumbers.v1";
 
     @Autowired
     private ServicesApiController servicesApiController;
@@ -131,6 +133,17 @@ public class ServicesApiControllerIntegrationTest {
             fail("should throw NotFoundException");
         } catch (NotFoundException expected) {
             assertEquals(ClientService.CLIENT_NOT_FOUND_ERROR_CODE, expected.getError().getCode());
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
+    public void getServiceNotFound() {
+        try {
+            servicesApiController.getService(SS1_PREDICT_WINNING_LOTTERY_NUMBERS).getBody();
+            fail("should throw NotFoundException");
+        } catch (NotFoundException expected) {
+            assertEquals(ServiceService.SERVICE_NOT_FOUND_ERROR_CODE, expected.getError().getCode());
         }
     }
 }

@@ -29,7 +29,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.ServiceConverter;
-import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
 import org.niis.xroad.restapi.service.ServiceService;
@@ -85,10 +84,6 @@ public class ServicesApiController implements ServicesApi {
     private ServiceType getServiceType(String id) {
         ClientId clientId = serviceConverter.parseClientId(id);
         String fullServiceCode = serviceConverter.parseFullServiceCode(id);
-        ServiceType serviceType = serviceService.getService(clientId, fullServiceCode);
-        if (serviceType == null) {
-            throw new NotFoundException("Service with id " + id + " not found");
-        }
-        return serviceType;
+        return serviceService.getService(clientId, fullServiceCode);
     }
 }
