@@ -36,7 +36,7 @@ Please fix this and reinstall this package." >&2
     mkdir -p -m 1750 /var/log/xroad
     chmod 1750 /var/log/xroad
     chown xroad:adm /var/log/xroad
-    chmod -R 1750 /var/log/xroad
+    chmod -R go-w /var/log/xroad
 
     # test and fix config folder
     su - xroad -c "test -O /etc/xroad && test -G /etc/xroad" || chown xroad:xroad /etc/xroad
