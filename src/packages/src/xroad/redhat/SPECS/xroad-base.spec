@@ -124,7 +124,7 @@ chmod -R go-w /var/lib/xroad
 mkdir -p -m1750 /var/log/xroad
 chmod 1750 /var/log/xroad
 chown xroad:adm /var/log/xroad
-chmod -R 1750 /var/log/xroad
+chmod -R go-w /var/log/xroad
 
 #tmp folder
 mkdir -p /var/tmp/xroad
