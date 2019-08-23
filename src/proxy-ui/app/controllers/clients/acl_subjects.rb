@@ -204,12 +204,12 @@ module Clients::AclSubjects
     render_json(read_subject_services(client, subject_id))
   end
 
-  def create_endpoint(endpoints, service_code, method = "*", path = "**")
+  def create_endpoint(endpoints, service_code, method = "*", path = "**", generated = true)
     endpoint = endpoints.detect { |ep|
       ep.service_code == service_code && ep.method == method && ep.path == path
     }
     if (endpoint == nil)
-      endpoint = EndpointType.new(service_code, method, path);
+      endpoint = EndpointType.new(service_code, method, path, generated);
       endpoints.add(endpoint);
     end
     endpoint

@@ -43,6 +43,14 @@ public class OpenApiParserTest {
     }
 
     @Test
+    public void shouldHaveWarnings() throws OpenApiParser.ParsingException {
+        URL url = getClass().getResource("/warnings.yml");
+        final OpenApiParser.Result result = new TestOpenApiParser(url.toString()).parse();
+        Assert.assertTrue(result.hasWarnings());
+        Assert.assertEquals("https://{securityserver}/r1", result.getBaseUrl());
+    }
+
+    @Test
     public void shouldParseOpenApiJson() throws OpenApiParser.ParsingException {
         URL url = getClass().getResource("/valid.json");
         final OpenApiParser.Result result = new TestOpenApiParser(url.toString()).parse();
