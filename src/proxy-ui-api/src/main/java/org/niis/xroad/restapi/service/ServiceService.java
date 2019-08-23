@@ -86,7 +86,7 @@ public class ServiceService {
                 .flatMap(List::stream)
                 .filter(serviceType -> FormatUtils.getServiceFullName(serviceType).equals(fullServiceCode))
                 .findFirst();
-        return foundService.orElseThrow(() -> new NotFoundException("Client " + clientId.toShortString() + " not found",
+        return foundService.orElseThrow(() -> new NotFoundException("Service " + fullServiceCode + " not found",
                 new Error(SERVICE_NOT_FOUND_ERROR_CODE)));
     }
 
