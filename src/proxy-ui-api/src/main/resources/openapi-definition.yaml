@@ -3037,6 +3037,39 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /xroad-instances:
+    get: # ok
+      tags:
+        - security server
+      summary: get list of known xroad instance identifiers
+      operationId: getXroadInstances
+      description: Administrator lists xroad instance identifiers
+      responses:
+        '200':
+          description: xroad instance identifiers
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of xroad instance identifiers
+                uniqueItems: true
+                items:
+                  type: string
+                  format: text
+                  minLength: 1
+                  maxLength: 255
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -3744,7 +3777,6 @@ components:
         - service_code
         - url
         - timeout
-        - ssl_auth
       properties:
         id:
           type: string

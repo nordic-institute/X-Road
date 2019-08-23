@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
+import org.niis.xroad.restapi.exceptions.Error;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -50,6 +51,8 @@ import java.util.Optional;
 @Transactional
 @PreAuthorize("denyAll")
 public class ServiceService {
+
+    public static final String SERVICE_NOT_FOUND_ERROR_CODE = "service_not_found";
 
     private static final String HTTPS = "https";
 
@@ -73,20 +76,25 @@ public class ServiceService {
     @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
     public ServiceType getService(ClientId clientId, String fullServiceCode) {
         ClientType client = clientService.getClient(clientId);
+        if (client == null) {
+            throw new NotFoundException("Client " + clientId.toShortString() + " not found",
+                    new Error(ClientService.CLIENT_NOT_FOUND_ERROR_CODE));
+        }
         Optional<ServiceType> foundService = client.getServiceDescription()
                 .stream()
                 .map(ServiceDescriptionType::getService)
                 .flatMap(List::stream)
                 .filter(serviceType -> FormatUtils.getServiceFullName(serviceType).equals(fullServiceCode))
                 .findFirst();
-        return foundService.orElse(null);
+        return foundService.orElseThrow(() -> new NotFoundException("Service " + fullServiceCode + " not found",
+                new Error(SERVICE_NOT_FOUND_ERROR_CODE)));
     }
 
     /**
      * update a Service. clientId and fullServiceCode identify the updated service.
      * @param clientId clientId of the client associated with the service
      * @param fullServiceCode service code that includes service version
-     *                        see {@link FormatUtils#getServiceFullName(ServiceType)}
+     * see {@link FormatUtils#getServiceFullName(ServiceType)}
      * @param url
      * @param urlAll
      * @param timeout
@@ -122,6 +130,8 @@ public class ServiceService {
             if (sslAuthAll || serviceMatch) {
                 if (service.getUrl().startsWith(HTTPS)) {
                     service.setSslAuthentication(sslAuth);
+                } else {
+                    service.setSslAuthentication(null);
                 }
             }
         });
