@@ -28,29 +28,35 @@ import brave.Tracer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.sleuth.instrument.web.TraceWebServletAutoConfiguration;
 import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
 /**
- * Add correlation id (sleuth trace id) to response header
+ * Adds correlation id (sleuth trace id) to response header
  */
-@WebFilter("/*")
+@Component
 @Order(TraceWebServletAutoConfiguration.TRACING_FILTER_ORDER + 1)
 public class AddCorrelationIdFilter implements Filter {
 
+    public static final String CORRELATION_ID_HEADER_NAME = "xroad-ui-correlation-id";
     @Autowired
     private Tracer tracer;
 
     public String getCorrelationId() {
-        return tracer.currentSpan().context().traceIdString();
+        if (tracer != null && tracer.currentSpan() != null
+                    && tracer.currentSpan().context() != null) {
+            return tracer.currentSpan().context().traceIdString();
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -58,7 +64,7 @@ public class AddCorrelationIdFilter implements Filter {
             FilterChain chain) throws IOException, ServletException {
         HttpServletResponse httpServletResponse = (HttpServletResponse) response;
         httpServletResponse.setHeader(
-                "xroad-ui-correlation-id", getCorrelationId());
+                CORRELATION_ID_HEADER_NAME, getCorrelationId());
         chain.doFilter(request, response);
     }
 }
