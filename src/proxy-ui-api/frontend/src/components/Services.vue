@@ -224,7 +224,7 @@ export default Vue.extend({
       // Filter out service deascriptions that don't include search term
       const filtered = arr.filter((element: any) => {
         return element.services.find((service: any) => {
-          return service.code
+          return service.service_code
             .toString()
             .toLowerCase()
             .includes(mysearch);
@@ -234,7 +234,7 @@ export default Vue.extend({
       // Filter out services that don't include search term
       filtered.forEach((element) => {
         const filteredServices = element.services.filter((service: any) => {
-          return service.code
+          return service.service_code
             .toString()
             .toLowerCase()
             .includes(mysearch);
