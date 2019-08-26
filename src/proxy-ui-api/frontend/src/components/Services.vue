@@ -85,7 +85,6 @@
                   <th>{{$t('services.serviceCode')}}</th>
                   <th>{{$t('services.url')}}</th>
                   <th>{{$t('services.timeout')}}</th>
-                  <th style="text-align:center">{{$t('services.accessRights')}}</th>
                 </tr>
               </thead>
               <tbody>
@@ -96,7 +95,6 @@
                     {{service.url}}
                   </td>
                   <td>{{service.timeout}}</td>
-                  <td style="text-align:center">-</td>
                 </tr>
               </tbody>
             </table>
