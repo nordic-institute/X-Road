@@ -35,8 +35,7 @@ check_is_correct_tarball () {
 }
 
 check_restore_options () {
-  exists=$(tar tf ${BACKUP_FILENAME} | grep -x var/lib/xroad/dbdump.dat)
-  if [[ -z "$exists" ]] ; then
+  if ! tar tf "$BACKUP_FILENAME" var/lib/xroad/dbdump.dat &>/dev/null; then
     echo "The backup archive does not contain database dump. Skipping database restore."
     SKIP_DB_RESTORE=true
   fi
@@ -140,7 +139,7 @@ extract_to_tmp_restore_dir () {
   # Restore to temporary directory and fix permissions before copying
   tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} etc/xroad etc/nginx || die "Extracting backup failed"
   # dbdump is optional
-  if [ -z ${SKIP_DB_RESTORE} ] || [[ ${SKIP_DB_RESTORE} = false ]] ; then
+  if [[ $SKIP_DB_RESTORE != true ]] ; then
     tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} var/lib/xroad/dbdump.dat
   fi
   # keep existing db.properties
@@ -163,7 +162,7 @@ restore_configuration_files () {
 
   cp -a ${Z} ${RESTORE_DIR}/etc/xroad -t /etc
   cp -r ${Z} ${RESTORE_DIR}/etc/nginx -t /etc
-  if [ -z ${SKIP_DB_RESTORE} ] || [[ ${SKIP_DB_RESTORE} = false ]] ; then
+  if [[ $SKIP_DB_RESTORE != true ]] ; then
     cp -a ${Z} ${RESTORE_DIR}/var/lib/xroad/dbdump.dat -t /var/lib/xroad/
   fi
 }

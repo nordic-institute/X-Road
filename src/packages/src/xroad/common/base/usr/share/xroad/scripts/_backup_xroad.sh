@@ -20,13 +20,12 @@ die () {
 }
 
 create_database_backup () {
-  if [ -n ${SKIP_DB_BACKUP} ] && [[ ${SKIP_DB_BACKUP} = true ]] ; then
+  if [[ $SKIP_DB_BACKUP = true ]] ; then
     echo "SKIPPING DB BACKUP AS REQUESTED"
   else
     if [ -x ${DATABASE_BACKUP_SCRIPT} ] ; then
       echo "CREATING DATABASE DUMP TO ${DATABASE_DUMP_FILENAME}"
-      ${DATABASE_BACKUP_SCRIPT} ${DATABASE_DUMP_FILENAME}
-      if [ $? -ne 0 ] ; then
+      if ! $DATABASE_BACKUP_SCRIPT "$DATABASE_DUMP_FILENAME"; then
         die "Database backup failed!" \
             "Please check the error messages and fix them before trying again!"
       fi
