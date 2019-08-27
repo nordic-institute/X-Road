@@ -99,7 +99,7 @@
     </div>
 
     <div class="group-members-row">
-      <div class="row-title">{{$t('services.accessRights')}}</div>
+      <div class="row-title">{{$t('access.accessRights')}}</div>
       <div class="row-buttons">
         <v-btn
           outline
@@ -113,7 +113,7 @@
           color="primary"
           class="xrd-big-button"
           @click="showAddMembersDialog()"
-        >{{$t('services.addSubjects')}}</v-btn>
+        >{{$t('access.addSubjects')}}</v-btn>
       </div>
     </div>
 
@@ -155,15 +155,6 @@
       </div>
     </v-card>
 
-    <!-- Confirm dialog delete group -->
-    <confirmDialog
-      :dialog="confirmGroup"
-      title="localGroup.deleteTitle"
-      text="localGroup.deleteText"
-      @cancel="confirmGroup = false"
-      @accept="doDeleteGroup()"
-    />
-
     <!-- Confirm dialog remove member -->
     <confirmDialog
       :dialog="confirmMember"
@@ -186,8 +177,9 @@
     <addMembersDialog
       :dialog="addMembersDialogVisible"
       :filtered="[]"
+      title="access.addSubjectsTitle"
       @cancel="closeMembersDialog"
-      @membersAdded="membersAdded"
+      @membersAdded="doAddMembers"
     />
   </div>
 </template>
@@ -203,10 +195,10 @@ import SubViewTitle from '@/components/SubViewTitle.vue';
 import AddMembersDialog from '@/components/AddMembersDialog.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import HelpIcon from '@/components/HelpIcon.vue';
-import { Service } from '@/types.ts';
+import { Service, AccessRightSubject } from '@/types.ts';
 import { isValidWsdlURL } from '@/util/helpers';
 
-type NullableService = undefined | Service;
+type NullableSubject = undefined | AccessRightSubject;
 
 export default Vue.extend({
   components: {
@@ -227,7 +219,7 @@ export default Vue.extend({
       confirmGroup: false,
       confirmMember: false,
       confirmAllMembers: false,
-      selectedMember: undefined as NullableService,
+      selectedMember: undefined as NullableSubject,
       description: undefined,
       url: '',
       addMembersDialogVisible: false,
@@ -238,7 +230,7 @@ export default Vue.extend({
           name: 'Mock 1 security server owners',
         },
         {
-          id: 'GLOBALGROUP:DEV:security-server-owners',
+          id: 'GLOBALGROUP:DEV:security-server-owneropos',
           name: 'Mock security server owners',
         },
       ],
@@ -246,7 +238,7 @@ export default Vue.extend({
       timeout_all: false,
       ssl_auth_all: false,
       service: {
-        id: '',
+        service_id: '',
         code: '',
         timeout: 0,
         ssl_auth: true,
@@ -262,13 +254,7 @@ export default Vue.extend({
       return false;
     },
     hasMembers(): boolean {
-      const tempAccessRights: any = this.group;
-
-      if (
-        tempAccessRights &&
-        tempAccessRights.members &&
-        tempAccessRights.members.length > 0
-      ) {
+      if (this.accessRights && this.accessRights.length > 0) {
         return true;
       }
       return false;
@@ -304,7 +290,7 @@ export default Vue.extend({
 
     save(): void {
       axios
-        .patch(`/services/${this.service.id}`, {
+        .patch(`/services/${this.serviceId}`, {
           service: this.service,
           timeout_all: this.timeout_all,
           url_all: this.url_all,
@@ -349,9 +335,22 @@ export default Vue.extend({
       this.addMembersDialogVisible = true;
     },
 
-    membersAdded(): void {
+    doAddMembers(selectedIds: string[]): void {
       this.addMembersDialogVisible = false;
       // this.fetchData(this.clientId);
+
+      axios
+        .post(`/services/${this.serviceId}/access-rights`, {
+          items: selectedIds,
+        })
+        .then((res) => {
+          //this.service = res.data;
+          console.log(res.data);
+          this.fetchData(this.serviceId);
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
     },
 
     closeMembersDialog(): void {
@@ -364,8 +363,7 @@ export default Vue.extend({
 
     doRemoveAllMembers(): void {
       const ids: any = [];
-      const tempAccessRights: any = this.group;
-      tempAccessRights.members.forEach((member: any) => {
+      this.accessRights.forEach((member: any) => {
         ids.push(member.id);
       });
 
@@ -378,7 +376,8 @@ export default Vue.extend({
       this.selectedMember = member;
     },
     doRemoveMember() {
-      const member: Service = this.selectedMember as Service;
+      const member: AccessRightSubject = this
+        .selectedMember as AccessRightSubject;
 
       if (member && member.id) {
         this.removeArrayOfMembers([member.id]);
@@ -390,31 +389,14 @@ export default Vue.extend({
 
     removeArrayOfMembers(members: any) {
       axios
-        .post(`/groups/${this.groupId}/members/delete`, {
+        .post(`/services/${this.serviceId}/delete`, {
           items: members,
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
         })
         .finally(() => {
-          this.fetchData(this.clientId, this.groupId);
-        });
-    },
-
-    deleteGroup(): void {
-      this.confirmGroup = true;
-    },
-    doDeleteGroup(): void {
-      this.confirmGroup = false;
-
-      axios
-        .delete(`/groups/${this.groupId}`)
-        .then(() => {
-          this.$bus.$emit('show-success', 'localGroup.groupDeleted');
-          this.$router.go(-1);
-        })
-        .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          this.fetchData(this.serviceId);
         });
     },
   },
@@ -426,6 +408,7 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '../assets/colors';
+@import '../assets/tables';
 
 .apply-to-all {
   display: flex;
@@ -472,12 +455,6 @@ export default Vue.extend({
   margin-right: 0;
 }
 
-.delete-wrap {
-  margin-top: 50px;
-  display: flex;
-  justify-content: flex-end;
-}
-
 .group-members-row {
   width: 100%;
   display: flex;
@@ -495,26 +472,6 @@ export default Vue.extend({
 }
 .row-buttons {
   display: flex;
-}
-
-.wrapper {
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  padding-top: 60px;
-  height: 100%;
-}
-
-.cert-dialog-header {
-  display: flex;
-  justify-content: center;
-  border-bottom: 1px solid #9b9b9b;
-  color: #4a4a4a;
-  font-family: Roboto;
-  font-size: 34px;
-  font-weight: 300;
-  letter-spacing: 0.5px;
-  line-height: 51px;
 }
 
 .cert-hash {

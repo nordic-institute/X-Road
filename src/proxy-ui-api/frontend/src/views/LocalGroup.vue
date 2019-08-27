@@ -265,10 +265,6 @@ export default Vue.extend({
         });
     },
 
-    membersAdded(): void {
-      this.fetchData(this.clientId, this.groupId);
-    },
-
     closeMembersDialog(): void {
       this.addMembersDialogVisible = false;
     },
