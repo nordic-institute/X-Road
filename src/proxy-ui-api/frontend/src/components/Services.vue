@@ -252,12 +252,10 @@ export default Vue.extend({
       });
     },
     serviceClick(service: any): void {
-      // TODO: will be implemented on later task
-      /*
       this.$router.push({
         name: RouteName.Service,
         params: { serviceId: service.id },
-      }); */
+      });
     },
     switchChanged(event: any, serviceDesc: any, index: number): void {
       if (serviceDesc.disabled === false) {
