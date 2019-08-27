@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.service;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.GlobalGroupId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -46,9 +47,17 @@ public class GlobalConfService {
     /**
      * get member name
      */
-    @PreAuthorize("isAuthenticated")
+    @PreAuthorize("isAuthenticated()")
     public String getMemberName(ClientId identifier) {
         return GlobalConf.getMemberName(identifier);
+    }
+
+    /**
+     * get member name
+     */
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
+    public String getGlobalGroupDescription(GlobalGroupId identifier) {
+        return GlobalConf.getGlobalGroupDescription(identifier);
     }
 
     /**

@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
@@ -42,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * service class for handling services
@@ -80,6 +82,16 @@ public class ServiceService {
             throw new NotFoundException("Client " + clientId.toShortString() + " not found",
                     new Error(ClientService.CLIENT_NOT_FOUND_ERROR_CODE));
         }
+        return getServiceFromClient(client, fullServiceCode);
+    }
+
+    /**
+     * @param client
+     * @param fullServiceCode
+     * @return {@link ServiceType}
+     */
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
+    public ServiceType getServiceFromClient(ClientType client, String fullServiceCode) {
         Optional<ServiceType> foundService = client.getServiceDescription()
                 .stream()
                 .map(ServiceDescriptionType::getService)
@@ -139,5 +151,27 @@ public class ServiceService {
         serviceDescriptionRepository.saveOrUpdate(serviceDescriptionType);
 
         return serviceType;
+    }
+
+    /**
+     * @param clientId
+     * @param fullServiceCode
+     * @return
+     */
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
+    public List<AccessRightType> getServiceAccessRights(ClientId clientId, String fullServiceCode) {
+        ClientType client = clientService.getClient(clientId);
+        if (client == null) {
+            throw new NotFoundException("Client " + clientId.toShortString() + " not found",
+                    new Error(ClientService.CLIENT_NOT_FOUND_ERROR_CODE));
+        }
+
+        ServiceType serviceType = getServiceFromClient(client, fullServiceCode);
+
+        return client.getAcl()
+                .stream()
+                .filter(accessRightType -> accessRightType.getEndpoint().getServiceCode()
+                        .equals(serviceType.getServiceCode()))
+                .collect(Collectors.toList());
     }
 }

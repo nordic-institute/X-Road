@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.apache.commons.lang.StringUtils;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
@@ -84,11 +85,23 @@ public class ClientConverter {
 
     /**
      * Convert ClientId into encoded member id
-     * @param clientId
      * @return
      */
     public String convertId(ClientId clientId) {
+        return convertId(clientId, false);
+    }
+
+    /**
+     * Convert ClientId into encoded member id
+     * @param clientId
+     * @return
+     */
+    public String convertId(ClientId clientId, boolean includeType) {
         StringBuilder builder = new StringBuilder();
+        if (includeType) {
+            builder.append(clientId.getObjectType())
+                    .append(ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
+        }
         builder.append(clientId.getXRoadInstance())
                 .append(ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR)
                 .append(clientId.getMemberClass())
