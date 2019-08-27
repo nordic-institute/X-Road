@@ -58,6 +58,10 @@ export default Vue.extend({
   background-color: transparent;
 }
 
+.no-hover {
+  margin-top: 8px;
+}
+
 .header {
   display: flex;
   align-items: center;
