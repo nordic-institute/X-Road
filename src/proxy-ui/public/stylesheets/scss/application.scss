@@ -32,6 +32,17 @@ table tbody tr td ul.tableitem-actions {
             content: "+";
         }
      }
+
+    .endpoint_row {
+        font-weight: 500;
+        .method {
+            border: 1px solid #a0a0a0;
+            padding: 2px;
+            -webkit-border-radius: 5px;
+            -moz-border-radius: 5px;
+            border-radius: 5px;
+        }
+    }
 }
 
 #group_description_edit_dialog {

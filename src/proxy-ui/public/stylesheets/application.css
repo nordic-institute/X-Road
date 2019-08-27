@@ -18,6 +18,14 @@ table tbody tr td ul.tableitem-actions {
     content: "-"; }
   #services td.closed:before {
     content: "+"; }
+  #services .endpoint_row {
+      font-weight: 500; }
+  #services .endpoint_row .method {
+      border: 1px solid #a0a0a0;
+      padding: 2px;
+      -webkit-border-radius: 5px;
+      -moz-border-radius: 5px;
+      border-radius: 5px; }
 
 #group_description_edit_dialog .dialog-body {
   height: 100%; }

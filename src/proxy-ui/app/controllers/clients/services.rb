@@ -634,8 +634,33 @@ module Clients::Services
           :sslauth => service.sslAuthentication.nil? || service.sslAuthentication,
           :last_refreshed => format_time(servicedescription.refreshedDate),
           :disabled => servicedescription.disabled,
-          :subjects_count => subjects_count(client, service.serviceCode)
+          :subjects_count => subjects_count(client, service.serviceCode),
         }
+
+        client.endpoint.each do |endpoint|
+          if endpoint.service_code == service.service_code
+            services << {
+              :wsdl => false,
+              :wsdl_id => servicedescription.url,
+              :service_code => endpoint.service_code,
+              :method => endpoint.method,
+              :path => endpoint.path,
+              :generated => endpoint.generated,
+              :name => get_service_id(service),
+              :title => service.title,
+              :url => service.url,
+              :timeout => service.timeout,
+              :security_category => categories,
+              :sslauth => service.sslAuthentication.nil? || service.sslAuthentication,
+              :last_refreshed => format_time(servicedescription.refreshedDate),
+              :disabled => servicedescription.disabled,
+              :subjects_count => subjects_count(client, service.serviceCode)
+            }
+
+          end
+        end
+
+
       end
     end
 

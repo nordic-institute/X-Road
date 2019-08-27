@@ -109,6 +109,7 @@ en:
       client_services: "Client Services"
       add_wsdl: "Add WSDL"
       add_openapi3: "Add REST"
+      add_endpoint: "Add endpoint"
       access_rights: "Access Rights"
       service_code: "Service Code"
       title: "Title"
@@ -123,6 +124,7 @@ en:
       edit_openapi3_parameters: "Edit REST Parameters"
       delete_wsdls_confirm: "Are you sure you want to delete selected services?"
       wsdl_validator_output: "Validator Output"
+
 
     service_params_dialog:
       edit_service_parameters: "Edit Service Parameters"

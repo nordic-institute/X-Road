@@ -25,6 +25,9 @@
   <% if can?(:view_service_acl) %>
   <button id="service_acl"><%= t '.access_rights' %></button>
   <% end %>
+  <% if can?(:add_openapi3) %>
+    <button id="openapi3_add_endpoint"><%= t '.add_endpoint' %></button>
+  <% end %>
 </div>
 
 <table id="services" class="fixed">
@@ -57,12 +60,23 @@
   <%= form_tag do %>
     <table class="details">
       <tr>
+        <td><%= t '.url_type' %></td>
+        <td>
+          <%= radio_button_tag "service_type", "OPENAPI3", true, :style => "width: auto"%>
+          <%= label_tag "service_type_OPENAPI3", t('.rest_api_base_path') %>
+        </td>
+        <td>
+          <%= radio_button_tag "service_type", "OPENAPI3_DESCRIPTION", false, :style => "width: auto" %>
+          <%= label_tag "service_type_OPENAPI3_DESCRIPTION", t('.openapi3_description') %>
+        </td>
+      </tr>
+      <tr>
         <td><%= t '.url' %></td>
-        <td><%= text_field_tag "openapi3_add_url", nil, :style => "width: 90%" %></td>
+        <td colspan="2"><%= text_field_tag "openapi3_add_url", nil, :style => "width: 90%" %></td>
       </tr>
       <tr>
         <td><%= t '.service_code' %></td>
-        <td><%= text_field_tag "openapi3_service_code", nil, :style => "width: 90%" %></td>
+        <td colspan="2"><%= text_field_tag "openapi3_service_code", nil, :style => "width: 90%" %></td>
       </tr>
     </table>
   <% end %>

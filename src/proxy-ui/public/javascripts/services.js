@@ -359,6 +359,13 @@
               "mRender": function(data, type, full) {
                   if (full.wsdl) {
                       return data + " (" + full.wsdl_id + ")";
+                  } else if (full.method) {
+                      var generatedIcon = full.generated ? "<img src='/Icon_sync.svg' style='width:13px'/>" : "";
+                      return "<div class='endpoint_row'>" +
+                                generatedIcon +
+                                "<span class='method'>" + full.method + "</span> " +
+                                    full.path + " (" + full.subjects_count + ")" +
+                          "</div>";
                   }
 
                   return util.escape(data) + " (" + full.subjects_count + ")";
@@ -370,7 +377,7 @@
                       return data;
                   }
 
-                  if (!data) {
+                  if (!data || full.method) {
                       return null;
                   }
 
@@ -383,10 +390,23 @@
                   if (type == 'filter') {
                       return data;
                   }
+
+                  if(full.method) {
+                      return null;
+                  }
+
                   return data;
               },
             },
-            { "mData": "last_refreshed", "sClass": "center", "sWidth": "7em" }
+            { "mData": "last_refreshed", "sClass": "center", "sWidth": "7em",
+                "mRender": function (data, type, full) {
+                    if(full.method) {
+                        return null;
+                    }
+
+                    return data;
+                }
+            }
         ];
 
         opts.fnRowCallback = function(nRow, oData) {
