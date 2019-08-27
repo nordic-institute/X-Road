@@ -187,7 +187,12 @@ Data Base Updated
 ```
 ### 7.3 Use the web interface
 
-There is a simple web interface running at http://testca:8888/testca/ which can be used to sign requests.
+There is a simple web interface running at http://some-ca-server:8888/testca/ which can be used to sign requests.
+
+It is also possible to use a command line http client (e.g. curl):
+```
+curl -Fcertreq=@auth_csr.pem http://some-ca-server:8888/testca/sign
+```
 
 ### 7.4 Certificate revocation
 
