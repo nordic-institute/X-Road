@@ -27,7 +27,6 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.apache.commons.lang.StringUtils;
 import org.niis.xroad.restapi.exceptions.BadRequestException;

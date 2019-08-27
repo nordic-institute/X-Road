@@ -43,6 +43,7 @@ import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
 import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.ServiceService;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -130,37 +131,39 @@ public class ServicesApiController implements ServicesApi {
         clientType.getLocalGroup().forEach(localGroupType -> localGroupDescMap.put(localGroupType.getGroupCode(),
                 localGroupType.getDescription()));
 
-        clientType.getAcl()
-                .forEach(accessRightType -> {
-                    if (accessRightType.getEndpoint().getServiceCode().equals(serviceType.getServiceCode())) {
-                        ServiceClient serviceClient = new ServiceClient();
-                        XRoadId subjectId = accessRightType.getSubjectId();
+        clientType.getAcl().forEach(accessRightType -> {
+            if (accessRightType.getEndpoint().getServiceCode().equals(serviceType.getServiceCode())) {
+                ServiceClient serviceClient = new ServiceClient();
+                serviceClient.setRightsGiven(
+                        FormatUtils.fromDateToOffsetDateTime(accessRightType.getRightsGiven()));
+                XRoadId subjectId = accessRightType.getSubjectId();
 
-                        switch (subjectId.getObjectType()) {
-                            case MEMBER:
-                            case SUBSYSTEM:
-                                ClientId serviceClientId = (ClientId) subjectId;
-                                serviceClient.setName(globalConfService.getMemberName(serviceClientId));
-                                serviceClient.setId(clientConverter.convertId(serviceClientId, true));
-                                break;
-                            case GLOBALGROUP:
-                                GlobalGroupId globalGroupId = (GlobalGroupId) subjectId;
-                                serviceClient.setName(globalConfService.getGlobalGroupDescription(
-                                        globalGroupId));
-                                serviceClient.setId(groupConverter.convertId(globalGroupId, true));
-                                break;
-                            case LOCALGROUP:
-                                LocalGroupId localGroupId = (LocalGroupId) subjectId;
-                                serviceClient.setName(localGroupDescMap.get(localGroupId.getGroupCode()));
-                                serviceClient.setId(groupConverter.convertId(localGroupId, true));
-                                break;
-                            default:
-                                break;
-                        }
+                switch (subjectId.getObjectType()) {
+                    case MEMBER:
+                    case SUBSYSTEM:
+                        ClientId serviceClientId = (ClientId) subjectId;
+                        serviceClient.setName(globalConfService.getMemberName(serviceClientId));
+                        serviceClient.setId(clientConverter.convertId(serviceClientId, true));
+                        break;
+                    case GLOBALGROUP:
+                        GlobalGroupId globalGroupId = (GlobalGroupId) subjectId;
+                        serviceClient.setName(globalConfService.getGlobalGroupDescription(globalGroupId));
+                        serviceClient.setId(groupConverter.convertId(globalGroupId, true));
+                        break;
+                    case LOCALGROUP:
+                        LocalGroupId localGroupId = (LocalGroupId) subjectId;
+                        serviceClient.setName(localGroupDescMap.get(localGroupId.getGroupCode()));
+                        serviceClient.setId(groupConverter.convertId(localGroupId, true));
+                        break;
+                    default:
+                        break;
+                }
 
-                        serviceClients.add(serviceClient);
-                    }
-                });
+                // we don't want to show the ACTUAL AccessRights - only the clients who possess them
+                serviceClient.setAccessRights(null);
+                serviceClients.add(serviceClient);
+            }
+        });
 
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
