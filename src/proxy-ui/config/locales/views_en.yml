@@ -124,7 +124,8 @@ en:
       edit_openapi3_parameters: "Edit REST Parameters"
       delete_wsdls_confirm: "Are you sure you want to delete selected services?"
       wsdl_validator_output: "Validator Output"
-
+      endpoint_path: "Path"
+      http_request_method: "HTTP Request Method"
 
     service_params_dialog:
       edit_service_parameters: "Edit Service Parameters"

@@ -33,8 +33,10 @@
 
         if ($(".service.row_selected:visible").length == 1) {
             $("#service_acl").enable();
+            $("#openapi3_add_endpoint").enable();
         } else {
             $("#service_acl").disable();
+            $("#openapi3_add_endpoint").disable();
         }
 
         if ($(".wsdl:not(.disabled).row_selected").length > 0) {
@@ -151,6 +153,46 @@
             $("#openapi3_add_dialog").dialog("option", "title", $(this).html());
             $("#openapi3_add_dialog").dialog("open");
         });
+    }
+
+    function initRESTENDPOINTAddDialog() {
+        var dialog = $("#rest_add_endpoint_dialog").initDialog({
+            autoOpen: false,
+            modal: true,
+            height: 300,
+            width: 600,
+            buttons: [
+                { text: _("common.ok"),
+                    click: function() {
+
+                        var dialog = this;
+                        var params = $("form", this).serializeObject();
+
+                        params.service_code = $("#services tbody tr.row_selected td span").attr("data-servicecode");
+                        params.client_id = $("#details_client_id").val();
+
+                        $.post(action("endpoint_add"), params, function(response) {
+                            oServices.fnReplaceData(response.data);
+                            enableActions();
+                            $(dialog).dialog("close");
+                        });
+                    }
+                },
+                { text: _("common.cancel"),
+                    click: function () {
+                        $(this).dialog("close");
+                    }
+                }
+            ]
+        });
+
+        $("#openapi3_add_endpoint").live('click', function () {
+            $("#rest_endpoint_method", dialog).val("");
+            $("#rest_endpoint_path", dialog).val("");
+            $("#rest_add_endpoint_dialog").dialog("option", "title", $(this).html());
+            $("#rest_add_endpoint_dialog").dialog("open");
+        });
+
     }
 
     function initWSDLDisableDialog() {
@@ -357,18 +399,19 @@
               } },
             { "mData": "name",
               "mRender": function(data, type, full) {
+                  var rowType = full.wsdl ? 'header' : full.method ? 'endpoint' : 'subheader';
                   if (full.wsdl) {
-                      return data + " (" + full.wsdl_id + ")";
+                      return "<span data-type='" + rowType + "'>" + data + "(" + full.wsdl_id + ")</span>";
                   } else if (full.method) {
                       var generatedIcon = full.generated ? "<img src='/Icon_sync.svg' style='width:13px'/>" : "";
-                      return "<div class='endpoint_row'>" +
+                      return "<span data-type='" + rowType + "' class='endpoint_row'>" +
                                 generatedIcon +
                                 "<span class='method'>" + full.method + "</span> " +
                                     full.path + " (" + full.subjects_count + ")" +
-                          "</div>";
+                          "</span>";
                   }
 
-                  return util.escape(data) + " (" + full.subjects_count + ")";
+                  return "<span data-type='" + rowType + "' data-servicecode='" + util.escape(data) + "'>" + util.escape(data) + " (" + full.subjects_count + ")</span>";
               } },
             { "mData": "title", mRender: util.escape },
             { "mData": "url",
@@ -567,6 +610,7 @@
         initWSDLDisableDialog();
         initWSDLParamsDialog();
         initOPENAPI3AddDialog();
+        initRESTENDPOINTAddDialog();
         initOPENAPI3ParamsDialog();
         initServiceParamsDialog();
         initServicesTable();

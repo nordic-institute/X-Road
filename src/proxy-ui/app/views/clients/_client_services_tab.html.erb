@@ -82,6 +82,30 @@
   <% end %>
 <% end %>
 
+<%= dialog "rest_add_endpoint_dialog" do %>
+  <%= form_tag do %>
+    <table>
+      <tr>
+        <td><%= t '.http_request_method' %></td>
+        <td><%= select_tag "rest_endpoint_method", raw("
+            <option value='GET'>GET</option>
+              <option value='POST'>POST</option>
+              <option value='PUT'>PUT</option>
+              <option value='DELETE'>DELETE</option>
+              <option value='HEAD'>HEAD</option>
+              <option value='OPTIONS'>OPTIONS</option>
+              <option value='PATCH'>PATCH</option>
+              <option value='TRACE'>TRACE</option>
+                                                  ")%></td>
+      </tr>
+      <tr>
+        <td><%= t '.endpoint_path' %></td>
+        <td colspan="2"><%= text_field_tag "endpoint_path", nil, :style => "width: 90%" %></td>
+      </tr>
+    </table>
+  <% end %>
+<% end %>
+
 <%= dialog "wsdl_disable_dialog", t('.disable_wsdl') do %>
   <%= form_tag do %>
     <table class="details">

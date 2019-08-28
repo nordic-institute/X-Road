@@ -61,6 +61,27 @@ module Clients::Services
     end
   end
 
+  def endpoint_add
+    audit_log("Add rest endpoint", audit_log_data = {})
+
+    validate_params({
+      :rest_endpoint_method => [:required],
+      :endpoint_path => [:required],
+      :client_id => [:required],
+      :service_code => [:required]
+    })
+
+    client = get_client(params[:client_id])
+
+    authorize!(:add_openapi3)
+
+    create_endpoint(client.endpoint, params[:service_code], params[:rest_endpoint_method], params[:endpoint_path], false)
+
+    serverconf_save
+
+    read_services(client)
+  end
+
   def servicedescription_wsdl_add(params)
     audit_log("Add service description", audit_log_data = {})
 
@@ -637,26 +658,28 @@ module Clients::Services
           :subjects_count => subjects_count(client, service.serviceCode),
         }
 
-        client.endpoint.each do |endpoint|
-          if endpoint.service_code == service.service_code
-            services << {
-              :wsdl => false,
-              :wsdl_id => servicedescription.url,
-              :service_code => endpoint.service_code,
-              :method => endpoint.method,
-              :path => endpoint.path,
-              :generated => endpoint.generated,
-              :name => get_service_id(service),
-              :title => service.title,
-              :url => service.url,
-              :timeout => service.timeout,
-              :security_category => categories,
-              :sslauth => service.sslAuthentication.nil? || service.sslAuthentication,
-              :last_refreshed => format_time(servicedescription.refreshedDate),
-              :disabled => servicedescription.disabled,
-              :subjects_count => subjects_count(client, service.serviceCode)
-            }
+        if DescriptionType::OPENAPI3_DESCRIPTION == servicedescription.type
+          client.endpoint.each do |endpoint|
+            if endpoint.service_code == service.service_code
+              services << {
+                :wsdl => false,
+                :wsdl_id => servicedescription.url,
+                :service_code => endpoint.service_code,
+                :method => endpoint.method,
+                :path => endpoint.path,
+                :generated => endpoint.generated,
+                :name => get_service_id(service),
+                :title => service.title,
+                :url => service.url,
+                :timeout => service.timeout,
+                :security_category => categories,
+                :sslauth => service.sslAuthentication.nil? || service.sslAuthentication,
+                :last_refreshed => format_time(servicedescription.refreshedDate),
+                :disabled => servicedescription.disabled,
+                :subjects_count => subjects_count(client, service.serviceCode)
+              }
 
+            end
           end
         end
 
