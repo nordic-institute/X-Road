@@ -46,7 +46,7 @@ public class GlobalConfService {
     /**
      * get member name
      */
-    @PreAuthorize("isAuthenticated")
+    @PreAuthorize("isAuthenticated()")
     public String getMemberName(ClientId identifier) {
         return GlobalConf.getMemberName(identifier);
     }
