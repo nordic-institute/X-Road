@@ -148,8 +148,7 @@ public class GroupConverter {
             builder.append(localGroupId.getObjectType())
                     .append(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
         }
-        builder.append(localGroupId.getGroupCode())
-                .append(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
+        builder.append(localGroupId.getGroupCode());
         return builder.toString().trim();
     }
 
@@ -174,8 +173,7 @@ public class GroupConverter {
         }
         builder.append(globalGroupId.getXRoadInstance())
                 .append(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR)
-                .append(globalGroupId.getGroupCode())
-                .append(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
+                .append(globalGroupId.getGroupCode());
         return builder.toString().trim();
     }
 }

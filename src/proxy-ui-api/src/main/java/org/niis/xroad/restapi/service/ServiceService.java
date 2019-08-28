@@ -24,13 +24,13 @@
  */
 package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.Error;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
@@ -41,9 +41,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * service class for handling services
@@ -154,24 +156,39 @@ public class ServiceService {
     }
 
     /**
+     * Get access right holders by Service
      * @param clientId
      * @param fullServiceCode
      * @return
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
-    public List<AccessRightType> getServiceAccessRights(ClientId clientId, String fullServiceCode) {
-        ClientType client = clientService.getClient(clientId);
-        if (client == null) {
+    public List<AccessRightHolderDto> getAccessRightHoldersByService(ClientId clientId, String fullServiceCode) {
+        ClientType clientType = clientService.getClient(clientId);
+        if (clientType == null) {
             throw new NotFoundException("Client " + clientId.toShortString() + " not found",
                     new Error(ClientService.CLIENT_NOT_FOUND_ERROR_CODE));
         }
 
-        ServiceType serviceType = getServiceFromClient(client, fullServiceCode);
+        ServiceType serviceType = getServiceFromClient(clientType, fullServiceCode);
 
-        return client.getAcl()
-                .stream()
-                .filter(accessRightType -> accessRightType.getEndpoint().getServiceCode()
-                        .equals(serviceType.getServiceCode()))
-                .collect(Collectors.toList());
+        List<AccessRightHolderDto> accessRightHolderDtos = new ArrayList<>();
+
+        Map<String, String> localGroupDescMap = new HashMap<>();
+
+        clientType.getLocalGroup().forEach(localGroupType -> localGroupDescMap.put(localGroupType.getGroupCode(),
+                localGroupType.getDescription()));
+
+        clientType.getAcl().forEach(accessRightType -> {
+            if (accessRightType.getEndpoint().getServiceCode().equals(serviceType.getServiceCode())) {
+                AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
+                accessRightHolderDto.setRightsGiven(
+                        FormatUtils.fromDateToOffsetDateTime(accessRightType.getRightsGiven()));
+                accessRightHolderDto.setSubjectId(accessRightType.getSubjectId());
+                accessRightHolderDto.setLocalGroupDescMap(localGroupDescMap);
+                accessRightHolderDtos.add(accessRightHolderDto);
+            }
+        });
+
+        return accessRightHolderDtos;
     }
 }
