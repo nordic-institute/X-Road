@@ -24,24 +24,38 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.GlobalGroupId;
+
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.Service;
+import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
 import org.niis.xroad.restapi.service.ClientService;
+import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.ServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Optional;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 /**
  * Test ServicesApiController
@@ -53,6 +67,15 @@ import static org.junit.Assert.fail;
 @Slf4j
 public class ServicesApiControllerIntegrationTest {
 
+    public static final String LOCALGROUP = "LOCALGROUP";
+    public static final String GLOBALGROUP = "GLOBALGROUP";
+    public static final String SUBSYSTEM = "SUBSYSTEM";
+    public static final String NAME_FOR = "Name for: ";
+    public static final String GLOBAL_GROUP_CODE = "security-server-owners";
+    public static final String GLOBAL_GROUP_ID = "GLOBALGROUP:FI:security-server-owners";
+    public static final String LOCAL_GROUP_DESC = "foo";
+    public static final String LOCAL_GROUP_ID = "LOCALGROUP:group1";
+    public static final String SS2_CLIENT_ID = "FI:GOV:M1:SS2";
     public static final String SS0_GET_RANDOM = "FI:GOV:M1:SS0:getRandom.v1";
     public static final String SS1_GET_RANDOM = "FI:GOV:M1:SS1:getRandom.v1";
     public static final String SS1_CALCULATE_PRIME = "FI:GOV:M1:SS1:calculatePrime.v1";
@@ -62,6 +85,24 @@ public class ServicesApiControllerIntegrationTest {
 
     @Autowired
     private ServicesApiController servicesApiController;
+
+    @MockBean
+    private GlobalConfService globalConfService;
+
+    @Before
+    public void setup() {
+        when(globalConfService.getGlobalGroupDescription(any())).thenAnswer((Answer<String>) invocation -> {
+            Object[] args = invocation.getArguments();
+            GlobalGroupId id = (GlobalGroupId) args[0];
+            return NAME_FOR + id.getGroupCode();
+        });
+
+        when(globalConfService.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
+            Object[] args = invocation.getArguments();
+            ClientId identifier = (ClientId) args[0];
+            return NAME_FOR + identifier.toShortString().replace("/", ":");
+        });
+    }
 
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS", "VIEW_CLIENT_DETAILS" })
@@ -164,5 +205,51 @@ public class ServicesApiControllerIntegrationTest {
         } catch (NotFoundException expected) {
             assertEquals(ServiceService.SERVICE_NOT_FOUND_ERROR_CODE, expected.getError().getCode());
         }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
+    public void getServiceAccessRights() {
+        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
+        assertEquals(3, serviceClients.size());
+
+        ServiceClient serviceClient = getServiceClientByType(serviceClients, GLOBALGROUP).get();
+        assertEquals(NAME_FOR + GLOBAL_GROUP_CODE, serviceClient.getName());
+        assertEquals(GLOBAL_GROUP_ID, serviceClient.getId());
+        assertNull(serviceClient.getAccessRights());
+
+        serviceClient = getServiceClientByType(serviceClients, LOCALGROUP).get();
+        assertEquals(LOCAL_GROUP_DESC, serviceClient.getName());
+        assertEquals(LOCAL_GROUP_ID, serviceClient.getId());
+        assertNull(serviceClient.getAccessRights());
+
+        serviceClient = getServiceClientByType(serviceClients, SUBSYSTEM).get();
+        assertEquals(NAME_FOR + SS2_CLIENT_ID, serviceClient.getName());
+        assertEquals(SUBSYSTEM + ":" + SS2_CLIENT_ID, serviceClient.getId());
+        assertNull(serviceClient.getAccessRights());
+
+        serviceClients = servicesApiController.getServiceAccessRights(SS1_CALCULATE_PRIME).getBody();
+        assertTrue(serviceClients.isEmpty());
+
+        try {
+            servicesApiController.getServiceAccessRights(SS0_GET_RANDOM);
+            fail("should throw NotFoundException");
+        } catch (NotFoundException expected) {
+            assertEquals(ClientService.CLIENT_NOT_FOUND_ERROR_CODE, expected.getError().getCode());
+        }
+
+        try {
+            servicesApiController.getServiceAccessRights(SS1_PREDICT_WINNING_LOTTERY_NUMBERS);
+            fail("should throw NotFoundException");
+        } catch (NotFoundException expected) {
+            assertEquals(ServiceService.SERVICE_NOT_FOUND_ERROR_CODE, expected.getError().getCode());
+        }
+    }
+
+    private Optional<ServiceClient> getServiceClientByType(List<ServiceClient> serviceClients, String type) {
+        return serviceClients
+                .stream()
+                .filter(serviceClient -> serviceClient.getId().contains(type))
+                .findFirst();
     }
 }

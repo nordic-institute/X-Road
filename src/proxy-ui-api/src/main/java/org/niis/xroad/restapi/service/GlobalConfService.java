@@ -55,7 +55,7 @@ public class GlobalConfService {
     /**
      * get member name
      */
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
+    @PreAuthorize("hasAuthority('VIEW_SERVICE_ACL')")
     public String getGlobalGroupDescription(GlobalGroupId identifier) {
         return GlobalConf.getGlobalGroupDescription(identifier);
     }

@@ -161,7 +161,7 @@ public class ServiceService {
      * @param fullServiceCode
      * @return
      */
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
+    @PreAuthorize("hasAuthority('VIEW_SERVICE_ACL')")
     public List<AccessRightHolderDto> getAccessRightHoldersByService(ClientId clientId, String fullServiceCode) {
         ClientType clientType = clientService.getClient(clientId);
         if (clientType == null) {

@@ -24,7 +24,6 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
@@ -32,12 +31,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.ServiceClientConverter;
 import org.niis.xroad.restapi.converter.ServiceConverter;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
-import org.niis.xroad.restapi.exceptions.Error;
-import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
-import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.ServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -57,15 +53,13 @@ import java.util.List;
 @PreAuthorize("denyAll")
 public class ServicesApiController implements ServicesApi {
 
-    private final ClientService clientService;
     private final ServiceConverter serviceConverter;
     private final ServiceClientConverter serviceClientConverter;
     private final ServiceService serviceService;
 
     @Autowired
-    public ServicesApiController(ClientService clientService, ServiceConverter serviceConverter,
-            ServiceClientConverter serviceClientConverter, ServiceService serviceService) {
-        this.clientService = clientService;
+    public ServicesApiController(ServiceConverter serviceConverter, ServiceClientConverter serviceClientConverter,
+            ServiceService serviceService) {
         this.serviceConverter = serviceConverter;
         this.serviceClientConverter = serviceClientConverter;
         this.serviceService = serviceService;
@@ -101,20 +95,13 @@ public class ServicesApiController implements ServicesApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
+    @PreAuthorize("hasAuthority('VIEW_SERVICE_ACL')")
     public ResponseEntity<List<ServiceClient>> getServiceAccessRights(String id) {
         ClientId clientId = serviceConverter.parseClientId(id);
         String fullServiceCode = serviceConverter.parseFullServiceCode(id);
-        ClientType clientType = clientService.getClient(clientId);
-        if (clientType == null) {
-            throw new NotFoundException("Client " + clientId.toShortString() + " not found",
-                    new Error(ClientService.CLIENT_NOT_FOUND_ERROR_CODE));
-        }
-
         List<AccessRightHolderDto> accessRightHolderDtos =
                 serviceService.getAccessRightHoldersByService(clientId, fullServiceCode);
         List<ServiceClient> serviceClients = serviceClientConverter.convertAccessRightHolderDtos(accessRightHolderDtos);
-
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 }
