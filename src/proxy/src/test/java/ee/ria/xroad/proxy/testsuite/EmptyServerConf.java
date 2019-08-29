@@ -115,6 +115,11 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
+    public String getServiceDescriptionURL(ServiceId service) {
+        return null;
+    }
+
+    @Override
     public boolean isSslAuthentication(ServiceId service) {
         return false;
     }

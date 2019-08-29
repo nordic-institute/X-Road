@@ -77,11 +77,15 @@ public class OpenApiParser {
         final SwaggerParseResult result = new OpenAPIV3Parser().readContents(readOpenAPIDescription(), null, options);
         validate(result);
 
-        final URI baseUrl = Optional.ofNullable(result.getOpenAPI().getServers())
+        String baseUrl = Optional.ofNullable(result.getOpenAPI().getServers())
                 .flatMap(s -> s.stream().findFirst())
                 .map(Server::getUrl)
-                .map(URI::create)
-                .orElse(openApiUrl);
+                .orElse("");
+
+        // if the base URL contains parameters, do not try to parse it
+        if (!baseUrl.contains("{")) {
+            baseUrl = openApiUrl.resolve(baseUrl).toString();
+        }
 
         final List<Operation> operations;
         if (result.getOpenAPI().getPaths() == null) {
@@ -90,10 +94,10 @@ public class OpenApiParser {
             operations = new ArrayList<>();
             result.getOpenAPI().getPaths().forEach((path, item) ->
                     item.readOperationsMap().forEach((method, operation) ->
-                            operations.add(new Operation(method.name(), path))));
+                            operations.add(new Operation(method.name(), path.replaceAll("\\{[^/]*}", "*")))));
         }
 
-        return new Result(openApiUrl.resolve(baseUrl).toString(), operations, result.getMessages());
+        return new Result(baseUrl, operations, result.getMessages());
     }
 
     private void validate(SwaggerParseResult result) throws ParsingException {

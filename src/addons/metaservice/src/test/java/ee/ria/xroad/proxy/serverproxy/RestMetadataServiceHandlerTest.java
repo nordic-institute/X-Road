@@ -26,6 +26,7 @@ package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestRequest;
@@ -45,10 +46,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
-import org.apache.http.impl.EnglishReasonPhraseCatalog;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -59,9 +61,11 @@ import org.junit.rules.ExpectedException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.util.Locale;
-
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static ee.ria.xroad.common.metadata.MetadataRequests.ALLOWED_METHODS;
+import static ee.ria.xroad.common.metadata.MetadataRequests.GET_OPENAPI;
 import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_METHODS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -79,6 +83,7 @@ public class RestMetadataServiceHandlerTest {
     private static final ClientId DEFAULT_CLIENT = ClientId.create(EXPECTED_XR_INSTANCE, "GOV",
             "1234TEST_CLIENT", "SUBCODE5");
     private static final byte[] REQUEST_HASH = "foobar1234".getBytes();
+    private static final int MOCK_SERVER_PORT = 9858;
 
     static final ObjectMapper MAPPER;
 
@@ -96,6 +101,7 @@ public class RestMetadataServiceHandlerTest {
     private HttpServletRequest mockRequest;
     private HttpServletResponse mockResponse;
     private ProxyMessage mockProxyMessage;
+    private WireMockServer mockServer;
 
 
     /**
@@ -113,21 +119,35 @@ public class RestMetadataServiceHandlerTest {
 
         GlobalConf.reload(new TestSuiteGlobalConf());
         KeyConf.reload(new TestSuiteKeyConf());
-        ServerConf.reload(new TestSuiteServerConf());
+        ServerConf.reload(new TestSuiteServerConf() {
+            @Override
+            public DescriptionType getDescriptionType(ServiceId service) {
+                return DescriptionType.OPENAPI3_DESCRIPTION;
+            }
+            @Override
+            public String getServiceDescriptionURL(ServiceId service) {
+                return "http://localhost:9858/petstore.yaml";
+            }
+        });
 
         httpClientMock = mock(HttpClient.class);
         mockRequest = mock(HttpServletRequest.class);
         mockResponse = mock(HttpServletResponse.class);
         mockProxyMessage = mock(ProxyMessage.class);
+
+        mockServer = new WireMockServer(options().port(MOCK_SERVER_PORT));
+        mockServer.stubFor(WireMock.any(urlPathEqualTo("/petstore.yaml"))
+                .willReturn(aResponse().withBodyFile("petstore.yaml")));
+        mockServer.start();
     }
 
     @After
     public void tearDown() {
+        mockServer.stop();
     }
 
-
     @Test
-    public void shouldBeAbleToHandleListMethods() throws Exception {
+    public void shouldBeAbleToHandleListMethods() {
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl();
         ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, LIST_METHODS);
         RestRequest mockRestRequest = mock(RestRequest.class);
@@ -137,7 +157,7 @@ public class RestMetadataServiceHandlerTest {
     }
 
     @Test
-    public void shouldBeAbleToHandleAllowedMethods() throws Exception {
+    public void shouldBeAbleToHandleAllowedMethods() {
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl();
         ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, ALLOWED_METHODS);
         RestRequest mockRestRequest = mock(RestRequest.class);
@@ -167,8 +187,7 @@ public class RestMetadataServiceHandlerTest {
 
         RestResponse restResponse = handlerToTest.getRestResponse();
         assertEquals(HttpStatus.SC_OK, restResponse.getResponseCode());
-        assertEquals(EnglishReasonPhraseCatalog.INSTANCE.getReason(HttpStatus.SC_OK, Locale.ENGLISH),
-                restResponse.getReason());
+        assertEquals("OK", restResponse.getReason());
         CachingStream restResponseBody = handlerToTest.getRestResponseBody();
         MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         MethodListType methodListType = MAPPER.readValue(restResponseBody.getCachedContents(), MethodListType.class);
@@ -195,11 +214,38 @@ public class RestMetadataServiceHandlerTest {
 
         RestResponse restResponse = handlerToTest.getRestResponse();
         assertEquals(HttpStatus.SC_OK, restResponse.getResponseCode());
-        assertEquals(EnglishReasonPhraseCatalog.INSTANCE.getReason(HttpStatus.SC_OK, Locale.ENGLISH),
-                restResponse.getReason());
+        assertEquals("OK", restResponse.getReason());
         CachingStream restResponseBody = handlerToTest.getRestResponseBody();
         MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         MethodListType methodListType = MAPPER.readValue(restResponseBody.getCachedContents(), MethodListType.class);
         assertEquals(2, methodListType.getService().size());
+    }
+
+    @Test
+    public void shouldHandleGetOpenApi() throws Exception {
+
+        RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl();
+        ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, GET_OPENAPI);
+
+        when(mockRequest.getRequestURL()).thenReturn(new StringBuffer("https://securityserver:5500"));
+
+        RestRequest mockRestRequest = mock(RestRequest.class);
+        when(mockRestRequest.getQuery()).thenReturn("serviceCode=foobar");
+        when(mockRestRequest.getServiceId()).thenReturn(serviceId);
+        when(mockRestRequest.getVerb()).thenReturn(RestRequest.Verb.GET);
+        when(mockRestRequest.getClientId()).thenReturn(DEFAULT_CLIENT);
+        when(mockRestRequest.getHash()).thenReturn(REQUEST_HASH);
+        when(mockProxyMessage.getRest()).thenReturn(mockRestRequest);
+
+        ProxyMessageDecoder mockDecoder = mock(ProxyMessageDecoder.class);
+        ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
+        handlerToTest.startHandling(mockRequest, mockProxyMessage, mockDecoder, mockEncoder, httpClientMock,
+                httpClientMock, mock(OpMonitoringData.class));
+
+        RestResponse restResponse = handlerToTest.getRestResponse();
+        assertEquals(HttpStatus.SC_OK, restResponse.getResponseCode());
+        assertEquals("OK", restResponse.getReason());
+        CachingStream restResponseBody = handlerToTest.getRestResponseBody();
+        assertTrue(restResponseBody.getCachedContents().size() > 0);
     }
 }

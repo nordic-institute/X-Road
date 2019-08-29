@@ -295,4 +295,14 @@ public class ServerConf {
 
         return getInstance().getDescriptionType(service);
     }
+
+    /**
+     * @param service the service identifier
+     * @return the service description url
+     */
+    public static String getServiceDescriptionURL(ServiceId service) {
+        log.trace("getServiceDescriptionURL({})", service);
+
+        return getInstance().getServiceDescriptionURL(service);
+    }
 }

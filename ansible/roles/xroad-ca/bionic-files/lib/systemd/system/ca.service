@@ -1,13 +1,13 @@
 [Unit]
-Description=Test OCSP
+Description=Test CA
 After=network.target
 
 [Service]
 PermissionsStartOnly=true
-User=ocsp
+User=ca
 Group=ca
 WorkingDirectory=/home/ca/CA
-ExecStart=/usr/bin/python /home/ca/CA/ocsp.py
+ExecStart=/usr/bin/python /home/ca/CA/ca.py
 Restart=on-failure
 SuccessExitStatus=143
 
