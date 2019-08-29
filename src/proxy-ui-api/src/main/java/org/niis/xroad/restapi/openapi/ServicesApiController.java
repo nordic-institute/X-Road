@@ -29,7 +29,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.converter.AccessRightConverter;
+import org.niis.xroad.restapi.converter.ServiceClientConverter;
 import org.niis.xroad.restapi.converter.ServiceConverter;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.exceptions.Error;
@@ -59,15 +59,15 @@ public class ServicesApiController implements ServicesApi {
 
     private final ClientService clientService;
     private final ServiceConverter serviceConverter;
-    private final AccessRightConverter accessRightConverter;
+    private final ServiceClientConverter serviceClientConverter;
     private final ServiceService serviceService;
 
     @Autowired
     public ServicesApiController(ClientService clientService, ServiceConverter serviceConverter,
-            AccessRightConverter accessRightConverter, ServiceService serviceService) {
+            ServiceClientConverter serviceClientConverter, ServiceService serviceService) {
         this.clientService = clientService;
         this.serviceConverter = serviceConverter;
-        this.accessRightConverter = accessRightConverter;
+        this.serviceClientConverter = serviceClientConverter;
         this.serviceService = serviceService;
     }
 
@@ -113,7 +113,7 @@ public class ServicesApiController implements ServicesApi {
 
         List<AccessRightHolderDto> accessRightHolderDtos =
                 serviceService.getAccessRightHoldersByService(clientId, fullServiceCode);
-        List<ServiceClient> serviceClients = accessRightConverter.convertServiceClientDtos(accessRightHolderDtos);
+        List<ServiceClient> serviceClients = serviceClientConverter.convertAccessRightHolderDtos(accessRightHolderDtos);
 
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }

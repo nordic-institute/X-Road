@@ -40,17 +40,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * converter for AccessRight related objects such as ServiceClient
+ * converter for ServiceClient and related objects
  */
 @Component
-public class AccessRightConverter {
+public class ServiceClientConverter {
 
     private final GlobalConfService globalConfService;
     private final ClientConverter clientConverter;
     private final GroupConverter groupConverter;
 
     @Autowired
-    public AccessRightConverter(GlobalConfService globalConfService,
+    public ServiceClientConverter(GlobalConfService globalConfService,
             ClientConverter clientConverter, GroupConverter groupConverter) {
         this.globalConfService = globalConfService;
         this.clientConverter = clientConverter;
@@ -62,7 +62,7 @@ public class AccessRightConverter {
      * @param accessRightHolderDto
      * @return
      */
-    public ServiceClient convertServiceClientDto(AccessRightHolderDto accessRightHolderDto) {
+    public ServiceClient convertAccessRightHolderDto(AccessRightHolderDto accessRightHolderDto) {
         ServiceClient serviceClient = new ServiceClient();
         serviceClient.setRightsGiven(accessRightHolderDto.getRightsGiven());
 
@@ -99,10 +99,10 @@ public class AccessRightConverter {
      * @param accessRightHolderDtos
      * @return
      */
-    public List<ServiceClient> convertServiceClientDtos(List<AccessRightHolderDto> accessRightHolderDtos) {
+    public List<ServiceClient> convertAccessRightHolderDtos(List<AccessRightHolderDto> accessRightHolderDtos) {
         return accessRightHolderDtos
                 .stream()
-                .map(this::convertServiceClientDto)
+                .map(this::convertAccessRightHolderDto)
                 .collect(Collectors.toList());
     }
 }
