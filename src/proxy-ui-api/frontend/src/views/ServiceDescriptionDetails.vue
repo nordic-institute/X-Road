@@ -254,12 +254,6 @@ export default Vue.extend({
   justify-content: flex-end;
 }
 
-.button-wrap {
-  width: 100%;
-  display: flex;
-  justify-content: flex-end;
-}
-
 .close-button-wrap {
   margin-top: 48px;
   display: flex;

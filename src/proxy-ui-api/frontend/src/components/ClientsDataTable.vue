@@ -291,11 +291,6 @@ export default Vue.extend({
 </style>
 
 <style lang="scss" scoped>
-.expand-table {
-  // border: solid 2px red;
-  width: 100%;
-}
-
 .icon-member {
   padding-left: 0;
 }
