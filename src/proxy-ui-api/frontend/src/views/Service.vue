@@ -89,31 +89,18 @@
     </div>
 
     <div class="button-wrap">
-      <v-btn
-        round
-        color="primary"
-        class="xrd-big-button elevation-0"
-        :disabled="disableSave"
-        @click="save()"
-      >{{$t('action.save')}}</v-btn>
+      <large-button :disabled="disableSave" @click="save()">{{$t('action.save')}}</large-button>
     </div>
 
     <div class="group-members-row">
       <div class="row-title">{{$t('access.accessRights')}}</div>
       <div class="row-buttons">
-        <v-btn
-          outline
-          color="primary"
-          class="xrd-big-button"
+        <large-button
           :disabled="!hasMembers"
+          outlined
           @click="removeAllMembers()"
-        >{{$t('action.removeAll')}}</v-btn>
-        <v-btn
-          outline
-          color="primary"
-          class="xrd-big-button"
-          @click="showAddMembersDialog()"
-        >{{$t('access.addSubjects')}}</v-btn>
+        >{{$t('action.removeAll')}}</large-button>
+        <large-button outlined @click="showAddMembersDialog()">{{$t('access.addSubjects')}}</large-button>
       </div>
     </div>
 
@@ -133,7 +120,7 @@
               <div class="button-wrap">
                 <v-btn
                   small
-                  outline
+                  outlined
                   round
                   color="primary"
                   class="xrd-small-button"
@@ -146,12 +133,7 @@
       </table>
 
       <div class="footer-buttons-wrap">
-        <v-btn
-          round
-          color="primary"
-          class="xrd-big-button elevation-0"
-          @click="close()"
-        >{{$t('action.close')}}</v-btn>
+        <large-button @click="close()">{{$t('action.close')}}</large-button>
       </div>
     </v-card>
 
@@ -195,6 +177,7 @@ import SubViewTitle from '@/components/SubViewTitle.vue';
 import AddMembersDialog from '@/components/AddMembersDialog.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import HelpIcon from '@/components/HelpIcon.vue';
+import LargeButton from '@/components/LargeButton.vue';
 import { Service, AccessRightSubject } from '@/types.ts';
 import { isValidWsdlURL } from '@/util/helpers';
 
@@ -206,6 +189,7 @@ export default Vue.extend({
     AddMembersDialog,
     ConfirmDialog,
     HelpIcon,
+    LargeButton,
   },
   props: {
     serviceId: {
@@ -323,7 +307,7 @@ export default Vue.extend({
       axios
         .get(`/services/${serviceId}/access-rights`)
         .then((res) => {
-          //this.service = res.data;
+          // this.service = res.data;
           console.log(res.data);
         })
         .catch((error) => {
@@ -344,7 +328,7 @@ export default Vue.extend({
           items: selectedIds,
         })
         .then((res) => {
-          //this.service = res.data;
+          // this.service = res.data;
           console.log(res.data);
           this.fetchData(this.serviceId);
         })

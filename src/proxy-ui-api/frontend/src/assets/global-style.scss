@@ -1,5 +1,11 @@
 @import '../assets/colors'; 
 
+
+// Use this to set up font etc. common things for normal views
+.xrd-view-common {
+  font-size: 14px;
+}
+
 .rounded-button {
   padding-left: 24px;
   padding-right: 24px;
@@ -9,19 +15,19 @@
 $large-button-width: 140px;
 
 .xrd-big-button {
-  min-width: $large-button-width;
+  min-width: $large-button-width !important;
   border-radius: 4px;
   text-transform: uppercase;
 }
 
 .xrd-small-button {
-  height: 24px;
+  height: 24px !important;
   border-radius: 4px;
   margin-right: 4px;
   min-width: 120px;
   text-transform: capitalize;
   
-  .v-btn__loading {
+  .v-btn__loader {
     .v-progress-circular {
       width: 16px  !important;
       height: 16px  !important;
@@ -58,11 +64,9 @@ $large-button-width: 140px;
 }
 
 // Vuetify overrides
-.v-tabs__slider{
-  height: 4px;
+.v-tabs-slider-wrapper {
+  height: 4px !important;
 }
-
-
 
 
 

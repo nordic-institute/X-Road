@@ -1,5 +1,12 @@
 <template>
-  <v-layout align-center justify-center column fill-height elevation-0 class="data-table-wrapper">
+  <v-layout
+    align-center
+    justify-center
+    column
+    fill-height
+    elevation-0
+    class="data-table-wrapper xrd-view-common"
+  >
     <div class="table-toolbar">
       <v-text-field
         v-model="search"
@@ -14,92 +21,80 @@
         v-if="showAddClient()"
         color="primary"
         @click="addClient"
-        round
+        rounded
         dark
         class="ma-0 rounded-button elevation-0"
       >{{$t('action.addClient')}}</v-btn>
     </div>
+
     <v-data-table
       :loading="loading"
       :headers="headers"
       :items="clients"
       :search="search"
-      :pagination.sync="pagination"
-      :disable-initial-sort="true"
       :must-sort="true"
-      :customSort="customSort"
-      :customFilter="customFilter"
-      hide-actions
+      :sort-by="['sortNameAsc']"
+      :custom-sort="customSort"
+      :custom-filter="customFilter"
+      hide-default-footer
       expand
       class="elevation-0 data-table"
       item-key="id"
-      ref="dTable"
     >
-      <template slot="items" slot-scope="props">
-        <tr @click="props.expanded = !props.expanded">
-          <!-- Name -->
-          <td class="td-name px-2">
-            <!-- Name - Owner member -->
-            <template v-if="props.item.type == 'owner'">
-              <v-icon color="grey darken-2" class="pl-1" small>fas fa-folder-open</v-icon>
-              <span
-                v-if="canOpenClient()"
-                class="font-weight-bold name clickable"
-                @click="openClient(props.item)"
-              >{{props.item.name}} ({{ $t("client.owner") }})</span>
+      <template v-slot:item.sortNameAsc="{ item }">
+        <!-- Name - Owner member -->
+        <template v-if="item.type == 'owner'">
+          <v-icon color="grey darken-2" class="pl-1" small>fas fa-folder-open</v-icon>
+          <span
+            v-if="canOpenClient()"
+            class="font-weight-bold name clickable"
+            @click="openClient(item)"
+          >{{item.name}} ({{ $t("client.owner") }})</span>
 
-              <span
-                v-else
-                class="font-weight-bold name"
-              >{{props.item.name}} ({{ $t("client.owner") }})</span>
-            </template>
-            <!-- Name - member -->
-            <template v-else-if="props.item.type == 'client'">
-              <v-icon color="grey darken-2" class="pl-1" small>far fa-folder-open</v-icon>
-              <span class="font-weight-bold name-member">{{props.item.name}}</span>
-            </template>
-            <!-- Name - Subsystem -->
-            <template v-else>
-              <v-icon
-                color="grey darken-2"
-                class="pl-1"
-                :class="{ 'pl-5': treeMode }"
-                small
-              >far fa-address-card</v-icon>
-              <span
-                v-if="canOpenClient()"
-                class="font-weight-bold name clickable"
-                @click="openSubsystem(props.item)"
-              >{{props.item.name}}</span>
-              <span v-else class="font-weight-bold name">{{props.item.name}}</span>
-            </template>
-          </td>
-          <!-- Id -->
-          <td class="text-xs-left">
-            <template v-if="props.item.type !== 'client'">
-              <span>{{props.item.id}}</span>
-            </template>
-          </td>
-          <!-- Status -->
-          <td class="text-xs-left">
-            <div class="status-wrapper">
-              <div :class="getStatusIconClass(props.item.status)"></div>
-              <div class="status-text">{{ props.item.status | capitalize }}</div>
-            </div>
-          </td>
-          <td class="layout px-2">
-            <v-spacer></v-spacer>
-            <v-btn
-              v-if="(props.item.type == 'client' || props.item.type == 'owner') && showAddClient()"
-              small
-              outline
-              round
-              color="primary"
-              class="xrd-small-button xrd-table-button"
-              @click="addSubsystem(props.item)"
-            >{{$t('action.addSubsystem')}}</v-btn>
-          </td>
-        </tr>
+          <span v-else class="font-weight-bold name">{{item.name}} ({{ $t("client.owner") }})</span>
+        </template>
+        <!-- Name - member -->
+        <template v-else-if="item.type == 'client'">
+          <v-icon color="grey darken-2" class="icon-member" small>far fa-folder-open</v-icon>
+          <span class="font-weight-bold name-member">{{item.name}}</span>
+        </template>
+        <!-- Name - Subsystem -->
+        <template v-else>
+          <v-icon
+            color="grey darken-2"
+            class="icon-member"
+            :class="{ 'icon-subsystem': treeMode }"
+            small
+          >far fa-address-card</v-icon>
+          <span
+            v-if="canOpenClient()"
+            class="font-weight-bold name clickable"
+            @click="openSubsystem(item)"
+          >{{item.name}}</span>
+          <span v-else class="font-weight-bold name">{{item.name}}</span>
+        </template>
+      </template>
+
+      <template v-slot:item.status="{ item }">
+        <div class="status-wrapper">
+          {{ item.status | capitalize }}
+          <div :class="getStatusIconClass(item.status)"></div>
+          <div class="status-text">{{ item.status | capitalize }}</div>
+        </div>
+      </template>
+
+      <template v-slot:item.button="{ item }">
+        <div class="button-wrap">
+          <v-btn
+            v-if="(item.type == 'client' ||item.type == 'owner') && showAddClient()"
+            small
+            outlined
+            rounded
+            color="primary"
+            class="xrd-small-button xrd-table-button"
+            @click="addSubsystem(item)"
+          >{{$t('action.addSubsystem')}}</v-btn>
+        </div>
       </template>
 
       <template slot="no-data">{{$t('action.noData')}}</template>
@@ -119,7 +114,6 @@
  */
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import { getObjectValueByPath, getNestedValue } from '@/util/helpers';
 import { Permissions, RouteName } from '@/global';
 
 export default Vue.extend({
@@ -129,7 +123,6 @@ export default Vue.extend({
       sortBy: 'sortNameAsc',
       rowsPerPage: -1,
     },
-    editedIndex: -1,
   }),
 
   computed: {
@@ -163,7 +156,12 @@ export default Vue.extend({
           value: 'status',
           class: 'xrd-table-header',
         },
-        { text: '', value: '', sortable: false, class: 'xrd-table-header' },
+        {
+          text: '',
+          value: 'button',
+          sortable: false,
+          class: 'xrd-table-header',
+        },
       ];
     },
   },
@@ -236,36 +234,34 @@ export default Vue.extend({
       });
     },
 
-    customFilter: (
-      items: any,
-      search: any,
-      filter: any,
-      headers: any[],
-    ): any => {
+    customFilter: (value: any, search: string | null, item: any): boolean => {
       // Override for the default filter function.
       // This is done to filter by the name (that is visible to user) instead of sortNameAsc or sortNameDesc.
-      // base copied from here: https://github.com/vuetifyjs/vuetify/blob/master/packages/vuetify/src/components/VDataTable/VDataTable.js
-      search = search.toString().toLowerCase();
-      if (search.trim() === '') {
-        return items;
+      if (search === null) {
+        return true;
       }
 
-      const props = headers.map((h) => h.value);
-      // Replace "sort name" with name
-      props[0] = 'name';
-      // pop the empty "button column" header value
-      props.pop();
+      search = search.toString().toLowerCase();
+      if (search.trim() === '') {
+        return true;
+      }
 
-      return items.filter((item: any) =>
-        props.some((prop) =>
-          filter(getObjectValueByPath(item, prop, item[prop]), search),
-        ),
-      );
+      if (
+        item.name.toLowerCase().includes(search) ||
+        item.id.toLowerCase().includes(search)
+      ) {
+        return true;
+      }
+
+      return false;
     },
 
-    customSort(items: any[], index: string, isDesc: boolean): any[] {
+    customSort(items: any[], sortBy: string[], sortDesc: boolean[]): any[] {
       // Override of the default sorting function for the Name column to use sortNameAsc or sortNameDesc instead.
       // This is needed to achieve the order where member is always over the subsystem regardless of the sort direction.
+      const index = sortBy[0];
+      const isDesc = sortDesc[0];
+
       items.sort((a, b) => {
         if (index === 'sortNameAsc') {
           if (!isDesc) {
@@ -290,7 +286,7 @@ export default Vue.extend({
 
 <style lang="scss">
 .xrd-table-header {
-  border-bottom: 1px solid #9c9c9c;
+  border-bottom: 1px solid #9c9c9c !important;
 }
 </style>
 
@@ -298,6 +294,14 @@ export default Vue.extend({
 .expand-table {
   // border: solid 2px red;
   width: 100%;
+}
+
+.icon-member {
+  padding-left: 0;
+}
+
+.icon-subsystem {
+  padding-left: 40px;
 }
 
 .table-toolbar {
@@ -385,5 +389,11 @@ export default Vue.extend({
 .status-orange-ring {
   @extend %status-ring-icon-shared;
   border-color: #f5a623;
+}
+
+.button-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
 }
 </style>
