@@ -2,11 +2,9 @@
   <div>
     <div class="header">
       <div>
-        <v-btn flat fab small @click="clicked" class="no-hover">
-          <div>
-            <v-icon v-if="isOpen" class="button-icon">expand_more</v-icon>
-            <v-icon v-else class="button-icon">chevron_right</v-icon>
-          </div>
+        <v-btn fab icon small @click="clicked" class="no-hover">
+          <v-icon v-if="isOpen" class="button-icon">expand_more</v-icon>
+          <v-icon v-else class="button-icon">chevron_right</v-icon>
         </v-btn>
       </div>
       <div class="header-link">
@@ -59,7 +57,8 @@ export default Vue.extend({
 }
 
 .no-hover {
-  margin-top: 8px;
+  margin-left: 3px;
+  margin-right: 3px;
 }
 
 .header {

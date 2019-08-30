@@ -8,7 +8,7 @@
         v-if="showAddGroup"
         color="primary"
         @click="addGroup"
-        outline
+        outlined
         round
         class="ma-0 rounded-button elevation-0"
       >{{$t('localGroups.addGroup')}}</v-btn>

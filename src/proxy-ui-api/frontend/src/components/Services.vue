@@ -16,7 +16,7 @@
           v-if="showAddButton"
           color="primary"
           @click="showAddRestDialog"
-          outline
+          outlined
           round
           class="rounded-button elevation-0 rest-button"
         >{{$t('services.addRest')}}</v-btn>
@@ -26,7 +26,7 @@
           color="primary"
           :loading="addWsdlBusy"
           @click="showAddWsdlDialog"
-          outline
+          outlined
           round
           class="ma-0 rounded-button elevation-0"
         >{{$t('services.addWsdl')}}</v-btn>
@@ -70,7 +70,7 @@
               <v-btn
                 v-if="showRefreshButton"
                 small
-                outline
+                outlined
                 round
                 :loading="refreshWsdlBusy"
                 color="primary"

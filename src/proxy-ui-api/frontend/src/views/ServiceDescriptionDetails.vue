@@ -14,7 +14,7 @@
       <div class="delete-wrap">
         <v-btn
           v-if="showDelete"
-          outline
+          outlined
           round
           color="primary"
           class="xrd-big-button"
@@ -70,7 +70,7 @@
 
     <v-card flat>
       <div class="close-button-wrap">
-        <v-btn outline round color="primary" class="xrd-big-button" @click="close()">cancel</v-btn>
+        <v-btn outlined round color="primary" class="xrd-big-button" @click="close()">cancel</v-btn>
         <v-btn
           round
           color="primary"

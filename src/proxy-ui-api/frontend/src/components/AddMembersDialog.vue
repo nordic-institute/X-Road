@@ -107,7 +107,7 @@
         <v-btn
           color="primary"
           round
-          outline
+          outlined
           class="mb-2 rounded-button elevation-0 xrd-big-button button-margin"
           @click="cancel()"
         >{{$t('action.cancel')}}</v-btn>

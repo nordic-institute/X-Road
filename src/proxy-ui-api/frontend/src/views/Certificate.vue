@@ -11,7 +11,7 @@
 
           <v-btn
             v-if="showDeleteButton"
-            outline
+            outlined
             round
             color="primary"
             class="text-capitalize table-button rounded-button"

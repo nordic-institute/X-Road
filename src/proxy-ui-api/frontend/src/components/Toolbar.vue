@@ -14,18 +14,16 @@
     <div class="white--text server-name">name of the server</div>
     <v-spacer></v-spacer>Username?
     <v-menu bottom left>
-      <v-btn slot="activator" dark icon>
-        <v-icon>person</v-icon>
-      </v-btn>
+      <template v-slot:activator="{ on }">
+        <v-btn icon v-on="on">
+          <v-icon>person</v-icon>
+        </v-btn>
+      </template>
 
       <v-list>
-        <v-list-tile id="logout-list-tile" @click="logout">
-          <v-list-tile-title id="logout-title">{{$t('login.logOut')}}</v-list-tile-title>
-        </v-list-tile>
-
-        <v-list-tile @click="demoLogout">
-          <v-list-tile-title>Logout without UI</v-list-tile-title>
-        </v-list-tile>
+        <v-list-item id="logout-list-tile" @click="logout">
+          <v-list-item-title id="logout-title">{{$t('login.logOut')}}</v-list-item-title>
+        </v-list-item>
       </v-list>
     </v-menu>
   </v-toolbar>

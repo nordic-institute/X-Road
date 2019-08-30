@@ -8,7 +8,7 @@
           {{$t('localGroup.localGroup')}}
           <v-btn
             v-if="showDelete"
-            outline
+            outlined
             round
             color="primary"
             class="xrd-big-button"
@@ -39,7 +39,7 @@
       <div class="row-buttons">
         <v-btn
           v-if="canEditMembers"
-          outline
+          outlined
           color="primary"
           class="xrd-big-button"
           :disabled="!hasMembers"
@@ -47,7 +47,7 @@
         >{{$t('action.removeAll')}}</v-btn>
         <v-btn
           v-if="canEditMembers"
-          outline
+          outlined
           color="primary"
           class="xrd-big-button"
           @click="addMembers()"
@@ -74,7 +74,7 @@
                 <v-btn
                   v-if="canEditMembers"
                   small
-                  outline
+                  outlined
                   round
                   color="primary"
                   class="xrd-small-button"

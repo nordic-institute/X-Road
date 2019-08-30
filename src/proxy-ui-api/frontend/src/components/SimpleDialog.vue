@@ -6,7 +6,7 @@
         <v-spacer />
         <i @click="cancel()" id="dlg-close-x"></i>
       </v-card-title>
-      <v-card-text>
+      <v-card-text class="content-wrapper">
         <slot name="content"></slot>
       </v-card-text>
       <v-card-actions class="xrd-card-actions">
@@ -14,7 +14,7 @@
         <v-btn
           color="primary"
           round
-          outline
+          outlined
           class="mb-2 rounded-button elevation-0 xrd-big-button dlg-button-margin"
           @click="cancel()"
         >{{$t('action.cancel')}}</v-btn>
@@ -86,6 +86,10 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '../assets/colors';
+
+.content-wrapper {
+  margin-top: 18px;
+}
 
 .dlg-button-margin {
   margin-right: 14px;

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-tabs slot="extension" v-model="tab" class="xrd-tabs" color="white" grow>
+    <v-tabs slot="extension" v-model="tab" class="xrd-tabs" color="black" grow>
       <v-tabs-slider color="secondary"></v-tabs-slider>
       <v-tab key="system">System Parameters</v-tab>
       <v-tab key="backup">Back Up and Restore</v-tab>

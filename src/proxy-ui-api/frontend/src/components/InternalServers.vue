@@ -20,7 +20,7 @@
         <h1 class="title mb-3">{{$t('internalServers.tlsTitle')}}</h1>
         <v-btn
           v-if="canAddTlsCert"
-          outline
+          outlined
           round
           color="primary"
           class="rounded-button elevation-0"
@@ -71,7 +71,7 @@
               <v-btn
                 v-if="canExportSSCert"
                 small
-                outline
+                outlined
                 round
                 color="primary"
                 class="xrd-small-button"

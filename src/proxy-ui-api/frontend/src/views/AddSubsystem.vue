@@ -28,7 +28,7 @@
       </v-layout>
 
       <v-layout mb-4 justify-space-between>
-        <v-btn color="primary" @click="cancel" round outline class="mb-2 rounded-button">Cancel</v-btn>
+        <v-btn color="primary" @click="cancel" round outlined class="mb-2 rounded-button">Cancel</v-btn>
 
         <v-btn
           color="primary"
