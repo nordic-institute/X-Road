@@ -155,46 +155,6 @@
         });
     }
 
-    function initRESTENDPOINTAddDialog() {
-        var dialog = $("#rest_add_endpoint_dialog").initDialog({
-            autoOpen: false,
-            modal: true,
-            height: 300,
-            width: 600,
-            buttons: [
-                { text: _("common.ok"),
-                    click: function() {
-
-                        var dialog = this;
-                        var params = $("form", this).serializeObject();
-
-                        params.service_code = $("#services tbody tr.row_selected td span").attr("data-servicecode");
-                        params.client_id = $("#details_client_id").val();
-
-                        $.post(action("endpoint_add"), params, function(response) {
-                            oServices.fnReplaceData(response.data);
-                            enableActions();
-                            $(dialog).dialog("close");
-                        });
-                    }
-                },
-                { text: _("common.cancel"),
-                    click: function () {
-                        $(this).dialog("close");
-                    }
-                }
-            ]
-        });
-
-        $("#openapi3_add_endpoint").live('click', function () {
-            $("#rest_endpoint_method", dialog).val("");
-            $("#rest_endpoint_path", dialog).val("");
-            $("#rest_add_endpoint_dialog").dialog("option", "title", $(this).html());
-            $("#rest_add_endpoint_dialog").dialog("open");
-        });
-
-    }
-
     function initWSDLDisableDialog() {
         $("#wsdl_disable_dialog").initDialog({
             autoOpen: false,
@@ -325,7 +285,7 @@
         $("#openapi3_params_dialog").initDialog({
             autoOpen: false,
             modal: true,
-            height: 200,
+            height: 400,
             width: 700,
             buttons: [
                 { text: _("common.ok"),
@@ -357,6 +317,81 @@
                 }
             ]
         });
+    }
+
+    function initRESTENDPOINTAddDialog() {
+        var dialog = $("#rest_add_endpoint_dialog").initDialog({
+            autoOpen: false,
+            modal: true,
+            height: 300,
+            width: 600,
+            buttons: [
+                { text: _("common.ok"),
+                    click: function() {
+
+                        var dialog = this;
+                        var params = $("form", this).serializeObject();
+
+                        params.service_code = $("#services tbody tr.row_selected td span").attr("data-servicecode");
+                        params.client_id = $("#details_client_id").val();
+
+                        $.post(action("openapi3_endpoint_add"), params, function(response) {
+                            oServices.fnReplaceData(response.data);
+                            enableActions();
+                            $(dialog).dialog("close");
+                        });
+                    }
+                },
+                { text: _("common.cancel"),
+                    click: function () {
+                        $(this).dialog("close");
+                    }
+                }
+            ]
+        });
+
+        $("#openapi3_add_endpoint").live('click', function () {
+            $("#endpoint_method", dialog).val("");
+            $("#endpoint_path", dialog).val("");
+            $("#rest_add_endpoint_dialog").dialog("option", "title", $(this).html());
+            $("#rest_add_endpoint_dialog").dialog("open");
+        });
+
+    }
+
+    function initRESTENDPOINTParamsDialog() {
+        $("#rest_endpoint_params_dialog").initDialog({
+            autoOpen: false,
+            modal: true,
+            height: 300,
+            width: 600,
+            buttons: [
+                { text: _("common.ok"),
+                    click: function() {
+                        var dialog = this;
+                        var focusData = oServices.getFocusData();
+                        var params = $("form", this).serializeObject();
+
+                        params.old_endpoint_method = $(this).data("old_method");
+                        params.old_endpoint_path = $(this).data("old_path");
+                        params.client_id = $("#details_client_id").val();
+                        params.service_code = focusData.service_code;
+
+                        $.post(action("openapi3_endpoint_edit"), params, function(response) {
+                            oServices.fnReplaceData(response.data);
+                            enableActions();
+                            $(dialog).dialog("close");
+                        });
+                    }
+                },
+                { text: _("common.cancel"),
+                    click: function () {
+                        $(this).dialog("close");
+                    }
+                }
+            ]
+        });
+
     }
 
     function getConnectionTypeIcon(url, sslAuth) {
@@ -399,7 +434,7 @@
               } },
             { "mData": "name",
               "mRender": function(data, type, full) {
-                  var rowType = full.wsdl ? 'header' : full.method ? 'endpoint' : 'subheader';
+                  var rowType = full.wsdl ? 'servicedescription' : full.method ? 'endpoint' : 'service';
                   if (full.wsdl) {
                       return "<span data-type='" + rowType + "'>" + data + "(" + full.wsdl_id + ")</span>";
                   } else if (full.method) {
@@ -543,7 +578,13 @@
         $("#service_params").click(function() {
             var service = oServices.getFocusData();
 
-            if (service.wsdl && service.name === 'WSDL') {
+            if (service.method) {
+                $("#rest_endpoint_params_dialog")
+                    .data("old_method", service.method)
+                    .data("old_path", service.path)
+                    .data("service_code", service.service_code)
+                    .dialog("open");
+            } else if (service.wsdl && service.name === 'WSDL') {
                 // Open WSDL service edit dialog
                 $("#params_wsdl_id").val(service.wsdl_id);
                 $("#params_wsdl_url").val(service.wsdl_id);
@@ -556,7 +597,7 @@
                 $("#params_openapi3_service_code").val(service.openapi3_service_code);
 
                 $("#openapi3_params_dialog").dialog("open");
-            }else {
+            } else  {
                 $("#params_url_all, #params_timeout_all, #params_sslauth_all, " +
                   "#params_security_category_all").removeAttr("checked");
 
@@ -591,6 +632,8 @@
         $("#openapi3_params_dialog").parent().attr("data-name", "openapi3_params_dialog");
         $("#service_params_dialog").parent().attr("data-name", "service_params_dialog");
         $("#wsdl_disable_dialog").parent().attr("data-name", "wsdl_disable_dialog");
+        $("#rest_endpoint_params_dialog").parent().attr("data-name", "rest_endpoint_params_dialog");
+        $("#rest_add_endpoint_dialog").parent().attr("data-name", "rest_add_endpoint_dialog");
         $("button span:contains('Close')").parent().attr("data-name", "close");
         $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
         $("button span:contains('OK')").parent().attr("data-name", "ok");
@@ -610,12 +653,15 @@
         initWSDLDisableDialog();
         initWSDLParamsDialog();
         initOPENAPI3AddDialog();
-        initRESTENDPOINTAddDialog();
         initOPENAPI3ParamsDialog();
+        initRESTENDPOINTAddDialog();
+        initRESTENDPOINTParamsDialog();
         initServiceParamsDialog();
         initServicesTable();
         initClientServicesActions();
         initTestability();
+
+
     });
 
     SERVICES.init = function() {

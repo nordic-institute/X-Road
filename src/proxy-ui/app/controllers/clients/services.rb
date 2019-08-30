@@ -61,8 +61,9 @@ module Clients::Services
     end
   end
 
-  def endpoint_add
+  def openapi3_endpoint_add
     audit_log("Add rest endpoint", audit_log_data = {})
+    authorize!(:add_openapi3_endpoint)
 
     validate_params({
       :rest_endpoint_method => [:required],
@@ -72,8 +73,6 @@ module Clients::Services
     })
 
     client = get_client(params[:client_id])
-
-    authorize!(:add_openapi3)
 
     create_endpoint(client.endpoint, params[:service_code], params[:rest_endpoint_method], params[:endpoint_path], false)
 
@@ -293,6 +292,33 @@ module Clients::Services
 
     iterate(client.endpoint) do |item, it|
       it.remove if item.generated? && item.service_code == service_code && !endpoints.include?(item)
+    end
+
+    serverconf_save
+    render_json(read_services(client))
+  end
+
+  ## Edit endpoint
+  def openapi3_endpoint_edit
+    audit_log("Edit openapi3 endpoint", audit_log_data = {})
+
+    # authorize!(:edit_openapi3_endpoint)
+
+    validate_params({
+                      :client_id => [:required],
+                      :service_code => [:required],
+                      :old_endpoint_method => [:required],
+                      :old_endpoint_path => [:required],
+                      :endpoint_method => [:required],
+                      :endpoint_path => [:required]
+                    })
+    client = get_client(params[:client_id])
+
+    client.endpoint.each do |ep|
+      if ep.service_code == params[:service_code] && ep.method == params[:old_endpoint_method] && ep.path == params[:old_endpoint_path]
+        ep.method = params[:endpoint_method]
+        ep.path = params[:endpoint_path]
+      end
     end
 
     serverconf_save

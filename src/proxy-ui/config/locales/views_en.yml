@@ -126,6 +126,10 @@ en:
       wsdl_validator_output: "Validator Output"
       endpoint_path: "Path"
       http_request_method: "HTTP Request Method"
+      url_type: "URL type"
+      rest_api_base_path: "Rest API Base Path"
+      openapi3_description: "OpenAPI 3 Description"
+      edit_rest_endpoint_parameters: "Edit OpenAPI 3 endpoint parameters"
 
     service_params_dialog:
       edit_service_parameters: "Edit Service Parameters"
