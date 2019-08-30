@@ -24,6 +24,7 @@
               " #wsdl_disable, #wsdl_enable").disable();
         }
 
+        // Toggle edit-button
         if ($(".service.row_selected:visible, " +
               ".wsdl.row_selected").length == 1) {
             $("#service_params").enable();
@@ -31,9 +32,18 @@
             $("#service_params").disable();
         }
 
+        // Toggle acl & endpoint buttons
         if ($(".service.row_selected:visible").length == 1) {
             $("#service_acl").enable();
             $("#openapi3_add_endpoint").enable();
+            if ($(".service.row_selected:visible .endpoint_row.generated").length === 1) {
+                $("#service_params").disable();
+                $("#wsdl_delete").disable();
+            }
+
+            if($(".service.row_selected:visible .endpoint_row:not(.generated)").length === 1) {
+                $("#wsdl_delete").enable();
+            }
         } else {
             $("#service_acl").disable();
             $("#openapi3_add_endpoint").disable();
@@ -59,8 +69,6 @@
                 $("#service_params").disable();
             }
         });
-
-
 
     }
 
@@ -127,7 +135,6 @@
                         var dialog = this;
                         var params = $("form", this).serializeObject();
 
-                        params.service_type = "OPENAPI3";
                         params.client_id = $("#details_client_id").val();
 
                         $.post(action("servicedescription_add"), params, function(response) {
@@ -439,7 +446,8 @@
                       return "<span data-type='" + rowType + "'>" + data + "(" + full.wsdl_id + ")</span>";
                   } else if (full.method) {
                       var generatedIcon = full.generated ? "<img src='/Icon_sync.svg' style='width:13px'/>" : "";
-                      return "<span data-type='" + rowType + "' class='endpoint_row'>" +
+                      var rowClasses = full.generated ? 'endpoint_row generated' : 'endpoint_row';
+                      return "<span data-type='" + rowType + "' class='" + rowClasses + "' >" +
                                 generatedIcon +
                                 "<span class='method'>" + full.method + "</span> " +
                                     full.path + " (" + full.subjects_count + ")" +
@@ -579,6 +587,8 @@
             var service = oServices.getFocusData();
 
             if (service.method) {
+                $("#rest_endpoint_params_dialog #endpoint_method").val(service.method);
+                $("#rest_endpoint_params_dialog #endpoint_path").val(service.path);
                 $("#rest_endpoint_params_dialog")
                     .data("old_method", service.method)
                     .data("old_path", service.path)

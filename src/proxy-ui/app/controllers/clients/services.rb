@@ -66,7 +66,7 @@ module Clients::Services
     authorize!(:add_openapi3_endpoint)
 
     validate_params({
-      :rest_endpoint_method => [:required],
+      :endpoint_method => [:required],
       :endpoint_path => [:required],
       :client_id => [:required],
       :service_code => [:required]
@@ -74,7 +74,7 @@ module Clients::Services
 
     client = get_client(params[:client_id])
 
-    create_endpoint(client.endpoint, params[:service_code], params[:rest_endpoint_method], params[:endpoint_path], false)
+    create_endpoint(client.endpoint, params[:service_code], params[:endpoint_method], params[:endpoint_path], false)
 
     serverconf_save
 
