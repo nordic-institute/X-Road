@@ -193,7 +193,6 @@ public class ClientService {
         }
     }
 
-
     /**
      * Deletes one (and should be the only) certificate with
      * matching hash
@@ -299,18 +298,30 @@ public class ClientService {
      * @return MemberInfo list
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public List<MemberInfo> findClients(String name, String instance, String memberClass, String memberCode,
+    public List<ClientType> findClients(String name, String instance, String memberClass, String memberCode,
             String subsystemCode, boolean showMembers, boolean internalSearch) {
+        List<ClientType> clients =
+                findLocalClients(name, instance, memberClass, memberCode, subsystemCode, showMembers);
         if (internalSearch) {
-            return findLocalClients(name, instance, memberClass, memberCode, subsystemCode,
-                    showMembers)
-                    .stream()
-                    .map(clientType -> new MemberInfo(clientType.getIdentifier(),
-                            globalConfService.getMemberName(clientType.getIdentifier())))
-                    .collect(Collectors.toList());
+            return clients;
         }
-        // else find only from global clients (globalconf also includes registered local clients)
-        return findGlobalClients(name, instance, memberClass, memberCode, subsystemCode, showMembers);
+        // find global clients and remove duplicates
+        List<ClientType> globalClients = findGlobalClients(name, instance, memberClass, memberCode, subsystemCode,
+                showMembers)
+                .stream()
+                .filter(globalClient -> clients.stream()
+                        .noneMatch(localClient -> localClient.getIdentifier().toShortString()
+                                .equals(globalClient.getId().toShortString())))
+                .map(globalClient -> {
+                    ClientType clientType = new ClientType();
+                    clientType.setIdentifier(globalClient.getId());
+                    clientType.setClientStatus(ClientType.STATUS_SAVED);
+                    clientType.setIsAuthentication(IsAuthentication.SSLAUTH.name());
+                    return clientType;
+                })
+                .collect(Collectors.toList());
+        clients.addAll(globalClients);
+        return clients;
     }
 
     private List<Predicate<ClientType>> buildLocalClientSearchPredicates(String name, String instance,

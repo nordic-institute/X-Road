@@ -83,6 +83,18 @@ public class ClientConverter {
     }
 
     /**
+     * convert a list of ClientType into a list of openapi Client class
+     * @param clientTypes
+     * @return
+     */
+    public List<Client> convert(List<ClientType> clientTypes) {
+        return clientTypes
+                .stream()
+                .map(this::convert)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Convert ClientId into encoded member id
      * @param clientId
      * @return
