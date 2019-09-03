@@ -292,7 +292,7 @@
         $("#openapi3_params_dialog").initDialog({
             autoOpen: false,
             modal: true,
-            height: 400,
+            height: 350,
             width: 700,
             buttons: [
                 { text: _("common.ok"),
@@ -330,7 +330,7 @@
         var dialog = $("#rest_add_endpoint_dialog").initDialog({
             autoOpen: false,
             modal: true,
-            height: 300,
+            height: 350,
             width: 600,
             buttons: [
                 { text: _("common.ok"),
@@ -370,7 +370,7 @@
         $("#rest_endpoint_params_dialog").initDialog({
             autoOpen: false,
             modal: true,
-            height: 300,
+            height: 400,
             width: 600,
             buttons: [
                 { text: _("common.ok"),

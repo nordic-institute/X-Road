@@ -84,7 +84,7 @@
 
 <%= dialog "rest_add_endpoint_dialog" do %>
   <%= form_tag do %>
-    <table class="details">
+    <table class="details rest_endpoint">
       <tr>
         <td><%= t '.http_request_method' %></td>
         <td><%= select_tag "endpoint_method", raw("
@@ -101,6 +101,15 @@
       <tr>
         <td><%= t '.endpoint_path' %></td>
         <td colspan="2"><%= text_field_tag "endpoint_path", nil, :style => "width: 90%" %></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>
+          <p class="form-helper"><%= t '.rest_endpoint_helper_1' %></p>
+          <p class="form-helper"><%= t '.rest_endpoint_helper_2' %></p>
+          <p class="form-helper"><%= t '.rest_endpoint_helper_3' %></p>
+          <p class="form-helper"><%= t '.rest_endpoint_helper_4' %></p>
+        </td>
       </tr>
     </table>
   <% end %>
@@ -158,7 +167,7 @@
 
 <%= dialog "rest_endpoint_params_dialog", t('.edit_rest_endpoint_parameters') do %>
   <%= form_tag do %>
-    <table class="details">
+    <table class="details rest_endpoint">
       <tr>
         <td><%= t '.http_request_method' %></td>
         <td><%= select_tag "endpoint_method", raw("
@@ -175,6 +184,15 @@
       <tr>
         <td><%= t '.endpoint_path' %></td>
         <td colspan="2"><%= text_field_tag "endpoint_path", nil, :style => "width: 90%", class: 'endpoint-path' %></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>
+          <p class="form-helper"><%= t '.rest_endpoint_helper_1' %></p>
+          <p class="form-helper"><%= t '.rest_endpoint_helper_2' %></p>
+          <p class="form-helper"><%= t '.rest_endpoint_helper_3' %></p>
+          <p class="form-helper"><%= t '.rest_endpoint_helper_4' %></p>
+        </td>
       </tr>
     </table>
   <% end %>

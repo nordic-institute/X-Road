@@ -302,7 +302,7 @@ module Clients::Services
   def openapi3_endpoint_edit
     audit_log("Edit openapi3 endpoint", audit_log_data = {})
 
-    # authorize!(:edit_openapi3_endpoint)
+    authorize!(:edit_openapi3_endpoint)
 
     validate_params({
                       :client_id => [:required],

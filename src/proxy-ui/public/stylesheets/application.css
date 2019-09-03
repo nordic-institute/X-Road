@@ -26,6 +26,10 @@ table tbody tr td ul.tableitem-actions {
       -webkit-border-radius: 5px;
       -moz-border-radius: 5px;
       border-radius: 5px; }
+  #services .form-helper {
+      padding: 5px 0;
+      color: #444;
+      font-size: 0.8em; }
 
 #group_description_edit_dialog .dialog-body {
   height: 100%; }
@@ -59,6 +63,10 @@ table tbody tr td ul.tableitem-actions {
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: normal; }
+
+.rest_endpoint .form-helper {
+    margin: 5px 0;
+    color: #777; }
 
 /*# sourceMappingURL=application.css.map */
 .diagnostics_status_ok {
