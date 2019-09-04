@@ -299,70 +299,70 @@ public class ClientServiceIntegrationTest {
     /* Test GLOBAL client search */
     @Test
     public void findGlobalClientsByNameIncludeMembers() {
-        List<MemberInfo> clients = clientService.findGlobalClients(SUBSYSTEM1 + NAME_APPENDIX, null, null,
+        List<ClientType> clients = clientService.findGlobalClients(SUBSYSTEM1 + NAME_APPENDIX, null, null,
                 null, null, true);
         assertEquals(2, clients.size());
     }
 
     @Test
     public void findGlobalClientsByInstanceIncludeMembers() {
-        List<MemberInfo> clients = clientService.findGlobalClients(null, INSTANCE_EE, null,
+        List<ClientType> clients = clientService.findGlobalClients(null, INSTANCE_EE, null,
                 null, null, true);
         assertEquals(4, clients.size());
     }
 
     @Test
     public void findGlobalClientsByClassIncludeMembers() {
-        List<MemberInfo> clients = clientService.findGlobalClients(null, null, MEMBER_CLASS_GOV,
+        List<ClientType> clients = clientService.findGlobalClients(null, null, MEMBER_CLASS_GOV,
                 null, null, true);
         assertEquals(3, clients.size());
     }
 
     @Test
     public void findGlobalClientsByInstanceAndMemberCodeIncludeMembers() {
-        List<MemberInfo> clients = clientService.findGlobalClients(null, INSTANCE_FI, null,
+        List<ClientType> clients = clientService.findGlobalClients(null, INSTANCE_FI, null,
                 MEMBER_CODE_M1, null, true);
         assertEquals(3, clients.size());
     }
 
     @Test
     public void findGlobalClientsByAllTermsIncludeMembers() {
-        List<MemberInfo> clients = clientService.findGlobalClients(SUBSYSTEM1 + NAME_APPENDIX, INSTANCE_FI,
+        List<ClientType> clients = clientService.findGlobalClients(SUBSYSTEM1 + NAME_APPENDIX, INSTANCE_FI,
                 MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1, true);
         assertEquals(1, clients.size());
     }
 
     @Test
     public void findGlobalClientsByNameExcludeMembers() {
-        List<MemberInfo> clients = clientService.findGlobalClients(SUBSYSTEM1 + NAME_APPENDIX, null, null,
+        List<ClientType> clients = clientService.findGlobalClients(SUBSYSTEM1 + NAME_APPENDIX, null, null,
                 null, null, false);
         assertEquals(2, clients.size());
     }
 
     @Test
     public void findGlobalClientsByInstanceExcludeMembers() {
-        List<MemberInfo> clients = clientService.findGlobalClients(null, INSTANCE_EE, null,
+        List<ClientType> clients = clientService.findGlobalClients(null, INSTANCE_EE, null,
                 null, null, false);
         assertEquals(2, clients.size());
     }
 
     @Test
     public void findGlobalClientsByClassExcludeMembers() {
-        List<MemberInfo> clients = clientService.findGlobalClients(null, null, MEMBER_CLASS_GOV,
+        List<ClientType> clients = clientService.findGlobalClients(null, null, MEMBER_CLASS_GOV,
                 null, null, false);
         assertEquals(2, clients.size());
     }
 
     @Test
     public void findGlobalClientsByInstanceAndMemberCodeExcludeMembers() {
-        List<MemberInfo> clients = clientService.findGlobalClients(null, INSTANCE_FI, null,
+        List<ClientType> clients = clientService.findGlobalClients(null, INSTANCE_FI, null,
                 MEMBER_CODE_M1, null, false);
         assertEquals(2, clients.size());
     }
 
     @Test
     public void findGlobalClientsByAllTermsExcludeMembers() {
-        List<MemberInfo> clients = clientService.findGlobalClients(SUBSYSTEM1 + NAME_APPENDIX, INSTANCE_FI,
+        List<ClientType> clients = clientService.findGlobalClients(SUBSYSTEM1 + NAME_APPENDIX, INSTANCE_FI,
                 MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1, false);
         assertEquals(1, clients.size());
     }

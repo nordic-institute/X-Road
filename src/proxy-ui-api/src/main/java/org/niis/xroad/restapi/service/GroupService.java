@@ -24,7 +24,6 @@
  */
 package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
@@ -135,11 +134,11 @@ public class GroupService {
         }
         List<GroupMemberType> membersToBeAdded = new ArrayList<>(memberIds.size());
         memberIds.forEach(memberId -> {
-            Optional<MemberInfo> foundMember = clientService.findByClientId(memberId);
+            Optional<ClientType> foundMember = clientService.findByClientId(memberId);
             if (!foundMember.isPresent()) {
                 throw new NotFoundException("client with id " + memberId.toShortString() + " not found");
             }
-            ClientId clientIdToBeAdded = foundMember.get().getId();
+            ClientId clientIdToBeAdded = foundMember.get().getIdentifier();
             boolean isAdded = localGroupType.getGroupMember().stream().anyMatch(groupMemberType ->
                     groupMemberType.getGroupMemberId().toShortString().trim()
                             .equals(clientIdToBeAdded.toShortString().trim()));
