@@ -1,6 +1,8 @@
 /**
  * The MIT License
- * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,8 +32,7 @@ import ee.ria.xroad.common.util.IsSubjectClientIdDecoder;
 import java.security.cert.X509Certificate;
 
 /**
- * Default implementation (EJBCA) of SignCertificateProfileInfo. adaped for
- * Iceland 060718 JJB It ráðgjöf ehf.
+ * Icelandic implementation of SignCertificateProfileInfo.
  */
 public class IsSignCertificateProfileInfo extends AbstractCertificateProfileInfo implements SignCertificateProfileInfo {
 
@@ -49,13 +50,11 @@ public class IsSignCertificateProfileInfo extends AbstractCertificateProfileInfo
 
                 // Organization name
                 new DnFieldDescriptionImpl("O", "Organization name (O)", "").setReadOnly(false),
-                // Organisation Unit
-                new DnFieldDescriptionImpl("OU", "Organization Unit (OU)",
-                        "instanceIdentifier=" + params.getServerId().getXRoadInstance() + " serverCode="
-                                + params.getServerId().getServerCode() + "memberClass="
-                                + params.getServerId().getMemberClass()).setReadOnly(true),
+
                 // Serialnumber
-                new DnFieldDescriptionImpl("serialNumber", "Serial number", "").setReadOnly(true),
+                new DnFieldDescriptionImpl("serialNumber", "Serial number",
+                        params.getClientId().getXRoadInstance() + "/" + params.getServerId().getServerCode() + "/"
+                                + params.getClientId().getMemberClass()).setReadOnly(true),
 
                 // Member code
                 new DnFieldDescriptionImpl("CN", "Member code", params.getClientId().getMemberCode())

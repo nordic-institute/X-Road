@@ -1,6 +1,8 @@
 /**
  * The MIT License
- * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,13 +44,11 @@ public class IsAuthCertificateProfileInfo extends AbstractCertificateProfileInfo
 
                 // Organization name
                 new DnFieldDescriptionImpl("O", "Organization name (O)", "").setReadOnly(false),
-                // Organisation Unit
-                new DnFieldDescriptionImpl("OU", "Organization Unit (OU)",
-                        "instanceIdentifier=" + params.getServerId().getXRoadInstance() + " serverCode="
-                                + params.getServerId().getServerCode() + " memberClass="
-                                + params.getServerId().getMemberClass()).setReadOnly(true),
+
                 // Serialnumber
-                new DnFieldDescriptionImpl("serialNumber", "Serial number", "").setReadOnly(true),
+                new DnFieldDescriptionImpl("serialNumber", "Serial number",
+                        params.getServerId().getXRoadInstance() + "/" + params.getServerId().getServerCode() + "/"
+                                + params.getServerId().getMemberClass()).setReadOnly(true),
 
                 // Server code
                 new DnFieldDescriptionImpl("CN", "Server DNS name (CN)", "").setReadOnly(false) });

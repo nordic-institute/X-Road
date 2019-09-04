@@ -1,6 +1,8 @@
 /**
  * The MIT License
- * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +40,7 @@ import static ee.ria.xroad.common.util.CertUtils.getRDNValue;
 
 /**
  * Helper class for decoding ClientId from Finnish X-Road instance signing
- * certificates. adapted to Iceland 060718 JJB It ráðgjöf ehf.
+ * certificates.
  */
 public final class IsSubjectClientIdDecoder {
 
@@ -60,19 +62,18 @@ public final class IsSubjectClientIdDecoder {
             if (getRDNValue(x500name, BCStyle.OU) == null) {
                 return CertUtils.getSubjectClientId(cert);
             }
-            return parseClientIdFromLegacyName(x500name);
         }
         return parseClientId(x500name);
     }
 
     /*
-     * The encoding for clientID: <ul> <li>C = FI (country code must be 'FI' when
+     * The encoding for clientID: <ul> <li>C = IS (country code must be 'IS' when
      * using this decoder)</li> <li>O = organization (must be present) <li>CN =
      * memberCode (business code without "Y" prefix)</li> <li>serialNumber =
      * instanceIdentifier;serverCode;memberClass </ul>
      */
 
-    private static final Pattern SPLIT_PATTERN = Pattern.compile("=");
+    private static final Pattern SPLIT_PATTERN = Pattern.compile("/");
 
     private static ClientId parseClientId(X500Name x500name) {
         String c = getRDNValue(x500name, BCStyle.C);
@@ -91,11 +92,6 @@ public final class IsSubjectClientIdDecoder {
             throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
                     "Certificate subject name does not contain common name");
         }
-        /* added 060718 JJB */
-        String ou = getRDNValue(x500name, BCStyle.OU);
-        if (ou == null) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE, "Certificate OU incorrect");
-        }
 
         String serialNumber = getRDNValue(x500name, BCStyle.SERIALNUMBER);
         if (serialNumber == null) {
@@ -103,54 +99,17 @@ public final class IsSubjectClientIdDecoder {
                     "Certificate subject name does not contain serial number");
         }
 
-        final String[] components = SPLIT_PATTERN.split(ou);
+        final String[] components = SPLIT_PATTERN.split(serialNumber);
         if (components.length != NUM_COMPONENTS) {
             throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
-                    "Certificate subject name's attribute OU has invalid value");
+                    "Certificate subject name's attribute serialNumber has invalid value");
         }
 
         // Note. components[1] = serverCode, unused
-        /*
-         * OU=instanceIdentifier=xroad-island serverCode=skra.is memberClass=island-gov
-         */
-        final int instanceIdString = 11;
-        final int memberClassString = 3;
-        return ClientId.create(components[1].substring(0, instanceIdString), // instanceId
-                components[memberClassString], // memberClass
+        return ClientId.create(components[0], // instanceId
+                components[2], // memberClass
                 memberCode);
+
     }
 
-    /*
-     * The legacy encoding for clientID: <ul> <li>C = FI (country code must be 'FI'
-     * when using this decoder)</li> <li>O = instanceId</li> <li>OU =
-     * memberClass</li> <li>CN = memberCode (business code without "Y" prefix)</li>
-     * </ul>
-     */
-    private static ClientId parseClientIdFromLegacyName(X500Name x500name) {
-        String c = getRDNValue(x500name, BCStyle.C);
-        if (!"IS".equals(c)) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
-                    "Certificate subject name does not contain valid country code");
-        }
-
-        String instanceId = getRDNValue(x500name, BCStyle.O);
-        if (instanceId == null) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
-                    "Certificate subject name does not contain organization");
-        }
-
-        String memberClass = getRDNValue(x500name, BCStyle.OU);
-        if (memberClass == null) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
-                    "Certificate subject name does not contain organization unit");
-        }
-
-        String memberCode = getRDNValue(x500name, BCStyle.CN);
-        if (memberCode == null) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
-                    "Certificate subject name does not contain common name");
-        }
-
-        return ClientId.create(instanceId, memberClass, memberCode);
-    }
 }
