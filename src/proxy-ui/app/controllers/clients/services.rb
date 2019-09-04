@@ -437,6 +437,29 @@ module Clients::Services
     render_json(read_services(client))
   end
 
+  def endpoint_delete
+    audit_log("Delete rest endpoint", audit_log_data = {})
+
+    authorize!(:delete_endpoint)
+
+    validate_params({
+      :client_id => [:required],
+      :service_code => [:required],
+      :method => [:required],
+      :path => [:required]
+    })
+
+    client = get_client(params[:client_id])
+
+    endpoint = client.endpoint.detect { |endpoint| endpoint.service_code == params[:service_code] && endpoint.method == params[:method] && endpoint.path == params[:path] }
+    client.endpoint.remove(endpoint)
+    @session.delete(endpoint)
+
+    serverconf_save
+
+    render_json(read_services(client))
+  end
+
   def service_params
     audit_log("Edit service parameters", audit_log_data = {})
 

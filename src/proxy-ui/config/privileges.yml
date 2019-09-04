@@ -33,6 +33,7 @@
 -       refresh_openapi3: [xroad-service-administrator]
 -       delete_wsdl_missing_services: [xroad-service-administrator]
 -       delete_wsdl: [xroad-service-administrator]
+-       delete_endpoint: [xroad-service-administrator]
 -       edit_service_params: [xroad-service-administrator]
 -       view_service_acl: [xroad-service-administrator, xroad-securityserver-observer]
 -       edit_service_acl: [xroad-service-administrator]

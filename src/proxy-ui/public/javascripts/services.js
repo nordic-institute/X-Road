@@ -72,7 +72,6 @@
 
         // Disable add endpoint -button if selected service is under WSDL
         if ($(".service.row_selected").length === 1) {
-            console.log('here');
             var serviceTableRows = $("#services tbody tr");
             var selectedServiceRowIndex;
             for (var i = 0 ; i < serviceTableRows.length ; i++) {
@@ -101,6 +100,21 @@
             }
         }
 
+    }
+
+    function endpointParams() {
+        var params = {
+            client_id: $("#details_client_id").val(),
+        };
+
+        $("#services .row_selected").each( function(idx, row) {
+            var rowData = oServices.fnGetData(row);
+            params.service_code = rowData.service_code;
+            params.method = rowData.method;
+            params.path = rowData.path;
+        });
+
+        return params;
     }
 
     function wsdlParams() {
@@ -605,13 +619,24 @@
         });
 
         $("#wsdl_delete").click(function() {
-            confirm("clients.client_services_tab.delete_wsdls_confirm", null,
+            if($("#services .row_selected").length === 1 && $("#services tbody tr.row_selected td span").attr("data-type") === 'endpoint') {
+                confirm("clients.client_services_tab.delete_endpoint_confirm", null,
                     function() {
-                $.post(action("servicedescription_delete"), wsdlParams(), function(response) {
-                    oServices.fnReplaceData(response.data);
-                    enableActions();
-                }, "json");
-            });
+                        var params = endpointParams();
+                        $.post(action("endpoint_delete"), params, function(response) {
+                            oServices.fnReplaceData(response.data);
+                            enableActions();
+                        }, "json");
+                    });
+            } else {
+                confirm("clients.client_services_tab.delete_wsdls_confirm", null,
+                    function() {
+                        $.post(action("servicedescription_delete"), wsdlParams(), function(response) {
+                            oServices.fnReplaceData(response.data);
+                            enableActions();
+                        }, "json");
+                    });
+            }
         });
 
         $("#service_params").click(function() {
