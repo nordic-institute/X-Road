@@ -70,6 +70,37 @@
             }
         });
 
+        // Disable add endpoint -button if selected service is under WSDL
+        if ($(".service.row_selected").length === 1) {
+            console.log('here');
+            var serviceTableRows = $("#services tbody tr");
+            var selectedServiceRowIndex;
+            for (var i = 0 ; i < serviceTableRows.length ; i++) {
+                if(!selectedServiceRowIndex) {
+                    var isSelectedRow = $(serviceTableRows.get(i)).is('.service.row_selected');
+                    if(isSelectedRow) {
+                        selectedServiceRowIndex = i;
+                    }
+                }
+            }
+            var isSelectedServiceUnderWSDL;
+            for (var i = selectedServiceRowIndex ; i >= 0 ; i--) {
+                if(isSelectedServiceUnderWSDL === undefined) {
+                    var hasWSDLClass = $(serviceTableRows.get(i)).is(".wsdl");
+                    if (hasWSDLClass) {
+                        var hasRESTClass = $(serviceTableRows.get(i)).is(".rest");
+                        isSelectedServiceUnderWSDL = !hasRESTClass;
+                    }
+                }
+            }
+
+            if(isSelectedServiceUnderWSDL) {
+                $("#openapi3_add_endpoint").disable();
+            } else {
+                $("#openapi3_add_endpoint").enable();
+            }
+        }
+
     }
 
     function wsdlParams() {
@@ -330,7 +361,7 @@
         var dialog = $("#rest_add_endpoint_dialog").initDialog({
             autoOpen: false,
             modal: true,
-            height: 350,
+            height: 360,
             width: 600,
             buttons: [
                 { text: _("common.ok"),
@@ -346,7 +377,7 @@
                             oServices.fnReplaceData(response.data);
                             enableActions();
                             $(dialog).dialog("close");
-                        });
+                        }, "json").fail(showOutput);
                     }
                 },
                 { text: _("common.cancel"),
@@ -370,7 +401,7 @@
         $("#rest_endpoint_params_dialog").initDialog({
             autoOpen: false,
             modal: true,
-            height: 400,
+            height: 360,
             width: 600,
             buttons: [
                 { text: _("common.ok"),
@@ -388,7 +419,7 @@
                             oServices.fnReplaceData(response.data);
                             enableActions();
                             $(dialog).dialog("close");
-                        });
+                        }, "json").fail(showOutput);
                     }
                 },
                 { text: _("common.cancel"),
@@ -447,7 +478,7 @@
                   } else if (full.method) {
                       var generatedIcon = full.generated ? "<img src='/Icon_sync.svg' style='width:13px'/>" : "";
                       var rowClasses = full.generated ? 'endpoint_row generated' : 'endpoint_row';
-                      return "<span data-type='" + rowType + "' class='" + rowClasses + "' >" +
+                      return "<span data-type='" + rowType + "' data-servicecode='" + util.escape(data) + "' class='" + rowClasses + "' >" +
                                 generatedIcon +
                                 "<span class='method'>" + full.method + "</span> " +
                                     full.path + " (" + full.subjects_count + ")" +
