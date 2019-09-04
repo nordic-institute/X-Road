@@ -61,26 +61,6 @@ module Clients::Services
     end
   end
 
-  def openapi3_endpoint_add
-    audit_log("Add rest endpoint", audit_log_data = {})
-    authorize!(:add_openapi3_endpoint)
-
-    validate_params({
-      :endpoint_method => [:required],
-      :endpoint_path => [:required],
-      :client_id => [:required],
-      :service_code => [:required]
-    })
-
-    client = get_client(params[:client_id])
-
-    create_endpoint(client.endpoint, params[:service_code], params[:endpoint_method], params[:endpoint_path], false)
-
-    serverconf_save
-
-    read_services(client)
-  end
-
   def servicedescription_wsdl_add(params)
     audit_log("Add service description", audit_log_data = {})
 
@@ -298,9 +278,30 @@ module Clients::Services
     render_json(read_services(client))
   end
 
+  ## Add rest endpoint
+  def openapi3_endpoint_add
+    audit_log("Add rest endpoint", audit_log_data = {})
+    authorize!(:add_openapi3_endpoint)
+
+    validate_params({
+                      :endpoint_method => [:required],
+                      :endpoint_path => [:required],
+                      :client_id => [:required],
+                      :service_code => [:required]
+                    })
+
+    client = get_client(params[:client_id])
+
+    create_endpoint(client.endpoint, params[:service_code], params[:endpoint_method], params[:endpoint_path], false)
+
+    serverconf_save
+    render_json(read_services(client))
+  end
+
   ## Edit endpoint
   def openapi3_endpoint_edit
-    audit_log("Edit openapi3 endpoint", audit_log_data = {})
+
+    audit_log("Edit rest endpoint", audit_log_data = {})
 
     authorize!(:edit_openapi3_endpoint)
 
