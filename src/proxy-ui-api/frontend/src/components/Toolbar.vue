@@ -16,7 +16,7 @@
     <v-menu bottom left>
       <template v-slot:activator="{ on }">
         <v-btn icon v-on="on">
-          <v-icon>person</v-icon>
+          <v-icon>mdi-account-circle</v-icon>
         </v-btn>
       </template>
 

@@ -15,7 +15,7 @@
         hide-details
         class="search-input"
       >
-        <v-icon slot="append">search</v-icon>
+        <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
       <v-btn
         v-if="showAddClient()"
@@ -44,7 +44,7 @@
       <template v-slot:item.sortNameAsc="{ item }">
         <!-- Name - Owner member -->
         <template v-if="item.type == 'owner'">
-          <v-icon color="grey darken-2" class="pl-1" small>fas fa-folder-open</v-icon>
+          <v-icon color="grey darken-2" class="icon-member icon-size">mdi-folder-open</v-icon>
           <span
             v-if="canOpenClient()"
             class="font-weight-bold name clickable"
@@ -55,17 +55,16 @@
         </template>
         <!-- Name - member -->
         <template v-else-if="item.type == 'client'">
-          <v-icon color="grey darken-2" class="icon-member" small>far fa-folder-open</v-icon>
+          <v-icon color="grey darken-2" class="icon-member icon-size">mdi-folder-open-outline</v-icon>
           <span class="font-weight-bold name-member">{{item.name}}</span>
         </template>
         <!-- Name - Subsystem -->
         <template v-else>
           <v-icon
             color="grey darken-2"
-            class="icon-member"
+            class="icon-member icon-size"
             :class="{ 'icon-subsystem': treeMode }"
-            small
-          >far fa-address-card</v-icon>
+          >mdi-card-bulleted-outline</v-icon>
           <span
             v-if="canOpenClient()"
             class="font-weight-bold name clickable"
@@ -297,6 +296,10 @@ export default Vue.extend({
 
 .icon-subsystem {
   padding-left: 40px;
+}
+
+.icon-size {
+  font-size: 20px;
 }
 
 .table-toolbar {

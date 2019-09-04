@@ -3,8 +3,8 @@
     <div class="header">
       <div>
         <v-btn fab icon small @click="clicked" class="no-hover">
-          <v-icon v-if="isOpen" class="button-icon">expand_more</v-icon>
-          <v-icon v-else class="button-icon">chevron_right</v-icon>
+          <v-icon v-if="isOpen" class="button-icon">mdi-chevron-down</v-icon>
+          <v-icon v-else class="button-icon">mdi-chevron-right</v-icon>
         </v-btn>
       </div>
       <div class="header-link">
