@@ -683,7 +683,7 @@ module Clients::Services
         :last_refreshed => format_time(servicedescription.refreshedDate),
         :disabled => servicedescription.disabled,
         :disabled_notice => servicedescription.disabledNotice,
-        :openapi3_service_code => DescriptionType::OPENAPI3 == servicedescription.type ? servicedescription.service.first.serviceCode : nil
+        :openapi3_service_code => DescriptionType::OPENAPI3 == servicedescription.type || DescriptionType::OPENAPI3_DESCRIPTION == servicedescription.type ? servicedescription.service.first.serviceCode : nil
       }
 
       servicedescription.service.each do |service|
@@ -708,7 +708,7 @@ module Clients::Services
           :subjects_count => subjects_count(client, service.serviceCode),
         }
 
-        if DescriptionType::OPENAPI3_DESCRIPTION == servicedescription.type
+        if DescriptionType::OPENAPI3_DESCRIPTION == servicedescription.type || DescriptionType::OPENAPI3 == servicedescription.type
           client.endpoint.each do |endpoint|
             if endpoint.service_code == service.service_code
               services << {
