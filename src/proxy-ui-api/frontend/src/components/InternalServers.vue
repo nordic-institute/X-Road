@@ -21,7 +21,7 @@
         <v-btn
           v-if="canAddTlsCert"
           outlined
-          round
+          rounded
           color="primary"
           class="rounded-button elevation-0"
           @click="$refs.inputUpload.click()"
@@ -72,7 +72,7 @@
                 v-if="canExportSSCert"
                 small
                 outlined
-                round
+                rounded
                 color="primary"
                 class="xrd-small-button"
                 @click="exportSSCertificate(ssCertificate.hash)"

@@ -1,5 +1,5 @@
 <template>
-  <div class="wrapper">
+  <div class="wrapper xrd-view-common">
     <div class="new-content">
       <subViewTitle :title="$t('cert.certificate')" @close="close" />
       <template v-if="certificate">
@@ -12,7 +12,7 @@
           <v-btn
             v-if="showDeleteButton"
             outlined
-            round
+            rounded
             color="primary"
             class="text-capitalize table-button rounded-button"
             @click="deleteCertificate()"

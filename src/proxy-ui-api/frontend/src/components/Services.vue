@@ -8,7 +8,7 @@
         hide-details
         class="search-input"
       >
-        <v-icon slot="append" small>fas fa-search</v-icon>
+        <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
 
       <div>
@@ -17,7 +17,7 @@
           color="primary"
           @click="showAddRestDialog"
           outlined
-          round
+          rounded
           class="rounded-button elevation-0 rest-button"
         >{{$t('services.addRest')}}</v-btn>
 
@@ -27,7 +27,7 @@
           :loading="addWsdlBusy"
           @click="showAddWsdlDialog"
           outlined
-          round
+          rounded
           class="ma-0 rounded-button elevation-0"
         >{{$t('services.addWsdl')}}</v-btn>
       </div>
@@ -71,7 +71,7 @@
                 v-if="showRefreshButton"
                 small
                 outlined
-                round
+                rounded
                 :loading="refreshWsdlBusy"
                 color="primary"
                 class="xrd-small-button xrd-table-button refresh-button"

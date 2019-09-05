@@ -9,7 +9,7 @@
         color="primary"
         @click="addGroup"
         outlined
-        round
+        rounded
         class="ma-0 rounded-button elevation-0"
       >{{$t('localGroups.addGroup')}}</v-btn>
     </div>

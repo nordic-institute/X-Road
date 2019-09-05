@@ -1,6 +1,6 @@
 <template>
   <v-layout class="main-content" align-center justify-center column>
-    <v-tabs v-model="tab" class="main-tabs" grow mb-10 color="#202020">
+    <v-tabs v-model="tab" class="main-tabs" grow mb-10 color="secondary">
       <v-tabs-slider color="secondary" class="xrd-main-tabs-slider"></v-tabs-slider>
       <v-tab v-for="tab in allowedTabs" v-bind:key="tab.key" :to="tab.to" exact>{{ $t(tab.name) }}</v-tab>
     </v-tabs>

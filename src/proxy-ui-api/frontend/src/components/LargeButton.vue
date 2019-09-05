@@ -3,7 +3,7 @@
     :outlined="outlined"
     :disabled="disabled"
     :min-width="min_width"
-    round
+    rounded
     color="primary"
     class="xrd-big-button"
     @click="click()"

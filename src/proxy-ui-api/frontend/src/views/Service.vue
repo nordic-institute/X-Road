@@ -121,7 +121,7 @@
                 <v-btn
                   small
                   outlined
-                  round
+                  rounded
                   color="primary"
                   class="xrd-small-button"
                   @click="removeMember(groupMember)"

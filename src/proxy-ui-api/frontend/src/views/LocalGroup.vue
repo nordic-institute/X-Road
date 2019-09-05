@@ -75,7 +75,7 @@
                   v-if="canEditMembers"
                   small
                   outlined
-                  round
+                  rounded
                   color="primary"
                   class="xrd-small-button"
                   @click="removeMember(groupMember)"
