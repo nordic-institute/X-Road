@@ -155,17 +155,6 @@ export default Vue.extend({
   width: 100%;
 }
 
-#close-x {
-  cursor: pointer;
-  font-style: normal;
-  font-size: 50px;
-  color: #979797;
-}
-
-#close-x:before {
-  content: '\00d7';
-}
-
 .cert-hash {
   margin-top: 30px;
   display: flex;
