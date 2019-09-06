@@ -11,21 +11,8 @@
       </v-card-text>
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
-        <v-btn
-          color="primary"
-          round
-          outlined
-          class="mb-2 rounded-button elevation-0 xrd-big-button dlg-button-margin"
-          @click="cancel()"
-        >{{$t('action.cancel')}}</v-btn>
-
-        <v-btn
-          color="primary"
-          round
-          class="mb-2 rounded-button elevation-0 xrd-big-button dlg-button-margin"
-          @click="save()"
-          :disabled="disableSaveButton"
-        >{{$t(saveButtonLabel)}}</v-btn>
+        <large-button outlined @click="cancel()">{{$t('action.cancel')}}</large-button>
+        <large-button :disabled="disableSaveButton" @click="save()">{{$t(saveButtonLabel)}}</large-button>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -35,8 +22,12 @@
 /** Base component for simple dialogs */
 
 import Vue from 'vue';
+import LargeButton from '@/components/LargeButton.vue';
 
 export default Vue.extend({
+  components: {
+    LargeButton,
+  },
   props: {
     // Title of the dialog
     title: {

@@ -6,14 +6,7 @@
       <template>
         <div class="cert-hash">
           {{$t('localGroup.localGroup')}}
-          <v-btn
-            v-if="showDelete"
-            outlined
-            round
-            color="primary"
-            class="xrd-big-button"
-            @click="deleteGroup()"
-          >{{$t('action.delete')}}</v-btn>
+          <large-button v-if="showDelete" @click="deleteGroup()" outlined>{{$t('action.delete')}}</large-button>
         </div>
       </template>
     </div>
@@ -37,21 +30,18 @@
     <div class="group-members-row">
       <div class="row-title">{{$t('localGroup.groupMembers')}}</div>
       <div class="row-buttons">
-        <v-btn
-          v-if="canEditMembers"
-          outlined
-          color="primary"
-          class="xrd-big-button"
+        <large-button
           :disabled="!hasMembers"
           @click="removeAllMembers()"
-        >{{$t('action.removeAll')}}</v-btn>
-        <v-btn
-          v-if="canEditMembers"
           outlined
-          color="primary"
-          class="xrd-big-button"
+        >{{$t('action.removeAll')}}</large-button>
+
+        <large-button
+          class="add-members-button"
+          v-if="canEditMembers"
           @click="addMembers()"
-        >{{$t('localGroup.addMembers')}}</v-btn>
+          outlined
+        >{{$t('localGroup.addMembers')}}</large-button>
       </div>
     </div>
 
@@ -87,12 +77,7 @@
       </table>
 
       <div class="close-button-wrap">
-        <v-btn
-          round
-          color="primary"
-          class="xrd-big-button elevation-0"
-          @click="close()"
-        >{{$t('action.close')}}</v-btn>
+        <large-button @click="close()">{{$t('action.close')}}</large-button>
       </div>
     </v-card>
 
@@ -142,6 +127,7 @@ import { Permissions } from '@/global';
 import SubViewTitle from '@/components/SubViewTitle.vue';
 import AddMembersDialog from '@/components/AddMembersDialog.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import LargeButton from '@/components/LargeButton.vue';
 
 interface IGroupMember {
   id: string;
@@ -166,6 +152,7 @@ export default Vue.extend({
     SubViewTitle,
     AddMembersDialog,
     ConfirmDialog,
+    LargeButton,
   },
   props: {
     clientId: {
@@ -386,6 +373,10 @@ export default Vue.extend({
 
 .group-members-table {
   margin-top: 10px;
+}
+
+.add-members-button {
+  margin-left: 20px;
 }
 
 .button-wrap {

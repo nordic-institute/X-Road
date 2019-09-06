@@ -12,14 +12,11 @@
         @close="close"
       />
       <div class="delete-wrap">
-        <v-btn
+        <large-button
           v-if="showDelete"
-          outlined
-          round
-          color="primary"
-          class="xrd-big-button"
           @click="confirmDelete = true"
-        >{{$t('action.delete')}}</v-btn>
+          outlined
+        >{{$t('action.delete')}}</large-button>
       </div>
     </div>
 
@@ -69,16 +66,14 @@
     </div>
 
     <v-card flat>
-      <div class="close-button-wrap">
-        <v-btn outlined round color="primary" class="xrd-big-button" @click="close()">cancel</v-btn>
-        <v-btn
-          round
-          color="primary"
-          class="xrd-big-button elevation-0"
+      <div class="footer-button-wrap">
+        <large-button @click="close()" outlined>{{$t('action.cancel')}}</large-button>
+        <large-button
+          class="save-button"
           :loading="saveBusy"
           @click="save()"
           :disabled="!canSave"
-        >save</v-btn>
+        >{{$t('action.save')}}</large-button>
       </div>
     </v-card>
 
@@ -113,12 +108,14 @@ import { Permissions } from '@/global';
 import SubViewTitle from '@/components/SubViewTitle.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import WarningDialog from '@/components/WarningDialog.vue';
+import LargeButton from '@/components/LargeButton.vue';
 
 export default Vue.extend({
   components: {
     SubViewTitle,
     ConfirmDialog,
     WarningDialog,
+    LargeButton,
   },
   props: {
     id: {
@@ -254,12 +251,16 @@ export default Vue.extend({
   justify-content: flex-end;
 }
 
-.close-button-wrap {
+.footer-button-wrap {
   margin-top: 48px;
   display: flex;
   justify-content: flex-end;
   border-top: 1px solid $XRoad-Grey40;
   padding-top: 20px;
+}
+
+.save-button {
+  margin-left: 20px;
 }
 </style>
 
