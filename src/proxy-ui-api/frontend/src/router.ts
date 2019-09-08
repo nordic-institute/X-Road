@@ -25,7 +25,7 @@ import Service from '@/views/Service.vue';
 import store from './store';
 import { RouteName, Permissions } from '@/global';
 
-Vue.use(Router);
+
 
 const router = new Router({
   routes: [

@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import axios from 'axios';
 import VeeValidate from 'vee-validate';
+import Router from 'vue-router';
 import vuetify from './plugins/vuetify';
 import './filters';
 import App from './App.vue';
@@ -27,6 +28,8 @@ Object.defineProperties(Vue.prototype, {
     },
   },
 });
+
+Vue.use(Router);
 
 Vue.use(VeeValidate, {
   i18nRootKey: 'validations', // customize the root path for validation messages.
