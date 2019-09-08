@@ -172,6 +172,7 @@
         <property name="serviceCode" access="field" not-null="true"/>
         <property name="method" access="field" not-null="true"/>
         <property name="path" access="field" not-null="true"/>
+        <property name="generated" type="boolean" access="field" not-null="true"/>
     </class>
 
     <class name="TspType" table="TSP">

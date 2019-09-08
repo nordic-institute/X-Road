@@ -221,7 +221,7 @@ public final class TestUtil {
             }
 
             String serviceCode = service(1, 1);
-            final EndpointType endpoint = new EndpointType(serviceCode, "*", "**");
+            final EndpointType endpoint = new EndpointType(serviceCode, "*", "**", false);
             session.persist(endpoint);
 
             client.getEndpoint().add(endpoint);
@@ -250,11 +250,11 @@ public final class TestUtil {
             service.setTitle(SERVICE_TITLE + "REST");
             service.setServiceCode("rest");
 
-            EndpointType restEndpoint = new EndpointType(service.getServiceCode(), "GET", "/api/**");
+            EndpointType restEndpoint = new EndpointType(service.getServiceCode(), "GET", "/api/**", false);
             session.persist(restEndpoint);
             client.getAcl().add(createAccessRight(restEndpoint, client.getIdentifier()));
 
-            EndpointType restEndpoint2 = new EndpointType(service.getServiceCode(), "POST", "/api/test/*");
+            EndpointType restEndpoint2 = new EndpointType(service.getServiceCode(), "POST", "/api/test/*", false);
             session.persist(restEndpoint2);
             client.getAcl().add(createAccessRight(restEndpoint2, client.getIdentifier()));
 

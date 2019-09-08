@@ -2,21 +2,22 @@
 
 ---
 
-# X-Road: Service Metadata Protocol for REST <!-- omit in toc -->
-**Technical Specification**
+# X-Road: Service Metadata Protocol for REST <!-- omit in toc --> 
+**Technical Specification**  
 
-Version: 0.1  
-Doc. ID: PR-MREST
+Version: 0.2  
+Doc. ID: PR-MREST  
 
 ---
 
-## Version history <!-- omit in toc -->
+## Version history <!-- omit in toc --> 
 
  Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
  29.07.2019 | 0.1     | Initial version                                                 | Ilkka Seppälä
-
-## Table of Contents <!-- omit in toc -->
+ 06.08.2019 | 0.2     | Add getOpenAPI description                                      | Ilkka Seppälä
+ 
+## Table of Contents <!-- omit in toc --> 
 
 - [License](#license)
 - [1 Introduction](#1-introduction)
@@ -30,6 +31,7 @@ Doc. ID: PR-MREST
 - [Annex B Example Messages](#annex-b-example-messages)
   - [B.1 listMethods Response](#b1-listmethods-response)
   - [B.2 allowedMethods Response](#b2-allowedmethods-response)
+  - [B.3 getOpenAPI Response](#b3-getopenapi-response)
 
 ## License
 
@@ -94,7 +96,30 @@ Annexes [B.1](#c1-listmethods-response) and [B.2](#c2-allowedmethods-response) c
 
 ## 5 Retrieving the OpenAPI description of a Service
 
-TBD
+X-Road provides a metaservice for fetching service descriptions of REST services.
+
+* `getOpenAPI` returns the OpenAPI service description of a REST service
+
+The method is invoked as regular X-Road REST service (see specification \[[PR-REST](#Ref_PR-REST)\] for details on the X-Road REST protocol).
+
+The serviceId MUST contain the identifier of the target service provider and the value of the serviceCode element MUST be `getOpenAPI`.
+
+The query parameters must contain `serviceCode=xxx` where xxx is the service code of the REST service we want to get the service description from.
+
+Request example
+```
+GET /r1/INSTANCE/CLASS2/MEMBER2/SUBSYSTEM2/getOpenAPI?serviceCode=listFirms
+```
+HTTP request headers
+```
+X-Road-Client: INSTANCE/CLASS1/MEMBER1/SUBSYSTEM1
+```
+
+The body of the response MUST contain the OpenAPI service description of the REST service indicated by the query parameters.
+
+Annex [A](#annex-a-service-descriptions-for-rest-metadata-services) contains the OpenAPI description of the REST metadata services.
+
+Annex [B.3](#b3-getopenapi-response) contains an example response message for the service.
 
 ## Annex A Service Descriptions for REST Metadata Services
 
@@ -102,7 +127,7 @@ TBD
 openapi: 3.0.0
 info:
   title: X-Road Service Metadata API for REST
-  version: '0.1'
+  version: '0.2'
 servers:
   - url: https://{securityserver}/r1
     variables:
@@ -164,6 +189,35 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/methodList'
+  /{xRoadInstance}/{memberClass}/{memberCode}/{subsystemCode}/getOpenAPI:
+    get:
+      tags:
+        - metaservices
+      summary: Returns OpenAPI service description for a REST service
+      operationId: getOpenAPI
+      parameters:
+        - name: serviceCode
+          in: query
+          schema:
+            type: string
+        - name: X-Road-Client
+          in: header
+          schema:
+            type: string
+      responses:
+        '200':
+        description: OpenAPI description of the specified REST service
+          content:
+            application/json:
+              schema:
+                type: string
+            text/yaml:
+              schema:
+                type: string
+        '400':
+        description: Error in request
+        '500':
+        description: Internal error
 components:
   parameters:
     xRoadInstance:
@@ -275,4 +329,80 @@ components:
         }
     ]
 }
+```
+
+### B.3 getOpenAPI Response
+
+`curl -H "accept: application/json" -H "X-Road-Client:INSTANCE/CLASS1/MEMBER1/SUBSYSTEM1" "https://SECURITYSERVER:443/r1/INSTANCE/CLASS2/MEMBER2/SUBSYSTEM2/getOpenAPI?serviceCode=listFirms"`
+
+```yaml
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Firm listing
+servers:
+  - url: https://example.com
+paths:
+  /firms:
+    get:
+      summary: List all firms
+      operationId: listFirms
+      tags:
+        - firms
+      parameters:
+        - name: limit
+          in: query
+          description: How many items to return at one time (max 100)
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: A paged array of firms
+          headers:
+            x-next:
+              description: A link to the next page of responses
+              schema:
+                type: string
+          content:
+            application/json:    
+              schema:
+                $ref: "#/components/schemas/Firms"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    Firm:
+      required:
+        - id
+        - name
+        - size
+        - country
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        tag:
+          type: string
+    Firms:
+      type: array
+      items:
+        $ref: "#/components/schemas/Firm"
+    Error:
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
 ```

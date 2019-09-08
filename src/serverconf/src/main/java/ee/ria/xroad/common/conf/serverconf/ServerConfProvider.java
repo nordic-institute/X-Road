@@ -172,4 +172,10 @@ public interface ServerConfProvider {
      * @return the type of the service as {@link DescriptionType}
      */
     DescriptionType getDescriptionType(ServiceId service);
+
+    /**
+     * @param service the service identifier
+     * @return the service description url
+     */
+    String getServiceDescriptionURL(ServiceId service);
 }
