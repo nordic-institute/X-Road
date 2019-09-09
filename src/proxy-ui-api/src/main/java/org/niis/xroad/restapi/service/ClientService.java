@@ -45,7 +45,9 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -96,8 +98,6 @@ public class ClientService {
                 .map(memberInfo -> {
                     ClientType clientType = new ClientType();
                     clientType.setIdentifier(memberInfo.getId());
-                    clientType.setClientStatus(ClientType.STATUS_SAVED);
-                    clientType.setIsAuthentication(IsAuthentication.SSLAUTH.name());
                     return clientType;
                 })
                 .collect(Collectors.toList());
@@ -309,21 +309,21 @@ public class ClientService {
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public List<ClientType> findClients(String name, String instance, String memberClass, String memberCode,
             String subsystemCode, boolean showMembers, boolean internalSearch) {
-        List<ClientType> clients =
-                findLocalClients(name, instance, memberClass, memberCode, subsystemCode, showMembers);
+        List<ClientType> clients = findLocalClients(name, instance, memberClass, memberCode, subsystemCode,
+                showMembers);
         if (internalSearch) {
             return clients;
         }
-        // find global clients and remove duplicates
-        List<ClientType> globalClients = findGlobalClients(name, instance, memberClass, memberCode, subsystemCode,
-                showMembers)
-                .stream()
-                .filter(globalClient -> clients.stream()
-                        .noneMatch(localClient -> localClient.getIdentifier().toShortString()
-                                .equals(globalClient.getIdentifier().toShortString())))
-                .collect(Collectors.toList());
-        clients.addAll(globalClients);
-        return clients;
+        Map<String, ClientType> uniqueClientMap = new HashMap<>();
+        // add global clients into the HashMap with client identifier string as the key
+        findGlobalClients(name, instance, memberClass, memberCode, subsystemCode, showMembers)
+                .forEach(clientType -> uniqueClientMap.put(clientType.getIdentifier().toShortString(), clientType));
+        /*
+          add local clients into the HashMap with client identifier string as the key
+          this conveniently overwrites all duplicate keys
+         */
+        clients.forEach(clientType -> uniqueClientMap.put(clientType.getIdentifier().toShortString(), clientType));
+        return new ArrayList<>(uniqueClientMap.values());
     }
 
     private List<Predicate<ClientType>> buildClientSearchPredicates(String name, String instance,

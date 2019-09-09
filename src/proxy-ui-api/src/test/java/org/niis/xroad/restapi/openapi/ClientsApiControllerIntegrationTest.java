@@ -495,11 +495,6 @@ public class ClientsApiControllerIntegrationTest {
                 true, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertEquals(7, clientsResponse.getBody().size());
-        List<Client> clients = clientsResponse.getBody();
-        clients.forEach(client -> {
-            assertNotNull(client.getConnectionType());
-            assertNotNull(client.getStatus());
-        });
     }
 
     @Test
