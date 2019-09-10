@@ -116,6 +116,12 @@ public class GlobalConfService {
      */
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
     public boolean securityServerExists(SecurityServerId securityServerId) {
+        if (!getInstanceIdentifiers().contains(securityServerId.getXRoadInstance())) {
+            // unless we check instance existence like this, we will receive
+            // CodedException: InternalError: Invalid instance identifier: x -exception
+            // which is hard to turn correctly into http 404 instead of 500
+            return false;
+        }
         return GlobalConf.existsSecurityServer(securityServerId);
     }
 }
