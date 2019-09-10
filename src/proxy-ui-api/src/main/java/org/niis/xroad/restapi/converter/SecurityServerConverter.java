@@ -33,6 +33,8 @@ import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import static org.niis.xroad.restapi.converter.Converters.ENCODED_ID_SEPARATOR;
+
 /**
  * Converter for security server (id) related data between openapi
  * and service domain classes
@@ -50,7 +52,6 @@ public class SecurityServerConverter {
     }
 
     /**
-     * TO DO: ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR should be a global constant
      * encoded security server id =
      * <instance_id>:<member_class>:<member_code>:<security_server_code>
      * @param encodedId
@@ -59,7 +60,7 @@ public class SecurityServerConverter {
     public SecurityServerId convertId(String encodedId) {
         validateEncodedString(encodedId);
         int serverCodeSeparatorIndex = encodedId.lastIndexOf(
-                ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
+                ENCODED_ID_SEPARATOR);
         // items 0,1,2 for a client id of an member (not a subsystem)
         String encodedMemberClientId = encodedId.substring(0, serverCodeSeparatorIndex);
         ClientId memberClientId = clientConverter.convertId(encodedMemberClientId);
@@ -70,7 +71,7 @@ public class SecurityServerConverter {
 
     private void validateEncodedString(String encodedId) {
         int separators = FormatUtils.countOccurences(encodedId,
-                ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
+                ENCODED_ID_SEPARATOR);
         if (separators != SECURITY_SERVER_CODE_INDEX) {
             throw new BadRequestException("Invalid security server id " + encodedId);
         }
@@ -85,7 +86,7 @@ public class SecurityServerConverter {
         ClientId ownerId = securityServerId.getOwner();
         StringBuffer buffer = new StringBuffer();
         buffer.append(clientConverter.convertId(ownerId));
-        buffer.append(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
+        buffer.append(ENCODED_ID_SEPARATOR);
         buffer.append(securityServerId.getServerCode());
         return buffer.toString();
     }

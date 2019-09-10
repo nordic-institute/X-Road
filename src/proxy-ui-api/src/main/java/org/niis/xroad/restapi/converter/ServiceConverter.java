@@ -39,6 +39,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.converter.Converters.ENCODED_ID_SEPARATOR;
+
 /**
  * Convert Service related data between openapi and service domain classes
  */
@@ -97,7 +99,7 @@ public class ServiceConverter {
     public String convertId(ServiceType serviceType, ClientId clientId) {
         StringBuffer buffer = new StringBuffer();
         buffer.append(clientConverter.convertId(clientId));
-        buffer.append(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
+        buffer.append(ENCODED_ID_SEPARATOR);
         buffer.append(FormatUtils.getServiceFullName(serviceType));
         return buffer.toString();
     }
@@ -111,7 +113,7 @@ public class ServiceConverter {
     public ClientId parseClientId(String encodedId) {
         validateEncodedString(encodedId);
         String encodedClientId = encodedId.substring(0, encodedId.lastIndexOf(
-                ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR));
+                ENCODED_ID_SEPARATOR));
         return clientConverter.convertId(encodedClientId);
     }
 
@@ -125,13 +127,13 @@ public class ServiceConverter {
         validateEncodedString(encodedId);
         List<String> parts = new ArrayList<>(
                 Arrays.asList(encodedId.split(
-                        String.valueOf(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR))));
+                        String.valueOf(ENCODED_ID_SEPARATOR))));
         return parts.get(parts.size() - 1);
     }
 
     private void validateEncodedString(String encodedId) {
         int separators = FormatUtils.countOccurences(encodedId,
-                ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
+                ENCODED_ID_SEPARATOR);
         if (separators != FULL_SERVICE_CODE_INDEX) {
             throw new BadRequestException("Invalid service id " + encodedId);
         }
