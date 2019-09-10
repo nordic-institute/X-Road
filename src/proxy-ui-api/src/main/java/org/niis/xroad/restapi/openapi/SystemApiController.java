@@ -60,7 +60,7 @@ public class SystemApiController implements SystemApi {
     @Autowired
     private CertificateDetailsConverter certificateDetailsConverter;
 
-    @org.springframework.beans.factory.annotation.Autowired
+    @Autowired
     public SystemApiController(NativeWebRequest request) {
         this.request = request;
     }
