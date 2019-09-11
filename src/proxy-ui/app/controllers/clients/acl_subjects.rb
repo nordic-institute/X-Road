@@ -245,7 +245,7 @@ module Clients::AclSubjects
 
   private
 
-  def read_acl_subjects(client, service_code = nil)
+  def read_acl_subjects(client, service_code = nil, method = nil, path = nil)
     subjects = {}
     localgroup_descs = {}
 
@@ -256,7 +256,11 @@ module Clients::AclSubjects
     clear_cached_subject_ids
 
     client.acl.each do |access_right|
-      next if service_code && access_right.endpoint.serviceCode != service_code
+      if service_code
+        next if access_right.endpoint.serviceCode != service_code
+        next if (method && path) && (access_right.endpoint.method != method ||
+           access_right.endpoint.path != path)
+      end
 
       subject_id = access_right.subjectId
 
@@ -373,7 +377,7 @@ module Clients::AclSubjects
     nil
   end
 
-  def remove_access_rights(access_rights, subject_ids, service_codes)
+  def remove_access_rights(access_rights, subject_ids, service_codes, method = nil, path = nil)
     removed_access_rights = []
 
     subject_ids = Array(subject_ids)
@@ -381,7 +385,8 @@ module Clients::AclSubjects
 
     access_rights.each do |access_right|
       if (subject_ids.empty? || subject_ids.include?(access_right.subjectId)) &&
-        (service_codes.empty? || service_codes.include?(access_right.endpoint.serviceCode))
+        (service_codes.empty? || service_codes.include?(access_right.endpoint.serviceCode) &&
+        ( (method == nil && path == nil) || method == access_right.endpoint.method && path == access_right.endpoint.path))
 
         removed_access_rights << access_right
       end

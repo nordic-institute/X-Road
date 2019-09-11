@@ -149,6 +149,7 @@ en:
       title_with_service_title: "ACL for service: {{code}} ({{title}})"
       access_rights: "Access Rights"
       service: "Service"
+      endpoint: "Endpoint"
       member_name_group_desc: "Member Name/Group Description"
       member_class: "Member Class"
       member_group_code: "Member/Group Code"

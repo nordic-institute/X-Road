@@ -686,7 +686,13 @@
         });
 
         $("#service_acl").click(function() {
-            ACL.openDialog(oServices.getFocusData().service_code);
+            var data = oServices.getFocusData();
+            if(data.wsdl === false && data.method === undefined && data.path === undefined) {
+                // Open access rights dialog for rest service end point where method = * and path = **
+                ACL.openDialog(data.service_code, '*', '**')
+            } else {
+                ACL.openDialog(data.service_code, data.method, data.path);
+            }
         });
     }
 

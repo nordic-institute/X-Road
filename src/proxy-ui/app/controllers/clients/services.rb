@@ -450,11 +450,16 @@ module Clients::Services
     })
 
     client = get_client(params[:client_id])
-
     endpoint = client.endpoint.detect { |endpoint| endpoint.service_code == params[:service_code] && endpoint.method == params[:method] && endpoint.path == params[:path] }
-    client.endpoint.remove(endpoint)
-    @session.delete(endpoint)
 
+    acl_to_be_removed = []
+    client.acl.each do |access_right|
+      if  access_right.endpoint.serviceCode == params[:service_code] && access_right.endpoint.method == params[:method] && access_right.endpoint.path == params[:path]
+        acl_to_be_removed << access_right
+      end
+    end
+    client.acl.removeAll(acl_to_be_removed)
+    client.endpoint.remove(endpoint)
     serverconf_save
 
     render_json(read_services(client))
@@ -535,17 +540,22 @@ module Clients::Services
     render_json(read_services(client))
   end
 
+  ##
+  # Returns acls for a service or an endpoint
+  #
   def service_acl
     authorize!(:view_service_acl)
 
     validate_params({
       :client_id => [:required],
-      :service_code => [:required]
+      :service_code => [:required],
+      :method => [:required],
+      :path => [:required]
     })
 
     client = get_client(params[:client_id])
 
-    render_json(read_acl_subjects(client, params[:service_code]))
+    render_json(read_acl_subjects(client, params[:service_code], params[:method], params[:path]))
   end
 
   ##
@@ -565,7 +575,8 @@ module Clients::Services
       servicedescription.service.each do |service|
         services[service.serviceCode] = {
           :service_code => service.serviceCode,
-          :title => service.title
+          :title => service.title,
+          :service_description_type => DescriptionType::WSDL == servicedescription.type ? 'WSDL' : DescriptionType::OPENAPI3 == servicedescription.type ? 'OPENAPI3' : 'OPENAPI3_DESCRIPTION'
         }
       end
     end
@@ -577,6 +588,33 @@ module Clients::Services
     render_json(services_sorted)
   end
 
+  ##
+  # Returns endpoints for the service if its servicedescriptiontype is OPENAPI3 or OPENAPI3_DESCRIPTION
+  #
+  def acl_service_endpoints
+    authorize!(:view_service_acl)
+
+    validate_params({
+      :client_id => [:required],
+      :service_code => [:required]
+    })
+
+    client = get_client(params[:client_id])
+
+    endpoints = []
+
+    client.endpoint.each do |ep|
+      if ep.service_code == params[:service_code]
+        endpoints << {
+          :method => ep.method,
+          :path => ep.path
+        }
+      end
+    end
+
+    render_json(endpoints)
+  end
+
   def service_acl_subjects_add
     audit_log("Add access rights to service", audit_log_data = {})
 
@@ -585,7 +623,9 @@ module Clients::Services
     validate_params({
       :client_id => [:required],
       :service_code => [:required],
-      :subject_ids => [:required]
+      :subject_ids => [:required],
+      :method => [],
+      :path => []
     })
 
     client = get_client(params[:client_id])
@@ -595,7 +635,12 @@ module Clients::Services
     audit_log_data[:subjectIds] = []
 
     now = Date.new
-    endpoint = create_endpoint(client.endpoint, params[:service_code])
+    if params[:method] && params[:path]
+      endpoint = create_endpoint(client.endpoint, params[:service_code], params[:method], params[:path])
+    else
+      endpoint = create_endpoint(client.endpoint, params[:service_code])
+    end
+
     params[:subject_ids].each do |subject_id|
       if !contains_subject(client.acl, subject_id, endpoint)
         access_right = AccessRightType.new
@@ -622,7 +667,9 @@ module Clients::Services
     validate_params({
       :client_id => [:required],
       :service_code => [:required],
-      :subject_ids => []
+      :subject_ids => [],
+      :method => [],
+      :path => []
     })
 
     client = get_client(params[:client_id])
@@ -635,7 +682,7 @@ module Clients::Services
     end if params[:subject_ids]
 
     removed_access_rights =
-      remove_access_rights(client.acl, subject_ids, params[:service_code])
+      remove_access_rights(client.acl, subject_ids, params[:service_code], params[:method], params[:path])
 
     audit_log_data[:clientIdentifier] = client.identifier
     audit_log_data[:serviceCode] = params[:service_code]
@@ -645,7 +692,7 @@ module Clients::Services
 
     serverconf_save
 
-    render_json(read_acl_subjects(client, params[:service_code]))
+    render_json(read_acl_subjects(client, params[:service_code], params[:method], params[:path]))
   end
 
   private
@@ -692,7 +739,7 @@ module Clients::Services
           categories << category.categoryCode
         end
 
-        services << {
+        serviceObject = {
           :wsdl => false,
           :wsdl_id => servicedescription.url,
           :service_id => get_service_id(service),
@@ -704,43 +751,56 @@ module Clients::Services
           :security_category => categories,
           :sslauth => service.sslAuthentication.nil? || service.sslAuthentication,
           :last_refreshed => format_time(servicedescription.refreshedDate),
-          :disabled => servicedescription.disabled,
-          :subjects_count => subjects_count(client, service.serviceCode),
+          :disabled => servicedescription.disabled
         }
 
         if DescriptionType::OPENAPI3_DESCRIPTION == servicedescription.type || DescriptionType::OPENAPI3 == servicedescription.type
           client.endpoint.each do |endpoint|
             if endpoint.service_code == service.service_code
-              services << {
-                :wsdl => false,
-                :wsdl_id => servicedescription.url,
-                :service_code => endpoint.service_code,
-                :method => endpoint.method,
-                :path => endpoint.path,
-                :generated => endpoint.generated,
-                :name => get_service_id(service),
-                :title => service.title,
-                :url => service.url,
-                :timeout => service.timeout,
-                :security_category => categories,
-                :sslauth => service.sslAuthentication.nil? || service.sslAuthentication,
-                :last_refreshed => format_time(servicedescription.refreshedDate),
-                :disabled => servicedescription.disabled,
-                :subjects_count => subjects_count(client, service.serviceCode)
-              }
-
+              if endpoint.method == '*' && endpoint.path == '**'
+                serviceObject[:subjects_count] = subjects_count_by_endpoint(client, endpoint)
+                services << serviceObject
+              else
+                services << {
+                  :wsdl => false,
+                  :wsdl_id => servicedescription.url,
+                  :service_code => endpoint.service_code,
+                  :method => endpoint.method,
+                  :path => endpoint.path,
+                  :generated => endpoint.generated,
+                  :name => get_service_id(service),
+                  :title => service.title,
+                  :url => service.url,
+                  :timeout => service.timeout,
+                  :security_category => categories,
+                  :sslauth => service.sslAuthentication.nil? || service.sslAuthentication,
+                  :last_refreshed => format_time(servicedescription.refreshedDate),
+                  :disabled => servicedescription.disabled,
+                  :subjects_count => subjects_count_by_endpoint(client, endpoint)
+                }
+              end
             end
           end
+        else
+          serviceObject[:subjects_count] = subjects_count_by_service_code(client, service.serviceCode)
+          services << serviceObject
         end
-
-
       end
     end
-
     services
   end
 
-  def subjects_count(client, service_code)
+  def subjects_count_by_endpoint(client, endpoint)
+    i = 0
+
+    client.acl.each do |access_right|
+      i = i + 1 if access_right.endpoint.serviceCode == endpoint.serviceCode && access_right.endpoint.method == endpoint.method && access_right.endpoint.path == endpoint.path
+    end
+
+    return i
+  end
+
+  def subjects_count_by_service_code(client, service_code)
     i = 0
 
     client.acl.each do |access_right|
