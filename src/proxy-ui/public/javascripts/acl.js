@@ -185,7 +185,7 @@
 
             var params = {
                 client_id: $("#details_client_id").val(),
-                service_code: selectedService.val()
+                service_code: selectedService.val(),
             };
 
             if($(selectedService).attr('data-type') !== 'WSDL') {
@@ -197,7 +197,7 @@
                 $("#service_acl_dialog .endpoint_selection").hide();
             }
 
-            fetchServiceACLs(params.client_id, params.service_code);
+            fetchServiceACLs(params.client_id, params.service_code, '*', '**');
 
         });
 
@@ -210,7 +210,7 @@
             var method = selectedEndpoint.val().split(":")[0];
             var path = selectedEndpoint.val().split(":")[1];
 
-            fetchServiceEndpointACLs(client_id, service_code, method, path);
+            fetchServiceACLs(client_id, service_code, method, path);
 
         });
 
@@ -220,10 +220,12 @@
         });
     }
 
-    function fetchServiceACLs(client_id, service_code) {
+    function fetchServiceACLs(client_id, service_code, method, path) {
         var params = {
             client_id: client_id,
-            service_code: service_code
+            service_code: service_code,
+            method: method,
+            path: path
         };
 
         $.get(action("service_acl"), params, function(response) {
@@ -257,37 +259,6 @@
                 "<option data-type='" + val.service_description_type + "' value='" + val.service_code + "'>"
                 + val.service_code + "</option>");
         });
-    }
-
-    function fetchServiceEndpointACLs(client_id, service_code, method, path) {
-        var selectedService = $('#service_acl_dialog #service option:selected');
-        var selectedEndpoint = $('#service_acl_dialog #endpoint option:selected');
-        var params = {
-            client_id: client_id,
-            service_code: service_code,
-            method: method,
-            path: path
-        };
-
-        $.get(action("service_acl"), params, function(response) {
-            var titleText = selectedService.data("title")
-                ? "clients.service_acl_dialog.title_with_service_title"
-                : "clients.service_acl_dialog.title";
-
-            var title = _(titleText, {
-                code: selectedService.val(),
-                title: selectedService.data("title") + " " + selectedEndpoint
-            });
-
-            $("#service_acl_dialog").dialog("option", "title", title);
-
-            oSubjects.fnFilter("");
-            oSubjects.fnReplaceData(response.data);
-
-            enableActions();
-
-            $("#service_acl_dialog").dialog("open");
-        }, "json");
     }
 
     function populateACLServiceEndpoints(data) {
