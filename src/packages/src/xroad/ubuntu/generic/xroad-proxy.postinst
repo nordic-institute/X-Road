@@ -13,6 +13,7 @@ db_url=jdbc:postgresql://127.0.0.1:5432/${db_name}
 db_user=serverconf
 db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
 db_properties=/etc/xroad/db.properties
+db_admin_properties=/etc/xroad/db-admin.properties
 
 die () {
     echo >&2 "$@"
@@ -26,13 +27,13 @@ die () {
 #4 new_section
 #5 new_key
 function migrate_conf_value {
-    MIGRATION_VALUE="$(crudini --get "$1" "$2" "$3" 2>/dev/null || true)"
-    if [ "${MIGRATION_VALUE}" ];
-        then
-            crudini --set "$1" "$4" "$5" "${MIGRATION_VALUE}"
-            echo Configuration migration: "$2"."$3" "->" "$4"."$5"
-            crudini --del "$1" "$2" "$3"
-    fi
+  MIGRATION_VALUE="$(crudini --get "$1" "$2" "$3" 2>/dev/null || true)"
+  if [ "${MIGRATION_VALUE}" ];
+  then
+    crudini --set "$1" "$4" "$5" "${MIGRATION_VALUE}"
+    echo Configuration migration: "$2"."$3" "->" "$4"."$5"
+    crudini --del "$1" "$2" "$3"
+  fi
 }
 
 case "$1" in
@@ -53,26 +54,29 @@ case "$1" in
   test -e /etc/nginx/sites-enabled/clientproxy && rm /etc/nginx/sites-enabled/clientproxy
   test -e /etc/nginx/sites-enabled/clientproxy-ssl && rm /etc/nginx/sites-enabled/clientproxy-ssl
 
+
   #is database connection configured?
   if  [[ -f ${db_properties}  && `crudini --get ${db_properties} '' serverconf.hibernate.connection.url` != "" ]]
-    then
-      db_url=`crudini --get ${db_properties} '' serverconf.hibernate.connection.url`
-      db_user=`crudini --get ${db_properties} '' serverconf.hibernate.connection.username`
-      db_passwd=`crudini --get ${db_properties} '' serverconf.hibernate.connection.password`
-   else
+  then
+    db_url=$(crudini --get ${db_properties} '' serverconf.hibernate.connection.url)
+    db_user=$(crudini --get ${db_properties} '' serverconf.hibernate.connection.username)
+    db_passwd=$(crudini --get ${db_properties} '' serverconf.hibernate.connection.password)
+  else
 
     echo "no db settings detected, creating local db"
 
-    if ! netstat -na | grep -q :5432
-      then echo -e  "\n\nIs postgres running on port 5432 ?"
-       echo -e "Aborting installation! please fix issues and rerun with apt-get -f install \n\n"
+    if ! pg_isready -h localhost -p 5432
+    then
+      echo -e  "\n\nIs postgres running on port 5432 ?"
+      echo -e "Aborting installation! please fix issues and rerun with apt-get -f install \n\n"
       exit 100
     fi
 
-     if  ! su - postgres -c "psql --list -tAF ' '" | grep template1 | awk '{print $3}' | grep -q "UTF8"
-      then echo -e "\n\npostgreSQL is not UTF8 compatible."
-       echo -e "Aborting installation! please fix issues and rerun with apt-get -f install\n\n"
-       exit 101
+    if  ! su - postgres -c "psql --list -tAF ' '" | grep template1 | awk '{print $3}' | grep -q "UTF8"
+    then
+      echo -e "\n\npostgreSQL is not UTF8 compatible."
+      echo -e "Aborting installation! please fix issues and rerun with apt-get -f install\n\n"
+      exit 101
     fi
 
     if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='${db_user}'\" "` == "1" ]]
@@ -96,10 +100,9 @@ case "$1" in
       crudini --set ${db_properties} '' serverconf.hibernate.jdbc.use_streams_for_binary true
       crudini --set ${db_properties} '' serverconf.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
       crudini --set ${db_properties} '' serverconf.hibernate.connection.driver_class org.postgresql.Driver
-      crudini --set ${db_properties} '' serverconf.hibernate.connection.url ${db_url}
-      crudini --set ${db_properties} '' serverconf.hibernate.connection.username  ${db_user}
-      crudini --set ${db_properties} '' serverconf.hibernate.connection.password ${db_passwd}
-
+      crudini --set ${db_properties} '' serverconf.hibernate.connection.url "${db_url}"
+      crudini --set ${db_properties} '' serverconf.hibernate.connection.username  "${db_user}"
+      crudini --set ${db_properties} '' serverconf.hibernate.connection.password "${db_passwd}"
   fi
   chown xroad:xroad ${db_properties}
   chmod 640 ${db_properties}
@@ -107,16 +110,31 @@ case "$1" in
   node_type=$(crudini --get '/etc/xroad/conf.d/node.ini' node type 2>/dev/null || echo standalone)
 
   if [[ "$node_type" == "slave" ]]; then
-      echo "Skipping database migrations on cluster slave node"
-  else 
-      echo "running ${db_name} database migrations"
-      cd /usr/share/xroad/db/
-      /usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml --password=${db_passwd} --username=${db_user}  update || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
+    echo "Skipping database migrations on cluster slave node"
+  else
+    cd /usr/share/xroad/db/ || die "Cannot run DB migrations"
 
-      if dpkg --compare-versions "$2" le-nl "6.8"
-      then
-          /usr/share/xroad/db/backup_and_remove_non-member_permissions.sh
-      fi
+    echo "running ${db_name} database migrations"
+    #separate admin properties
+    if [[ -f "$db_admin_properties" ]]; then
+      db_admin_user=$(crudini --get "$db_admin_properties" '' 'serverconf.admin.username' || echo "$db_user")
+      db_admin_password=$(crudini --get "$db_admin_properties" '' 'serverconf.admin.password' || echo "$db_passwd")
+    fi
+
+    context=""
+    if [[ "$db_user" != "$db_admin_user" ]]; then
+      context="--contexts=admin"
+    fi
+
+    JAVA_OPTS="-Ddb_user=$db_user" /usr/share/xroad/db/liquibase.sh \
+      --classpath=/usr/share/xroad/jlib/proxy.jar \
+      --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" \
+      --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml \
+      --password="${db_admin_password}" \
+      --username="${db_admin_user}" \
+      $context \
+      update \
+      || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
   fi
 
   RET=""

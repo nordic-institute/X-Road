@@ -129,7 +129,25 @@ chmod 640 ${db_properties}
 
 echo "running ${db_name} database migrations"
 cd /usr/share/xroad/db/
-/usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml --password=${db_passwd} --username=${db_user}  update || die "Connection to database has failed, please check database availability and configuration ad ${db_properties} file"
+
+if [[ -f "$db_admin_properties" ]]; then
+  db_admin_user=$(crudini --get "$db_admin_properties" '' 'messagelog.admin.username' || echo "$db_user")
+  db_admin_password=$(crudini --get "$db_admin_properties" '' 'messagelog.admin.password' || echo "$db_passwd")
+fi
+
+if [[ "$db_user" != "$db_admin_user" ]]; then
+  context="--contexts=admin"
+fi
+
+JAVA_OPTS="-Ddb_user=$db_user" /usr/share/xroad/db/liquibase.sh \
+  --classpath=/usr/share/xroad/jlib/proxy.jar \
+  --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" \
+  --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml \
+  --password="${db_admin_password}" \
+  --username="${db_admin_user}" \
+  $context \
+  update \
+  || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
 
 %changelog
 

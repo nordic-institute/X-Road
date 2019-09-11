@@ -1,17 +1,20 @@
-#!/bin/sh
+#!/bin/bash
 # X-Road proxy post-install configuration
-
+die () {
+    echo >&2 "$@"
+    exit 1
+}
 #
 # Create default internal certificates for nginx
 #
-HOST=`hostname -f`
+HOST=$(hostname -f)
 LIST=
-for i in `ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'`
+for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}')
 do
     LIST+="IP:$i,";
 done
 
-ALT=${LIST}DNS:`hostname`,DNS:`hostname -f`
+ALT=${LIST}DNS:$(hostname),DNS:$HOST
 
 if [[ ! -r /etc/xroad/ssl/nginx.crt || ! -r /etc/xroad/ssl/nginx.key ]]
 then
@@ -27,32 +30,48 @@ then
     /usr/share/xroad/scripts/generate_certificate.sh  -n internal -s "/CN=$HOST" -a "$ALT" -p 2> /tmp/cert.err || handle_error
 fi
 
-test -d /var/spool/xroad && test -w /var/spool/xroad || mkdir /var/spool/xroad ; chown xroad:xroad /var/spool/xroad
-test -d /var/cache/xroad && test -w /var/cache/xroad || mkdir /var/cache/xroad ; chown xroad:xroad /var/cache/xroad
-test -d /etc/xroad/globalconf && test -w /etc/xroad/globalconf || mkdir /etc/xroad/globalconf ; chown xroad:xroad  /etc/xroad/globalconf
-
-die () {
-    echo >&2 "$@"
-    exit 1
-}
+mkdir -p /var/spool/xroad && chown xroad:xroad /var/spool/xroad
+mkdir -p /var/cache/xroad && chown xroad:xroad /var/cache/xroad
+mkdir -p /etc/xroad/globalconf && chown xroad:xroad /etc/xroad/globalconf
 
 #
 # Database migrations (optional db setup in xroad-initdb)
 #
 db_name=serverconf
 db_properties=/etc/xroad/db.properties
-db_url=`crudini --get ${db_properties} '' serverconf.hibernate.connection.url`
-db_user=`crudini --get ${db_properties} '' serverconf.hibernate.connection.username`
-db_passwd=`crudini --get ${db_properties} '' serverconf.hibernate.connection.password`
+db_url=$(crudini --get ${db_properties} '' serverconf.hibernate.connection.url)
+db_user=$(crudini --get ${db_properties} '' serverconf.hibernate.connection.username)
+db_passwd=$(crudini --get ${db_properties} '' serverconf.hibernate.connection.password)
+db_admin_properties=/etc/xroad/db-admin.properties
 
 node_type=$(crudini --get '/etc/xroad/conf.d/node.ini' node type 2>/dev/null || echo standalone)
 
 if [[ "$node_type" == "slave" ]]; then
     echo "Skipping database migrations on a slave node"
 else
+    cd /usr/share/xroad/db/ || die "Cannot run DB migrations"
     echo "running ${db_name} database migrations"
-    cd /usr/share/xroad/db/
-    /usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml --password=${db_passwd} --username=${db_user}  update || die "Connection to database has failed, please check database availability and configuration ad ${db_properties} file"
+
+    #separate admin properties
+    if [[ -f "$db_admin_properties" ]]; then
+      db_admin_user=$(crudini --get "$db_admin_properties" '' 'serverconf.admin.username' || echo "$db_user")
+      db_admin_password=$(crudini --get "$db_admin_properties" '' 'serverconf.admin.password' || echo "$db_passwd")
+    fi
+
+    context=""
+    if [[ "$db_user" != "$db_admin_user" ]]; then
+      context="--contexts=admin"
+    fi
+
+    JAVA_OPTS="-Ddb_user=$db_user" /usr/share/xroad/db/liquibase.sh \
+      --classpath=/usr/share/xroad/jlib/proxy.jar \
+      --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" \
+      --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml \
+      --password="${db_admin_password}" \
+      --username="${db_admin_user}" \
+      $context \
+      update \
+      || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
 fi
 
 #
@@ -66,4 +85,3 @@ if [[ $(getenforce) != "Disabled" ]]; then
     # allow httpd to connecto to non-standard port 4000
     semanage port -a -t http_port_t  -p tcp 4000 || true
 fi
-
