@@ -268,7 +268,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         assertFalse(serviceCodes.contains(BMI_OLD));
         assertTrue(serviceCodes.contains(XROAD_GET_RANDOM));
         assertTrue(serviceCodes.contains(BMI));
-        assertTrue(refreshed.getRefreshedDate().isAfter(serviceDescription.getRefreshedDate()));
+        assertTrue(refreshed.getRefreshedAt().isAfter(serviceDescription.getRefreshedAt()));
     }
 
     @Test

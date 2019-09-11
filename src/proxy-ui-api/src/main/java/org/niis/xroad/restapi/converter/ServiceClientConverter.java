@@ -64,7 +64,7 @@ public class ServiceClientConverter {
      */
     public ServiceClient convertAccessRightHolderDto(AccessRightHolderDto accessRightHolderDto) {
         ServiceClient serviceClient = new ServiceClient();
-        serviceClient.setRightsGiven(accessRightHolderDto.getRightsGiven());
+        serviceClient.setRightsGivenAt(accessRightHolderDto.getRightsGiven());
 
         XRoadId subjectId = accessRightHolderDto.getSubjectId();
 

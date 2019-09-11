@@ -3525,7 +3525,7 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
-        next_update:
+        next_update_at:
           type: string
           format: date-time
           description: last time updated
@@ -3741,7 +3741,7 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
-        next_update:
+        next_update_at:
           type: string
           format: date-time
           description: last time updated
@@ -3863,7 +3863,7 @@ components:
           example: Security server owners
           minLength: 1
           maxLength: 255
-        rights_given:
+        rights_given_at:
           type: string
           format: date-time
           description: access right given at
@@ -3913,7 +3913,7 @@ components:
           example: default_disabled_service_notice
           minLength: 0
           maxLength: 255
-        refreshed_date:
+        refreshed_at:
           type: string
           format: date-time
           description: time for service refresh
