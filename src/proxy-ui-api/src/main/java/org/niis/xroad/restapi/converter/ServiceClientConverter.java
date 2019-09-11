@@ -58,7 +58,8 @@ public class ServiceClientConverter {
     }
 
     /**
-     * Convert ServiceClientDto to ServiceClient.
+     * Convert ServiceClientDto to ServiceClient. {@link ServiceClient#accessRights} will be set to null because
+     * only the access right holders (clients or groups) are needed
      * @param accessRightHolderDto
      * @return {@link ServiceClient}
      */
