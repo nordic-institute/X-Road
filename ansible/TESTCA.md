@@ -1,14 +1,14 @@
 # Test-CA with TSA and OCSP
 
-`roles/xroad-ca/` directory contains a collection of scripts to
-set up an openssl-based test-CA environment for signing certificates 
-and providing TSA and OCSP services during development. 
-The scripts are created for Ubuntu 14.04.
+**Note**. The test CA is for _testing and development purposes only_. It is not a secure certification authority.
 
-You can initialize the test-CA server automatically [with Ansible.](README.md)
-This initializes a new test-CA server if one is listed in `ca-servers` category.
-Alternatively, you can initialize the server manually. This is described in chapters 2-4. 
-If you use Ansible, skip those chapters.
+The `roles/xroad-ca/` directory contains a collection of scripts to set up an openssl-based test-CA environment for signing certificates and providing TSA and OCSP services during development. 
+The scripts require Ubuntu 18.04 (Ubuntu 14.04 should also work)
+
+You can initialize the test-CA server automatically [with Ansible.](README.md). This initializes a new test-CA server if one is listed in `ca-servers` category.
+
+Alternatively, you can initialize the server manually. This is described in chapters 2-4. If you use Ansible, skip those chapters.
+
 Chapters 1 and 5-7 describe usage of the initialized CA server and are useful for both manual and ansible installation.
 
 To customize test-CA DN details for Ansible installation, specify parameters in a file in group_vars ([read more about group_vars](README.md))
@@ -28,23 +28,17 @@ xroad_ca_tsa_ou: "Customized Test TSA OU"
 xroad_ca_tsa_cn: "Customized Test TSA CN"
 ```
 
-**Note that the test-CA created by the scripts is for testing purposes only and is not meant to provide a secure certification authority.**
-
 ---------------------------------------------
 
 ## 1. Contents of the roles/xroad-ca directory
 
-`files/etc/init` - upstart-jobs for the TSA and OCSP
-
-`files/etc/nginx` - nginx configuration for proxying TSA and OCSP requests
-
-`files/home/ca/CA` - CA configuration, and scripts for signing certificates locally
-
-`files/home/ca/TSA` - the TSA server
-
-`files/usr` - scripts for signing certificates
-
-`templates/init.sh` - script for creating the test-CA environment
+* `trusty-files/etc/init` - upstart-jobs for the TSA and OCSP
+* `bionic-files/lib/systemd/system` - systemd services for the TSA and OCSP
+* `common-files/etc/nginx` - nginx configuration for proxying TSA and OCSP requests
+* `common-files/home/ca/CA` - CA configuration, and scripts for signing certificates locally
+* `common-files/home/ca/TSA` - the TSA server
+* `common-files/usr` - scripts for signing certificates
+* `templates/init.sh` - script for creating the test-CA environment
 
 ---------------------------------------------
 
@@ -56,7 +50,7 @@ xroad_ca_tsa_cn: "Customized Test TSA CN"
 2. Create the following users on the target machine
 	- `ca`
 	- `ocsp`
-3. Copy the following directories from the `roles/xroad-ca/[UBUNTU_RELEASE]-files` directory to target machine root
+3. Copy the following directories from the `roles/xroad-ca/[UBUNTU_RELEASE]-files` and `roles/xroad-ca/common-files` directories to target machine root
 	- `etc`
 	- `home`
 	- `usr`
@@ -81,7 +75,7 @@ DN_TSA_O="{{ xroad_ca_tsa_o }}"
 DN_TSA_OU="{{ xroad_ca_tsa_ou }}"
 DN_TSA_CN="{{ xroad_ca_tsa_cn }}"
 ```
-CA, OCSP and TSA distinguished name field values can be selected freely, 
+CA, OCSP and TSA distinguished name field values can be selected freely,
 the only limitation being that the value combination should be unique for each three.
 
 Using recognizable and meaningful values helps to distinguish the certification authorities when registering them on the central server.
@@ -130,16 +124,14 @@ To configure the central server to use the test-CA:
 
 ## 7. Signing certificates
 
-NOTE: The test CA setup only accepts DER as input format.
-
-To sign a CSR, you have two options: 
+To sign a CSR, you have three options:
 
 ### 7.1. Use command `sign` on a file
 
 1. Upload the CSR to test CA server
 2. Register the certificate using command `sign` (user needs to have sudo rights)
 ```
-user@some-ca-server:~$ sign sign_csr_20161020_member_FI_GOV_889.der 
+user@some-ca-server:~$ sign sign_csr_20161020_member_FI_GOV_889.der
 Using configuration from CA.cnf
 Check that the request matches the signature
 Signature ok
@@ -154,18 +146,19 @@ Certificate Details:
             commonName                = 889
             serialNumber              = FI/cadev-ss1/GOV
         X509v3 extensions:
-            X509v3 Basic Constraints: 
+            X509v3 Basic Constraints:
                 CA:FALSE
             X509v3 Key Usage: critical
                 Non Repudiation
 Certificate is to be certified until Oct 15 12:34:52 2036 GMT (7300 days)
-Sign the certificate? [y/n]:y
+Write out database with 1 new entries
+Data Base Updated
 ```
-The signed certificate is stored in `/home/ca/CA/newcerts/??.pem`, where ?? = index number
+The signed certificate is stored in `/home/ca/CA/newcerts/??.pem`, where ?? = serial number
 
 ### 7.2. Use commands `sign-sign` and `sign-auth` on piped data
 
-You can use SSH to pipe the CSR and signed certificate remotely. 
+You can use SSH to pipe the CSR and signed certificate remotely.
 Pick either `sign-sign` or `sign-auth` based on the certificate type.
 
 ```
@@ -184,47 +177,33 @@ Certificate Details:
             commonName                = 901
             serialNumber              = FI/cadev-ss1/GOV
         X509v3 extensions:
-            X509v3 Basic Constraints: 
+            X509v3 Basic Constraints:
                 CA:FALSE
             X509v3 Key Usage: critical
                 Non Repudiation
 Certificate is to be certified until Oct 15 12:50:35 2036 GMT (7300 days)
-Sign the certificate? [y/n]:
-
-1 out of 1 certificate requests certified, commit? [y/n]Write out database with 1 new entries
+Write out database with 1 new entries
 Data Base Updated
 ```
+### 7.3 Use the web interface
 
-If there are issues running the TSA or OCSP jobs, logging information can be found in the upstart-job logs under `/var/log/upstart/<jobname>.log`. Additional information on the OCSP service status is logged in `/var/log/ocsp.log`.
+There is a simple web interface running at http://some-ca-server:8888/testca/ which can be used to sign requests.
 
-#### TXT_DB error while signing a certificate
-
-If signing fails with error `TXT_DB error number 2`, this is most likely due to the certificate already being signed and registered to CA.
-Subject's DN has to be unique, you can't register multiple certificates with identical subject DN's.
-You can consider either changing the certificate details or revoking the older certificate (described later).
-
+It is also possible to use a command line http client (e.g. curl):
 ```
-Sign the certificate? [y/n]:y
-failed to update database
-TXT_DB error number 2
+curl -Fcertreq=@auth_csr.pem http://some-ca-server:8888/testca/sign
 ```
 
+### 7.4 Certificate revocation
 
-### Certificate revocation
-
-To revoke a signed certificate, you can use revoke.sh script from `/home/ca/CA`. 
+To revoke a signed certificate, you can use revoke.sh script from `/home/ca/CA`.
 Run the script as a user with sudo rights, from `/home/ca/CA`.
-revoke.sh takes the signed certificate filename (.pem) as a parameter. 
+revoke.sh takes the signed certificate filename (.pem) as a parameter.
 
 Examples:
 ```
 $ cd /home/ca/CA/
-$ ./revoke.sh /someplace/auth-cert-200.pem 
-Using configuration from CA.cnf
-Revoking Certificate 04.
-Data Base Updated
-
-$ ./revoke.sh /someplace/auth-cert-200.pem 
+$ ./revoke.sh /someplace/auth-cert-200.pem
 Using configuration from CA.cnf
 ERROR:Already revoked, serial number 04
 
@@ -233,4 +212,8 @@ Using configuration from CA.cnf
 Revoking Certificate 05.
 Data Base Updated
 ```
- 
+
+## 8. Troubleshooting
+
+Systemd service logs can be viewed with journalctl -u service-name, e.g `journalctl -u ocsp`. Upstart (Ubuntu 14.04) logs are in /var/log/upstart/service-name.log
+

@@ -75,11 +75,23 @@ public class ClientConverter {
         client.setSubsystemCode(clientType.getIdentifier().getSubsystemCode());
         client.setMemberName(globalConfService.getMemberName(clientType.getIdentifier()));
         Optional<ClientStatus> status = ClientStatusMapping.map(clientType.getClientStatus());
-        client.setStatus(status.get());
+        client.setStatus(status.orElse(null));
         Optional<ConnectionType> connectionTypeEnum =
                 ConnectionTypeMapping.map(clientType.getIsAuthentication());
-        client.setConnectionType(connectionTypeEnum.get());
+        client.setConnectionType(connectionTypeEnum.orElse(null));
         return client;
+    }
+
+    /**
+     * convert a list of ClientType into a list of openapi Client class
+     * @param clientTypes
+     * @return
+     */
+    public List<Client> convert(List<ClientType> clientTypes) {
+        return clientTypes
+                .stream()
+                .map(this::convert)
+                .collect(Collectors.toList());
     }
 
     /**

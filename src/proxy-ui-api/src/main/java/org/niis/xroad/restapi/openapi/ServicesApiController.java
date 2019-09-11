@@ -96,9 +96,9 @@ public class ServicesApiController implements ServicesApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_SERVICE_ACL')")
-    public ResponseEntity<List<ServiceClient>> getServiceAccessRights(String id) {
-        ClientId clientId = serviceConverter.parseClientId(id);
-        String fullServiceCode = serviceConverter.parseFullServiceCode(id);
+    public ResponseEntity<List<ServiceClient>> getServiceAccessRights(String encodedServiceId) {
+        ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
+        String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
         List<AccessRightHolderDto> accessRightHolderDtos =
                 serviceService.getAccessRightHoldersByService(clientId, fullServiceCode);
         List<ServiceClient> serviceClients = serviceClientConverter.convertAccessRightHolderDtos(accessRightHolderDtos);

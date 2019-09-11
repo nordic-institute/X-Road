@@ -3872,6 +3872,7 @@ components:
           maxLength: 24
         access_rights:
           type: array
+          description: list of access rights - this will be null when requested via services/{id}/access-rights endpoint
           uniqueItems: true
           items:
             $ref: '#/components/schemas/AccessRight'
@@ -3998,14 +3999,27 @@ components:
       description: subject
       required:
         - id
+        - subject_type
       properties:
         id:
           type: string
           format: text
-          description: subject id
-          example: 123
+          description: subject id - can be a client id or <instance_id>:<group_code>
+          example: DEV:global-group-code
           readOnly: true
-    Subjects:
+        subject_type:
+          $ref: '#/components/schemas/SubjectType'
+    SubjectType: # ok
+      type: string
+      format: text
+      description: subject type
+      example: GLOBALGROUP
+      enum:
+        - GLOBALGROUP
+        - LOCALGROUP
+        - MEMBER
+        - SUBSYSTEM
+    Subjects: # ok
       type: object
       description: object containing and array of subject ids
       properties:

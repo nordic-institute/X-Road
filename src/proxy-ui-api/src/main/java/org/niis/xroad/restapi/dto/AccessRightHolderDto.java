@@ -36,6 +36,11 @@ import java.util.Map;
  */
 @Data
 public class AccessRightHolderDto {
+    /**
+     * {@link Map} which holds LocalGroup's description mapped by groupCode. {@link String} as key
+     * ({@link ee.ria.xroad.common.conf.serverconf.model.LocalGroupType#groupCode groupCode}) and {@link String}
+     * as value ({@link ee.ria.xroad.common.conf.serverconf.model.LocalGroupType#description description})
+     */
     private Map<String, String> localGroupDescMap;
     private XRoadId subjectId;
     private OffsetDateTime rightsGiven;

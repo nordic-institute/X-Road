@@ -169,7 +169,6 @@ public class ClientsApiControllerIntegrationTest {
                     + "IDI0IDE2OjIxIG5vbi1jZXJ0CmRyd3hyd3hyLXggMiBqYW5uZSBqYW5uZSA0MDk2IGh1aHRpID"
                     + "I0IDE2OjIxIHRpbnkK";
 
-
     @MockBean
     private GlobalConfService globalConfService;
 
@@ -179,7 +178,6 @@ public class ClientsApiControllerIntegrationTest {
     @SpyBean
     // partial mocking, just override getValidatorCommand()
     private WsdlValidator wsdlValidator;
-
 
     @Before
     public void setup() throws Exception {
@@ -480,6 +478,23 @@ public class ClientsApiControllerIntegrationTest {
                 INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1, false, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertEquals(1, clientsResponse.getBody().size());
+        List<Client> clients = clientsResponse.getBody();
+        Client client = clients.get(0);
+        assertEquals(SUBSYSTEM1 + NAME_APPENDIX, client.getMemberName());
+        assertEquals(MEMBER_CLASS_GOV, client.getMemberClass());
+        assertEquals(MEMBER_CODE_M1, client.getMemberCode());
+        assertEquals(SUBSYSTEM1, client.getSubsystemCode());
+        assertEquals(ConnectionType.HTTPS_NO_AUTH, client.getConnectionType());
+        assertEquals(ClientStatus.REGISTERED, client.getStatus());
+    }
+
+    @Test
+    @WithMockUser(authorities = "VIEW_CLIENTS")
+    public void findAllClients() {
+        ResponseEntity<List<Client>> clientsResponse = clientsApiController.getClients(null, null, null, null, null,
+                true, false);
+        assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
+        assertEquals(7, clientsResponse.getBody().size());
     }
 
     @Test
@@ -579,7 +594,7 @@ public class ClientsApiControllerIntegrationTest {
         ServiceDescription wsdlServiceDescription = getDescription(descriptions.getBody(),
                 "https://soapservice.com/v1/Endpoint?wsdl")
                 .get();
-        assertEquals(2, wsdlServiceDescription.getServices().size());
+        assertEquals(3, wsdlServiceDescription.getServices().size());
     }
 
     private Optional<ServiceDescription> getDescription(List<ServiceDescription> descriptions, String url) {

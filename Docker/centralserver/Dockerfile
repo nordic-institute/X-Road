@@ -50,7 +50,6 @@ COPY home /home
 COPY etc /etc
 COPY files/init.sh /home/ca/CA/
 COPY files/ca.py /home/ca/CA/
-COPY files/sign_req.sh /home/ca/CA/
 RUN chown -R ca:ca /home/ca/CA \
   && find /home/ca/TSA -type f -exec chmod 0664 {} + \
   && find /home/ca/CA -type f -exec chmod 0740 {} + \

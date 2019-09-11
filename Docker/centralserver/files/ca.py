@@ -48,8 +48,6 @@ class CAHandler(BaseHTTPRequestHandler):
         self.wfile.write(self.form_html.encode())
 
     def do_POST(self):
-	#artificial rate limiting (the server is already single-threaded)
-        time.sleep(1)
         cgi.maxlen = 10000
 
         expect = self.headers.getheader('expect', "")

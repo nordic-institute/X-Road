@@ -78,6 +78,7 @@ public class ServicesApiControllerIntegrationTest {
     public static final String SS2_CLIENT_ID = "FI:GOV:M1:SS2";
     public static final String SS0_GET_RANDOM = "FI:GOV:M1:SS0:getRandom.v1";
     public static final String SS1_GET_RANDOM = "FI:GOV:M1:SS1:getRandom.v1";
+    public static final String SS1_GET_RANDOM_V2 = "FI:GOV:M1:SS1:getRandom.v2";
     public static final String SS1_CALCULATE_PRIME = "FI:GOV:M1:SS1:calculatePrime.v1";
     public static final String SS1_PREDICT_WINNING_LOTTERY_NUMBERS = "FI:GOV:M1:SS1:predictWinningLotteryNumbers.v1";
     public static final String NEW_SERVICE_URL_HTTPS = "https://foo.bar";
@@ -230,6 +231,10 @@ public class ServicesApiControllerIntegrationTest {
 
         serviceClients = servicesApiController.getServiceAccessRights(SS1_CALCULATE_PRIME).getBody();
         assertTrue(serviceClients.isEmpty());
+
+        // different versions of a service should have the same access rights
+        serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM_V2).getBody();
+        assertEquals(3, serviceClients.size());
 
         try {
             servicesApiController.getServiceAccessRights(SS0_GET_RANDOM);

@@ -60,6 +60,9 @@ import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CENTRAL_SERVICE
 import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CLIENTS;
 import static ee.ria.xroad.common.metadata.MetadataRequests.WSDL;
 
+/**
+ * Soap metadata client request processor
+ */
 @Slf4j
 class MetadataClientRequestProcessor extends MessageProcessorBase {
 

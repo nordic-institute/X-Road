@@ -61,8 +61,13 @@ values (4, 3, 'xroadGetRandomOld', 'v1', null, 'http://xroad-lxd-web.lxd:8088/xr
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
 values (5, 3, 'bodyMassIndexOld', 'v1', null, 'http://xroad-lxd-web.lxd:8088/bodyMassIndex', true, 60);
 
-INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH)
-values (1, 2, 'getRandom', '*', '**');
+INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
+values (6, 1, 'getRandom', 'v2', 'getrandom-v2-title', 'https://soapservice.com/v1/Endpoint', true, 60);
+
+
+INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
+values (1, 2, 'getRandom', '*', '**', false);
+
 
 INSERT INTO ACCESSRIGHT (ID, SUBJECT_ID, RIGHTS_GIVEN, CLIENT_ID, ENDPOINT_ID)
 values (1, 3, {ts '2019-05-14 10:46:30.389000'}, 2, 1);

@@ -135,7 +135,7 @@ public class ClientsApiController implements ClientsApi {
             String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch) {
         boolean unboxedShowMembers = Boolean.TRUE.equals(showMembers);
         boolean unboxedInternalSearch = Boolean.TRUE.equals(internalSearch);
-        List<Client> clients = clientConverter.convertMemberInfosToClients(clientService.findClients(name,
+        List<Client> clients = clientConverter.convert(clientService.findClients(name,
                 instance, memberClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch));
         return new ResponseEntity<>(clients, HttpStatus.OK);
     }

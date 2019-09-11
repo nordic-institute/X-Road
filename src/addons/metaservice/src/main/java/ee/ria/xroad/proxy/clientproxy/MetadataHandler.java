@@ -52,7 +52,7 @@ public class MetadataHandler extends AbstractClientProxyHandler {
     @Override
     MessageProcessorBase createRequestProcessor(String target,
             HttpServletRequest request, HttpServletResponse response,
-            OpMonitoringData opMonitoringData) throws Exception {
+            OpMonitoringData opMonitoringData) {
         log.trace("createRequestProcessor({})", target);
 
         // opMonitoringData is null, do not use it.
@@ -66,14 +66,11 @@ public class MetadataHandler extends AbstractClientProxyHandler {
                     "Target must not be null");
         }
 
-        MetadataClientRequestProcessor processor =
-                new MetadataClientRequestProcessor(target, request, response);
-
+        MetadataClientRequestProcessor processor = new MetadataClientRequestProcessor(target, request, response);
         if (processor.canProcess()) {
             log.trace("Processing with MetadataClientRequestProcessor");
             return processor;
         }
-
         return null;
     }
 }

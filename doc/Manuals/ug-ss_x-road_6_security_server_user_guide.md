@@ -2,17 +2,17 @@
 | ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
 | -------------------------: |
 
-# SECURITY SERVER USER GUIDE
+# SECURITY SERVER USER GUIDE <!-- omit in toc --> 
 
 **X-ROAD 6**
 
-Version: 2.29
+Version: 2.30
 Doc. ID: UG-SS
 
 ---
 
 
-## Version history
+## Version history <!-- omit in toc --> 
 
  Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
@@ -62,8 +62,9 @@ Doc. ID: UG-SS
  16.04.2019 | 2.27    | Minor updates regarding REST services in chapter [6] | Petteri Kivimäki
  30.06.2019 | 2.28    | Update the default connection type from HTTP to HTTPS in chapter [9] | Petteri Kivimäki
  01.07.2019 | 2.29    | Changing the Security Server Owner chapter added (Chapter [3.4](#34-changing-the-security-server-owner)) | Petteri Kivimäki
+ 14.08.2019 | 2.30    | Added automatic backups | Ilkka Seppälä
 
-## Table of Contents
+## Table of Contents <!-- omit in toc --> 
 
 <!-- toc -->
 <!-- vim-markdown-toc GFM -->
@@ -147,6 +148,7 @@ Doc. ID: UG-SS
 * [13 Back up and Restore](#13-back-up-and-restore)
   * [13.1 Back up and Restore in the User Interface](#131-back-up-and-restore-in-the-user-interface)
   * [13.2 Restore from the Command Line](#132-restore-from-the-command-line)
+* [13.3 Automatic Backups](#133-automatic-backups)
 * [14 Diagnostics](#14-diagnostics)
   * [14.1 Examine security server services status information](#141-examine-security-server-services-status-information)
 * [15 Operational Monitoring](#15-operational-monitoring)
@@ -1548,6 +1550,10 @@ If it is absolutely necessary to restore the system from a backup made on a diff
 
     /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \
     -F –f /var/lib/xroad/backup/conf_backup_20140703-110438.tar
+
+### 13.3 Automatic Backups
+
+By default the Security Server backs up its configuration automatically once every day. Backups older than 30 days are automatically removed from the server. If needed, the automatic backup policies can be adjusted by editing the `/etc/cron.d/xroad-center` file.
 
 
 ## 14 Diagnostics

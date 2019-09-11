@@ -58,9 +58,9 @@ public class ServiceClientConverter {
     }
 
     /**
-     * Convert ServiceClientDto to ServiceClient
+     * Convert ServiceClientDto to ServiceClient.
      * @param accessRightHolderDto
-     * @return
+     * @return {@link ServiceClient}
      */
     public ServiceClient convertAccessRightHolderDto(AccessRightHolderDto accessRightHolderDto) {
         ServiceClient serviceClient = new ServiceClient();

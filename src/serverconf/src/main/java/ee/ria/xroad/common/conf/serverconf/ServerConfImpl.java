@@ -275,6 +275,17 @@ public class ServerConfImpl implements ServerConfProvider {
         });
     }
 
+    @Override
+    public String getServiceDescriptionURL(ServiceId service) {
+        return tx(session -> {
+            ServiceType serviceType = getService(session, service);
+            if (serviceType != null && serviceType.getServiceDescription() != null) {
+                return serviceType.getServiceDescription().getUrl();
+            }
+            return null;
+        });
+    }
+
     // ------------------------------------------------------------------------
 
     protected ServerConfType getConf(Session session) {
@@ -326,12 +337,10 @@ public class ServerConfImpl implements ServerConfProvider {
 
             XRoadId subjectId = accessRight.getSubjectId();
 
-            if (subjectId instanceof GlobalGroupId
-                    && !GlobalConf.isSubjectInGlobalGroup(client, (GlobalGroupId)subjectId)) {
-                continue;
-            } else if (subjectId instanceof LocalGroupId
-                    && !isMemberInLocalGroup(session, client, (LocalGroupId)subjectId, service)) {
-                continue;
+            if (subjectId instanceof GlobalGroupId) {
+                if (!GlobalConf.isSubjectInGlobalGroup(client, (GlobalGroupId)subjectId)) continue;
+            } else if (subjectId instanceof LocalGroupId) {
+                if (!isMemberInLocalGroup(session, client, (LocalGroupId)subjectId, service)) continue;
             } else if (!client.equals(subjectId)) {
                 continue;
             }

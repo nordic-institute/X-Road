@@ -24,7 +24,6 @@
  */
 package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
@@ -46,7 +45,9 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -87,12 +88,19 @@ public class ClientService {
     }
 
     /**
-     * return all global clients
+     * return all global clients as ClientTypes
      * @return
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public List<MemberInfo> getAllGlobalClients() {
-        return globalConfService.getGlobalMembers();
+    public List<ClientType> getAllGlobalClients() {
+        return globalConfService.getGlobalMembers()
+                .stream()
+                .map(memberInfo -> {
+                    ClientType clientType = new ClientType();
+                    clientType.setIdentifier(memberInfo.getId());
+                    return clientType;
+                })
+                .collect(Collectors.toList());
     }
 
     /**
@@ -193,7 +201,6 @@ public class ClientService {
         }
     }
 
-
     /**
      * Deletes one (and should be the only) certificate with
      * matching hash
@@ -245,7 +252,7 @@ public class ClientService {
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public List<ClientType> findLocalClients(String name, String instance, String propertyClass, String memberCode,
             String subsystemCode, boolean showMembers) {
-        List<Predicate<ClientType>> searchPredicates = buildLocalClientSearchPredicates(name, instance, propertyClass,
+        List<Predicate<ClientType>> searchPredicates = buildClientSearchPredicates(name, instance, propertyClass,
                 memberCode, subsystemCode);
         return getAllLocalClients().stream()
                 .filter(searchPredicates.stream().reduce(p -> true, Predicate::and))
@@ -254,23 +261,23 @@ public class ClientService {
     }
 
     /**
-     * Find clients in the globalconf. Will return MemberInfos because ClientTypes do not exist in globalconf
+     * Find clients in the globalconf and return them as new ClientTypes
      * @param name
      * @param instance
      * @param propertyClass
      * @param memberCode
      * @param subsystemCode
      * @param showMembers include members (without susbsystemCode) in the results
-     * @return ClientId list
+     * @return ClientType list
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public List<MemberInfo> findGlobalClients(String name, String instance, String propertyClass, String memberCode,
+    public List<ClientType> findGlobalClients(String name, String instance, String propertyClass, String memberCode,
             String subsystemCode, boolean showMembers) {
-        List<Predicate<MemberInfo>> searchPredicates = buildGlobalClientSearchPredicates(name, instance, propertyClass,
+        List<Predicate<ClientType>> searchPredicates = buildClientSearchPredicates(name, instance, propertyClass,
                 memberCode, subsystemCode);
         return getAllGlobalClients().stream()
                 .filter(searchPredicates.stream().reduce(p -> true, Predicate::and))
-                .filter(memberInfo -> showMembers || memberInfo.getId().getSubsystemCode() != null)
+                .filter(clientType -> showMembers || clientType.getIdentifier().getSubsystemCode() != null)
                 .collect(Collectors.toList());
     }
 
@@ -280,10 +287,11 @@ public class ClientService {
      * @return
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public Optional<MemberInfo> findByClientId(ClientId clientId) {
+    public Optional<ClientType> findByClientId(ClientId clientId) {
         return getAllGlobalClients()
                 .stream()
-                .filter(memberInfo -> memberInfo.getId().toShortString().trim().equals(clientId.toShortString().trim()))
+                .filter(clientType -> clientType.getIdentifier().toShortString().trim()
+                        .equals(clientId.toShortString().trim()))
                 .findFirst();
     }
 
@@ -296,24 +304,29 @@ public class ClientService {
      * @param subsystemCode
      * @param showMembers include members (without subsystemCode) in the results
      * @param internalSearch search only in the local clients
-     * @return MemberInfo list
+     * @return ClientType list
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public List<MemberInfo> findClients(String name, String instance, String memberClass, String memberCode,
+    public List<ClientType> findClients(String name, String instance, String memberClass, String memberCode,
             String subsystemCode, boolean showMembers, boolean internalSearch) {
+        List<ClientType> clients = findLocalClients(name, instance, memberClass, memberCode, subsystemCode,
+                showMembers);
         if (internalSearch) {
-            return findLocalClients(name, instance, memberClass, memberCode, subsystemCode,
-                    showMembers)
-                    .stream()
-                    .map(clientType -> new MemberInfo(clientType.getIdentifier(),
-                            globalConfService.getMemberName(clientType.getIdentifier())))
-                    .collect(Collectors.toList());
+            return clients;
         }
-        // else find only from global clients (globalconf also includes registered local clients)
-        return findGlobalClients(name, instance, memberClass, memberCode, subsystemCode, showMembers);
+        Map<String, ClientType> uniqueClientMap = new HashMap<>();
+        // add global clients into the HashMap with client identifier string as the key
+        findGlobalClients(name, instance, memberClass, memberCode, subsystemCode, showMembers)
+                .forEach(clientType -> uniqueClientMap.put(clientType.getIdentifier().toShortString(), clientType));
+        /*
+          add local clients into the HashMap with client identifier string as the key
+          this conveniently overwrites all duplicate keys
+         */
+        clients.forEach(clientType -> uniqueClientMap.put(clientType.getIdentifier().toShortString(), clientType));
+        return new ArrayList<>(uniqueClientMap.values());
     }
 
-    private List<Predicate<ClientType>> buildLocalClientSearchPredicates(String name, String instance,
+    private List<Predicate<ClientType>> buildClientSearchPredicates(String name, String instance,
             String memberClass, String memberCode, String subsystemCode) {
         List<Predicate<ClientType>> searchPredicates = new ArrayList<>();
         if (!StringUtils.isEmpty(name)) {
@@ -337,32 +350,6 @@ public class ClientService {
         if (!StringUtils.isEmpty(subsystemCode)) {
             searchPredicates.add(ct -> ct.getIdentifier().getSubsystemCode() != null
                     && ct.getIdentifier().getSubsystemCode().toLowerCase().contains(subsystemCode.toLowerCase()));
-        }
-        return searchPredicates;
-    }
-
-    private List<Predicate<MemberInfo>> buildGlobalClientSearchPredicates(String name, String instance,
-            String memberClass, String memberCode, String subsystemCode) {
-        List<Predicate<MemberInfo>> searchPredicates = new ArrayList<>();
-        if (!StringUtils.isEmpty(name)) {
-            searchPredicates.add(memberInfo -> memberInfo.getName() != null
-                    && memberInfo.getName().toLowerCase().contains(name.toLowerCase()));
-        }
-        if (!StringUtils.isEmpty(instance)) {
-            searchPredicates.add(memberInfo -> memberInfo.getId().getXRoadInstance().toLowerCase()
-                    .contains(instance.toLowerCase()));
-        }
-        if (!StringUtils.isEmpty(memberClass)) {
-            searchPredicates.add(memberInfo -> memberInfo.getId().getMemberClass().toLowerCase()
-                    .contains(memberClass.toLowerCase()));
-        }
-        if (!StringUtils.isEmpty(memberCode)) {
-            searchPredicates.add(memberInfo -> memberInfo.getId().getMemberCode().toLowerCase()
-                    .contains(memberCode.toLowerCase()));
-        }
-        if (!StringUtils.isEmpty(subsystemCode)) {
-            searchPredicates.add(memberInfo -> memberInfo.getId().getSubsystemCode() != null
-                    && memberInfo.getId().getSubsystemCode().toLowerCase().contains(subsystemCode.toLowerCase()));
         }
         return searchPredicates;
     }

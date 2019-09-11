@@ -91,6 +91,9 @@
     - "revoke.sh"
     - "sign.sh"
     - "intermediate.sh"
+    - "ocsp.py"
+    - "ca.py"
+    - "sign_req.sh"
 
 - name: set file permissions 3
   file:
@@ -135,6 +138,11 @@
   become_user: ca
   when: stat_result.stat.exists == False
 
+- name: remove obsolete files
+  file:
+    path: /etc/nginx/sites-enabled/ocsp.nginx
+    state: absent
+
 - name: restart nginx
   service:
     name: nginx
@@ -143,6 +151,12 @@
 - name: restart ocsp
   service:
     name: ocsp
+    state: restarted
+    enabled: yes
+
+- name: restart ca
+  service:
+    name: ca
     state: restarted
     enabled: yes
 

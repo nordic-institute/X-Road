@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
@@ -155,6 +156,16 @@ public class ServiceService {
         return serviceType;
     }
 
+    private AccessRightHolderDto accessRightTypeToDto(AccessRightType accessRightType,
+            Map<String, String> localGroupDescMap) {
+        AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
+        accessRightHolderDto.setRightsGiven(
+                FormatUtils.fromDateToOffsetDateTime(accessRightType.getRightsGiven()));
+        accessRightHolderDto.setSubjectId(accessRightType.getSubjectId());
+        accessRightHolderDto.setLocalGroupDescMap(localGroupDescMap);
+        return accessRightHolderDto;
+    }
+
     /**
      * Get access right holders by Service
      * @param clientId
@@ -180,11 +191,7 @@ public class ServiceService {
 
         clientType.getAcl().forEach(accessRightType -> {
             if (accessRightType.getEndpoint().getServiceCode().equals(serviceType.getServiceCode())) {
-                AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
-                accessRightHolderDto.setRightsGiven(
-                        FormatUtils.fromDateToOffsetDateTime(accessRightType.getRightsGiven()));
-                accessRightHolderDto.setSubjectId(accessRightType.getSubjectId());
-                accessRightHolderDto.setLocalGroupDescMap(localGroupDescMap);
+                AccessRightHolderDto accessRightHolderDto = accessRightTypeToDto(accessRightType, localGroupDescMap);
                 accessRightHolderDtos.add(accessRightHolderDto);
             }
         });
