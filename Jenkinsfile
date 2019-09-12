@@ -18,19 +18,6 @@ pipeline {
                 sh 'cd src && ./compile_code.sh -nodaemon'
             }
         }
-        stage('Trusty build') {
-            agent {
-                dockerfile {
-                    dir 'src/packages/docker/deb-trusty'
-                    args '-v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=/tmp'
-                }
-            }
-            steps {
-                script {
-                    sh './src/packages/build-deb.sh trusty'
-                }
-            }
-        }
         stage('Bionic build') {
             agent {
                 dockerfile {
