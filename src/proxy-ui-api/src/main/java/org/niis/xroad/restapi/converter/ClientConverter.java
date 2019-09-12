@@ -96,11 +96,23 @@ public class ClientConverter {
 
     /**
      * Convert ClientId into encoded member id
-     * @param clientId
      * @return
      */
     public String convertId(ClientId clientId) {
+        return convertId(clientId, false);
+    }
+
+    /**
+     * Convert ClientId into encoded member id
+     * @param clientId
+     * @return
+     */
+    public String convertId(ClientId clientId, boolean includeType) {
         StringBuilder builder = new StringBuilder();
+        if (includeType) {
+            builder.append(clientId.getObjectType())
+                    .append(ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
+        }
         builder.append(clientId.getXRoadInstance())
                 .append(ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR)
                 .append(clientId.getMemberClass())

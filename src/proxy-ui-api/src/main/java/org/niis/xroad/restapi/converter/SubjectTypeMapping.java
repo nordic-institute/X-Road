@@ -24,67 +24,69 @@
  */
 package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
+import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.Getter;
-import org.niis.xroad.restapi.openapi.model.ServiceType;
+import org.niis.xroad.restapi.openapi.model.SubjectType;
 
 import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Mapping between ServiceType in api (enum) and model (DescriptionType)
+ * Mapping between SubjectType in api (enum) and model (XRoadObjectType)
  */
 @Getter
-public enum ServiceTypeMapping {
-    WSDL(DescriptionType.WSDL, ServiceType.WSDL),
-    REST(DescriptionType.OPENAPI3, ServiceType.REST);
+public enum SubjectTypeMapping {
+    SUBSYSTEM(XRoadObjectType.SUBSYSTEM, SubjectType.SUBSYSTEM),
+    MEMBER(XRoadObjectType.MEMBER, SubjectType.MEMBER),
+    LOCALGROUP(XRoadObjectType.LOCALGROUP, SubjectType.LOCALGROUP),
+    GLOBALGROUP(XRoadObjectType.GLOBALGROUP, SubjectType.GLOBALGROUP);
 
-    private final DescriptionType descriptionType;
-    private final ServiceType serviceType;
+    private final XRoadObjectType xRoadObjectType;
+    private final SubjectType subjectType;
 
-    ServiceTypeMapping(DescriptionType descriptionType, ServiceType serviceType) {
-        this.descriptionType = descriptionType;
-        this.serviceType = serviceType;
+    SubjectTypeMapping(XRoadObjectType xRoadObjectType, SubjectType subjectType) {
+        this.xRoadObjectType = xRoadObjectType;
+        this.subjectType = subjectType;
     }
 
     /**
-     * Return matching ServiceType, if any
-     * @param descriptionType
+     * Return matching SubjectType, if any
+     * @param xRoadObjectType
      * @return
      */
-    public static Optional<ServiceType> map(DescriptionType descriptionType) {
-        return getFor(descriptionType).map(ServiceTypeMapping::getServiceType);
+    public static Optional<SubjectType> map(XRoadObjectType xRoadObjectType) {
+        return getFor(xRoadObjectType).map(SubjectTypeMapping::getSubjectType);
     }
 
     /**
-     * Return matching DescriptionType, if any
-     * @param serviceType
+     * Return matching XRoadObjectType, if any
+     * @param subjectType
      * @return
      */
-    public static Optional<DescriptionType> map(ServiceType serviceType) {
-        return getFor(serviceType).map(ServiceTypeMapping::getDescriptionType);
+    public static Optional<XRoadObjectType> map(SubjectType subjectType) {
+        return getFor(subjectType).map(SubjectTypeMapping::getXRoadObjectType);
     }
 
     /**
-     * return ServiceTypeMapping matching the given descriptionType, if any
-     * @param descriptionType
+     * return SubjectTypeMapping matching the given xRoadObjectType, if any
+     * @param xRoadObjectType
      * @return
      */
-    public static Optional<ServiceTypeMapping> getFor(DescriptionType descriptionType) {
+    public static Optional<SubjectTypeMapping> getFor(XRoadObjectType xRoadObjectType) {
         return Arrays.stream(values())
-                .filter(mapping -> mapping.descriptionType.equals(descriptionType))
+                .filter(mapping -> mapping.xRoadObjectType.equals(xRoadObjectType))
                 .findFirst();
     }
 
     /**
-     * return ServiceTypeMapping matching the given serviceType, if any
-     * @param serviceType
+     * return SubjectTypeMapping matching the given subjectType, if any
+     * @param subjectType
      * @return
      */
-    public static Optional<ServiceTypeMapping> getFor(ServiceType serviceType) {
+    public static Optional<SubjectTypeMapping> getFor(SubjectType subjectType) {
         return Arrays.stream(values())
-                .filter(mapping -> mapping.serviceType.equals(serviceType))
+                .filter(mapping -> mapping.subjectType.equals(subjectType))
                 .findFirst();
     }
 

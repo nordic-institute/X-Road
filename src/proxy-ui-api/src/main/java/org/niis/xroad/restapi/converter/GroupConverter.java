@@ -26,6 +26,8 @@ package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
+import ee.ria.xroad.common.identifier.GlobalGroupId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
 
 import org.niis.xroad.restapi.openapi.model.Group;
 import org.niis.xroad.restapi.openapi.model.GroupMember;
@@ -125,5 +127,53 @@ public class GroupConverter {
         groupMember.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(groupMemberType.getAdded()));
         groupMember.setName(globalConfService.getMemberName(groupMemberType.getGroupMemberId()));
         return groupMember;
+    }
+
+    /**
+     * Convert LocalGroupId into encoded id string
+     * @return String
+     */
+    public String convertId(LocalGroupId localGroupId) {
+        return convertId(localGroupId, false);
+    }
+
+    /**
+     * Convert LocalGroupId into encoded id string
+     * @param localGroupId
+     * @return String
+     */
+    public String convertId(LocalGroupId localGroupId, boolean includeType) {
+        StringBuilder builder = new StringBuilder();
+        if (includeType) {
+            builder.append(localGroupId.getObjectType())
+                    .append(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
+        }
+        builder.append(localGroupId.getGroupCode());
+        return builder.toString().trim();
+    }
+
+    /**
+     * Convert GlobalGroupId into encoded id string
+     * @return String
+     */
+    public String convertId(GlobalGroupId globalGroupId) {
+        return convertId(globalGroupId, false);
+    }
+
+    /**
+     * Convert GlobalGroupId into encoded id string
+     * @param globalGroupId
+     * @return String
+     */
+    public String convertId(GlobalGroupId globalGroupId, boolean includeType) {
+        StringBuilder builder = new StringBuilder();
+        if (includeType) {
+            builder.append(globalGroupId.getObjectType())
+                    .append(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
+        }
+        builder.append(globalGroupId.getXRoadInstance())
+                .append(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR)
+                .append(globalGroupId.getGroupCode());
+        return builder.toString().trim();
     }
 }

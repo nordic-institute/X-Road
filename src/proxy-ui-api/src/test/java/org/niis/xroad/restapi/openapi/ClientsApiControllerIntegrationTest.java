@@ -580,7 +580,7 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(CLIENT_ID_SS1, serviceDescription.getClientId());
         assertEquals(true, serviceDescription.getDisabled());
         assertEquals("Kaputt", serviceDescription.getDisabledNotice());
-        assertNotNull(serviceDescription.getRefreshedDate());
+        assertNotNull(serviceDescription.getRefreshedAt());
         assertEquals(ServiceType.REST, serviceDescription.getType());
         assertEquals(1, serviceDescription.getServices().size());
 
@@ -594,7 +594,7 @@ public class ClientsApiControllerIntegrationTest {
         ServiceDescription wsdlServiceDescription = getDescription(descriptions.getBody(),
                 "https://soapservice.com/v1/Endpoint?wsdl")
                 .get();
-        assertEquals(2, wsdlServiceDescription.getServices().size());
+        assertEquals(3, wsdlServiceDescription.getServices().size());
     }
 
     private Optional<ServiceDescription> getDescription(List<ServiceDescription> descriptions, String url) {

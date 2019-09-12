@@ -1914,6 +1914,7 @@ paths:
           required: true
           schema:
             type: string
+            example: CS:ORG:Client:myService.v1
             format: text
             minLength: 1
             maxLength: 255
@@ -3524,7 +3525,7 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
-        next_update:
+        next_update_at:
           type: string
           format: date-time
           description: last time updated
@@ -3740,7 +3741,7 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
-        next_update:
+        next_update_at:
           type: string
           format: date-time
           description: last time updated
@@ -3845,16 +3846,19 @@ components:
       description: service client
       required:
         - id
+        - subject_type
         - name
         - access_rights
       properties:
         id:
           type: string
           format: text
-          description: <service_client_type>:<instance_identifier>:<other_params>
-          example: GLOBALGROUP:DEV:security-server-owners
+          description: <instance_identifier>:<other_params>
+          example: DEV:security-server-owners
           minLength: 1
           maxLength: 1279
+        subject_type:
+          $ref: '#/components/schemas/SubjectType'
         name:
           type: string
           format: text
@@ -3862,8 +3866,16 @@ components:
           example: Security server owners
           minLength: 1
           maxLength: 255
+        rights_given_at:
+          type: string
+          format: date-time
+          description: access right given at
+          example: '2018-12-15T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
         access_rights:
           type: array
+          description: list of access rights - this will be null when requested via services/{id}/access-rights endpoint
           uniqueItems: true
           items:
             $ref: '#/components/schemas/AccessRight'
@@ -3904,7 +3916,7 @@ components:
           example: default_disabled_service_notice
           minLength: 0
           maxLength: 255
-        refreshed_date:
+        refreshed_at:
           type: string
           format: date-time
           description: time for service refresh
@@ -3990,14 +4002,29 @@ components:
       description: subject
       required:
         - id
+        - subject_type
       properties:
         id:
           type: string
           format: text
-          description: subject id
-          example: 123
+          description: subject id - can be a client id or <instance_id>:<group_code>
+          example: DEV:global-group-code
           readOnly: true
-    Subjects:
+          minLength: 1
+          maxLength: 1279
+        subject_type:
+          $ref: '#/components/schemas/SubjectType'
+    SubjectType: # ok
+      type: string
+      format: text
+      description: subject type
+      example: GLOBALGROUP
+      enum:
+        - GLOBALGROUP
+        - LOCALGROUP
+        - MEMBER
+        - SUBSYSTEM
+    Subjects: # ok
       type: object
       description: object containing and array of subject ids
       properties:
