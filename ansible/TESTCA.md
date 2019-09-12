@@ -3,7 +3,7 @@
 **Note**. The test CA is for _testing and development purposes only_. It is not a secure certification authority.
 
 The `roles/xroad-ca/` directory contains a collection of scripts to set up an openssl-based test-CA environment for signing certificates and providing TSA and OCSP services during development. 
-The scripts require Ubuntu 18.04 (Ubuntu 14.04 should also work)
+The scripts require Ubuntu 18.04.
 
 You can initialize the test-CA server automatically [with Ansible.](README.md). This initializes a new test-CA server if one is listed in `ca-servers` category.
 
@@ -32,7 +32,6 @@ xroad_ca_tsa_cn: "Customized Test TSA CN"
 
 ## 1. Contents of the roles/xroad-ca directory
 
-* `trusty-files/etc/init` - upstart-jobs for the TSA and OCSP
 * `bionic-files/lib/systemd/system` - systemd services for the TSA and OCSP
 * `common-files/etc/nginx` - nginx configuration for proxying TSA and OCSP requests
 * `common-files/home/ca/CA` - CA configuration, and scripts for signing certificates locally
@@ -215,5 +214,5 @@ Data Base Updated
 
 ## 8. Troubleshooting
 
-Systemd service logs can be viewed with journalctl -u service-name, e.g `journalctl -u ocsp`. Upstart (Ubuntu 14.04) logs are in /var/log/upstart/service-name.log
+Systemd service logs can be viewed with journalctl -u service-name, e.g `journalctl -u ocsp`.
 

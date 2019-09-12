@@ -1,11 +1,4 @@
 ---
-- name: Copy trusty DEB packages (Ubuntu)
-  become: yes
-  copy: src={{item}} dest=/xroad/ force=no
-  with_fileglob:
-    - ../src/packages/build/ubuntu14.04/xroad-*deb
-  when: ubuntu_releasever == "trusty"
-
 - name: Copy bionic DEB packages (Ubuntu)
   become: yes
   copy: src={{item}} dest=/xroad/ force=no
