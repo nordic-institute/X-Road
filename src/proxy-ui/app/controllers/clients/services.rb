@@ -656,7 +656,7 @@ module Clients::Services
 
     serverconf_save
 
-    render_json(read_acl_subjects(client, params[:service_code]))
+    render_json(read_acl_subjects(client, params[:service_code], params[:method], params[:path]))
   end
 
   def service_acl_subjects_remove
