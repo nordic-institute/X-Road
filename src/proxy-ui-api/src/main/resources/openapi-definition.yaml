@@ -3846,16 +3846,19 @@ components:
       description: service client
       required:
         - id
+        - subject_type
         - name
         - access_rights
       properties:
         id:
           type: string
           format: text
-          description: <service_client_type>:<instance_identifier>:<other_params>
-          example: GLOBALGROUP:DEV:security-server-owners
+          description: <instance_identifier>:<other_params>
+          example: DEV:security-server-owners
           minLength: 1
           maxLength: 1279
+        subject_type:
+          $ref: '#/components/schemas/SubjectType'
         name:
           type: string
           format: text
@@ -4007,6 +4010,8 @@ components:
           description: subject id - can be a client id or <instance_id>:<group_code>
           example: DEV:global-group-code
           readOnly: true
+          minLength: 1
+          maxLength: 1279
         subject_type:
           $ref: '#/components/schemas/SubjectType'
     SubjectType: # ok

@@ -74,17 +74,20 @@ public class ServiceClientConverter {
             case SUBSYSTEM:
                 ClientId serviceClientId = (ClientId) subjectId;
                 serviceClient.setName(globalConfService.getMemberName(serviceClientId));
-                serviceClient.setId(clientConverter.convertId(serviceClientId, true));
+                serviceClient.setId(clientConverter.convertId(serviceClientId));
+                serviceClient.setSubjectType(SubjectTypeMapping.map(serviceClientId.getObjectType()).get());
                 break;
             case GLOBALGROUP:
                 GlobalGroupId globalGroupId = (GlobalGroupId) subjectId;
                 serviceClient.setName(globalConfService.getGlobalGroupDescription(globalGroupId));
-                serviceClient.setId(groupConverter.convertId(globalGroupId, true));
+                serviceClient.setId(groupConverter.convertId(globalGroupId));
+                serviceClient.setSubjectType(SubjectTypeMapping.map(globalGroupId.getObjectType()).get());
                 break;
             case LOCALGROUP:
                 LocalGroupId localGroupId = (LocalGroupId) subjectId;
                 serviceClient.setName(accessRightHolderDto.getLocalGroupDescMap().get(localGroupId.getGroupCode()));
-                serviceClient.setId(groupConverter.convertId(localGroupId, true));
+                serviceClient.setId(groupConverter.convertId(localGroupId));
+                serviceClient.setSubjectType(SubjectTypeMapping.map(localGroupId.getObjectType()).get());
                 break;
             default:
                 break;

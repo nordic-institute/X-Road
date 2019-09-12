@@ -72,9 +72,9 @@ public class ServicesApiControllerIntegrationTest {
     public static final String SUBSYSTEM = "SUBSYSTEM";
     public static final String NAME_FOR = "Name for: ";
     public static final String GLOBAL_GROUP_CODE = "security-server-owners";
-    public static final String GLOBAL_GROUP_ID = "GLOBALGROUP:FI:security-server-owners";
+    public static final String GLOBAL_GROUP_ID = "FI:security-server-owners";
     public static final String LOCAL_GROUP_DESC = "foo";
-    public static final String LOCAL_GROUP_ID = "LOCALGROUP:group1";
+    public static final String LOCAL_GROUP_ID = "group1";
     public static final String SS2_CLIENT_ID = "FI:GOV:M1:SS2";
     public static final String SS0_GET_RANDOM = "FI:GOV:M1:SS0:getRandom.v1";
     public static final String SS1_GET_RANDOM = "FI:GOV:M1:SS1:getRandom.v1";
@@ -217,16 +217,19 @@ public class ServicesApiControllerIntegrationTest {
         ServiceClient serviceClient = getServiceClientByType(serviceClients, GLOBALGROUP).get();
         assertEquals(NAME_FOR + GLOBAL_GROUP_CODE, serviceClient.getName());
         assertEquals(GLOBAL_GROUP_ID, serviceClient.getId());
+        assertEquals(GLOBALGROUP, serviceClient.getSubjectType().name());
         assertNull(serviceClient.getAccessRights());
 
         serviceClient = getServiceClientByType(serviceClients, LOCALGROUP).get();
         assertEquals(LOCAL_GROUP_DESC, serviceClient.getName());
         assertEquals(LOCAL_GROUP_ID, serviceClient.getId());
+        assertEquals(LOCALGROUP, serviceClient.getSubjectType().name());
         assertNull(serviceClient.getAccessRights());
 
         serviceClient = getServiceClientByType(serviceClients, SUBSYSTEM).get();
         assertEquals(NAME_FOR + SS2_CLIENT_ID, serviceClient.getName());
-        assertEquals(SUBSYSTEM + ":" + SS2_CLIENT_ID, serviceClient.getId());
+        assertEquals(SS2_CLIENT_ID, serviceClient.getId());
+        assertEquals(SUBSYSTEM, serviceClient.getSubjectType().name());
         assertNull(serviceClient.getAccessRights());
 
         serviceClients = servicesApiController.getServiceAccessRights(SS1_CALCULATE_PRIME).getBody();
@@ -254,7 +257,7 @@ public class ServicesApiControllerIntegrationTest {
     private Optional<ServiceClient> getServiceClientByType(List<ServiceClient> serviceClients, String type) {
         return serviceClients
                 .stream()
-                .filter(serviceClient -> serviceClient.getId().contains(type))
+                .filter(serviceClient -> serviceClient.getSubjectType().name().equals(type))
                 .findFirst();
     }
 }
