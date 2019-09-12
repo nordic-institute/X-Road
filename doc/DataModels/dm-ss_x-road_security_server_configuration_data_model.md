@@ -70,7 +70,7 @@ Doc. ID: DM-SS
     * [2.15.1 Indexes](#2151-indexes)
     * [2.15.2 Attributes](#2152-attributes)
   * [2.16 ENDPOINT](#216-endpoint)
-    * [2.15.1 Indexes](#2151-indexes-1)
+    * [2.16.1 Indexes](#2161-indexes)
     * [2.16.2 Attributes](#2162-attributes)
 
 <!-- vim-markdown-toc -->
@@ -416,7 +416,7 @@ Pointer to a SERVICEDESCRIPTION containing the descriptions of services provided
 
 ### 2.16 ENDPOINT
 
-#### 2.15.1 Indexes
+#### 2.16.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|

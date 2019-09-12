@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 1.2  
+Version: 1.3  
 17.04.2019
 <!-- 3 pages -->
 Doc. ID: ARC-TEC
@@ -16,7 +16,8 @@ Doc. ID: ARC-TEC
  02.02.2018 | 1.0     | Initial version                                             | Antti Luoma
  02.03.2018 | 1.1     | Added uniform terms and conditions reference                | Tatu Repo
  17.04.2019 | 1.2     | Added RHEL7, Ubuntu 18.04, systemd and Postgres 10          | Petteri Kivimäki
- 
+ 11.09.2019 | 1.3     | Remove Ubuntu 14.04 support                                 | Jarkko Hyöty
+
 ## Table of Contents
 
 <!-- toc -->
@@ -71,7 +72,6 @@ Table 1. Technology matrix of the X-Road
  Akka 2.X           | X                   | X                  | X                       | X
  Jetty 9            | X                   | X                  |                         |
  JRuby 9.X          | X                   | X                  |                         |
- Ubuntu 14.04       | X                   | X                  | X                       | X
  Ubuntu 18.04       | X                   | X                  | X                       | X
  Red Hat Enterprise Linux 7 (RHEL7)       | X                   |                    |                         | X
  PostgreSQL 9.4     |                     | X\[[1](#Ref_1)\]               |                         |
