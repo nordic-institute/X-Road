@@ -17,6 +17,7 @@ BuildRequires: systemd
 Requires:  systemd
 Requires:  rlwrap, crudini
 Requires:  jre-1.8.0-headless >= 1.8.0.51
+Requires:  sudo
 
 %define src %{_topdir}/..
 
