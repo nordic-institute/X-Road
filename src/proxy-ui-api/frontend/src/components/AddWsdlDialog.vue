@@ -9,29 +9,36 @@
     <div slot="content">
       <div class="dlg-edit-row">
         <div class="dlg-row-title">{{$t('services.url')}}</div>
-        <v-text-field
-          v-model="url"
-          single-line
-          class="dlg-row-input"
-          v-validate="'required|wsdlUrl'"
-          data-vv-as="url"
-          name="url"
-          type="text"
-          :error-messages="errors.collect('url')"
-        ></v-text-field>
+        <ValidationProvider
+          rules="required|wsdlUrl"
+          ref="serviceUrl"
+          name="serviceUrl"
+          v-slot="{ errors }"
+          class="validation-provider"
+        >
+          <v-text-field
+            v-model="url"
+            single-line
+            class="dlg-row-input"
+            name="serviceUrl"
+            :error-messages="errors"
+          ></v-text-field>
+        </ValidationProvider>
       </div>
     </div>
   </simpleDialog>
 </template>
 
+
 <script lang="ts">
 import Vue from 'vue';
 import axios from 'axios';
+import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import SimpleDialog from '@/components/SimpleDialog.vue';
 import { isValidWsdlURL } from '@/util/helpers';
 
 export default Vue.extend({
-  components: { SimpleDialog },
+  components: { SimpleDialog, ValidationProvider, ValidationObserver },
   props: {
     dialog: {
       type: Boolean,
@@ -62,7 +69,9 @@ export default Vue.extend({
     },
     clear(): void {
       this.url = '';
-      this.$validator.reset();
+      (this.$refs.serviceUrl as InstanceType<
+        typeof ValidationProvider
+      >).reset();
     },
   },
 });

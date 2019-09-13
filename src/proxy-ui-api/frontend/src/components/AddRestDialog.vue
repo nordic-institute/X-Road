@@ -7,59 +7,65 @@
     :disableSave="!isValid"
   >
     <div slot="content">
-      <div class="dlg-edit-row">
-        <div class="dlg-row-title">{{$t('services.url')}}</div>
-        <v-text-field
-          v-model="url"
-          single-line
-          class="dlg-row-input"
-          v-validate="'required|restUrl'"
-          data-vv-as="url"
-          name="url"
-          type="text"
-          :error-messages="errors.collect('url')"
-        ></v-text-field>
-      </div>
+      <ValidationObserver ref="form" v-slot="{ validate, invalid }">
+        <div class="dlg-edit-row">
+          <div class="dlg-row-title">{{$t('services.url')}}</div>
 
-      <div class="dlg-edit-row">
-        <div class="dlg-row-title">{{$t('services.serviceCode')}}</div>
-        <v-text-field
-          v-model="serviceCode"
-          single-line
-          class="dlg-row-input"
-          v-validate="'required'"
-          data-vv-as="code"
-          name="code"
-          type="text"
-          :maxlength="255"
-          :error-messages="errors.collect('code')"
-        ></v-text-field>
-      </div>
+          <ValidationProvider
+            rules="required|restUrl"
+            name="serviceUrl"
+            v-slot="{ errors }"
+            class="validation-provider dlg-row-input"
+          >
+            <v-text-field v-model="url" single-line name="serviceUrl" :error-messages="errors"></v-text-field>
+          </ValidationProvider>
+        </div>
+
+        <div class="dlg-edit-row">
+          <div class="dlg-row-title">{{$t('services.serviceCode')}}</div>
+
+          <ValidationProvider
+            rules="required"
+            name="serviceCode"
+            v-slot="{ errors }"
+            class="validation-provider"
+          >
+            <v-text-field
+              v-model="serviceCode"
+              single-line
+              class="dlg-row-input"
+              name="serviceCode"
+              type="text"
+              :maxlength="255"
+              :error-messages="errors"
+            ></v-text-field>
+          </ValidationProvider>
+        </div>
+      </ValidationObserver>
     </div>
   </simpleDialog>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
+import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import SimpleDialog from '@/components/SimpleDialog.vue';
 import { isValidURL } from '@/util/helpers';
 
 export default Vue.extend({
-  components: { SimpleDialog },
+  components: { SimpleDialog, ValidationProvider, ValidationObserver },
   props: {
     dialog: {
       type: Boolean,
       required: true,
     },
   },
-
   data() {
     return {
       url: '',
       serviceCode: '',
     };
   },
-
   computed: {
     isValid(): boolean {
       if (isValidURL(this.url) && this.serviceCode.length > 0) {
@@ -69,7 +75,6 @@ export default Vue.extend({
       return false;
     },
   },
-
   methods: {
     cancel(): void {
       this.$emit('cancel');
@@ -82,7 +87,7 @@ export default Vue.extend({
     clear(): void {
       this.url = '';
       this.serviceCode = '';
-      this.$validator.reset();
+      (this.$refs.form as InstanceType<typeof ValidationObserver>).reset();
     },
   },
 });

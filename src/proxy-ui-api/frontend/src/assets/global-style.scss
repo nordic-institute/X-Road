@@ -51,6 +51,13 @@ $large-button-width: 140px;
   border-bottom: $XRoad-Grey40 solid 1px;
 }
 
+
+// Set validation provider to full width
+.validation-provider {
+  width: 100%;
+}
+
+
 // Override vuetify styling in alert dialog card
 .xrd-card {
   .v-card__title {
