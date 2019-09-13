@@ -29,6 +29,7 @@ import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 
+import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Group;
 import org.niis.xroad.restapi.openapi.model.GroupMember;
 import org.niis.xroad.restapi.service.GlobalConfService;
@@ -36,6 +37,7 @@ import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,6 +48,8 @@ import java.util.stream.Collectors;
 @Component
 public class GroupConverter {
 
+    private static final int INSTANCE_INDEX = 0;
+    private static final int GLOBALGROUP_CODE_INDEX = 1;
     private final ClientConverter clientConverter;
     private final GlobalConfService globalConfService;
 
@@ -175,5 +179,23 @@ public class GroupConverter {
                 .append(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR)
                 .append(globalGroupId.getGroupCode());
         return builder.toString().trim();
+    }
+
+    /**
+     * Convert encoded global group id into GlobalGroupId
+     * @param encodedId
+     * @return {@link GlobalGroupId}
+     */
+    public GlobalGroupId convertGlobalGroupId(String encodedId) {
+        int separators = FormatUtils.countOccurences(encodedId,
+                ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
+        if (separators != GLOBALGROUP_CODE_INDEX) {
+            throw new BadRequestException("Invalid global group id " + encodedId);
+        }
+        List<String> parts = Arrays.asList(
+                encodedId.split(String.valueOf(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR)));
+        String instance = parts.get(INSTANCE_INDEX);
+        String groupCode = parts.get(GLOBALGROUP_CODE_INDEX);
+        return GlobalGroupId.create(instance, groupCode);
     }
 }

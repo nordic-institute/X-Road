@@ -26,14 +26,17 @@ package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.ServiceClientConverter;
 import org.niis.xroad.restapi.converter.ServiceConverter;
+import org.niis.xroad.restapi.converter.SubjectConverter;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
+import org.niis.xroad.restapi.openapi.model.Subjects;
 import org.niis.xroad.restapi.service.ServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -42,6 +45,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -56,13 +60,15 @@ public class ServicesApiController implements ServicesApi {
     private final ServiceConverter serviceConverter;
     private final ServiceClientConverter serviceClientConverter;
     private final ServiceService serviceService;
+    private final SubjectConverter subjectConverter;
 
     @Autowired
     public ServicesApiController(ServiceConverter serviceConverter, ServiceClientConverter serviceClientConverter,
-            ServiceService serviceService) {
+            ServiceService serviceService, SubjectConverter subjectConverter) {
         this.serviceConverter = serviceConverter;
         this.serviceClientConverter = serviceClientConverter;
         this.serviceService = serviceService;
+        this.subjectConverter = subjectConverter;
     }
 
     @Override
@@ -103,5 +109,15 @@ public class ServicesApiController implements ServicesApi {
                 serviceService.getAccessRightHoldersByService(clientId, fullServiceCode);
         List<ServiceClient> serviceClients = serviceClientConverter.convertAccessRightHolderDtos(accessRightHolderDtos);
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
+    @Override
+    public ResponseEntity<Void> deleteServiceAccessRight(String encodedServiceId, Subjects subjects) {
+        ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
+        String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
+        List<XRoadId> xRoadIds = subjectConverter.convert(subjects.getItems());
+        serviceService.deleteServiceAccessRights(clientId, fullServiceCode, new HashSet<>(xRoadIds));
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
