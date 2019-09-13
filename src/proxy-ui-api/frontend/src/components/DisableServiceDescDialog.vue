@@ -4,7 +4,7 @@
     :title="$t('services.disableTitle')"
     @save="save"
     @cancel="cancel"
-    :saveButtonLabel="$t('action.ok')"
+    saveButtonLabel="action.ok"
   >
     <div slot="content">
       <div class="dlg-edit-row">
