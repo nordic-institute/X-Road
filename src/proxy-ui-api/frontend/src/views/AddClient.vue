@@ -11,7 +11,7 @@
     <v-stepper-items>
       <v-stepper-content step="1">
         <v-card class="mb-5" color="grey lighten-2" height="250px"></v-card>
-        <v-btn flat rounded @click="cancel">Cancel</v-btn>
+        <v-btn text rounded @click="cancel">Cancel</v-btn>
         <v-btn rounded color="primary" @click="e1 = 2">Continue</v-btn>
       </v-stepper-content>
 
@@ -24,7 +24,7 @@
 
       <v-stepper-content step="3">
         <v-card class="mb-5" color="grey lighten-2" height="250px"></v-card>
-        <v-btn flat rounded @click="cancel">Cancel</v-btn>
+        <v-btn text rounded @click="cancel">Cancel</v-btn>
         <v-btn rounded color="primary" @click="e1 = 2">Previous</v-btn>
         <v-btn rounded color="primary" @click="e1 = 1">Continue</v-btn>
       </v-stepper-content>
@@ -41,7 +41,7 @@ export default Vue.extend({
     e1: 0,
   }),
   methods: {
-    cancel() {
+    cancel(): void {
       this.$router.replace({ name: RouteName.Clients });
     },
   },
