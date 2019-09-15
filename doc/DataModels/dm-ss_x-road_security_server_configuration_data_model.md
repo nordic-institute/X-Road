@@ -75,9 +75,9 @@ Doc. ID: DM-SS
   * [2.17 SERVICEDESCRIPTION](#217-servicedescription)
     * [2.17.1 Indexes](#2171-indexes)
     * [2.17.2 Attributes](#2172-attributes)
-  * [2.18 ENDPOINT](#216-endpoint)
-    * [2.18.1 Indexes](#2161-indexes-1)
-    * [2.18.2 Attributes](#2162-attributes)
+  * [2.18 ENDPOINT](#218-endpoint)
+    * [2.18.1 Indexes](#2181-indexes)
+    * [2.18.2 Attributes](#2182-attributes)
 
 <!-- vim-markdown-toc -->
 
