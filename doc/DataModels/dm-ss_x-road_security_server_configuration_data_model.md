@@ -70,14 +70,14 @@ Doc. ID: DM-SS
   * [2.15 TSP](#215-tsp)
     * [2.15.1 Indexes](#2151-indexes)
     * [2.15.2 Attributes](#2152-attributes)
-  * [2.16UI UIUSER](#216ui-uiuser)
-    * [2.16UI.1 Attributes](#2161ui-attributes)
-  * [2.16 ENDPOINT](#216-endpoint)
-    * [2.16.1 Indexes](#2161-indexes-1)
-    * [2.16.2 Attributes](#2162-attributes)
+  * [2.16 UIUSER](#216ui-uiuser)
+    * [2.16.1 Attributes](#2161ui-attributes)
   * [2.17 SERVICEDESCRIPTION](#217-servicedescription)
     * [2.17.1 Indexes](#2171-indexes)
     * [2.17.2 Attributes](#2172-attributes)
+  * [2.18 ENDPOINT](#216-endpoint)
+    * [2.18.1 Indexes](#2161-indexes-1)
+    * [2.18.2 Attributes](#2162-attributes)
 
 <!-- vim-markdown-toc -->
 
@@ -415,11 +415,11 @@ Timestamping service provider (TSP) that is used by the security server to time-
 | name  | character varying(255) |  | The name of the TSP. Used for displaying in the user interface. |
 | url  | character varying(255) | NOT NULL | The URL of the TSP. The security server will send time-stamping request using HTTP POST method.  |
 
-### 2.16UI UIUSER
+### 2.16 UIUSER
 
 Preferences of the user interface user. A record is created when the user changes the user interface language for the first time. The record is modified on later changes to the language. The record is never deleted.
 
-#### 2.16UI.1 Attributes
+#### 2.16.1 Attributes
 
 | Name        | Type           | Modifiers   | Description      |
 |:----------- |:--------------:|:----------- |:-----------------|
@@ -449,16 +449,16 @@ Pointer to a SERVICEDESCRIPTION containing the descriptions of services provided
 | refresheddate | timestamp with time zone |   | The time when the SERVICEDESCRIPTION was last refreshed. |
 | type | character varying(255) | NOT NULL | The type of the service description. At the time of writing 'WSDL' and 'OPENAPI3' types are supported. |
 
-### 2.16 ENDPOINT
+### 2.18 ENDPOINT
 
-#### 2.16.1 Indexes
+#### 2.18.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
 | pk_endpoint | id                |
 | ix_endpoint (unique)| client_id, servicecode, method, path |
 
-#### 2.16.2 Attributes
+#### 2.18.2 Attributes
 
 | Name           | Type           | Modifiers   | Description     |
 |:-------------- |:--------------:|:----------- |:----------------|
