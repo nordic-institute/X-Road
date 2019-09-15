@@ -132,12 +132,14 @@ case "$1" in
       groupnames=$groups
   fi
 
-  for groupname in $groupnames
-  do
-      if ! getent group $groupname > /dev/null; then
-          addgroup --system --quiet  $groupname
+  usergroups=" $(id -Gn "$AUSER") "
+  for groupname in $groupnames; do
+      if ! getent group "$groupname" > /dev/null; then
+          groupadd --system "$groupname" || true
       fi
-      adduser $AUSER $groupname
+      if [[ $usergroups != *" $groupname "* ]]; then
+          usermod -a -G "$groupname" "$AUSER" || true
+      fi
   done
 
   #migrating possible local configuration for modified configuration values (for version 6.17.0)

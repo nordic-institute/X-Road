@@ -1553,7 +1553,7 @@ If it is absolutely necessary to restore the system from a backup made on a diff
 
 ### 13.3 Automatic Backups
 
-By default the Security Server backs up its configuration automatically once every day. Backups older than 30 days are automatically removed from the server. If needed, the automatic backup policies can be adjusted by editing the `/etc/cron.d/xroad-center` file.
+By default the Security Server backs up its configuration automatically once every day. Backups older than 30 days are automatically removed from the server. If needed, the automatic backup policies can be adjusted by editing the `/etc/cron.d/xroad-proxy` file.
 
 
 ## 14 Diagnostics

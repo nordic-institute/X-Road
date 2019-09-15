@@ -70,8 +70,11 @@ Doc. ID: DM-SS
   * [2.15 TSP](#215-tsp)
     * [2.15.1 Indexes](#2151-indexes)
     * [2.15.2 Attributes](#2152-attributes)
-  * [2.16 UIUSER](#216-uiuser)
-    * [2.16.1 Attributes](#2161-attributes)
+  * [2.16UI UIUSER](#216ui-uiuser)
+    * [2.16UI.1 Attributes](#2161ui-attributes)
+  * [2.16 ENDPOINT](#216-endpoint)
+    * [2.16.1 Indexes](#2161-indexes-1)
+    * [2.16.2 Attributes](#2162-attributes)
   * [2.17 SERVICEDESCRIPTION](#217-servicedescription)
     * [2.17.1 Indexes](#2171-indexes)
     * [2.17.2 Attributes](#2172-attributes)
@@ -140,12 +143,10 @@ Access right of a security server client or a group of clients to use a particul
 | Name        | Type           | Modifiers        | Description          |
 |:----------- |:--------------:|:----------------:|:--------------------|
 | id [PK]     | bigint         | NOT NULL         | Primary key          |
+| client_id [FK] | bigint         |         | The security server client who provides the service. References id attribute of CLIENT entity.          |
 | subjectid [FK]     | bigint         | NOT NULL         | Identifier of a subject that is authorized to access the service. Can be either a member, a subsystem, global group or local group. References id attribute of IDENTIFIER entity.          |
 | rightsgiven     | timestamp without time zone         | NOT NULL         | The time when the access right was granted.           |
-| servicecode | character varying(255) | NOT NULL | The service code part of the service identifier. |
-| method      | character varying(255) |          | The allowed HTTP method (REST services; NULL means ANY). |
-| path        | text                   |          | Allowed URL path (REST services; NULL means ANY). |
-| client_id [FK]     | bigint         |         | The security server client who provides the service. References id attribute of CLIENT entity.          |
+| endpoint_id [FK]     | bigint         |         | The authorized endpoint. References id attribute of ENDPOINT entity. |
 
 ### 2.2 APIKEY
 
@@ -414,11 +415,11 @@ Timestamping service provider (TSP) that is used by the security server to time-
 | name  | character varying(255) |  | The name of the TSP. Used for displaying in the user interface. |
 | url  | character varying(255) | NOT NULL | The URL of the TSP. The security server will send time-stamping request using HTTP POST method.  |
 
-### 2.16 UIUSER
+### 2.16UI UIUSER
 
 Preferences of the user interface user. A record is created when the user changes the user interface language for the first time. The record is modified on later changes to the language. The record is never deleted.
 
-#### 2.16.1 Attributes
+#### 2.16UI.1 Attributes
 
 | Name        | Type           | Modifiers   | Description      |
 |:----------- |:--------------:|:----------- |:-----------------|
@@ -447,3 +448,23 @@ Pointer to a SERVICEDESCRIPTION containing the descriptions of services provided
 | disablednotice | character varying(255) |   | The error message returned in response to a call to a service belonging to a disabled SERVICEDESCRIPTION. |
 | refresheddate | timestamp with time zone |   | The time when the SERVICEDESCRIPTION was last refreshed. |
 | type | character varying(255) | NOT NULL | The type of the service description. At the time of writing 'WSDL' and 'OPENAPI3' types are supported. |
+
+### 2.16 ENDPOINT
+
+#### 2.16.1 Indexes
+
+| Name        | Columns           |
+|:----------- |:-----------------:|
+| pk_endpoint | id                |
+| ix_endpoint (unique)| client_id, servicecode, method, path |
+
+#### 2.16.2 Attributes
+
+| Name           | Type           | Modifiers   | Description     |
+|:-------------- |:--------------:|:----------- |:----------------|
+| id [PK]        | bigint         | NOT NULL    | Primary key.    |
+| client_id [FK] | bigint         |         | The security server client who provides the service. References id attribute of CLIENT entity.          |
+| servicecode    | character varying(255)  | NOT NULL | The service code part of the service identifier. |
+| method         | character varying(255)  | NOT NULL | The allowed HTTP method (REST services) |
+| path           | character varying(2048) | NOT NULL | Allowed URL path (REST services) |
+| generated      | boolean        | NOT NULL | Is the endpoint automatically generated (true) or manually added (false) |
