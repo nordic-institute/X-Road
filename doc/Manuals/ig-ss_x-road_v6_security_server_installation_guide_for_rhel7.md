@@ -191,6 +191,7 @@ To install the X-Road security server software on *RHEL7* operating system, foll
         
     Edit /etc/xroad/db.properties contents. See the example below. Replace parameter values with your own.
 
+        postgres.connection.password = 54F46A19E50C11DA8631468CF09BE5DB
         serverconf.hibernate.connection.url = jdbc:postgresql://database-1.cuvgtltu8dqq.eu-west-1.rds.amazonaws.com:5432/serverconf
         serverconf.hibernate.connection.username = serverconf
         serverconf.hibernate.connection.password = H1nGmB3uqtU7IJ82qqEaMaH2ozXBBkh0
@@ -200,10 +201,6 @@ To install the X-Road security server software on *RHEL7* operating system, foll
         messagelog.hibernate.connection.url = jdbc:postgresql://database-1.cuvgtltu8dqq.eu-west-1.rds.amazonaws.com:5432/messagelog
         messagelog.hibernate.connection.username = messagelog
         messagelog.hibernate.connection.password = 1wmJ-bK39nbA4EYcTS9MgdjyJewPpf_w
-
-    Configure the remote database server's master password (user postgres) using an environment variable. Replace the value with your own.
-
-        export PGPASSWORD=mypassword
 
     In case remote database is used, one should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
 

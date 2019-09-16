@@ -74,9 +74,8 @@ configure_remote_postgres() {
 
     echo "configure remote db"
 
-    if [[ -z "${PGPASSWORD}" ]]; then
-        echo "PGPASSWORD is empty"
-    fi
+    master_pw=`crudini --get ${db_properties} '' postgres.connection.password`
+    export PGPASSWORD=${master_passwd}
 
     if  ! psql -h $db_addr -p $db_port -U postgres --list -tAF ' ' | grep template1 | awk '{print $3}' | grep -q "UTF8"
     then echo -e "\n\npostgreSQL is not UTF8 compatible."
