@@ -236,7 +236,7 @@ public class ServiceService {
 
             List<String> redundantSubjects = subjectIds
                     .stream()
-                    .map(XRoadId::toShortString)
+                    .map(FormatUtils::xRoadIdToEncodedId)
                     .collect(Collectors.toList());
             throw new BadRequestException(new Error(ERROR_ACCESSRIGHT_NOT_FOUND, redundantSubjects));
         }

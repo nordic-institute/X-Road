@@ -339,8 +339,8 @@ public class ServicesApiControllerIntegrationTest {
             servicesApiController.deleteServiceAccessRight(SS1_GET_RANDOM, subjects).getBody();
         } catch (BadRequestException expected) {
             assertEquals(ServiceService.ERROR_ACCESSRIGHT_NOT_FOUND, expected.getError().getCode());
-            assertTrue(expected.getError().getMetadata().contains(SS3_CLIENT_ID.replace(":", "/")));
-            assertTrue(expected.getError().getMetadata().contains(SS4_CLIENT_ID.replace(":", "/")));
+            assertTrue(expected.getError().getMetadata().contains(SS3_CLIENT_ID));
+            assertTrue(expected.getError().getMetadata().contains(SS4_CLIENT_ID));
         }
     }
 }
