@@ -266,7 +266,8 @@ public class ServicesApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
+            "VIEW_CLIENT_SERVICES" })
     public void deleteServiceAccessRights() {
         List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
         assertEquals(3, serviceClients.size());
@@ -280,7 +281,8 @@ public class ServicesApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
+            "VIEW_CLIENT_SERVICES" })
     public void deleteMultipleServiceAccessRights() {
         List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
         assertEquals(3, serviceClients.size());
@@ -295,7 +297,8 @@ public class ServicesApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
+            "VIEW_CLIENT_SERVICES" })
     public void deleteMultipleSameServiceAccessRights() {
         List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
         assertEquals(3, serviceClients.size());
@@ -310,7 +313,8 @@ public class ServicesApiControllerIntegrationTest {
     }
 
     @Test(expected = BadRequestException.class)
-    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
+            "VIEW_CLIENT_SERVICES" })
     public void deleteServiceAccessRightsWrongType() {
         List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
         assertEquals(3, serviceClients.size());
@@ -321,7 +325,8 @@ public class ServicesApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
+            "VIEW_CLIENT_SERVICES" })
     public void deleteServiceAccessRightsWithRedundantSubjects() {
         List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
         assertEquals(3, serviceClients.size());
