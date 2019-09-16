@@ -50,10 +50,7 @@ service nginx restart
 service xroad-signer restart
 
 # disable confclient start
-if [ "$(lsb_release -sc)" = "trusty" ]; then
-  echo manual > /etc/init/xroad-confclient.override
-  service xroad-confclient stop
-else [ "$(lsb_release -sc)" = "bionic" ]
+if [ "$(lsb_release -sc)" = "bionic" ]; then
   systemctl stop xroad-confclient
   systemctl disable xroad-confclient
 fi
