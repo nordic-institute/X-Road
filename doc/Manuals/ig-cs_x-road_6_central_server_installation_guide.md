@@ -1,6 +1,6 @@
 # X-Road: Central Server Installation Guide
 
-Version: 2.10
+Version: 2.11
 Doc. ID: IG-CS
 
 ---
@@ -28,6 +28,7 @@ Doc. ID: IG-CS
 | 14.10.2018 | 2.8     | Update package repository address | Petteri Kivimäki |
 | 15.11.2018 | 2.9     | Add Ubuntu 18.04 installation instructions | Jarkko Hyöty |
 | 05.02.2019 | 2.10    | Update ports | Jarkko Hyöty |
+| 04.09.2019 | 2.11    | Update ports | Petteri Kivimäki |
  
 ## Table of Contents
 
@@ -110,7 +111,7 @@ Caution: Data necessary for the functioning of the operating system is not inclu
 | 1.3  |  | Account name in the user interface |
 | 1.4  | TCP 4001 service for authentication certificate registration<br>TCP 80 distribution of the global configuration | Ports for inbound connections (from the external network to the central server) |
 | 1.4.1| TCP 4002 management services | Port for inbound connections from the management security server |
-| 1.5  | TCP 80 software updates | Ports for outbound connections (from the central server to the external network) |
+| 1.5  | TCP 80, 443 software updates | Ports for outbound connections (from the central server to the external network) |
 | 1.6  | TCP 80 HTTP between the central server and the management services' security server<br>TCP 4000 user interface<br>TCP 4001 HTTPS between the central server and the management services' security server<br>TCP 4400 HTTP between central server and management services' security server | Internal network ports, the user interface port, and management service ports for the management services' security server |
 | 1.7  |  | central server internal IP address(es) and hostname(s) |
 | 1.8  |  | central server public IP address, NAT address |

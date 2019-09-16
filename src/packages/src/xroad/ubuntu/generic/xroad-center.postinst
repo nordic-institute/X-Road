@@ -59,12 +59,15 @@ case "$1" in
 
     #add groups
     groups="xroad-security-officer xroad-system-administrator xroad-registration-officer"
-    for groupname in $groups
-    do
-      if ! getent group $groupname > /dev/null; then
-        addgroup --system --quiet  $groupname
-      fi
-        adduser $AUSER $groupname
+
+    usergroups=" $(id -Gn "$AUSER") "
+    for groupname in $groups; do
+        if ! getent group "$groupname" > /dev/null; then
+            groupadd --system "$groupname" || true
+        fi
+        if [[ $usergroups != *" $groupname "* ]]; then
+            usermod -a -G "$groupname" "$AUSER" || true
+        fi
     done
 
     #mkdir -p  /var/lib/xroad/public
