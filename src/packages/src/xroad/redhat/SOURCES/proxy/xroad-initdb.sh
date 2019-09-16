@@ -74,7 +74,7 @@ configure_remote_postgres() {
 
     echo "configure remote db"
 
-    master_pw=`crudini --get ${db_properties} '' postgres.connection.password`
+    master_passwd=`crudini --get ${db_properties} '' postgres.connection.password`
     export PGPASSWORD=${master_passwd}
 
     if  ! psql -h $db_addr -p $db_port -U postgres --list -tAF ' ' | grep template1 | awk '{print $3}' | grep -q "UTF8"

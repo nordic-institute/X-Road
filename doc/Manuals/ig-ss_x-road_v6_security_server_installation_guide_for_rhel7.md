@@ -184,7 +184,7 @@ To install the X-Road security server software on *RHEL7* operating system, foll
         sudo useradd xroad
         sudo mkdir /etc/xroad
         sudo chown xroad:xroad /etc/xroad
-        sudo chmod 751 xroad
+        sudo chmod 751 /etc/xroad
         sudo touch /etc/xroad/db.properties
         sudo chown xroad:xroad /etc/xroad/db.properties
         sudo chmod 640 /etc/xroad/db.properties
