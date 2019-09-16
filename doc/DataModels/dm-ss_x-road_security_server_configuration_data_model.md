@@ -1,6 +1,6 @@
 # X-Road: Security Server Configuration Data Model
 
-Version: 1.4  
+Version: 1.5  
 Doc. ID: DM-SS
 
 ## Version history
@@ -15,6 +15,7 @@ Doc. ID: DM-SS
 | 11.12.2015 | 1.2     | Small fixes                                             | Siim Annuk         |
 | 28.01.2019 | 1.3     | Wsdl changes to servicedescription. Document converted to Markdown.  | Ilkka Seppälä      |
 | 04.07.2019 | 1.4     | REST access rights                                      | Jarkko Hyöty |
+| 16.09.2019 | 1.5     | Remove Ubuntu 14.04 support                             | Jarkko Hyöty |
 
 
 ## Table of Contents
@@ -87,7 +88,7 @@ This document describes database model of X-Road security server.
 
 ### 1.2 Database Version
 
-This database assumes PostgreSQL version 9.3. Ubuntu 14.04/18.04 and RHEL7 default settings are used.
+This database assumes PostgreSQL version 9.2 or later. Ubuntu 18.04 and RHEL7 default settings are used.
 
 ### 1.3 Creating, Backing Up and Restoring the Database
 
