@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Subject;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -57,10 +58,24 @@ public class SubjectConverter {
      */
     public XRoadId convert(Subject subject) {
         XRoadObjectType subjectType = SubjectTypeMapping.map(subject.getSubjectType()).get();
+        String encodedId = subject.getId();
+        int separators;
         XRoadId xRoadId;
         switch (subjectType) {
             case MEMBER:
+                separators = FormatUtils.countOccurences(encodedId,
+                        ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
+                if (separators != ClientConverter.MEMBER_CODE_INDEX) {
+                    throw new BadRequestException("Invalid member id " + encodedId);
+                }
+                xRoadId = clientConverter.convertId(subject.getId());
+                break;
             case SUBSYSTEM:
+                separators = FormatUtils.countOccurences(encodedId,
+                        ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
+                if (separators != ClientConverter.SUBSYSTEM_CODE_INDEX) {
+                    throw new BadRequestException("Invalid subsystem id " + encodedId);
+                }
                 xRoadId = clientConverter.convertId(subject.getId());
                 break;
             case GLOBALGROUP:

@@ -324,6 +324,18 @@ public class ServicesApiControllerIntegrationTest {
         servicesApiController.deleteServiceAccessRight(SS1_GET_RANDOM, subjects).getBody();
     }
 
+    @Test(expected = BadRequestException.class)
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
+            "VIEW_CLIENT_SERVICES" })
+    public void deleteServiceAccessRightsWrongTypeMember() {
+        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
+        assertEquals(3, serviceClients.size());
+
+        Subjects subjects = new Subjects()
+                .addItemsItem(new Subject().id(SS2_CLIENT_ID).subjectType(SubjectType.MEMBER));
+        servicesApiController.deleteServiceAccessRight(SS1_GET_RANDOM, subjects).getBody();
+    }
+
     @Test
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
             "VIEW_CLIENT_SERVICES" })
@@ -332,9 +344,9 @@ public class ServicesApiControllerIntegrationTest {
         assertEquals(3, serviceClients.size());
 
         Subjects subjects = new Subjects()
-                .addItemsItem(new Subject().id(SS2_CLIENT_ID).subjectType(SubjectType.MEMBER))
-                .addItemsItem(new Subject().id(SS3_CLIENT_ID).subjectType(SubjectType.MEMBER))
-                .addItemsItem(new Subject().id(SS4_CLIENT_ID).subjectType(SubjectType.MEMBER));
+                .addItemsItem(new Subject().id(SS2_CLIENT_ID).subjectType(SubjectType.SUBSYSTEM))
+                .addItemsItem(new Subject().id(SS3_CLIENT_ID).subjectType(SubjectType.SUBSYSTEM))
+                .addItemsItem(new Subject().id(SS4_CLIENT_ID).subjectType(SubjectType.SUBSYSTEM));
         try {
             servicesApiController.deleteServiceAccessRight(SS1_GET_RANDOM, subjects).getBody();
         } catch (BadRequestException expected) {
