@@ -53,6 +53,7 @@ public class SecurityServersApiController implements SecurityServersApi {
     /**
      * Constructor
      * @param globalConfService
+     * @param securityServerConverter
      */
     @Autowired
     public SecurityServersApiController(GlobalConfService globalConfService,

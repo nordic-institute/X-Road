@@ -97,11 +97,11 @@ public class ServiceConverter {
      * @return
      */
     public String convertId(ServiceType serviceType, ClientId clientId) {
-        StringBuffer buffer = new StringBuffer();
-        buffer.append(clientConverter.convertId(clientId));
-        buffer.append(ENCODED_ID_SEPARATOR);
-        buffer.append(FormatUtils.getServiceFullName(serviceType));
-        return buffer.toString();
+        StringBuilder builder = new StringBuilder();
+        builder.append(clientConverter.convertId(clientId));
+        builder.append(ENCODED_ID_SEPARATOR);
+        builder.append(FormatUtils.getServiceFullName(serviceType));
+        return builder.toString();
     }
 
     /**

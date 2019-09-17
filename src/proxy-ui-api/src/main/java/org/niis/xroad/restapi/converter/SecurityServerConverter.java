@@ -84,11 +84,11 @@ public class SecurityServerConverter {
      */
     public String convertId(SecurityServerId securityServerId) {
         ClientId ownerId = securityServerId.getOwner();
-        StringBuffer buffer = new StringBuffer();
-        buffer.append(clientConverter.convertId(ownerId));
-        buffer.append(ENCODED_ID_SEPARATOR);
-        buffer.append(securityServerId.getServerCode());
-        return buffer.toString();
+        StringBuilder builder = new StringBuilder();
+        builder.append(clientConverter.convertId(ownerId));
+        builder.append(ENCODED_ID_SEPARATOR);
+        builder.append(securityServerId.getServerCode());
+        return builder.toString();
     }
 
     /**
