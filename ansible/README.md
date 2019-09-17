@@ -53,11 +53,10 @@ While it is possible to define different variants for different security servers
 Playbook `xroad_init.yml` uses package repositories for X-Road installations.
 The default repository configurations are:
 
-* for Ubuntu 14 DEB-packages `deb https://artifactory.niis.org/xroad-release-deb trusty-current main`
 * for Ubuntu 18 DEB-packages `deb https://artifactory.niis.org/xroad-release-deb bionic-current main`
 * for RHEL-packages `https://artifactory.niis.org/xroad-release-rpm/rhel/7/current`.
 
-The used repository can be configured in `vars_files/remote_repo.yml`. The file contains repository and key variables for RHEL, Ubuntu 14 and Ubuntu 18.
+The used repository can be configured in `vars_files/remote_repo.yml`. The file contains repository and key variables for RHEL and Ubuntu 18.
 
 #### Additional variables
 
@@ -179,7 +178,7 @@ ansible-playbook  -i hosts/lxd_hosts.txt xroad_dev_partial.yml -e selected_modul
 
 #### Controlling the LXD operating system versions
 
-By default `xroad_dev.yml` creates Ubuntu 18 and CentOS 7 containers. It is also possible to configure it to create other versions of operating systems. To do this, in `groups_vars/all/vars.yml` set variables `centos_releasever` and `ubuntu_releasever`. Out of the box there is support for CentOS 7, Ubuntu 14 and Ubuntu 18. Other versions may need additional tweaking of the Ansible scripts.
+By default `xroad_dev.yml` creates Ubuntu 18 and CentOS 7 containers. It is also possible to configure it to create other versions of operating systems. To do this, in `groups_vars/all/vars.yml` set variables `centos_releasever` and `ubuntu_releasever`. Out of the box there is support for CentOS 7 and Ubuntu 18. Other versions may need additional tweaking of the Ansible scripts.
 
 ## 5. Test CA, TSA, and OCSP
 
