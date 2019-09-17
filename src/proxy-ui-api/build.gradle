@@ -5,7 +5,7 @@ buildscript {
         nodePluginVersion = '1.3.1'
         nodeVersion = '10.16.1'
         npmVersion = '6.9.0'
-        springCloudSleuthVersion = '2.1.2.RELEASE';
+        springCloudSleuthVersion = '2.1.3.RELEASE'
     }
     repositories {
         mavenCentral()
