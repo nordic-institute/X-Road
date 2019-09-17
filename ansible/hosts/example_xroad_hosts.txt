@@ -29,3 +29,5 @@ ca-servers
 
 [ss-servers:vars]
 variant=vanilla
+# extra locales to enable on Ubuntu servers
+# extra_locales=['fi_FI.UTF-8', 'is_IS.UTF-8']
