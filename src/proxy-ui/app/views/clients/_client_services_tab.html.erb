@@ -88,7 +88,8 @@
       <tr>
         <td><%= t '.http_request_method' %></td>
         <td><%= select_tag "endpoint_method", raw("
-            <option value='GET'>GET</option>
+                <option value='*'>ALL</option>
+                <option value='GET'>GET</option>
               <option value='POST'>POST</option>
               <option value='PUT'>PUT</option>
               <option value='DELETE'>DELETE</option>
@@ -171,6 +172,7 @@
       <tr>
         <td><%= t '.http_request_method' %></td>
         <td><%= select_tag "endpoint_method", raw("
+                <option value='*'>ALL</option>
                 <option value='GET'>GET</option>
                   <option value='POST'>POST</option>
                   <option value='PUT'>PUT</option>

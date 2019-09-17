@@ -263,9 +263,13 @@
 
     function populateACLServiceEndpoints(data) {
         var endpointSelect = $("#service_acl_dialog #endpoint").html("");
+
         data.forEach( function (endpoint) {
+            var isAllType = (endpoint.method === '*' && endpoint.path === '**');
+            var optionValue = isAllType ? "ALL" : endpoint.method + " " + endpoint.path;
             endpointSelect.append("<option value='" + endpoint.method + ":" + endpoint.path + "'>"
-                + endpoint.method + " " + endpoint.path + "</option>");
+                +  optionValue + "</option>");
+
         });
     }
 
