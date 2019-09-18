@@ -5,7 +5,7 @@ HOST=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection
 PORT=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.url | cut -d '/' -f 3 | cut -d ':' -f2)
 MASTER_PW=$(crudini --get /etc/xroad/db.properties '' postgres.connection.password)
 
-if [[ "${db_host}" == "localhost"* || "${db_host}" == "127.0.0.1"* ]]; then
+if [[ "${HOST}" == "localhost"* || "${HOST}" == "127.0.0.1"* ]]; then
 
 cat << EOC | su - postgres -c "psql -p ${PORT:-5432} postgres"
 DROP DATABASE IF EXISTS serverconf_restore;
