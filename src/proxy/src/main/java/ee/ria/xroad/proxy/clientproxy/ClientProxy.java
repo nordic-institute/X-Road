@@ -45,11 +45,12 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.Slf4jRequestLog;
+import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
@@ -207,7 +208,7 @@ public class ClientProxy implements StartStop {
     private void createClientHttpsConnector(String hostname, int port) throws Exception {
         log.trace("createClientHttpsConnector({}, {})", hostname, port);
 
-        SslContextFactory cf = new SslContextFactory(false);
+        SslContextFactory.Server cf = new SslContextFactory.Server();
         // Note: Don't use restricted chiper suites
         // (SystemProperties.getXroadTLSCipherSuites()) between client IS and
         // client proxy.
@@ -229,7 +230,6 @@ public class ClientProxy implements StartStop {
         connector.setHost(hostname);
         connector.setPort(port);
 
-        connector.setSoLingerTime(CONNECTOR_SO_LINGER_MILLIS);
         connector.setIdleTimeout(SystemProperties.getClientProxyConnectorInitialIdleTime());
 
         disableSendServerVersion(connector);
@@ -248,9 +248,9 @@ public class ClientProxy implements StartStop {
     private void createHandlers() throws Exception {
         log.trace("createHandlers()");
 
-        final Slf4jRequestLog reqLog = new Slf4jRequestLog();
-        reqLog.setLoggerName(getClass().getPackage().getName() + ".RequestLog");
-        reqLog.setExtended(true);
+        final Slf4jRequestLogWriter writer = new Slf4jRequestLogWriter();
+        writer.setLoggerName(getClass().getPackage().getName() + ".RequestLog");
+        final CustomRequestLog reqLog = new CustomRequestLog(writer, CustomRequestLog.EXTENDED_NCSA_FORMAT);
 
         RequestLogHandler logHandler = new RequestLogHandler();
         logHandler.setRequestLog(reqLog);

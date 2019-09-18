@@ -1,6 +1,5 @@
 ---
 package_source: "local"
-ubuntu_14_apt_repo: "deb file:///xroad /"
 ubuntu_18_apt_repo: "deb [allow-insecure=yes] file:///xroad /"
 
 rhel_repo_baseurl: "file:///xroad/local"

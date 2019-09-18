@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 1.3  
+Version: 1.4  
 Doc. ID: IG-SS-RHEL7
 
 ---
@@ -19,7 +19,8 @@ Doc. ID: IG-SS-RHEL7
  25.10.2018 | 1.0     | Initial version                                                 | Petteri Kivimäki
  16.11.2018 | 1.1     | Update link to Ubuntu installation guide                        | Jarkko Hyöty
  28.01.2018 | 1.2     | Update port 2080 documentation                                  | Petteri Kivimäki
- 12.09.2019 | 1.3     | Add instruction for remote database usage                       | Ilkka Seppälä
+ 11.09.2019 | 1.3     | Remove Ubuntu 14.04 from supported platforms                    | Jarkko Hyöty
+ 12.09.2019 | 1.4     | Add instruction for remote database usage                       | Ilkka Seppälä
  
 ## Table of Contents <!-- omit in toc -->
 
@@ -80,7 +81,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 The security server runs on the following platforms:
 
 * Red Hat Enterprise Linux 7.3 (RHEL7) or newer operating system on a 64-bit platform. The security server software is distributed as .rpm packages through the official X-Road repository at https://artifactory.niis.org/xroad-release-rpm/
-* Ubuntu Server 14.04 and 18.04 Long-Term Support (LTS) operating system. See [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md) for more information.
+* Ubuntu Server 18.04 Long-Term Support (LTS) operating system. See [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md) for more information.
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
