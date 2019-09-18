@@ -20,7 +20,7 @@
                 {
                     text: _("common.close"),
                     click: function() {
-                        SERVICES.updateSubjectsCount(oSubjects.fnGetData().length);
+                        SERVICES.updateSubjectsCount();
                         $(this).dialog("close");
                     }
                 },

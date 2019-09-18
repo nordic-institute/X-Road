@@ -757,11 +757,15 @@
         }, "json");
     };
 
-    SERVICES.updateSubjectsCount = function(subjectsCount) {
-        var serviceData = oServices.getFocusData();
-        serviceData.subjects_count = subjectsCount;
-
-        oServices.fnUpdate(serviceData, oServices.getFocus(), undefined);
+    SERVICES.updateSubjectsCount = function() {
+        var params = {
+            client_id: $("#details_client_id").val()
+        };
+        $.get(action("client_services"), params, function(response) {
+            oServices.fnClearTable();
+            oServices.fnAddData(response.data);
+            enableActions();
+        }, "json");
     };
 
 }(window.SERVICES = window.SERVICES || {}, jQuery));
