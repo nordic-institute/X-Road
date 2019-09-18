@@ -109,7 +109,6 @@
     "serviceCode": "Service Code",
     "url": "URL",
     "timeout": "Timeout",
-    "accessRights": "Access Rights",
     "deleteTitle": "Delete service description?",
     "deleteWsdlText": "Are you sure that you want to delete this WSDL?",
     "deleteRestText": "Are you sure that you want to delete this REST?",
@@ -122,11 +121,26 @@
     "restDetails": "REST details",
     "wsdlDetails": "WSDL details",
     "wsdlRefreshed": "WSDL refreshed",
+    "editUrl": "Edit URL",
+    "editServiceCode": "Edit service code",
+    "serviceUrl": "Service URL",
+    "applyToAll": "Apply to all in WSDL",
+    "serviceParameters": "Service Parameters",
+    "urlTooltip": "The URL where requests targeted at the service are directed",
+    "timeoutSec": "Timeout (s)",
+    "timeoutTooltip": "The maximum duration of a request to the service, in seconds",
+    "verifyTls": "Verify TLS certificate",
+    "tlsTooltip": "Verify TLS certificate when a secure connection is established",
     "clients": {
       "deleting_services": "Deleting services:",
       "adding_services": "Adding services:",
       "wsdl_validation_warnings": "Validation warnings:"
     }
+  },
+  "access": {
+    "accessRights": "Access Rights",
+    "addSubjects": "Add subjects",
+    "addSubjectsTitle": "Add Subjects"
   },
   "action": {
     "addSubsystem": "add subsystem",

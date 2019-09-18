@@ -21,10 +21,11 @@ import LocalGroup from '@/views/LocalGroup.vue';
 import Services from '@/components/Services.vue';
 import ServiceClients from '@/components/ServiceClients.vue';
 import ServiceDescriptionDetails from '@/views/ServiceDescriptionDetails.vue';
+import Service from '@/views/Service.vue';
 import store from './store';
 import { RouteName, Permissions } from '@/global';
 
-Vue.use(Router);
+
 
 const router = new Router({
   routes: [
@@ -181,6 +182,14 @@ const router = new Router({
           path: '/services/details/:id',
           components: {
             default: ServiceDescriptionDetails,
+          },
+          props: { default: true },
+        },
+        {
+          name: RouteName.Service,
+          path: '/service/:serviceId',
+          components: {
+            default: Service,
           },
           props: { default: true },
         },

@@ -85,7 +85,7 @@ export default Vue.extend({
 }
 
 // Set the app background color
-.theme--light.application.xrd-app {
+.theme--light.v-application.xrd-app {
   background: white;
 }
 </style>

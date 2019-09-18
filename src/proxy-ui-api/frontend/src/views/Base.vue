@@ -20,7 +20,7 @@
           <v-spacer></v-spacer>
           <v-btn
             color="primary"
-            round
+            rounded
             dark
             class="mb-2 rounded-button elevation-0"
             @click="closeLogoutDialog()"
