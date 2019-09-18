@@ -33,7 +33,7 @@ export PGPASSWORD=${MASTER_PW}
 echo "DROP DATABASE IF EXISTS serverconf_restore;" | psql -h ${HOST:-localhost} -p ${PORT:-5432} -U postgres postgres
 echo "DROP DATABASE IF EXISTS serverconf_backup;" | psql -h ${HOST:-localhost} -p ${PORT:-5432} -U postgres postgres
 echo "CREATE DATABASE serverconf_restore ENCODING 'UTF-8';" | psql -h ${HOST:-localhost} -p ${PORT:-5432} -U postgres postgres
-psql -h ${HOST:-localhost} -p ${PORT:-5432} -U postgres serverconf -tAc "CREATE EXTENSION IF NOT EXISTS hstore;"
+echo "CREATE EXTENSION IF NOT EXISTS hstore;" | psql -h ${HOST:-localhost} -p ${PORT:-5432} -U postgres serverconf_restore
 
 PW=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.password)
 USER=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.username)
