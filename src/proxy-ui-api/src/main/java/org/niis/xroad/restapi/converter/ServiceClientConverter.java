@@ -47,14 +47,16 @@ public class ServiceClientConverter {
 
     private final GlobalConfService globalConfService;
     private final ClientConverter clientConverter;
-    private final GroupConverter groupConverter;
+    private final LocalGroupConverter localGroupConverter;
+    private final GlobalGroupConverter globalGroupConverter;
 
     @Autowired
-    public ServiceClientConverter(GlobalConfService globalConfService,
-            ClientConverter clientConverter, GroupConverter groupConverter) {
+    public ServiceClientConverter(GlobalConfService globalConfService, ClientConverter clientConverter,
+            LocalGroupConverter localGroupConverter, GlobalGroupConverter globalGroupConverter) {
         this.globalConfService = globalConfService;
         this.clientConverter = clientConverter;
-        this.groupConverter = groupConverter;
+        this.localGroupConverter = localGroupConverter;
+        this.globalGroupConverter = globalGroupConverter;
     }
 
     /**
@@ -80,13 +82,13 @@ public class ServiceClientConverter {
             case GLOBALGROUP:
                 GlobalGroupId globalGroupId = (GlobalGroupId) subjectId;
                 serviceClient.setName(globalConfService.getGlobalGroupDescription(globalGroupId));
-                serviceClient.setId(groupConverter.convertId(globalGroupId));
+                serviceClient.setId(globalGroupConverter.convertId(globalGroupId));
                 serviceClient.setSubjectType(SubjectTypeMapping.map(globalGroupId.getObjectType()).get());
                 break;
             case LOCALGROUP:
                 LocalGroupId localGroupId = (LocalGroupId) subjectId;
                 serviceClient.setName(accessRightHolderDto.getLocalGroupDescMap().get(localGroupId.getGroupCode()));
-                serviceClient.setId(groupConverter.convertId(localGroupId));
+                serviceClient.setId(localGroupConverter.convertId(localGroupId));
                 serviceClient.setSubjectType(SubjectTypeMapping.map(localGroupId.getObjectType()).get());
                 break;
             default:

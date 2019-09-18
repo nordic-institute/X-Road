@@ -31,7 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.openapi.model.Group;
+import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -41,15 +41,15 @@ import java.util.Date;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Test GroupConverter
+ * Test LocalGroupConverter
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class GroupConverterTest {
+public class LocalGroupConverterTest {
 
     public static final String MEMBER_NAME_PREFIX = "member-name-for-";
 
-    private GroupConverter groupConverter;
+    private LocalGroupConverter localGroupConverter;
     private ClientConverter clientConverter;
 
     @Before
@@ -61,7 +61,7 @@ public class GroupConverterTest {
             }
         };
         clientConverter = new ClientConverter(globalConfService);
-        groupConverter = new GroupConverter(clientConverter, globalConfService);
+        localGroupConverter = new LocalGroupConverter(clientConverter, globalConfService);
     }
 
     @Test
@@ -80,7 +80,7 @@ public class GroupConverterTest {
         localGroupType.setUpdated(new Date());
         localGroupType.getGroupMember().add(groupMemberType);
 
-        Group group = groupConverter.convert(localGroupType);
+        LocalGroup group = localGroupConverter.convert(localGroupType);
 
         assertEquals(1, group.getMembers().size());
     }
@@ -94,9 +94,9 @@ public class GroupConverterTest {
         localGroupType.setGroupCode("Local Group Code 1");
         localGroupType.setUpdated(new Date());
 
-        groupConverter.convert(localGroupType);
+        localGroupConverter.convert(localGroupType);
 
-        Group group = groupConverter.convert(localGroupType);
+        LocalGroup group = localGroupConverter.convert(localGroupType);
 
         assertEquals(0, group.getMembers().size());
     }

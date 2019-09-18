@@ -107,7 +107,7 @@ export default Vue.extend({
 
     fetchGroups(id: string): void {
       axios
-        .get(`/clients/${id}/groups`)
+        .get(`/clients/${id}/local-groups`)
         .then((res) => {
           this.groups = res.data;
         })
