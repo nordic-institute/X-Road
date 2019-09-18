@@ -146,11 +146,11 @@
       <tr>
         <td><%= t '.url_type' %></td>
         <td>
-          <%= radio_button_tag "service_type", "OPENAPI3", true, :style => "width: auto", :disabled => true %>
+          <%= radio_button_tag "service_type", "OPENAPI3", :style => "width: 90%", :disabled => true %>
           <%= label_tag "service_type_OPENAPI3", t('.rest_api_base_path') %>
         </td>
         <td>
-          <%= radio_button_tag "service_type", "OPENAPI3_DESCRIPTION", false, :style => "width: auto", :disabled => true %>
+          <%= radio_button_tag "service_type", "OPENAPI3_DESCRIPTION", :style => "width: 90%", :disabled => true %>
           <%= label_tag "service_type_OPENAPI3_DESCRIPTION", t('.openapi3_description') %>
         </td>
       </tr>

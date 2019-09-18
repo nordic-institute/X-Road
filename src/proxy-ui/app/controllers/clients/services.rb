@@ -730,6 +730,7 @@ module Clients::Services
         :last_refreshed => format_time(servicedescription.refreshedDate),
         :disabled => servicedescription.disabled,
         :disabled_notice => servicedescription.disabledNotice,
+        :service_type => servicedescription.type == DescriptionType::OPENAPI3 ? 'OPENAPI3' : 'OPENAPI3_DESCRIPTION',
         :openapi3_service_code => DescriptionType::OPENAPI3 == servicedescription.type || DescriptionType::OPENAPI3_DESCRIPTION == servicedescription.type ? servicedescription.service.first.serviceCode : nil
       }
 
