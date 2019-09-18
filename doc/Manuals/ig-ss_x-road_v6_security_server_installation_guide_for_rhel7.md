@@ -256,7 +256,7 @@ To stop the local PostgreSQL server
 
 To disable the local PostgreSQL server so that it does not start automatically when the server is rebooted.
 
-`systemctl disable postgresql`
+`systemctl mask postgresql`
 
 
 ## 3 Security Server Initial Configuration
