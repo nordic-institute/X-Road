@@ -29,10 +29,12 @@ then
     db_passwd=`crudini --get ${db_properties} '' messagelog.hibernate.connection.password`
 
 else
-    echo "no db settings detected, creating local db"
+    echo "no db settings detected, creating db"
 
     # If the database host is not local, connect with master username and password
     if [[ "${db_host}" == "localhost"* || "${db_host}" == "127.0.0.1"* ]]; then
+
+      echo "local database"
 
       if ! su - postgres -c "psql --list -tAF ' '" | grep template1 | awk '{print $3}' | grep -q "UTF8"
        then

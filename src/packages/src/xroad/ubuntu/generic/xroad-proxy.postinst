@@ -72,6 +72,8 @@ case "$1" in
     # If the database host is not local, connect with master username and password
     if [[ "${db_host}" == "localhost"* || "${db_host}" == "127.0.0.1"* ]]; then
 
+      echo "local database"
+
       if  ! su - postgres -c "psql --list -tAF ' '" | grep template1 | awk '{print $3}' | grep -q "UTF8"
        then echo -e "\n\npostgreSQL is not UTF8 compatible."
         echo -e "Aborting installation! please fix issues and rerun with apt-get -f install\n\n"
