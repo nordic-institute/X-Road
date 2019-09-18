@@ -68,7 +68,7 @@ public class SubjectConverter {
                 if (separators != ClientConverter.MEMBER_CODE_INDEX) {
                     throw new BadRequestException("Invalid member id " + encodedId);
                 }
-                xRoadId = clientConverter.convertId(subject.getId());
+                xRoadId = clientConverter.convertId(encodedId);
                 break;
             case SUBSYSTEM:
                 separators = FormatUtils.countOccurences(encodedId,
@@ -76,13 +76,13 @@ public class SubjectConverter {
                 if (separators != ClientConverter.SUBSYSTEM_CODE_INDEX) {
                     throw new BadRequestException("Invalid subsystem id " + encodedId);
                 }
-                xRoadId = clientConverter.convertId(subject.getId());
+                xRoadId = clientConverter.convertId(encodedId);
                 break;
             case GLOBALGROUP:
-                xRoadId = groupConverter.convertGlobalGroupId(subject.getId());
+                xRoadId = groupConverter.convertGlobalGroupId(encodedId);
                 break;
             case LOCALGROUP:
-                xRoadId = LocalGroupId.create(subject.getId());
+                xRoadId = LocalGroupId.create(encodedId);
                 break;
             default:
                 throw new BadRequestException("Invalid subject type");
