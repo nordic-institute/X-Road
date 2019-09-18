@@ -2,30 +2,39 @@ import { mount, createLocalVue } from '@vue/test-utils';
 import { SilenceWarnHack } from './silenceWarnHack';
 import VueRouter from 'vue-router';
 import Vuetify from 'vuetify';
-import Toolbar from '@/components/Toolbar.vue';
+import Toolbar from '@/components/ServiceIcon.vue';
 
 const silenceWarnHack = new SilenceWarnHack();
 
+const localVue = createLocalVue();
+localVue.use(VueRouter);
+
 describe('Toolbar', () => {
   let wrapper: any;
+  let vuetify;
 
   const routes = [
     { path: '/clients', name: 'clients' },
   ];
 
   const router = new VueRouter({ routes });
-  let localVue = null;
+
 
   beforeEach(() => {
+
     silenceWarnHack.enable();
-    localVue = createLocalVue();
-    localVue.use(VueRouter);
+    vuetify = new Vuetify();
     localVue.use(Vuetify);
     silenceWarnHack.disable();
 
     wrapper = mount(Toolbar, {
       localVue,
       router,
+      propsData: {
+        service: {
+          ssl_auth: true,
+        },
+      },
       mocks: {
         $t: () => 'localized text',
       },

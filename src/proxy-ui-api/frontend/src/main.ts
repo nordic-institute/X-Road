@@ -1,14 +1,13 @@
 import Vue from 'vue';
 import axios from 'axios';
 import VeeValidate from 'vee-validate';
-import './plugins/vuetify';
+import Router from 'vue-router';
+import vuetify from './plugins/vuetify';
 import './filters';
 import App from './App.vue';
 import router from './router';
 import store from './store';
 import 'roboto-fontface/css/roboto/roboto-fontface.css';
-import '@fortawesome/fontawesome-free/css/all.css';
-import 'material-design-icons-iconfont/dist/material-design-icons.css';
 import i18n from './i18n';
 // @ts-ignore
 import validationMessagesEN from 'vee-validate/dist/locale/en';
@@ -30,6 +29,8 @@ Object.defineProperties(Vue.prototype, {
   },
 });
 
+Vue.use(Router);
+
 Vue.use(VeeValidate, {
   i18nRootKey: 'validations', // customize the root path for validation messages.
   i18n,
@@ -42,5 +43,6 @@ new Vue({
   router,
   store,
   i18n,
+  vuetify,
   render: (h) => h(App),
 }).$mount('#app');
