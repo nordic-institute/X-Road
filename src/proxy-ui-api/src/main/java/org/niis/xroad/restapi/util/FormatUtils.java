@@ -117,12 +117,15 @@ public final class FormatUtils {
     }
 
     /**
-     * Count occurrences of
+     * Count occurrences of searched char
      * @param from
      * @param searched
-     * @return
+     * @return occurences, or zero if String was null
      */
     public static int countOccurences(String from, char searched) {
+        if (from == null) {
+            return 0;
+        }
         String removed = from.replace(String.valueOf(searched), "");
         return from.length() - removed.length();
     }
