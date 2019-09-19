@@ -407,29 +407,8 @@ module Clients::Services
     audit_log_data[:clientIdentifier] = client.identifier
     servicedescriptions = servicedescriptions_by_urls(client, params[:wsdl_ids])
 
-    # Find descriptions of type openapi3_description
-    openapi3_descriptions = []
-    servicedescriptions.each do |sd|
-      if sd.type == DescriptionType::OPENAPI3_DESCRIPTION
-        openapi3_descriptions << sd
-      end
-    end
-
-    # Find descriptions of type openapi3
-    openapi3_items = []
-    servicedescriptions.each do |sd|
-      if sd.type == DescriptionType::OPENAPI3
-        openapi3_items << sd
-      end
-    end
-
-    # find descriptions of type wsdl
-    wsdl_descriptions = []
-    servicedescriptions.each do |sd|
-      if !openapi3_descriptions.include?(sd) && !openapi3_items.include?(sd)
-        wsdl_descriptions << sd
-      end
-    end
+    openapi3_descriptions = servicedescriptions.select { |item| item.type == DescriptionType::OPENAPI3_DESCRIPTION }
+    wsdl_descriptions = servicedescriptions.select  { |item| item.type == DescriptionType::WSDL }
 
     # Refresh WSDL servicedescriptions
     added_objs, added, deleted = parse_servicedescriptions(client, wsdl_descriptions, audit_log_data)
