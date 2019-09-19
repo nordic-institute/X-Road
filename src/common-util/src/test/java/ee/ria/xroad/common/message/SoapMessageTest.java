@@ -175,6 +175,7 @@ public class SoapMessageTest {
      * Tests that userId header field is optional.
      * @throws Exception in case of any unexpected errors
      */
+    @SuppressWarnings("squid:S2699")
     @Test
     public void optionalUserIdField() throws Exception {
         createSoapMessage("missing-userId.query");

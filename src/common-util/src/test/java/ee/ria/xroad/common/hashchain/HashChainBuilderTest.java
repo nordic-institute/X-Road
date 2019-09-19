@@ -49,6 +49,7 @@ public class HashChainBuilderTest {
      * Test to ensure hash chain builder works with varying input sizes.
      * @throws Exception in case of unexpected errors
      */
+    @SuppressWarnings("squid:S2699")
     @Test
     public void treeBuilding() throws Exception {
         LOG.info("treeBuilding()");
@@ -148,6 +149,7 @@ public class HashChainBuilderTest {
      * Test that ensures a hash chain with multiple attachments is correct.
      * @throws Exception in case of unexpected errors
      */
+    @SuppressWarnings("squid:S2699")
     @Test
     public void attachments() throws Exception {
         LOG.info("attachments()");
