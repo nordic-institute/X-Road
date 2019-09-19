@@ -75,8 +75,11 @@ public class ServicesApiControllerIntegrationTest {
     public static final String NAME_FOR = "Name for: ";
     public static final String GLOBAL_GROUP_CODE = "security-server-owners";
     public static final String GLOBAL_GROUP_ID = "FI:security-server-owners";
+    public static final String LOCAL_GROUP_ID_1 = "1";
+    public static final String LOCAL_GROUP_ID_2 = "2";
+    public static final String LOCAL_GROUP_CODE = "group1";
+    public static final String LOCAL_GROUP_CODE_2 = "group2";
     public static final String LOCAL_GROUP_DESC = "foo";
-    public static final String LOCAL_GROUP_ID = "group1";
     public static final String SS2_CLIENT_ID = "FI:GOV:M1:SS2";
     public static final String SS3_CLIENT_ID = "FI:GOV:M1:SS3";
     public static final String SS4_CLIENT_ID = "FI:GOV:M1:SS4";
@@ -225,8 +228,9 @@ public class ServicesApiControllerIntegrationTest {
         assertNull(serviceClient.getAccessRights());
 
         serviceClient = getServiceClientByType(serviceClients, LOCALGROUP).get();
+        assertEquals(LOCAL_GROUP_ID_1, serviceClient.getId());
+        assertEquals(LOCAL_GROUP_CODE, serviceClient.getLocalGroupCode());
         assertEquals(LOCAL_GROUP_DESC, serviceClient.getName());
-        assertEquals(LOCAL_GROUP_ID, serviceClient.getId());
         assertEquals(LOCALGROUP, serviceClient.getSubjectType().name());
         assertNull(serviceClient.getAccessRights());
 
@@ -354,5 +358,52 @@ public class ServicesApiControllerIntegrationTest {
             assertTrue(expected.getError().getMetadata().contains(SS3_CLIENT_ID));
             assertTrue(expected.getError().getMetadata().contains(SS4_CLIENT_ID));
         }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
+            "VIEW_CLIENT_SERVICES" })
+    public void deleteServiceAccessRightsLocalGroupsWithRedundantSubjects() {
+        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
+        assertEquals(3, serviceClients.size());
+
+        Subjects subjects = new Subjects()
+                .addItemsItem(new Subject().id(LOCAL_GROUP_ID_1).subjectType(SubjectType.LOCALGROUP))
+                .addItemsItem(new Subject().id(SS3_CLIENT_ID).subjectType(SubjectType.SUBSYSTEM))
+                .addItemsItem(new Subject().id(LOCAL_GROUP_ID_2).subjectType(SubjectType.LOCALGROUP));
+        try {
+            servicesApiController.deleteServiceAccessRight(SS1_GET_RANDOM, subjects).getBody();
+        } catch (BadRequestException expected) {
+            assertEquals(ServiceService.ERROR_ACCESSRIGHT_NOT_FOUND, expected.getError().getCode());
+            assertTrue(expected.getError().getMetadata().contains(SS3_CLIENT_ID));
+            assertTrue(expected.getError().getMetadata().contains(LOCAL_GROUP_CODE_2));
+        }
+    }
+
+    @Test(expected = BadRequestException.class)
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
+            "VIEW_CLIENT_SERVICES" })
+    public void deleteServiceAccessRightsWrongLocalGroupId() {
+        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
+        assertEquals(3, serviceClients.size());
+
+        Subjects subjects = new Subjects()
+                .addItemsItem(new Subject().id(LOCAL_GROUP_CODE).subjectType(SubjectType.LOCALGROUP))
+                .addItemsItem(new Subject().id(SS3_CLIENT_ID).subjectType(SubjectType.SUBSYSTEM))
+                .addItemsItem(new Subject().id(LOCAL_GROUP_ID_2).subjectType(SubjectType.LOCALGROUP));
+        servicesApiController.deleteServiceAccessRight(SS1_GET_RANDOM, subjects).getBody();
+    }
+
+    @Test(expected = BadRequestException.class)
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
+            "VIEW_CLIENT_SERVICES" })
+    public void deleteServiceAccessRightsWrongLocalGroupType() {
+        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
+        assertEquals(3, serviceClients.size());
+
+        Subjects subjects = new Subjects()
+                .addItemsItem(new Subject().id(LOCAL_GROUP_ID_2).subjectType(SubjectType.GLOBALGROUP))
+                .addItemsItem(new Subject().id(SS3_CLIENT_ID).subjectType(SubjectType.SUBSYSTEM));
+        servicesApiController.deleteServiceAccessRight(SS1_GET_RANDOM, subjects).getBody();
     }
 }

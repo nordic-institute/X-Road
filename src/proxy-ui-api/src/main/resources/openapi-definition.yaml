@@ -3853,8 +3853,8 @@ components:
         id:
           type: string
           format: text
-          description: <instance_identifier>:<other_params>
-          example: DEV:security-server-owners
+          description: identifier for the resource
+          example: 123 | DEV:security-server-owners | DEV:ORG:1234:Subsystem
           minLength: 1
           maxLength: 1279
         subject_type:
@@ -3866,6 +3866,14 @@ components:
           example: Security server owners
           minLength: 1
           maxLength: 255
+        local_group_code:
+          type: string
+          format: text
+          description: group code in case the object is a local group
+          example: My own Local group code
+          minLength: 1
+          maxLength: 255
+          readOnly: true
         rights_given_at:
           type: string
           format: date-time

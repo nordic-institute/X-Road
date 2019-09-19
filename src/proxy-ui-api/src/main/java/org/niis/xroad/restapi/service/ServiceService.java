@@ -26,9 +26,11 @@ package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +39,7 @@ import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.Error;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.repository.ClientRepository;
+import org.niis.xroad.restapi.repository.GroupRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,12 +70,14 @@ public class ServiceService {
     private static final String HTTPS = "https";
 
     private final ClientRepository clientRepository;
+    private final GroupRepository groupRepository;
     private final ServiceDescriptionRepository serviceDescriptionRepository;
 
     @Autowired
-    public ServiceService(ClientRepository clientRepository,
+    public ServiceService(ClientRepository clientRepository, GroupRepository groupRepository,
             ServiceDescriptionRepository serviceDescriptionRepository) {
         this.clientRepository = clientRepository;
+        this.groupRepository = groupRepository;
         this.serviceDescriptionRepository = serviceDescriptionRepository;
     }
 
@@ -162,12 +167,12 @@ public class ServiceService {
     }
 
     private AccessRightHolderDto accessRightTypeToDto(AccessRightType accessRightType,
-            Map<String, String> localGroupDescMap) {
+            Map<String, LocalGroupType> localGroupMap) {
         AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
         accessRightHolderDto.setRightsGiven(
                 FormatUtils.fromDateToOffsetDateTime(accessRightType.getRightsGiven()));
         accessRightHolderDto.setSubjectId(accessRightType.getSubjectId());
-        accessRightHolderDto.setLocalGroupDescMap(localGroupDescMap);
+        accessRightHolderDto.setLocalGroupMap(localGroupMap);
         return accessRightHolderDto;
     }
 
@@ -189,14 +194,14 @@ public class ServiceService {
 
         List<AccessRightHolderDto> accessRightHolderDtos = new ArrayList<>();
 
-        Map<String, String> localGroupDescMap = new HashMap<>();
+        Map<String, LocalGroupType> localGroupMap = new HashMap<>();
 
-        clientType.getLocalGroup().forEach(localGroupType -> localGroupDescMap.put(localGroupType.getGroupCode(),
-                localGroupType.getDescription()));
+        clientType.getLocalGroup().forEach(localGroupType -> localGroupMap.put(localGroupType.getGroupCode(),
+                localGroupType));
 
         clientType.getAcl().forEach(accessRightType -> {
             if (accessRightType.getEndpoint().getServiceCode().equals(serviceType.getServiceCode())) {
-                AccessRightHolderDto accessRightHolderDto = accessRightTypeToDto(accessRightType, localGroupDescMap);
+                AccessRightHolderDto accessRightHolderDto = accessRightTypeToDto(accessRightType, localGroupMap);
                 accessRightHolderDtos.add(accessRightHolderDto);
             }
         });
@@ -246,4 +251,28 @@ public class ServiceService {
         clientRepository.saveOrUpdate(clientType);
     }
 
+    /**
+     * Remove AccessRights from a Service
+     * @param clientId
+     * @param fullServiceCode
+     * @param subjectIds
+     * @param localGroupIds
+     */
+    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
+    public void deleteServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds,
+            Set<Long> localGroupIds) {
+        Set<XRoadId> localGroups = localGroupIds
+                .stream()
+                .map(groupId -> {
+                    LocalGroupType localGroup = groupRepository.getLocalGroup(groupId); // no need to batch
+                    if (localGroup == null) {
+                        throw new NotFoundException("LocalGroup with id " + groupId + " not found");
+                    }
+                    return LocalGroupId.create(localGroup.getGroupCode());
+                })
+                .collect(Collectors.toSet());
+
+        subjectIds.addAll(localGroups);
+        deleteServiceAccessRights(clientId, fullServiceCode, subjectIds);
+    }
 }

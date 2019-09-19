@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.dto;
 
+import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.Data;
@@ -37,11 +38,11 @@ import java.util.Map;
 @Data
 public class AccessRightHolderDto {
     /**
-     * {@link Map} which holds LocalGroup's description mapped by groupCode. {@link String} as key
-     * ({@link ee.ria.xroad.common.conf.serverconf.model.LocalGroupType#groupCode groupCode}) and {@link String}
-     * as value ({@link ee.ria.xroad.common.conf.serverconf.model.LocalGroupType#description description})
+     * {@link Map} which holds LocalGroupType mapped by groupCode. {@link String} as key
+     * ({@link ee.ria.xroad.common.conf.serverconf.model.LocalGroupType#groupCode groupCode}) and {@link LocalGroupType}
+     * as value
      */
-    private Map<String, String> localGroupDescMap;
+    private Map<String, LocalGroupType> localGroupMap;
     private XRoadId subjectId;
     private OffsetDateTime rightsGiven;
 }
