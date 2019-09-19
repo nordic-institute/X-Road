@@ -29,6 +29,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.service.GlobalConfService;
@@ -93,17 +94,17 @@ public class ClientConverterTest {
         assertEquals(difficultSubsystemId, clientId.getSubsystemCode());
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = BadRequestException.class)
     public void convertBadStringId() throws Exception {
         clientConverter.convertId("XRD2:GOV:M4:SS1:aa");
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = BadRequestException.class)
     public void convertBadStringId2() throws Exception {
         clientConverter.convertId("XRD2");
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = BadRequestException.class)
     public void convertBadStringId3() throws Exception {
         clientConverter.convertId("XRD2:GOV:M4:SS1::::::");
     }
