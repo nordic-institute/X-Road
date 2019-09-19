@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.30
+Version: 2.30-UI
 Doc. ID: UG-SS
 
 ---
@@ -63,6 +63,7 @@ Doc. ID: UG-SS
  30.06.2019 | 2.28    | Update the default connection type from HTTP to HTTPS in chapter [9] | Petteri Kivimäki
  01.07.2019 | 2.29    | Changing the Security Server Owner chapter added (Chapter [3.4](#34-changing-the-security-server-owner)) | Petteri Kivimäki
  14.08.2019 | 2.30    | Added automatic backups | Ilkka Seppälä
+ 29.09.2019 | 2.30-UI    | Added chapter [19.3](#193-correlation-id-http-header) on REST API correlation id | Janne Mattila
 
 ## Table of Contents <!-- omit in toc --> 
 
@@ -1553,7 +1554,7 @@ If it is absolutely necessary to restore the system from a backup made on a diff
 
 ### 13.3 Automatic Backups
 
-By default the Security Server backs up its configuration automatically once every day. Backups older than 30 days are automatically removed from the server. If needed, the automatic backup policies can be adjusted by editing the `/etc/cron.d/xroad-center` file.
+By default the Security Server backs up its configuration automatically once every day. Backups older than 30 days are automatically removed from the server. If needed, the automatic backup policies can be adjusted by editing the `/etc/cron.d/xroad-proxy` file.
 
 
 ## 14 Diagnostics

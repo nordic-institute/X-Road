@@ -76,7 +76,7 @@ public class ServiceDescriptionConverter {
                 serviceDescriptionType.getClient().getIdentifier()));
         serviceDescription.setDisabled(serviceDescriptionType.isDisabled());
         serviceDescription.setDisabledNotice(serviceDescriptionType.getDisabledNotice());
-        serviceDescription.setRefreshedDate(FormatUtils.fromDateToOffsetDateTime(
+        serviceDescription.setRefreshedAt(FormatUtils.fromDateToOffsetDateTime(
                 serviceDescriptionType.getRefreshedDate()));
         serviceDescription.setServices(serviceConverter.convertServices(serviceDescriptionType.getService(),
                 serviceDescriptionType.getClient().getIdentifier()));

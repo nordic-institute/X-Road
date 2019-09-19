@@ -28,8 +28,11 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.ServiceClientConverter;
 import org.niis.xroad.restapi.converter.ServiceConverter;
+import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.openapi.model.Service;
+import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
 import org.niis.xroad.restapi.service.ServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +41,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.util.List;
 
 /**
  * services api
@@ -49,12 +54,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class ServicesApiController implements ServicesApi {
 
     private final ServiceConverter serviceConverter;
+    private final ServiceClientConverter serviceClientConverter;
     private final ServiceService serviceService;
 
     @Autowired
-    public ServicesApiController(ServiceConverter serviceConverter,
+    public ServicesApiController(ServiceConverter serviceConverter, ServiceClientConverter serviceClientConverter,
             ServiceService serviceService) {
         this.serviceConverter = serviceConverter;
+        this.serviceClientConverter = serviceClientConverter;
         this.serviceService = serviceService;
     }
 
@@ -85,5 +92,16 @@ public class ServicesApiController implements ServicesApi {
         ClientId clientId = serviceConverter.parseClientId(id);
         String fullServiceCode = serviceConverter.parseFullServiceCode(id);
         return serviceService.getService(clientId, fullServiceCode);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_SERVICE_ACL')")
+    public ResponseEntity<List<ServiceClient>> getServiceAccessRights(String encodedServiceId) {
+        ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
+        String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
+        List<AccessRightHolderDto> accessRightHolderDtos =
+                serviceService.getAccessRightHoldersByService(clientId, fullServiceCode);
+        List<ServiceClient> serviceClients = serviceClientConverter.convertAccessRightHolderDtos(accessRightHolderDtos);
+        return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 }

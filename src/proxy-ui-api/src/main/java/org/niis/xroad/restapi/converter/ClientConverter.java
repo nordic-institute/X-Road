@@ -75,11 +75,31 @@ public class ClientConverter {
         client.setSubsystemCode(clientType.getIdentifier().getSubsystemCode());
         client.setMemberName(globalConfService.getMemberName(clientType.getIdentifier()));
         Optional<ClientStatus> status = ClientStatusMapping.map(clientType.getClientStatus());
-        client.setStatus(status.get());
+        client.setStatus(status.orElse(null));
         Optional<ConnectionType> connectionTypeEnum =
                 ConnectionTypeMapping.map(clientType.getIsAuthentication());
-        client.setConnectionType(connectionTypeEnum.get());
+        client.setConnectionType(connectionTypeEnum.orElse(null));
         return client;
+    }
+
+    /**
+     * convert a list of ClientType into a list of openapi Client class
+     * @param clientTypes
+     * @return
+     */
+    public List<Client> convert(List<ClientType> clientTypes) {
+        return clientTypes
+                .stream()
+                .map(this::convert)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Convert ClientId into encoded member id
+     * @return
+     */
+    public String convertId(ClientId clientId) {
+        return convertId(clientId, false);
     }
 
     /**
@@ -87,8 +107,12 @@ public class ClientConverter {
      * @param clientId
      * @return
      */
-    public String convertId(ClientId clientId) {
+    public String convertId(ClientId clientId, boolean includeType) {
         StringBuilder builder = new StringBuilder();
+        if (includeType) {
+            builder.append(clientId.getObjectType())
+                    .append(ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
+        }
         builder.append(clientId.getXRoadInstance())
                 .append(ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR)
                 .append(clientId.getMemberClass())

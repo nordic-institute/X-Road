@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.17  
+Version: 2.18  
 Doc. ID: IG-SS
 
 ---
@@ -42,6 +42,7 @@ Doc. ID: IG-SS
  15.11.2018 | 2.15    | Add Ubuntu 18 installation instructions | Jarkko Hyöty
  28.01.2018 | 2.16    | Update port 2080 documentation | Petteri Kivimäki
  30.05.2018 | 2.17    | Added package installation instructions on chapter "[2.4 Preparing OS](#24-preparing-os)" | Raul Martinez
+ 11.09.2019 | 2.18    | Remove Ubuntu 14.04 from supported platforms | Jarkko Hyöty
   
 ## Table of Contents
 
@@ -104,7 +105,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 The security server runs on the following platforms:
 
-* Ubuntu Server 14.04 and 18.04 Long-Term Support (LTS) operating system on a 64-bit platform. The security server software is distributed as .deb packages through the official X-Road repository at https://artifactory.niis.org/xroad-release-deb/
+* Ubuntu Server 18.04 Long-Term Support (LTS) operating system on a 64-bit platform. The security server software is distributed as .deb packages through the official X-Road repository at https://artifactory.niis.org/xroad-release-deb/
 * Red Hat Enterprise Linux 7.3 (RHEL7) or newer operating system. See [IG-SS-RHEL7](ig-ss_x-road_v6_security_server_installation_guide_for_rhel7.md) for more information.
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
@@ -119,7 +120,7 @@ The software can be installed both on physical and virtualized hardware (of the 
 
  **Ref** |                                        | **Explanation**
  ------ | --------------------------------------- | ----------------------------------------------------------
- 1.0    | Ubuntu 14.04 or 18.04, 64-bit<br>3 GB RAM, 3 GB free disk space | Minimum requirements
+ 1.0    | Ubuntu 18.04, 64-bit<br>3 GB RAM, 3 GB free disk space | Minimum requirements
  1.1    | https://artifactory.niis.org/xroad-release-deb               | X-Road package repository
  1.2    | https://artifactory.niis.org/api/gpg/key/public | The repository key
  1.3    |                                         | Account name in the user interface
@@ -158,7 +159,7 @@ Minimum recommended hardware parameters:
 
 Requirements to software and settings:
 
--   an installed and configured Ubuntu 14.04 or 18.04 LTS x86-64 operating system;
+-   an installed and configured Ubuntu 18.04 LTS x86-64 operating system;
 
 -   if the security server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the security server are allowed (**reference data: 1.4; 1.5; 1.6; 1.7**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
 
@@ -197,11 +198,6 @@ To install the X-Road security server software on *Ubuntu* operating system, fol
 2.  Add X-Road package repository (**reference data: 1.1**)
 
         sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
-
-    *Only Ubuntu 14.04 (trusty)*: Add OpenJDK and nginx repositories
-
-        sudo apt-add-repository -y ppa:openjdk-r/ppa
-        sudo apt-add-repository -y ppa:nginx/stable
 
 3.  Issue the following commands to install the security server packages (use package xroad-securityserver-ee to include configuration specific to Estonia; use package xroad-securityserver-fi to include configuration specific to Finland):
 
@@ -242,17 +238,6 @@ The meta-package `xroad-securityserver` also installs metaservices module `xroad
 The installation is successful if system services are started and the user interface is responding.
 
 -   Ensure from the command line that X-Road services are in the `running` state (example output follows):
-
-    - Ubuntu 14.04
-        ```
-        sudo initctl list | grep "^xroad-"
-
-        xroad-jetty start/running, process 19796
-        xroad-confclient start/running, process 19563
-        xroad-signer start/running, process 19393
-        xroad-monitor start/running, process 20669
-        xroad-proxy start/running, process 19580
-        ```
 
     - Ubuntu 18.04
         ```

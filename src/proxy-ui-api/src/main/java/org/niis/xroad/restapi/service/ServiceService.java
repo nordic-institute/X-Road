@@ -24,12 +24,14 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.Error;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
@@ -40,7 +42,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -80,6 +85,16 @@ public class ServiceService {
             throw new NotFoundException("Client " + clientId.toShortString() + " not found",
                     new Error(ClientService.CLIENT_NOT_FOUND_ERROR_CODE));
         }
+        return getServiceFromClient(client, fullServiceCode);
+    }
+
+    /**
+     * @param client
+     * @param fullServiceCode
+     * @return {@link ServiceType}
+     */
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
+    public ServiceType getServiceFromClient(ClientType client, String fullServiceCode) {
         Optional<ServiceType> foundService = client.getServiceDescription()
                 .stream()
                 .map(ServiceDescriptionType::getService)
@@ -139,5 +154,48 @@ public class ServiceService {
         serviceDescriptionRepository.saveOrUpdate(serviceDescriptionType);
 
         return serviceType;
+    }
+
+    private AccessRightHolderDto accessRightTypeToDto(AccessRightType accessRightType,
+            Map<String, String> localGroupDescMap) {
+        AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
+        accessRightHolderDto.setRightsGiven(
+                FormatUtils.fromDateToOffsetDateTime(accessRightType.getRightsGiven()));
+        accessRightHolderDto.setSubjectId(accessRightType.getSubjectId());
+        accessRightHolderDto.setLocalGroupDescMap(localGroupDescMap);
+        return accessRightHolderDto;
+    }
+
+    /**
+     * Get access right holders by Service
+     * @param clientId
+     * @param fullServiceCode
+     * @return
+     */
+    @PreAuthorize("hasAuthority('VIEW_SERVICE_ACL')")
+    public List<AccessRightHolderDto> getAccessRightHoldersByService(ClientId clientId, String fullServiceCode) {
+        ClientType clientType = clientService.getClient(clientId);
+        if (clientType == null) {
+            throw new NotFoundException("Client " + clientId.toShortString() + " not found",
+                    new Error(ClientService.CLIENT_NOT_FOUND_ERROR_CODE));
+        }
+
+        ServiceType serviceType = getServiceFromClient(clientType, fullServiceCode);
+
+        List<AccessRightHolderDto> accessRightHolderDtos = new ArrayList<>();
+
+        Map<String, String> localGroupDescMap = new HashMap<>();
+
+        clientType.getLocalGroup().forEach(localGroupType -> localGroupDescMap.put(localGroupType.getGroupCode(),
+                localGroupType.getDescription()));
+
+        clientType.getAcl().forEach(accessRightType -> {
+            if (accessRightType.getEndpoint().getServiceCode().equals(serviceType.getServiceCode())) {
+                AccessRightHolderDto accessRightHolderDto = accessRightTypeToDto(accessRightType, localGroupDescMap);
+                accessRightHolderDtos.add(accessRightHolderDto);
+            }
+        });
+
+        return accessRightHolderDtos;
     }
 }

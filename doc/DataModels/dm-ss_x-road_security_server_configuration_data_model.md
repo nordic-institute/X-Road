@@ -1,6 +1,6 @@
 # X-Road: Security Server Configuration Data Model
 
-Version: 1.5
+Version: 1.6
 Doc. ID: DM-SS
 
 ## Version history
@@ -16,6 +16,7 @@ Doc. ID: DM-SS
 | 28.01.2019 | 1.3     | Wsdl changes to servicedescription. Document converted to Markdown.  | Ilkka Seppälä      |
 | 26.03.2019 | 1.4     | Added tables for API keys                                            | Janne Mattila      |
 | 04.07.2019 | 1.5     | REST access rights                                      | Jarkko Hyöty |
+| 16.09.2019 | 1.6     | Remove Ubuntu 14.04 support                             | Jarkko Hyöty |
 
 
 ## Table of Contents
@@ -34,11 +35,11 @@ Doc. ID: DM-SS
   * [2.1 ACCESSRIGHT](#21-accessright)
     * [2.1.1 Indexes](#211-indexes)
     * [2.1.2 Attributes](#212-attributes)
-    * [2.2 APIKEY](#22-apikey)
-      * [2.2.1 Attributes](#221-attributes)
-    * [2.3 APIKEY_ROLES](#23-apikey_roles)
-      * [2.3.1 Indexes](#231-indexes)
-      * [2.3.2 Attributes](#232-attributes)
+  * [2.2 APIKEY](#22-apikey)
+    * [2.2.1 Attributes](#221-attributes)
+  * [2.3 APIKEY_ROLES](#23-apikey_roles)
+    * [2.3.1 Indexes](#231-indexes)
+    * [2.3.2 Attributes](#232-attributes)
   * [2.4 CERTIFICATE](#24-certificate)
     * [2.4.1 Attributes](#241-attributes)
   * [2.5 CLIENT](#25-client)
@@ -75,6 +76,9 @@ Doc. ID: DM-SS
   * [2.17 SERVICEDESCRIPTION](#217-servicedescription)
     * [2.17.1 Indexes](#2171-indexes)
     * [2.17.2 Attributes](#2172-attributes)
+  * [2.18 ENDPOINT](#218-endpoint)
+    * [2.18.1 Indexes](#2181-indexes)
+    * [2.18.2 Attributes](#2182-attributes)
 
 <!-- vim-markdown-toc -->
 
@@ -90,7 +94,7 @@ This document describes database model of X-Road security server.
 
 ### 1.2 Database Version
 
-This database assumes PostgreSQL version 9.3. Ubuntu 14.04/18.04 and RHEL7 default settings are used.
+This database assumes PostgreSQL version 9.2 or later. Ubuntu 18.04 and RHEL7 default settings are used.
 
 ### 1.3 Creating, Backing Up and Restoring the Database
 
@@ -140,12 +144,10 @@ Access right of a security server client or a group of clients to use a particul
 | Name        | Type           | Modifiers        | Description          |
 |:----------- |:--------------:|:----------------:|:--------------------|
 | id [PK]     | bigint         | NOT NULL         | Primary key          |
+| client_id [FK] | bigint         |         | The security server client who provides the service. References id attribute of CLIENT entity.          |
 | subjectid [FK]     | bigint         | NOT NULL         | Identifier of a subject that is authorized to access the service. Can be either a member, a subsystem, global group or local group. References id attribute of IDENTIFIER entity.          |
 | rightsgiven     | timestamp without time zone         | NOT NULL         | The time when the access right was granted.           |
-| servicecode | character varying(255) | NOT NULL | The service code part of the service identifier. |
-| method      | character varying(255) |          | The allowed HTTP method (REST services; NULL means ANY). |
-| path        | text                   |          | Allowed URL path (REST services; NULL means ANY). |
-| client_id [FK]     | bigint         |         | The security server client who provides the service. References id attribute of CLIENT entity.          |
+| endpoint_id [FK]     | bigint         |         | The authorized endpoint. References id attribute of ENDPOINT entity. |
 
 ### 2.2 APIKEY
 
@@ -447,3 +449,23 @@ Pointer to a SERVICEDESCRIPTION containing the descriptions of services provided
 | disablednotice | character varying(255) |   | The error message returned in response to a call to a service belonging to a disabled SERVICEDESCRIPTION. |
 | refresheddate | timestamp with time zone |   | The time when the SERVICEDESCRIPTION was last refreshed. |
 | type | character varying(255) | NOT NULL | The type of the service description. At the time of writing 'WSDL' and 'OPENAPI3' types are supported. |
+
+### 2.18 ENDPOINT
+
+#### 2.18.1 Indexes
+
+| Name        | Columns           |
+|:----------- |:-----------------:|
+| pk_endpoint | id                |
+| ix_endpoint (unique)| client_id, servicecode, method, path |
+
+#### 2.18.2 Attributes
+
+| Name           | Type           | Modifiers   | Description     |
+|:-------------- |:--------------:|:----------- |:----------------|
+| id [PK]        | bigint         | NOT NULL    | Primary key.    |
+| client_id [FK] | bigint         |         | The security server client who provides the service. References id attribute of CLIENT entity.          |
+| servicecode    | character varying(255)  | NOT NULL | The service code part of the service identifier. |
+| method         | character varying(255)  | NOT NULL | The allowed HTTP method (REST services) |
+| path           | character varying(2048) | NOT NULL | Allowed URL path (REST services) |
+| generated      | boolean        | NOT NULL | Is the endpoint automatically generated (true) or manually added (false) |

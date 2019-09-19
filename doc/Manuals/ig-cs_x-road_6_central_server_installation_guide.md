@@ -1,6 +1,6 @@
 # X-Road: Central Server Installation Guide
 
-Version: 2.10
+Version: 2.12
 Doc. ID: IG-CS
 
 ---
@@ -28,7 +28,9 @@ Doc. ID: IG-CS
 | 14.10.2018 | 2.8     | Update package repository address | Petteri Kivimäki |
 | 15.11.2018 | 2.9     | Add Ubuntu 18.04 installation instructions | Jarkko Hyöty |
 | 05.02.2019 | 2.10    | Update ports | Jarkko Hyöty |
- 
+| 04.09.2019 | 2.11    | Update ports | Petteri Kivimäki |
+| 11.09.2019 | 2.12    | Remove Ubuntu 14.04 from supported platforms | Jarkko Hyöty
+
 ## Table of Contents
 
 <!-- toc -->
@@ -104,13 +106,13 @@ Caution: Data necessary for the functioning of the operating system is not inclu
 
 | **Ref**              |                                                  | **Explanation**                                    |
 |----------------------|--------------------------------------------------|----------------------------------------------------|
-| 1.0  | Ubuntu 14.04 or 18.04, 64-bit, 2 GB RAM, 3 GB free disk space | Minimum requirements |
+| 1.0  | Ubuntu 18.04, 64-bit, 2 GB RAM, 3 GB free disk space | Minimum requirements |
 | 1.1  | https://artifactory.niis.org/xroad-release-deb | X-Road package repository |
 | 1.2  | https://artifactory.niis.org/api/gpg/key/public | The repository key |
 | 1.3  |  | Account name in the user interface |
 | 1.4  | TCP 4001 service for authentication certificate registration<br>TCP 80 distribution of the global configuration | Ports for inbound connections (from the external network to the central server) |
 | 1.4.1| TCP 4002 management services | Port for inbound connections from the management security server |
-| 1.5  | TCP 80 software updates | Ports for outbound connections (from the central server to the external network) |
+| 1.5  | TCP 80, 443 software updates | Ports for outbound connections (from the central server to the external network) |
 | 1.6  | TCP 80 HTTP between the central server and the management services' security server<br>TCP 4000 user interface<br>TCP 4001 HTTPS between the central server and the management services' security server<br>TCP 4400 HTTP between central server and management services' security server | Internal network ports, the user interface port, and management service ports for the management services' security server |
 | 1.7  |  | central server internal IP address(es) and hostname(s) |
 | 1.8  |  | central server public IP address, NAT address |
@@ -126,7 +128,7 @@ Minimum recommended hardware parameters:
 - 100 Mbps network interface card.
 
 Requirements for software and settings:
-- an installed and configured Ubuntu 14.04 or 18.04 LTS x86-64 operating system;
+- an installed and configured Ubuntu 18.04 LTS x86-64 operating system;
 - the necessary connections are allowed in the firewall (reference data: 1.4; 1.4.1; 1.5; 1.6),
 - if the central server has a private IP address, a corresponding NAT record must be created in the firewall (reference data: 1.8).
 
@@ -153,12 +155,6 @@ Add X-Road package repository (**reference data: 1.1**)
 
   ```
   sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
-  ```
-
-  *Ubuntu 14.04 only*: Add openjdk and nginx repositories
-  ```
-  sudo apt-add-repository -y ppa:openjdk-r/ppa
-  sudo apt-add-repository -y ppa:nginx/stable
   ```
 
 Issue the following commands to install the central server packages:
@@ -236,15 +232,6 @@ The central monitoring client may be configured as specified in the [UG-CS](#Ref
 The installation is successful if the system services are started and the user interface is responding.
 
 -   Ensure from the command line that relevant X-Road services are in the `running` state (example output follows). Notice that it is normal for the xroad-confclient to be in `stopped` state on the central server since it operates in one-shot mode.
-
-    - Ubuntu 14.04
-        ```
-        sudo initctl list | grep "^xroad-"
-
-        xroad-jetty start/running, process 19796
-        xroad-confclient stop/waiting, process 19563
-        xroad-signer start/running, process 19393
-        ```
 
     - Ubuntu 18.04
         ```
