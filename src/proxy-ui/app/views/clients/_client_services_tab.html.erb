@@ -82,6 +82,32 @@
   <% end %>
 <% end %>
 
+<%= dialog "openapi3_params_dialog", t('.edit_openapi3_parameters')  do %>
+  <%= form_tag do %>
+    <table class="details">
+      <tr>
+        <td><%= t '.url_type' %></td>
+        <td>
+          <%= radio_button_tag "service_type", "OPENAPI3", false, :style => "width: 90%", :disabled => true %>
+          <%= label_tag "service_type_OPENAPI3", t('.rest_api_base_path') %>
+        </td>
+        <td>
+          <%= radio_button_tag "service_type", "OPENAPI3_DESCRIPTION", false, :style => "width: 90%", :disabled => true %>
+          <%= label_tag "service_type_OPENAPI3_DESCRIPTION", t('.openapi3_description') %>
+        </td>
+      </tr>
+      <tr>
+        <td><%= t '.url' %></td>
+        <td colspan="2"><%= text_field_tag "params_openapi3_url", nil %></td>
+      </tr>
+      <tr>
+        <td><%= t '.service_code' %></td>
+        <td colspan="2"><%= text_field_tag "params_openapi3_service_code", nil %></td>
+      </tr>
+    </table>
+  <% end %>
+<% end %>
+
 <%= dialog "rest_add_endpoint_dialog" do %>
   <%= form_tag do %>
     <table class="details rest_endpoint">
@@ -135,32 +161,6 @@
       <tr>
         <td><%= t '.url' %></td>
         <td><%= text_field_tag "params_wsdl_url", nil %></td>
-      </tr>
-    </table>
-  <% end %>
-<% end %>
-
-<%= dialog "openapi3_params_dialog", t('.edit_openapi3_parameters') do %>
-  <%= form_tag do %>
-    <table class="details">
-      <tr>
-        <td><%= t '.url_type' %></td>
-        <td>
-          <%= radio_button_tag "service_type", "OPENAPI3", :style => "width: 90%", :disabled => true %>
-          <%= label_tag "service_type_OPENAPI3", t('.rest_api_base_path') %>
-        </td>
-        <td>
-          <%= radio_button_tag "service_type", "OPENAPI3_DESCRIPTION", :style => "width: 90%", :disabled => true %>
-          <%= label_tag "service_type_OPENAPI3_DESCRIPTION", t('.openapi3_description') %>
-        </td>
-      </tr>
-      <tr>
-        <td><%= t '.url' %></td>
-        <td colspan="2"><%= text_field_tag "params_openapi3_url", nil %></td>
-      </tr>
-      <tr>
-        <td><%= t '.service_code' %></td>
-        <td colspan="2"><%= text_field_tag "params_openapi3_service_code", nil %></td>
       </tr>
     </table>
   <% end %>

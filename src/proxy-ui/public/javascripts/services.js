@@ -57,9 +57,9 @@
             $("#wsdl_enable").show();
         }
 
-        // disabled refresh if enabled rest service
-        if($(".rest.row_selected").length > 0) {
-            $("#wsdl_refresh").disable();
+
+        if($(".wsdl.row_selected").length > 1) {
+            $("wsdl_refresh").disable();
         }
 
         // disabled refresh & edit if disabled rest service
@@ -348,7 +348,7 @@
                             client_id: $("#details_client_id").val(),
                             wsdl_id: oServices.getFocusData().wsdl_id,
                             openapi3_old_service_code: oServices.getFocusData().openapi3_service_code,
-                            service_type: "OPENAPI3",
+                            service_type: $(this).data("service_type"),
                             openapi3_new_url: $("#params_openapi3_url").val(),
                             openapi3_new_service_code: $("#params_openapi3_service_code").val()
                         };
@@ -404,7 +404,7 @@
 
         $("#openapi3_add_endpoint").live('click', function () {
             $("#endpoint_method", dialog).val("");
-            $("#endpoint_path", dialog).val("");
+            $("#endpoint_path", dialog).val("/");
             $("#rest_add_endpoint_dialog").dialog("option", "title", $(this).html());
             $("#rest_add_endpoint_dialog").dialog("open");
         });
@@ -455,6 +455,7 @@
     }
 
     function initServicesTable() {
+
         var opts = scrollableTableOpts(400);
         opts.sDom = "<'dataTables_header'f<'clearer'>>t";
         opts.aaSortingFixed = [[0, 'asc'], [1, 'desc']];
@@ -612,7 +613,9 @@
         });
 
         $("#wsdl_refresh").click(function() {
-            $.post(action("servicedescription_refresh"), wsdlParams(), function(response) {
+            var params = wsdlParams();
+
+            $.post(action("servicedescription_refresh"), params, function(response) {
                 oServices.fnReplaceData(response.data);
                 enableActions();
             }, "json").fail(showOutput);
@@ -662,6 +665,9 @@
                 $("#params_openapi3_url").val(service.wsdl_id);
                 $("#params_openapi3_service_code").val(service.openapi3_service_code);
 
+                $("#openapi3_params_dialog input[type='radio']").val([service.service_type]);
+                $("#openapi3_params_dialog input[type='radio']").disable();
+                $("#openapi3_params_dialog").data('service_type', service.service_type);
                 $("#openapi3_params_dialog").dialog("open");
             } else  {
                 $("#params_url_all, #params_timeout_all, #params_sslauth_all, " +
