@@ -112,7 +112,7 @@ public class ClientConverter {
         StringBuilder builder = new StringBuilder();
         if (includeType) {
             builder.append(clientId.getObjectType())
-                    .append(ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
+                    .append(ENCODED_ID_SEPARATOR);
         }
         builder.append(clientId.getXRoadInstance())
                 .append(ENCODED_ID_SEPARATOR)
