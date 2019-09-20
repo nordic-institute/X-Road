@@ -47,15 +47,13 @@ public class ServiceClientConverter {
 
     private final GlobalConfService globalConfService;
     private final ClientConverter clientConverter;
-    private final LocalGroupConverter localGroupConverter;
     private final GlobalGroupConverter globalGroupConverter;
 
     @Autowired
     public ServiceClientConverter(GlobalConfService globalConfService, ClientConverter clientConverter,
-            LocalGroupConverter localGroupConverter, GlobalGroupConverter globalGroupConverter) {
+            GlobalGroupConverter globalGroupConverter) {
         this.globalConfService = globalConfService;
         this.clientConverter = clientConverter;
-        this.localGroupConverter = localGroupConverter;
         this.globalGroupConverter = globalGroupConverter;
     }
 
@@ -72,7 +70,6 @@ public class ServiceClientConverter {
         XRoadId subjectId = accessRightHolderDto.getSubjectId();
 
         switch (subjectId.getObjectType()) {
-            case MEMBER:
             case SUBSYSTEM:
                 ClientId serviceClientId = (ClientId) subjectId;
                 serviceClient.setName(globalConfService.getMemberName(serviceClientId));
@@ -87,8 +84,9 @@ public class ServiceClientConverter {
                 break;
             case LOCALGROUP:
                 LocalGroupId localGroupId = (LocalGroupId) subjectId;
-                serviceClient.setName(accessRightHolderDto.getLocalGroupDescMap().get(localGroupId.getGroupCode()));
-                serviceClient.setId(localGroupConverter.convertId(localGroupId));
+                serviceClient.setId(accessRightHolderDto.getLocalGroupId());
+                serviceClient.setLocalGroupCode(accessRightHolderDto.getLocalGroupCode());
+                serviceClient.setName(accessRightHolderDto.getLocalGroupDescription());
                 serviceClient.setSubjectType(SubjectTypeMapping.map(localGroupId.getObjectType()).get());
                 break;
             default:

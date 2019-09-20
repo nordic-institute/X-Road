@@ -6,26 +6,13 @@
         <v-spacer />
         <i @click="cancel()" id="dlg-close-x"></i>
       </v-card-title>
-      <v-card-text>
+      <v-card-text class="content-wrapper">
         <slot name="content"></slot>
       </v-card-text>
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
-        <v-btn
-          color="primary"
-          round
-          outline
-          class="mb-2 rounded-button elevation-0 xrd-big-button dlg-button-margin"
-          @click="cancel()"
-        >{{$t('action.cancel')}}</v-btn>
-
-        <v-btn
-          color="primary"
-          round
-          class="mb-2 rounded-button elevation-0 xrd-big-button dlg-button-margin"
-          @click="save()"
-          :disabled="disableSaveButton"
-        >{{$t(saveButtonLabel)}}</v-btn>
+        <large-button outlined @click="cancel()">{{$t('action.cancel')}}</large-button>
+        <large-button :disabled="disableSaveButton" @click="save()">{{$t(saveButtonLabel)}}</large-button>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -35,8 +22,12 @@
 /** Base component for simple dialogs */
 
 import Vue from 'vue';
+import LargeButton from '@/components/LargeButton.vue';
 
 export default Vue.extend({
+  components: {
+    LargeButton,
+  },
   props: {
     // Title of the dialog
     title: {
@@ -86,6 +77,10 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '../assets/colors';
+
+.content-wrapper {
+  margin-top: 18px;
+}
 
 .dlg-button-margin {
   margin-right: 14px;

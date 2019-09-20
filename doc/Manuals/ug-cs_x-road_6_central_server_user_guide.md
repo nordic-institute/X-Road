@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.11  
+Version: 2.12  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -37,6 +37,7 @@ Doc. ID: UG-CS
 | 06.02.2019 | 2.9     | Information about automatic approval of security server client registration requests added. Updates in Chapters 6-8. | Petteri Kivimäki |
 | 02.07.2019 | 2.10    | Security Server owner change added (Chapter 7.10) | Petteri Kivimäki |
 | 14.08.2019 | 2.11    | Added automatic backups | Ilkka Seppälä |
+| 11.09.2019 | 2.12    | Remove Ubuntu 14.04 support | Jarkko Hyöty |
 
 ## Table of Contents <!-- omit in toc --> 
 <!-- toc -->
@@ -1224,7 +1225,7 @@ Most significant central server services are the following:
 | xroad-signer      | The service that manages key settings.      |   `/var/log/xroad/signer.log` |
 | nginx | The Web server that distributes configuration and implements the TLS protocol in the user interface.      |    `/var/log/nginx/` |
 
-System services can be managed using the upstart (Ubuntu 14.04) or systemd facility.
+System services can be managed using the systemd facility.
 To start a service, issue the following command as a root user:
 
 `service <service> start`

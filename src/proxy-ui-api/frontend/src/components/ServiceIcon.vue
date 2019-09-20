@@ -17,11 +17,11 @@ export default Vue.extend({
     getServiceIcon(service: any): string {
       switch (service.ssl_auth) {
         case undefined:
-          return 'lock_open';
+          return 'mdi-lock-open-outline';
         case true:
-          return 'lock';
+          return 'mdi-lock';
         case false:
-          return 'lock';
+          return 'mdi-lock';
         default:
           return '';
       }

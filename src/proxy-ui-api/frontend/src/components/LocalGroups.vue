@@ -2,14 +2,14 @@
   <div>
     <div class="table-toolbar">
       <v-text-field v-model="search" label="Search" single-line hide-details class="search-input">
-        <v-icon slot="append" small>fas fa-search</v-icon>
+        <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
       <v-btn
         v-if="showAddGroup"
         color="primary"
         @click="addGroup"
-        outline
-        round
+        outlined
+        rounded
         class="ma-0 rounded-button elevation-0"
       >{{$t('localGroups.addGroup')}}</v-btn>
     </div>

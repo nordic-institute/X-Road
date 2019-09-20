@@ -29,7 +29,6 @@ import ee.ria.xroad.common.identifier.XRoadId;
 import lombok.Data;
 
 import java.time.OffsetDateTime;
-import java.util.Map;
 
 /**
  * DTO for Service and ServiceClient access rights
@@ -37,11 +36,17 @@ import java.util.Map;
 @Data
 public class AccessRightHolderDto {
     /**
-     * {@link Map} which holds LocalGroup's description mapped by groupCode. {@link String} as key
-     * ({@link ee.ria.xroad.common.conf.serverconf.model.LocalGroupType#groupCode groupCode}) and {@link String}
-     * as value ({@link ee.ria.xroad.common.conf.serverconf.model.LocalGroupType#description description})
+     * LocalGroup's PK - NULL if not a LOCALGROUP
      */
-    private Map<String, String> localGroupDescMap;
+    private String localGroupId;
+    /**
+     * LocalGroup's groupCode - NULL if not a LOCALGROUP
+     */
+    private String localGroupCode;
+    /**
+     * LocalGroup's groupDescription - NULL if not a LOCALGROUP
+     */
+    private String localGroupDescription;
     private XRoadId subjectId;
     private OffsetDateTime rightsGiven;
 }

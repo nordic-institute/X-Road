@@ -20,8 +20,8 @@
         <h1 class="title mb-3">{{$t('internalServers.tlsTitle')}}</h1>
         <v-btn
           v-if="canAddTlsCert"
-          outline
-          round
+          outlined
+          rounded
           color="primary"
           class="rounded-button elevation-0"
           @click="$refs.inputUpload.click()"
@@ -71,8 +71,8 @@
               <v-btn
                 v-if="canExportSSCert"
                 small
-                outline
-                round
+                outlined
+                rounded
                 color="primary"
                 class="xrd-small-button"
                 @click="exportSSCertificate(ssCertificate.hash)"

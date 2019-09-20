@@ -8,7 +8,7 @@
         hide-details
         class="search-input"
       >
-        <v-icon slot="append" small>fas fa-search</v-icon>
+        <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
 
       <div>
@@ -16,8 +16,8 @@
           v-if="showAddButton"
           color="primary"
           @click="showAddRestDialog"
-          outline
-          round
+          outlined
+          rounded
           class="rounded-button elevation-0 rest-button"
         >{{$t('services.addRest')}}</v-btn>
 
@@ -26,8 +26,8 @@
           color="primary"
           :loading="addWsdlBusy"
           @click="showAddWsdlDialog"
-          outline
-          round
+          outlined
+          rounded
           class="ma-0 rounded-button elevation-0"
         >{{$t('services.addWsdl')}}</v-btn>
       </div>
@@ -70,8 +70,8 @@
               <v-btn
                 v-if="showRefreshButton"
                 small
-                outline
-                round
+                outlined
+                rounded
                 :loading="refreshWsdlBusy"
                 color="primary"
                 class="xrd-small-button xrd-table-button refresh-button"
@@ -85,7 +85,6 @@
                   <th>{{$t('services.serviceCode')}}</th>
                   <th>{{$t('services.url')}}</th>
                   <th>{{$t('services.timeout')}}</th>
-                  <th style="text-align:center">{{$t('services.accessRights')}}</th>
                 </tr>
               </thead>
               <tbody>
@@ -96,7 +95,6 @@
                     {{service.url}}
                   </td>
                   <td>{{service.timeout}}</td>
-                  <td style="text-align:center">-</td>
                 </tr>
               </tbody>
             </table>
@@ -224,7 +222,7 @@ export default Vue.extend({
       // Filter out service deascriptions that don't include search term
       const filtered = arr.filter((element: any) => {
         return element.services.find((service: any) => {
-          return service.code
+          return service.service_code
             .toString()
             .toLowerCase()
             .includes(mysearch);
@@ -234,7 +232,7 @@ export default Vue.extend({
       // Filter out services that don't include search term
       filtered.forEach((element) => {
         const filteredServices = element.services.filter((service: any) => {
-          return service.code
+          return service.service_code
             .toString()
             .toLowerCase()
             .includes(mysearch);
@@ -254,12 +252,10 @@ export default Vue.extend({
       });
     },
     serviceClick(service: any): void {
-      // TODO: will be implemented on later task
-      /*
       this.$router.push({
         name: RouteName.Service,
         params: { serviceId: service.id },
-      }); */
+      });
     },
     switchChanged(event: any, serviceDesc: any, index: number): void {
       if (serviceDesc.disabled === false) {
@@ -343,6 +339,11 @@ export default Vue.extend({
           if (error.response.data.warnings) {
             this.warningInfo = error.response.data.warnings;
             this.saveWarningDialog = true;
+          } else if (
+            error.response.data.error.code === 'clients.service_exists'
+          ) {
+            this.$bus.$emit('show-error', 'service already exists');
+            this.addWsdlBusy = false;
           } else {
             this.$bus.$emit('show-error', error.message);
             this.addWsdlBusy = false;

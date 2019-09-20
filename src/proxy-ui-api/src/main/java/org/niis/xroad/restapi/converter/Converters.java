@@ -22,56 +22,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-import java.util.Collection;
+package org.niis.xroad.restapi.converter;
 
 /**
- * Thrown if client sent bad request.
- * Results in http 400 BAD_REQUEST
+ * Shared constants and methods for converters
  */
-@ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class BadRequestException extends DeviationAwareRuntimeException {
-    public BadRequestException() {
-    }
-
-    public BadRequestException(String msg) {
-        super(msg);
-    }
-
-    public BadRequestException(String msg, Error error) {
-        super(msg, error);
-    }
-
-    public BadRequestException(String msg, Throwable t, Error error) {
-        super(msg, t, error);
-    }
-
-    public BadRequestException(Throwable t, Error error, Collection<Warning> warnings) {
-        super(t, error, warnings);
-    }
-
-    public BadRequestException(Error error, Collection<Warning> warnings) {
-        super(error, warnings);
-    }
-
-    public BadRequestException(Error error) {
-        super(error);
-    }
-
-    public BadRequestException(Throwable t, Error error) {
-        super(t, error);
-    }
-
+@SuppressWarnings("checkstyle:InterfaceIsType")
+public interface Converters {
     /**
-     * Use deviation data from original exception
-     * @param e
+     * Separator char for different types of encoded ids: client id,
+     * service id, security server id...
      */
-    public BadRequestException(DeviationAwareRuntimeException e) {
-        this(e, e.getError(), e.getWarnings());
-    }
-
+    char ENCODED_ID_SEPARATOR = ':';
 }

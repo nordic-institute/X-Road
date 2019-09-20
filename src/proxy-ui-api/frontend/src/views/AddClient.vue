@@ -11,22 +11,22 @@
     <v-stepper-items>
       <v-stepper-content step="1">
         <v-card class="mb-5" color="grey lighten-2" height="250px"></v-card>
-        <v-btn flat round @click="cancel">Cancel</v-btn>
-        <v-btn round color="primary" @click="e1 = 2">Continue</v-btn>
+        <v-btn text rounded @click="cancel">Cancel</v-btn>
+        <v-btn rounded color="primary" @click="e1 = 2">Continue</v-btn>
       </v-stepper-content>
 
       <v-stepper-content step="2">
         <v-card class="mb-5" color="grey lighten-2" height="250px"></v-card>
-        <v-btn flat round @click="cancel">Cancel</v-btn>
-        <v-btn round color="primary" @click="e1 = 1">Previous</v-btn>
-        <v-btn round color="primary" @click="e1 = 3">Continue</v-btn>
+        <v-btn text rounded @click="cancel">Cancel</v-btn>
+        <v-btn rounded color="primary" @click="e1 = 1">Previous</v-btn>
+        <v-btn rounded color="primary" @click="e1 = 3">Continue</v-btn>
       </v-stepper-content>
 
       <v-stepper-content step="3">
         <v-card class="mb-5" color="grey lighten-2" height="250px"></v-card>
-        <v-btn flat round @click="cancel">Cancel</v-btn>
-        <v-btn round color="primary" @click="e1 = 2">Previous</v-btn>
-        <v-btn round color="primary" @click="e1 = 1">Continue</v-btn>
+        <v-btn text rounded @click="cancel">Cancel</v-btn>
+        <v-btn rounded color="primary" @click="e1 = 2">Previous</v-btn>
+        <v-btn rounded color="primary" @click="e1 = 1">Continue</v-btn>
       </v-stepper-content>
     </v-stepper-items>
   </v-stepper>

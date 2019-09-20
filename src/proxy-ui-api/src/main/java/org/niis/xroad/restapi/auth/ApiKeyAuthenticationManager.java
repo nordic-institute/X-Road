@@ -64,6 +64,8 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
             key = apiKeyRepository.get(apiKeyValue);
         } catch (NotFoundException notFound) {
             throw new BadCredentialsException("The API key was not found or not the expected value.");
+        } catch (Exception e) {
+            throw new BadCredentialsException("Unknown problem when getting API key", e);
         }
 
         PreAuthenticatedAuthenticationToken authenticationWithGrants =

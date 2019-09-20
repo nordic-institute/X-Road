@@ -39,6 +39,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.converter.Converters.ENCODED_ID_SEPARATOR;
+
 /**
  * Helper to convert LocalGroups
  */
@@ -145,7 +147,7 @@ public class LocalGroupConverter {
         StringBuilder builder = new StringBuilder();
         if (includeType) {
             builder.append(localGroupId.getObjectType())
-                    .append(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
+                    .append(ENCODED_ID_SEPARATOR);
         }
         builder.append(localGroupId.getGroupCode());
         return builder.toString().trim();

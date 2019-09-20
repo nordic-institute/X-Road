@@ -1,6 +1,6 @@
 # X-Road: Message Log Data Model
 
-Version: 1.7  
+Version: 1.8  
 Doc. ID: DM-ML
 
 | Date       | Version     | Description                                     | Author             |
@@ -20,6 +20,7 @@ Doc. ID: DM-ML
 | 02.03.2018 | 1.5         | Added uniform terms and conditions reference    | Tatu Repo |
 | 31.01.2019 | 1.6         | REST support                                    | Jarkko Hyöty |
 | 11.02.2019 | 1.7         | Added xRequestId                                | Caro Hautamäki |
+| 11.09.2019 | 1.8         | Remove Ubuntu 14.04 support                     | Jarkko Hyöty |
 
 <!-- vim-markdown-toc GFM -->
 
@@ -60,7 +61,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ## 1.4 Database Version
 
-This database assumes PostgreSQL version 9.3. Ubuntu 14.04 default settings are used.
+This database assumes PostgreSQL version 9.2 or later.
 
 ## 1.5 Creating, Backing Up and Restoring the Database
 
