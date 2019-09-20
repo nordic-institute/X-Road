@@ -137,14 +137,11 @@ public class ServicesApiController implements ServicesApi {
     }
 
     private Predicate<Subject> hasNumericIdAndIsLocalGroup = subject -> {
-        boolean isNumeric = StringUtils.isNumeric(subject.getId());
+        boolean hasNumericId = StringUtils.isNumeric(subject.getId());
         boolean isLocalGroup = subject.getSubjectType() == SubjectType.LOCALGROUP;
-        if (!isNumeric && isLocalGroup) {
+        if (!hasNumericId && isLocalGroup) {
             throw new BadRequestException("LocalGroup id is not numeric: " + subject.getId());
         }
-        if (isNumeric && !isLocalGroup) {
-            throw new BadRequestException("Invalid type: " + subject.getSubjectType());
-        }
-        return StringUtils.isNumeric(subject.getId()) && subject.getSubjectType() == SubjectType.LOCALGROUP;
+        return hasNumericId && isLocalGroup;
     };
 }

@@ -4030,7 +4030,6 @@ components:
       enum:
         - GLOBALGROUP
         - LOCALGROUP
-        - MEMBER
         - SUBSYSTEM
     Subjects: # ok
       type: object

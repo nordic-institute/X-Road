@@ -25,7 +25,6 @@
 
 package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
@@ -71,7 +70,6 @@ public class ServiceClientConverter {
         XRoadId subjectId = accessRightHolderDto.getSubjectId();
 
         switch (subjectId.getObjectType()) {
-            case MEMBER:
             case SUBSYSTEM:
                 ClientId serviceClientId = (ClientId) subjectId;
                 serviceClient.setName(globalConfService.getMemberName(serviceClientId));
@@ -86,11 +84,9 @@ public class ServiceClientConverter {
                 break;
             case LOCALGROUP:
                 LocalGroupId localGroupId = (LocalGroupId) subjectId;
-                LocalGroupType localGroupType = accessRightHolderDto.getLocalGroupMap()
-                        .get(localGroupId.getGroupCode());
-                serviceClient.setName(localGroupType.getDescription());
-                serviceClient.setId(localGroupType.getId().toString());
-                serviceClient.setLocalGroupCode(localGroupId.getGroupCode());
+                serviceClient.setId(accessRightHolderDto.getLocalGroupId());
+                serviceClient.setLocalGroupCode(accessRightHolderDto.getLocalGroupCode());
+                serviceClient.setName(accessRightHolderDto.getLocalGroupDescription());
                 serviceClient.setSubjectType(SubjectTypeMapping.map(localGroupId.getObjectType()).get());
                 break;
             default:

@@ -38,7 +38,6 @@ import java.util.Optional;
 @Getter
 public enum SubjectTypeMapping {
     SUBSYSTEM(XRoadObjectType.SUBSYSTEM, SubjectType.SUBSYSTEM),
-    MEMBER(XRoadObjectType.MEMBER, SubjectType.MEMBER),
     LOCALGROUP(XRoadObjectType.LOCALGROUP, SubjectType.LOCALGROUP),
     GLOBALGROUP(XRoadObjectType.GLOBALGROUP, SubjectType.GLOBALGROUP);
 

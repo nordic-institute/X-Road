@@ -32,6 +32,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
+import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
@@ -169,10 +170,17 @@ public class ServiceService {
     private AccessRightHolderDto accessRightTypeToDto(AccessRightType accessRightType,
             Map<String, LocalGroupType> localGroupMap) {
         AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
+        XRoadId subjectId = accessRightType.getSubjectId();
         accessRightHolderDto.setRightsGiven(
                 FormatUtils.fromDateToOffsetDateTime(accessRightType.getRightsGiven()));
-        accessRightHolderDto.setSubjectId(accessRightType.getSubjectId());
-        accessRightHolderDto.setLocalGroupMap(localGroupMap);
+        accessRightHolderDto.setSubjectId(subjectId);
+        if (subjectId.getObjectType() == XRoadObjectType.LOCALGROUP) {
+            LocalGroupId localGroupId = (LocalGroupId) subjectId;
+            LocalGroupType localGroupType = localGroupMap.get(localGroupId.getGroupCode());
+            accessRightHolderDto.setLocalGroupId(localGroupType.getId().toString());
+            accessRightHolderDto.setLocalGroupCode(localGroupType.getGroupCode());
+            accessRightHolderDto.setLocalGroupDescription(localGroupType.getDescription());
+        }
         return accessRightHolderDto;
     }
 
@@ -237,13 +245,7 @@ public class ServiceService {
                 .collect(Collectors.toList());
 
         if (!subjectsToBeRemoved.containsAll(subjectIds)) {
-            subjectIds.removeAll(subjectsToBeRemoved);
-
-            List<String> redundantSubjects = subjectIds
-                    .stream()
-                    .map(FormatUtils::xRoadIdToEncodedId)
-                    .collect(Collectors.toList());
-            throw new BadRequestException(new Error(ERROR_ACCESSRIGHT_NOT_FOUND, redundantSubjects));
+            throw new BadRequestException(new Error(ERROR_ACCESSRIGHT_NOT_FOUND));
         }
 
         clientType.getAcl().removeAll(accessRightsToBeRemoved);

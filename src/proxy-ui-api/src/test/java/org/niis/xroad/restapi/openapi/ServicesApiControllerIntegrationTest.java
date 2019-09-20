@@ -331,12 +331,12 @@ public class ServicesApiControllerIntegrationTest {
     @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
             "VIEW_CLIENT_SERVICES" })
-    public void deleteServiceAccessRightsWrongTypeMember() {
+    public void deleteServiceAccessRightsWrongTypeLocalGroup() {
         List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
         assertEquals(3, serviceClients.size());
 
         Subjects subjects = new Subjects()
-                .addItemsItem(new Subject().id(SS2_CLIENT_ID).subjectType(SubjectType.MEMBER));
+                .addItemsItem(new Subject().id(SS2_CLIENT_ID).subjectType(SubjectType.LOCALGROUP));
         servicesApiController.deleteServiceAccessRight(SS1_GET_RANDOM, subjects).getBody();
     }
 
@@ -355,8 +355,6 @@ public class ServicesApiControllerIntegrationTest {
             servicesApiController.deleteServiceAccessRight(SS1_GET_RANDOM, subjects).getBody();
         } catch (BadRequestException expected) {
             assertEquals(ServiceService.ERROR_ACCESSRIGHT_NOT_FOUND, expected.getError().getCode());
-            assertTrue(expected.getError().getMetadata().contains(SS3_CLIENT_ID));
-            assertTrue(expected.getError().getMetadata().contains(SS4_CLIENT_ID));
         }
     }
 
@@ -375,8 +373,6 @@ public class ServicesApiControllerIntegrationTest {
             servicesApiController.deleteServiceAccessRight(SS1_GET_RANDOM, subjects).getBody();
         } catch (BadRequestException expected) {
             assertEquals(ServiceService.ERROR_ACCESSRIGHT_NOT_FOUND, expected.getError().getCode());
-            assertTrue(expected.getError().getMetadata().contains(SS3_CLIENT_ID));
-            assertTrue(expected.getError().getMetadata().contains(LOCAL_GROUP_CODE_2));
         }
     }
 

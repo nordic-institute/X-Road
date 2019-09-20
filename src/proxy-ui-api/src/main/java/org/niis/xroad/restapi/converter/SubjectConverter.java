@@ -62,14 +62,6 @@ public class SubjectConverter {
         int separators;
         XRoadId xRoadId;
         switch (subjectType) {
-            case MEMBER:
-                separators = FormatUtils.countOccurences(encodedId,
-                        ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
-                if (separators != ClientConverter.MEMBER_CODE_INDEX) {
-                    throw new BadRequestException("Invalid member id " + encodedId);
-                }
-                xRoadId = clientConverter.convertId(encodedId);
-                break;
             case SUBSYSTEM:
                 separators = FormatUtils.countOccurences(encodedId,
                         ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
