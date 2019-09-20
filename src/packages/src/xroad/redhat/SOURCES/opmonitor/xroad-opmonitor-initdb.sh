@@ -68,8 +68,6 @@ configure_local_postgres() {
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.username  "${db_user}"
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.password "${db_passwd}"
 
-    chown root:root ${root_properties}
-    chmod 600 ${root_properties}
     chown xroad:xroad ${db_properties}
     chmod 640 ${db_properties}
 
@@ -126,8 +124,6 @@ configure_remote_postgres() {
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.username  ${db_user}
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.password ${db_passwd}
 
-    chown root:root ${root_properties}
-    chmod 600 ${root_properties}
     chown xroad:xroad ${db_properties}
     chmod 640 ${db_properties}
 

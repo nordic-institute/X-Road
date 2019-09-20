@@ -138,8 +138,6 @@ else
     fi
 fi
 
-chown root:root ${root_properties}
-chmod 600 ${root_properties}
 chown xroad:xroad ${db_properties}
 chmod 640 ${db_properties}
 
