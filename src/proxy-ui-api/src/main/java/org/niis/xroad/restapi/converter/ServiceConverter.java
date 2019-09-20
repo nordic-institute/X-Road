@@ -49,7 +49,7 @@ public class ServiceConverter {
 
     /**
      * Encoded service id consists of <encoded client id>:<full service code>
-     * Separator ':' is ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR
+     * Separator ':' is Converters.ENCODED_ID_SEPARATOR
      */
     public static final int FULL_SERVICE_CODE_INDEX = 4;
 
