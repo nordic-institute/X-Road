@@ -3881,8 +3881,8 @@ components:
         id:
           type: string
           format: text
-          description: identifier for the resource
-          example: 123 | DEV:security-server-owners | DEV:ORG:1234:Subsystem
+          description: a subsystem id <instance_id>:<member_class>:<member_code>:<subsystem> | globalgroup id <instance_id>:<group_code> | localgroup resource id in number format <id>
+          example: DEV:ORG:1234:Subsystem | DEV:security-server-owners | 123
           minLength: 1
           maxLength: 1279
         subject_type:
@@ -4043,8 +4043,8 @@ components:
         id:
           type: string
           format: text
-          description: subject id - can be a client id or <instance_id>:<group_code>
-          example: DEV:global-group-code
+          description: subject id - can be a subsystem id <instance_id>:<member_class>:<member_code>:<subsystem> | globalgroup id <instance_id>:<group_code> | localgroup resource id in number format <id>
+          example: DEV:ORG:1234:Subsystem | DEV:security-server-owners | 123
           readOnly: true
           minLength: 1
           maxLength: 1279
