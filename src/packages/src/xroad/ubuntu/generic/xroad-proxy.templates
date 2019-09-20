@@ -4,11 +4,6 @@ Default: 127.0.0.1:5432
 Description: Insert database server connection string
  This will be used by the Security Server to connect to the database host.
 
-Template: xroad-common/database-password
-Type: password
-Description: Insert the database server master password for user postgres
- This will be used by the Security Server to create additional users and schemas on the database host.
-
 Template: xroad-common/admin-subject
 Type: string
 Description: Insert admin interface TLS certificate subject name

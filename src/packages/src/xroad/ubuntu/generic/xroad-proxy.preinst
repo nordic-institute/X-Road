@@ -78,17 +78,7 @@ RET=
 db_get xroad-common/database-host
 db_host="$RET"
 
-# If the database host is not local, ask the master password from the user
-if [[ "${db_host}" != "localhost"* && "${db_host}" != "127.0.0.1"* ]]; then
-    db_input critical xroad-common/database-password || true
-    db_go
-    db_get xroad-common/database-password
-    master_passwd="$RET"
-    crudini --set ${db_properties} '' postgres.connection.password ${master_passwd}
-fi
-
-
-#check certificates and request neccesary subject information from user
+#check certificates and request necessary subject information from user
 HOST=`hostname -f`
 LIST=
 for i in `ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'`; do LIST+="IP:$i,"; done;

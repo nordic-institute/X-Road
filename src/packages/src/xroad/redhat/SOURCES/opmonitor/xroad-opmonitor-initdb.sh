@@ -68,6 +68,8 @@ configure_local_postgres() {
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.username  "${db_user}"
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.password "${db_passwd}"
 
+    chown root:root ${root_properties}
+    chmod 600 ${root_properties}
     chown xroad:xroad ${db_properties}
     chmod 640 ${db_properties}
 
@@ -83,7 +85,7 @@ configure_remote_postgres() {
 
     echo "configure remote db"
 
-    master_passwd=`crudini --get ${db_properties} '' postgres.connection.password`
+    master_passwd=`crudini --get ${root_properties} '' postgres.connection.password`
     export PGPASSWORD=${master_passwd}
 
     if  ! psql -h $db_addr -p $db_port -U postgres --list -tAF ' ' | grep template1 | awk '{print $3}' | grep -q "UTF8"
@@ -124,6 +126,8 @@ configure_remote_postgres() {
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.username  ${db_user}
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.password ${db_passwd}
 
+    chown root:root ${root_properties}
+    chmod 600 ${root_properties}
     chown xroad:xroad ${db_properties}
     chmod 640 ${db_properties}
 
@@ -142,6 +146,7 @@ db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
 db_admin=opmonitor_admin
 db_admin_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
 db_properties=/etc/xroad/db.properties
+root_properties=/etc/xroad/root.properties
 
 #is database connection configured?
 if  [[ -f "${db_properties}"  && $(crudini --get "${db_properties}" '' op-monitor.hibernate.connection.url) != "" ]]
@@ -149,18 +154,19 @@ then
     db_url=$(crudini --get ${db_properties} '' op-monitor.hibernate.connection.url)
     db_user=$(crudini --get ${db_properties} '' op-monitor.hibernate.connection.username)
     db_passwd=$(crudini --get ${db_properties} '' op-monitor.hibernate.connection.password)
-fi
-
-res=${db_url%/*}
-db_host=${res##*//}
-db_addr=${db_host%%:*}
-db_port=${db_host##*:}
-
-if [[ "${db_host}" == "localhost"* || "${db_host}" == "127.0.0.1"* ]];
-then
-    configure_local_postgres
 else
-    configure_remote_postgres
+    res=${db_url%/*}
+    db_host=${res##*//}
+    db_addr=${db_host%%:*}
+    db_port=${db_host##*:}
+
+    # If the database host is not local, connect with master username and password
+    if  [[ -f ${root_properties}  && `crudini --get ${root_properties} '' postgres.connection.password` != "" ]]
+    then
+        configure_remote_postgres
+    else
+        configure_local_postgres
+    fi
 fi
 
 cd /usr/share/xroad/db || exit 1

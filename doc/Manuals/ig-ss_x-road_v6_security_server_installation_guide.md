@@ -43,7 +43,7 @@ Doc. ID: IG-SS
  28.01.2018 | 2.16    | Update port 2080 documentation | Petteri Kivimäki
  30.05.2019 | 2.17    | Added package installation instructions on chapter "[2.4 Preparing OS](#24-preparing-os)" | Raul Martinez
  11.09.2019 | 2.18    | Remove Ubuntu 14.04 from supported platforms | Jarkko Hyöty
- 12.09.2019 | 2.19    | Add instructions for using remote databases | Ilkka Seppälä
+ 20.09.2019 | 2.19    | Add instructions for using remote databases | Ilkka Seppälä
   
 ## Table of Contents <!-- omit in toc -->
 
@@ -201,7 +201,20 @@ To install the X-Road security server software on *Ubuntu* operating system, fol
 
         sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
 
-3.  Issue the following commands to install the security server packages (use package xroad-securityserver-ee to include configuration specific to Estonia; use package xroad-securityserver-fi to include configuration specific to Finland):
+3. (Optional step) If you want to use remote database server instead of the default locally installed one, you need to pre-create a configuration file containing the database administrator master password. This can be done by performing the following steps:
+
+        sudo mkdir /etc/xroad
+        sudo chown xroad:xroad /etc/xroad
+        sudo chmod 751 /etc/xroad
+        sudo touch /etc/xroad/root.properties
+        sudo chown root:root /etc/xroad/root.properties
+        sudo chmod 600 /etc/xroad/root.properties
+        
+    Edit `/etc/xroad/root.properties` contents. See the example below. Replace parameter values with your own.
+
+        postgres.connection.password = 54F46A19E50C11DA8631468CF09BE5DB
+
+4.  Issue the following commands to install the security server packages (use package xroad-securityserver-ee to include configuration specific to Estonia; use package xroad-securityserver-fi to include configuration specific to Finland):
 
         sudo apt-get update
         sudo apt-get install xroad-securityserver
@@ -211,8 +224,6 @@ Upon the first installation of the packages, the system asks for the following i
 -   Account name for the user who will be granted the rights to perform all activities in the user interface (**reference data: 1.3**).
 
 -   Database server URL. Locally installed database is suggested as default but remote databases can be used as well. In case remote database is used, one should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
-
--   Remote database master password. In case remote database URL was configured in previous step, this question is presented. This is the password for user postgres.
 
 -   The Distinguished Name of the owner of the **user interface’s** self-signed TLS certificate (*Subject DN*) and its alternative names (*subjectAltName*) (**reference data: 1.8; 1.10**). The certificate is used for securing connections to the user interface.
     The name and IP addresses detected from the operating system are suggested as default values.

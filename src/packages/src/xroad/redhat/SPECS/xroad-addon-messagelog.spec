@@ -71,6 +71,7 @@ db_url=jdbc:postgresql://127.0.0.1:5432/${db_name}
 db_user=messagelog
 db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
 db_properties=/etc/xroad/db.properties
+root_properties=/etc/xroad/root.properties
 
 die () {
     echo >&2 "$@"
@@ -82,88 +83,91 @@ then
     db_url=`crudini --get ${db_properties} '' messagelog.hibernate.connection.url`
     db_user=`crudini --get ${db_properties} '' messagelog.hibernate.connection.username`
     db_passwd=`crudini --get ${db_properties} '' messagelog.hibernate.connection.password`
-fi
-
-res=${db_url%/*}
-db_host=${res##*//}
-db_addr=${db_host%%:*}
-db_port=${db_host##*:}
-
-
-if [[ "${db_host}" == "localhost"* || "${db_host}" == "127.0.0.1"* ]];
-then
-
-    echo "configure local db"
-
-    if ! su - postgres -c "psql --list -tAF ' '" | grep template1 | awk '{print $3}' | grep -q "UTF8"
-    then
-        echo "postgreSQL is not UTF8 compatible."
-        echo "Aborting installation! please fix issues and rerun"
-        exit 101
-    fi
-
-    if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='$db_user'\" "` == "1" ]]
-    then
-        echo  "$db_user exists, skipping schema creation"
-        echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
-    else
-        echo "CREATE ROLE $db_user LOGIN PASSWORD '$db_passwd';" | su - postgres -c psql postgres
-    fi
-
-    if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_database WHERE datname='$db_name'\""`  == "1" ]]
-    then
-        echo "database $db_name exists"
-    else
-        su - postgres -c "createdb $db_name -O $db_user -E UTF-8"
-    fi
-
-    touch ${db_properties}
-    crudini --set ${db_properties} '' messagelog.hibernate.jdbc.use_streams_for_binary true
-    crudini --set ${db_properties} '' messagelog.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
-    crudini --set ${db_properties} '' messagelog.hibernate.connection.driver_class org.postgresql.Driver
-    crudini --set ${db_properties} '' messagelog.hibernate.connection.url ${db_url}
-    crudini --set ${db_properties} '' messagelog.hibernate.connection.username  ${db_user}
-    crudini --set ${db_properties} '' messagelog.hibernate.connection.password ${db_passwd}
-
 else
 
-    echo "configure remote db"
+    res=${db_url%/*}
+    db_host=${res##*//}
+    db_addr=${db_host%%:*}
+    db_port=${db_host##*:}
 
-    master_passwd=`crudini --get ${db_properties} '' postgres.connection.password`
-    export PGPASSWORD=${master_passwd}
-
-    if  ! psql -h $db_addr -p $db_port -U postgres --list -tAF ' ' | grep template1 | awk '{print $3}' | grep -q "UTF8"
-    then echo -e "\n\npostgreSQL is not UTF8 compatible."
-        echo -e "Aborting installation! please fix issues and rerun with apt-get -f install\n\n"
-        exit 101
-    fi
-
-    if [[ `psql -h $db_addr -p $db_port -U postgres postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='${db_user}'"` == "1" ]]
+    # If the database host is not local, connect with master username and password
+    if  [[ -f ${root_properties}  && `crudini --get ${root_properties} '' postgres.connection.password` != "" ]]
     then
-        echo  "$db_user user exists, skipping role creation"
-        echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | psql -h $db_addr -p $db_port -U postgres postgres
+
+        echo "configure remote db"
+
+        master_passwd=`crudini --get ${root_properties} '' postgres.connection.password`
+        export PGPASSWORD=${master_passwd}
+
+        if  ! psql -h $db_addr -p $db_port -U postgres --list -tAF ' ' | grep template1 | awk '{print $3}' | grep -q "UTF8"
+        then echo -e "\n\npostgreSQL is not UTF8 compatible."
+            echo -e "Aborting installation! please fix issues and rerun with apt-get -f install\n\n"
+            exit 101
+        fi
+
+        if [[ `psql -h $db_addr -p $db_port -U postgres postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='${db_user}'"` == "1" ]]
+        then
+            echo  "$db_user user exists, skipping role creation"
+            echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | psql -h $db_addr -p $db_port -U postgres postgres
+        else
+            echo "CREATE ROLE ${db_user} LOGIN PASSWORD '${db_passwd}';" | psql -h $db_addr -p $db_port -U postgres postgres
+        fi
+
+        if [[ `psql -h $db_addr -p $db_port -U postgres postgres -tAc "SELECT 1 FROM pg_database WHERE datname='${db_name}'"`  == "1" ]]
+        then
+            echo "database ${db_name} exists"
+        else
+            echo "GRANT ${db_user} to postgres" | psql -h $db_addr -p $db_port -U postgres postgres
+            createdb -h $db_addr -p $db_port -U postgres ${db_name} -O ${db_user} -E UTF-8
+        fi
+
+        touch ${db_properties}
+        crudini --set ${db_properties} '' messagelog.hibernate.jdbc.use_streams_for_binary true
+        crudini --set ${db_properties} '' messagelog.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
+        crudini --set ${db_properties} '' messagelog.hibernate.connection.driver_class org.postgresql.Driver
+        crudini --set ${db_properties} '' messagelog.hibernate.connection.url ${db_url}
+        crudini --set ${db_properties} '' messagelog.hibernate.connection.username  ${db_user}
+        crudini --set ${db_properties} '' messagelog.hibernate.connection.password ${db_passwd}
+
     else
-        echo "CREATE ROLE ${db_user} LOGIN PASSWORD '${db_passwd}';" | psql -h $db_addr -p $db_port -U postgres postgres
+
+        echo "configure local db"
+
+        if ! su - postgres -c "psql --list -tAF ' '" | grep template1 | awk '{print $3}' | grep -q "UTF8"
+        then
+            echo "postgreSQL is not UTF8 compatible."
+            echo "Aborting installation! please fix issues and rerun"
+            exit 101
+        fi
+
+        if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='$db_user'\" "` == "1" ]]
+        then
+            echo  "$db_user exists, skipping schema creation"
+            echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
+        else
+            echo "CREATE ROLE $db_user LOGIN PASSWORD '$db_passwd';" | su - postgres -c psql postgres
+        fi
+
+        if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_database WHERE datname='$db_name'\""`  == "1" ]]
+        then
+            echo "database $db_name exists"
+        else
+            su - postgres -c "createdb $db_name -O $db_user -E UTF-8"
+        fi
+
+        touch ${db_properties}
+        crudini --set ${db_properties} '' messagelog.hibernate.jdbc.use_streams_for_binary true
+        crudini --set ${db_properties} '' messagelog.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
+        crudini --set ${db_properties} '' messagelog.hibernate.connection.driver_class org.postgresql.Driver
+        crudini --set ${db_properties} '' messagelog.hibernate.connection.url ${db_url}
+        crudini --set ${db_properties} '' messagelog.hibernate.connection.username  ${db_user}
+        crudini --set ${db_properties} '' messagelog.hibernate.connection.password ${db_passwd}
+
     fi
-
-    if [[ `psql -h $db_addr -p $db_port -U postgres postgres -tAc "SELECT 1 FROM pg_database WHERE datname='${db_name}'"`  == "1" ]]
-    then
-        echo "database ${db_name} exists"
-    else
-        echo "GRANT ${db_user} to postgres" | psql -h $db_addr -p $db_port -U postgres postgres
-        createdb -h $db_addr -p $db_port -U postgres ${db_name} -O ${db_user} -E UTF-8
-    fi
-
-    touch ${db_properties}
-    crudini --set ${db_properties} '' messagelog.hibernate.jdbc.use_streams_for_binary true
-    crudini --set ${db_properties} '' messagelog.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
-    crudini --set ${db_properties} '' messagelog.hibernate.connection.driver_class org.postgresql.Driver
-    crudini --set ${db_properties} '' messagelog.hibernate.connection.url ${db_url}
-    crudini --set ${db_properties} '' messagelog.hibernate.connection.username  ${db_user}
-    crudini --set ${db_properties} '' messagelog.hibernate.connection.password ${db_passwd}
-
 fi
 
+chown root:root ${root_properties}
+chmod 600 ${root_properties}
 chown xroad:xroad ${db_properties}
 chmod 640 ${db_properties}
 

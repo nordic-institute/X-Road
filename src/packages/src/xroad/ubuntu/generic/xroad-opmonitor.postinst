@@ -15,6 +15,7 @@ db_admin=opmonitor_admin
 db_admin_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
 
 db_properties=/etc/xroad/db.properties
+root_properties=/etc/xroad/root.properties
 
 RET=
 db_get xroad-common/database-host
@@ -40,51 +41,12 @@ else
     echo "no db settings detected, creating db"
 
     # If the database host is not local, connect with master username and password
-    if [[ "${db_host}" == "localhost"* || "${db_host}" == "127.0.0.1"* ]]; then
-
-      echo "local database"
-
-      if ! su - postgres -c "psql --list -tAF ' '" | grep template1 | awk '{print $3}' | grep -q "UTF8"
-      then
-          echo "postgreSQL is not UTF8 compatible."
-          echo "Aborting installation! please fix issues and rerun with apt-get -f install"
-          exit 101
-      fi
-
-      if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='$db_admin'\" "` != "1" ]]
-      then
-          echo "CREATE ROLE $db_admin LOGIN PASSWORD '${db_admin_passwd}';" | su - postgres -c psql postgres
-      fi
-
-      if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='$db_user'\" "` == "1" ]]
-      then
-          echo "$db_user exists, skipping role creation"
-          echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
-      else
-          echo "CREATE ROLE $db_user LOGIN PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
-      fi
-
-      if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_database WHERE datname='$db_name'\""`  == "1" ]]
-      then
-          echo "database $db_name exists"
-      else
-          su - postgres -c "createdb $db_name -O $db_admin -E UTF-8"
-      fi
-
-      echo "ALTER ROLE ${db_admin} WITH PASSWORD '${db_admin_passwd}';" | su - postgres -c psql postgres
-
-      echo "grant usage on schema public to ${db_user};" | su - postgres -c psql postgres
-      echo "grant select, insert, update, delete on all tables in schema public to ${db_user};" | su - postgres -c psql postgres
-      echo "grant usage, select, update on all sequences in schema public to ${db_user};" | su - postgres -c psql postgres
-      echo "grant execute on all functions in schema public to ${db_user};" | su - postgres -c psql postgres
-
-    else
+    if  [[ -f ${root_properties}  && `crudini --get ${root_properties} '' postgres.connection.password` != "" ]]
+    then
 
       echo "remote database"
 
-      RET=
-      db_get xroad-common/database-password
-      master_passwd="$RET"
+      master_passwd=`crudini --get ${root_properties} '' postgres.connection.password`
       export PGPASSWORD=${master_passwd}
 
       if  ! psql -h $db_addr -p $db_port -U postgres --list -tAF ' ' | grep template1 | awk '{print $3}' | grep -q "UTF8"
@@ -122,6 +84,44 @@ else
       echo "grant usage, select, update on all sequences in schema public to ${db_user};" | psql -h $db_addr -p $db_port -U postgres postgres
       echo "grant execute on all functions in schema public to ${db_user};" | psql -h $db_addr -p $db_port -U postgres postgres
 
+    else
+
+      echo "local database"
+
+      if ! su - postgres -c "psql --list -tAF ' '" | grep template1 | awk '{print $3}' | grep -q "UTF8"
+      then
+          echo "postgreSQL is not UTF8 compatible."
+          echo "Aborting installation! please fix issues and rerun with apt-get -f install"
+          exit 101
+      fi
+
+      if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='$db_admin'\" "` != "1" ]]
+      then
+          echo "CREATE ROLE $db_admin LOGIN PASSWORD '${db_admin_passwd}';" | su - postgres -c psql postgres
+      fi
+
+      if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='$db_user'\" "` == "1" ]]
+      then
+          echo "$db_user exists, skipping role creation"
+          echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
+      else
+          echo "CREATE ROLE $db_user LOGIN PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
+      fi
+
+      if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_database WHERE datname='$db_name'\""`  == "1" ]]
+      then
+          echo "database $db_name exists"
+      else
+          su - postgres -c "createdb $db_name -O $db_admin -E UTF-8"
+      fi
+
+      echo "ALTER ROLE ${db_admin} WITH PASSWORD '${db_admin_passwd}';" | su - postgres -c psql postgres
+
+      echo "grant usage on schema public to ${db_user};" | su - postgres -c psql postgres
+      echo "grant select, insert, update, delete on all tables in schema public to ${db_user};" | su - postgres -c psql postgres
+      echo "grant usage, select, update on all sequences in schema public to ${db_user};" | su - postgres -c psql postgres
+      echo "grant execute on all functions in schema public to ${db_user};" | su - postgres -c psql postgres
+
     fi
 
     touch ${db_properties}
@@ -135,6 +135,8 @@ else
 
 fi
 
+chown root:root ${root_properties}
+chmod 600 ${root_properties}
 chown xroad:xroad ${db_properties}
 chmod 640 ${db_properties}
 
