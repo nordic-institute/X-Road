@@ -31,7 +31,7 @@ import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.apache.commons.lang.StringUtils;
-import org.niis.xroad.restapi.converter.ClientConverter;
+import org.niis.xroad.restapi.converter.Converters;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
 
@@ -122,12 +122,15 @@ public final class FormatUtils {
     }
 
     /**
-     * Count occurrences of
+     * Count occurrences of searched char
      * @param from
      * @param searched
-     * @return
+     * @return occurences, or zero if String was null
      */
     public static int countOccurences(String from, char searched) {
+        if (from == null) {
+            return 0;
+        }
         String removed = from.replace(String.valueOf(searched), "");
         return from.length() - removed.length();
     }
@@ -143,25 +146,25 @@ public final class FormatUtils {
             case MEMBER:
                 ClientId memberId = (ClientId) xRoadId;
                 encodedId.append(memberId.getXRoadInstance())
-                        .append(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR)
+                        .append(Converters.ENCODED_ID_SEPARATOR)
                         .append(memberId.getMemberClass())
-                        .append(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR)
+                        .append(Converters.ENCODED_ID_SEPARATOR)
                         .append(memberId.getMemberCode());
                 break;
             case SUBSYSTEM:
                 ClientId subSystemId = (ClientId) xRoadId;
                 encodedId.append(subSystemId.getXRoadInstance())
-                        .append(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR)
+                        .append(Converters.ENCODED_ID_SEPARATOR)
                         .append(subSystemId.getMemberClass())
-                        .append(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR)
+                        .append(Converters.ENCODED_ID_SEPARATOR)
                         .append(subSystemId.getMemberCode())
-                        .append(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR)
+                        .append(Converters.ENCODED_ID_SEPARATOR)
                         .append(subSystemId.getSubsystemCode());
                 break;
             case GLOBALGROUP:
                 GlobalGroupId globalGroupId = (GlobalGroupId) xRoadId;
                 encodedId.append(globalGroupId.getXRoadInstance())
-                        .append(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR)
+                        .append(Converters.ENCODED_ID_SEPARATOR)
                         .append(globalGroupId.getGroupCode());
                 break;
             case LOCALGROUP:

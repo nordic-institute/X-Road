@@ -78,7 +78,6 @@ public class ServicesApiControllerIntegrationTest {
     public static final String LOCAL_GROUP_ID_1 = "1";
     public static final String LOCAL_GROUP_ID_2 = "2";
     public static final String LOCAL_GROUP_CODE = "group1";
-    public static final String LOCAL_GROUP_CODE_2 = "group2";
     public static final String LOCAL_GROUP_DESC = "foo";
     public static final String SS2_CLIENT_ID = "FI:GOV:M1:SS2";
     public static final String SS3_CLIENT_ID = "FI:GOV:M1:SS3";

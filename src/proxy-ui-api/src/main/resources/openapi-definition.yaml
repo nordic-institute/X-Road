@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.9"
+  version: "1.0.10"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -3770,6 +3770,34 @@ components:
           format: text
           description: <instance_id>:<member_class>:<member_code>:<security_server_code>
           example: FI:GOV:123:sserver1
+        instance_id:
+          type: string
+          format: text
+          description: xroad instance id
+          example: FI
+          minLength: 1
+          maxLength: 255
+        member_class:
+          type: string
+          format: text
+          description: member class
+          example: GOV
+          minLength: 1
+          maxLength: 255
+        member_code:
+          type: string
+          format: text
+          description: member code
+          example: 123
+          minLength: 1
+          maxLength: 255
+        server_code:
+          type: string
+          format: text
+          description: security server code
+          example: server123
+          minLength: 1
+          maxLength: 255
     Service: # ok
       type: object
       description: service for the service description

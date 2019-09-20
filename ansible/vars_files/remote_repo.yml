@@ -1,12 +1,8 @@
 ---
 package_source: "remote"
 
-ubuntu_14_apt_key:  "https://artifactory.niis.org/api/gpg/key/public"
-ubuntu_14_repo_url: "https://artifactory.niis.org/xroad-release-deb"
-ubuntu_14_apt_repo: "deb {{ubuntu_14_repo_url}} trusty-current main"
-
-ubuntu_18_apt_key:  "{{ubuntu_14_apt_key}}"
-ubuntu_18_repo_url: "{{ubuntu_14_repo_url}}"
+ubuntu_18_apt_key:  "https://artifactory.niis.org/api/gpg/key/public"
+ubuntu_18_repo_url: "https://artifactory.niis.org/xroad-release-deb"
 ubuntu_18_apt_repo: "deb {{ubuntu_18_repo_url}} bionic-current main"
 
 rhel_repo_baseurl: "https://artifactory.niis.org/xroad-release-rpm/rhel/7/current"

@@ -28,6 +28,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -88,22 +89,22 @@ public class ServiceConverterTest {
         assertEquals(encodedFullServiceCode, fullServiceCode);
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = BadRequestException.class)
     public void convertBadStringIdClientId() throws Exception {
         serviceConverter.parseClientId("XRD2:GOV:M4:SS1:aa:asd");
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = BadRequestException.class)
     public void convertBadStringIdServiceCode() throws Exception {
         serviceConverter.parseFullServiceCode("XRD2:GOV:M4:SS1:aa:asd");
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = BadRequestException.class)
     public void convertBadStringId2ClientId() throws Exception {
         serviceConverter.parseClientId("XRD2:GOV:M4:SS1");
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = BadRequestException.class)
     public void convertBadStringId2ServiceCode() throws Exception {
         serviceConverter.parseFullServiceCode("XRD2:GOV:M4:SS1");
     }

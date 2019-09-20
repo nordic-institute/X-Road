@@ -157,7 +157,7 @@ subprojects {
     }
 
     checkstyle {
-        toolVersion = "8.22"
+        toolVersion = "8.24"
         configDir=file("${project.rootDir}/config/checkstyle")
         configFile=file("${configDir}/checkstyle.xml")
         ignoreFailures = false

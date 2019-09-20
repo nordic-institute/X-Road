@@ -63,8 +63,7 @@ public class SubjectConverter {
         XRoadId xRoadId;
         switch (subjectType) {
             case SUBSYSTEM:
-                separators = FormatUtils.countOccurences(encodedId,
-                        ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
+                separators = FormatUtils.countOccurences(encodedId, Converters.ENCODED_ID_SEPARATOR);
                 if (separators != ClientConverter.SUBSYSTEM_CODE_INDEX) {
                     throw new BadRequestException("Invalid subsystem id " + encodedId);
                 }

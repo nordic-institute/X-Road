@@ -42,6 +42,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.converter.Converters.ENCODED_ID_SEPARATOR;
+
 /**
  * Helper to convert Groups
  */
@@ -150,7 +152,7 @@ public class GroupConverter {
         StringBuilder builder = new StringBuilder();
         if (includeType) {
             builder.append(localGroupId.getObjectType())
-                    .append(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
+                    .append(ENCODED_ID_SEPARATOR);
         }
         builder.append(localGroupId.getGroupCode());
         return builder.toString().trim();
@@ -173,10 +175,10 @@ public class GroupConverter {
         StringBuilder builder = new StringBuilder();
         if (includeType) {
             builder.append(globalGroupId.getObjectType())
-                    .append(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
+                    .append(ENCODED_ID_SEPARATOR);
         }
         builder.append(globalGroupId.getXRoadInstance())
-                .append(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR)
+                .append(ENCODED_ID_SEPARATOR)
                 .append(globalGroupId.getGroupCode());
         return builder.toString().trim();
     }
@@ -187,13 +189,11 @@ public class GroupConverter {
      * @return {@link GlobalGroupId}
      */
     public GlobalGroupId convertGlobalGroupId(String encodedId) {
-        int separators = FormatUtils.countOccurences(encodedId,
-                ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR);
+        int separators = FormatUtils.countOccurences(encodedId, Converters.ENCODED_ID_SEPARATOR);
         if (separators != GLOBALGROUP_CODE_INDEX) {
             throw new BadRequestException("Invalid global group id " + encodedId);
         }
-        List<String> parts = Arrays.asList(
-                encodedId.split(String.valueOf(ClientConverter.ENCODED_CLIENT_AND_SERVICE_ID_SEPARATOR)));
+        List<String> parts = Arrays.asList(encodedId.split(String.valueOf(Converters.ENCODED_ID_SEPARATOR)));
         String instance = parts.get(INSTANCE_INDEX);
         String groupCode = parts.get(GLOBALGROUP_CODE_INDEX);
         return GlobalGroupId.create(instance, groupCode);
