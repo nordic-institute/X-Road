@@ -1202,7 +1202,7 @@ paths:
             minLength: 1
             maxLength: 1023
         - in: query
-          name: name_group_description
+          name: member_name_group_description
           description: pass an optional search string (name) for looking up subjects
           required: false
           schema:
@@ -1276,7 +1276,6 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-
   /groups/{group_id}:
     get: # ok
       tags:
