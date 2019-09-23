@@ -54,6 +54,7 @@
                   color="primary"
                   class="rounded-button"
                   @click="submit"
+                  min-width="120"
                   rounded
                   :disabled="isDisabled"
                   :loading="loading"
