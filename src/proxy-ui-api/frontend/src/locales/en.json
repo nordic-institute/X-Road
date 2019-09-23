@@ -12,6 +12,15 @@
       "services": "services",
       "internalServers": "internal servers",
       "localGroups": "local groups"
+    },
+    "keys": {
+      "signAndAuthKeys": "SIGN and AUTH Keys",
+      "apiKey": "API Key",
+      "ssTlsCertificate": "Security Server TLS Certificate"
+    },
+    "settings": {
+      "systemParameters": "System Parameters",
+      "backupAndRestore": "Backup And Restore"
     }
   },
   "client": {
@@ -162,8 +171,6 @@
     "continue": "Continue"
   },
   "login": {
-    "username": "Username",
-    "password": "Password",
     "logIn": "Log in",
     "logOut": "Log out",
     "errorMsg401": "Wrong username or password"
@@ -172,7 +179,7 @@
     "idleWarning": "You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.",
     "sessionExpired": "Session expired"
   },
-  "validation": {
+  "customValidation": {
     "invalidRest": "REST URL is not valid",
     "invalidWsdl": "WSDL URL is not valid"
   },
@@ -181,5 +188,14 @@
   "member_name": "Member name",
   "member_code": "Member code",
   "subsystem_code": "Subsystem code",
-  "warning": "Warning"
+  "warning": "Warning",
+  "fields": {
+    "password": "Password",
+    "username": "Username",
+    "serviceUrl": "URL",
+    "serviceTimeout": "Timeout",
+    "serviceCode": "Service Code",
+    "url": "URL",
+    "tokenPin": "Token PIN"
+  }
 }

@@ -11,6 +11,7 @@ export enum RouteName {
   Client = 'client',
   Login = 'login',
   Certificate = 'certificate',
+  ClientTlsCertificate = 'client-tls-certificate',
   MemberDetails = 'member-details',
   MemberServers = 'member-servers',
   SubsystemDetails = 'subs-details',
@@ -21,6 +22,13 @@ export enum RouteName {
   SubsystemServices = 'subs-services',
   ServiceDescriptionDetails = 'service-description-details',
   Service = 'service',
+  SignAndAuthKeys = 'sign-and-auth-keys',
+  ApiKey = 'api-key',
+  SSTlsCertificate = 'ss-tls-certificate',
+  Token = 'token',
+  Key = 'key',
+  SystemParameters = 'system-parameters',
+  BackupAndRestore = 'backup-and-restore',
 }
 
 // A "single source of thuth" for permission strings
@@ -103,7 +111,7 @@ export const mainTabs = [
     permission: Permissions.VIEW_CLIENTS,
   },
   {
-    to: { name: RouteName.Keys },
+    to: { name: RouteName.SignAndAuthKeys },
     key: 'keys',
     name: 'tab.main.keys',
     permission: Permissions.VIEW_KEYS,
@@ -115,7 +123,7 @@ export const mainTabs = [
     permission: Permissions.DIAGNOSTICS,
   },
   {
-    to: { name: RouteName.Settings },
+    to: { name: RouteName.SystemParameters },
     key: 'settings',
     name: 'tab.main.settings',
   },
