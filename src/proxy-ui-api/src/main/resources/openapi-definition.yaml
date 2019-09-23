@@ -3881,8 +3881,8 @@ components:
         id:
           type: string
           format: text
-          description: <instance_identifier>:<other_params>
-          example: DEV:security-server-owners
+          description: a subsystem id <instance_id>:<member_class>:<member_code>:<subsystem> | globalgroup id <instance_id>:<group_code> | localgroup resource id in number format <id>
+          example: DEV:ORG:1234:Subsystem | DEV:security-server-owners | 123
           minLength: 1
           maxLength: 1279
         subject_type:
@@ -3894,6 +3894,14 @@ components:
           example: Security server owners
           minLength: 1
           maxLength: 255
+        local_group_code:
+          type: string
+          format: text
+          description: group code in case the object is a local group
+          example: My own Local group code
+          minLength: 1
+          maxLength: 255
+          readOnly: true
         rights_given_at:
           type: string
           format: date-time
@@ -4035,8 +4043,8 @@ components:
         id:
           type: string
           format: text
-          description: subject id - can be a client id or <instance_id>:<group_code>
-          example: DEV:global-group-code
+          description: subject id - can be a subsystem id <instance_id>:<member_class>:<member_code>:<subsystem> | globalgroup id <instance_id>:<group_code> | localgroup resource id in number format <id>
+          example: DEV:ORG:1234:Subsystem | DEV:security-server-owners | 123
           readOnly: true
           minLength: 1
           maxLength: 1279
@@ -4050,7 +4058,6 @@ components:
       enum:
         - GLOBALGROUP
         - LOCALGROUP
-        - MEMBER
         - SUBSYSTEM
     Subjects: # ok
       type: object
