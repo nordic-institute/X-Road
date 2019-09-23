@@ -123,6 +123,7 @@ configure_remote_postgres() {
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.url ${db_url}
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.username  ${db_user}
     crudini --set ${db_properties} '' op-monitor.hibernate.connection.password ${db_passwd}
+    crudini --set ${root_properties} '' op-monitor.database.initialized true
 
     chown xroad:xroad ${db_properties}
     chmod 640 ${db_properties}
@@ -160,9 +161,19 @@ db_port=${db_host##*:}
 # If the database host is not local, connect with master username and password
 if  [[ -f ${root_properties}  && `crudini --get ${root_properties} '' postgres.connection.password` != "" ]]
 then
-    configure_remote_postgres
+    if  [[ `crudini --get ${root_properties} '' op-monitor.database.initialized` != "true" ]]
+    then
+        configure_remote_postgres
+    else
+        echo "database already configured"
+    fi
 else
-    configure_local_postgres
+    if  [[ -f "${db_properties}"  && $(crudini --get "${db_properties}" '' op-monitor.hibernate.connection.url) != "" ]]
+    then
+        echo "database already configured"
+    else
+        configure_local_postgres
+    fi
 fi
 
 cd /usr/share/xroad/db || exit 1

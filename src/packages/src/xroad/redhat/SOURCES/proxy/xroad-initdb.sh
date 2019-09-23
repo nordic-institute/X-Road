@@ -108,6 +108,7 @@ configure_remote_postgres() {
     crudini --set ${db_properties} '' serverconf.hibernate.connection.url ${db_url}
     crudini --set ${db_properties} '' serverconf.hibernate.connection.username  ${db_user}
     crudini --set ${db_properties} '' serverconf.hibernate.connection.password ${db_passwd}
+    crudini --set ${root_properties} '' serverconf.database.initialized true
 }
 
 db_name=serverconf
@@ -133,9 +134,19 @@ db_port=${db_host##*:}
 # If the database host is not local, connect with master username and password
 if  [[ -f ${root_properties}  && `crudini --get ${root_properties} '' postgres.connection.password` != "" ]]
 then
-    configure_remote_postgres
+    if  [[ `crudini --get ${root_properties} '' serverconf.database.initialized` != "true" ]]
+    then
+        configure_remote_postgres
+    else
+        echo "database already configured"
+    fi
 else
-    configure_local_postgres
+    if  [[ -f ${db_properties}  && `crudini --get ${db_properties} '' serverconf.hibernate.connection.url` != "" ]]
+    then
+        echo "database already configured"
+    else
+        configure_local_postgres
+    fi
 fi
 
 chown xroad:xroad ${db_properties}
