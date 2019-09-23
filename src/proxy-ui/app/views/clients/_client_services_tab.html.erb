@@ -62,11 +62,11 @@
       <tr>
         <td><%= t '.url_type' %></td>
         <td>
-          <%= radio_button_tag "service_type", "OPENAPI3", true, :style => "width: auto"%>
+          <%= radio_button_tag "service_type", "OPENAPI3", true, :style => "width: auto; vertical-align: bottom;"%>
           <%= label_tag "service_type_OPENAPI3", t('.rest_api_base_path') %>
         </td>
         <td>
-          <%= radio_button_tag "service_type", "OPENAPI3_DESCRIPTION", false, :style => "width: auto" %>
+          <%= radio_button_tag "service_type", "OPENAPI3_DESCRIPTION", false, :style => "width: auto; vertical-align: bottom;" %>
           <%= label_tag "service_type_OPENAPI3_DESCRIPTION", t('.openapi3_description') %>
         </td>
       </tr>
@@ -88,11 +88,11 @@
       <tr>
         <td><%= t '.url_type' %></td>
         <td>
-          <%= radio_button_tag "service_type", "OPENAPI3", false, :style => "width: 90%", :disabled => true %>
+          <%= radio_button_tag "service_type", "OPENAPI3", false, :style => "width: auto; vertical-align: bottom;", :disabled => true %>
           <%= label_tag "service_type_OPENAPI3", t('.rest_api_base_path') %>
         </td>
         <td>
-          <%= radio_button_tag "service_type", "OPENAPI3_DESCRIPTION", false, :style => "width: 90%", :disabled => true %>
+          <%= radio_button_tag "service_type", "OPENAPI3_DESCRIPTION", false, :style => "width: auto; vertical-align: bottom;", :disabled => true %>
           <%= label_tag "service_type_OPENAPI3_DESCRIPTION", t('.openapi3_description') %>
         </td>
       </tr>

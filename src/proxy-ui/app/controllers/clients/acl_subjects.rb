@@ -204,17 +204,6 @@ module Clients::AclSubjects
     render_json(read_subject_services(client, subject_id))
   end
 
-  def create_endpoint(endpoints, service_code, method = "*", path = "**", generated = true)
-    endpoint = endpoints.detect { |ep|
-      ep.service_code == service_code && ep.method == method && ep.path == path
-    }
-    if (endpoint == nil)
-      endpoint = EndpointType.new(service_code, method, path, generated);
-      endpoints.add(endpoint);
-    end
-    endpoint
-  end
-
   def acl_subject_open_services_remove
     audit_log("Remove access rights from subject", audit_log_data = {})
 
@@ -244,6 +233,17 @@ module Clients::AclSubjects
   end
 
   private
+
+  def create_endpoint(endpoints, service_code, method = "*", path = "**", generated = true)
+    endpoint = endpoints.detect { |ep|
+      ep.service_code == service_code && ep.method == method && ep.path == path
+    }
+    if (endpoint == nil)
+      endpoint = EndpointType.new(service_code, method, path, generated);
+      endpoints.add(endpoint);
+    end
+    endpoint
+  end
 
   def read_acl_subjects(client, service_code = nil, method = nil, path = nil)
     subjects = {}

@@ -25,8 +25,7 @@
         }
 
         // Toggle edit-button
-        if ($(".service.row_selected:visible, " +
-              ".wsdl.row_selected").length == 1) {
+        if ($(".service.row_selected:visible, .wsdl.row_selected").length == 1) {
             $("#service_params").enable();
         } else {
             $("#service_params").disable();
@@ -34,14 +33,16 @@
 
         // Toggle acl & endpoint buttons
         if ($(".service.row_selected:visible").length == 1) {
+            var data = $("#services").dataTable().getFocusData();
             $("#service_acl").enable();
-            $("#openapi3_add_endpoint").enable();
-            if ($(".service.row_selected:visible .endpoint_row.generated").length === 1) {
+
+            if (data.endpoint) {
+                $("#openapi3_add_endpoint").enable();
+            }
+            if (data.generated) {
                 $("#service_params").disable();
                 $("#wsdl_delete").disable();
-            }
-
-            if($(".service.row_selected:visible .endpoint_row:not(.generated)").length === 1) {
+            } else {
                 $("#wsdl_delete").enable();
             }
         } else {
@@ -57,49 +58,9 @@
             $("#wsdl_enable").show();
         }
 
-
         if($(".wsdl.row_selected").length > 1) {
             $("wsdl_refresh").disable();
         }
-
-        // disabled refresh & edit if disabled rest service
-        $(".wsdl.disabled.row_selected td").each(function() {
-            if($(this).text().indexOf("REST DISABLED") === 0) {
-                $("#wsdl_refresh").disable();
-                $("#service_params").disable();
-            }
-        });
-
-        // Disable add endpoint -button if selected service is under WSDL
-        if ($(".service.row_selected").length === 1) {
-            var serviceTableRows = $("#services tbody tr");
-            var selectedServiceRowIndex;
-            for (var i = 0 ; i < serviceTableRows.length ; i++) {
-                if(!selectedServiceRowIndex) {
-                    var isSelectedRow = $(serviceTableRows.get(i)).is('.service.row_selected');
-                    if(isSelectedRow) {
-                        selectedServiceRowIndex = i;
-                    }
-                }
-            }
-            var isSelectedServiceUnderWSDL;
-            for (var i = selectedServiceRowIndex ; i >= 0 ; i--) {
-                if(isSelectedServiceUnderWSDL === undefined) {
-                    var hasWSDLClass = $(serviceTableRows.get(i)).is(".wsdl");
-                    if (hasWSDLClass) {
-                        var hasRESTClass = $(serviceTableRows.get(i)).is(".rest");
-                        isSelectedServiceUnderWSDL = !hasRESTClass;
-                    }
-                }
-            }
-
-            if(isSelectedServiceUnderWSDL) {
-                $("#openapi3_add_endpoint").disable();
-            } else {
-                $("#openapi3_add_endpoint").enable();
-            }
-        }
-
     }
 
     function endpointParams() {
@@ -489,7 +450,7 @@
               "mRender": function(data, type, full) {
                   var rowType = full.wsdl ? 'servicedescription' : full.method ? 'endpoint' : 'service';
                   if (full.wsdl) {
-                      return "<span data-type='" + rowType + "'>" + data + "(" + full.wsdl_id + ")</span>";
+                      return "<span data-type='" + rowType + "'>" + data + " (" + full.wsdl_id + ")</span>";
                   } else if (full.method) {
                       var generatedIcon = full.generated ? "<img src='/Icon_sync.svg' style='width:13px'/>" : "";
                       var rowClasses = full.generated ? 'endpoint_row generated' : 'endpoint_row';
@@ -653,13 +614,13 @@
                     .data("old_path", service.path)
                     .data("service_code", service.service_code)
                     .dialog("open");
-            } else if (service.wsdl && service.name === 'WSDL') {
+            } else if (service.service_type === 'WSDL') {
                 // Open WSDL service edit dialog
                 $("#params_wsdl_id").val(service.wsdl_id);
                 $("#params_wsdl_url").val(service.wsdl_id);
 
                 $("#wsdl_params_dialog").dialog("open");
-            } else if (service.wsdl && service.name === 'REST') {
+            } else if (service.service_type === 'OPENAPI3' || service.service_type === 'OPENAPI3_DESCRIPTION') {
                 // Open REST service edit dialog
                 $("#params_wsdl_id").val(service.wsdl_id);
                 $("#params_openapi3_url").val(service.wsdl_id);

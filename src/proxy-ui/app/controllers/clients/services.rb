@@ -61,101 +61,6 @@ module Clients::Services
     end
   end
 
-  def servicedescription_wsdl_add(params)
-    audit_log("Add service description", audit_log_data = {})
-
-    authorize!(:add_wsdl)
-
-    validate_params({
-      :client_id => [:required],
-      :wsdl_add_url => [:required, :url],
-      :service_type => [:required]
-    })
-
-    client = get_client(params[:client_id])
-
-    servicedescription = ServiceDescriptionType.new
-    servicedescription.url = params[:wsdl_add_url]
-    servicedescription.disabled = true
-    servicedescription.disabledNotice = t('clients.default_disabled_service_notice')
-    servicedescription.refreshedDate = Date.new
-    servicedescription.client = client
-    servicedescription.type = DescriptionType::WSDL
-
-    audit_log_data[:clientIdentifier] = client.identifier
-    audit_log_data[:wsdlUrl] = servicedescription.url
-    audit_log_data[:disabled] = servicedescription.disabled?
-    audit_log_data[:refreshedDate] =
-      Time.at(servicedescription.refreshedDate.getTime / 1000).iso8601
-
-    parse_and_check_services(servicedescription)
-
-    client.serviceDescription.add(servicedescription)
-
-    servicedescription.service.each { |service|
-      create_endpoint(client.endpoint, service.service_code)
-    }
-    serverconf_save
-
-    render_json(read_services(client))
-  end
-
-  def servicedescription_openapi3_add(params)
-    audit_log("Add service description", audit_log_data = {})
-
-    authorize!(:add_openapi3)
-    validate_params({
-      :client_id => [:required],
-      :openapi3_add_url => [:required, :url],
-      :openapi3_service_code => [:required],
-      :service_type => [:required]
-    })
-
-    url = params[:openapi3_add_url]
-    base_url = url
-    client = get_client(params[:client_id])
-    openapi = nil
-
-    if DescriptionType::OPENAPI3_DESCRIPTION.name == params[:service_type]
-      openapi = parse_openapi(url)
-      base_url = openapi.base_url
-    end
-
-    servicedescription = ServiceDescriptionType.new
-    servicedescription.url = url
-    servicedescription.disabled = true
-    servicedescription.disabledNotice = t('clients.default_disabled_service_notice')
-    servicedescription.refreshedDate = Date.new
-    servicedescription.client = client
-    servicedescription.type = openapi ? DescriptionType::OPENAPI3_DESCRIPTION : DescriptionType::OPENAPI3
-
-    audit_log_data[:clientIdentifier] = client.identifier
-    audit_log_data[:wsdlUrl] = servicedescription.url
-    audit_log_data[:disabled] = servicedescription.disabled?
-    audit_log_data[:refreshedDate] = Time.at(servicedescription.refreshedDate.getTime / 1000).iso8601
-
-    service = ServiceType.new
-    service.serviceCode = params[:openapi3_service_code]
-    service.serviceVersion = nil
-    service.title = nil
-    service.url = base_url
-    service.timeout = DEFAULT_SERVICE_TIMEOUT
-    service.serviceDescription = servicedescription
-    servicedescription.service.add(service)
-
-    check_duplicate_url(servicedescription)
-    check_duplicate_service_codes(servicedescription)
-
-    client.serviceDescription.add(servicedescription)
-    create_endpoint(client.endpoint, service.service_code)
-    openapi.operations.each do |oper|
-      create_endpoint(client.endpoint, service.service_code, oper.method, oper.path, true)
-    end if openapi
-
-    serverconf_save
-    render_json(read_services(client))
-  end
-
   def servicedescription_disable
     if params[:enable].nil?
       audit_log("Disable service description", audit_log_data = {})
@@ -207,76 +112,6 @@ module Clients::Services
     end
   end
 
-  def servicedescription_openapi3_edit(params)
-    audit_log("Edit openapi3 service description", audit_log_data = {})
-
-    authorize!(:refresh_openapi3)
-
-    validate_params({
-      :client_id => [:required],
-      :wsdl_id => [:required],
-      :openapi3_old_service_code => [:required],
-      :openapi3_new_url => [:required, :url],
-      :openapi3_new_service_code => [:required],
-      :service_type => [:required]
-    })
-
-    client = get_client(params[:client_id])
-    service_type = DescriptionType.value_of(params[:service_type])
-
-    audit_log_data[:clientIdentifier] = client.identifier
-
-    servicedescription = client.serviceDescription.detect { |servicedescription|
-      [DescriptionType::OPENAPI3, DescriptionType::OPENAPI3_DESCRIPTION].include?(servicedescription.type) &&
-        servicedescription.url == params[:wsdl_id]
-    } or raise t("clients.service_description_does_not_exist")
-
-    base_url = params[:openapi3_new_url]
-    openapi = nil
-
-    if DescriptionType::OPENAPI3_DESCRIPTION == service_type
-      if params[:openapi3_new_url] != servicedescription.url
-        openapi = parse_openapi(base_url)
-        base_url = openapi.base_url
-      else
-        base_url = servicedescription.service.first.url
-      end
-    end
-
-    service_code = params[:openapi3_new_service_code]
-    servicedescription.url = params[:openapi3_new_url]
-    servicedescription.type = service_type
-    servicedescription.service.first.url = base_url
-    servicedescription.service.first.service_code = service_code
-
-    check_duplicate_url(servicedescription)
-    check_duplicate_service_codes(servicedescription)
-
-    client.endpoint.each do |item|
-      if params[:openapi3_old_service_code] == item.serviceCode
-        item.serviceCode = service_code
-      end
-    end
-
-    endpoints = []
-    endpoints << create_endpoint(client.endpoint, service_code)
-    if openapi
-      openapi.operations.each do |oper|
-        endpoints << create_endpoint(client.endpoint, service_code, oper.method, oper.path, true)
-      end
-      iterate(client.acl) do |item, it|
-        it.remove if item.endpoint.generated? && item.endpoint.service_code == service_code &&
-          !endpoints.include?(item.endpoint)
-      end
-
-      iterate(client.endpoint) do |item, it|
-        it.remove if item.generated? && item.service_code == service_code && !endpoints.include?(item)
-      end
-    end
-    serverconf_save
-    render_json(read_services(client))
-  end
-
   ## Add rest endpoint
   def openapi3_endpoint_add
     audit_log("Add rest endpoint", audit_log_data = {})
@@ -323,74 +158,6 @@ module Clients::Services
 
     serverconf_save
     render_json(read_services(client))
-  end
-
-  ## helper function to iterate Java collections
-  def iterate(iterable)
-    it = iterable.iterator
-    while it.has_next?
-      yield(it.next, it)
-    end
-  end
-
-  def servicedescription_wsdl_edit(params)
-    audit_log("Edit wsdl service description", audit_log_data = {})
-
-    authorize!(:refresh_wsdl)
-
-    validate_params({
-      :client_id => [:required],
-      :wsdl_id => [:required],
-      :new_url => [:required, :url],
-      :service_type => [:required]
-    })
-    client = get_client(params[:client_id])
-
-    audit_log_data[:clientIdentifier] = client.identifier
-
-    client.serviceDescription.each do |servicedescription|
-      if servicedescription.url == params[:new_url]
-        raise t('clients.wsdl_exists')
-      end
-    end if params[:wsdl_id] != params[:new_url]
-
-    servicedescriptions = servicedescriptions_by_urls(client, [params[:wsdl_id]])
-    servicedescriptions[0].url = params[:new_url]
-    servicedescriptions[0].refreshedDate = Date.new
-
-    added_objs, added, deleted = parse_servicedescriptions(client, servicedescriptions)
-
-    update_servicedescriptions(client, added_objs, deleted)
-
-    serverconf_save
-
-    audit_log_data[:wsdl] = {
-      :wsdlUrl => params[:wsdl_id],
-      :wsdlUrlNew => params[:new_url],
-      :servicesAdded => added[servicedescriptions[0].url],
-      :servicesDeleted => deleted[servicedescriptions[0].url]
-    }
-
-    render_json(read_services(client))
-  end
-
-  def delete_endpoint(client, endpoint)
-    acl_to_be_removed = []
-    client.acl.each do |access_right|
-      if  access_right.endpoint.serviceCode == params[:service_code] && access_right.endpoint.method == params[:method] && access_right.endpoint.path == params[:path]
-        acl_to_be_removed << access_right
-      end
-    end
-    client.acl.removeAll(acl_to_be_removed)
-    client.endpoint.remove(endpoint)
-  end
-
-  def find_endpoint(endpoints, service_code, method, path)
-    endpoints.detect do |endpoint|
-      endpoint.service_code == service_code &&
-        endpoint.method == method &&
-        endpoint.path == path
-    end
   end
 
   def servicedescription_refresh
@@ -738,6 +505,231 @@ module Clients::Services
 
   private
 
+  def servicedescription_wsdl_add(params)
+    audit_log("Add service description", audit_log_data = {})
+
+    authorize!(:add_wsdl)
+
+    validate_params({
+      :client_id => [:required],
+      :wsdl_add_url => [:required, :url],
+      :service_type => [:required]
+    })
+
+    client = get_client(params[:client_id])
+
+    servicedescription = ServiceDescriptionType.new
+    servicedescription.url = params[:wsdl_add_url]
+    servicedescription.disabled = true
+    servicedescription.disabledNotice = t('clients.default_disabled_service_notice')
+    servicedescription.refreshedDate = Date.new
+    servicedescription.client = client
+    servicedescription.type = DescriptionType::WSDL
+
+    audit_log_data[:clientIdentifier] = client.identifier
+    audit_log_data[:wsdlUrl] = servicedescription.url
+    audit_log_data[:disabled] = servicedescription.disabled?
+    audit_log_data[:refreshedDate] =
+      Time.at(servicedescription.refreshedDate.getTime / 1000).iso8601
+
+    parse_and_check_services(servicedescription)
+
+    client.serviceDescription.add(servicedescription)
+
+    servicedescription.service.each { |service|
+      create_endpoint(client.endpoint, service.service_code)
+    }
+    serverconf_save
+
+    render_json(read_services(client))
+  end
+
+  def servicedescription_openapi3_add(params)
+    audit_log("Add service description", audit_log_data = {})
+
+    authorize!(:add_openapi3)
+    validate_params({
+      :client_id => [:required],
+      :openapi3_add_url => [:required, :url],
+      :openapi3_service_code => [:required],
+      :service_type => [:required]
+    })
+
+    url = params[:openapi3_add_url]
+    base_url = url
+    client = get_client(params[:client_id])
+    openapi = nil
+
+    if DescriptionType::OPENAPI3_DESCRIPTION.name == params[:service_type]
+      openapi = parse_openapi(url)
+      base_url = openapi.base_url
+    end
+
+    servicedescription = ServiceDescriptionType.new
+    servicedescription.url = url
+    servicedescription.disabled = true
+    servicedescription.disabledNotice = t('clients.default_disabled_service_notice')
+    servicedescription.refreshedDate = Date.new
+    servicedescription.client = client
+    servicedescription.type = openapi ? DescriptionType::OPENAPI3_DESCRIPTION : DescriptionType::OPENAPI3
+
+    audit_log_data[:clientIdentifier] = client.identifier
+    audit_log_data[:wsdlUrl] = servicedescription.url
+    audit_log_data[:disabled] = servicedescription.disabled?
+    audit_log_data[:refreshedDate] = Time.at(servicedescription.refreshedDate.getTime / 1000).iso8601
+
+    service = ServiceType.new
+    service.serviceCode = params[:openapi3_service_code]
+    service.serviceVersion = nil
+    service.title = nil
+    service.url = base_url
+    service.timeout = DEFAULT_SERVICE_TIMEOUT
+    service.serviceDescription = servicedescription
+    servicedescription.service.add(service)
+
+    check_duplicate_url(servicedescription)
+    check_duplicate_service_codes(servicedescription)
+
+    client.serviceDescription.add(servicedescription)
+    create_endpoint(client.endpoint, service.service_code)
+    openapi.operations.each do |oper|
+      create_endpoint(client.endpoint, service.service_code, oper.method, oper.path, true)
+    end if openapi
+
+    serverconf_save
+    render_json(read_services(client))
+  end
+
+  def servicedescription_openapi3_edit(params)
+    audit_log("Edit openapi3 service description", audit_log_data = {})
+
+    authorize!(:refresh_openapi3)
+
+    validate_params({
+      :client_id => [:required],
+      :wsdl_id => [:required],
+      :openapi3_old_service_code => [:required],
+      :openapi3_new_url => [:required, :url],
+      :openapi3_new_service_code => [:required],
+      :service_type => [:required]
+    })
+
+    client = get_client(params[:client_id])
+    service_type = DescriptionType.value_of(params[:service_type])
+
+    audit_log_data[:clientIdentifier] = client.identifier
+
+    servicedescription = client.serviceDescription.detect { |servicedescription|
+      [DescriptionType::OPENAPI3, DescriptionType::OPENAPI3_DESCRIPTION].include?(servicedescription.type) &&
+        servicedescription.url == params[:wsdl_id]
+    } or raise t("clients.service_description_does_not_exist")
+
+    base_url = params[:openapi3_new_url]
+    openapi = nil
+
+    if DescriptionType::OPENAPI3_DESCRIPTION == service_type
+      if params[:openapi3_new_url] != servicedescription.url
+        openapi = parse_openapi(base_url)
+        base_url = openapi.base_url
+      else
+        base_url = servicedescription.service.first.url
+      end
+    end
+
+    service_code = params[:openapi3_new_service_code]
+    servicedescription.url = params[:openapi3_new_url]
+    servicedescription.type = service_type
+    servicedescription.service.first.url = base_url
+    servicedescription.service.first.service_code = service_code
+
+    check_duplicate_url(servicedescription)
+    check_duplicate_service_codes(servicedescription)
+
+    client.endpoint.each do |item|
+      if params[:openapi3_old_service_code] == item.serviceCode
+        item.serviceCode = service_code
+      end
+    end
+
+    endpoints = []
+    endpoints << create_endpoint(client.endpoint, service_code)
+    if openapi
+      openapi.operations.each do |oper|
+        endpoints << create_endpoint(client.endpoint, service_code, oper.method, oper.path, true)
+      end
+      iterate(client.acl) do |item, it|
+        it.remove if item.endpoint.generated? && item.endpoint.service_code == service_code &&
+          !endpoints.include?(item.endpoint)
+      end
+
+      iterate(client.endpoint) do |item, it|
+        it.remove if item.generated? && item.service_code == service_code && !endpoints.include?(item)
+      end
+    end
+    serverconf_save
+    render_json(read_services(client))
+  end
+
+  def servicedescription_wsdl_edit(params)
+    audit_log("Edit wsdl service description", audit_log_data = {})
+
+    authorize!(:refresh_wsdl)
+
+    validate_params({
+      :client_id => [:required],
+      :wsdl_id => [:required],
+      :new_url => [:required, :url],
+      :service_type => [:required]
+    })
+    client = get_client(params[:client_id])
+
+    audit_log_data[:clientIdentifier] = client.identifier
+
+    client.serviceDescription.each do |servicedescription|
+      if servicedescription.url == params[:new_url]
+        raise t('clients.wsdl_exists')
+      end
+    end if params[:wsdl_id] != params[:new_url]
+
+    servicedescriptions = servicedescriptions_by_urls(client, [params[:wsdl_id]])
+    servicedescriptions[0].url = params[:new_url]
+    servicedescriptions[0].refreshedDate = Date.new
+
+    added_objs, added, deleted = parse_servicedescriptions(client, servicedescriptions)
+
+    update_servicedescriptions(client, added_objs, deleted)
+
+    serverconf_save
+
+    audit_log_data[:wsdl] = {
+      :wsdlUrl => params[:wsdl_id],
+      :wsdlUrlNew => params[:new_url],
+      :servicesAdded => added[servicedescriptions[0].url],
+      :servicesDeleted => deleted[servicedescriptions[0].url]
+    }
+
+    render_json(read_services(client))
+  end
+
+  def delete_endpoint(client, endpoint)
+    acl_to_be_removed = []
+    client.acl.each do |access_right|
+      if  access_right.endpoint.serviceCode == params[:service_code] && access_right.endpoint.method == params[:method] && access_right.endpoint.path == params[:path]
+        acl_to_be_removed << access_right
+      end
+    end
+    client.acl.removeAll(acl_to_be_removed)
+    client.endpoint.remove(endpoint)
+  end
+
+  def find_endpoint(endpoints, service_code, method, path)
+    endpoints.detect do |endpoint|
+      endpoint.service_code == service_code &&
+        endpoint.method == method &&
+        endpoint.path == path
+    end
+  end
+
   def servicedescriptions_by_urls(client, servicedescription_urls)
     servicedescriptions = []
     client.serviceDescription.each do |servicedescription|
@@ -749,6 +741,14 @@ module Clients::Services
     end
 
     servicedescriptions
+  end
+
+  ## helper function to iterate Java collections
+  def iterate(iterable)
+    it = iterable.iterator
+    while it.has_next?
+      yield(it.next, it)
+    end
   end
 
   def read_services(client)
@@ -771,7 +771,7 @@ module Clients::Services
         :last_refreshed => format_time(servicedescription.refreshedDate),
         :disabled => servicedescription.disabled,
         :disabled_notice => servicedescription.disabledNotice,
-        :service_type => servicedescription.type == DescriptionType::OPENAPI3 ? 'OPENAPI3' : 'OPENAPI3_DESCRIPTION',
+        :service_type => servicedescription.type.name,
         :openapi3_service_code => DescriptionType::OPENAPI3 == servicedescription.type || DescriptionType::OPENAPI3_DESCRIPTION == servicedescription.type ? servicedescription.service.first.serviceCode : nil
       }
 
@@ -801,6 +801,7 @@ module Clients::Services
             if endpoint.service_code == service.service_code
               if endpoint.method == '*' && endpoint.path == '**'
                 serviceObject[:subjects_count] = subjects_count_by_endpoint(client, endpoint)
+                serviceObject[:endpoint] = true
                 services << serviceObject
               else
                 services << {
@@ -818,7 +819,8 @@ module Clients::Services
                   :sslauth => service.sslAuthentication.nil? || service.sslAuthentication,
                   :last_refreshed => format_time(servicedescription.refreshedDate),
                   :disabled => servicedescription.disabled,
-                  :subjects_count => subjects_count_by_endpoint(client, endpoint)
+                  :subjects_count => subjects_count_by_endpoint(client, endpoint),
+                  :endpoint => true
                 }
               end
             end
@@ -985,7 +987,6 @@ module Clients::Services
       end
     end
   end
-
 
   def parse_and_check_services(wsdl)
     existing_services = {}
