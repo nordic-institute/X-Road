@@ -180,7 +180,7 @@ To install the X-Road security server software on *RHEL7* operating system, foll
 
         sudo rpm --import https://artifactory.niis.org/api/gpg/key/public
 
-3. (Optional step) If you want to use remote database server instead of the default locally installed one, you need to pre-create two configuration files. The first file `db.properties` contains the database connection configuration and the other `root.properties` the database administrator master password. The configuration can be done by performing the following steps:
+3. (Optional step) If you want to use remote database server instead of the default locally installed one, you need to pre-create two configuration files. The first file `db.properties` contains the database connection configuration and the other `xroad.properties` the database administrator master password. The configuration can be done by performing the following steps:
 
         sudo useradd xroad
         sudo mkdir /etc/xroad
@@ -189,11 +189,11 @@ To install the X-Road security server software on *RHEL7* operating system, foll
         sudo touch /etc/xroad/db.properties
         sudo chown xroad:xroad /etc/xroad/db.properties
         sudo chmod 640 /etc/xroad/db.properties
-        sudo touch /etc/xroad/root.properties
-        sudo chown root:root /etc/xroad/root.properties
-        sudo chmod 600 /etc/xroad/root.properties
+        sudo touch /etc/xroad.properties
+        sudo chown root:root /etc/xroad.properties
+        sudo chmod 600 /etc/xroad.properties
 
-    Edit `/etc/xroad/root.properties` contents. See the example below. Replace parameter values with your own.
+    Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
 
         postgres.connection.password = 54F46A19E50C11DA8631468CF09BE5DB
 

@@ -206,11 +206,11 @@ To install the X-Road security server software on *Ubuntu* operating system, fol
         sudo mkdir /etc/xroad
         sudo chown xroad:xroad /etc/xroad
         sudo chmod 751 /etc/xroad
-        sudo touch /etc/xroad/root.properties
-        sudo chown root:root /etc/xroad/root.properties
-        sudo chmod 600 /etc/xroad/root.properties
+        sudo touch /etc/xroad.properties
+        sudo chown root:root /etc/xroad.properties
+        sudo chmod 600 /etc/xroad.properties
         
-    Edit `/etc/xroad/root.properties` contents. See the example below. Replace parameter values with your own.
+    Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
 
         postgres.connection.password = 54F46A19E50C11DA8631468CF09BE5DB
 

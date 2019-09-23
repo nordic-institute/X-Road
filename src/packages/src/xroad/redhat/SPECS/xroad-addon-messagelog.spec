@@ -71,7 +71,7 @@ db_url=jdbc:postgresql://127.0.0.1:5432/${db_name}
 db_user=messagelog
 db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
 db_properties=/etc/xroad/db.properties
-root_properties=/etc/xroad/root.properties
+root_properties=/etc/xroad.properties
 
 die () {
     echo >&2 "$@"

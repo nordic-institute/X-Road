@@ -12,7 +12,7 @@ db_name=serverconf
 db_user=serverconf
 db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
 db_properties=/etc/xroad/db.properties
-root_properties=/etc/xroad/root.properties
+root_properties=/etc/xroad.properties
 
 RET=
 db_get xroad-common/database-host

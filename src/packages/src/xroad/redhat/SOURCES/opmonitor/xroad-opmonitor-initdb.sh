@@ -142,7 +142,7 @@ db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
 db_admin=opmonitor_admin
 db_admin_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
 db_properties=/etc/xroad/db.properties
-root_properties=/etc/xroad/root.properties
+root_properties=/etc/xroad.properties
 
 #is database connection configured?
 if  [[ -f "${db_properties}"  && $(crudini --get "${db_properties}" '' op-monitor.hibernate.connection.url) != "" ]]
