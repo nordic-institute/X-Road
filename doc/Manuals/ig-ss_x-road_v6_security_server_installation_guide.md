@@ -203,9 +203,6 @@ To install the X-Road security server software on *Ubuntu* operating system, fol
 
 3. (Optional step) If you want to use remote database server instead of the default locally installed one, you need to pre-create a configuration file containing the database administrator master password. This can be done by performing the following steps:
 
-        sudo mkdir /etc/xroad
-        sudo chown xroad:xroad /etc/xroad
-        sudo chmod 751 /etc/xroad
         sudo touch /etc/xroad.properties
         sudo chown root:root /etc/xroad.properties
         sudo chmod 600 /etc/xroad.properties

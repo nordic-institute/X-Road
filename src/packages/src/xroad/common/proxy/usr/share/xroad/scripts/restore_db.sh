@@ -4,10 +4,10 @@ DUMP_FILE=$1
 HOST=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.url | cut -d '/' -f 3 | cut -d ':' -f1)
 PORT=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.url | cut -d '/' -f 3 | cut -d ':' -f2)
 
-if  [[ -f /etc/xroad/root.properties && `crudini --get /etc/xroad/root.properties '' postgres.connection.password` != "" ]]
+if  [[ -f /etc/xroad.properties && `crudini --get /etc/xroad.properties '' postgres.connection.password` != "" ]]
 then
 
-MASTER_PW=$(crudini --get /etc/xroad/root.properties '' postgres.connection.password)
+MASTER_PW=$(crudini --get /etc/xroad.properties '' postgres.connection.password)
 export PGPASSWORD=${MASTER_PW}
 
 echo "DROP DATABASE IF EXISTS serverconf_restore;" | psql -h ${HOST:-localhost} -p ${PORT:-5432} -U postgres postgres
