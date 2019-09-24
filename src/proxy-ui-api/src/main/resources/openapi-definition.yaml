@@ -4137,7 +4137,6 @@ components:
           format: text
           description: subject id - can be a subsystem id <instance_id>:<member_class>:<member_code>:<subsystem> | globalgroup id <instance_id>:<group_code> | localgroup resource id in number format <id>
           example: DEV:ORG:1234:Subsystem | DEV:security-server-owners | 123
-          readOnly: true
           minLength: 1
           maxLength: 1279
         member_name_group_description:
