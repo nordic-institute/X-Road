@@ -28,9 +28,13 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.openapi.model.Token;
+import org.niis.xroad.restapi.openapi.model.TokenStatus;
+import org.niis.xroad.restapi.openapi.model.TokenType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -38,6 +42,13 @@ import java.util.stream.Collectors;
  */
 @Component
 public class TokenConverter {
+
+    private final KeyConverter keyConverter;
+
+    @Autowired
+    public TokenConverter(KeyConverter keyConverter) {
+        this.keyConverter = keyConverter;
+    }
 
     /**
      * Convert {@link TokenInfo} to openapi {@link Token} object
@@ -48,6 +59,36 @@ public class TokenConverter {
         Token token = new Token();
         token.setId(tokenInfo.getId());
         token.setName(tokenInfo.getFriendlyName());
+
+        Optional<TokenStatus> status = TokenStatusMapping.map(tokenInfo.getStatus());
+        token.setStatus(status.orElse(null));
+
+        // software module has a magic type, hardware modules have device UI as type
+        if (TokenInfo.SOFTWARE_MODULE_TYPE.equals(tokenInfo.getType())) {
+            token.setType(TokenType.SOFTWARE);
+        } else {
+            token.setType(TokenType.HARDWARE);
+        }
+
+        token.setKeys(keyConverter.convert(tokenInfo.getKeyInfo()));
+
+        // what about these properties?
+
+//        private final boolean readOnly;
+//
+//        private final boolean available;
+//
+//        private final boolean active;
+//
+//        private final String serialNumber;
+//
+//        private final String label;
+//
+//        private final int slotIndex;
+//
+//        /** Contains label-value pairs of information about token. */
+//        private final Map<String, String> tokenInfo;
+
         return token;
     }
 

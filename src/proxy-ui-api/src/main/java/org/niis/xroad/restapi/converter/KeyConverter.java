@@ -22,45 +22,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.protocol.dto;
+package org.niis.xroad.restapi.converter;
 
-import lombok.Value;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 
-import java.io.Serializable;
+import com.google.common.collect.Streams;
+import org.niis.xroad.restapi.openapi.model.Key;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * Token info DTO.
+ * Convert Key related data between openapi and service domain classes
  */
-@Value
-public final class TokenInfo implements Serializable {
+@Component
+public class KeyConverter {
 
-    public static final String SOFTWARE_MODULE_TYPE = "softToken";
+    /**
+     * Convert {@link KeyInfo} to openapi {@link Key} object
+     * @param keyInfo
+     */
+    public Key convert(KeyInfo keyInfo) {
+        Key key = new Key();
+        key.setId(keyInfo.getId());
+        key.setLabel(keyInfo.getLabel());
+        key.setName(keyInfo.getFriendlyName());
+//        key.setReadOnly(); no such thing in key
+//        key.setStatus(); no such thing in key?
 
-    private final String type;
+        key.setUsage(KeyUsageTypeMapping.map(keyInfo.getUsage())
+                             .orElse(null));
 
-    private final String friendlyName;
+        return key;
+    }
 
-    private final String id;
-
-    private final boolean readOnly;
-
-    private final boolean available;
-
-    private final boolean active;
-
-    private final String serialNumber;
-
-    private final String label;
-
-    private final int slotIndex;
-
-    private final TokenStatusInfo status;
-
-    private final List<KeyInfo> keyInfo;
-
-    /** Contains label-value pairs of information about token. */
-    private final Map<String, String> tokenInfo;
-
+    /**
+     * Convert a list of {@link KeyInfo keyInfos} to a list of {@link Key keyInfos}
+     * @param keyInfos
+     * @return List of {@link KeyInfo keyInfos}
+     */
+    public List<Key> convert(Iterable<KeyInfo> keyInfos) {
+        return Streams.stream(keyInfos)
+                .map(this::convert)
+                .collect(Collectors.toList());
+    }
 }

@@ -1552,7 +1552,7 @@ paths:
           description: inteded usage for the key (signing or authentication)
           required: false
           schema:
-            $ref: '#/components/schemas/KeyUsageInfo'
+            $ref: '#/components/schemas/KeyUsageType'
         - in: query
           name: approved_ca
           description: approved certification service
@@ -3616,6 +3616,7 @@ components:
         - status
         - read_only
         - certificates
+        - usage
       properties:
         id:
           type: string
@@ -3657,6 +3658,8 @@ components:
           description: list of certificates for the key
           items:
             $ref: '#/components/schemas/Certificate'
+        usage:
+          $ref: '#/components/schemas/KeyUsageType'
     KeyStatus: # ok
       type: string
       format: enum
@@ -3680,10 +3683,10 @@ components:
         - CRL_SIGN
         - ENCIPHER_ONLY
         - DECIPHER_ONLY
-    KeyUsageInfo: # ok
+    KeyUsageType: # ok
       type: string
       format: enum
-      description: inteded usage for the key
+      description: intended usage for the key
       example: AUTHENTICATION
       enum:
         - AUTHENTICATION
