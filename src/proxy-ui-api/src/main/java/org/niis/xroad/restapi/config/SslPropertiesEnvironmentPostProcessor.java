@@ -34,7 +34,7 @@ import org.springframework.context.annotation.Profile;
  * Supported properties are ones starting with "server.ssl."
  */
 @Slf4j
-@Profile("!test")
+@Profile("nontest")
 public class SslPropertiesEnvironmentPostProcessor extends PropertyFileReadingEnvironmentPostProcessor {
 
     @Override

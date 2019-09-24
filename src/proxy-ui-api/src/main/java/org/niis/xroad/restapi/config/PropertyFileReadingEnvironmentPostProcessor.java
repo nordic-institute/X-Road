@@ -47,7 +47,7 @@ import java.util.Properties;
  * in {@link SystemProperties}
  */
 @Slf4j
-@Profile("!test")
+@Profile("nontest")
 public abstract class PropertyFileReadingEnvironmentPostProcessor implements EnvironmentPostProcessor {
 
     abstract String getPropertySourceName();
@@ -67,7 +67,7 @@ public abstract class PropertyFileReadingEnvironmentPostProcessor implements Env
     public void postProcessEnvironment(ConfigurableEnvironment environment,
                                        SpringApplication application) {
         // we read properties from file only if not testing
-        if (environment.acceptsProfiles(Profiles.of("!test"))) {
+        if (environment.acceptsProfiles(Profiles.of("nontest"))) {
             // called twice since IntelliJ tests load the class twice
             SystemPropertiesInitializer.initialize();
             try {
