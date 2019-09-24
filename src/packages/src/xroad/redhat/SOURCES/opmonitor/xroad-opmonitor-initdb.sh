@@ -166,11 +166,15 @@ then
         configure_remote_postgres
     else
         echo "database already configured"
+        master_passwd=`crudini --get ${root_properties} '' postgres.connection.password`
+        export PGPASSWORD=${master_passwd}
+        echo "ALTER ROLE ${db_admin} WITH PASSWORD '${db_admin_passwd}';" | psql -h $db_addr -p $db_port -U postgres postgres
     fi
 else
     if  [[ -f "${db_properties}"  && $(crudini --get "${db_properties}" '' op-monitor.hibernate.connection.url) != "" ]]
     then
         echo "database already configured"
+        echo "ALTER ROLE ${db_admin} WITH PASSWORD '${db_admin_passwd}';" | su - postgres -c psql postgres
     else
         configure_local_postgres
     fi
