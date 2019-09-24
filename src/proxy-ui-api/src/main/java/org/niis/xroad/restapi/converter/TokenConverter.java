@@ -22,59 +22,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi;
+package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.converter.TokenConverter;
+import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.openapi.model.Token;
-import org.niis.xroad.restapi.service.TokenService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * tokens controller
+ * Convert Token related data between openapi and service domain classes
  */
-@Controller
-@RequestMapping("/api")
-@Slf4j
-@PreAuthorize("denyAll")
-public class TokensApiController implements TokensApi {
-
-    private final TokenService tokenService;
-    private final TokenConverter tokenConverter;
+@Component
+public class TokenConverter {
 
     /**
-     * TokensApiController constructor
-     * @param tokenService
-     * @param tokenConverter
+     * Convert {@link TokenInfo} to openapi {@link Token} object
+     * @param tokenInfo
+     * @return
      */
-
-    @Autowired
-    public TokensApiController(TokenService tokenService,
-            TokenConverter tokenConverter) {
-        this.tokenService = tokenService;
-        this.tokenConverter = tokenConverter;
+    public Token convert(TokenInfo tokenInfo) {
+        Token token = new Token();
+        token.setId(tokenInfo.getId());
+        token.setName(tokenInfo.getFriendlyName());
+        return token;
     }
 
-
-    @PreAuthorize("hasAuthority('VIEW_KEYS')")
-    @Override
-    public ResponseEntity<List<Token>> getTokens() {
-        List<TokenInfo> tokenInfos = null;
-        try {
-            tokenInfos = tokenService.getAllTokens();
-        } catch (Exception e) {
-            throw new RuntimeException("exception while reading tokens", e);
-        }
-        List<Token> tokens = tokenConverter.convert(tokenInfos);
-        return new ResponseEntity<>(tokens, HttpStatus.OK);
+    /**
+     * Convert a list of {@link TokenInfo tokenInfos} to a list of {@link Token tokens}
+     * @param tokenInfos
+     * @return List of {@link TokenInfo tokenInfos}
+     */
+    public List<Token> convert(Iterable<TokenInfo> tokenInfos) {
+        return Streams.stream(tokenInfos)
+                .map(this::convert)
+                .collect(Collectors.toList());
     }
 }
