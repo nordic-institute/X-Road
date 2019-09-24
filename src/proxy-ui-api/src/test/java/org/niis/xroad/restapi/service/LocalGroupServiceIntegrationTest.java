@@ -45,14 +45,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 /**
- * test groups service
+ * test LocalGroupService
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureTestDatabase
 @Slf4j
 @Transactional
-public class GroupsServiceIntegrationTest {
+public class LocalGroupServiceIntegrationTest {
 
     private static final Long GROUP_ID = 1L;
     private static final String NEW_GROUPCODE = "groupX";
@@ -60,7 +60,7 @@ public class GroupsServiceIntegrationTest {
     private static final String NEW_GROUP_DESC = "bar";
 
     @Autowired
-    private GroupService groupsService;
+    private LocalGroupService localGroupService;
 
     private ClientId getM1Ss1ClientId() {
         return ClientId.create("FI", "GOV", "M1", "SS1");
@@ -74,9 +74,9 @@ public class GroupsServiceIntegrationTest {
         localGroupType.setGroupCode(NEW_GROUPCODE);
         localGroupType.setDescription(GROUP_DESC);
         localGroupType.setUpdated(new Date());
-        localGroupType = groupsService.addLocalGroup(id, localGroupType);
+        localGroupType = localGroupService.addLocalGroup(id, localGroupType);
 
-        LocalGroupType localGroupTypeFromDb = groupsService.getLocalGroup(localGroupType.getId());
+        LocalGroupType localGroupTypeFromDb = localGroupService.getLocalGroup(localGroupType.getId());
 
         assertEquals(NEW_GROUPCODE, localGroupTypeFromDb.getGroupCode());
         assertEquals(GROUP_DESC, localGroupTypeFromDb.getDescription());
@@ -88,10 +88,10 @@ public class GroupsServiceIntegrationTest {
     @WithMockUser(authorities = { "ADD_LOCAL_GROUP", "VIEW_CLIENT_LOCAL_GROUPS" })
     public void addDuplicateLocalGroup() {
         ClientId id = getM1Ss1ClientId();
-        LocalGroupType localGroupType = groupsService.getLocalGroup(GROUP_ID);
+        LocalGroupType localGroupType = localGroupService.getLocalGroup(GROUP_ID);
         try {
-            groupsService.addLocalGroup(id, localGroupType);
-            groupsService.addLocalGroup(id, localGroupType);
+            localGroupService.addLocalGroup(id, localGroupType);
+            localGroupService.addLocalGroup(id, localGroupType);
             fail("should have thrown ConflictException");
         } catch (ConflictException expected) {
         }
@@ -100,10 +100,10 @@ public class GroupsServiceIntegrationTest {
     @Test
     @WithMockUser(authorities = { "ADD_LOCAL_GROUP", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_DESC" })
     public void updateDescription() {
-        LocalGroupType localGroupType = groupsService.getLocalGroup(GROUP_ID);
+        LocalGroupType localGroupType = localGroupService.getLocalGroup(GROUP_ID);
         assertEquals(localGroupType.getDescription(), GROUP_DESC);
-        groupsService.updateDescription(GROUP_ID, NEW_GROUP_DESC);
-        localGroupType = groupsService.getLocalGroup(GROUP_ID);
+        localGroupService.updateDescription(GROUP_ID, NEW_GROUP_DESC);
+        localGroupType = localGroupService.getLocalGroup(GROUP_ID);
         assertEquals(localGroupType.getDescription(), NEW_GROUP_DESC);
     }
 }

@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.repository.ClientRepository;
-import org.niis.xroad.restapi.repository.GroupRepository;
+import org.niis.xroad.restapi.repository.LocalGroupRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -46,28 +46,28 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * groups service
+ * LocalGroup service
  */
 @Slf4j
 @Service
 @Transactional
 @PreAuthorize("denyAll")
-public class GroupService {
+public class LocalGroupService {
 
-    private final GroupRepository groupsRepository;
+    private final LocalGroupRepository localGroupRepository;
     private final ClientRepository clientRepository;
     private final ClientService clientService;
 
     /**
-     * GroupsService constructor
-     * @param groupsRepository
+     * LocalGroupService constructor
+     * @param localGroupRepository
      * @param clientRepository
      * @param clientService
      */
     @Autowired
-    public GroupService(GroupRepository groupsRepository, ClientRepository clientRepository,
+    public LocalGroupService(LocalGroupRepository localGroupRepository, ClientRepository clientRepository,
             ClientService clientService) {
-        this.groupsRepository = groupsRepository;
+        this.localGroupRepository = localGroupRepository;
         this.clientRepository = clientRepository;
         this.clientService = clientService;
     }
@@ -79,7 +79,7 @@ public class GroupService {
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
     public LocalGroupType getLocalGroup(Long groupId) {
-        return groupsRepository.getLocalGroup(groupId);
+        return localGroupRepository.getLocalGroup(groupId);
     }
 
     /**
@@ -94,7 +94,7 @@ public class GroupService {
         }
         localGroupType.setDescription(description);
         localGroupType.setUpdated(new Date());
-        groupsRepository.saveOrUpdate(localGroupType);
+        localGroupRepository.saveOrUpdate(localGroupType);
         return localGroupType;
     }
 
@@ -116,7 +116,7 @@ public class GroupService {
             throw new ConflictException(
                     "local group with code " + localGroupTypeToAdd.getGroupCode() + " already added");
         }
-        groupsRepository.persist(localGroupTypeToAdd);
+        localGroupRepository.persist(localGroupTypeToAdd);
         clientType.getLocalGroup().add(localGroupTypeToAdd);
         clientRepository.saveOrUpdate(clientType);
         return localGroupTypeToAdd;
@@ -150,9 +150,9 @@ public class GroupService {
             groupMemberType.setGroupMemberId(clientIdToBeAdded);
             membersToBeAdded.add(groupMemberType);
         });
-        groupsRepository.saveOrUpdateAll(membersToBeAdded);
+        localGroupRepository.saveOrUpdateAll(membersToBeAdded);
         localGroupType.getGroupMember().addAll(membersToBeAdded);
-        groupsRepository.saveOrUpdate(localGroupType);
+        localGroupRepository.saveOrUpdate(localGroupType);
     }
 
     /**
@@ -165,7 +165,7 @@ public class GroupService {
         if (existingLocalGroupType == null) {
             throw new NotFoundException("LocalGroup with id " + groupId + " not found");
         }
-        groupsRepository.delete(existingLocalGroupType);
+        localGroupRepository.delete(existingLocalGroupType);
     }
 
     /**
@@ -184,6 +184,6 @@ public class GroupService {
             throw new NotFoundException("the requested group member was not found in local group");
         }
         localGroupType.getGroupMember().removeAll(membersToBeRemoved);
-        groupsRepository.saveOrUpdate(localGroupType);
+        localGroupRepository.saveOrUpdate(localGroupType);
     }
 }

@@ -35,7 +35,7 @@ import org.apache.commons.io.IOUtils;
 import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.ConnectionTypeMapping;
-import org.niis.xroad.restapi.converter.GroupConverter;
+import org.niis.xroad.restapi.converter.LocalGroupConverter;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.Error;
@@ -45,12 +45,12 @@ import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
-import org.niis.xroad.restapi.openapi.model.Group;
+import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.service.ClientService;
-import org.niis.xroad.restapi.service.GroupService;
+import org.niis.xroad.restapi.service.LocalGroupService;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,8 +81,8 @@ public class ClientsApiController implements ClientsApi {
 
     private final ClientConverter clientConverter;
     private final ClientService clientService;
-    private final GroupConverter groupConverter;
-    private final GroupService groupsService;
+    private final LocalGroupConverter localGroupConverter;
+    private final LocalGroupService localGroupService;
     private final NativeWebRequest request;
     private final TokenService tokenService;
     private final CertificateDetailsConverter certificateDetailsConverter;
@@ -95,24 +95,24 @@ public class ClientsApiController implements ClientsApi {
      * @param clientService
      * @param tokenService
      * @param clientConverter
-     * @param groupConverter
-     * @param groupsService
+     * @param localGroupConverter
+     * @param localGroupService
      * @param serviceDescriptionConverter
      * @param serviceDescriptionService
      */
 
     @Autowired
     public ClientsApiController(NativeWebRequest request, ClientService clientService, TokenService tokenService,
-            ClientConverter clientConverter, GroupConverter groupConverter, GroupService groupsService,
-            CertificateDetailsConverter certificateDetailsConverter,
+            ClientConverter clientConverter, LocalGroupConverter localGroupConverter,
+            LocalGroupService localGroupService, CertificateDetailsConverter certificateDetailsConverter,
             ServiceDescriptionConverter serviceDescriptionConverter,
             ServiceDescriptionService serviceDescriptionService) {
         this.request = request;
         this.clientService = clientService;
         this.tokenService = tokenService;
         this.clientConverter = clientConverter;
-        this.groupConverter = groupConverter;
-        this.groupsService = groupsService;
+        this.localGroupConverter = localGroupConverter;
+        this.localGroupService = localGroupService;
         this.certificateDetailsConverter = certificateDetailsConverter;
         this.serviceDescriptionConverter = serviceDescriptionConverter;
         this.serviceDescriptionService = serviceDescriptionService;
@@ -262,20 +262,20 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('ADD_LOCAL_GROUP')")
-    public ResponseEntity<Group> addClientGroup(String id, Group group) {
+    public ResponseEntity<LocalGroup> addClientGroup(String id, LocalGroup localGroup) {
         ClientType clientType = getClientType(id);
-        LocalGroupType localGroupType = groupsService.addLocalGroup(clientType.getIdentifier(),
-                groupConverter.convert(group));
-        Group createdGroup = groupConverter.convert(localGroupType);
-        return createCreatedResponse("/api/groups/{id}", createdGroup, localGroupType.getId());
+        LocalGroupType localGroupType = localGroupService.addLocalGroup(clientType.getIdentifier(),
+                localGroupConverter.convert(localGroup));
+        LocalGroup createdGroup = localGroupConverter.convert(localGroupType);
+        return createCreatedResponse("/api/local-groups/{id}", createdGroup, localGroupType.getId());
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
-    public ResponseEntity<List<Group>> getClientGroups(String id) {
+    public ResponseEntity<List<LocalGroup>> getClientGroups(String id) {
         ClientType clientType = getClientType(id);
         List<LocalGroupType> localGroupTypes = clientType.getLocalGroup();
-        return new ResponseEntity<>(groupConverter.convert(localGroupTypes), HttpStatus.OK);
+        return new ResponseEntity<>(localGroupConverter.convert(localGroupTypes), HttpStatus.OK);
     }
 
     @Override
