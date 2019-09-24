@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.11"
+  version: "1.0.12"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -3311,8 +3311,6 @@ components:
           format: int32
           description: RSA public key exponent (if RSA key) as an integer
           example: 65537
-          minLength: 1
-          maxLength: 255
         hash:
           type: string
           format: text
@@ -3514,7 +3512,7 @@ components:
       required:
         - status
         - updated_at
-        - next_update
+        - next_update_at
       properties:
         status:
           $ref: '#/components/schemas/ConfigurationStatus'
@@ -3694,7 +3692,7 @@ components:
       type: object
       description: language
       required:
-        - code
+        - id
       properties:
         id:
           type: string
@@ -3723,7 +3721,7 @@ components:
         - url
         - status
         - updated_at
-        - next_update
+        - next_update_at
       properties:
         url:
           type: string
@@ -3924,7 +3922,7 @@ components:
         - type
         - disabled
         - disabled_notice
-        - refreshed_date
+        - refreshed_at
         - services
         - client_id
       properties:
