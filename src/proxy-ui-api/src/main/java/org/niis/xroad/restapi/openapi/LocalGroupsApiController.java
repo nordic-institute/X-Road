@@ -28,12 +28,12 @@ import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.ClientConverter;
-import org.niis.xroad.restapi.converter.GroupConverter;
+import org.niis.xroad.restapi.converter.LocalGroupConverter;
 import org.niis.xroad.restapi.exceptions.InvalidParametersException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
-import org.niis.xroad.restapi.openapi.model.Group;
+import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.Members;
-import org.niis.xroad.restapi.service.GroupService;
+import org.niis.xroad.restapi.service.LocalGroupService;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -53,39 +53,39 @@ import java.util.List;
 @RequestMapping("/api")
 @Slf4j
 @PreAuthorize("denyAll")
-public class GroupsApiController implements GroupsApi {
+public class LocalGroupsApiController implements LocalGroupsApi {
 
     private final ClientConverter clientConverter;
-    private final GroupConverter groupConverter;
-    private final GroupService groupsService;
+    private final LocalGroupConverter localGroupConverter;
+    private final LocalGroupService localGroupService;
 
     /**
      * GroupsApiController constructor
      * @param clientConverter
-     * @param groupConverter
-     * @param groupsService
+     * @param localGroupConverter
+     * @param localGroupService
      */
     @Autowired
-    public GroupsApiController(ClientConverter clientConverter, GroupConverter groupConverter,
-            GroupService groupsService) {
+    public LocalGroupsApiController(ClientConverter clientConverter, LocalGroupConverter localGroupConverter,
+            LocalGroupService localGroupService) {
         this.clientConverter = clientConverter;
-        this.groupConverter = groupConverter;
-        this.groupsService = groupsService;
+        this.localGroupConverter = localGroupConverter;
+        this.localGroupService = localGroupService;
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
-    public ResponseEntity<Group> getGroup(String groupIdString) {
+    public ResponseEntity<LocalGroup> getGroup(String groupIdString) {
         LocalGroupType localGroupType = getLocalGroupType(groupIdString);
-        return new ResponseEntity<>(groupConverter.convert(localGroupType), HttpStatus.OK);
+        return new ResponseEntity<>(localGroupConverter.convert(localGroupType), HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_DESC')")
-    public ResponseEntity<Group> updateGroup(String groupIdString, String description) {
+    public ResponseEntity<LocalGroup> updateGroup(String groupIdString, String description) {
         Long groupId = FormatUtils.parseLongIdOrThrowNotFound(groupIdString);
-        LocalGroupType localGroupType = groupsService.updateDescription(groupId, description);
-        return new ResponseEntity<>(groupConverter.convert(localGroupType), HttpStatus.OK);
+        LocalGroupType localGroupType = localGroupService.updateDescription(groupId, description);
+        return new ResponseEntity<>(localGroupConverter.convert(localGroupType), HttpStatus.OK);
     }
 
     @Override
@@ -97,7 +97,7 @@ public class GroupsApiController implements GroupsApi {
         // remove duplicates
         List<String> uniqueIds = new ArrayList<>(new HashSet<>(members.getItems()));
         Long groupId = FormatUtils.parseLongIdOrThrowNotFound(groupIdString);
-        groupsService.addLocalGroupMembers(groupId, clientConverter.convertIds(uniqueIds));
+        localGroupService.addLocalGroupMembers(groupId, clientConverter.convertIds(uniqueIds));
         return new ResponseEntity<>(members, HttpStatus.CREATED);
     }
 
@@ -105,7 +105,7 @@ public class GroupsApiController implements GroupsApi {
     @PreAuthorize("hasAuthority('DELETE_LOCAL_GROUP')")
     public ResponseEntity<Void> deleteGroup(String groupIdString) {
         Long groupId = FormatUtils.parseLongIdOrThrowNotFound(groupIdString);
-        groupsService.deleteLocalGroup(groupId);
+        localGroupService.deleteLocalGroup(groupId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
@@ -113,7 +113,7 @@ public class GroupsApiController implements GroupsApi {
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
     public ResponseEntity<Void> deleteGroupMember(String groupIdString, Members members) {
         LocalGroupType localGroupType = getLocalGroupType(groupIdString);
-        groupsService.deleteGroupMember(localGroupType, clientConverter.convertIds(members.getItems()));
+        localGroupService.deleteGroupMember(localGroupType, clientConverter.convertIds(members.getItems()));
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -123,7 +123,7 @@ public class GroupsApiController implements GroupsApi {
      */
     private LocalGroupType getLocalGroupType(String groupIdString) {
         Long groupId = FormatUtils.parseLongIdOrThrowNotFound(groupIdString);
-        LocalGroupType localGroupType = groupsService.getLocalGroup(groupId);
+        LocalGroupType localGroupType = localGroupService.getLocalGroup(groupId);
         if (localGroupType == null) {
             throw new NotFoundException("LocalGroup with not found");
         }

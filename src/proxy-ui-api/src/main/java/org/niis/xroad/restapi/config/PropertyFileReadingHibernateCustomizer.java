@@ -42,7 +42,7 @@ import java.util.Properties;
  */
 @Slf4j
 @Component
-@Profile("!test")
+@Profile("nontest")
 public class PropertyFileReadingHibernateCustomizer implements HibernatePropertiesCustomizer {
 
     @Override

@@ -208,7 +208,7 @@ export default Vue.extend({
 
     saveDescription(): void {
       axios
-        .put(`/groups/${this.groupId}?description=${this.description}`)
+        .put(`/local-groups/${this.groupId}?description=${this.description}`)
         .then((res) => {
           this.$bus.$emit('show-success', 'localGroup.descSaved');
           this.group = res.data;
@@ -222,7 +222,7 @@ export default Vue.extend({
 
     fetchData(clientId: string, groupId: number | string): void {
       axios
-        .get(`/groups/${groupId}`)
+        .get(`/local-groups/${groupId}`)
         .then((res) => {
           this.group = res.data;
           this.groupCode = res.data.code;
@@ -241,7 +241,7 @@ export default Vue.extend({
       this.addMembersDialogVisible = false;
 
       axios
-        .post(`/groups/${this.groupId}/members`, {
+        .post(`/local-groups/${this.groupId}/members`, {
           items: selectedIds,
         })
         .then((res) => {
@@ -291,7 +291,7 @@ export default Vue.extend({
 
     removeArrayOfMembers(members: string[]) {
       axios
-        .post(`/groups/${this.groupId}/members/delete`, {
+        .post(`/local-groups/${this.groupId}/members/delete`, {
           items: members,
         })
         .catch((error) => {
@@ -309,7 +309,7 @@ export default Vue.extend({
       this.confirmGroup = false;
 
       axios
-        .delete(`/groups/${this.groupId}`)
+        .delete(`/local-groups/${this.groupId}`)
         .then(() => {
           this.$bus.$emit('show-success', 'localGroup.groupDeleted');
           this.$router.go(-1);

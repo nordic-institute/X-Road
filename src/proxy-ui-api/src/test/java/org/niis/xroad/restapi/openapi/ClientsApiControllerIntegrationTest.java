@@ -45,7 +45,7 @@ import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
-import org.niis.xroad.restapi.openapi.model.Group;
+import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
@@ -448,27 +448,28 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_LOCAL_GROUP" })
     public void addLocalGroup() throws Exception {
-        ResponseEntity<Group> response = clientsApiController.addClientGroup(CLIENT_ID_SS1, createGroup(NEW_GROUPCODE));
+        ResponseEntity<LocalGroup> response = clientsApiController.addClientGroup(CLIENT_ID_SS1,
+                createGroup(NEW_GROUPCODE));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        Group group = response.getBody();
-        assertEquals(NEW_GROUPCODE, group.getCode());
-        assertLocationHeader("/api/groups/" + group.getId(), response);
+        LocalGroup localGroup = response.getBody();
+        assertEquals(NEW_GROUPCODE, localGroup.getCode());
+        assertLocationHeader("/api/local-groups/" + localGroup.getId(), response);
     }
 
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_LOCAL_GROUPS", "ADD_LOCAL_GROUP" })
     public void getClientGroups() throws Exception {
-        ResponseEntity<List<Group>> response =
+        ResponseEntity<List<LocalGroup>> response =
                 clientsApiController.getClientGroups(CLIENT_ID_SS1);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(2, response.getBody().size());
     }
 
-    private static Group createGroup(String groupCode) {
-        Group group = new Group();
-        group.setDescription(GROUP_DESC);
-        group.setCode(groupCode);
-        return group;
+    private static LocalGroup createGroup(String groupCode) {
+        LocalGroup localGroup = new LocalGroup();
+        localGroup.setDescription(GROUP_DESC);
+        localGroup.setCode(groupCode);
+        return localGroup;
     }
 
     @Test

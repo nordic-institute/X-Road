@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.10"
+  version: "1.0.11"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -650,7 +650,7 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
-  /clients/{id}/groups:
+  /clients/{id}/local-groups:
     get: # ok
       tags:
         - security server
@@ -677,7 +677,7 @@ paths:
                 uniqueItems: true
                 description: array of local group objects
                 items:
-                  $ref: '#/components/schemas/Group'
+                  $ref: '#/components/schemas/LocalGroup'
         '400':
           description: request was invalid
         '401':
@@ -711,14 +711,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Group'
+              $ref: '#/components/schemas/LocalGroup'
       responses:
         '201':
           description: local group created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Group'
+                $ref: '#/components/schemas/LocalGroup'
         '400':
           description: request was invalid
         '401':
@@ -1203,7 +1203,7 @@ paths:
             maxLength: 1023
         - in: query
           name: member_name_group_description
-          description: pass an optional search string (name) for looking up subjects
+          description: pass an optional search string (name) for looking up subjects - name of a member or description of a group
           required: false
           schema:
             type: string
@@ -1239,7 +1239,7 @@ paths:
             maxLength: 255
         - in: query
           name: member_group_code
-          description: pass an optional search string (subsystem_code) for looking up subjects
+          description: pass an optional search string (subsystem_code) for looking up subjects - member_code of a member or group_code of a group
           required: false
           schema:
             type: string
@@ -1263,7 +1263,7 @@ paths:
                 uniqueItems: true
                 description: array of client objects
                 items:
-                  $ref: '#/components/schemas/Client'
+                  $ref: '#/components/schemas/Subject'
         '400':
           description: request was invalid
         '401':
@@ -1276,7 +1276,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /groups/{group_id}:
+  /local-groups/{group_id}:
     get: # ok
       tags:
         - security server
@@ -1299,7 +1299,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Group'
+                $ref: '#/components/schemas/LocalGroup'
         '400':
           description: request was invalid
         '401':
@@ -1343,7 +1343,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Group'
+                $ref: '#/components/schemas/LocalGroup'
         '400':
           description: request was invalid
         '401':
@@ -1385,7 +1385,7 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
-  /groups/{group_id}/members:
+  /local-groups/{group_id}/members:
     post: # ok
       tags:
         - security server
@@ -1428,7 +1428,7 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /groups/{group_id}/members/delete:
+  /local-groups/{group_id}/members/delete:
     post: # ok
       tags:
         - security server
@@ -3624,7 +3624,7 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
-    Group: # ok
+    LocalGroup: # ok
       type: object
       description: group
       required:
@@ -4140,6 +4140,14 @@ components:
           readOnly: true
           minLength: 1
           maxLength: 1279
+        member_name_group_description:
+          type: string
+          format: text
+          description: name of the subject - can be the name of a member or the description of a group
+          example: Security server owners
+          readOnly: true
+          minLength: 1
+          maxLength: 255
         subject_type:
           $ref: '#/components/schemas/SubjectType'
     SubjectType: # ok

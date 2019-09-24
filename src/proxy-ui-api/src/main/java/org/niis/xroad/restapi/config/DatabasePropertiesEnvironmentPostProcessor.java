@@ -37,7 +37,7 @@ import java.util.Map;
  * Non-datasource properties are handled by {@link PropertyFileReadingHibernateCustomizer}
  */
 @Slf4j
-@Profile("!test")
+@Profile("nontest")
 public class DatabasePropertiesEnvironmentPostProcessor extends PropertyFileReadingEnvironmentPostProcessor {
 
     private static final Map<String, String> DB_PROPERTY_NAMES_TO_SPRING_PROPERTIES =

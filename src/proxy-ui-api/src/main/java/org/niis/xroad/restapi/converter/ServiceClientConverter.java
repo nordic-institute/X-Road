@@ -47,14 +47,14 @@ public class ServiceClientConverter {
 
     private final GlobalConfService globalConfService;
     private final ClientConverter clientConverter;
-    private final GroupConverter groupConverter;
+    private final GlobalGroupConverter globalGroupConverter;
 
     @Autowired
-    public ServiceClientConverter(GlobalConfService globalConfService,
-            ClientConverter clientConverter, GroupConverter groupConverter) {
+    public ServiceClientConverter(GlobalConfService globalConfService, ClientConverter clientConverter,
+            GlobalGroupConverter globalGroupConverter) {
         this.globalConfService = globalConfService;
         this.clientConverter = clientConverter;
-        this.groupConverter = groupConverter;
+        this.globalGroupConverter = globalGroupConverter;
     }
 
     /**
@@ -79,7 +79,7 @@ public class ServiceClientConverter {
             case GLOBALGROUP:
                 GlobalGroupId globalGroupId = (GlobalGroupId) subjectId;
                 serviceClient.setName(globalConfService.getGlobalGroupDescription(globalGroupId));
-                serviceClient.setId(groupConverter.convertId(globalGroupId));
+                serviceClient.setId(globalGroupConverter.convertId(globalGroupId));
                 serviceClient.setSubjectType(SubjectTypeMapping.map(globalGroupId.getObjectType()).get());
                 break;
             case LOCALGROUP:
