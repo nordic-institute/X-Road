@@ -29,6 +29,7 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.KeyUsageType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -39,6 +40,13 @@ import java.util.stream.Collectors;
  */
 @Component
 public class KeyConverter {
+
+    private final TokenCertificateConverter tokenCertificateConverter;
+
+    @Autowired
+    public KeyConverter(TokenCertificateConverter tokenCertificateConverter) {
+        this.tokenCertificateConverter = tokenCertificateConverter;
+    }
 
     /**
      * Convert {@link KeyInfo} to openapi {@link Key} object
@@ -57,6 +65,9 @@ public class KeyConverter {
 
         key.setAvailable(keyInfo.isAvailable());
         key.setSavedToConfiguration(isSavedToConfiguration(keyInfo));
+
+        key.setCertificates(tokenCertificateConverter.convert(keyInfo.getCerts()));
+
         return key;
     }
 

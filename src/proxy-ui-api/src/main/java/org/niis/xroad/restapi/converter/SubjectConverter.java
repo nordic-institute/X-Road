@@ -42,8 +42,8 @@ import java.util.stream.Collectors;
  */
 @Component
 public class SubjectConverter {
-    private ClientConverter clientConverter;
-    private GlobalGroupConverter globalGroupConverter;
+    private final ClientConverter clientConverter;
+    private final GlobalGroupConverter globalGroupConverter;
 
     @Autowired
     public SubjectConverter(ClientConverter clientConverter, GlobalGroupConverter globalGroupConverter) {

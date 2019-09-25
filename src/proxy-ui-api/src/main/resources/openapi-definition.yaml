@@ -3160,52 +3160,67 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
-    Certificate: # ok
+    TokenCertificateSigningRequest: # ok
       type: object
-      description: certificate
+      description: CSR for certificate that is stored in a Token
       required:
-        - issuer_common_name
-        - not_after
+        - id
+        - owner
+        - active
+        - saved_to_configuration
+      properties:
+        id:
+          type: string
+          format: text
+          description: CSR id
+          example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
+          readOnly: true
+        owner:
+          $ref: '#/components/schemas/Client'
+        active:
+          type: boolean
+          description: if the certificate is active
+          example: true
+        saved_to_configuration:
+          type: boolean
+          description: if the certificate is saved to configuration
+          example: true
+    TokenCertificate: # ok
+      type: object
+      description: certificate that is stored in a Token (auth or sign cert)
+      required:
         - ocsp_status
-        - client_id
-        - hash
+        - owner_id
+        - active
+        - saved_to_configuration
+        - certificate_details
         - status
       properties:
-        issuer_common_name:
-          type: string
-          format: text
-          description: certificate issuer common name
-          example: domain.com
-          minLength: 1
-          maxLength: 255
         ocsp_status:
-          $ref: '#/components/schemas/OcspStatus'
-        not_after:
-          type: string
-          format: date-time
-          description: certificate validity not after
-          example: '2018-12-15T00:00:00.001Z'
-          minLength: 24
-          maxLength: 24
-        hash:
+          $ref: '#/components/schemas/CertificateOcspStatus'
+        owner_id:
           type: string
           format: text
-          description: certificate SHA-1 hash
-          example: 1234567890ABCDEF
+          description: client id of the owner member, <instance_id>:<member_class>:<member_code>
+          example: FI:GOV:123
           minLength: 1
-          maxLength: 255
-        client_id:
-          type: string
-          format: text
-          description: <instance_id>:<member_class>:<member_code>:<subsystem>(optional)
-          example: FI:GOV:123:ABC
-          minLength: 1
-          maxLength: 255
+          maxLength: 767
+          readOnly: true
+        active:
+          type: boolean
+          description: if the certificate is active
+          example: true
+        saved_to_configuration:
+          type: boolean
+          description: if the certificate is saved to configuration
+          example: true
+        certificate_details:
+          $ref: '#/components/schemas/CertificateDetails'
         status:
           $ref: '#/components/schemas/CertificateStatus'
     CertificateDetails: # ok
       type: object
-      description: certificate details
+      description: certificate details for any kind of certificate (TLS, auth, sign)
       required:
         - issuer_distinguished_name
         - issuer_common_name
@@ -3222,7 +3237,6 @@ components:
         - rsa_public_key_exponent
         - hash
         - key_usages
-        - status
       properties:
         issuer_distinguished_name:
           type: string
@@ -3324,8 +3338,6 @@ components:
           uniqueItems: true
           items:
             $ref: '#/components/schemas/KeyUsage'
-        status:
-          $ref: '#/components/schemas/CertificateStatus'
     CertificateAuthority: # ok
       type: object
       description: certificate authority
@@ -3361,8 +3373,23 @@ components:
       description: certificate status
       example: IN_USE
       enum:
-        - IN_USE
+        - SAVED
+        - REGISTRATION_IN_PROGRESS
+        - REGISTERED
+        - DELETION_IN_PROGRESS
+        - GLOBAL_ERROR
+    CertificateOcspStatus: # ok
+      type: string
+      format: enum
+      description: certificate status
+      example: IN_USE
+      enum:
         - DISABLED
+        - EXPIRED
+        - OCSP_RESPONSE_UNKNOWN
+        - OCSP_RESPONSE_GOOD
+        - OCSP_RESPONSE_SUSPENDED
+        - OCSP_RESPONSE_REVOKED
     Client: # ok
       type: object
       description: x-road client
@@ -3610,9 +3637,11 @@ components:
       type: object
       description: key for the certificate
       required:
+        - id
         - name
         - label
         - certificates
+        - certificate_signing_requests
         - usage
       properties:
         id:
@@ -3641,7 +3670,12 @@ components:
           type: array
           description: list of certificates for the key
           items:
-            $ref: '#/components/schemas/Certificate'
+            $ref: '#/components/schemas/TokenCertificate'
+        certificate_signing_requests:
+          type: array
+          description: list of CSRs for the key
+          items:
+            $ref: '#/components/schemas/TokenCertificateSigningRequest'
         usage:
           $ref: '#/components/schemas/KeyUsageType'
         available:
@@ -4097,7 +4131,7 @@ components:
           items:
             $ref: '#/components/schemas/CertificateAuthority'
         tls_certificate:
-          $ref: '#/components/schemas/Certificate'
+          $ref: '#/components/schemas/CertificateDetails'
         version:
           $ref: '#/components/schemas/Version'
     TimestampingService: # ok

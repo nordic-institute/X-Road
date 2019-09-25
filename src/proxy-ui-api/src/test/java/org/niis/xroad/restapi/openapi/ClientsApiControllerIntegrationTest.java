@@ -40,7 +40,6 @@ import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
-import org.niis.xroad.restapi.openapi.model.CertificateStatus;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
@@ -296,7 +295,6 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals("SHA512withRSA", onlyCertificate.getSignatureAlgorithm());
         assertEquals("RSA", onlyCertificate.getPublicKeyAlgorithm());
         assertEquals("A2293825AA82A5429EC32803847E2152A303969C", onlyCertificate.getHash());
-        assertEquals(CertificateStatus.IN_USE, onlyCertificate.getStatus());
         assertTrue(onlyCertificate.getSignature().startsWith("314b7a50a09a9b74322671"));
         assertTrue(onlyCertificate.getRsaPublicKeyModulus().startsWith("9d888fbe089b32a35f58"));
         assertEquals(new Integer(65537), onlyCertificate.getRsaPublicKeyExponent());

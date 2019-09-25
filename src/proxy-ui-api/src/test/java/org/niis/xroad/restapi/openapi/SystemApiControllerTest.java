@@ -43,7 +43,6 @@ import java.io.InputStream;
 import java.security.cert.X509Certificate;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.mockito.BDDMockito.given;
 
 /**
@@ -73,7 +72,6 @@ public class SystemApiControllerTest {
 
         CertificateDetails certificate =
                 systemApiController.getSystemCertificate().getBody();
-        assertNull(certificate.getStatus());
         assertEquals("xroad2-lxd-ss1", certificate.getIssuerCommonName());
     }
 }
