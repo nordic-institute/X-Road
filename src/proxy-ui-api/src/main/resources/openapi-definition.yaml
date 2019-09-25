@@ -3612,9 +3612,6 @@ components:
       required:
         - name
         - label
-        - type
-        - status
-        - read_only
         - certificates
         - usage
       properties:
@@ -3640,19 +3637,6 @@ components:
           example: key label
           minLength: 1
           maxLength: 255
-        type:
-          type: string
-          format: text
-          description: key type
-          example: AUTH
-          minLength: 1
-          maxLength: 255
-        status:
-          $ref: '#/components/schemas/KeyStatus'
-        read_only:
-          type: boolean
-          description: key read only status
-          example: true
         certificates:
           type: array
           description: list of certificates for the key
@@ -3660,14 +3644,14 @@ components:
             $ref: '#/components/schemas/Certificate'
         usage:
           $ref: '#/components/schemas/KeyUsageType'
-    KeyStatus: # ok
-      type: string
-      format: enum
-      description: key status
-      example: REGISTERED
-      enum:
-        - SAVED
-        - REGISTERED
+        available:
+          type: boolean
+          description: if the key is available
+          example: true
+        saved_to_configuration:
+          type: boolean
+          description: if the key is saved to configuration
+          example: true
     KeyUsage: # ok
       type: string
       format: enum

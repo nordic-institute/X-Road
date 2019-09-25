@@ -28,6 +28,7 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 
 import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.openapi.model.Key;
+import org.niis.xroad.restapi.openapi.model.KeyUsageType;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -46,15 +47,30 @@ public class KeyConverter {
     public Key convert(KeyInfo keyInfo) {
         Key key = new Key();
         key.setId(keyInfo.getId());
-        key.setLabel(keyInfo.getLabel());
         key.setName(keyInfo.getFriendlyName());
-//        key.setReadOnly(); no such thing in key
-//        key.setStatus(); no such thing in key?
+        key.setLabel(keyInfo.getLabel());
+        if (keyInfo.isForSigning()) {
+            key.setUsage(KeyUsageType.SIGNING);
+        } else {
+            key.setUsage(KeyUsageType.AUTHENTICATION);
+        }
 
-        key.setUsage(KeyUsageTypeMapping.map(keyInfo.getUsage())
-                             .orElse(null));
-
+        key.setAvailable(keyInfo.isAvailable());
+        key.setSavedToConfiguration(isSavedToConfiguration(keyInfo));
         return key;
+    }
+
+    /**
+     * Logic to determine if a key is saved to configuration,
+     * copied from token_renderer.rb#key_saved_to_configuration
+     * @param keyInfo
+     */
+    public boolean isSavedToConfiguration(KeyInfo keyInfo) {
+        if (keyInfo.getCertRequests().isEmpty()) {
+            return true;
+        }
+        return keyInfo.getCerts().stream()
+                       .anyMatch(certificateInfo -> certificateInfo.isSavedToConfiguration());
     }
 
     /**

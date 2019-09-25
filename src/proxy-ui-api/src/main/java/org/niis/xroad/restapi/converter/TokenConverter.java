@@ -24,7 +24,6 @@
  */
 package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import com.google.common.collect.Streams;
@@ -99,20 +98,7 @@ public class TokenConverter {
      */
     private boolean isSavedToConfiguration(TokenInfo tokenInfo) {
         return tokenInfo.getKeyInfo().stream()
-                .anyMatch(keyInfo -> isSavedToConfiguration(keyInfo));
-    }
-
-    /**
-     * Logic to determine if a key is saved to configuration,
-     * copied from token_renderer.rb#key_saved_to_configuration
-     * @param keyInfo
-     */
-    private boolean isSavedToConfiguration(KeyInfo keyInfo) {
-        if (keyInfo.getCertRequests().isEmpty()) {
-            return true;
-        }
-        return keyInfo.getCerts().stream()
-                .anyMatch(certificateInfo -> certificateInfo.isSavedToConfiguration());
+                .anyMatch(keyInfo -> keyConverter.isSavedToConfiguration(keyInfo));
     }
 
     /**
