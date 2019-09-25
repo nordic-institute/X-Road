@@ -68,6 +68,7 @@ public class OperationalDataTest extends BaseTestUsingDB {
         OpMonitorDaemonDatabaseCtx.get().rollbackTransaction();
     }
 
+    @SuppressWarnings("squid:S2699")
     @Test
     public void storeOperationalData() {
         session.save(fillMinimalOperationalData());

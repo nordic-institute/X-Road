@@ -29,7 +29,6 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.SlidingTimeWindowReservoir;
 
-import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -75,7 +74,7 @@ public final class MetricRegistryHolder {
      * Either registers a new sensor to metricRegistry, or reuses already registered one.
      */
     @SuppressWarnings("unchecked")
-    public <T extends Serializable> SimpleSensor<T> getOrCreateSimpleSensor(String metricName) {
+    public <T> SimpleSensor<T> getOrCreateSimpleSensor(String metricName) {
         final Gauge sensor = metrics.gauge(metricName, SimpleSensor::new);
         if (sensor instanceof SimpleSensor) {
             return (SimpleSensor<T>) sensor;

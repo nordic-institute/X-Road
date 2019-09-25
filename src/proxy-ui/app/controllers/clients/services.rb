@@ -751,6 +751,7 @@ module Clients::Services
     end
   end
 
+  # rubocop:disable all
   def read_services(client)
     services = []
 
@@ -837,6 +838,7 @@ module Clients::Services
     end
     services
   end
+  # rubocop:enable all
 
   def subjects_count_by_endpoint(client, endpoint)
     i = 0
