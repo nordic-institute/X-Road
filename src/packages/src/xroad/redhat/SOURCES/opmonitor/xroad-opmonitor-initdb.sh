@@ -25,30 +25,9 @@ init_postgres() {
     systemctl start $SERVICE_NAME || return 1
 }
 
-db_name=op-monitor
-db_url=jdbc:postgresql://127.0.0.1:5432/${db_name}
-db_user=opmonitor
-db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
+configure_local_postgres() {
 
-db_admin=opmonitor_admin
-db_admin_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
-
-db_properties=/etc/xroad/db.properties
-
-#is database connection configured?
-if  [[ -f "${db_properties}"  && $(crudini --get "${db_properties}" '' op-monitor.hibernate.connection.url) != "" ]]
-then
-    db_url=$(crudini --get ${db_properties} '' op-monitor.hibernate.connection.url)
-    db_user=$(crudini --get ${db_properties} '' op-monitor.hibernate.connection.username)
-    db_passwd=$(crudini --get ${db_properties} '' op-monitor.hibernate.connection.password)
-
-    su -l -c 'psql -q' postgres <<EOF
-ALTER ROLE ${db_admin} WITH PASSWORD '${db_admin_passwd}';
-ALTER DATABASE "${db_name}" OWNER TO ${db_admin};
-EOF
-
-else
-    echo "no db settings detected, creating local db"
+    echo "configure local db"
 
     init_postgres || exit 1
 
@@ -91,6 +70,110 @@ else
 
     chown xroad:xroad ${db_properties}
     chmod 640 ${db_properties}
+
+    echo "ALTER ROLE ${db_admin} WITH PASSWORD '${db_admin_passwd}';" | su - postgres -c psql postgres
+
+    echo "grant usage on schema public to ${db_user};" | su - postgres -c psql postgres
+    echo "grant select, insert, update, delete on all tables in schema public to ${db_user};" | su - postgres -c psql postgres
+    echo "grant usage, select, update on all sequences in schema public to ${db_user};" | su - postgres -c psql postgres
+    echo "grant execute on all functions in schema public to ${db_user};" | su - postgres -c psql postgres
+}
+
+configure_remote_postgres() {
+
+    echo "configure remote db"
+
+    master_passwd=`crudini --get ${root_properties} '' postgres.connection.password`
+    export PGPASSWORD=${master_passwd}
+
+    if  ! psql -h $db_addr -p $db_port -U postgres --list -tAF ' ' | grep template1 | awk '{print $3}' | grep -q "UTF8"
+    then echo -e "\n\npostgreSQL is not UTF8 compatible."
+        echo -e "Aborting installation! please fix issues and rerun with apt-get -f install\n\n"
+        exit 101
+    fi
+
+    if [[ `psql -h $db_addr -p $db_port -U postgres postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='${db_admin}'"` != "1" ]]
+    then
+        echo "CREATE ROLE $db_admin LOGIN PASSWORD '${db_admin_passwd}';" | psql -h $db_addr -p $db_port -U postgres postgres
+    fi
+
+    if [[ `psql -h $db_addr -p $db_port -U postgres postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='${db_user}'"` == "1" ]]
+    then
+        echo  "$db_user user exists, skipping role creation"
+        echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | psql -h $db_addr -p $db_port -U postgres postgres
+    else
+        echo "CREATE ROLE ${db_user} LOGIN PASSWORD '${db_passwd}';" | psql -h $db_addr -p $db_port -U postgres postgres
+    fi
+
+    if [[ `psql -h $db_addr -p $db_port -U postgres postgres -tAc "SELECT 1 FROM pg_database WHERE datname='${db_name}'"`  == "1" ]]
+    then
+        echo "database $db_name exists"
+    else
+        echo "GRANT ${db_user} to postgres" | psql -h $db_addr -p $db_port -U postgres postgres
+        echo "GRANT ${db_admin} to postgres" | psql -h $db_addr -p $db_port -U postgres postgres
+        createdb -h $db_addr -p $db_port -U postgres ${db_name} -O ${db_admin} -E UTF-8
+    fi
+
+    psql -h $db_addr -p $db_port -U postgres op-monitor -qtAc "CREATE EXTENSION IF NOT EXISTS hstore;"
+
+    touch ${db_properties}
+    crudini --set ${db_properties} '' op-monitor.hibernate.jdbc.use_streams_for_binary true
+    crudini --set ${db_properties} '' op-monitor.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
+    crudini --set ${db_properties} '' op-monitor.hibernate.connection.driver_class org.postgresql.Driver
+    crudini --set ${db_properties} '' op-monitor.hibernate.connection.url ${db_url}
+    crudini --set ${db_properties} '' op-monitor.hibernate.connection.username  ${db_user}
+    crudini --set ${db_properties} '' op-monitor.hibernate.connection.password ${db_passwd}
+    crudini --set ${root_properties} '' op-monitor.database.initialized true
+
+    chown xroad:xroad ${db_properties}
+    chmod 640 ${db_properties}
+
+    echo "ALTER ROLE ${db_admin} WITH PASSWORD '${db_admin_passwd}';" | psql -h $db_addr -p $db_port -U postgres postgres
+
+    echo "grant usage on schema public to ${db_user};" | psql -h $db_addr -p $db_port -U postgres postgres
+    echo "grant select, insert, update, delete on all tables in schema public to ${db_user};" | psql -h $db_addr -p $db_port -U postgres postgres
+    echo "grant usage, select, update on all sequences in schema public to ${db_user};" | psql -h $db_addr -p $db_port -U postgres postgres
+    echo "grant execute on all functions in schema public to ${db_user};" | psql -h $db_addr -p $db_port -U postgres postgres
+}
+
+db_name=op-monitor
+db_url=jdbc:postgresql://127.0.0.1:5432/${db_name}
+db_user=opmonitor
+db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
+db_admin=opmonitor_admin
+db_admin_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
+db_properties=/etc/xroad/db.properties
+root_properties=/etc/xroad.properties
+
+#is database connection configured?
+if  [[ -f "${db_properties}"  && $(crudini --get "${db_properties}" '' op-monitor.hibernate.connection.url) != "" ]]
+then
+    db_url=$(crudini --get ${db_properties} '' op-monitor.hibernate.connection.url)
+    db_user=$(crudini --get ${db_properties} '' op-monitor.hibernate.connection.username)
+    db_passwd=$(crudini --get ${db_properties} '' op-monitor.hibernate.connection.password)
+fi
+
+res=${db_url%/*}
+db_host=${res##*//}
+db_addr=${db_host%%:*}
+db_port=${db_host##*:}
+
+# If the database host is not local, connect with master username and password
+if  [[ -f ${root_properties}  && `crudini --get ${root_properties} '' postgres.connection.password` != "" ]]
+then
+    if  [[ `crudini --get ${root_properties} '' op-monitor.database.initialized` != "true" ]]
+    then
+        configure_remote_postgres
+    else
+        echo "database already configured"
+    fi
+else
+    if  [[ -f "${db_properties}"  && $(crudini --get "${db_properties}" '' op-monitor.hibernate.connection.url) != "" ]]
+    then
+        echo "database already configured"
+    else
+        configure_local_postgres
+    fi
 fi
 
 cd /usr/share/xroad/db || exit 1
@@ -104,12 +187,5 @@ LIQUIBASE_HOME=/usr/share/xroad/db /usr/share/xroad/db/liquibase.sh \
     --password="${db_admin_passwd}" \
     update \
     || { echo "Connection to database has failed, please check database availability and configuration in ${db_properties} file"; exit 1; }
-
-su -l -c "psql -qd ${db_name}" postgres <<EOF
-grant usage on schema public to ${db_user};
-grant select, insert, update, delete on all tables in schema public to ${db_user};
-grant usage, select, update on all sequences in schema public to ${db_user};
-grant execute on all functions in schema public to ${db_user};
-EOF
 
 exit 0

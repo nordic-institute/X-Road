@@ -2,6 +2,8 @@
 
 . /usr/share/debconf/confmodule
 
+db_properties=/etc/xroad/db.properties
+
 
 if [ -n "$DEBIAN_SCRIPT_DEBUG" ]; then set -v -x; DEBIAN_SCRIPT_TRACE=1; fi
 
@@ -62,14 +64,21 @@ function handle_error {
 
 if  [ "$1" = "reconfigure" ];
   then
+    db_fset xroad-common/database-host seen false
     db_fset xroad-common/admin-subject seen false
     db_fset xroad-common/admin-altsubject seen false
     db_fset xroad-common/service-subject seen false
     db_fset xroad-common/service-altsubject seen false
 fi
 
+# Get database connection string from the user
+db_input critical xroad-common/database-host || true
+db_go
+RET=
+db_get xroad-common/database-host
+db_host="$RET"
 
-#check certificates and request neccesary subject information from user
+#check certificates and request necessary subject information from user
 HOST=`hostname -f`
 LIST=
 for i in `ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'`; do LIST+="IP:$i,"; done;
