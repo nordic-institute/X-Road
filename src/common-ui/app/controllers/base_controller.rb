@@ -83,6 +83,7 @@ class BaseController < ActionController::Base
   helper_method :format_time
 
   def index
+    # NOP
   end
 
   def skin

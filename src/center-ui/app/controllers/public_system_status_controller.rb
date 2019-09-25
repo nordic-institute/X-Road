@@ -43,6 +43,7 @@ class PublicSystemStatusController < BaseController
   HA_STATUS_UNKNOWN = :unknown
 
   def index
+    # NOP
   end
 
   def check_ha_cluster_status
