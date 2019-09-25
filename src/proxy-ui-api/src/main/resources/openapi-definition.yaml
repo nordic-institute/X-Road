@@ -3691,6 +3691,19 @@ components:
       enum:
         - AUTHENTICATION
         - SIGNING
+    KeyValuePair: # ok
+      type: object
+      description: key-value pair of strings
+      required:
+        - key
+        - value
+      properties:
+        key:
+          type: string
+          description: key
+        value:
+          type: string
+          description: value
     Language: # ok
       type: object
       description: language
@@ -4165,6 +4178,10 @@ components:
         - type
         - keys
         - status
+        - active
+        - available
+        - saved_to_configuration
+        - read_only
       properties:
         id:
           type: string
@@ -4191,6 +4208,32 @@ components:
             $ref: '#/components/schemas/Key'
         status:
           $ref: '#/components/schemas/TokenStatus'
+        active:
+          type: boolean
+          description: if the token is active
+          example: true
+        available:
+          type: boolean
+          description: if the token is available
+          example: true
+        saved_to_configuration:
+          type: boolean
+          description: if the token is saved to configuration
+          example: true
+        read_only:
+          type: boolean
+          description: if the token is read-only
+          example: true
+        serial_number:
+          type: string
+          format: text
+          description: serial number of the token
+          example: 12345
+        token_infos:
+          type: array
+          description: Contains label-value pairs of information
+          items:
+            $ref: '#/components/schemas/KeyValuePair'
     TokenStatus: # ok
       type: string
       format: text

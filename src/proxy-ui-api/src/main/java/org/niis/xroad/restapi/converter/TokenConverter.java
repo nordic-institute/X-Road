@@ -24,15 +24,18 @@
  */
 package org.niis.xroad.restapi.converter;
 
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import com.google.common.collect.Streams;
+import org.niis.xroad.restapi.openapi.model.KeyValuePair;
 import org.niis.xroad.restapi.openapi.model.Token;
 import org.niis.xroad.restapi.openapi.model.TokenStatus;
 import org.niis.xroad.restapi.openapi.model.TokenType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -60,10 +63,7 @@ public class TokenConverter {
         token.setId(tokenInfo.getId());
         token.setName(tokenInfo.getFriendlyName());
 
-        Optional<TokenStatus> status = TokenStatusMapping.map(tokenInfo.getStatus());
-        token.setStatus(status.orElse(null));
-
-        // software module has a magic type, hardware modules have device UI as type
+        // software module has a magic type string, hardware modules have device UI as type
         if (TokenInfo.SOFTWARE_MODULE_TYPE.equals(tokenInfo.getType())) {
             token.setType(TokenType.SOFTWARE);
         } else {
@@ -72,24 +72,47 @@ public class TokenConverter {
 
         token.setKeys(keyConverter.convert(tokenInfo.getKeyInfo()));
 
-        // what about these properties?
+        Optional<TokenStatus> status = TokenStatusMapping.map(tokenInfo.getStatus());
+        token.setStatus(status.orElse(null));
 
-//        private final boolean readOnly;
-//
-//        private final boolean available;
-//
-//        private final boolean active;
-//
-//        private final String serialNumber;
-//
-//        private final String label;
-//
-//        private final int slotIndex;
-//
-//        /** Contains label-value pairs of information about token. */
-//        private final Map<String, String> tokenInfo;
+        token.setActive(tokenInfo.isActive());
+        token.setAvailable(tokenInfo.isAvailable());
+        token.setSavedToConfiguration(isSavedToConfiguration(tokenInfo));
+        token.setReadOnly(tokenInfo.isReadOnly());
+        token.setSerialNumber(tokenInfo.getSerialNumber());
+        token.setTokenInfos(new ArrayList<>());
+
+        for (String key: tokenInfo.getTokenInfo().keySet()) {
+            KeyValuePair keyValuePair = new KeyValuePair();
+            keyValuePair.setKey(key);
+            keyValuePair.setValue(tokenInfo.getTokenInfo().get(key));
+            token.getTokenInfos().add(keyValuePair);
+        }
 
         return token;
+    }
+
+    /**
+     * Logic to determine if a token is saved to configuration,
+     * copied from token_renderer.rb#token_saved_to_configuration
+     * @param tokenInfo
+     */
+    private boolean isSavedToConfiguration(TokenInfo tokenInfo) {
+        return tokenInfo.getKeyInfo().stream()
+                .anyMatch(keyInfo -> isSavedToConfiguration(keyInfo));
+    }
+
+    /**
+     * Logic to determine if a key is saved to configuration,
+     * copied from token_renderer.rb#key_saved_to_configuration
+     * @param keyInfo
+     */
+    private boolean isSavedToConfiguration(KeyInfo keyInfo) {
+        if (keyInfo.getCertRequests().isEmpty()) {
+            return true;
+        }
+        return keyInfo.getCerts().stream()
+                .anyMatch(certificateInfo -> certificateInfo.isSavedToConfiguration());
     }
 
     /**
