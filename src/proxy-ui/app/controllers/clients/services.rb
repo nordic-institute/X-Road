@@ -797,6 +797,7 @@ module Clients::Services
         }
 
         if DescriptionType::OPENAPI3_DESCRIPTION == servicedescription.type || DescriptionType::OPENAPI3 == servicedescription.type
+          unsortedEndpoints = []
           client.endpoint.each do |endpoint|
             if endpoint.service_code == service.service_code
               if endpoint.method == '*' && endpoint.path == '**'
@@ -804,7 +805,7 @@ module Clients::Services
                 serviceObject[:endpoint] = true
                 services << serviceObject
               else
-                services << {
+                unsortedEndpoints << {
                   :wsdl => false,
                   :wsdl_id => servicedescription.url,
                   :service_code => endpoint.service_code,
@@ -825,6 +826,9 @@ module Clients::Services
               end
             end
           end
+
+          sortedEndpointServices = unsortedEndpoints.sort {|a,b| (a[:generated] == b[:generated]) ? ((a[:path] < b[:path]) ? -1 : 1) : (a[:generated] ? -1 : 1)}
+          services = services + sortedEndpointServices
         else
           serviceObject[:subjects_count] = subjects_count_by_service_code(client, service.serviceCode)
           services << serviceObject
