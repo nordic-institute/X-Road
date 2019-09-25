@@ -77,7 +77,7 @@ public final class PathGlob {
         return compile(glob).matcher(path).matches();
     }
 
-    @SuppressWarnings("checkstyle:avoidnestedblocks")
+    @SuppressWarnings("all")
     private static Pattern toPattern(String glob) {
         StringBuilder b = new StringBuilder(glob.length());
         b.append("^");

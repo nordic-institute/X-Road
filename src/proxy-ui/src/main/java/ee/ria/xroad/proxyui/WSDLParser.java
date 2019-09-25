@@ -273,6 +273,7 @@ public final class WSDLParser {
             this.wsdlUrl = wsdlUrl;
         }
 
+        @SuppressWarnings("squid:S2093")
         @Override
         public InputSource getBaseInputSource() {
             URLConnection conn = null;
