@@ -30,6 +30,9 @@ table tbody tr td ul.tableitem-actions {
       padding: 5px 0;
       color: #444;
       font-size: 0.8em; }
+  #services.dataTable tr td:first-child {
+      text-overflow: unset !important;
+  }
 
 #group_description_edit_dialog .dialog-body {
   height: 100%; }

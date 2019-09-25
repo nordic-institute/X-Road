@@ -61,6 +61,14 @@
         if($(".wsdl.row_selected").length > 1) {
             $("wsdl_refresh").disable();
         }
+
+        var methodFields = $('#services .endpoint_row .method');
+        $.each(methodFields, function(index, field) {
+            if($(field).text() === '*') {
+                $(field).text('ALL');
+            }
+        });
+
     }
 
     function endpointParams() {
@@ -560,6 +568,7 @@
             oServices.setFocus(0, row, multiselect);
             enableActions();
         });
+
     }
 
     function initClientServicesActions() {

@@ -43,6 +43,10 @@ table tbody tr td ul.tableitem-actions {
             border-radius: 5px;
         }
     }
+
+    &.dataTable tr td:first-child {
+        text-overflow: unset !important;
+    }
 }
 
 #group_description_edit_dialog {
