@@ -60,10 +60,12 @@ public class KeyConverter {
         key.setId(keyInfo.getId());
         key.setName(keyInfo.getFriendlyName());
         key.setLabel(keyInfo.getLabel());
-        if (keyInfo.isForSigning()) {
-            key.setUsage(KeyUsageType.SIGNING);
-        } else {
-            key.setUsage(KeyUsageType.AUTHENTICATION);
+        if (keyInfo.getUsage() != null) {
+            if (keyInfo.isForSigning()) {
+                key.setUsage(KeyUsageType.SIGNING);
+            } else {
+                key.setUsage(KeyUsageType.AUTHENTICATION);
+            }
         }
 
         key.setAvailable(keyInfo.isAvailable());

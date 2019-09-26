@@ -56,7 +56,7 @@ public class TokenCertificateSigningRequestConverter {
         TokenCertificateSigningRequest request = new TokenCertificateSigningRequest();
         request.setId(csrInfo.getId());
         if (csrInfo.getMemberId() != null) {
-            request.setId(clientConverter.convertId(csrInfo.getMemberId()));
+            request.setOwnerId(clientConverter.convertId(csrInfo.getMemberId()));
         }
         return request;
     }
