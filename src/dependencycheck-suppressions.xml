@@ -63,4 +63,32 @@
        <gav regex="true">^commons-io:commons-io:.*$</gav>
        <cve>CVE-2014-9653</cve>
     </suppress>
+    <suppress>
+        <notes><![CDATA[
+            file name: apache-mime4j-core-0.8.3.jar
+            ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.james/apache\-mime4j\-core@.*$</packageUrl>
+        <cpe>cpe:/a:mime_project:mime</cpe>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+            file name: xercesImpl-2.12.0.jar
+            ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.exist\-db\.thirdparty\.xerces/xercesImpl@.*$</packageUrl>
+        <cve>CVE-2018-1000823</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+            file name: javax.servlet-api-3.1.0.jar
+            ]]></notes>
+        <packageUrl regex="true">^pkg:maven/javax\.servlet/javax\.servlet\-api@.*$</packageUrl>
+        <cpe>cpe:/a:fish:fish</cpe>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+            file name: stringtemplate-3.2.1.jar
+            ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.antlr/stringtemplate@.*$</packageUrl>
+        <cpe>cpe:/a:string_project:string</cpe>
+    </suppress>
 </suppressions>
