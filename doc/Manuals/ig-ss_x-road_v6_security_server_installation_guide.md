@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.15  
+Version: 2.15.1  
 Doc. ID: IG-SS
 
 ---
@@ -40,7 +40,8 @@ Doc. ID: IG-SS
  14.10.2018 | 2.13    | Update package repository address | Petteri Kivimäki
  25.10.2018 | 2.14    | Add RHEL7 as supported platform, update section 2.2 Reference data | Petteri Kivimäki
  15.11.2018 | 2.15    | Add Ubuntu 18 installation instructions | Jarkko Hyöty
-  
+ 26.09.2019 | 2.15.1  | Update Ubuntu 14 installation instructions | Jarkko Hyöty
+
 ## Table of Contents
 
 <!-- toc -->
@@ -192,10 +193,9 @@ To install the X-Road security server software on *Ubuntu* operating system, fol
 
         sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
 
-    *Only Ubuntu 14.04 (trusty)*: Add OpenJDK and nginx repositories
+    *Only Ubuntu 14.04 (trusty)*: Add OpenJDK repository
 
         sudo apt-add-repository -y ppa:openjdk-r/ppa
-        sudo apt-add-repository -y ppa:nginx/stable
 
 3.  Issue the following commands to install the security server packages (use package xroad-securityserver-ee to include configuration specific to Estonia; use package xroad-securityserver-fi to include configuration specific to Finland):
 
