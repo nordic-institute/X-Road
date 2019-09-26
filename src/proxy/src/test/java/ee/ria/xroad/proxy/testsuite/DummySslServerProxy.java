@@ -57,7 +57,7 @@ import java.security.cert.X509Certificate;
 public class DummySslServerProxy extends Server implements StartStop {
 
     DummySslServerProxy() throws Exception {
-        SslContextFactory cf = new SslContextFactory(false);
+        SslContextFactory.Server cf = new SslContextFactory.Server();
         cf.setNeedClientAuth(true);
 
         cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
