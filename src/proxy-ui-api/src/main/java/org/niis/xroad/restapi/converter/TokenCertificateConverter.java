@@ -26,6 +26,7 @@ package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
+import com.google.common.collect.Streams;
 import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
@@ -136,14 +137,13 @@ public class TokenCertificateConverter {
 
 
     /**
-     * Convert a list of {@link CertificateInfo certificateInfos} to a list of
+     * Convert a group of {@link CertificateInfo certificateInfos} to a list of
      * {@link TokenCertificate token certificates}
      * @param certificateInfos
      * @return List of {@link TokenCertificate token certificates}
      */
-    public List<TokenCertificate> convert(List<CertificateInfo> certificateInfos) {
-        return certificateInfos
-                .stream()
+    public List<TokenCertificate> convert(Iterable<CertificateInfo> certificateInfos) {
+        return Streams.stream(certificateInfos)
                 .map(this::convert)
                 .collect(Collectors.toList());
     }

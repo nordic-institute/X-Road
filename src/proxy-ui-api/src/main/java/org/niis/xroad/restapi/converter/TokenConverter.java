@@ -102,7 +102,7 @@ public class TokenConverter {
     }
 
     /**
-     * Convert a list of {@link TokenInfo tokenInfos} to a list of {@link Token tokens}
+     * Convert a group of {@link TokenInfo tokenInfos} to a list of {@link Token tokens}
      * @param tokenInfos
      * @return List of {@link TokenInfo tokenInfos}
      */

@@ -85,7 +85,7 @@ public class KeyConverter {
     }
 
     /**
-     * Convert a list of {@link KeyInfo keyInfos} to a list of {@link Key keyInfos}
+     * Convert a group of {@link KeyInfo keyInfos} to a list of {@link Key keyInfos}
      * @param keyInfos
      * @return List of {@link KeyInfo keyInfos}
      */

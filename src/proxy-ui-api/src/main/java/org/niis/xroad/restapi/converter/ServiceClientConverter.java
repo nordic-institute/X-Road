@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
+import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.service.GlobalConfService;
@@ -99,13 +100,12 @@ public class ServiceClientConverter {
     }
 
     /**
-     * Convert a list of ServiceClientDtos to ServiceClients
+     * Convert a group of ServiceClientDtos to ServiceClients
      * @param accessRightHolderDtos
      * @return
      */
-    public List<ServiceClient> convertAccessRightHolderDtos(List<AccessRightHolderDto> accessRightHolderDtos) {
-        return accessRightHolderDtos
-                .stream()
+    public List<ServiceClient> convertAccessRightHolderDtos(Iterable<AccessRightHolderDto> accessRightHolderDtos) {
+        return Streams.stream(accessRightHolderDtos)
                 .map(this::convertAccessRightHolderDto)
                 .collect(Collectors.toList());
     }

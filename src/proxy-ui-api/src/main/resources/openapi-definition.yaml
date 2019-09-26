@@ -3165,9 +3165,7 @@ components:
       description: CSR for certificate that is stored in a Token
       required:
         - id
-        - owner
-        - active
-        - saved_to_configuration
+        - owner_id
       properties:
         id:
           type: string
@@ -3175,16 +3173,14 @@ components:
           description: CSR id
           example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
           readOnly: true
-        owner:
-          $ref: '#/components/schemas/Client'
-        active:
-          type: boolean
-          description: if the certificate is active
-          example: true
-        saved_to_configuration:
-          type: boolean
-          description: if the certificate is saved to configuration
-          example: true
+        owner_id:
+          type: string
+          format: text
+          description: client id of the owner member, <instance_id>:<member_class>:<member_code>
+          example: FI:GOV:123
+          minLength: 1
+          maxLength: 767
+          readOnly: true
     TokenCertificate: # ok
       type: object
       description: certificate that is stored in a Token (auth or sign cert)

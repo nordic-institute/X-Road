@@ -28,6 +28,7 @@ import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
+import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -82,13 +83,12 @@ public class SubjectConverter {
     }
 
     /**
-     * Convert a list of {@link Subject subjects} to a list of {@link XRoadId xRoadIds}
+     * Convert a group of {@link Subject subjects} to a list of {@link XRoadId xRoadIds}
      * @param subjects
      * @return List of {@link XRoadId xRoadIds}
      */
-    public List<XRoadId> convert(List<Subject> subjects) {
-        return subjects
-                .stream()
+    public List<XRoadId> convert(Iterable<Subject> subjects) {
+        return Streams.stream(subjects)
                 .map(this::convert)
                 .collect(Collectors.toList());
     }
