@@ -42,10 +42,13 @@ import java.util.stream.Collectors;
 public class KeyConverter {
 
     private final TokenCertificateConverter tokenCertificateConverter;
+    private final TokenCertificateSigningRequestConverter tokenCsrConverter;
 
     @Autowired
-    public KeyConverter(TokenCertificateConverter tokenCertificateConverter) {
+    public KeyConverter(TokenCertificateConverter tokenCertificateConverter,
+            TokenCertificateSigningRequestConverter tokenCsrConverter) {
         this.tokenCertificateConverter = tokenCertificateConverter;
+        this.tokenCsrConverter = tokenCsrConverter;
     }
 
     /**
@@ -67,6 +70,7 @@ public class KeyConverter {
         key.setSavedToConfiguration(isSavedToConfiguration(keyInfo));
 
         key.setCertificates(tokenCertificateConverter.convert(keyInfo.getCerts()));
+        key.setCertificateSigningRequests(tokenCsrConverter.convert(keyInfo.getCertRequests()));
 
         return key;
     }
