@@ -78,7 +78,7 @@ public class TokenCertificateConverter {
                 tokenCertificate.getCertificateDetails()));
         tokenCertificate.setSavedToConfiguration(certificateInfo.isSavedToConfiguration());
         tokenCertificate.setStatus(CertificateStatusMapping.map(certificateInfo.getStatus())
-            .orElse(null));
+                                           .orElse(null));
         return tokenCertificate;
     }
 
