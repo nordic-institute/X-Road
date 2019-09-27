@@ -135,7 +135,7 @@ public class KeyConverterTest {
         assertEquals(true, keyConverter.convert(info).getSavedToConfiguration());
     }
 
-    private CertRequestInfo createTestCsr() {
+    public static CertRequestInfo createTestCsr() {
         return new CertRequestInfo("id",
                 ClientId.create("a", "b", "c"),
                 "sujbect-name");
