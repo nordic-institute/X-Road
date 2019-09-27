@@ -1,7 +1,7 @@
 <template>
   <simpleDialog
     :dialog="dialog"
-    :title="$t('services.addWsdl')"
+    title="services.addWsdl"
     @save="save"
     @cancel="cancel"
     :disableSave="!isValid"

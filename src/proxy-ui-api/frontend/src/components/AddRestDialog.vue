@@ -1,7 +1,7 @@
 <template>
   <simpleDialog
     :dialog="dialog"
-    :title="$t('services.addRest')"
+    title="services.addRest"
     @save="save"
     @cancel="cancel"
     :disableSave="!isValid"
