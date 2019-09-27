@@ -61,7 +61,6 @@ const router = new Router({
               props: true,
               meta: { permission: Permissions.VIEW_CLIENT_ACL_SUBJECTS },
             },
-
             {
               name: RouteName.SSTlsCertificate,
               path: 'tls-cert',
@@ -69,7 +68,6 @@ const router = new Router({
               props: true,
               meta: { permission: Permissions.VIEW_CLIENT_ACL_SUBJECTS },
             },
-
           ],
         },
         {
@@ -203,13 +201,27 @@ const router = new Router({
           },
           meta: { permission: Permissions.VIEW_CLIENTS },
         },
-
         {
           name: RouteName.Certificate,
-          path: '/certificate/:id/:hash',
-
+          path: '/certificate/:hash',
           components: {
             default: Certificate,
+          },
+          props: { default: true },
+        },
+        {
+          name: RouteName.Token,
+          path: '/token/:id',
+          components: {
+            default: Token,
+          },
+          props: { default: true },
+        },
+        {
+          name: RouteName.Key,
+          path: '/key/:id',
+          components: {
+            default: Key,
           },
           props: { default: true },
         },
