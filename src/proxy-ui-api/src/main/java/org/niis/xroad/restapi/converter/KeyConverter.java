@@ -83,7 +83,7 @@ public class KeyConverter {
      * @param keyInfo
      */
     public boolean isSavedToConfiguration(KeyInfo keyInfo) {
-        if (keyInfo.getCertRequests().isEmpty()) {
+        if (!keyInfo.getCertRequests().isEmpty()) {
             return true;
         }
         return keyInfo.getCerts().stream()

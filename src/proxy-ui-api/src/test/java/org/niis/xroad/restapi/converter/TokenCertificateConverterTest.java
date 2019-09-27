@@ -24,16 +24,12 @@
  */
 package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
-import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.CertificateOcspStatus;
@@ -45,13 +41,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.security.cert.X509Certificate;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.niis.xroad.restapi.util.CertificateTestUtils.createTestCertificateInfo;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -60,20 +54,11 @@ public class TokenCertificateConverterTest {
     @Autowired
     private TokenCertificateConverter tokenCertificateConverter;
 
-    @Before
-    public void setUp() throws Exception {
-    }
-
     @Test
     public void convert() throws Exception {
-        X509Certificate cert = CertificateTestUtils.getCertificate(CertificateTestUtils.getMockCertificateBytes());
-        List<OCSPResp> ocsp = generateOcspResponses(
-                Arrays.asList(cert),
-                CertificateStatus.GOOD);
-        CertificateInfo certificateInfo = new CertificateInfo(ClientId.create("a", "b", "c"),
-                true, true,
-                CertificateInfo.STATUS_REGISTERED,
-                "1", cert.getEncoded(), ocsp.iterator().next().getEncoded());
+        X509Certificate cert = CertificateTestUtils.getMockCertificate();
+        CertificateInfo certificateInfo = createTestCertificateInfo(cert, CertificateStatus.GOOD,
+                CertificateInfo.STATUS_REGISTERED);
         TokenCertificate certificate = tokenCertificateConverter.convert(certificateInfo);
         assertEquals(true, certificate.getActive());
         assertEquals("N/A", certificate.getCertificateDetails().getSubjectCommonName());
@@ -95,72 +80,33 @@ public class TokenCertificateConverterTest {
         // Not After : Sep 14 11:57:16 2013 GMT
         X509Certificate cert = TestCertUtil.getCertChainCert("user_1.p12");
 
-        List<OCSPResp> ocsp = generateOcspResponses(
-                Arrays.asList(cert),
-                CertificateStatus.GOOD);
-
-        CertificateInfo certificateInfo = new CertificateInfo(ClientId.create("a", "b", "c"),
-                true, true, CertificateInfo.STATUS_REGISTERED,
-                "1", cert.getEncoded(), ocsp.iterator().next().getEncoded());
+        CertificateInfo certificateInfo = createTestCertificateInfo(cert,
+                CertificateStatus.GOOD,
+                CertificateInfo.STATUS_REGISTERED);
         TokenCertificate certificate = tokenCertificateConverter.convert(certificateInfo);
         assertEquals(CertificateOcspStatus.EXPIRED, certificate.getOcspStatus());
 
         // Not After : Jan  1 00:00:00 2038 GMT
-        cert = CertificateTestUtils.getCertificate(CertificateTestUtils.getMockCertificateBytes());
-        ocsp = generateOcspResponses(
-                Arrays.asList(cert),
-                CertificateStatus.GOOD);
-        certificateInfo = new CertificateInfo(ClientId.create("a", "b", "c"),
-                true, true, CertificateInfo.STATUS_REGISTERED,
-                "1", cert.getEncoded(), ocsp.iterator().next().getEncoded());
+        cert = CertificateTestUtils.getMockCertificate();
+        certificateInfo = createTestCertificateInfo(cert,
+                CertificateStatus.GOOD,
+                CertificateInfo.STATUS_REGISTERED);
         certificate = tokenCertificateConverter.convert(certificateInfo);
         assertEquals(CertificateOcspStatus.OCSP_RESPONSE_GOOD, certificate.getOcspStatus());
 
         RevokedStatus revokedStatus = new RevokedStatus(new Date(), CRLReason.certificateHold);
-        ocsp = generateOcspResponses(
-                Arrays.asList(cert),
-                revokedStatus);
-        certificateInfo = new CertificateInfo(ClientId.create("a", "b", "c"),
-                true, true, CertificateInfo.STATUS_REGISTERED,
-                "1", cert.getEncoded(), ocsp.iterator().next().getEncoded());
+        certificateInfo = createTestCertificateInfo(cert,
+                revokedStatus,
+                CertificateInfo.STATUS_REGISTERED);
+
         certificate = tokenCertificateConverter.convert(certificateInfo);
         assertEquals(CertificateOcspStatus.OCSP_RESPONSE_SUSPENDED, certificate.getOcspStatus());
 
         revokedStatus = new RevokedStatus(new Date(), CRLReason.unspecified);
-        ocsp = generateOcspResponses(
-                Arrays.asList(cert),
-                revokedStatus);
-        certificateInfo = new CertificateInfo(ClientId.create("a", "b", "c"),
-                true, true, CertificateInfo.STATUS_REGISTERED,
-                "1", cert.getEncoded(), ocsp.iterator().next().getEncoded());
+        certificateInfo = createTestCertificateInfo(cert,
+                revokedStatus,
+                CertificateInfo.STATUS_REGISTERED);
         certificate = tokenCertificateConverter.convert(certificateInfo);
         assertEquals(CertificateOcspStatus.OCSP_RESPONSE_REVOKED, certificate.getOcspStatus());
-    }
-
-
-    private static List<OCSPResp> generateOcspResponses(
-            List<X509Certificate> certs, CertificateStatus status)
-            throws Exception {
-        List<OCSPResp> responses = new ArrayList<>();
-        for (X509Certificate cert : certs) {
-            responses.add(OcspTestUtils.createOCSPResponse(cert,
-                    getIssuerCert(cert, certs),
-                    TestCertUtil.getOcspSigner().certChain[0],
-                    TestCertUtil.getOcspSigner().key,
-                    status));
-        }
-        return responses;
-    }
-
-    private static X509Certificate getIssuerCert(X509Certificate subject,
-            List<X509Certificate> certs) throws Exception {
-        for (X509Certificate cert : certs) {
-            if (cert.getSubjectX500Principal().equals(
-                    subject.getIssuerX500Principal())) {
-                return cert;
-            }
-        }
-
-        return TestCertUtil.getCertChainCert("root_ca.p12");
     }
 }

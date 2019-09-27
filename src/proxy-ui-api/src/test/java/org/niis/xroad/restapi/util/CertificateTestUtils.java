@@ -24,12 +24,21 @@
  */
 package org.niis.xroad.restapi.util;
 
+import ee.ria.xroad.common.OcspTestUtils;
+import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
+import org.bouncycastle.cert.ocsp.CertificateStatus;
+import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Utils for working with test x509 certificates
@@ -133,6 +142,15 @@ public final class CertificateTestUtils {
     }
 
     /**
+     * Subject = CN=N/A, expires = 2038
+     *
+     * @return
+     */
+    public static X509Certificate getMockCertificate() {
+        return getCertificate(getMockCertificateBytes());
+    }
+
+    /**
      * Return a Resource for reading a byte array
      */
     public static Resource getResource(byte[] bytes) {
@@ -151,6 +169,16 @@ public final class CertificateTestUtils {
     }
 
     /**
+     * Subject = O=Internet Widgits Pty Ltd, ST=Some-State, C=AU
+     * expires = Thu Apr 23 09:59:02 EEST 2020
+     *
+     * @return
+     */
+    public static X509Certificate getWidgitsCertificate() {
+        return getCertificate(getWidgitsCertificateBytes());
+    }
+
+    /**
      * Return hash for getWidgitsCertificateBytes
      * @return
      */
@@ -165,6 +193,74 @@ public final class CertificateTestUtils {
      */
     public static byte[] getInvalidCertBytes() {
         return INVALID_CERT_BYTES;
+    }
+
+    /**
+     * Create a test CertificateInfo object with given ocsp status and certificate status.
+     * CertificateInfo has savedToConfiguration = true
+     * @param certificate
+     * @param ocspStatus
+     * @param certificateStatus
+     * @return
+     * @throws Exception
+     */
+    public static CertificateInfo createTestCertificateInfo(X509Certificate certificate,
+            CertificateStatus ocspStatus,
+            String certificateStatus) throws Exception {
+        return createTestCertificateInfo(certificate,
+                ocspStatus,
+                certificateStatus,
+                true);
+    }
+
+    /**
+     * Create a test CertificateInfo object with given ocsp status and certificate status
+     * @param certificate
+     * @param ocspStatus
+     * @param certificateStatus
+     * @param isSavedToConfiguration
+     * @return
+     * @throws Exception
+     */
+    public static CertificateInfo createTestCertificateInfo(X509Certificate certificate,
+            CertificateStatus ocspStatus,
+            String certificateStatus,
+            boolean isSavedToConfiguration) throws Exception {
+        List<OCSPResp> ocsp = generateOcspResponses(
+                Arrays.asList(certificate),
+                ocspStatus);
+        CertificateInfo certificateInfo = new CertificateInfo(
+                ClientId.create("a", "b", "c"),
+                true, isSavedToConfiguration,
+                certificateStatus, "1",
+                certificate.getEncoded(),
+                ocsp.iterator().next().getEncoded());
+        return certificateInfo;
+    }
+
+    private static List<OCSPResp> generateOcspResponses(List<X509Certificate> certs,
+            CertificateStatus status) throws Exception {
+        List<OCSPResp> responses = new ArrayList<>();
+        for (X509Certificate cert : certs) {
+            responses.add(OcspTestUtils.createOCSPResponse(cert,
+                    getIssuerCert(cert, certs),
+                    TestCertUtil.getOcspSigner().certChain[0],
+                    TestCertUtil.getOcspSigner().key,
+                    status));
+        }
+        return responses;
+    }
+
+    private static X509Certificate getIssuerCert(X509Certificate subject,
+            List<X509Certificate> certs) {
+        for (X509Certificate cert : certs) {
+            if (cert.getSubjectX500Principal().equals(
+                    subject.getIssuerX500Principal())) {
+                return cert;
+            }
+        }
+
+        return TestCertUtil.getCertChainCert("root_ca.p12");
     }
 
 }
