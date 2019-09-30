@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.29  
+Version: 2.30  
 Doc. ID: UG-SS
 
 ---
@@ -62,6 +62,7 @@ Doc. ID: UG-SS
  30.06.2019 | 2.27    | Update the default connection type from HTTP to HTTPS in chapter [9] | Petteri Kivimäki
  01.07.2019 | 2.28    | Changing the Security Server Owner chapter added (Chapter [3.4](#34-changing-the-security-server-owner)) | Petteri Kivimäki
  14.08.2019 | 2.29    | Added automatic backups | Ilkka Seppälä
+ 30.09.2019 | 2.30    | Added remote database migration guide | Ilkka Seppälä
 
 ## Table of Contents <!-- omit in toc --> 
 
@@ -147,7 +148,7 @@ Doc. ID: UG-SS
 - [13 Back up and Restore](#13-back-up-and-restore)
   - [13.1 Back up and Restore in the User Interface](#131-back-up-and-restore-in-the-user-interface)
   - [13.2 Restore from the Command Line](#132-restore-from-the-command-line)
-- [13.3 Automatic Backups](#133-automatic-backups)
+  - [13.3 Automatic Backups](#133-automatic-backups)
 - [14 Diagnostics](#14-diagnostics)
   - [14.1 Examine security server services status information](#141-examine-security-server-services-status-information)
 - [15 Operational Monitoring](#15-operational-monitoring)
@@ -169,6 +170,7 @@ Doc. ID: UG-SS
   - [17.2 Logging configuration](#172-logging-configuration)
   - [17.3 Fault Detail UUID](#173-fault-detail-uuid)
 - [18 Federation](#18-federation)
+- [19 Migrating to Remote Database Host](#19-migrating-to-remote-database-host)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -1543,7 +1545,7 @@ If it is absolutely necessary to restore the system from a backup made on a diff
     /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \
     -F –f /var/lib/xroad/backup/conf_backup_20140703-110438.tar
 
-## 13.3 Automatic Backups
+### 13.3 Automatic Backups
 
 By default the Security Server backs up its configuration automatically once every day. Backups older than 30 days are automatically removed from the server. If needed, the automatic backup policies can be adjusted by editing the `/etc/cron.d/xroad-proxy` file.
 
@@ -1852,3 +1854,95 @@ And the following will allow none:
 [configuration-client]
 allowed-federations=xe-test, all, none, ee-test
 ```
+
+## 19 Migrating to Remote Database Host
+
+Since version `6.22.0` Security Server supports using remote databases. In case you have an already running Security Server with local database, it is possible to migrate it to use remote database host instead. The instructions for this process are listed below.
+
+1. Shutdown X-Road processes.
+
+    ```
+    systemctl stop "xroad*"
+    ```
+
+2. Dump the local databases to be migrated. You can find the passwords of users `serverconf`, `messagelog` and `opmonitor` in `/etc/xroad/db.properties`.
+
+    ```
+    pg_dump -F t -h 127.0.0.1 -p 5432 -U serverconf -f serverconf.dat serverconf
+    pg_dump -F t -h 127.0.0.1 -p 5432 -U messagelog -f messagelog.dat messagelog
+    pg_dump -F t -h 127.0.0.1 -p 5432 -U opmonitor -f op-monitor.dat op-monitor
+    ```
+
+3. Shut down and mask local `postgresql` so it won't start when `xroad-proxy` starts.
+
+    ```
+    systemctl stop postgresql
+    systemctl mask postgresql
+    ```
+
+4. Connect to the remote database server as the superuser `postgres` and create roles, databases and access permissions as follows.
+
+    ```
+    psql -h <remote-db-url> -P <remote-db-port> -U postgres
+    CREATE ROLE serverconf LOGIN PASSWORD '<serverconf-password>';
+    GRANT serverconf to postgres;
+    CREATE DATABASE serverconf OWNER serverconf ENCODING 'UTF-8';
+    \c serverconf
+    CREATE EXTENSION IF NOT EXISTS hstore;
+    \c postgres
+
+    CREATE ROLE messagelog LOGIN PASSWORD '<messagelog-password>';
+    GRANT messagelog to postgres;
+    CREATE DATABASE messagelog OWNER messagelog ENCODING 'UTF-8';
+
+    CREATE ROLE opmonitor_admin LOGIN PASSWORD '<opmonitor_admin-password>';
+    CREATE ROLE opmonitor LOGIN PASSWORD '<opmonitor-password>';
+    GRANT opmonitor_admin to postgres;
+    CREATE DATABASE "op-monitor" OWNER opmonitor_admin ENCODING "UTF-8";
+    grant usage on schema public to opmonitor;
+    grant select, insert, update, delete on all tables in schema public to opmonitor;
+    grant usage, select, update on all sequences in schema public to opmonitor;
+    grant execute on all functions in schema public to opmonitor;
+    ```
+
+5. Restore the database dumps on the remote database host.
+
+    ```
+    pg_restore -h <remote-db-url> -p <remote-db-port> -U serverconf -O -x -n public -1 -d serverconf serverconf.dat
+    pg_restore -h <remote-db-url> -p <remote-db-port> -U messagelog -O -x -n public -1 -d messagelog messagelog.dat
+    pg_restore -h <remote-db-url> -p <remote-db-port> -U opmonitor_admin -O -x -n public -1 -d op-monitor op-monitor.dat
+    ```
+
+6. Create properties file `/etc/xroad.properties` containing the superuser password.
+
+    ```
+    sudo touch /etc/xroad.properties
+    sudo chown root:root /etc/xroad.properties
+    sudo chmod 600 /etc/xroad.properties
+    ```
+
+7. Edit `/etc/xroad.properties`.
+
+    ```
+    postgres.connection.password = <postgres-password>
+    serverconf.database.initialized = true
+    messagelog.database.initialized = true
+    op-monitor.database.initialized = true
+    ```
+
+8. Update `/etc/xroad/db.properties` contents with correct database host URLs and passwords.
+
+    ```
+    serverconf.hibernate.connection.url = jdbc:postgresql://<remote-db-url>:<remote-db-port>/serverconf
+    messagelog.hibernate.connection.url = jdbc:postgresql://<remote-db-url>:<remote-db-port>/messagelog
+    op-monitor.hibernate.connection.url = jdbc:postgresql://<remote-db-url>:<remote-db-port>/op-monitor
+    serverconf.hibernate.connection.password = <serverconf-password>
+    messagelog.hibernate.connection.password = <messagelog-password>
+    op-monitor.hibernate.connection.password = <opmonitor-password>
+    ```
+
+9. Start again the X-Road services.
+
+    ```
+    systemctl start "xroad*"
+    ```
