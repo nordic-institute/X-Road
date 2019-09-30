@@ -3646,7 +3646,7 @@ components:
           description: key id
           example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
           minLength: 1
-          maxLength: 255
+          maxLength: 40
           readOnly: true
         name:
           type: string
@@ -4203,7 +4203,6 @@ components:
           description: token id
           example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
           minLength: 1
-          maxLength: 255
           readOnly: true
         name:
           type: string
