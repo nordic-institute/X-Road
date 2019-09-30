@@ -1865,7 +1865,7 @@ Since version `6.22.0` Security Server supports using remote databases. In case 
     systemctl stop "xroad*"
     ```
 
-2. Dump the local databases to be migrated. You can find the passwords of users `serverconf`, `messagelog` and `opmonitor` in `/etc/xroad/db.properties`.
+2. Dump the local databases to be migrated. You can find the passwords of users `serverconf`, `messagelog` and `opmonitor` in `/etc/xroad/db.properties`. Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match.
 
     ```
     pg_dump -F t -h 127.0.0.1 -p 5432 -U serverconf -f serverconf.dat serverconf
@@ -1883,7 +1883,7 @@ Since version `6.22.0` Security Server supports using remote databases. In case 
 4. Connect to the remote database server as the superuser `postgres` and create roles, databases and access permissions as follows.
 
     ```
-    psql -h <remote-db-url> -P <remote-db-port> -U postgres
+    psql -h <remote-db-url> -p <remote-db-port> -U postgres
     CREATE ROLE serverconf LOGIN PASSWORD '<serverconf-password>';
     GRANT serverconf to postgres;
     CREATE DATABASE serverconf OWNER serverconf ENCODING 'UTF-8';
