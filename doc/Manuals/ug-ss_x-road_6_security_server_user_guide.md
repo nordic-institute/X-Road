@@ -1925,6 +1925,7 @@ Since version `6.22.0` Security Server supports using remote databases. In case 
 
     ```
     postgres.connection.password = <postgres-password>
+    op-monitor.database.admin_password = <opmonitor_admin-password>
     serverconf.database.initialized = true
     messagelog.database.initialized = true
     op-monitor.database.initialized = true
