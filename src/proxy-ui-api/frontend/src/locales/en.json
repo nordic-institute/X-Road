@@ -172,6 +172,13 @@
     "continue": "Continue"
   },
   "keys": {
+    "token": "Token:",
+    "authKeyCert": "AUTH Key and Certificate",
+    "signKeyCert": "SIGN Key and Certificate",
+    "id": "ID",
+    "ocsp": "OCSP",
+    "expires": "Expires",
+    "status": "Status",
     "signDetailsTitle": "SIGN Key details",
     "authDetailsTitle": "AUTH Key details",
     "friendlyName": "Friendly name",
