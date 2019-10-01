@@ -107,7 +107,7 @@ export default Vue.extend({
       confirmDelete: false,
       touched: false,
       saveBusy: false,
-
+      // TODO: mock data will be removed later
       key: {
         id: '09CDEF0123456789ABCDEF',
         name: 'nimi name',

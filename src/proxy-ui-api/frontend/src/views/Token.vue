@@ -83,6 +83,7 @@ export default Vue.extend({
     return {
       touched: false,
       saveBusy: false,
+      // TODO: mock data will be removed later
       token: {
         id: '999056789ABCDEF0123456789ABCDEF0123456789ABCDEF',
         name: 'softToken-2',

@@ -57,6 +57,7 @@ export default Vue.extend({
   data() {
     return {
       confirm: false,
+      // TODO: mock data will be removed later
       certificate: {
         issuer_distinguished_name: 'CN=256be4e26302',
         issuer_common_name: '256be4e26302',
@@ -89,14 +90,14 @@ export default Vue.extend({
       this.$router.go(-1);
     },
     fetchData(clientId: string, hash: string): void {
-      // TODO
+      // TODO will be implemented on later task
     },
     deleteCertificate(): void {
       this.confirm = true;
     },
     doDeleteCertificate(): void {
       this.confirm = false;
-      // TODO
+      // TODO will be implemented on later task
     },
   },
   created() {
