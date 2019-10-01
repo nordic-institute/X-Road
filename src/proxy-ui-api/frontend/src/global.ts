@@ -3,7 +3,6 @@
 export enum RouteName {
   Keys = 'keys',
   Diagnostics = 'diagnostics',
-  Settings = 'settings',
   AddSubsystem = 'add-subsystem',
   AddClient = 'add-client',
   Clients = 'clients',

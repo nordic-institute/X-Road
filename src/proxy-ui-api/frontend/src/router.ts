@@ -80,7 +80,6 @@ const router = new Router({
           meta: { permission: Permissions.DIAGNOSTICS },
         },
         {
-          name: RouteName.Settings,
           path: '/settings',
           components: {
             default: Settings,
