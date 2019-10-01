@@ -108,6 +108,7 @@ module BaseHelper
   end
 
   def server_status_class
+    #NOP
   end
 
   def available_locales
@@ -124,14 +125,18 @@ module BaseHelper
   end
 
   def instance_identifier
+    # NOP
   end
 
   def server_code
+    # NOP
   end
+
   def skin_installed?
     File.exists?(SystemProperties.getConfPath + BaseController::UI_SKIN_FILE)
   end
 
   def node_name
+    # NOP
   end
 end

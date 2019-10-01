@@ -18,6 +18,21 @@ table tbody tr td ul.tableitem-actions {
     content: "-"; }
   #services td.closed:before {
     content: "+"; }
+  #services .endpoint_row {
+      font-weight: 500; }
+  #services .endpoint_row .method {
+      border: 1px solid #a0a0a0;
+      padding: 2px;
+      -webkit-border-radius: 5px;
+      -moz-border-radius: 5px;
+      border-radius: 5px; }
+  #services .form-helper {
+      padding: 5px 0;
+      color: #444;
+      font-size: 0.8em; }
+  #services.dataTable tr td:first-child {
+      text-overflow: unset !important;
+  }
 
 #group_description_edit_dialog .dialog-body {
   height: 100%; }
@@ -51,6 +66,10 @@ table tbody tr td ul.tableitem-actions {
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: normal; }
+
+.rest_endpoint .form-helper {
+    margin: 5px 0;
+    color: #777; }
 
 /*# sourceMappingURL=application.css.map */
 .diagnostics_status_ok {

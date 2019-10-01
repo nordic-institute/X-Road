@@ -5,6 +5,7 @@
 <%= dialog "service_acl_dialog", t('.access_rights') do %>
   <section class="container">
     <%= t '.service' %> <%= select_tag "service", nil %>
+    <span class="endpoint_selection"><%= t '.endpoint' %> <%= select_tag "endpoint", nil %></span>
   </section>
 
   <%= render_advanced_search "acl_subjects_search", "subjects" %>

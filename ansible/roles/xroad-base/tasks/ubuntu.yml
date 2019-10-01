@@ -31,19 +31,10 @@
   when: ansible_distribution_release == "bionic"
 
 - name: enable UTF-8 locales
-  lineinfile:
-    line: "{{ item }}"
-    dest: "/var/lib/locales/supported.d/local"
+  locale_gen:
+    name: "{{ item }}"
     state: present
-    create: yes
-  register: locale_added
-  with_items:
-    - "fi_FI.UTF-8 UTF-8"
-    - "en_US.UTF-8 UTF-8"
-
-- name: generate locales
-  command: "/usr/sbin/locale-gen"
-  when: locale_added.changed
+  with_items: "{{ (['en_US.UTF-8'] + extra_locales | default([])) | unique }}"
 
 - name: "update apt cache"
   apt:

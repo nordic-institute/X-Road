@@ -27,7 +27,6 @@ package ee.ria.xroad.monitor;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
@@ -37,7 +36,7 @@ import java.util.ArrayList;
  */
 @Getter
 @Setter
-public class JmxStringifiedData<T> implements Serializable {
+public class JmxStringifiedData<T> {
     ArrayList<T> dtoData;
     ArrayList<String> jmxStringData;
 }
