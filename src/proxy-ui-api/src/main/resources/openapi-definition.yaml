@@ -1204,6 +1204,7 @@ paths:
         - in: query
           name: member_name_group_description
           description: pass an optional search string (name) for looking up subjects - name of a member or description of a group
+          example: NIIS
           required: false
           schema:
             type: string
@@ -1211,17 +1212,15 @@ paths:
             minLength: 0
             maxLength: 255
         - in: query
-          name: type
-          description: pass an optional search string (type) for looking up subjects
+          name: subject_type
+          description: pass an optional search string (subject_type) for looking up subjects
           required: false
           schema:
-            type: string
-            format: text
-            minLength: 0
-            maxLength: 255
+            $ref: '#/components/schemas/SubjectType'
         - in: query
           name: instance
-          description: pass an optional search string (instance) for looking up subjects
+          description: pass an optional search string (instance) for looking up subjects - full instance id should be used
+          example: GOV
           required: false
           schema:
             type: string
@@ -1239,7 +1238,8 @@ paths:
             maxLength: 255
         - in: query
           name: member_group_code
-          description: pass an optional search string (subsystem_code) for looking up subjects - member_code of a member or group_code of a group
+          description: pass an optional search string (member_group_code) for looking up subjects - member_code of a member or group_code of a group
+          example: 1234 | Example group name
           required: false
           schema:
             type: string
@@ -1248,20 +1248,23 @@ paths:
             maxLength: 255
         - in: query
           name: subsystem_code
-          description: to include members for search results
+          description: pass an optional search string (subsystem_code) for looking up subjects
+          example: Subsystem
           required: false
           schema:
-            type: boolean
-            default: true
+            type: string
+            format: text
+            minLength: 0
+            maxLength: 255
       responses:
         '200':
-          description: list of clients
+          description: list of subjects
           content:
             application/json:
               schema:
                 type: array
                 uniqueItems: true
-                description: array of client objects
+                description: array of Subjects
                 items:
                   $ref: '#/components/schemas/Subject'
         '400':
