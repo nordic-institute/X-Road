@@ -1,0 +1,10 @@
+---
+database_host: "127.0.0.1:5432"
+database_admin_password: ""
+opmonitor_admin_password: "o6eB02hRGuJdfpBB7kPNp2YAUwXwuwTS"
+serverconf_username: "serverconf"
+serverconf_password: "FuuJRaOm5cGYE55cBiiml4zWW2pOV8hd"
+opmonitor_username: "opmonitor"
+opmonitor_password: "xCHkd4DLlhBalnddub5UtzVRvUXIqtUe"
+messagelog_username: "messagelog"
+messagelog_password: "mKa5Nj4hJ6tl0GCMjSOrpVooVcuv0Lcj"

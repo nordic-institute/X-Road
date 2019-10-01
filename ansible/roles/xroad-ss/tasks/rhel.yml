@@ -4,6 +4,38 @@
   args:
     warn: no
 
+- name: Add the xroad user
+  user:
+    name: xroad_ui_user
+  when: database_admin_password != ""
+
+- name: Create xroad directory
+  file:
+    path: /etc/xroad
+    state: directory
+    mode: '0751'
+    owner: xroad_ui_user
+    group:  xroad_ui_user
+  when: database_admin_password != ""
+
+- name: xroad.properties template
+  template:
+    src: "xroad.properties"
+    dest: "/etc/xroad.properties"
+    owner: "root"
+    group: "root"
+    mode: 0600
+  when: database_admin_password != ""
+
+- name: db.properties template
+  template:
+    src: "db.properties"
+    dest: "/etc/xroad/db.properties"
+    owner: "xroad"
+    group: "xroad"
+    mode: 0751
+  when: database_admin_password != ""
+
 # verify presence of xroad packages and dependencies
 - name: install xroad packages and dependencies from set up repository (RHEL)
   yum:
@@ -20,6 +52,14 @@
 
 - name: add xroad admin user
   command: "xroad-add-admin-user {{ xroad_ui_user }}"
+
+- name: disable service postgresql and ensure it is masked in case we are using remote database server
+  systemd:
+    name: postgresql
+    state: stopped
+    enabled: no
+    masked: yes
+  when: database_admin_password != ""
 
 - name: start xroad-proxy (RHEL)
   service:
