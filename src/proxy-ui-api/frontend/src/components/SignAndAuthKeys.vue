@@ -24,8 +24,12 @@
         :isOpen="isExpanded(token.id)"
       >
         <template v-slot:action>
-          <large-button @click="login(token, index)" v-if="!token.open">Log in</large-button>
-          <large-button @click="logout(token, index)" v-if="token.open" outlined>Log out</large-button>
+          <large-button @click="login(token, index)" v-if="!token.open">{{$t('keys.logIn')}}</large-button>
+          <large-button
+            @click="logout(token, index)"
+            v-if="token.open"
+            outlined
+          >{{$t('keys.logOut')}}</large-button>
         </template>
 
         <template v-slot:link>
@@ -40,8 +44,12 @@
         <template v-slot:content>
           <div>
             <div class="button-wrap">
-              <large-button outlined class="button-spacing" :disabled="!token.open">Add key</large-button>
-              <large-button outlined :disabled="!token.open">Import Cert.</large-button>
+              <large-button
+                outlined
+                class="button-spacing"
+                :disabled="!token.open"
+              >{{$t('keys.addKey')}}</large-button>
+              <large-button outlined :disabled="!token.open">{{$t('keys.importCert')}}</large-button>
             </div>
 
             <!-- AUTH table -->
