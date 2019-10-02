@@ -397,6 +397,14 @@ export default Vue.extend({
         });
     },
   },
+  watch: {
+    isHttps(val) {
+      // If user edits http to https --> change "ssl auth" to true
+      if (val === true) {
+        this.service.ssl_auth = true;
+      }
+    },
+  },
   created() {
     this.fetchData(this.serviceId);
   },
