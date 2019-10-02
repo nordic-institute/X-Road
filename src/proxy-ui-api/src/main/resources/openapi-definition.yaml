@@ -2982,7 +2982,20 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: TokenPassword
+              type: object
+              properties:
+                password:
+                  type: string
+                  format: text
+                  description: password for logging in to the token
+                  minLength: 1
+              example:
+                password: sm3!!ycat
       responses:
         '200':
           description: logged in
@@ -3018,7 +3031,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '200':
           description: logged out

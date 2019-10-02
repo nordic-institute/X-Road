@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.commonui.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
@@ -80,5 +81,37 @@ public class TokenService {
                 .flatMap(keyInfo -> keyInfo.getCerts().stream())
                 .filter(certificateInfo -> clientType.getIdentifier().memberEquals(certificateInfo.getMemberId()))
                 .collect(toList());
+    }
+
+    /**
+     * Activate a token
+     * @param id id of token
+     * @param password password for token
+     * @throws Exception
+     */
+    @PreAuthorize("hasAuthority('ACTIVATE_TOKEN')")
+    public void activateToken(String id, char[] password) throws Exception {
+        SignerProxy.activateToken(id, password);
+    }
+
+    /**
+     * Deactivate a toke
+     * @param id id of token
+     * @throws Exception
+     */
+    @PreAuthorize("hasAuthority('DEACTIVATE_TOKEN')")
+    public void deactiveToken(String id) throws Exception {
+        SignerProxy.deactivateToken(id);
+    }
+
+    /**
+     * TO DO: look into exception handling, can we do better...?
+     * @param id
+     * @return
+     * @throws Exception
+     */
+    @PreAuthorize("hasAnyAuthority('ACTIVATE_TOKEN','DEACTIVATE_TOKEN')")
+    public TokenInfo getToken(String id) throws Exception {
+        return SignerProxy.getToken(id);
     }
 }

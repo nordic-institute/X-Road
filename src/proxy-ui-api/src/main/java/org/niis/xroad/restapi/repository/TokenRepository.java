@@ -34,9 +34,14 @@ import java.util.List;
 
 /**
  * Repository that handles tokens (acts as a wrapper to SignerProxy)
+ *
+ * TO DO: remove. It is misleading to use "repository" for this, that is
+ * more of a "remote facade" and does also other things besides CRUD operations
+ * (activate / deactivate tokens)
  */
 @Slf4j
 @Repository
+@Deprecated
 public class TokenRepository {
 
     /**
