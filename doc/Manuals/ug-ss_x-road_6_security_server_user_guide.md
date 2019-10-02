@@ -1865,12 +1865,12 @@ Since version `6.22.0` Security Server supports using remote databases. In case 
     systemctl stop "xroad*"
     ```
 
-2. Dump the local databases to be migrated. You can find the passwords of users `serverconf`, `messagelog` and `opmonitor` in `/etc/xroad/db.properties`. Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match.
+2. Dump the local databases to be migrated. You can find the passwords of users `serverconf`, `messagelog` and `opmonitor` in `/etc/xroad/db.properties`. Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match. Also take into account that on a busy system the messagelog database can be quite large and therefore dump and restore can take considerable amount of time and disk space.
 
     ```
     pg_dump -F t -h 127.0.0.1 -p 5432 -U serverconf -f serverconf.dat serverconf
     pg_dump -F t -h 127.0.0.1 -p 5432 -U messagelog -f messagelog.dat messagelog
-    pg_dump -F t -h 127.0.0.1 -p 5432 -U opmonitor -f op-monitor.dat op-monitor
+    pg_dump -F t -h 127.0.0.1 -p 5432 -U opmonitor_admin -f op-monitor.dat op-monitor
     ```
 
 3. Shut down and mask local `postgresql` so it won't start when `xroad-proxy` starts.
@@ -1880,7 +1880,7 @@ Since version `6.22.0` Security Server supports using remote databases. In case 
     systemctl mask postgresql
     ```
 
-4. Connect to the remote database server as the superuser `postgres` and create roles, databases and access permissions as follows.
+4. Connect to the remote database server as the superuser `postgres` and create roles, databases and access permissions as follows. Note that the line `GRANT serverconf to postgres` is AWS RDS specific and not necessary if the `postgres` user is a true super-user.
 
     ```
     psql -h <remote-db-url> -p <remote-db-port> -U postgres
@@ -1900,9 +1900,6 @@ Since version `6.22.0` Security Server supports using remote databases. In case 
     GRANT opmonitor_admin to postgres;
     CREATE DATABASE "op-monitor" OWNER opmonitor_admin ENCODING "UTF-8";
     grant usage on schema public to opmonitor;
-    grant select, insert, update, delete on all tables in schema public to opmonitor;
-    grant usage, select, update on all sequences in schema public to opmonitor;
-    grant execute on all functions in schema public to opmonitor;
     ```
 
 5. Restore the database dumps on the remote database host.
