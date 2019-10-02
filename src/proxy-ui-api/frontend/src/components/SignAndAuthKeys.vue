@@ -175,7 +175,7 @@ export default Vue.extend({
       tokens: [],
       addWsdlBusy: false,
       refreshWsdlBusy: false,
-      currentToken: undefined,
+      selected: undefined as any,
     };
   },
   computed: {
@@ -264,28 +264,26 @@ export default Vue.extend({
     },
 
     login(token: any, index: number): void {
-      const lop = { token, index };
-      this.currentToken = lop;
+      this.selected = { token, index };
       this.loginDialog = true;
     },
 
     doLogin(): void {
-      const token = this.currentToken.token;
-      const index = this.currentToken.index;
+      const token = this.selected.token;
+      const index = this.selected.index;
       token.open = true;
       Vue.set(this.tokens, index, token);
       this.loginDialog = false;
     },
 
     logout(token: any, index: number): void {
-      const lop = { token, index };
-      this.currentToken = lop;
+      this.selected = { token, index };
       this.logoutDialog = true;
     },
 
     acceptLogout(): void {
-      const token = this.currentToken.token;
-      const index = this.currentToken.index;
+      const token = this.selected.token;
+      const index = this.selected.index;
       token.open = false;
       Vue.set(this.tokens, index, token);
       this.logoutDialog = false;
