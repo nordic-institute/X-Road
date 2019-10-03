@@ -1905,9 +1905,9 @@ Since version `6.22.0` Security Server supports using remote databases. In case 
 5. Restore the database dumps on the remote database host.
 
     ```
-    pg_restore -h <remote-db-url> -p <remote-db-port> -U serverconf -O -x -n public -1 -d serverconf serverconf.dat
-    pg_restore -h <remote-db-url> -p <remote-db-port> -U messagelog -O -x -n public -1 -d messagelog messagelog.dat
-    pg_restore -h <remote-db-url> -p <remote-db-port> -U opmonitor_admin -O -x -n public -1 -d op-monitor op-monitor.dat
+    pg_restore -h <remote-db-url> -p <remote-db-port> -U serverconf -O -n public -1 -d serverconf serverconf.dat
+    pg_restore -h <remote-db-url> -p <remote-db-port> -U messagelog -O -n public -1 -d messagelog messagelog.dat
+    pg_restore -h <remote-db-url> -p <remote-db-port> -U opmonitor_admin -O -n public -1 -d op-monitor op-monitor.dat
     ```
 
 6. Create properties file `/etc/xroad.properties` containing the superuser password.
