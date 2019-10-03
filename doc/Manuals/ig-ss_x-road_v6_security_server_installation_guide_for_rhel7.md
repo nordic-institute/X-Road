@@ -2,17 +2,17 @@
 | ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
 | -------------------------: |
 
-# Security Server Installation Guide for Red Hat Enterprise Linux 7 (RHEL7)
+# Security Server Installation Guide for Red Hat Enterprise Linux 7 (RHEL7) <!-- omit in toc -->
 
 **X-ROAD 6**
 
-Version: 1.3  
+Version: 1.4  
 Doc. ID: IG-SS-RHEL7
 
 ---
 
 
-## Version history
+## Version history <!-- omit in toc -->
 
  Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
@@ -20,31 +20,33 @@ Doc. ID: IG-SS-RHEL7
  16.11.2018 | 1.1     | Update link to Ubuntu installation guide                        | Jarkko Hyöty
  28.01.2018 | 1.2     | Update port 2080 documentation                                  | Petteri Kivimäki
  11.09.2019 | 1.3     | Remove Ubuntu 14.04 from supported platforms                    | Jarkko Hyöty
+ 12.09.2019 | 1.4     | Add instruction for remote database usage                       | Ilkka Seppälä
  
-## Table of Contents
+## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
 
 - [License](#license)
 - [1 Introduction](#1-introduction)
-  * [1.1 Target Audience](#11-target-audience)
-  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
-  * [1.3 References](#13-references)
+  - [1.1 Target Audience](#11-target-audience)
+  - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+  - [1.3 References](#13-references)
 - [2 Installation](#2-installation)
-  * [2.1 Supported Platforms](#21-supported-platforms)
-  * [2.2 Reference Data](#22-reference-data)
-  * [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
-  * [2.4 Preparing OS](#24-preparing-os)
-  * [2.5 Installation](#25-installation)
-  * [2.6 Post-Installation Checks](#26-post-installation-checks)
-  * [2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
-  * [2.8 Installing the Support for Environmental Monitoring](#28-installing-the-support-for-environmental-monitoring)
+  - [2.1 Supported Platforms](#21-supported-platforms)
+  - [2.2 Reference Data](#22-reference-data)
+  - [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
+  - [2.4 Preparing OS](#24-preparing-os)
+  - [2.5 Installation](#25-installation)
+  - [2.6 Post-Installation Checks](#26-post-installation-checks)
+  - [2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
+  - [2.8 Installing the Support for Environmental Monitoring](#28-installing-the-support-for-environmental-monitoring)
+  - [2.9 Remote Database Post-Installation Tasks](#29-remote-database-post-installation-tasks)
 - [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
-  * [3.1 Prerequisites](#31-prerequisites)
-  * [3.2 Reference Data](#32-reference-data)
-  * [3.3 Configuration](#33-configuration)
+  - [3.1 Prerequisites](#31-prerequisites)
+  - [3.2 Reference Data](#32-reference-data)
+  - [3.3 Configuration](#33-configuration)
 - [4 Installation Error handling](#4-installation-error-handling)
-  * [4.1 UI Does Not Respond or Returns an Error Message](#41-ui-does-not-respond-or-returns-an-error-message)
+  - [4.1 UI Does Not Respond or Returns an Error Message](#41-ui-does-not-respond-or-returns-an-error-message)
 
 <!-- tocstop -->
 
@@ -178,17 +180,48 @@ To install the X-Road security server software on *RHEL7* operating system, foll
 
         sudo rpm --import https://artifactory.niis.org/api/gpg/key/public
 
-3.  Issue the following command to install the security server packages (use package xroad-securityserver-ee to include configuration specific to Estonia; use package xroad-securityserver-fi to include configuration specific to Finland):
+3. (Optional step) If you want to use remote database server instead of the default locally installed one, you need to pre-create two configuration files. The first file `db.properties` contains the database connection configuration and the other `xroad.properties` the database administrator master password. The configuration can be done by performing the following steps:
+
+        sudo useradd xroad
+        sudo mkdir /etc/xroad
+        sudo chown xroad:xroad /etc/xroad
+        sudo chmod 751 /etc/xroad
+        sudo touch /etc/xroad/db.properties
+        sudo chown xroad:xroad /etc/xroad/db.properties
+        sudo chmod 640 /etc/xroad/db.properties
+        sudo touch /etc/xroad.properties
+        sudo chown root:root /etc/xroad.properties
+        sudo chmod 600 /etc/xroad.properties
+
+    Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
+
+        postgres.connection.password = 54F46A19E50C11DA8631468CF09BE5DB
+
+    Edit `/etc/xroad/db.properties` contents. See the example below. Replace parameter values with your own.
+
+        serverconf.hibernate.connection.url = jdbc:postgresql://database-1.cuvgtltu8dqq.eu-west-1.rds.amazonaws.com:5432/serverconf
+        serverconf.hibernate.connection.username = serverconf
+        serverconf.hibernate.connection.password = H1nGmB3uqtU7IJ82qqEaMaH2ozXBBkh0
+        op-monitor.hibernate.connection.url = jdbc:postgresql://database-1.cuvgtltu8dqq.eu-west-1.rds.amazonaws.com:5432/op-monitor
+        op-monitor.hibernate.connection.username = opmonitor
+        op-monitor.hibernate.connection.password = V8jCARSA7RIuCQWr59Hw3UK9zNzBeP2l
+        messagelog.hibernate.connection.url = jdbc:postgresql://database-1.cuvgtltu8dqq.eu-west-1.rds.amazonaws.com:5432/messagelog
+        messagelog.hibernate.connection.username = messagelog
+        messagelog.hibernate.connection.password = 1wmJ-bK39nbA4EYcTS9MgdjyJewPpf_w
+
+    In case remote database is used, one should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
+
+4.  Issue the following command to install the security server packages (use package xroad-securityserver-ee to include configuration specific to Estonia; use package xroad-securityserver-fi to include configuration specific to Finland):
 
         sudo yum install xroad-securityserver
 
-4. Add system user (**reference data: 1.3**) whom all roles in the user interface are granted to. Add a new user with the command
+5. Add system user (**reference data: 1.3**) whom all roles in the user interface are granted to. Add a new user with the command
    
         sudo xroad-add-admin-user <username>
    
    User roles are discussed in detail in X-Road Security Server User Guide \[[UG-SS](#Ref_UG-SS)\].
 
-5. Once the installation is completed, start the security server
+6. Once the installation is completed, start the security server
 
         sudo systemctl start xroad-proxy
 
@@ -218,6 +251,19 @@ Hardware security tokens (smartcard, USB token, Hardware Security Module) have n
 ### 2.8 Installing the Support for Environmental Monitoring
 
 The support for environmental monitoring functionality on a security server is provided by package xroad-monitor that is installed by default. The package installs and starts the `xroad-monitor` process that will gather and make available the monitoring information.
+
+
+### 2.9 Remote Database Post-Installation Tasks
+
+Local PostgreSQL is always installed with Security Server. When remote database host is used, the local PostgreSQL can be stopped and disabled after the installation.
+
+To stop the local PostgreSQL server
+
+`systemctl stop postgresql`
+
+To disable the local PostgreSQL server so that it does not start automatically when the server is rebooted.
+
+`systemctl mask postgresql`
 
 
 ## 3 Security Server Initial Configuration

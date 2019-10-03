@@ -43,7 +43,7 @@ import javax.persistence.Query;
  * Not used in tests (since HSQLDB does not understand set_config)
  */
 @Component
-@Profile("!test")
+@Profile("nontest")
 public class UsernameSettingTransactionManager extends JpaTransactionManager {
 
     @Autowired

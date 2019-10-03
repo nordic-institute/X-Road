@@ -6,7 +6,7 @@
 # Central Server High Availability Installation Guide
 **X-ROAD 6**
 
-Version: 1.8  
+Version: 1.9  
 Doc. ID: IG-CSHA
 
 ---
@@ -26,7 +26,8 @@ Doc. ID: IG-CSHA
  03.10.2018 | 1.6     | Added the chapter "Changing Nodes' IP Addresses in HA Cluster"
  19.12.2018 | 1.7     | Minor changes related to Ubuntu 18 support
  03.01.2019 | 1.8     | Removed forced NTP installation. | Jarkko Hyöty
-
+ 27.09.2019 | 1.9     | Minor fix | Petteri Kivimäki
+ 
 ## Table of Contents
 
 <!-- toc -->
@@ -243,7 +244,7 @@ If key-based SSH access to the nodes by the root user was disabled before enabli
 
 4. Install the X-Road central server cluster helper package on all the added nodes:
 
-        sudo apt-get install xroad-clusterhelper
+        sudo apt-get install xroad-center-clusterhelper
 
     In addition to the cluster setup script, the package provides tools for monitoring the status of the cluster.
 

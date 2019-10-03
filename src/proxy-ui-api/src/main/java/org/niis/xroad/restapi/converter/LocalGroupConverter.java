@@ -26,18 +26,15 @@ package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
-import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 
-import org.niis.xroad.restapi.exceptions.BadRequestException;
-import org.niis.xroad.restapi.openapi.model.Group;
 import org.niis.xroad.restapi.openapi.model.GroupMember;
+import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -45,18 +42,16 @@ import java.util.stream.Collectors;
 import static org.niis.xroad.restapi.converter.Converters.ENCODED_ID_SEPARATOR;
 
 /**
- * Helper to convert Groups
+ * Helper to convert LocalGroups
  */
 @Component
-public class GroupConverter {
+public class LocalGroupConverter {
 
-    private static final int INSTANCE_INDEX = 0;
-    private static final int GLOBALGROUP_CODE_INDEX = 1;
     private final ClientConverter clientConverter;
     private final GlobalConfService globalConfService;
 
     @Autowired
-    public GroupConverter(ClientConverter clientConverter, GlobalConfService globalConfService) {
+    public LocalGroupConverter(ClientConverter clientConverter, GlobalConfService globalConfService) {
         this.clientConverter = clientConverter;
         this.globalConfService = globalConfService;
     }
@@ -66,8 +61,8 @@ public class GroupConverter {
      * @param localGroupType
      * @return Group
      */
-    public Group convert(LocalGroupType localGroupType) {
-        Group group = new Group();
+    public LocalGroup convert(LocalGroupType localGroupType) {
+        LocalGroup group = new LocalGroup();
 
         group.setId(String.valueOf(localGroupType.getId()));
         group.setCode(localGroupType.getGroupCode());
@@ -84,7 +79,7 @@ public class GroupConverter {
      * @param localGroupTypes
      * @return
      */
-    public List<Group> convert(List<LocalGroupType> localGroupTypes) {
+    public List<LocalGroup> convert(List<LocalGroupType> localGroupTypes) {
         return localGroupTypes.stream()
                 .map(this::convert).collect(Collectors.toList());
     }
@@ -94,7 +89,7 @@ public class GroupConverter {
      * @param group
      * @return LocalGroupType
      */
-    public LocalGroupType convert(Group group) {
+    public LocalGroupType convert(LocalGroup group) {
         LocalGroupType localGroupType = new LocalGroupType();
 
         localGroupType.setDescription(group.getDescription());
@@ -156,46 +151,5 @@ public class GroupConverter {
         }
         builder.append(localGroupId.getGroupCode());
         return builder.toString().trim();
-    }
-
-    /**
-     * Convert GlobalGroupId into encoded id string
-     * @return String
-     */
-    public String convertId(GlobalGroupId globalGroupId) {
-        return convertId(globalGroupId, false);
-    }
-
-    /**
-     * Convert GlobalGroupId into encoded id string
-     * @param globalGroupId
-     * @return String
-     */
-    public String convertId(GlobalGroupId globalGroupId, boolean includeType) {
-        StringBuilder builder = new StringBuilder();
-        if (includeType) {
-            builder.append(globalGroupId.getObjectType())
-                    .append(ENCODED_ID_SEPARATOR);
-        }
-        builder.append(globalGroupId.getXRoadInstance())
-                .append(ENCODED_ID_SEPARATOR)
-                .append(globalGroupId.getGroupCode());
-        return builder.toString().trim();
-    }
-
-    /**
-     * Convert encoded global group id into GlobalGroupId
-     * @param encodedId
-     * @return {@link GlobalGroupId}
-     */
-    public GlobalGroupId convertGlobalGroupId(String encodedId) {
-        int separators = FormatUtils.countOccurences(encodedId, Converters.ENCODED_ID_SEPARATOR);
-        if (separators != GLOBALGROUP_CODE_INDEX) {
-            throw new BadRequestException("Invalid global group id " + encodedId);
-        }
-        List<String> parts = Arrays.asList(encodedId.split(String.valueOf(Converters.ENCODED_ID_SEPARATOR)));
-        String instance = parts.get(INSTANCE_INDEX);
-        String groupCode = parts.get(GLOBALGROUP_CODE_INDEX);
-        return GlobalGroupId.create(instance, groupCode);
     }
 }

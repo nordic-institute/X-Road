@@ -12,10 +12,8 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath "org.openapitools:openapi-generator-gradle-plugin:${openapiGeneratorVersion}"
         classpath "com.moowork.gradle:gradle-node-plugin:${nodePluginVersion}"
-        classpath "io.spring.gradle:dependency-management-plugin:0.5.2.RELEASE"
     }
 }
 

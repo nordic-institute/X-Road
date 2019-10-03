@@ -38,12 +38,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * groups repository
+ * LocalGroup repository
  */
 @Slf4j
 @Repository
 @Transactional
-public class GroupRepository {
+public class LocalGroupRepository {
 
     private final PersistenceUtils persistenceUtils;
 
@@ -52,7 +52,7 @@ public class GroupRepository {
      * @param persistenceUtils
      */
     @Autowired
-    public GroupRepository(PersistenceUtils persistenceUtils) {
+    public LocalGroupRepository(PersistenceUtils persistenceUtils) {
         this.persistenceUtils = persistenceUtils;
     }
 

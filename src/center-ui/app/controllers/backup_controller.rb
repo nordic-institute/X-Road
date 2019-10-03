@@ -64,6 +64,7 @@ class BackupController < BaseBackupController
   end
 
   def after_restore_success
+    # NOP
   end
 
   def backup_restore_script_options

@@ -40,7 +40,7 @@ import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.Error;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.repository.ClientRepository;
-import org.niis.xroad.restapi.repository.GroupRepository;
+import org.niis.xroad.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,14 +71,14 @@ public class ServiceService {
     private static final String HTTPS = "https";
 
     private final ClientRepository clientRepository;
-    private final GroupRepository groupRepository;
+    private final LocalGroupRepository localGroupRepository;
     private final ServiceDescriptionRepository serviceDescriptionRepository;
 
     @Autowired
-    public ServiceService(ClientRepository clientRepository, GroupRepository groupRepository,
+    public ServiceService(ClientRepository clientRepository, LocalGroupRepository localGroupRepository,
             ServiceDescriptionRepository serviceDescriptionRepository) {
         this.clientRepository = clientRepository;
-        this.groupRepository = groupRepository;
+        this.localGroupRepository = localGroupRepository;
         this.serviceDescriptionRepository = serviceDescriptionRepository;
     }
 
@@ -266,7 +266,7 @@ public class ServiceService {
         Set<XRoadId> localGroups = localGroupIds
                 .stream()
                 .map(groupId -> {
-                    LocalGroupType localGroup = groupRepository.getLocalGroup(groupId); // no need to batch
+                    LocalGroupType localGroup = localGroupRepository.getLocalGroup(groupId); // no need to batch
                     if (localGroup == null) {
                         throw new NotFoundException("LocalGroup with id " + groupId + " not found");
                     }

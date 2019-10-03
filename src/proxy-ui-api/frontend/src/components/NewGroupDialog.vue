@@ -60,7 +60,7 @@ export default Vue.extend({
     },
     save(): void {
       axios
-        .post(`/clients/${this.id}/groups`, {
+        .post(`/clients/${this.id}/local-groups`, {
           code: this.code,
           description: this.description,
         })

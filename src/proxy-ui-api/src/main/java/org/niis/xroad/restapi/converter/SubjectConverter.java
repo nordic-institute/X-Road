@@ -43,12 +43,12 @@ import java.util.stream.Collectors;
 @Component
 public class SubjectConverter {
     private ClientConverter clientConverter;
-    private GroupConverter groupConverter;
+    private GlobalGroupConverter globalGroupConverter;
 
     @Autowired
-    public SubjectConverter(ClientConverter clientConverter, GroupConverter groupConverter) {
+    public SubjectConverter(ClientConverter clientConverter, GlobalGroupConverter globalGroupConverter) {
         this.clientConverter = clientConverter;
-        this.groupConverter = groupConverter;
+        this.globalGroupConverter = globalGroupConverter;
     }
 
     /**
@@ -70,7 +70,7 @@ public class SubjectConverter {
                 xRoadId = clientConverter.convertId(encodedId);
                 break;
             case GLOBALGROUP:
-                xRoadId = groupConverter.convertGlobalGroupId(encodedId);
+                xRoadId = globalGroupConverter.convertId(encodedId);
                 break;
             case LOCALGROUP:
                 xRoadId = LocalGroupId.create(encodedId);

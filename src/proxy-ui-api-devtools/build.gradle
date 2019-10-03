@@ -1,7 +1,3 @@
-plugins {
-    id 'org.springframework.boot' version '2.1.3.RELEASE' apply false
-}
-
 apply plugin: 'io.spring.dependency-management'
 
 dependencyManagement {
