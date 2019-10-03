@@ -24,10 +24,10 @@
         :isOpen="isExpanded(token.id)"
       >
         <template v-slot:action>
-          <large-button @click="login(token, index)" v-if="!token.open">{{$t('keys.logIn')}}</large-button>
+          <large-button @click="login(token, index)" v-if="!token.loggedIn">{{$t('keys.logIn')}}</large-button>
           <large-button
             @click="logout(token, index)"
-            v-if="token.open"
+            v-if="token.loggedIn"
             outlined
           >{{$t('keys.logOut')}}</large-button>
         </template>
@@ -47,9 +47,9 @@
               <large-button
                 outlined
                 class="button-spacing"
-                :disabled="!token.open"
+                :disabled="!token.loggedIn"
               >{{$t('keys.addKey')}}</large-button>
-              <large-button outlined :disabled="!token.open">{{$t('keys.importCert')}}</large-button>
+              <large-button outlined :disabled="!token.loggedIn">{{$t('keys.importCert')}}</large-button>
             </div>
 
             <!-- AUTH table -->
@@ -279,7 +279,7 @@ export default Vue.extend({
     doLogin(): void {
       const token = this.selected.token;
       const index = this.selected.index;
-      token.open = true;
+      token.loggedIn = true;
       Vue.set(this.tokens, index, token);
       this.loginDialog = false;
     },
