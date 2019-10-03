@@ -18,6 +18,10 @@
     group:  xroad_ui_user
   when: database_admin_password != ""
 
+- name: generate opmonitor_admin_password
+  set_fact: opmonitor_admin_password="{{ lookup('password', '/dev/null chars=ascii_letters,digits,hexdigits length=32') }}"
+  when: (database_admin_password != "") and (opmonitor_admin_password == "")
+
 - name: xroad.properties template
   template:
     src: "xroad.properties"
@@ -27,6 +31,18 @@
     mode: 0600
   when: database_admin_password != ""
 
+- name: generate serverconf_password
+  set_fact: serverconf_password="{{ lookup('password', '/dev/null chars=ascii_letters,digits,hexdigits length=32') }}"
+  when: (database_admin_password != "") and (serverconf_password == "")
+
+- name: generate opmonitor_password
+  set_fact: opmonitor_password="{{ lookup('password', '/dev/null chars=ascii_letters,digits,hexdigits length=32') }}"
+  when: (database_admin_password != "") and (opmonitor_password == "")
+
+- name: generate messagelog_password
+  set_fact: messagelog_password="{{ lookup('password', '/dev/null chars=ascii_letters,digits,hexdigits length=32') }}"
+  when: (database_admin_password != "") and (messagelog_password == "")
+  
 - name: db.properties template
   template:
     src: "db.properties"
@@ -52,14 +68,6 @@
 
 - name: add xroad admin user
   command: "xroad-add-admin-user {{ xroad_ui_user }}"
-
-- name: disable service postgresql and ensure it is masked in case we are using remote database server
-  systemd:
-    name: postgresql
-    state: stopped
-    enabled: no
-    masked: yes
-  when: database_admin_password != ""
 
 - name: start xroad-proxy (RHEL)
   service:

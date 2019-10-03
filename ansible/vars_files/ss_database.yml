@@ -1,10 +1,11 @@
 ---
 database_host: "127.0.0.1:5432"
 database_admin_password: ""
-opmonitor_admin_password: "o6eB02hRGuJdfpBB7kPNp2YAUwXwuwTS"
+opmonitor_admin_password: ""
 serverconf_username: "serverconf"
-serverconf_password: "FuuJRaOm5cGYE55cBiiml4zWW2pOV8hd"
+serverconf_password: ""
 opmonitor_username: "opmonitor"
-opmonitor_password: "xCHkd4DLlhBalnddub5UtzVRvUXIqtUe"
+opmonitor_password: ""
 messagelog_username: "messagelog"
-messagelog_password: "mKa5Nj4hJ6tl0GCMjSOrpVooVcuv0Lcj"
+messagelog_password: ""
+mask_local_postgresql: true

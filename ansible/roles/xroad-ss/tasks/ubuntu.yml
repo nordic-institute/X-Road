@@ -18,9 +18,9 @@
     - { question: "xroad-common/username",           value: "{{ xroad_ui_user }}" }
     - { question: "xroad-common/database-host",      value: "{{ database_host }}" }
     - { question: "xroad-common/admin-subject",      value: "/CN={{ inventory_hostname }}" }
-    - { question: "xroad-common/admin-altsubject",   value: "IP:{{ ansible_eth0['ipv4']['address'] }},DNS:{{ inventory_hostname }}" }
+    - { question: "xroad-common/admin-altsubject",   value: "IP:{{ ansible_default_ipv4.address }},DNS:{{ inventory_hostname }}" }
     - { question: "xroad-common/service-subject",    value: "/CN={{ inventory_hostname }}" }
-    - { question: "xroad-common/service-altsubject", value: "IP:{{ ansible_eth0['ipv4']['address'] }},DNS:{{ inventory_hostname }}" }
+    - { question: "xroad-common/service-altsubject", value: "IP:{{ ansible_default_ipv4.address }},DNS:{{ inventory_hostname }}" }
     
 - name: create xroad properties file
   copy:
@@ -34,11 +34,3 @@
     name: "{{ vars['xroad_varpkg_' + variant] }}"
     state: latest
     force: yes
-
-- name: disable service postgresql and ensure it is masked in case we are using remote database server
-  systemd:
-    name: postgresql
-    state: stopped
-    enabled: no
-    masked: yes
-  when: database_admin_password != ""
