@@ -85,14 +85,13 @@ public class TokensApiController implements TokensApi {
         if (tokenPassword == null
                     || tokenPassword.getPassword() == null
                     || tokenPassword.getPassword().isEmpty()) {
-            throw new BadRequestException("Missing token password");
+            throw new BadRequestException("Missing token password   ");
+
+
+
         }
         char[] password = tokenPassword.getPassword().toCharArray();
-        try {
-            tokenService.activateToken(id, password);
-        } catch (Exception e) {
-            throw new RuntimeException("activating token failed", e);
-        }
+        tokenService.activateToken(id, password);
         Token token = getTokenFromService(id);
         return new ResponseEntity<>(token, HttpStatus.OK);
     }
@@ -100,11 +99,7 @@ public class TokensApiController implements TokensApi {
     @PreAuthorize("hasAuthority('DEACTIVATE_TOKEN')")
     @Override
     public ResponseEntity<Token> logoutToken(String id) {
-        try {
-            tokenService.deactiveToken(id);
-        } catch (Exception e) {
-            throw new RuntimeException("reading token failed", e);
-        }
+        tokenService.deactiveToken(id);
         Token token = getTokenFromService(id);
         return new ResponseEntity<>(token, HttpStatus.OK);
     }

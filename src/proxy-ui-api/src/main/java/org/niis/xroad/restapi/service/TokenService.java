@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.commonui.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -31,6 +32,10 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.exceptions.BadRequestException;
+import org.niis.xroad.restapi.exceptions.Error; // TO DO: rename Error, it's bad since java.lang
+import org.niis.xroad.restapi.exceptions.InternalServerErrorException;
+import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.repository.TokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -39,6 +44,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
+import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_FOUND;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -90,8 +98,55 @@ public class TokenService {
      * @throws Exception
      */
     @PreAuthorize("hasAuthority('ACTIVATE_TOKEN')")
-    public void activateToken(String id, char[] password) throws Exception {
-        SignerProxy.activateToken(id, password);
+    public void activateToken(String id, char[] password) throws IncorrectPinException {
+        try {
+            SignerProxy.activateToken(id, password);
+        } catch (CodedException e) {
+            log.info("codedexception=" + e);
+            log.info("getFaultCode=" + e.getFaultCode());
+            if (PIN_INCORRECT_FAULT_CODE.equals(e.getFaultCode())) {
+                throw new IncorrectPinException(e);
+            } else if (TOKEN_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode())) {
+                throw new TokenNotFoundException(e);
+            } else {
+                throw new UnspecifiedCoreCodedException(e);
+            }
+        } catch (Exception other) {
+            throw new RuntimeException("token activation failed", other);
+        }
+    }
+
+
+    private static final String PIN_INCORRECT_FAULT_CODE = SIGNER_X + "." + X_PIN_INCORRECT;
+    private static final String TOKEN_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_TOKEN_NOT_FOUND;
+
+    public static final String ERROR_PIN_INCORRECT = "tokens.pin_incorrect";
+
+
+
+    /**
+     * This might be better as a checked exception. To document the service api properly.
+     * Now exceptions are not documented in the method signature and it is a guessing game /
+     * blindly trusting service layer to do what is correct. Maybe refactor later.
+     */
+    public static class IncorrectPinException extends BadRequestException {
+        public IncorrectPinException(Throwable t) {
+            super(t, new Error(ERROR_PIN_INCORRECT));
+        }
+    }
+    public static class TokenNotFoundException extends NotFoundException {
+        public TokenNotFoundException(Throwable t) {
+            super(t);
+        }
+    }
+
+    /**
+     * uses error code "core." + <fault code from CodedException>
+     */
+    public static class UnspecifiedCoreCodedException extends InternalServerErrorException {
+        public UnspecifiedCoreCodedException(CodedException c) {
+            super(c, new Error("core." + c.getFaultCode()));
+        }
     }
 
     /**
@@ -100,8 +155,12 @@ public class TokenService {
      * @throws Exception
      */
     @PreAuthorize("hasAuthority('DEACTIVATE_TOKEN')")
-    public void deactiveToken(String id) throws Exception {
-        SignerProxy.deactivateToken(id);
+    public void deactiveToken(String id) {
+        try {
+            SignerProxy.deactivateToken(id);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

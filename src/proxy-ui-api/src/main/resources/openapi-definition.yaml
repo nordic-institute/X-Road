@@ -4204,7 +4204,7 @@ components:
         - type
         - keys
         - status
-        - active
+        - logged_in
         - available
         - saved_to_configuration
         - read_only
@@ -4233,9 +4233,9 @@ components:
             $ref: '#/components/schemas/Key'
         status:
           $ref: '#/components/schemas/TokenStatus'
-        active:
+        logged_in:
           type: boolean
-          description: if the token is active
+          description: if the token has been logged in to
           example: true
         available:
           type: boolean

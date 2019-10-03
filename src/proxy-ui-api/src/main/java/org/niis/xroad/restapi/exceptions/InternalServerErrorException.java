@@ -27,39 +27,58 @@ package org.niis.xroad.restapi.exceptions;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-/**
- * Thrown if item was not found.
- * Results in http 404 NOT_FOUND
- */
-@ResponseStatus(value = HttpStatus.NOT_FOUND)
-public class NotFoundException extends DeviationAwareRuntimeException {
+import java.util.Collection;
 
-    public NotFoundException() {
+/**
+ * Thrown if internal server error occurs.
+ * Results in http 500 INTERNAL_SERVER_ERROR
+ */
+@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+public class InternalServerErrorException extends DeviationAwareRuntimeException {
+    public InternalServerErrorException() {
     }
 
-
-    public NotFoundException(String msg) {
+    public InternalServerErrorException(String msg) {
         super(msg);
     }
 
-    public NotFoundException(Error error) {
-        super(error);
-    }
-
-    public NotFoundException(String msg, Error error) {
+    public InternalServerErrorException(String msg, Error error) {
         super(msg, error);
     }
 
-    public NotFoundException(String msg, Throwable t) {
-        super(msg, t);
+    public InternalServerErrorException(String msg, Throwable t, Error error) {
+        super(msg, t, error);
     }
 
-    public NotFoundException(Throwable t) {
-        super(t);
+    public InternalServerErrorException(Throwable t, Error error, Collection<Warning> warnings) {
+        super(t, error, warnings);
     }
 
-    public NotFoundException(Throwable t, Error error) {
+    public InternalServerErrorException(Error error, Collection<Warning> warnings) {
+        super(error, warnings);
+    }
+
+    public InternalServerErrorException(Error error) {
+        super(error);
+    }
+
+    public InternalServerErrorException(Throwable t, Error error) {
         super(t, error);
+    }
+
+
+
+
+
+
+
+
+    /**
+     * Use deviation data from original exception
+     * @param e
+     */
+    public InternalServerErrorException(DeviationAwareRuntimeException e) {
+        this(e, e.getError(), e.getWarnings());
     }
 
 }
