@@ -64,6 +64,7 @@ Since X-Road 6.22.0 it is possible to configure Security Server to use remote da
 
 - `database_host` - URL or the database server including the port e.g. `127.0.0.1:5432`. When using remote database also set `database_admin_password`. When using local database leave it empty.
 - `database_admin_password` - Password of the `postgres` user. When using remote database, this value needs to be set. Otherwise leave it empty.
+- `mask_local_postgresql` - When using remote database, it is usually feasible to mask the local PostgreSQL database so it won't run in vein. However, in some edge cases this is not necessary and this variable can be set to false.
 
 Other properties in `vars_files/ss_database` determine the usernames and passwords that X-Road uses in connections.
 
