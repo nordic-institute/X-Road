@@ -503,7 +503,7 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: adds new client for the security server
+      summary: add new client for the security server
       operationId: addClient
       description: Adds new client to the system
       requestBody:
@@ -1488,7 +1488,7 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: adds new certificate for selected key
+      summary: add new certificate for selected key
       operationId: addCertificate
       description: Adds certificate to the system
       parameters:
@@ -1944,7 +1944,7 @@ paths:
     post:
       tags:
         - security server
-      summary: adds new access right for the selected service
+      summary: add new access right for the selected service
       operationId: addServiceAccessRight
       description: Adds access right to the service
       parameters:
@@ -2065,7 +2065,7 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: adds new access right for selected service client
+      summary: add new access right for selected service client
       operationId: addServiceClientAccessRight
       description: Adds access right to the service client.
       parameters:
@@ -2917,7 +2917,7 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: adds new key
+      summary: add new key
       operationId: addKey
       description: Adds key for selected token.
       parameters:
@@ -2970,7 +2970,7 @@ paths:
     put: # ok
       tags:
         - security server
-      summary: logins to token
+      summary: login to token
       operationId: loginToken
       description: Login to token
       parameters:

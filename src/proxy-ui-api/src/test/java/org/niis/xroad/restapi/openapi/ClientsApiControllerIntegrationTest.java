@@ -48,8 +48,8 @@ import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
-import org.niis.xroad.restapi.repository.TokenRepository;
 import org.niis.xroad.restapi.service.GlobalConfService;
+import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
@@ -118,7 +118,7 @@ public class ClientsApiControllerIntegrationTest {
     private GlobalConfService globalConfService;
 
     @MockBean
-    private TokenRepository tokenRepository;
+    private TokenService tokenService;
 
     @SpyBean
     // partial mocking, just override getValidatorCommand()
@@ -142,7 +142,7 @@ public class ClientsApiControllerIntegrationTest {
                 TestUtils.getMemberInfo(INSTANCE_EE, MEMBER_CLASS_PRO, MEMBER_CODE_M2, null))
         ));
         List<TokenInfo> mockTokens = createMockTokenInfos(null);
-        when(tokenRepository.getTokens()).thenReturn(mockTokens);
+        when(tokenService.getAllTokens()).thenReturn(mockTokens);
         when(wsdlValidator.getWsdlValidatorCommand()).thenReturn("src/test/resources/validator/mock-wsdlvalidator.sh");
     }
 
@@ -228,7 +228,7 @@ public class ClientsApiControllerIntegrationTest {
                 ClientId.create("FI", "GOV", "M1"),
                 true, true, CertificateInfo.STATUS_REGISTERED,
                 "id", CertificateTestUtils.getMockCertificateBytes(), null);
-        when(tokenRepository.getTokens()).thenReturn(createMockTokenInfos(mockCertificate));
+        when(tokenService.getAllTokens()).thenReturn(createMockTokenInfos(mockCertificate));
         certificates = clientsApiController.getClientCertificates("FI:GOV:M1");
         assertEquals(HttpStatus.OK, certificates.getStatusCode());
         assertEquals(1, certificates.getBody().size());

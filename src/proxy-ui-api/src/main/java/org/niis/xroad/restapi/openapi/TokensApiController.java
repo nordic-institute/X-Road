@@ -85,10 +85,7 @@ public class TokensApiController implements TokensApi {
         if (tokenPassword == null
                     || tokenPassword.getPassword() == null
                     || tokenPassword.getPassword().isEmpty()) {
-            throw new BadRequestException("Missing token password   ");
-
-
-
+            throw new BadRequestException("Missing token password");
         }
         char[] password = tokenPassword.getPassword().toCharArray();
         tokenService.activateToken(id, password);
