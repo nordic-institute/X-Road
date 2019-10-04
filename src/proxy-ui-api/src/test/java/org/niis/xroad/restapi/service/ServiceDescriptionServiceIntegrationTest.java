@@ -97,9 +97,7 @@ public class ServiceDescriptionServiceIntegrationTest {
         File threeServicesWsdl = getTestResouceFile("wsdl/valid.wsdl");
         FileUtils.copyFile(getRandomWsdl, testServiceWsdl);
         String url = testServiceWsdl.toURI().toURL().toString();
-        serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
-                url,
-                false);
+        serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1, url, false);
 
         // update wsdl to one with 3 services
         FileUtils.copyFile(threeServicesWsdl, testServiceWsdl);
@@ -180,7 +178,7 @@ public class ServiceDescriptionServiceIntegrationTest {
         FileUtils.copyFile(getRandomWsdl, testServiceWsdl);
         String url = testServiceWsdl.toURI().toURL().toString();
         serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
-                    url, false);
+                url, false);
         ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
         ServiceDescriptionType serviceDescriptionType = getServiceDescription(url, clientType);
 
@@ -337,8 +335,7 @@ public class ServiceDescriptionServiceIntegrationTest {
      * Assert servicedescription contains the given codes. Checks codes only, no versions
      * @param serviceDescriptionType
      */
-    private void assertServiceCodes(ServiceDescriptionType serviceDescriptionType,
-                                    String...expectedCodes) {
+    private void assertServiceCodes(ServiceDescriptionType serviceDescriptionType, String... expectedCodes) {
         List<String> serviceCodes = serviceDescriptionType.getService()
                 .stream()
                 .map(service -> service.getServiceCode())
@@ -356,6 +353,27 @@ public class ServiceDescriptionServiceIntegrationTest {
     private File getTestResouceFile(String fileName) {
         return new File(this.getClass().getClassLoader().getResource(fileName)
                 .getFile());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS" })
+    public void addWsdlServiceDescriptionAndCheckEndpoints() {
+        ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
+
+        // 2 as set in data.sql
+        assertEquals(2, clientType.getEndpoint().size());
+
+        // add 3 more services (one Endpoint is a duplicate: xroadGetRandom)
+        serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1, "file:src/test/resources/wsdl/valid.wsdl",
+                true);
+
+        clientType = clientService.getClient(CLIENT_ID_SS1);
+
+        /*
+         * two new endpoints saved: xroadSmallAttachment and xroadBigAttachment
+         * xroadGetRandom was skipped because it already exists
+         */
+        assertEquals(4, clientType.getEndpoint().size());
     }
 
 }

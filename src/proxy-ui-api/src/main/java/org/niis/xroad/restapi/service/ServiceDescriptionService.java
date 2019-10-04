@@ -57,8 +57,10 @@ import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -198,10 +200,6 @@ public class ServiceDescriptionService {
             throw new NotFoundException("Client with id " + clientId.toShortString() + " not found");
         }
 
-        // TODO: Create EndpointTypes for each Service in ServiceDescription
-
-        client.getEndpoint()
-
         WsdlProcessingResult wsdlProcessingResult = processWsdl(client, url, null);
 
         if (!ignoreWarnings && !wsdlProcessingResult.getWarnings().isEmpty()) {
@@ -213,15 +211,28 @@ public class ServiceDescriptionService {
         ServiceDescriptionType serviceDescriptionType = buildWsdlServiceDescription(client,
                 wsdlProcessingResult.getParsedServices(), url);
 
+        Map<String, EndpointType> endpointMap = new HashMap<>();
+
+        // add all new endpoint into a hashmap with a combination key
+        serviceDescriptionType.getService().forEach(serviceType -> {
+            EndpointType endpointType = new EndpointType(serviceType.getServiceCode(), EndpointType.ANY_METHOD,
+                    EndpointType.ANY_PATH, true);
+            endpointMap.put(endpointType.getServiceCode()
+                    + endpointType.getMethod()
+                    + endpointType.getPath()
+                    + endpointType.isGenerated(), endpointType);
+        });
+
+        // remove all existing endpoints by equal combination key
+        client.getEndpoint().forEach(endpointType -> endpointMap.remove(endpointType.getServiceCode()
+                + endpointType.getMethod()
+                + endpointType.getPath()
+                + endpointType.isGenerated()));
+
+        client.getEndpoint().addAll(endpointMap.values());
         client.getServiceDescription().add(serviceDescriptionType);
         clientRepository.saveOrUpdateAndFlush(client);
         return serviceDescriptionType;
-    }
-
-    private EndpointType createEndpoint(List<EndpointType> endpoints, String serviceCode, String method, String path,
-            boolean isGenerated) {
-        EndpointType endpointType = new EndpointType(serviceCode, method, path, true);
-        return endpointType;
     }
 
     /**
