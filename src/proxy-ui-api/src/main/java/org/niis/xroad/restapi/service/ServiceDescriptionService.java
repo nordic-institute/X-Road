@@ -211,10 +211,21 @@ public class ServiceDescriptionService {
         ServiceDescriptionType serviceDescriptionType = buildWsdlServiceDescription(client,
                 wsdlProcessingResult.getParsedServices(), url);
 
+        // get the new endpoints to add - skipping existing ones
+        Collection<EndpointType> endpointsToAdd = resolveNewEndpoints(client, serviceDescriptionType);
+
+        client.getEndpoint().addAll(endpointsToAdd);
+        client.getServiceDescription().add(serviceDescriptionType);
+        clientRepository.saveOrUpdateAndFlush(client);
+        return serviceDescriptionType;
+    }
+
+    private Collection<EndpointType> resolveNewEndpoints(ClientType client,
+            ServiceDescriptionType newServiceDescription) {
         Map<String, EndpointType> endpointMap = new HashMap<>();
 
         // add all new endpoint into a hashmap with a combination key
-        serviceDescriptionType.getService().forEach(serviceType -> {
+        newServiceDescription.getService().forEach(serviceType -> {
             EndpointType endpointType = new EndpointType(serviceType.getServiceCode(), EndpointType.ANY_METHOD,
                     EndpointType.ANY_PATH, true);
             endpointMap.put(endpointType.getServiceCode()
@@ -229,10 +240,7 @@ public class ServiceDescriptionService {
                 + endpointType.getPath()
                 + endpointType.isGenerated()));
 
-        client.getEndpoint().addAll(endpointMap.values());
-        client.getServiceDescription().add(serviceDescriptionType);
-        clientRepository.saveOrUpdateAndFlush(client);
-        return serviceDescriptionType;
+        return endpointMap.values();
     }
 
     /**
@@ -326,10 +334,20 @@ public class ServiceDescriptionService {
         serviceDescriptionType.setRefreshedDate(new Date());
         serviceDescriptionType.setUrl(url);
 
+        Set<String> oldServiceCodes = serviceDescriptionType.getService()
+                .stream()
+                .map(ServiceType::getServiceCode)
+                .collect(Collectors.toSet());
+        // remove all related endpoints
+        client.getEndpoint().removeIf(endpointType -> oldServiceCodes.contains(endpointType.getServiceCode()));
         // replace all old services with the new ones
         serviceDescriptionType.getService().clear();
         serviceDescriptionType.getService().addAll(newServices);
-        serviceDescriptionRepository.saveOrUpdate(serviceDescriptionType);
+
+        // update endpoints
+        Collection<EndpointType> endpointsToAdd = resolveNewEndpoints(client, serviceDescriptionType);
+        client.getEndpoint().addAll(endpointsToAdd);
+        clientRepository.saveOrUpdate(client);
 
         return serviceDescriptionType;
     }
