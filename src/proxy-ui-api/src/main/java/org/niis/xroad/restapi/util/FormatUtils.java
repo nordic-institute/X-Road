@@ -35,6 +35,7 @@ import org.niis.xroad.restapi.converter.Converters;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
 
+import java.net.IDN;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -47,6 +48,11 @@ import java.util.Date;
  * Format utils
  */
 public final class FormatUtils {
+    public static final String HTTPS_PROTOCOL = "https://";
+    public static final String HTTP_PROTOCOL = "http://";
+    public static final String URL_HOST_REGEX = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*" +
+            "([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$";
+
     private FormatUtils() {
         // noop
     }
@@ -66,14 +72,17 @@ public final class FormatUtils {
      * @return true or false depending on the validity of the provided url
      */
     public static boolean isValidUrl(String url) {
+        boolean hasValidProtocol;
+        boolean hasValidHost;
         try {
+            hasValidProtocol = url.startsWith(HTTPS_PROTOCOL) || url.startsWith(HTTP_PROTOCOL);
             URL wsdlUrl = new URL(url);
-            URI uri = wsdlUrl.toURI();
-            uri.parseServerAuthority();
-        } catch (MalformedURLException | URISyntaxException e) {
+            String asciiHost = IDN.toASCII(wsdlUrl.getHost());
+            hasValidHost = asciiHost.matches(URL_HOST_REGEX);
+        } catch (MalformedURLException | IllegalArgumentException e) {
             return false;
         }
-        return true;
+        return hasValidProtocol && hasValidHost;
     }
 
     /**
