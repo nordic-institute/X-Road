@@ -37,8 +37,6 @@ import org.niis.xroad.restapi.wsdl.WsdlParser;
 
 import java.net.IDN;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -50,8 +48,8 @@ import java.util.Date;
 public final class FormatUtils {
     public static final String HTTPS_PROTOCOL = "https://";
     public static final String HTTP_PROTOCOL = "http://";
-    public static final String URL_HOST_REGEX = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*" +
-            "([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$";
+    public static final String URL_HOST_REGEX = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*"
+            + "([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$";
 
     private FormatUtils() {
         // noop

@@ -25,11 +25,7 @@
 package org.niis.xroad.restapi.util;
 
 import org.junit.Test;
-import org.niis.xroad.restapi.wsdl.WsdlParser;
 
-import java.util.Collection;
-
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
