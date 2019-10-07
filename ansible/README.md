@@ -58,6 +58,16 @@ The default repository configurations are:
 
 The used repository can be configured in `vars_files/remote_repo.yml`. The file contains repository and key variables for RHEL and Ubuntu 18.
 
+#### Remote database
+
+Since X-Road 6.22.0 it is possible to configure Security Server to use remote database. To do this with Ansible one needs to edit `vars_files/ss_database` property values.
+
+- `database_host` - URL or the database server including the port e.g. `127.0.0.1:5432`. When using remote database also set `database_admin_password`. When using local database leave it empty.
+- `database_admin_password` - Password of the `postgres` user. When using remote database, this value needs to be set. Otherwise leave it empty.
+- `mask_local_postgresql` - When using remote database, it is usually feasible to mask the local PostgreSQL database so it won't run in vein. However, in some edge cases this is not necessary and this variable can be set to false.
+
+Other properties in `vars_files/ss_database` determine the usernames and passwords that X-Road uses in connections.
+
 #### Additional variables
 
 Parameters such as the admin username and password or the CA server's distinguished name values
