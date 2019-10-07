@@ -90,20 +90,19 @@ public class TokenService {
      * Activate a token
      * @param id id of token
      * @param password password for token
-     * @throws Exception
+     * @throws TokenNotFoundException if token was not found
+     * @throws PinIncorrectException if token login failed due to wrong ping
+     * @throws UnspecifiedCoreCodedException if login failed due to some other core
+     * CodedException (for example pin being locked). Error code is "core." + original error,
+     * for example core.Signer.LoginFailed
      */
     @PreAuthorize("hasAuthority('ACTIVATE_TOKEN')")
-    public void activateToken(String id, char[] password) {
+    public void activateToken(String id, char[] password) throws TokenNotFoundException,
+            PinIncorrectException, UnspecifiedCoreCodedException {
         try {
             SignerProxy.activateToken(id, password);
         } catch (CodedException e) {
-            // find out detailed info from token status, this may tell us why login failed
-            TokenInfo tokenInfo = null;
-            try {
-                tokenInfo = getToken(id);
-            } catch (Exception anotherExceptionIsIgnored) {
-            }
-            throw mapToDeviationAwareRuntimeException(e, tokenInfo);
+            throw mapToDeviationAwareRuntimeException(e);
         } catch (Exception other) {
             throw new RuntimeException("token activation failed", other);
         }
@@ -112,10 +111,13 @@ public class TokenService {
     /**
      * Deactivate a token
      * @param id id of token
-     * @throws Exception
+     * @throws TokenNotFoundException if token was not found
+     * @throws UnspecifiedCoreCodedException if login failed due to some other core
+     * CodedException (for example pin being locked). Error code is "core." + original error,
+     * for example core.Signer.LoginFailed
      */
     @PreAuthorize("hasAuthority('DEACTIVATE_TOKEN')")
-    public void deactiveToken(String id) {
+    public void deactiveToken(String id) throws TokenNotFoundException, UnspecifiedCoreCodedException {
         try {
             SignerProxy.deactivateToken(id);
         } catch (CodedException e) {
@@ -128,10 +130,13 @@ public class TokenService {
     /**
      * return one token
      * @param id
-     * @return
+     * @throws TokenNotFoundException if token was not found
+     * @throws UnspecifiedCoreCodedException if login failed due to some other core
+     * CodedException (for example pin being locked). Error code is "core." + original error,
+     * for example core.Signer.LoginFailed
      */
     @PreAuthorize("hasAnyAuthority('ACTIVATE_TOKEN','DEACTIVATE_TOKEN')")
-    public TokenInfo getToken(String id) {
+    public TokenInfo getToken(String id) throws TokenNotFoundException, UnspecifiedCoreCodedException {
         try {
             return SignerProxy.getToken(id);
         } catch (CodedException e) {
@@ -141,54 +146,52 @@ public class TokenService {
         }
     }
 
-    private DeviationAwareRuntimeException mapToDeviationAwareRuntimeException(CodedException e) {
-       return mapToDeviationAwareRuntimeException(e, null);
-    }
-
     /**
-     * @param tokenInfo more details about token, may tell what exactly went wrong in e.g. login
-     * @return
+     * maps CodedException from into a correct DeviationAwareRuntimeException.
+     * @return DeviationAwareRuntimeException:
+     * - TokenNotFoundException if token was not found
+     * - PinIncorrectException if token login failed due to wrong ping
+     * - UnspecifiedCoreCodedException if login failed due to some other core
+     * CodedException (for example pin being locked). Error code is "core." + original error,
+     * for example core.Signer.LoginFailed
      */
-    private DeviationAwareRuntimeException mapToDeviationAwareRuntimeException(CodedException e,
-            TokenInfo tokenInfo) {
+    private DeviationAwareRuntimeException mapToDeviationAwareRuntimeException(CodedException e)
+            throws TokenNotFoundException, PinIncorrectException,
+            UnspecifiedCoreCodedException {
         log.debug("codedException faultCode=" + e.getFaultCode());
 
-        DeviationAwareRuntimeException exception = null;
+        // by default UnspecifiedCoreCodedException. Override, if we can detect something more
+        // specific
+        DeviationAwareRuntimeException exception = new UnspecifiedCoreCodedException(e);
         if (PIN_INCORRECT_FAULT_CODE.equals(e.getFaultCode())) {
-            exception = new LoginFailedException(e, ERROR_PIN_INCORRECT);
+            exception = new PinIncorrectException(e);
         } else if (LOGIN_FAILED_FAULT_CODE.equals(e.getFaultCode())) {
-            if (tokenInfo != null) {
-                switch (tokenInfo.getStatus()) {
-                    case USER_PIN_INCORRECT:
-                        exception = new LoginFailedException(e, ERROR_PIN_INCORRECT);
-                        break;
-                    default:
-                        exception = new LoginFailedException(e, ERROR_LOGIN_FAILED_PREFIX
-                                + tokenInfo.getStatus().toString().toLowerCase());
-                }
+            if (CKR_PIN_INCORRECT_MESSAGE.equals(e.getFaultString())) {
+                // only way to detect HSM pin incorrect is by matching to codedException
+                // fault string.
+                exception = new PinIncorrectException(e);
             }
         } else if (TOKEN_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode())) {
             exception = new TokenNotFoundException(e);
-        } else {
-            exception = new UnspecifiedCoreCodedException(e);
         }
         return exception;
     }
 
+    // detect a couple of CodedException error codes from core
     private static final String PIN_INCORRECT_FAULT_CODE = SIGNER_X + "." + X_PIN_INCORRECT;
     private static final String TOKEN_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_TOKEN_NOT_FOUND;
     private static final String LOGIN_FAILED_FAULT_CODE = SIGNER_X + "." + X_LOGIN_FAILED;
+    private static final String CKR_PIN_INCORRECT_MESSAGE = "Login failed: CKR_PIN_INCORRECT";
 
     public static final String ERROR_PIN_INCORRECT = "tokens.login_failed_pin_incorrect";
-    public static final String ERROR_LOGIN_FAILED_PREFIX = "tokens.login_failed_";
 
     /**
      * These might be better as checked exceptions. To document the service api properly.
      * Now exceptions are not documented in the method signature and it is a guessing game /
      * blindly trusting service layer to do what is correct. Maybe refactor later.
      */
-    public static class LoginFailedException extends BadRequestException {
-        public LoginFailedException(Throwable t, String errorCode) {
+    public static class PinIncorrectException extends BadRequestException {
+        public PinIncorrectException(Throwable t) {
             super(t, new Error(ERROR_PIN_INCORRECT));
         }
     }
@@ -199,11 +202,12 @@ public class TokenService {
     }
 
     /**
-     * uses error code "core." + <fault code from CodedException>
+     * uses error code "core." + <fault code from CodedException>.
+     * Error metadata = codedException.faultString
      */
     public static class UnspecifiedCoreCodedException extends InternalServerErrorException {
         public UnspecifiedCoreCodedException(CodedException c) {
-            super(c, new Error("core." + c.getFaultCode()));
+            super(c, new Error("core." + c.getFaultCode(), c.getFaultString()));
             log.info("codedexception: " + c);
         }
     }
