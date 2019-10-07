@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 
@@ -51,6 +52,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -72,7 +74,12 @@ public class ServiceDescriptionServiceIntegrationTest {
     public static final String GET_RANDOM_V1_SERVICECODE = "xroadGetRandom.v1";
     public static final String BIG_ATTACHMENT_SERVICECODE = "xroadBigAttachment";
     public static final String SMALL_ATTACHMENT_SERVICECODE = "xroadSmallAttachment";
-    public static final String GET_RANDOM_SERVICECODE = "xroadGetRandom";
+    public static final String XROAD_GET_RANDOM_SERVICECODE = "xroadGetRandom";
+    public static final String GET_RANDOM_SERVICECODE = "getRandom";
+    public static final String CALCULATE_PRIME = "calculatePrime";
+    public static final String HELLO_SERVICE = "helloService";
+    public static final String SOAPSERVICEDESCRIPTION_URL = "https://soapservice.com/v1/Endpoint?wsdl";
+
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -120,7 +127,7 @@ public class ServiceDescriptionServiceIntegrationTest {
                 true);
         serviceDescriptionType = getServiceDescription(url, clientType);
         assertServiceCodes(serviceDescriptionType,
-                BIG_ATTACHMENT_SERVICECODE, SMALL_ATTACHMENT_SERVICECODE, GET_RANDOM_SERVICECODE);
+                BIG_ATTACHMENT_SERVICECODE, SMALL_ATTACHMENT_SERVICECODE, XROAD_GET_RANDOM_SERVICECODE);
     }
 
     @Test
@@ -157,7 +164,7 @@ public class ServiceDescriptionServiceIntegrationTest {
                 true);
         serviceDescriptionType = getServiceDescription(url, clientType);
         assertServiceCodes(serviceDescriptionType,
-                GET_RANDOM_SERVICECODE);
+                XROAD_GET_RANDOM_SERVICECODE);
     }
 
     @Test
@@ -243,7 +250,7 @@ public class ServiceDescriptionServiceIntegrationTest {
                 url, true);
         ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
         ServiceDescriptionType serviceDescriptionType = getServiceDescription(url, clientType);
-        assertServiceCodes(serviceDescriptionType, GET_RANDOM_SERVICECODE);
+        assertServiceCodes(serviceDescriptionType, XROAD_GET_RANDOM_SERVICECODE);
     }
 
     /**
@@ -362,18 +369,52 @@ public class ServiceDescriptionServiceIntegrationTest {
 
         // 2 as set in data.sql
         assertEquals(2, clientType.getEndpoint().size());
+        assertTrue(clientType.getEndpoint()
+                .stream()
+                .map(EndpointType::getServiceCode)
+                .collect(Collectors.toList())
+                .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME)));
 
-        // add 3 more services (one Endpoint is a duplicate: xroadGetRandom)
+        // add 3 more services
         serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1, "file:src/test/resources/wsdl/valid.wsdl",
                 true);
 
         clientType = clientService.getClient(CLIENT_ID_SS1);
 
-        /*
-         * two new endpoints saved: xroadSmallAttachment and xroadBigAttachment
-         * xroadGetRandom was skipped because it already exists
-         */
-        assertEquals(4, clientType.getEndpoint().size());
+        // 3 new endpoints saved: xroadSmallAttachment and xroadBigAttachment and xroadGetRandom
+        assertEquals(5, clientType.getEndpoint().size());
+        assertTrue(clientType.getEndpoint()
+                .stream()
+                .map(EndpointType::getServiceCode)
+                .collect(Collectors.toList())
+                .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME, XROAD_GET_RANDOM_SERVICECODE,
+                        BIG_ATTACHMENT_SERVICECODE, SMALL_ATTACHMENT_SERVICECODE)));
     }
 
+    @Test
+    @WithMockUser(authorities = { "EDIT_WSDL", "VIEW_CLIENT_DETAILS" })
+    public void updateWsdlServiceDescriptionAndCheckEndpoints() {
+        ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
+
+        assertEquals(2, clientType.getEndpoint().size());
+        assertTrue(clientType.getEndpoint()
+                .stream()
+                .map(EndpointType::getServiceCode)
+                .collect(Collectors.toList())
+                .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME)));
+
+        ServiceDescriptionType serviceDescription = getServiceDescription(SOAPSERVICEDESCRIPTION_URL, clientType);
+
+        serviceDescriptionService.updateWsdlUrl(serviceDescription.getId(),
+                "file:src/test/resources/wsdl/valid-additional-services.wsdl", true);
+
+        clientType = clientService.getClient(CLIENT_ID_SS1);
+
+        assertEquals(2, clientType.getEndpoint().size());
+        assertTrue(clientType.getEndpoint()
+                .stream()
+                .map(EndpointType::getServiceCode)
+                .collect(Collectors.toList())
+                .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, HELLO_SERVICE)));
+    }
 }
