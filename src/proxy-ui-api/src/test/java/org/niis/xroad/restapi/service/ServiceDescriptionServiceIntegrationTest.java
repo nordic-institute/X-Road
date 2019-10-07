@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -52,8 +53,10 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 /**
  * test ServiceDescription service.
@@ -87,6 +90,14 @@ public class ServiceDescriptionServiceIntegrationTest {
 
     @MockBean
     private WsdlValidator wsdlValidator;
+
+    @MockBean
+    private WsdlUrlValidator wsdlUrlValidator;
+
+    @Before
+    public void setup() {
+        when(wsdlUrlValidator.isValidWsdlUrl(any())).thenReturn(true);
+    }
 
     @Test
     @WithMockUser(authorities = { "ADD_WSDL", "REFRESH_WSDL",
