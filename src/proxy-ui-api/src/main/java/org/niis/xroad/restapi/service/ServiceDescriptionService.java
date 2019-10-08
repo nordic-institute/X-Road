@@ -178,8 +178,27 @@ public class ServiceDescriptionService {
             throw new NotFoundException("Service description with id " + id + " not found");
         }
         ClientType client = serviceDescriptionType.getClient();
+        cleanAccessRights(client, serviceDescriptionType);
+        cleanEndpoints(client, serviceDescriptionType);
         client.getServiceDescription().remove(serviceDescriptionType);
         clientRepository.saveOrUpdate(client);
+    }
+
+    private void cleanEndpoints(ClientType client, ServiceDescriptionType serviceDescriptionType) {
+        Set<String> servicesToRemove = serviceDescriptionType.getService()
+                .stream()
+                .map(ServiceType::getServiceCode)
+                .collect(Collectors.toSet());
+        client.getEndpoint().removeIf(endpointType -> servicesToRemove.contains(endpointType.getServiceCode()));
+    }
+
+    private void cleanAccessRights(ClientType client, ServiceDescriptionType serviceDescriptionType) {
+        Set<String> aclServiceCodesToRemove = serviceDescriptionType.getService()
+                .stream()
+                .map(ServiceType::getServiceCode)
+                .collect(Collectors.toSet());
+        client.getAcl().removeIf(accessRightType -> aclServiceCodesToRemove
+                .contains(accessRightType.getEndpoint().getServiceCode()));
     }
 
     /**
@@ -192,9 +211,7 @@ public class ServiceDescriptionService {
      * @throws ConflictException          URL already exists
      */
     @PreAuthorize("hasAuthority('ADD_WSDL')")
-    public ServiceDescriptionType addWsdlServiceDescription(ClientId clientId,
-            String url,
-            boolean ignoreWarnings) {
+    public ServiceDescriptionType addWsdlServiceDescription(ClientId clientId, String url, boolean ignoreWarnings) {
         ClientType client = clientService.getClient(clientId);
         if (client == null) {
             throw new NotFoundException("Client with id " + clientId.toShortString() + " not found");
@@ -224,21 +241,21 @@ public class ServiceDescriptionService {
             ServiceDescriptionType newServiceDescription) {
         Map<String, EndpointType> endpointMap = new HashMap<>();
 
-        // add all new endpoint into a hashmap with a combination key
+        // add all new endpoints into a hashmap with a combination key
         newServiceDescription.getService().forEach(serviceType -> {
             EndpointType endpointType = new EndpointType(serviceType.getServiceCode(), EndpointType.ANY_METHOD,
                     EndpointType.ANY_PATH, true);
-            endpointMap.put(endpointType.getServiceCode()
-                    + endpointType.getMethod()
-                    + endpointType.getPath()
-                    + endpointType.isGenerated(), endpointType);
+            String endpointKey = endpointType.getServiceCode() + endpointType.getMethod() + endpointType.getPath()
+                    + endpointType.isGenerated();
+            endpointMap.put(endpointKey, endpointType);
         });
 
         // remove all existing endpoints by equal combination key
-        client.getEndpoint().forEach(endpointType -> endpointMap.remove(endpointType.getServiceCode()
-                + endpointType.getMethod()
-                + endpointType.getPath()
-                + endpointType.isGenerated()));
+        client.getEndpoint().forEach(endpointType -> {
+            String endpointKey = endpointType.getServiceCode() + endpointType.getMethod() + endpointType.getPath()
+                    + endpointType.isGenerated();
+            endpointMap.remove(endpointKey);
+        });
 
         return endpointMap.values();
     }
@@ -334,19 +351,34 @@ public class ServiceDescriptionService {
         serviceDescriptionType.setRefreshedDate(new Date());
         serviceDescriptionType.setUrl(url);
 
-        Set<String> oldServiceCodes = serviceDescriptionType.getService()
+        List<String> newServiceCodes = newServices
                 .stream()
                 .map(ServiceType::getServiceCode)
-                .collect(Collectors.toSet());
-        // remove all related endpoints
-        client.getEndpoint().removeIf(endpointType -> oldServiceCodes.contains(endpointType.getServiceCode()));
+                .collect(Collectors.toList());
+
+        // service codes that will be REMOVED
+        List<String> removedServiceCodes = serviceChanges.getRemovedServices()
+                .stream()
+                .map(ServiceType::getServiceCode)
+                .collect(Collectors.toList());
+
         // replace all old services with the new ones
         serviceDescriptionType.getService().clear();
         serviceDescriptionType.getService().addAll(newServices);
 
-        // update endpoints
+        // clear AccessRights that belong to non-existing services
+        client.getAcl().removeIf(accessRightType -> {
+            String serviceCode = accessRightType.getEndpoint().getServiceCode();
+            return removedServiceCodes.contains(serviceCode) && !newServiceCodes.contains(serviceCode);
+        });
+
+        // remove related endpoints
+        client.getEndpoint().removeIf(endpointType -> removedServiceCodes.contains(endpointType.getServiceCode()));
+
+        // add new endpoints
         Collection<EndpointType> endpointsToAdd = resolveNewEndpoints(client, serviceDescriptionType);
         client.getEndpoint().addAll(endpointsToAdd);
+
         clientRepository.saveOrUpdate(client);
 
         return serviceDescriptionType;
@@ -359,12 +391,12 @@ public class ServiceDescriptionService {
         List<Warning> warnings = new ArrayList<>();
         if (!CollectionUtils.isEmpty(changes.getAddedServices())) {
             Warning addedServicesWarning = new Warning(WARNING_ADDING_SERVICES,
-                    changes.getAddedServices());
+                    changes.getAddedFullServiceCodes());
             warnings.add(addedServicesWarning);
         }
         if (!CollectionUtils.isEmpty(changes.getRemovedServices())) {
             Warning deletedServicesWarning = new Warning(WARNING_DELETING_SERVICES,
-                    changes.getRemovedServices());
+                    changes.getRemovedFullServiceCodes());
             warnings.add(deletedServicesWarning);
         }
         return warnings;

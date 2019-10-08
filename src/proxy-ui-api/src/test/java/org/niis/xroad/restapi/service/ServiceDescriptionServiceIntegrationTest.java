@@ -47,6 +47,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -78,6 +79,7 @@ public class ServiceDescriptionServiceIntegrationTest {
     public static final String GET_RANDOM_SERVICECODE = "getRandom";
     public static final String CALCULATE_PRIME = "calculatePrime";
     public static final String HELLO_SERVICE = "helloService";
+    public static final String BMI_SERVICE = "bodyMassIndex";
     public static final String SOAPSERVICEDESCRIPTION_URL = "https://soapservice.com/v1/Endpoint?wsdl";
 
     @Rule
@@ -336,6 +338,7 @@ public class ServiceDescriptionServiceIntegrationTest {
         assertServiceCodes(serviceDescriptionType,
                 SMALL_ATTACHMENT_SERVICECODE);
 
+
     }
 
     /**
@@ -416,5 +419,62 @@ public class ServiceDescriptionServiceIntegrationTest {
                 .map(EndpointType::getServiceCode)
                 .collect(Collectors.toList())
                 .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, HELLO_SERVICE)));
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DELETE_WSDL", "VIEW_CLIENT_DETAILS" })
+    public void removeWsdlServiceDescriptionAndCheckEndpoints() {
+        ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
+
+        assertEquals(2, clientType.getEndpoint().size());
+        assertTrue(clientType.getEndpoint()
+                .stream()
+                .map(EndpointType::getServiceCode)
+                .collect(Collectors.toList())
+                .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME)));
+
+        ServiceDescriptionType serviceDescription = getServiceDescription(SOAPSERVICEDESCRIPTION_URL, clientType);
+
+        serviceDescriptionService.deleteServiceDescription(serviceDescription.getId());
+
+        clientType = clientService.getClient(CLIENT_ID_SS1);
+
+        assertEquals(0, clientType.getEndpoint().size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "ADD_WSDL", "REFRESH_WSDL", "VIEW_CLIENT_DETAILS" })
+    public void refreshWsdlServiceDescriptionAndCheckEndpoints() throws IOException {
+        ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
+
+        assertEquals(2, clientType.getEndpoint().size());
+        assertTrue(clientType.getEndpoint()
+                .stream()
+                .map(EndpointType::getServiceCode)
+                .collect(Collectors.toList())
+                .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME)));
+
+        File testServiceWsdl = tempFolder.newFile("test.wsdl");
+        File getRandomWsdl = getTestResouceFile("wsdl/valid.wsdl");
+        File threeServicesWsdl = getTestResouceFile("wsdl/testservice.wsdl");
+        FileUtils.copyFile(getRandomWsdl, testServiceWsdl);
+        String url = testServiceWsdl.toURI().toURL().toString();
+        serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1, url, true);
+
+        FileUtils.copyFile(threeServicesWsdl, testServiceWsdl);
+        clientType = clientService.getClient(CLIENT_ID_SS1);
+        ServiceDescriptionType serviceDescription = getServiceDescription(url, clientType);
+
+        serviceDescriptionService.refreshServiceDescription(serviceDescription.getId(), true);
+
+        clientType = clientService.getClient(CLIENT_ID_SS1);
+
+        assertEquals(4, clientType.getEndpoint().size());
+        assertTrue(clientType.getEndpoint()
+                .stream()
+                .map(EndpointType::getServiceCode)
+                .collect(Collectors.toList())
+                .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME, XROAD_GET_RANDOM_SERVICECODE,
+                        BMI_SERVICE)));
     }
 }
