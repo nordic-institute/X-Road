@@ -6,6 +6,7 @@ import { RootState } from './types';
 import { mockDataModule } from './modules/mockData';
 import { clientsModule } from './modules/clients';
 import { clientModule } from './modules/client';
+import { keysModule } from './modules/keys';
 import { user } from './modules/user';
 
 Vue.use(Vuex);
@@ -23,6 +24,7 @@ const store: StoreOptions<RootState> = {
     mockDataModule,
     clientsModule,
     clientModule,
+    keysModule,
   },
   // @ts-ignore
   plugins: [vuexLocal.plugin],

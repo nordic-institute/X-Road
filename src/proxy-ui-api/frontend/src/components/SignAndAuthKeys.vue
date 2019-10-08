@@ -53,81 +53,22 @@
             </div>
 
             <!-- AUTH table -->
-            <table class="xrd-table" v-if="getAuthKeys(token.keys).length > 0">
-              <thead>
-                <tr>
-                  <th>{{$t('keys.authKeyCert')}}</th>
-                  <th>{{$t('keys.id')}}</th>
-                  <th>{{$t('keys.ocsp')}}</th>
-                  <th>{{$t('keys.expires')}}</th>
-                  <th>{{$t('keys.status')}}</th>
-                </tr>
-              </thead>
-
-              <tbody v-for="key in getAuthKeys(token.keys)" v-bind:key="key.id">
-                <div class="name-wrap-top">
-                  <v-icon class="icon">mdi-key-outline</v-icon>
-                  <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
-                </div>
-                <tr v-for="cert in key.certificates" v-bind:key="cert.id">
-                  <td>
-                    <div class="name-wrap">
-                      <v-icon class="icon">mdi-file-document-outline</v-icon>
-                      <div
-                        class="clickable-link"
-                        @click="certificateClick(cert)"
-                      >{{cert.issuer_common_name}}</div>
-                    </div>
-                  </td>
-                  <td>{{cert.client_id}}</td>
-                  <td>{{cert.ocsp_status}}</td>
-                  <td>{{cert.not_after | formatDate}}</td>
-                  <td class="status-cell">
-                    <certificate-status :certificate="cert" />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <keys-table
+              v-if="getAuthKeys(token.keys).length > 0"
+              :keys="getAuthKeys(token.keys)"
+              title="keys.authKeyCert"
+              @keyClick="keyClick"
+              @certificateClick="certificateClick"
+            />
 
             <!-- SIGN table -->
-            <template v-if="getSignKeys(token.keys).length > 0">
-              <table class="xrd-table" v-for="key in getSignKeys(token.keys)" v-bind:key="key.id">
-                <thead>
-                  <tr>
-                    <th>{{$t('keys.signKeyCert')}}</th>
-                    <th>{{$t('keys.id')}}</th>
-                    <th>{{$t('keys.ocsp')}}</th>
-                    <th>{{$t('keys.expires')}}</th>
-                    <th>{{$t('keys.status')}}</th>
-                  </tr>
-                </thead>
-
-                <div class="name-wrap-top">
-                  <v-icon class="icon">mdi-key-outline</v-icon>
-                  <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
-                </div>
-
-                <tbody>
-                  <tr v-for="cert in key.certificates" v-bind:key="cert.id">
-                    <td>
-                      <div class="name-wrap">
-                        <v-icon class="icon">mdi-file-document-outline</v-icon>
-                        <div
-                          class="clickable-link"
-                          @click="certificateClick(cert)"
-                        >{{cert.issuer_common_name}}</div>
-                      </div>
-                    </td>
-                    <td>{{cert.client_id}}</td>
-                    <td>{{cert.ocsp_status}}</td>
-                    <td>{{cert.not_after | formatDate}}</td>
-                    <td class="status-cell">
-                      <certificate-status :certificate="cert" />
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </template>
+            <keys-table
+              v-if="getSignKeys(token.keys).length > 0"
+              :keys="getSignKeys(token.keys)"
+              title="keys.signKeyCert"
+              @keyClick="keyClick"
+              @certificateClick="certificateClick"
+            />
           </div>
         </template>
       </expandable>
@@ -158,8 +99,31 @@ import LargeButton from '@/components/LargeButton.vue';
 import CertificateStatus from '@/components/CertificateStatus.vue';
 import TokenLoginDialog from '@/components/TokenLoginDialog.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import KeysTable from '@/components/KeysTable.vue';
+import { mapGetters } from 'vuex';
 
 import _ from 'lodash';
+
+interface Token {
+  active: boolean;
+  available: boolean;
+  id: string;
+  keys: any[];
+  name: string;
+  read_only: boolean;
+  saved_to_configuration: boolean;
+  status: string;
+  token_infos: any[];
+  type: string;
+  loggedIn?: boolean; // keeps track of the Token logged in status
+}
+
+interface ISelectedObject {
+  token: Token;
+  index: number;
+}
+
+type SelectedObject = undefined | ISelectedObject;
 
 export default Vue.extend({
   components: {
@@ -170,6 +134,7 @@ export default Vue.extend({
     CertificateStatus,
     TokenLoginDialog,
     ConfirmDialog,
+    KeysTable,
   },
   data() {
     return {
@@ -183,7 +148,7 @@ export default Vue.extend({
       tokens: [],
       addWsdlBusy: false,
       refreshWsdlBusy: false,
-      selected: undefined as any,
+      selected: undefined as SelectedObject,
     };
   },
   computed: {
@@ -221,7 +186,10 @@ export default Vue.extend({
       arr.forEach((token: any) => {
         token.keys.forEach((key: any) => {
           const certs = key.certificates.filter((cert: any) => {
-            return cert.issuer_common_name.toLowerCase().includes(mysearch);
+            if (cert.owner_id) {
+              return cert.owner_id.toLowerCase().includes(mysearch);
+            }
+            return false;
           });
           key.certificates = certs;
         });
@@ -233,7 +201,10 @@ export default Vue.extend({
             return true;
           }
 
-          return key.name.toLowerCase().includes(mysearch);
+          if (key.name) {
+            return key.name.toLowerCase().includes(mysearch);
+          }
+          return false;
         });
         token.keys = keys;
       });
@@ -277,6 +248,9 @@ export default Vue.extend({
     },
 
     doLogin(): void {
+      if (!this.selected) {
+        return;
+      }
       const token = this.selected.token;
       const index = this.selected.index;
       token.loggedIn = true;
@@ -290,9 +264,12 @@ export default Vue.extend({
     },
 
     acceptLogout(): void {
+      if (!this.selected) {
+        return;
+      }
       const token = this.selected.token;
       const index = this.selected.index;
-      token.open = false;
+      token.loggedIn = false;
       Vue.set(this.tokens, index, token);
       this.logoutDialog = false;
     },
@@ -300,7 +277,7 @@ export default Vue.extend({
     getAuthKeys(keys: any): any {
       // Filter out service deascriptions that don't include search term
       const filtered = keys.filter((key: any) => {
-        return key.type === 'AUTH';
+        return key.usage === 'AUTHENTICATION';
       });
 
       return filtered;
@@ -309,32 +286,20 @@ export default Vue.extend({
     getSignKeys(keys: any): any {
       // Filter out service deascriptions that don't include search term
       const filtered = keys.filter((key: any) => {
-        return key.type === 'SIGN';
+        return key.usage === 'SIGNING';
       });
 
       return filtered;
     },
 
-    descClose(descId: string) {
-      const index = this.expanded.findIndex((element: any) => {
-        return element === descId;
-      });
-
-      if (index >= 0) {
-        this.expanded.splice(index, 1);
-      }
+    descClose(tokenId: string) {
+      this.$store.dispatch('hideToken', tokenId);
     },
-    descOpen(descId: string) {
-      const index = this.expanded.findIndex((element: any) => {
-        return element === descId;
-      });
-
-      if (index === -1) {
-        this.expanded.push(descId);
-      }
+    descOpen(tokenId: string) {
+      this.$store.dispatch('expandToken', tokenId);
     },
-    isExpanded(descId: string) {
-      return this.expanded.includes(descId);
+    isExpanded(tokenId: string) {
+      return this.$store.getters.tokenExpanded(tokenId);
     },
 
     fetchData(): void {
@@ -360,11 +325,7 @@ export default Vue.extend({
 
 .wrapper {
   margin-top: 20px;
-}
-
-.icon {
-  margin-left: 18px;
-  margin-right: 20px;
+  width: 100%;
 }
 
 .search-row {
@@ -390,18 +351,6 @@ export default Vue.extend({
   margin-bottom: 10px;
 }
 
-.name-wrap {
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-}
-
-.name-wrap-top {
-  @extend .name-wrap;
-  margin-top: 18px;
-  margin-bottom: 5px;
-}
-
 .button-wrap {
   margin-top: 10px;
   width: 100%;
@@ -411,10 +360,6 @@ export default Vue.extend({
 
 .button-spacing {
   margin-right: 20px;
-}
-
-.status-cell {
-  width: 110px;
 }
 </style>
 

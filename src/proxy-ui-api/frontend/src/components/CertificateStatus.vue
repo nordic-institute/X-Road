@@ -21,12 +21,24 @@ export default Vue.extend({
   computed: {
     status() {
       switch (this.certificate.status) {
-        case 'IN_USE':
-          return 'In use';
+        case 'SAVED':
+          return 'Saved';
           break;
-        case 'DISABLED':
-          return 'Disabled';
+        case 'REGISTRATION_IN_PROGRESS':
+          return 'Registration in progress';
           break;
+
+        case 'REGISTERED':
+          return 'Registered';
+          break;
+
+        case 'DELETION_IN_PROGRESS':
+          return 'Deletion in progress';
+          break;
+        case 'GLOBAL_ERROR':
+          return 'Global error';
+          break;
+
         default:
           return '-';
           break;
@@ -34,7 +46,7 @@ export default Vue.extend({
     },
     iconClass() {
       switch (this.certificate.status) {
-        case 'IN_USE':
+        case 'SAVED':
           return 'status-green';
           break;
         default:
