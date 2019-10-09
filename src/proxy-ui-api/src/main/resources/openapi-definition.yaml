@@ -414,8 +414,8 @@ paths:
     get: # ok
       tags:
         - security server
-      summary: get security server clients
-      operationId: getClients
+      summary: find security server clients
+      operationId: findClients
       description: Administrator views the clients of the security server.
       parameters:
         - in: query
@@ -1188,8 +1188,8 @@ paths:
     get: # ok
       tags:
         - security server
-      summary: get access right subjects
-      operationId: getSubjects
+      summary: find access right subjects
+      operationId: findSubjects
       description: Administrator views the clients, globalgroups and localgroups of the security server as access right subjects
       parameters:
         - in: path
