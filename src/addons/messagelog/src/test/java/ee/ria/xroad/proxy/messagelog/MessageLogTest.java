@@ -177,6 +177,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
      * @throws Exception in case of any unexpected errors
      */
     @Test
+    @SuppressWarnings("squid:S2699")
     public void logMessageWithXRequestId() throws Exception {
         log.trace("logMessageWithXRequestId())");
 

@@ -46,7 +46,7 @@ import java.io.IOException;
 @Order(TraceWebServletAutoConfiguration.TRACING_FILTER_ORDER + 1)
 public class AddCorrelationIdFilter implements Filter {
 
-    public static final String CORRELATION_ID_HEADER_NAME = "xroad-ui-correlation-id";
+    public static final String CORRELATION_ID_HEADER_NAME = "x-road-ui-correlation-id";
     @Autowired
     private Tracer tracer;
 

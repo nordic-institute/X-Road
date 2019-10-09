@@ -58,7 +58,7 @@ public final class UriUtils {
      *                       If false, unencoded path separators are not allowed (becomes a path segment decoder).
      * @see #uriSegmentPercentDecode(String)
      */
-    @SuppressWarnings("checkstyle:magicnumber")
+    @SuppressWarnings({"squid:S3776", "checkstyle:magicnumber"})
     public static String uriPathPercentDecode(final String src, final boolean allowSeparator) {
         final int length = src.length();
         if (length == 0) {
