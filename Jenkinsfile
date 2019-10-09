@@ -1,6 +1,11 @@
 pipeline {
     agent any
     stages {
+        stage('Output build parameters') {
+            steps {
+                sh 'env'
+            }
+        }        
         stage("SCM") {
           steps {
             checkout scm
@@ -16,7 +21,9 @@ pipeline {
             }
             steps {
                 sh 'cd src && ./update_ruby_dependencies.sh'
-                sh 'cd src && ./compile_code.sh -nodaemon'
+                withCredentials([string(credentialsId: 'sonarqube-user-token-2', variable: 'SONAR_TOKEN')]) {
+                    sh 'cd src && ~/.rvm/bin/rvm jruby-$(cat .jruby-version) do ./gradlew -Dsonar.login=${SONAR_TOKEN} -Dsonar.pullrequest.key=${ghprbPullId} -Dsonar.pullrequest.branch=${ghprbSourceBranch} -Dsonar.pullrequest.base=${ghprbTargetBranch} --stacktrace --no-daemon buildAll runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport dependencyCheckAggregate sonarqube'
+                }
             }
         }
         stage('Bionic build') {
