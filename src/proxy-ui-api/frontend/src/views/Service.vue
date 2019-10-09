@@ -173,6 +173,8 @@
     <addMembersDialog
       :dialog="addMembersDialogVisible"
       :filtered="[]"
+      :memberClasses="[]"
+      :instances="[]"
       title="access.addSubjectsTitle"
       @cancel="closeMembersDialog"
       @membersAdded="doAddMembers"
@@ -229,16 +231,7 @@ export default Vue.extend({
       url: '',
       addMembersDialogVisible: false,
       timeout: 23,
-      accessRights: [
-        {
-          id: 'GLOBALGROUP:DEV:security-server-owners',
-          name: 'Mock 1 security server owners',
-        },
-        {
-          id: 'GLOBALGROUP:DEV:security-server-owneropos',
-          name: 'Mock security server owners',
-        },
-      ],
+      accessRights: [],
       url_all: false,
       timeout_all: false,
       ssl_auth_all: false,
@@ -320,7 +313,7 @@ export default Vue.extend({
       axios
         .get(`/services/${serviceId}/access-rights`)
         .then((res) => {
-          // this.service = res.data;
+          this.accessRights = res.data;
           console.log(res.data);
         })
         .catch((error) => {
