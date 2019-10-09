@@ -4,3 +4,11 @@
 
 - import_tasks: rhel.yml
   when: ansible_os_family == "RedHat"
+
+- name: disable service postgresql and ensure it is masked in case we are using remote database server
+  systemd:
+    name: postgresql
+    state: stopped
+    enabled: no
+    masked: yes
+  when: (database_admin_password != "") and (mask_local_postgresql)

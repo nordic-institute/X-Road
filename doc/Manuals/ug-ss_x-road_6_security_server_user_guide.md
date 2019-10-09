@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.30-UI
+Version: 2.31
 Doc. ID: UG-SS
 
 ---
@@ -64,6 +64,7 @@ Doc. ID: UG-SS
  01.07.2019 | 2.29    | Changing the Security Server Owner chapter added (Chapter [3.4](#34-changing-the-security-server-owner)) | Petteri Kivimäki
  14.08.2019 | 2.30    | Added automatic backups | Ilkka Seppälä
  29.09.2019 | 2.30-UI    | Added chapter [19.3](#193-correlation-id-http-header) on REST API correlation id | Janne Mattila
+ 30.09.2019 | 2.31    | Added remote database migration guide | Ilkka Seppälä
 
 ## Table of Contents <!-- omit in toc --> 
 
@@ -90,7 +91,7 @@ Doc. ID: UG-SS
     * [3.2.3 Importing an Authentication Certificate from the Local File System](#323-importing-an-authentication-certificate-from-the-local-file-system)
   * [3.3 Registering the Security Server in the X-Road Governing Authority](#33-registering-the-security-server-in-the-x-road-governing-authority)
     * [3.3.1 Registering an Authentication Certificate](#331-registering-an-authentication-certificate)
-  * [3.4 Changing the Security Server Owner](#34-changing-the-security-server-owner)  
+  * [3.4 Changing the Security Server Owner](#34-changing-the-security-server-owner)
 * [4 Security Server Clients](#4-security-server-clients)
   * [4.1 Security Server Client States](#41-security-server-client-states)
   * [4.2 Adding a Security Server Client](#42-adding-a-security-server-client)
@@ -114,8 +115,8 @@ Doc. ID: UG-SS
   * [5.7 Deleting a Key](#57-deleting-a-key)
 * [6 X-Road Services](#6-x-road-services)
   * [6.1 Adding a service description](#61-adding-a-service-description)
-      * [6.1.1 SOAP](#611-soap)
-      * [6.1.2 REST](#612-rest)
+    * [6.1.1 SOAP](#611-soap)
+    * [6.1.2 REST](#612-rest)
   * [6.2 Refreshing a service description](#62-refreshing-a-service-description)
   * [6.3 Enabling and Disabling a service description](#63-enabling-and-disabling-a-service-description)
   * [6.4 Changing the Address of a service description](#64-changing-the-address-of-a-service-description)
@@ -178,6 +179,8 @@ Doc. ID: UG-SS
     * [19.1.3 Revoking API keys](#1913-revoking-api-keys)
     * [19.1.4 API key caching](#1914-api-key-caching)
   * [19.2 Executing REST calls](#192-executing-rest-calls)
+  * [19.3 Correlation ID HTTP header](#193-correlation-id-http-header)
+* [20 Migrating to Remote Database Host](#20-migrating-to-remote-database-host)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -869,7 +872,7 @@ X-Road supports both SOAP and REST services. The services are managed on two lev
 
 **Access rights:** [Service Administrator](#xroad-service-administrator)
 
-### 6.1.1 SOAP
+#### 6.1.1 SOAP
 
 When a new WSDL file is added, the security server reads service information from it and displays the information in the table of services. The service code, title and address are read from the WSDL.
 
@@ -883,7 +886,7 @@ When a new WSDL file is added, the security server reads service information fro
 
 -   click the “**+**” symbol in front of the WSDL row to expand the list.
 
-### 6.1.2 REST
+#### 6.1.2 REST
 
 When a new REST service is added, the security server displays url and service code provided.
 
@@ -1881,7 +1884,7 @@ A separate REST api exists for API key management.
 Access to API key management is limited to localhost (`127.0.0.1`).
 API key management API is authenticated to with [HTTP basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication) (username and password).
 
-### 19.1.1 Creating new API keys
+#### 19.1.1 Creating new API keys
 
 A new API key is created with a `POST` request to `/api/api-key`. Message body must contain the roles to be
 associated with the key. Server responds with data that contains the actual API key. After this point the key
@@ -1902,7 +1905,7 @@ curl -X POST -u <user>:<password> https://localhost:4000/api/api-key --data '["X
 
 In this example the created key was `23bc57cd-b1ba-4702-9657-8d53e335c843`.
 
-### 19.1.2 Listing API keys
+#### 19.1.2 Listing API keys
 
 Existing API keys can be listed with a `GET` request to `/api/api-key`. This lists all keys, regardless of who has created them.
 
@@ -1923,7 +1926,7 @@ curl -X GET -u <user>:<password> https://localhost:4000/api/api-key -k
 
 ```
 
-### 19.1.3 Revoking API keys
+#### 19.1.3 Revoking API keys
 
 An API key can be revoked with a `DELETE` request to `/api/api-key/{id}`. Server responds with `HTTP 200` if
 revocation was successful and `HTTP 404` if key did not exist.
@@ -1933,7 +1936,7 @@ curl -X DELETE -u <user>:<password> https://localhost:4000/api/api-key/60  -k
 
 ```
 
-### 19.1.4 API key caching
+#### 19.1.4 API key caching
 
 API keys are cached in memory. In typical security server configurations this does not create problems.
 However, if you have configured a setup where multiple security servers share the same `serverconf` database,
@@ -1969,3 +1972,107 @@ curl --header "Authorization: X-Road-apikey token=ff6f55a8-cc63-4e83-aa4c-55f99d
 
 The available APIs are documented in OpenAPI specification (TBD). Access rights for different APIs follow the same rules
 as the corresponding UI operations.
+
+### 19.3 Correlation ID HTTP header
+
+The REST APIs return an **X-Road-UI-Correlation-ID** HTTP header. This header is also logged in `proxy_ui_api.log`, so it
+can be used to find the log messages related to a specific API call.
+
+The correlation ID header is returned for all requests, both successful and failed ones.
+
+For example, these log messages are related to an API call with correlation ID `3d5f193102435242`:
+```
+2019-08-26 13:16:23,611 [https-jsse-nio-4000-exec-10] correlation-id:[3d5f193102435242] DEBUG o.s.s.w.c.HttpSessionSecurityContextRepository - The HttpSession is currently null, and the HttpSessionSecurityContextRepository is prohibited from creating an HttpSession (because the allowSessionCreation property is false) - SecurityContext thus not stored for next request
+2019-08-26 13:16:23,611 [https-jsse-nio-4000-exec-10] correlation-id:[3d5f193102435242] WARN  o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [org.niis.xroad.restapi.exceptions.ConflictException: local group with code koodi6 already added]
+2019-08-26 13:16:23,611 [https-jsse-nio-4000-exec-10] correlation-id:[3d5f193102435242] DEBUG o.s.s.w.a.ExceptionTranslationFilter - Chain processed normally
+```
+
+## 20 Migrating to Remote Database Host
+
+Since version `6.22.0` Security Server supports using remote databases. In case you have an already running Security Server with local database, it is possible to migrate it to use remote database host instead. The instructions for this process are listed below.
+
+1. Shutdown X-Road processes.
+
+    ```
+    systemctl stop "xroad*"
+    ```
+
+2. Dump the local databases to be migrated. You can find the passwords of users `serverconf`, `messagelog` and `opmonitor` in `/etc/xroad/db.properties`. Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match. Also take into account that on a busy system the messagelog database can be quite large and therefore dump and restore can take considerable amount of time and disk space.
+
+    ```
+    pg_dump -F t -h 127.0.0.1 -p 5432 -U serverconf -f serverconf.dat serverconf
+    pg_dump -F t -h 127.0.0.1 -p 5432 -U messagelog -f messagelog.dat messagelog
+    pg_dump -F t -h 127.0.0.1 -p 5432 -U opmonitor_admin -f op-monitor.dat op-monitor
+    ```
+
+3. Shut down and mask local `postgresql` so it won't start when `xroad-proxy` starts.
+
+    ```
+    systemctl stop postgresql
+    systemctl mask postgresql
+    ```
+
+4. Connect to the remote database server as the superuser `postgres` and create roles, databases and access permissions as follows. Note that the line `GRANT serverconf to postgres` is AWS RDS specific and not necessary if the `postgres` user is a true super-user.
+
+    ```
+    psql -h <remote-db-url> -p <remote-db-port> -U postgres
+    CREATE ROLE serverconf LOGIN PASSWORD '<serverconf-password>';
+    GRANT serverconf to postgres;
+    CREATE DATABASE serverconf OWNER serverconf ENCODING 'UTF-8';
+    \c serverconf
+    CREATE EXTENSION IF NOT EXISTS hstore;
+    \c postgres
+
+    CREATE ROLE messagelog LOGIN PASSWORD '<messagelog-password>';
+    GRANT messagelog to postgres;
+    CREATE DATABASE messagelog OWNER messagelog ENCODING 'UTF-8';
+
+    CREATE ROLE opmonitor_admin LOGIN PASSWORD '<opmonitor_admin-password>';
+    CREATE ROLE opmonitor LOGIN PASSWORD '<opmonitor-password>';
+    GRANT opmonitor_admin to postgres;
+    CREATE DATABASE "op-monitor" OWNER opmonitor_admin ENCODING "UTF-8";
+    grant usage on schema public to opmonitor;
+    ```
+
+5. Restore the database dumps on the remote database host.
+
+    ```
+    pg_restore -h <remote-db-url> -p <remote-db-port> -U serverconf -O -n public -1 -d serverconf serverconf.dat
+    pg_restore -h <remote-db-url> -p <remote-db-port> -U messagelog -O -n public -1 -d messagelog messagelog.dat
+    pg_restore -h <remote-db-url> -p <remote-db-port> -U opmonitor_admin -O -n public -1 -d op-monitor op-monitor.dat
+    ```
+
+6. Create properties file `/etc/xroad.properties` containing the superuser password.
+
+    ```
+    sudo touch /etc/xroad.properties
+    sudo chown root:root /etc/xroad.properties
+    sudo chmod 600 /etc/xroad.properties
+    ```
+
+7. Edit `/etc/xroad.properties`.
+
+    ```
+    postgres.connection.password = <postgres-password>
+    op-monitor.database.admin_password = <opmonitor_admin-password>
+    serverconf.database.initialized = true
+    messagelog.database.initialized = true
+    op-monitor.database.initialized = true
+    ```
+
+8. Update `/etc/xroad/db.properties` contents with correct database host URLs and passwords.
+
+    ```
+    serverconf.hibernate.connection.url = jdbc:postgresql://<remote-db-url>:<remote-db-port>/serverconf
+    messagelog.hibernate.connection.url = jdbc:postgresql://<remote-db-url>:<remote-db-port>/messagelog
+    op-monitor.hibernate.connection.url = jdbc:postgresql://<remote-db-url>:<remote-db-port>/op-monitor
+    serverconf.hibernate.connection.password = <serverconf-password>
+    messagelog.hibernate.connection.password = <messagelog-password>
+    op-monitor.hibernate.connection.password = <opmonitor-password>
+    ```
+
+9. Start again the X-Road services.
+
+    ```
+    systemctl start "xroad*"
+    ```

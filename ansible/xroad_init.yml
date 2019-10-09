@@ -46,6 +46,7 @@
     - ss
   vars_files:
     - vars_files/remote_repo.yml
+    - vars_files/ss_database.yml
 
 - hosts: ca-servers
   become: yes
