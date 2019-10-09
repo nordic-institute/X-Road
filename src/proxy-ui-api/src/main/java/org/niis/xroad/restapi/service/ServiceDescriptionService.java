@@ -33,18 +33,12 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
-import org.niis.xroad.restapi.exceptions.BadRequestException;
-import org.niis.xroad.restapi.exceptions.ConflictException;
-import org.niis.xroad.restapi.exceptions.Error;
-import org.niis.xroad.restapi.exceptions.InvalidParametersException;
-import org.niis.xroad.restapi.exceptions.NotFoundException;
-import org.niis.xroad.restapi.exceptions.Warning;
-import org.niis.xroad.restapi.exceptions.WsdlNotFoundException;
-import org.niis.xroad.restapi.exceptions.WsdlParseException;
-import org.niis.xroad.restapi.exceptions.WsdlValidationException;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
+import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,17 +68,9 @@ public class ServiceDescriptionService {
     public static final int DEFAULT_SERVICE_TIMEOUT = 60;
     public static final String DEFAULT_DISABLED_NOTICE = "Out of order";
 
-    public static final String ERROR_INVALID_WSDL = "clients.invalid_wsdl";
-    public static final String ERROR_WSDL_DOWNLOAD_FAILED = "clients.wsdl_download_failed";
-    public static final String ERROR_WSDL_EXISTS = "clients.wsdl_exists";
-    public static final String ERROR_SERVICE_EXISTS = "clients.service_exists";
-    public static final String ERROR_MALFORMED_URL = "clients.malformed_wsdl_url";
-    public static final String ERROR_WRONG_TYPE = "clients.servicedescription_wrong_type";
-    public static final String ERROR_WARNINGS_DETECTED = "clients.warnings_detected";
-
-    public static final String WARNING_ADDING_SERVICES = "clients.adding_services";
-    public static final String WARNING_DELETING_SERVICES = "clients.deleting_services";
-    public static final String WARNING_WSDL_VALIDATION_WARNINGS = "clients.wsdl_validation_warnings";
+    public static final String WARNING_ADDING_SERVICES = "adding_services";
+    public static final String WARNING_DELETING_SERVICES = "deleting_services";
+    public static final String WARNING_WSDL_VALIDATION_WARNINGS = "wsdl_validation_warnings";
 
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final ClientService clientService;
@@ -112,20 +98,20 @@ public class ServiceDescriptionService {
 
     /**
      * Disable 1-n services
-     * @throws NotFoundException if serviceDescriptions with given ids were not found
+     * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given ids were not found
      */
     @PreAuthorize("hasAuthority('ENABLE_DISABLE_WSDL')")
     public void disableServices(Collection<Long> serviceDescriptionIds,
-            String disabledNotice) {
+            String disabledNotice) throws ServiceDescriptionNotFoundException {
         toggleServices(false, serviceDescriptionIds, disabledNotice);
     }
 
     /**
      * Enable 1-n services
-     * @throws NotFoundException if serviceDescriptions with given ids were not found
+     * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given ids were not found
      */
     @PreAuthorize("hasAuthority('ENABLE_DISABLE_WSDL')")
-    public void enableServices(Collection<Long> serviceDescriptionIds) {
+    public void enableServices(Collection<Long> serviceDescriptionIds) throws ServiceDescriptionNotFoundException {
         toggleServices(true, serviceDescriptionIds, null);
     }
 
@@ -133,10 +119,10 @@ public class ServiceDescriptionService {
      * Change 1-n services to enabled/disabled
      * @param serviceDescriptionIds
      * @param disabledNotice
-     * @throws NotFoundException if serviceDescriptions with given ids were not found
+     * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given ids were not found
      */
     private void toggleServices(boolean toEnabled, Collection<Long> serviceDescriptionIds,
-            String disabledNotice) {
+            String disabledNotice) throws ServiceDescriptionNotFoundException {
         List<ServiceDescriptionType> possiblyNullServiceDescriptions = serviceDescriptionRepository
                 .getServiceDescriptions(serviceDescriptionIds.toArray(new Long[] {}));
 
@@ -150,7 +136,7 @@ public class ServiceDescriptionService {
                     .collect(Collectors.toSet());
             Set<Long> missingIds = new HashSet<>(serviceDescriptionIds);
             missingIds.removeAll(foundIds);
-            throw new NotFoundException("Service descriptions with ids " + missingIds
+            throw new ServiceDescriptionNotFoundException("Service descriptions with ids " + missingIds
                     + " not found");
         }
 
@@ -166,13 +152,13 @@ public class ServiceDescriptionService {
 
     /**
      * Delete one ServiceDescription
-     * @throws NotFoundException if serviceDescriptions with given id was not found
+     * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given id was not found
      */
     @PreAuthorize("hasAuthority('DELETE_WSDL')")
-    public void deleteServiceDescription(Long id) {
+    public void deleteServiceDescription(Long id) throws ServiceDescriptionNotFoundException {
         ServiceDescriptionType serviceDescriptionType = serviceDescriptionRepository.getServiceDescription(id);
         if (serviceDescriptionType == null) {
-            throw new NotFoundException("Service description with id " + id + " not found");
+            throw new ServiceDescriptionNotFoundException("Service description with id " + id + " not found");
         }
         ClientType client = serviceDescriptionType.getClient();
         client.getServiceDescription().remove(serviceDescriptionType);
@@ -185,23 +171,34 @@ public class ServiceDescriptionService {
      * @param url
      * @param ignoreWarnings
      * @return created {@link ServiceDescriptionType}, with id populated
-     * @throws InvalidParametersException if URL is malformed
-     * @throws ConflictException          URL already exists
+     * @throws ClientNotFoundException if client with id was not found
+     * @throws WsdlParser.WsdlNotFoundException if a wsdl was not found at the url
+     * @throws InvalidWsdlException if WSDL at the url was invalid
+     * @throws UnhandledWarningsException if there were warnings that were not ignored
+     * @throws InvalidUrlException if url was empty or invalid
+     * @throws WsdlUrlAlreadyExistsException conflict: another service description has same url
+     * @throws ServiceAlreadyExistsException conflict: same service exists in another SD
      */
     @PreAuthorize("hasAuthority('ADD_WSDL')")
     public ServiceDescriptionType addWsdlServiceDescription(ClientId clientId,
                                           String url,
-                                          boolean ignoreWarnings) {
+                                          boolean ignoreWarnings)
+            throws InvalidWsdlException,
+            WsdlParser.WsdlNotFoundException,
+                           ClientNotFoundException,
+                           UnhandledWarningsException,
+                           ServiceAlreadyExistsException,
+                           InvalidUrlException,
+                           WsdlUrlAlreadyExistsException {
         ClientType client = clientService.getClient(clientId);
         if (client == null) {
-            throw new NotFoundException("Client with id " + clientId.toShortString() + " not found");
+            throw new ClientNotFoundException("Client with id " + clientId.toShortString() + " not found");
         }
 
         WsdlProcessingResult wsdlProcessingResult = processWsdl(client, url, null);
 
         if (!ignoreWarnings && !wsdlProcessingResult.getWarnings().isEmpty()) {
-            throw new BadRequestException(new Error(ERROR_WARNINGS_DETECTED),
-                    wsdlProcessingResult.getWarnings());
+            throw new UnhandledWarningsException(wsdlProcessingResult.getWarnings());
         }
 
         // create a new ServiceDescription with parsed services
@@ -218,12 +215,27 @@ public class ServiceDescriptionService {
      * @param id
      * @param url the new url
      * @return ServiceDescriptionType
+     * @throws WsdlParser.WsdlNotFoundException if a wsdl was not found at the url
+     * @throws ServiceDescriptionNotFoundException if SD with given id was not found
+     * @throws WrongServiceDescriptionTypeException if SD with given id was not a WSDL based one
+     * @throws InvalidWsdlException if WSDL at the url was invalid
+     * @throws UnhandledWarningsException if there were warnings that were not ignored
+     * @throws InvalidUrlException if url was empty or invalid
+     * @throws WsdlUrlAlreadyExistsException conflict: another service description has same url
+     * @throws ServiceAlreadyExistsException conflict: same service exists in another SD
      */
     @PreAuthorize("hasAuthority('EDIT_WSDL')")
-    public ServiceDescriptionType updateWsdlUrl(Long id, String url, boolean ignoreWarnings) {
+    public ServiceDescriptionType updateWsdlUrl(Long id, String url, boolean ignoreWarnings)
+            throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
+                           ServiceDescriptionNotFoundException,
+                           WrongServiceDescriptionTypeException,
+                           UnhandledWarningsException,
+                           InvalidUrlException,
+                           ServiceAlreadyExistsException,
+                           WsdlUrlAlreadyExistsException {
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptiontype(id);
         if (serviceDescriptionType == null) {
-            throw new NotFoundException("Service description with id " + id.toString() + " not found");
+            throw new ServiceDescriptionNotFoundException("Service description with id " + id.toString());
         }
         return updateWsdlUrl(serviceDescriptionType, url, ignoreWarnings);
     }
@@ -233,12 +245,25 @@ public class ServiceDescriptionService {
      * @param id
      * @param ignoreWarnings
      * @return {@link ServiceDescriptionType}
+     * @throws WsdlParser.WsdlNotFoundException if a wsdl was not found at the url
+     * @throws ServiceDescriptionNotFoundException if SD with given id was not found
+     * @throws WrongServiceDescriptionTypeException if SD with given id was not a WSDL based one
+     * @throws InvalidWsdlException if WSDL at the url was invalid
+     * @throws UnhandledWarningsException if there were warnings that were not ignored
+     * @throws InvalidUrlException if url was empty or invalid
+     * @throws WsdlUrlAlreadyExistsException conflict: another service description has same url
+     * @throws ServiceAlreadyExistsException conflict: same service exists in another SD
      */
     @PreAuthorize("hasAuthority('REFRESH_WSDL')")
-    public ServiceDescriptionType refreshServiceDescription(Long id, boolean ignoreWarnings) {
+    public ServiceDescriptionType refreshServiceDescription(Long id, boolean ignoreWarnings)
+            throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
+                           ServiceDescriptionNotFoundException, WrongServiceDescriptionTypeException,
+                           UnhandledWarningsException, InvalidUrlException, ServiceAlreadyExistsException,
+                           WsdlUrlAlreadyExistsException {
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptiontype(id);
         if (serviceDescriptionType == null) {
-            throw new NotFoundException("Service description with id " + id.toString() + " not found");
+            throw new ServiceDescriptionNotFoundException("Service description with id " + id.toString()
+                    + " not found");
         }
 
         if (serviceDescriptionType.getType() == DescriptionType.WSDL) {
@@ -269,12 +294,14 @@ public class ServiceDescriptionService {
      * @return ServiceDescriptionType
      */
     private ServiceDescriptionType updateWsdlUrl(ServiceDescriptionType serviceDescriptionType, String url,
-                                                boolean ignoreWarnings) {
+                                                boolean ignoreWarnings)
+            throws InvalidWsdlException, WsdlParser.WsdlNotFoundException,
+                           WrongServiceDescriptionTypeException, UnhandledWarningsException,
+                           ServiceAlreadyExistsException, InvalidUrlException, WsdlUrlAlreadyExistsException {
         // Shouldn't be able to edit e.g. REST service descriptions with a WSDL URL
         if (serviceDescriptionType.getType() != DescriptionType.WSDL) {
-            throw new BadRequestException("Existing service description (id: "
-                    + serviceDescriptionType.getId().toString() + " is not WSDL",
-                    new Error(ERROR_WRONG_TYPE));
+            throw new WrongServiceDescriptionTypeException("Existing service description (id: "
+                    + serviceDescriptionType.getId().toString() + " is not WSDL");
         }
 
         ClientType client = serviceDescriptionType.getClient();
@@ -291,14 +318,13 @@ public class ServiceDescriptionService {
                 newServices);
 
         // collect all types of warnings, throw Exception if not ignored
-        List<Warning> allWarnings = new ArrayList<>();
+        List<WarningDeviation> allWarnings = new ArrayList<>();
         allWarnings.addAll(wsdlProcessingResult.getWarnings());
         if (!serviceChanges.isEmpty()) {
             allWarnings.addAll(createServiceChangeWarnings(serviceChanges));
         }
         if (!ignoreWarnings && !allWarnings.isEmpty()) {
-            throw new BadRequestException(new Error(ERROR_WARNINGS_DETECTED),
-                    allWarnings);
+            throw new UnhandledWarningsException(allWarnings);
         }
 
         serviceDescriptionType.setRefreshedDate(new Date());
@@ -315,17 +341,17 @@ public class ServiceDescriptionService {
     /**
      * @return warnings about adding or deleting services
      */
-    private List<Warning> createServiceChangeWarnings(ServiceChangeChecker.ServiceChanges changes) {
-        List<Warning> warnings = new ArrayList<>();
+    private List<WarningDeviation> createServiceChangeWarnings(ServiceChangeChecker.ServiceChanges changes) {
+        List<WarningDeviation> warnings = new ArrayList<>();
         if (!CollectionUtils.isEmpty(changes.getAddedServices())) {
-            Warning addedServicesWarning = new Warning(WARNING_ADDING_SERVICES,
+            WarningDeviation addedServicesWarningDeviation = new WarningDeviation(WARNING_ADDING_SERVICES,
                     changes.getAddedServices());
-            warnings.add(addedServicesWarning);
+            warnings.add(addedServicesWarningDeviation);
         }
         if (!CollectionUtils.isEmpty(changes.getRemovedServices())) {
-            Warning deletedServicesWarning = new Warning(WARNING_DELETING_SERVICES,
+            WarningDeviation deletedServicesWarningDeviation = new WarningDeviation(WARNING_DELETING_SERVICES,
                     changes.getRemovedServices());
-            warnings.add(deletedServicesWarning);
+            warnings.add(deletedServicesWarningDeviation);
         }
         return warnings;
     }
@@ -335,14 +361,14 @@ public class ServiceDescriptionService {
      * one we are updating now.
      */
     private void checkForExistingWsdl(ClientType client, String url,
-                                      Long updatedServiceDescriptionId) throws ConflictException {
-        client.getServiceDescription().forEach(serviceDescription -> {
+                                      Long updatedServiceDescriptionId) throws WsdlUrlAlreadyExistsException {
+        for (ServiceDescriptionType serviceDescription : client.getServiceDescription()) {
             if (!serviceDescription.getId().equals(updatedServiceDescriptionId)) {
                 if (serviceDescription.getUrl().equalsIgnoreCase(url)) {
-                    throw new ConflictException("WSDL URL already exists", new Error(ERROR_WSDL_EXISTS));
+                    throw new WsdlUrlAlreadyExistsException("WSDL URL already exists");
                 }
             }
-        });
+        }
     }
 
     private ServiceDescriptionType buildWsdlServiceDescription(ClientType client,
@@ -385,15 +411,10 @@ public class ServiceDescriptionService {
         return newService;
     }
 
-    private Collection<WsdlParser.ServiceInfo> parseWsdl(String url) throws BadRequestException {
+    private Collection<WsdlParser.ServiceInfo> parseWsdl(String url) throws WsdlParser.WsdlNotFoundException,
+            WsdlParser.WsdlParseException {
         Collection<WsdlParser.ServiceInfo> parsedServices;
-        try {
-            parsedServices = WsdlParser.parseWSDL(url);
-        } catch (WsdlParseException e) {
-            throw new BadRequestException(e, new Error(ERROR_INVALID_WSDL));
-        } catch (WsdlNotFoundException e) {
-            throw new BadRequestException(e, new Error(ERROR_WSDL_DOWNLOAD_FAILED));
-        }
+        parsedServices = WsdlParser.parseWSDL(url);
         return parsedServices;
     }
 
@@ -402,16 +423,14 @@ public class ServiceDescriptionService {
      * If non-fatal warnings, return those.
      * @param url
      * @return list of validation warnings that can be ignored by choice
-     *
-     * @throws BadRequestException if fatal validation errors occurred
+     * @throws WsdlValidator.WsdlValidationFailedException
+     * @throws WsdlValidator.WsdlValidatorNotExecutableException
+     * @throws InvalidUrlException
      */
-    private List<String> validateWsdl(String url) throws BadRequestException {
-        try {
-            return wsdlValidator.executeValidator(url);
-        } catch (WsdlValidationException e) {
-            log.error("WSDL validation failed", e);
-            throw new BadRequestException(e, e.getError(), e.getWarnings());
-        }
+    private List<String> validateWsdl(String url)
+            throws WsdlValidator.WsdlValidationFailedException,
+            WsdlValidator.WsdlValidatorNotExecutableException, InvalidUrlException {
+        return wsdlValidator.executeValidator(url);
     }
 
     private List<ServiceType> getClientsExistingServices(ClientType client, Long idToSkip) {
@@ -428,7 +447,7 @@ public class ServiceDescriptionService {
      */
     private void checkForExistingServices(ClientType client,
             Collection<WsdlParser.ServiceInfo> parsedServices,
-            Long idToSkip) throws ConflictException {
+            Long idToSkip) throws ServiceAlreadyExistsException {
         List<ServiceType> existingServices = getClientsExistingServices(client, idToSkip);
 
         Set<ServiceType> conflictedServices = parsedServices
@@ -447,7 +466,7 @@ public class ServiceDescriptionService {
                 errorMetadata.add(FormatUtils.getServiceFullName(conflictedService));
                 errorMetadata.add(conflictedService.getServiceDescription().getUrl());
             }
-            throw new ConflictException(new Error(ERROR_SERVICE_EXISTS, errorMetadata));
+            throw new ServiceAlreadyExistsException(errorMetadata);
         }
     }
 
@@ -455,7 +474,7 @@ public class ServiceDescriptionService {
     @Data
     private class WsdlProcessingResult {
         private Collection<WsdlParser.ServiceInfo> parsedServices = new ArrayList<>();
-        private List<Warning> warnings = new ArrayList<>();
+        private List<WarningDeviation> warnings = new ArrayList<>();
     }
 
     /**
@@ -468,14 +487,24 @@ public class ServiceDescriptionService {
      *                                    will update with this wsdl, or null
      *                                    if we're adding a new one
      * @return parsed and validated wsdl and possible warnings
+     * @throws WsdlParser.WsdlNotFoundException if a wsdl was not found at the url
+     * @throws InvalidUrlException if url was empty or invalid
+     * @throws InvalidWsdlException if wsdl was invalid (either parsing or validation)
+     * @throws WsdlUrlAlreadyExistsException conflict: another service description has same url
+     * @throws ServiceAlreadyExistsException conflict: same service exists in another SD
      */
     private WsdlProcessingResult processWsdl(ClientType client, String url,
-                                             Long updatedServiceDescriptionId) {
+                                             Long updatedServiceDescriptionId)
+            throws WsdlParser.WsdlNotFoundException,
+                           InvalidWsdlException,
+                           InvalidUrlException,
+                           WsdlUrlAlreadyExistsException,
+                           ServiceAlreadyExistsException {
 
         WsdlProcessingResult result = new WsdlProcessingResult();
         // check for valid url (is this not enough??)
         if (!FormatUtils.isValidUrl(url)) {
-            throw new BadRequestException("Malformed URL", new Error(ERROR_MALFORMED_URL));
+            throw new InvalidUrlException("Malformed URL");
         }
         // check if wsdl already exists
         checkForExistingWsdl(client, url, updatedServiceDescriptionId);
@@ -487,15 +516,51 @@ public class ServiceDescriptionService {
         checkForExistingServices(client, parsedServices, updatedServiceDescriptionId);
 
         // validate wsdl
-        List<String> warningStrings = validateWsdl(url);
-        List<Warning> warnings = new ArrayList<>();
+        List<String> warningStrings = null;
+        try {
+            warningStrings = validateWsdl(url);
+        } catch (WsdlValidator.WsdlValidatorNotExecutableException e) {
+            throw new RuntimeException("could not run validator command", e);
+        }
+        List<WarningDeviation> warnings = new ArrayList<>();
         if (!warningStrings.isEmpty()) {
-            Warning validationWarning = new Warning(WARNING_WSDL_VALIDATION_WARNINGS,
+            WarningDeviation validationWarningDeviation = new WarningDeviation(WARNING_WSDL_VALIDATION_WARNINGS,
                     warningStrings);
-            warnings.add(validationWarning);
+            warnings.add(validationWarningDeviation);
         }
         result.setParsedServices(parsedServices);
         result.setWarnings(warnings);
         return result;
+    }
+
+    /**
+     * If trying to add a service that already exists
+     */
+    public static class ServiceAlreadyExistsException extends ServiceException {
+
+        public static final String ERROR_SERVICE_EXISTS = "service_already_exists";
+
+        public ServiceAlreadyExistsException(List<String> metadata) {
+            super(new ErrorDeviation(ERROR_SERVICE_EXISTS, metadata));
+        }
+    }
+
+    public static class WrongServiceDescriptionTypeException extends ServiceException {
+
+        public static final String ERROR_WRONG_TYPE = "wrong_servicedescription_type";
+
+
+        public WrongServiceDescriptionTypeException(String s) {
+            super(s, new ErrorDeviation(ERROR_WRONG_TYPE));
+        }
+    }
+
+    public static class WsdlUrlAlreadyExistsException extends ServiceException {
+
+        public static final String ERROR_WSDL_EXISTS = "wsdl_exists";
+
+        public WsdlUrlAlreadyExistsException(String s) {
+            super(s, new ErrorDeviation(ERROR_WSDL_EXISTS));
+        }
     }
 }

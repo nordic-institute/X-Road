@@ -26,7 +26,6 @@ package org.niis.xroad.restapi.domain;
 
 import com.google.common.collect.MoreCollectors;
 import lombok.Getter;
-import org.niis.xroad.restapi.exceptions.InvalidParametersException;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -109,16 +108,16 @@ public enum Role {
     }
 
     /**
-     * Return Roles matching the given role names. Throws InvalidParametersException
+     * Return Roles matching the given role names. Throws InvalidRoleNameException
      * if matching Role for some name does not exist.
      * @param names
      * @return
      */
-    public static Set<Role> getForNames(Collection<String> names) {
+    public static Set<Role> getForNames(Collection<String> names) throws InvalidRoleNameException {
         Set<Role> roles = new HashSet<>();
         for (String name: names) {
             if (!Role.contains(name)) {
-                throw new InvalidParametersException("invalid role " + name);
+                throw new InvalidRoleNameException("invalid role " + name);
             }
             roles.add(Role.valueOf(name));
         }

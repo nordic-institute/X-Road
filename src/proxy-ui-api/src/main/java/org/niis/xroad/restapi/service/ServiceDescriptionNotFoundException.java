@@ -22,24 +22,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.service;
 
-import java.util.Collection;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-/**
- * A thing (an Exception) which (possibly) knows the detailed error code & metadata,
- * and warning codes & metadata, to send in REST API response body
- */
-public interface DeviationAware {
-    /**
-     * Return the error details, if any
-     * @return
-     */
-    ErrorDeviation getErrorDeviation();
+public class ServiceDescriptionNotFoundException extends NotFoundException {
 
-    /**
-     * Return warningDeviations, if any
-     * @return
-     */
-    Collection<WarningDeviation> getWarningDeviations();
+    public static final String ERROR_SERVICE_DESCRIPTION_NOT_FOUND = "service_description_not_found";
+
+    public ServiceDescriptionNotFoundException(String s) {
+        super(s, new ErrorDeviation(ERROR_SERVICE_DESCRIPTION_NOT_FOUND));
+    }
 }

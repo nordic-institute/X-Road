@@ -340,7 +340,7 @@ export default Vue.extend({
             this.warningInfo = error.response.data.warnings;
             this.saveWarningDialog = true;
           } else if (
-            error.response.data.error.code === 'clients.service_exists'
+            error.response.data.error.code === 'service_already_exists'
           ) {
             this.$bus.$emit('show-error', 'service already exists');
             this.addWsdlBusy = false;

@@ -22,24 +22,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
-
-import java.util.Collection;
+package org.niis.xroad.restapi.domain;
 
 /**
- * A thing (an Exception) which (possibly) knows the detailed error code & metadata,
- * and warning codes & metadata, to send in REST API response body
+ * If invalid role name was used
  */
-public interface DeviationAware {
-    /**
-     * Return the error details, if any
-     * @return
-     */
-    ErrorDeviation getErrorDeviation();
-
-    /**
-     * Return warningDeviations, if any
-     * @return
-     */
-    Collection<WarningDeviation> getWarningDeviations();
+public class InvalidRoleNameException extends Exception {
+    public InvalidRoleNameException(String s) {
+        super(s);
+    }
 }

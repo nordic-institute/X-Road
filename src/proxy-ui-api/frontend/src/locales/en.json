@@ -131,11 +131,9 @@
     "timeoutTooltip": "The maximum duration of a request to the service, in seconds",
     "verifyTls": "Verify TLS certificate",
     "tlsTooltip": "Verify TLS certificate when a secure connection is established",
-    "clients": {
-      "deleting_services": "Deleting services:",
-      "adding_services": "Adding services:",
-      "wsdl_validation_warnings": "Validation warnings:"
-    }
+    "deleting_services": "Deleting services:",
+    "adding_services": "Adding services:",
+    "wsdl_validation_warnings": "Validation warnings:"
   },
   "access": {
     "accessRights": "Access Rights",

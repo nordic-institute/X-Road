@@ -30,23 +30,26 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.ServiceConverter;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
-import org.niis.xroad.restapi.exceptions.BadRequestException;
-import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.exceptions.DeviationAware;
 import org.niis.xroad.restapi.openapi.model.IgnoreWarnings;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionDisabledNotice;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
+import org.niis.xroad.restapi.service.InvalidUrlException;
+import org.niis.xroad.restapi.service.ServiceDescriptionNotFoundException;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.FormatUtils;
+import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
+import org.niis.xroad.restapi.wsdl.WsdlParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.context.request.NativeWebRequest;
 
 import java.util.Collections;
 import java.util.List;
@@ -62,7 +65,6 @@ import static java.util.stream.Collectors.toList;
 @PreAuthorize("denyAll")
 public class ServiceDescriptionsApiController implements ServiceDescriptionsApi {
 
-    private final NativeWebRequest request;
     private final ServiceDescriptionService serviceDescriptionService;
     private final ServiceDescriptionConverter serviceDescriptionConverter;
     private final ServiceConverter serviceConverter;
@@ -75,11 +77,9 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
      */
 
     @Autowired
-    public ServiceDescriptionsApiController(NativeWebRequest request,
-            ServiceDescriptionService serviceDescriptionService,
+    public ServiceDescriptionsApiController(ServiceDescriptionService serviceDescriptionService,
             ServiceDescriptionConverter serviceDescriptionConverter,
             ServiceConverter serviceConverter) {
-        this.request = request;
         this.serviceDescriptionService = serviceDescriptionService;
         this.serviceDescriptionConverter = serviceDescriptionConverter;
         this.serviceConverter = serviceConverter;
@@ -89,7 +89,11 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     @PreAuthorize("hasAuthority('ENABLE_DISABLE_WSDL')")
     public ResponseEntity<Void> enableServiceDescription(String id) {
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
-        serviceDescriptionService.enableServices(Collections.singletonList(serviceDescriptionId));
+        try {
+            serviceDescriptionService.enableServices(Collections.singletonList(serviceDescriptionId));
+        } catch (ServiceDescriptionNotFoundException e) {
+            throw new ResourceNotFoundException();
+        }
         return new ResponseEntity<Void>(HttpStatus.OK);
     }
 
@@ -102,8 +106,12 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
             disabledNotice = serviceDescriptionDisabledNotice.getDisabledNotice();
         }
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
-        serviceDescriptionService.disableServices(Collections.singletonList(serviceDescriptionId),
-                disabledNotice);
+        try {
+            serviceDescriptionService.disableServices(Collections.singletonList(serviceDescriptionId),
+                    disabledNotice);
+        } catch (ServiceDescriptionNotFoundException e) {
+            throw new ResourceNotFoundException();
+        }
         return new ResponseEntity<Void>(HttpStatus.OK);
     }
 
@@ -111,7 +119,11 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     @PreAuthorize("hasAuthority('DELETE_WSDL')")
     public ResponseEntity<Void> deleteServiceDescription(String id) {
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
-        serviceDescriptionService.deleteServiceDescription(serviceDescriptionId);
+        try {
+            serviceDescriptionService.deleteServiceDescription(serviceDescriptionId);
+        } catch (ServiceDescriptionNotFoundException e) {
+            throw new ResourceNotFoundException();
+        }
         return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
     }
 
@@ -122,9 +134,22 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
         ServiceDescription serviceDescription;
         if (serviceDescriptionUpdate.getType() == ServiceType.WSDL) {
-            serviceDescription = serviceDescriptionConverter.convert(serviceDescriptionService.updateWsdlUrl(
-                    serviceDescriptionId, serviceDescriptionUpdate.getUrl(),
-                    serviceDescriptionUpdate.getIgnoreWarnings()));
+            ServiceDescriptionType updatedServiceDescription = null;
+            try {
+                updatedServiceDescription = serviceDescriptionService.updateWsdlUrl(
+                        serviceDescriptionId, serviceDescriptionUpdate.getUrl(),
+                        serviceDescriptionUpdate.getIgnoreWarnings());
+            } catch (WsdlParser.WsdlNotFoundException | UnhandledWarningsException
+                             | InvalidUrlException | InvalidWsdlException
+                             | ServiceDescriptionService.WrongServiceDescriptionTypeException e) {
+                throw new BadRequestException(e);
+            } catch (ServiceDescriptionService.ServiceAlreadyExistsException
+                    | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
+                throw new ConflictException(e);
+            } catch (ServiceDescriptionNotFoundException e) {
+                throw new ResourceNotFoundException((DeviationAware) e);
+            }
+            serviceDescription = serviceDescriptionConverter.convert(updatedServiceDescription);
         } else if (serviceDescriptionUpdate.getType() == ServiceType.REST) {
             return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
         } else {
@@ -137,9 +162,21 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     @PreAuthorize("hasAuthority('REFRESH_WSDL')")
     public ResponseEntity<ServiceDescription> refreshServiceDescription(String id, IgnoreWarnings ignoreWarnings) {
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
-        ServiceDescription serviceDescription = serviceDescriptionConverter.convert(
-                serviceDescriptionService.refreshServiceDescription(serviceDescriptionId,
-                        ignoreWarnings.getIgnoreWarnings()));
+        ServiceDescription serviceDescription = null;
+        try {
+            serviceDescription = serviceDescriptionConverter.convert(
+                    serviceDescriptionService.refreshServiceDescription(serviceDescriptionId,
+                            ignoreWarnings.getIgnoreWarnings()));
+        } catch (WsdlParser.WsdlNotFoundException | UnhandledWarningsException
+                                     | InvalidUrlException | InvalidWsdlException
+                                     | ServiceDescriptionService.WrongServiceDescriptionTypeException e) {
+            throw new BadRequestException(e);
+        } catch (ServiceDescriptionService.ServiceAlreadyExistsException
+                | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
+            throw new ConflictException(e);
+        } catch (ServiceDescriptionNotFoundException e) {
+            throw new ResourceNotFoundException((DeviationAware) e);
+        }
         return new ResponseEntity<>(serviceDescription, HttpStatus.OK);
     }
 
@@ -179,14 +216,14 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     }
 
     /**
-     * return matching ServiceDescriptionType, or throw NotFoundException
+     * return matching ServiceDescriptionType, or throw ResourceNotFoundException
      */
     private ServiceDescriptionType getServiceDescriptionType(String id) {
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
         ServiceDescriptionType serviceDescriptionType =
                 serviceDescriptionService.getServiceDescriptiontype(serviceDescriptionId);
         if (serviceDescriptionType == null) {
-            throw new NotFoundException();
+            throw new ResourceNotFoundException();
         }
         return serviceDescriptionType;
     }

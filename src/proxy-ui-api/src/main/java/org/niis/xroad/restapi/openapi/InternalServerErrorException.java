@@ -22,8 +22,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.openapi;
 
+import org.niis.xroad.restapi.exceptions.DeviationAware;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -34,7 +37,12 @@ import java.util.Collection;
  * Results in http 500 INTERNAL_SERVER_ERROR
  */
 @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
-public class InternalServerErrorException extends DeviationAwareRuntimeException {
+public class InternalServerErrorException extends OpenApiException {
+
+    public InternalServerErrorException(DeviationAware deviations) {
+        super(deviations.getErrorDeviation(), deviations.getWarningDeviations());
+    }
+
     public InternalServerErrorException() {
     }
 
@@ -42,43 +50,33 @@ public class InternalServerErrorException extends DeviationAwareRuntimeException
         super(msg);
     }
 
-    public InternalServerErrorException(String msg, Error error) {
-        super(msg, error);
+    public InternalServerErrorException(String msg, Throwable t) {
+        super(msg, t);
     }
 
-    public InternalServerErrorException(String msg, Throwable t, Error error) {
-        super(msg, t, error);
+    public InternalServerErrorException(String msg, ErrorDeviation errorDeviation) {
+        super(msg, errorDeviation);
     }
 
-    public InternalServerErrorException(Throwable t, Error error, Collection<Warning> warnings) {
-        super(t, error, warnings);
+    public InternalServerErrorException(String msg, Throwable t, ErrorDeviation errorDeviation) {
+        super(msg, t, errorDeviation);
     }
 
-    public InternalServerErrorException(Error error, Collection<Warning> warnings) {
-        super(error, warnings);
+    public InternalServerErrorException(Throwable t, ErrorDeviation errorDeviation,
+            Collection<WarningDeviation> warningDeviations) {
+        super(t, errorDeviation, warningDeviations);
     }
 
-    public InternalServerErrorException(Error error) {
-        super(error);
+    public InternalServerErrorException(ErrorDeviation errorDeviation, Collection<WarningDeviation> warningDeviations) {
+        super(errorDeviation, warningDeviations);
     }
 
-    public InternalServerErrorException(Throwable t, Error error) {
-        super(t, error);
+    public InternalServerErrorException(ErrorDeviation errorDeviation) {
+        super(errorDeviation);
     }
 
-
-
-
-
-
-
-
-    /**
-     * Use deviation data from original exception
-     * @param e
-     */
-    public InternalServerErrorException(DeviationAwareRuntimeException e) {
-        this(e, e.getError(), e.getWarnings());
+    public InternalServerErrorException(Throwable t, ErrorDeviation errorDeviation) {
+        super(t, errorDeviation);
     }
 
 }

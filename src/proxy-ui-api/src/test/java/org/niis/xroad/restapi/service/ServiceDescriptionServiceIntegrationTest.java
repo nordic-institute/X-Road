@@ -34,7 +34,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.util.DeviationTestUtils;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,9 +109,8 @@ public class ServiceDescriptionServiceIntegrationTest {
             serviceDescriptionService.refreshServiceDescription(serviceDescriptionType.getId(),
                     false);
             fail("should throw exception warning about service addition");
-        } catch (DeviationAwareRuntimeException expected) {
-            DeviationTestUtils.assertErrorWithoutMetadata(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected);
-            assertEquals(1, expected.getWarnings().size());
+        } catch (UnhandledWarningsException expected) {
+            assertEquals(1, expected.getWarningDeviations().size());
             DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_ADDING_SERVICES, expected,
                     BIG_ATTACHMENT_V1_SERVICECODE, SMALL_ATTACHMENT_V1_SERVICECODE);
         }
@@ -147,9 +145,8 @@ public class ServiceDescriptionServiceIntegrationTest {
             serviceDescriptionService.refreshServiceDescription(serviceDescriptionType.getId(),
                     false);
             fail("should throw exception warning about service addition");
-        } catch (DeviationAwareRuntimeException expected) {
-            DeviationTestUtils.assertErrorWithoutMetadata(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected);
-            assertEquals(1, expected.getWarnings().size());
+        } catch (UnhandledWarningsException expected) {
+            assertEquals(1, expected.getWarningDeviations().size());
             DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_DELETING_SERVICES, expected,
                     BIG_ATTACHMENT_V1_SERVICECODE, SMALL_ATTACHMENT_V1_SERVICECODE);
         }
@@ -166,14 +163,14 @@ public class ServiceDescriptionServiceIntegrationTest {
     @WithMockUser(authorities = { "ADD_WSDL", "REFRESH_WSDL",
             "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
     public void refreshServiceDetectsAllWarnings() throws Exception {
-        // show warnings about
+        // show warningDeviations about
         // - add service
         // - remove service
-        // - validation warnings
+        // - validation warningDeviations
 
         // start with wsdl containing getrandom
         // then switch to one with smallattachment
-        // and mock some warnings
+        // and mock some warningDeviations
         File testServiceWsdl = tempFolder.newFile("test.wsdl");
         File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
         File smallWsdl = getTestResouceFile("wsdl/valid-smallattachment.wsdl");
@@ -194,11 +191,10 @@ public class ServiceDescriptionServiceIntegrationTest {
         try {
             serviceDescriptionService.refreshServiceDescription(serviceDescriptionType.getId(),
                     false);
-            fail("should get warnings");
-        } catch (DeviationAwareRuntimeException expected) {
-            // we should get 3 warnings
-            DeviationTestUtils.assertErrorWithoutMetadata(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected);
-            assertEquals(3, expected.getWarnings().size());
+            fail("should get warningDeviations");
+        } catch (UnhandledWarningsException expected) {
+            // we should get 3 warningDeviations
+            assertEquals(3, expected.getWarningDeviations().size());
             DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_ADDING_SERVICES, expected,
                     SMALL_ATTACHMENT_V1_SERVICECODE);
             DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_DELETING_SERVICES, expected,
@@ -219,7 +215,7 @@ public class ServiceDescriptionServiceIntegrationTest {
     @WithMockUser(authorities = { "ADD_WSDL", "REFRESH_WSDL",
             "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
     public void addWsdlServiceDescription() throws Exception {
-        // check that validation warnings work for adding, too
+        // check that validation warningDeviations work for adding, too
         File testServiceWsdl = tempFolder.newFile("test.wsdl");
         File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
         FileUtils.copyFile(getRandomWsdl, testServiceWsdl);
@@ -232,11 +228,10 @@ public class ServiceDescriptionServiceIntegrationTest {
         try {
             serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
                     url, false);
-            fail("should get warnings");
-        } catch (DeviationAwareRuntimeException expected) {
+            fail("should get warningDeviations");
+        } catch (UnhandledWarningsException expected) {
             // we should get 1 warning
-            DeviationTestUtils.assertErrorWithoutMetadata(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected);
-            assertEquals(1, expected.getWarnings().size());
+            assertEquals(1, expected.getWarningDeviations().size());
             DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_WSDL_VALIDATION_WARNINGS, expected,
                     "mock warning", "mock warning 2");
         }
@@ -257,7 +252,7 @@ public class ServiceDescriptionServiceIntegrationTest {
     public void updateWsdlUrlWithWarnings() throws Exception {
         // start with wsdl containing getrandom
         // then switch to one with smallattachment
-        // and mock some warnings
+        // and mock some warningDeviations
         File oldTestServiceWsdl = tempFolder.newFile("old-test.wsdl");
         File newTestServiceWsdl = tempFolder.newFile("new-test.wsdl");
         File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
@@ -279,11 +274,10 @@ public class ServiceDescriptionServiceIntegrationTest {
         try {
             serviceDescriptionService.updateWsdlUrl(serviceDescriptionType.getId(),
                     newUrl, false);
-            fail("should get warnings");
-        } catch (DeviationAwareRuntimeException expected) {
-            // we should get 3 warnings
-            DeviationTestUtils.assertErrorWithoutMetadata(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected);
-            assertEquals(3, expected.getWarnings().size());
+            fail("should get warningDeviations");
+        } catch (UnhandledWarningsException expected) {
+            // we should get 3 warningDeviations
+            assertEquals(3, expected.getWarningDeviations().size());
             DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_ADDING_SERVICES, expected,
                     SMALL_ATTACHMENT_V1_SERVICECODE);
             DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_DELETING_SERVICES, expected,
@@ -292,7 +286,7 @@ public class ServiceDescriptionServiceIntegrationTest {
                     "mock warning", "mock warning 2");
         }
 
-        // ignore warnings is tested with updateWsdlUrlAndIgnoreWarnings
+        // ignore warningDeviations is tested with updateWsdlUrlAndIgnoreWarnings
     }
 
     /**
@@ -305,7 +299,7 @@ public class ServiceDescriptionServiceIntegrationTest {
     public void updateWsdlUrlAndIgnoreWarnings() throws Exception {
         // start with wsdl containing getrandom
         // then switch to one with smallattachment
-        // and mock some warnings
+        // and mock some warningDeviations
         File oldTestServiceWsdl = tempFolder.newFile("old-test.wsdl");
         File newTestServiceWsdl = tempFolder.newFile("new-test.wsdl");
         File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");

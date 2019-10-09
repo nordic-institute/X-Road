@@ -22,24 +22,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.service;
+
+import org.niis.xroad.restapi.exceptions.DeviationAwareException;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.WarningDeviation;
 
 import java.util.Collection;
 
 /**
- * A thing (an Exception) which (possibly) knows the detailed error code & metadata,
- * and warning codes & metadata, to send in REST API response body
+ * Root class for all checked service layer exceptions
  */
-public interface DeviationAware {
-    /**
-     * Return the error details, if any
-     * @return
-     */
-    ErrorDeviation getErrorDeviation();
+public abstract class ServiceException extends DeviationAwareException {
 
-    /**
-     * Return warningDeviations, if any
-     * @return
-     */
-    Collection<WarningDeviation> getWarningDeviations();
+    public ServiceException(String msg, Throwable t, ErrorDeviation errorDeviation) {
+        super(msg, t, errorDeviation);
+    }
+
+    public ServiceException(String msg, Throwable t, ErrorDeviation errorDeviation,
+            Collection<WarningDeviation> warningDeviations) {
+        super(msg, t, errorDeviation, warningDeviations);
+    }
+
+    public ServiceException(ErrorDeviation errorDeviation, Collection<WarningDeviation> warningDeviations) {
+        super(errorDeviation, warningDeviations);
+    }
+
+    public ServiceException(Throwable t, ErrorDeviation errorDeviation) {
+        super(t, errorDeviation);
+    }
+
+    public ServiceException(Throwable t, ErrorDeviation errorDeviation,
+            Collection<WarningDeviation> warningDeviations) {
+        super(t, errorDeviation, warningDeviations);
+    }
+
+    public ServiceException(ErrorDeviation errorDeviation) {
+        super(errorDeviation);
+    }
+
+    public ServiceException(String msg, ErrorDeviation errorDeviation) {
+        super(msg, errorDeviation);
+    }
+
+
+
 }

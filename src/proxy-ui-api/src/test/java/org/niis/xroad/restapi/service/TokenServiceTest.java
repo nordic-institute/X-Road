@@ -107,7 +107,7 @@ public class TokenServiceTest {
 
     @Test
     @WithMockUser(authorities = { "ACTIVATE_TOKEN" })
-    public void activateToken() {
+    public void activateToken() throws Exception {
         char[] password = "foobar".toCharArray();
         tokenService.activateToken("token-should-be-activatable", password);
 
@@ -126,9 +126,9 @@ public class TokenServiceTest {
         try {
             tokenService.activateToken(UNKNOWN_LOGIN_FAIL, password);
             fail("should have thrown exception");
-        } catch (TokenService.UnspecifiedCoreCodedException expected) {
-            assertEquals("core." + LOGIN_FAILED_FAULT_CODE, expected.getError().getCode());
-            assertEquals("dont know what happened", expected.getError().getMetadata().iterator().next());
+        } catch (CodedException expected) {
+            assertEquals(LOGIN_FAILED_FAULT_CODE, expected.getFaultCode());
+            assertEquals("dont know what happened", expected.getFaultString());
         }
 
         try {
@@ -140,16 +140,16 @@ public class TokenServiceTest {
         try {
             tokenService.activateToken(UNRECOGNIZED_FAULT_CODE, password);
             fail("should have thrown exception");
-        } catch (TokenService.UnspecifiedCoreCodedException expected) {
-            assertEquals("core.foo", expected.getError().getCode());
-            assertEquals("bar", expected.getError().getMetadata().iterator().next());
+        } catch (CodedException expected) {
+            assertEquals("foo", expected.getFaultCode());
+            assertEquals("bar", expected.getFaultString());
         }
 
     }
 
     @Test
     @WithMockUser(authorities = { "DEACTIVATE_TOKEN" })
-    public void deactiveToken() {
+    public void deactiveToken() throws Exception {
         tokenService.deactivateToken("token-should-be-deactivatable");
 
         try {
@@ -161,9 +161,9 @@ public class TokenServiceTest {
         try {
             tokenService.deactivateToken(UNRECOGNIZED_FAULT_CODE);
             fail("should have thrown exception");
-        } catch (TokenService.UnspecifiedCoreCodedException expected) {
-            assertEquals("core.foo", expected.getError().getCode());
-            assertEquals("bar", expected.getError().getMetadata().iterator().next());
+        } catch (CodedException expected) {
+            assertEquals("foo", expected.getFaultCode());
+            assertEquals("bar", expected.getFaultString());
         }
     }
 }

@@ -22,36 +22,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.service;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-import java.util.Collection;
+public class InvalidUrlException extends ServiceException {
 
-/**
- * Thrown if there was a conflict, for example tried to add an item which already exists.
- * Results in http 409 CONFLICT
- */
-@ResponseStatus(value = HttpStatus.CONFLICT)
-public class ConflictException extends DeviationAwareRuntimeException {
-    public ConflictException() {
+    public static final String ERROR_MALFORMED_URL = "malformed_url";
+
+
+    public InvalidUrlException() {
+        super(createError());
     }
 
-    public ConflictException(String msg) {
-        super(msg);
+    public InvalidUrlException(String s) {
+        super(s, createError());
     }
 
-    public ConflictException(Error error, Collection<Warning> warnings) {
-        super(error, warnings);
-    }
-
-    public ConflictException(String msg, Error error) {
-        super(msg, error);
-    }
-
-    public ConflictException(Error error) {
-        super(error);
+    private static ErrorDeviation createError() {
+        return new ErrorDeviation(ERROR_MALFORMED_URL);
     }
 
 }
