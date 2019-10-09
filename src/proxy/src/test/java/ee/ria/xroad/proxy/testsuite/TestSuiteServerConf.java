@@ -49,6 +49,7 @@ public class TestSuiteServerConf extends EmptyServerConf {
     private static final String SERVICE1 = "SERVICE1";
     private static final String SERVICE2 = "SERVICE2";
     private static final String SERVICE3 = "SERVICE3";
+    private static final String SERVICE4 = "SERVICE4";
 
     @Override
     public SecurityServerId getIdentifier() {
@@ -108,6 +109,9 @@ public class TestSuiteServerConf extends EmptyServerConf {
         if (descriptionType == DescriptionType.OPENAPI3_DESCRIPTION) {
             list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE3));
         }
+        if (descriptionType == DescriptionType.WSDL) {
+            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE4));
+        }
         return list;
     }
 
@@ -120,6 +124,9 @@ public class TestSuiteServerConf extends EmptyServerConf {
         }
         if (descriptionType == DescriptionType.OPENAPI3_DESCRIPTION) {
             list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE3));
+        }
+        if (descriptionType == DescriptionType.WSDL) {
+            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE4));
         }
         return list;
     }
