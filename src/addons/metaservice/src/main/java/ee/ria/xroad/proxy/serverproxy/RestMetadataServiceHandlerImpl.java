@@ -160,6 +160,8 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         MethodListType methodList = OBJECT_FACTORY.createMethodListType();
         methodList.getService().addAll(ServerConf.getServicesByDescriptionType(
                 requestProxyMessage.getRest().getServiceId().getClientId(), DescriptionType.OPENAPI3));
+        methodList.getService().addAll(ServerConf.getServicesByDescriptionType(
+                requestProxyMessage.getRest().getServiceId().getClientId(), DescriptionType.OPENAPI3_DESCRIPTION));
         MAPPER.writeValue(restResponseBody, methodList);
     }
 
@@ -170,6 +172,10 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
                 requestProxyMessage.getRest().getServiceId().getClientId(),
                 requestProxyMessage.getRest().getClientId(),
                 DescriptionType.OPENAPI3));
+        methodList.getService().addAll(ServerConf.getAllowedServicesByDescriptionType(
+                requestProxyMessage.getRest().getServiceId().getClientId(),
+                requestProxyMessage.getRest().getClientId(),
+                DescriptionType.OPENAPI3_DESCRIPTION));
         MAPPER.writeValue(restResponseBody, methodList);
     }
 
