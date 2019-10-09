@@ -96,7 +96,7 @@ public class TokensApiController implements TokensApi {
     @PreAuthorize("hasAuthority('DEACTIVATE_TOKEN')")
     @Override
     public ResponseEntity<Token> logoutToken(String id) {
-        tokenService.deactiveToken(id);
+        tokenService.deactivateToken(id);
         Token token = getTokenFromService(id);
         return new ResponseEntity<>(token, HttpStatus.OK);
     }

@@ -26,7 +26,6 @@ package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.commonui.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
@@ -36,6 +35,7 @@ import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.Error;
 import org.niis.xroad.restapi.exceptions.InternalServerErrorException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,13 +49,24 @@ import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_FOUND;
 import static java.util.stream.Collectors.toList;
 
 /**
- * Service that handles tokens (acts as a wrapper to SignerProxy)
+ * Service that handles tokens
  */
 @Slf4j
 @Service
 @Transactional
 @PreAuthorize("denyAll")
 public class TokenService {
+
+    private final SignerProxyFacadeService signerProxyFacadeService;
+
+    /**
+     * TokenService constructor
+     * @param signerProxyFacadeService
+     */
+    @Autowired
+    public TokenService(SignerProxyFacadeService signerProxyFacadeService) {
+        this.signerProxyFacadeService = signerProxyFacadeService;
+    }
 
     /**
      * get all tokens
@@ -65,7 +76,7 @@ public class TokenService {
      */
     @PreAuthorize("hasAuthority('VIEW_KEYS')")
     public List<TokenInfo> getAllTokens() throws Exception {
-        return SignerProxy.getTokens();
+        return signerProxyFacadeService.getTokens();
     }
 
     /**
@@ -100,7 +111,7 @@ public class TokenService {
     public void activateToken(String id, char[] password) throws TokenNotFoundException,
             PinIncorrectException, UnspecifiedCoreCodedException {
         try {
-            SignerProxy.activateToken(id, password);
+            signerProxyFacadeService.activateToken(id, password);
         } catch (CodedException e) {
             throw mapToDeviationAwareRuntimeException(e);
         } catch (Exception other) {
@@ -117,9 +128,9 @@ public class TokenService {
      * for example core.Signer.LoginFailed
      */
     @PreAuthorize("hasAuthority('DEACTIVATE_TOKEN')")
-    public void deactiveToken(String id) throws TokenNotFoundException, UnspecifiedCoreCodedException {
+    public void deactivateToken(String id) throws TokenNotFoundException, UnspecifiedCoreCodedException {
         try {
-            SignerProxy.deactivateToken(id);
+            signerProxyFacadeService.deactivateToken(id);
         } catch (CodedException e) {
             throw mapToDeviationAwareRuntimeException(e);
         } catch (Exception other) {
@@ -138,7 +149,7 @@ public class TokenService {
     @PreAuthorize("hasAnyAuthority('ACTIVATE_TOKEN','DEACTIVATE_TOKEN')")
     public TokenInfo getToken(String id) throws TokenNotFoundException, UnspecifiedCoreCodedException {
         try {
-            return SignerProxy.getToken(id);
+            return signerProxyFacadeService.getToken(id);
         } catch (CodedException e) {
             throw mapToDeviationAwareRuntimeException(e);
         } catch (Exception other) {
@@ -178,10 +189,10 @@ public class TokenService {
     }
 
     // detect a couple of CodedException error codes from core
-    private static final String PIN_INCORRECT_FAULT_CODE = SIGNER_X + "." + X_PIN_INCORRECT;
-    private static final String TOKEN_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_TOKEN_NOT_FOUND;
-    private static final String LOGIN_FAILED_FAULT_CODE = SIGNER_X + "." + X_LOGIN_FAILED;
-    private static final String CKR_PIN_INCORRECT_MESSAGE = "Login failed: CKR_PIN_INCORRECT";
+    static final String PIN_INCORRECT_FAULT_CODE = SIGNER_X + "." + X_PIN_INCORRECT;
+    static final String TOKEN_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_TOKEN_NOT_FOUND;
+    static final String LOGIN_FAILED_FAULT_CODE = SIGNER_X + "." + X_LOGIN_FAILED;
+    static final String CKR_PIN_INCORRECT_MESSAGE = "Login failed: CKR_PIN_INCORRECT";
 
     public static final String ERROR_PIN_INCORRECT = "tokens.login_failed_pin_incorrect";
 
