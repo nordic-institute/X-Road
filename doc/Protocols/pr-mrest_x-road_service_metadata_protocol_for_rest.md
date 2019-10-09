@@ -5,7 +5,7 @@
 # X-Road: Service Metadata Protocol for REST <!-- omit in toc --> 
 **Technical Specification**  
 
-Version: 0.2  
+Version: 0.3  
 Doc. ID: PR-MREST  
 
 ---
@@ -16,7 +16,8 @@ Doc. ID: PR-MREST
  ---------- | ------- | --------------------------------------------------------------- | --------------------
  29.07.2019 | 0.1     | Initial version                                                 | Ilkka Seppälä
  06.08.2019 | 0.2     | Add getOpenAPI description                                      | Ilkka Seppälä
- 
+ 09.10.2019 | 0.3     | Clarify the listCentralServices response type                   | Jarkko Hyöty
+
 ## Table of Contents <!-- omit in toc --> 
 
 - [License](#license)
@@ -66,6 +67,7 @@ For retrieving the list of service providers listClients metaservice is used. It
 ## 3 Retrieving List of Central Services
 
 For retrieving the list of central services listCentralServices metaservice is used. It can be invoked with simple HTTP GET to right URL. The details of listCentralServices are described in \[[PR-META](#Ref_PR-META)\].
+Note. The listCentralServices metaservice ignores the Accept header and returns an XML response (the REST interface does not support central services).
 
 ## 4 Retrieving List of Services
 
