@@ -35,6 +35,7 @@ import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.Error;
 import org.niis.xroad.restapi.exceptions.InternalServerErrorException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -57,15 +58,15 @@ import static java.util.stream.Collectors.toList;
 @PreAuthorize("denyAll")
 public class TokenService {
 
-    private final SignerProxyFacadeService signerProxyFacadeService;
+    private final SignerProxyFacade signerProxyFacade;
 
     /**
      * TokenService constructor
-     * @param signerProxyFacadeService
+     * @param signerProxyFacade
      */
     @Autowired
-    public TokenService(SignerProxyFacadeService signerProxyFacadeService) {
-        this.signerProxyFacadeService = signerProxyFacadeService;
+    public TokenService(SignerProxyFacade signerProxyFacade) {
+        this.signerProxyFacade = signerProxyFacade;
     }
 
     /**
@@ -76,7 +77,7 @@ public class TokenService {
      */
     @PreAuthorize("hasAuthority('VIEW_KEYS')")
     public List<TokenInfo> getAllTokens() throws Exception {
-        return signerProxyFacadeService.getTokens();
+        return signerProxyFacade.getTokens();
     }
 
     /**
@@ -88,7 +89,7 @@ public class TokenService {
      * @throws Exception
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
-    public List<CertificateInfo> getAllTokens(ClientType clientType) throws Exception {
+    public List<CertificateInfo> getAllCertificates(ClientType clientType) throws Exception {
         List<TokenInfo> tokenInfos = getAllTokens();
         return tokenInfos.stream()
                 .flatMap(tokenInfo -> tokenInfo.getKeyInfo().stream())
@@ -111,7 +112,7 @@ public class TokenService {
     public void activateToken(String id, char[] password) throws TokenNotFoundException,
             PinIncorrectException, UnspecifiedCoreCodedException {
         try {
-            signerProxyFacadeService.activateToken(id, password);
+            signerProxyFacade.activateToken(id, password);
         } catch (CodedException e) {
             throw mapToDeviationAwareRuntimeException(e);
         } catch (Exception other) {
@@ -130,7 +131,7 @@ public class TokenService {
     @PreAuthorize("hasAuthority('DEACTIVATE_TOKEN')")
     public void deactivateToken(String id) throws TokenNotFoundException, UnspecifiedCoreCodedException {
         try {
-            signerProxyFacadeService.deactivateToken(id);
+            signerProxyFacade.deactivateToken(id);
         } catch (CodedException e) {
             throw mapToDeviationAwareRuntimeException(e);
         } catch (Exception other) {
@@ -149,7 +150,7 @@ public class TokenService {
     @PreAuthorize("hasAnyAuthority('ACTIVATE_TOKEN','DEACTIVATE_TOKEN')")
     public TokenInfo getToken(String id) throws TokenNotFoundException, UnspecifiedCoreCodedException {
         try {
-            return signerProxyFacadeService.getToken(id);
+            return signerProxyFacade.getToken(id);
         } catch (CodedException e) {
             throw mapToDeviationAwareRuntimeException(e);
         } catch (Exception other) {

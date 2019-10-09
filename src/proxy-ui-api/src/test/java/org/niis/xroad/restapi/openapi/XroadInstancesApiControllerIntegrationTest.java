@@ -27,7 +27,7 @@ package org.niis.xroad.restapi.openapi;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.service.GlobalConfService;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -52,7 +52,7 @@ import static org.mockito.Mockito.when;
 public class XroadInstancesApiControllerIntegrationTest {
 
     @MockBean
-    private GlobalConfService globalConfService;
+    private GlobalConfFacade globalConfFacade;
 
     private static final String INSTANCE_A = "instance_a";
     private static final String INSTANCE_B = "instance_b";
@@ -64,7 +64,7 @@ public class XroadInstancesApiControllerIntegrationTest {
 
     @Before
     public void setup() throws Exception {
-        when(globalConfService.getInstanceIdentifiers()).thenReturn(INSTANCE_IDS);
+        when(globalConfFacade.getInstanceIdentifiers()).thenReturn(INSTANCE_IDS);
     }
 
     @Test

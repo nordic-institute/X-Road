@@ -38,6 +38,7 @@ import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
@@ -48,7 +49,6 @@ import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
-import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.TestUtils;
@@ -69,6 +69,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -78,6 +79,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.service.ServiceDescriptionService.ERROR_INVALID_WSDL;
 import static org.niis.xroad.restapi.service.ServiceDescriptionService.ERROR_SERVICE_EXISTS;
@@ -115,7 +117,7 @@ public class ClientsApiControllerIntegrationTest {
     private static final String SUBSYSTEM3 = "SS3";
 
     @MockBean
-    private GlobalConfService globalConfService;
+    private GlobalConfFacade globalConfFacade;
 
     @MockBean
     private TokenService tokenService;
@@ -126,13 +128,13 @@ public class ClientsApiControllerIntegrationTest {
 
     @Before
     public void setup() throws Exception {
-        when(globalConfService.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
+        when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
             Object[] args = invocation.getArguments();
             ClientId identifier = (ClientId) args[0];
             return identifier.getSubsystemCode() != null ? identifier.getSubsystemCode() + NAME_APPENDIX
                     : "test-member" + NAME_APPENDIX;
         });
-        when(globalConfService.getGlobalMembers(any())).thenReturn(new ArrayList<>(Arrays.asList(
+        when(globalConfFacade.getMembers(any())).thenReturn(new ArrayList<>(Arrays.asList(
                 TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, null),
                 TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1),
                 TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM2),
@@ -228,7 +230,8 @@ public class ClientsApiControllerIntegrationTest {
                 ClientId.create("FI", "GOV", "M1"),
                 true, true, CertificateInfo.STATUS_REGISTERED,
                 "id", CertificateTestUtils.getMockCertificateBytes(), null);
-        when(tokenService.getAllTokens()).thenReturn(createMockTokenInfos(mockCertificate));
+        doAnswer(invocation -> Collections.singletonList(mockCertificate))
+                .when(tokenService).getAllCertificates(any());
         certificates = clientsApiController.getClientCertificates("FI:GOV:M1");
         assertEquals(HttpStatus.OK, certificates.getStatusCode());
         assertEquals(1, certificates.getBody().size());

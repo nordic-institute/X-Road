@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package org.niis.xroad.restapi.facade;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.commonui.SignerProxy;
@@ -32,20 +32,19 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
 
 /**
- * SignerProxy wrapper service.
+ * SignerProxy facade.
  * Pure facade / wrapper, just delegates to SignerProxy. Zero business logic.
  * Exists to make testing easier by offering non-static methods.
- * to do: not a Service, but a Facade
  */
 @Slf4j
-@Service
-public class SignerProxyFacadeService {
+@Component
+public class SignerProxyFacade {
     /**
      * {@link SignerProxy#initSoftwareToken(char[])}
      */

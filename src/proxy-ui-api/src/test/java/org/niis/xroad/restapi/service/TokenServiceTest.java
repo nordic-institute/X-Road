@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -69,7 +70,7 @@ public class TokenServiceTest {
     private TokenService tokenService;
 
     @MockBean
-    private SignerProxyFacadeService signerProxyFacadeService;
+    private SignerProxyFacade signerProxyFacade;
 
     @Before
     public void setup() throws Exception {
@@ -90,7 +91,7 @@ public class TokenServiceTest {
                 log.debug("activate successful");
             }
             return null;
-        }).when(signerProxyFacadeService).activateToken(any(), any());
+        }).when(signerProxyFacade).activateToken(any(), any());
 
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
@@ -103,7 +104,7 @@ public class TokenServiceTest {
                 log.debug("deactivate successful");
             }
             return null;
-        }).when(signerProxyFacadeService).deactivateToken(any());
+        }).when(signerProxyFacade).deactivateToken(any());
     }
 
     @Test

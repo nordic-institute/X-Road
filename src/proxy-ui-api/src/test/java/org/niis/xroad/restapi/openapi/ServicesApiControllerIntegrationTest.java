@@ -33,6 +33,7 @@ import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
@@ -40,7 +41,6 @@ import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.openapi.model.Subjects;
 import org.niis.xroad.restapi.service.ClientService;
-import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.ServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -94,17 +94,17 @@ public class ServicesApiControllerIntegrationTest {
     private ServicesApiController servicesApiController;
 
     @MockBean
-    private GlobalConfService globalConfService;
+    private GlobalConfFacade globalConfFacade;
 
     @Before
     public void setup() {
-        when(globalConfService.getGlobalGroupDescription(any())).thenAnswer((Answer<String>) invocation -> {
+        when(globalConfFacade.getGlobalGroupDescription(any())).thenAnswer((Answer<String>) invocation -> {
             Object[] args = invocation.getArguments();
             GlobalGroupId id = (GlobalGroupId) args[0];
             return NAME_FOR + id.getGroupCode();
         });
 
-        when(globalConfService.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
+        when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
             Object[] args = invocation.getArguments();
             ClientId identifier = (ClientId) args[0];
             return NAME_FOR + identifier.toShortString().replace("/", ":");
