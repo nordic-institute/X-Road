@@ -32,7 +32,6 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -42,10 +41,10 @@ import java.util.List;
  * SignerProxy wrapper service.
  * Pure facade / wrapper, just delegates to SignerProxy. Zero business logic.
  * Exists to make testing easier by offering non-static methods.
+ * to do: not a Service, but a Facade
  */
 @Slf4j
 @Service
-@PreAuthorize("denyAll")
 public class SignerProxyFacadeService {
     /**
      * {@link SignerProxy#initSoftwareToken(char[])}
@@ -79,21 +78,21 @@ public class SignerProxyFacadeService {
      * {@link SignerProxy#deactivateToken(String)}
      */
     public void deactivateToken(String tokenId) throws Exception {
-        deactivateToken(tokenId);
+        SignerProxy.deactivateToken(tokenId);
     }
 
     /**
      * {@link SignerProxy#setTokenFriendlyName(String, String)}
      */
     public void setTokenFriendlyName(String tokenId, String friendlyName) throws Exception {
-        setTokenFriendlyName(tokenId, friendlyName);
+        SignerProxy.setTokenFriendlyName(tokenId, friendlyName);
     }
 
     /**
      * {@link SignerProxy#setKeyFriendlyName(String, String)}
      */
     public void setKeyFriendlyName(String keyId, String friendlyName) throws Exception {
-        setKeyFriendlyName(keyId, friendlyName);
+        SignerProxy.setKeyFriendlyName(keyId, friendlyName);
     }
 
     /**
@@ -108,7 +107,7 @@ public class SignerProxyFacadeService {
      */
     public byte[] generateSelfSignedCert(String keyId, ClientId memberId, KeyUsageInfo keyUsage,
             String commonName, Date notBefore, Date notAfter) throws Exception {
-        return generateSelfSignedCert(keyId, memberId, keyUsage,
+        return SignerProxy.generateSelfSignedCert(keyId, memberId, keyUsage,
                 commonName, notBefore, notAfter);
     }
 
