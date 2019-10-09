@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.30-UI
+Version: 2.31
 Doc. ID: UG-SS
 
 ---
@@ -64,6 +64,7 @@ Doc. ID: UG-SS
  01.07.2019 | 2.29    | Changing the Security Server Owner chapter added (Chapter [3.4](#34-changing-the-security-server-owner)) | Petteri Kivimäki
  14.08.2019 | 2.30    | Added automatic backups | Ilkka Seppälä
  29.09.2019 | 2.30-UI    | Added chapter [19.3](#193-correlation-id-http-header) on REST API correlation id | Janne Mattila
+ 30.09.2019 | 2.31    | Added remote database migration guide | Ilkka Seppälä
 
 ## Table of Contents <!-- omit in toc --> 
 
@@ -179,6 +180,7 @@ Doc. ID: UG-SS
     * [19.1.4 API key caching](#1914-api-key-caching)
   * [19.2 Executing REST calls](#192-executing-rest-calls)
   * [19.3 Correlation ID HTTP header](#193-correlation-id-http-header)
+* [20 Migrating to Remote Database Host](#20-migrating-to-remote-database-host)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -1984,3 +1986,93 @@ For example, these log messages are related to an API call with correlation ID `
 2019-08-26 13:16:23,611 [https-jsse-nio-4000-exec-10] correlation-id:[3d5f193102435242] WARN  o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [org.niis.xroad.restapi.exceptions.ConflictException: local group with code koodi6 already added]
 2019-08-26 13:16:23,611 [https-jsse-nio-4000-exec-10] correlation-id:[3d5f193102435242] DEBUG o.s.s.w.a.ExceptionTranslationFilter - Chain processed normally
 ```
+
+## 20 Migrating to Remote Database Host
+
+Since version `6.22.0` Security Server supports using remote databases. In case you have an already running Security Server with local database, it is possible to migrate it to use remote database host instead. The instructions for this process are listed below.
+
+1. Shutdown X-Road processes.
+
+    ```
+    systemctl stop "xroad*"
+    ```
+
+2. Dump the local databases to be migrated. You can find the passwords of users `serverconf`, `messagelog` and `opmonitor` in `/etc/xroad/db.properties`. Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match. Also take into account that on a busy system the messagelog database can be quite large and therefore dump and restore can take considerable amount of time and disk space.
+
+    ```
+    pg_dump -F t -h 127.0.0.1 -p 5432 -U serverconf -f serverconf.dat serverconf
+    pg_dump -F t -h 127.0.0.1 -p 5432 -U messagelog -f messagelog.dat messagelog
+    pg_dump -F t -h 127.0.0.1 -p 5432 -U opmonitor_admin -f op-monitor.dat op-monitor
+    ```
+
+3. Shut down and mask local `postgresql` so it won't start when `xroad-proxy` starts.
+
+    ```
+    systemctl stop postgresql
+    systemctl mask postgresql
+    ```
+
+4. Connect to the remote database server as the superuser `postgres` and create roles, databases and access permissions as follows. Note that the line `GRANT serverconf to postgres` is AWS RDS specific and not necessary if the `postgres` user is a true super-user.
+
+    ```
+    psql -h <remote-db-url> -p <remote-db-port> -U postgres
+    CREATE ROLE serverconf LOGIN PASSWORD '<serverconf-password>';
+    GRANT serverconf to postgres;
+    CREATE DATABASE serverconf OWNER serverconf ENCODING 'UTF-8';
+    \c serverconf
+    CREATE EXTENSION IF NOT EXISTS hstore;
+    \c postgres
+
+    CREATE ROLE messagelog LOGIN PASSWORD '<messagelog-password>';
+    GRANT messagelog to postgres;
+    CREATE DATABASE messagelog OWNER messagelog ENCODING 'UTF-8';
+
+    CREATE ROLE opmonitor_admin LOGIN PASSWORD '<opmonitor_admin-password>';
+    CREATE ROLE opmonitor LOGIN PASSWORD '<opmonitor-password>';
+    GRANT opmonitor_admin to postgres;
+    CREATE DATABASE "op-monitor" OWNER opmonitor_admin ENCODING "UTF-8";
+    grant usage on schema public to opmonitor;
+    ```
+
+5. Restore the database dumps on the remote database host.
+
+    ```
+    pg_restore -h <remote-db-url> -p <remote-db-port> -U serverconf -O -n public -1 -d serverconf serverconf.dat
+    pg_restore -h <remote-db-url> -p <remote-db-port> -U messagelog -O -n public -1 -d messagelog messagelog.dat
+    pg_restore -h <remote-db-url> -p <remote-db-port> -U opmonitor_admin -O -n public -1 -d op-monitor op-monitor.dat
+    ```
+
+6. Create properties file `/etc/xroad.properties` containing the superuser password.
+
+    ```
+    sudo touch /etc/xroad.properties
+    sudo chown root:root /etc/xroad.properties
+    sudo chmod 600 /etc/xroad.properties
+    ```
+
+7. Edit `/etc/xroad.properties`.
+
+    ```
+    postgres.connection.password = <postgres-password>
+    op-monitor.database.admin_password = <opmonitor_admin-password>
+    serverconf.database.initialized = true
+    messagelog.database.initialized = true
+    op-monitor.database.initialized = true
+    ```
+
+8. Update `/etc/xroad/db.properties` contents with correct database host URLs and passwords.
+
+    ```
+    serverconf.hibernate.connection.url = jdbc:postgresql://<remote-db-url>:<remote-db-port>/serverconf
+    messagelog.hibernate.connection.url = jdbc:postgresql://<remote-db-url>:<remote-db-port>/messagelog
+    op-monitor.hibernate.connection.url = jdbc:postgresql://<remote-db-url>:<remote-db-port>/op-monitor
+    serverconf.hibernate.connection.password = <serverconf-password>
+    messagelog.hibernate.connection.password = <messagelog-password>
+    op-monitor.hibernate.connection.password = <opmonitor-password>
+    ```
+
+9. Start again the X-Road services.
+
+    ```
+    systemctl start "xroad*"
+    ```
