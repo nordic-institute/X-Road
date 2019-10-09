@@ -180,7 +180,7 @@ Doc. ID: UG-SS
     * [19.1.4 API key caching](#1914-api-key-caching)
   * [19.2 Executing REST calls](#192-executing-rest-calls)
   * [19.3 Correlation ID HTTP header](#193-correlation-id-http-header)
-* [20 Migrating to Remote Database Host](#19-migrating-to-remote-database-host)
+* [20 Migrating to Remote Database Host](#20-migrating-to-remote-database-host)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
