@@ -28,5 +28,5 @@ package ee.ria.xroad.common.conf.serverconf.model;
  * Type of service description
  */
 public enum DescriptionType {
-    WSDL, OPENAPI3, OPENAPI3_DESCRIPTION
+    WSDL, REST, OPENAPI3
 }

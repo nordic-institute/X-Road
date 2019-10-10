@@ -102,11 +102,11 @@ public class TestSuiteServerConf extends EmptyServerConf {
     @Override
     public List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
         List<ServiceId> list = new ArrayList<>();
-        if (descriptionType == DescriptionType.OPENAPI3) {
+        if (descriptionType == DescriptionType.REST) {
             list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE1));
             list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE2));
         }
-        if (descriptionType == DescriptionType.OPENAPI3_DESCRIPTION) {
+        if (descriptionType == DescriptionType.OPENAPI3) {
             list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE3));
         }
         if (descriptionType == DescriptionType.WSDL) {
@@ -119,10 +119,10 @@ public class TestSuiteServerConf extends EmptyServerConf {
     public List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
                                                                DescriptionType descriptionType) {
         List<ServiceId> list = new ArrayList<>();
-        if (descriptionType == DescriptionType.OPENAPI3) {
+        if (descriptionType == DescriptionType.REST) {
             list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE2));
         }
-        if (descriptionType == DescriptionType.OPENAPI3_DESCRIPTION) {
+        if (descriptionType == DescriptionType.OPENAPI3) {
             list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE3));
         }
         if (descriptionType == DescriptionType.WSDL) {

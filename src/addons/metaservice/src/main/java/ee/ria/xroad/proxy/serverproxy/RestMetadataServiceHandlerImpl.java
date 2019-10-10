@@ -159,9 +159,9 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         restResponse.getHeaders().add(new BasicHeader(MimeUtils.HEADER_CONTENT_TYPE, MimeTypes.JSON));
         MethodListType methodList = OBJECT_FACTORY.createMethodListType();
         methodList.getService().addAll(ServerConf.getServicesByDescriptionType(
-                requestProxyMessage.getRest().getServiceId().getClientId(), DescriptionType.OPENAPI3));
+                requestProxyMessage.getRest().getServiceId().getClientId(), DescriptionType.REST));
         methodList.getService().addAll(ServerConf.getServicesByDescriptionType(
-                requestProxyMessage.getRest().getServiceId().getClientId(), DescriptionType.OPENAPI3_DESCRIPTION));
+                requestProxyMessage.getRest().getServiceId().getClientId(), DescriptionType.OPENAPI3));
         MAPPER.writeValue(restResponseBody, methodList);
     }
 
@@ -171,11 +171,11 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         methodList.getService().addAll(ServerConf.getAllowedServicesByDescriptionType(
                 requestProxyMessage.getRest().getServiceId().getClientId(),
                 requestProxyMessage.getRest().getClientId(),
-                DescriptionType.OPENAPI3));
+                DescriptionType.REST));
         methodList.getService().addAll(ServerConf.getAllowedServicesByDescriptionType(
                 requestProxyMessage.getRest().getServiceId().getClientId(),
                 requestProxyMessage.getRest().getClientId(),
-                DescriptionType.OPENAPI3_DESCRIPTION));
+                DescriptionType.OPENAPI3));
         MAPPER.writeValue(restResponseBody, methodList);
     }
 
@@ -205,7 +205,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
             throw new CodedException(X_INTERNAL_ERROR,
                     String.format("Service not found: %s", targetServiceId.toString()));
         }
-        if (descriptionType != DescriptionType.OPENAPI3_DESCRIPTION) {
+        if (descriptionType != DescriptionType.OPENAPI3) {
             throw new CodedException(X_INTERNAL_ERROR,
                     String.format("Invalid service type: %s", descriptionType.toString()));
         }
