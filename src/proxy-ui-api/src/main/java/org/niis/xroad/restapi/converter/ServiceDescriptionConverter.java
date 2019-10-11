@@ -26,12 +26,12 @@ package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 
+import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,13 +52,14 @@ public class ServiceDescriptionConverter {
     }
 
     /**
-     * Converts a collection of ServiceDescriptionTypes to a list of ServiceDescriptions
+     * Converts a group of ServiceDescriptionTypes to a list of ServiceDescriptions
      * @param serviceDescriptionTypes
      * @return
      */
-    public List<ServiceDescription> convert(Collection<ServiceDescriptionType> serviceDescriptionTypes) {
-        return serviceDescriptionTypes.stream()
-                .map(this::convert).collect(Collectors.toList());
+    public List<ServiceDescription> convert(Iterable<ServiceDescriptionType> serviceDescriptionTypes) {
+        return Streams.stream(serviceDescriptionTypes)
+                       .map(this::convert)
+                       .collect(Collectors.toList());
     }
 
 

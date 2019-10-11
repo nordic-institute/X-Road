@@ -24,26 +24,34 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.openapi.model.CertificateDetails;
-import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
+import org.niis.xroad.restapi.openapi.model.Token;
+import org.niis.xroad.restapi.openapi.model.TokenStatus;
+import org.niis.xroad.restapi.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.InputStream;
-import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 
 /**
  * test system api
@@ -53,25 +61,41 @@ import static org.mockito.BDDMockito.given;
 @AutoConfigureTestDatabase
 @Transactional
 @Slf4j
-public class SystemApiControllerTest {
+public class TokensApiControllerTest {
 
     @MockBean
-    private InternalTlsCertificateRepository mockRepository;
+    private TokenService tokenService;
 
     @Autowired
-    private SystemApiController systemApiController;
+    private TokensApiController tokensApiController;
+
+    @Before
+    public void setUp() throws Exception {
+        TokenInfo tokenInfo = new TokenInfo(TokenInfo.SOFTWARE_MODULE_TYPE,
+                "friendly-name",
+                "id",
+                false,
+                true,
+                true,
+                "serial-number",
+                "label",
+                123,
+                TokenStatusInfo.OK,
+                new ArrayList<KeyInfo>(),
+                new HashMap<String, String>());
+        when(tokenService.getAllTokens()).thenReturn(Collections.singletonList(tokenInfo));
+    }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_PROXY_INTERNAL_CERT" })
-    public void getSystemCertificate() throws Exception {
-        X509Certificate x509Certificate = null;
-        try (InputStream stream = getClass().getClassLoader().getResourceAsStream("internal.crt")) {
-            x509Certificate = CryptoUtils.readCertificate(stream);
-        }
-        given(mockRepository.getInternalTlsCertificate()).willReturn(x509Certificate);
-
-        CertificateDetails certificate =
-                systemApiController.getSystemCertificate().getBody();
-        assertEquals("xroad2-lxd-ss1", certificate.getIssuerCommonName());
+    @WithMockUser(authorities = { "VIEW_KEYS" })
+    public void getTokens() {
+        ResponseEntity<List<Token>> response = tokensApiController.getTokens();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        List<Token> tokens = response.getBody();
+        assertEquals(1, tokens.size());
+        Token token = tokens.iterator().next();
+        assertEquals(TokenStatus.OK, token.getStatus());
+        assertEquals("friendly-name", token.getName());
     }
+
 }

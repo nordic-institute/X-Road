@@ -22,56 +22,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi;
+package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.openapi.model.CertificateDetails;
-import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
+import org.niis.xroad.restapi.openapi.model.TokenCertificateSigningRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.io.InputStream;
-import java.security.cert.X509Certificate;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.BDDMockito.given;
 
-/**
- * test system api
- */
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@AutoConfigureTestDatabase
-@Transactional
-@Slf4j
-public class SystemApiControllerTest {
-
-    @MockBean
-    private InternalTlsCertificateRepository mockRepository;
+public class TokenCertificateSigningRequestConverterTest {
 
     @Autowired
-    private SystemApiController systemApiController;
+    private TokenCertificateSigningRequestConverter csrConverter;
 
     @Test
-    @WithMockUser(authorities = { "VIEW_PROXY_INTERNAL_CERT" })
-    public void getSystemCertificate() throws Exception {
-        X509Certificate x509Certificate = null;
-        try (InputStream stream = getClass().getClassLoader().getResourceAsStream("internal.crt")) {
-            x509Certificate = CryptoUtils.readCertificate(stream);
-        }
-        given(mockRepository.getInternalTlsCertificate()).willReturn(x509Certificate);
-
-        CertificateDetails certificate =
-                systemApiController.getSystemCertificate().getBody();
-        assertEquals("xroad2-lxd-ss1", certificate.getIssuerCommonName());
+    public void convert() {
+        CertRequestInfo certRequestInfo = new CertRequestInfo("id",
+                ClientId.create("a", "b", "c"),
+                "subject-name");
+        TokenCertificateSigningRequest csr = csrConverter.convert(certRequestInfo);
+        assertEquals("id", csr.getId());
+        assertEquals("a:b:c", csr.getOwnerId());
     }
+
 }

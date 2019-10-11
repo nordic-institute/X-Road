@@ -28,6 +28,7 @@ import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 
+import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.openapi.model.GroupMember;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.service.GlobalConfService;
@@ -75,12 +76,12 @@ public class LocalGroupConverter {
     }
 
     /**
-     * Converts a list of LocalGroupType to a list of Groups
+     * Converts a group of LocalGroupType to a list of Groups
      * @param localGroupTypes
      * @return
      */
-    public List<LocalGroup> convert(List<LocalGroupType> localGroupTypes) {
-        return localGroupTypes.stream()
+    public List<LocalGroup> convert(Iterable<LocalGroupType> localGroupTypes) {
+        return Streams.stream(localGroupTypes)
                 .map(this::convert).collect(Collectors.toList());
     }
 
