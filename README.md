@@ -95,13 +95,6 @@ with regard to the X-Road core:
 Support for member organizations of X-tee and Suomi.fi-palveluväylä is provided
 by [RIA](https://www.ria.ee) (X-tee) and [VRK](https://www.vrk.fi) (Suomi.fi-palveluväylä).
 
-Consultation services for deploying independent X-Road instances should be obtained from enterprises with such services. Known organizations are:
-
-* [Aktors OÜ](http://www.aktors.ee)
-* [Cybernetica AS](https://cyber.ee)
-* [Gofore Oyj](https://www.gofore.com)
-* [Opin Kerfi](https://opinkerfi.is/en/)
-* [Planetway Corp.](https://planetway.com/en/)
-* [Roksnet Solutions OÜ](https://roksnet.com)
+[X-Road Technology Partners](https://x-road.global/xroad-technology-partners) are enterprises providing X-Road consultation services, e.g. deploying independent X-Road instances, developing X-Road extensions and X-Road-compatible services, integrating informations systems with X-Road etc.
 
 No support for X-Road deployment is provided here.

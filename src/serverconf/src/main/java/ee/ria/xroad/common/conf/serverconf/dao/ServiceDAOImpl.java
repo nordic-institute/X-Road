@@ -98,6 +98,7 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
      * @param descriptionType filter results by description type
      * @return services of the specified service provider
      */
+    @SuppressWarnings("squid:S1192")
     public List<ServiceId> getServicesByDescriptionType(Session session,
                                        ClientId serviceProvider, DescriptionType descriptionType) {
         CriteriaBuilder builder = session.getCriteriaBuilder();
@@ -132,6 +133,7 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
         return services;
     }
 
+    @SuppressWarnings("squid:S1192")
     private ServiceType find(Session session, ServiceId id) {
         StringBuilder qb = new StringBuilder();
         qb.append("select s from ServiceType s");

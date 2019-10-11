@@ -155,7 +155,7 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void getAllClients() {
         ResponseEntity<List<Client>> response =
-                clientsApiController.getClients(null, null, null, null, null, true, false);
+                clientsApiController.findClients(null, null, null, null, null, true, false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(7, response.getBody().size());
     }
@@ -163,7 +163,7 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void getAllLocalClients() {
-        ResponseEntity<List<Client>> response = clientsApiController.getClients(null, null, null, null, null, true,
+        ResponseEntity<List<Client>> response = clientsApiController.findClients(null, null, null, null, null, true,
                 true);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(3, response.getBody().size());
@@ -260,7 +260,7 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(roles = "WRONG_ROLE")
     public void forbidden() {
         try {
-            ResponseEntity<List<Client>> response = clientsApiController.getClients(null, null, null, null, null, null,
+            ResponseEntity<List<Client>> response = clientsApiController.findClients(null, null, null, null, null, null,
                     null);
             fail("should throw AccessDeniedException");
         } catch (AccessDeniedException expected) {
@@ -414,7 +414,7 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void findAllClientsByAllSearchTermsExcludeMembers() {
-        ResponseEntity<List<Client>> clientsResponse = clientsApiController.getClients(SUBSYSTEM1 + NAME_APPENDIX,
+        ResponseEntity<List<Client>> clientsResponse = clientsApiController.findClients(SUBSYSTEM1 + NAME_APPENDIX,
                 INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1, false, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertEquals(1, clientsResponse.getBody().size());
@@ -431,7 +431,7 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void findAllClients() {
-        ResponseEntity<List<Client>> clientsResponse = clientsApiController.getClients(null, null, null, null, null,
+        ResponseEntity<List<Client>> clientsResponse = clientsApiController.findClients(null, null, null, null, null,
                 true, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertEquals(7, clientsResponse.getBody().size());
@@ -440,8 +440,8 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void findAllClientsByMemberCodeIncludeMembers() {
-        ResponseEntity<List<Client>> clientsResponse = clientsApiController.getClients(null, null, null, MEMBER_CODE_M1,
-                null, true, false);
+        ResponseEntity<List<Client>> clientsResponse = clientsApiController.findClients(null, null, null,
+                MEMBER_CODE_M1, null, true, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertEquals(5, clientsResponse.getBody().size());
     }
@@ -449,7 +449,7 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void findAllClientsByMemberClassIncludeMembers() {
-        ResponseEntity<List<Client>> clientsResponse = clientsApiController.getClients(null, null, MEMBER_CLASS_PRO,
+        ResponseEntity<List<Client>> clientsResponse = clientsApiController.findClients(null, null, MEMBER_CLASS_PRO,
                 null, null, true, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertEquals(2, clientsResponse.getBody().size());
@@ -458,19 +458,19 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void findAllClientsByNameIncludeMembers() {
-        ResponseEntity<List<Client>> clientsResponse = clientsApiController.getClients(SUBSYSTEM2 + NAME_APPENDIX, null,
-                null, null, null, false, true);
+        ResponseEntity<List<Client>> clientsResponse = clientsApiController.findClients(SUBSYSTEM2 + NAME_APPENDIX,
+                null, null, null, null, false, true);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertEquals(1, clientsResponse.getBody().size());
         // not found
-        clientsResponse = clientsApiController.getClients("DOES_NOT_EXIST", null, null, null, null, true, false);
+        clientsResponse = clientsApiController.findClients("DOES_NOT_EXIST", null, null, null, null, true, false);
         assertEquals(0, clientsResponse.getBody().size());
     }
 
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void findInternalClientsByAllSearchTermsExcludeMembers() {
-        ResponseEntity<List<Client>> clientsResponse = clientsApiController.getClients(SUBSYSTEM1 + NAME_APPENDIX,
+        ResponseEntity<List<Client>> clientsResponse = clientsApiController.findClients(SUBSYSTEM1 + NAME_APPENDIX,
                 INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1, false, true);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertEquals(1, clientsResponse.getBody().size());
@@ -479,12 +479,12 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void findInternalClientsBySubsystemExcludeMembers() {
-        ResponseEntity<List<Client>> clientsResponse = clientsApiController.getClients(null, null, null, null,
+        ResponseEntity<List<Client>> clientsResponse = clientsApiController.findClients(null, null, null, null,
                 SUBSYSTEM2, false, true);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertEquals(1, clientsResponse.getBody().size());
         // not found
-        clientsResponse = clientsApiController.getClients(null, null, null, null, SUBSYSTEM3, false, true);
+        clientsResponse = clientsApiController.findClients(null, null, null, null, SUBSYSTEM3, false, true);
         assertEquals(0, clientsResponse.getBody().size());
     }
 
@@ -546,7 +546,7 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENTS" })
     public void findAllClientsByPartialNameIncludeMembers() {
-        ResponseEntity<List<Client>> clientsResponse = clientsApiController.getClients(SUBSYSTEM3, null,
+        ResponseEntity<List<Client>> clientsResponse = clientsApiController.findClients(SUBSYSTEM3, null,
                 null, null, null, false, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertEquals(1, clientsResponse.getBody().size());
@@ -555,7 +555,7 @@ public class ClientsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENTS" })
     public void findAllClientsByPartialSearchTermsIncludeMembers() {
-        ResponseEntity<List<Client>> clientsResponse = clientsApiController.getClients(null, "F",
+        ResponseEntity<List<Client>> clientsResponse = clientsApiController.findClients(null, "F",
                 "OV", "1", "1", false, true);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertEquals(1, clientsResponse.getBody().size());

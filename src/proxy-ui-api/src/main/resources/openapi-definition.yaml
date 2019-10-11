@@ -414,8 +414,8 @@ paths:
     get: # ok
       tags:
         - security server
-      summary: get security server clients
-      operationId: getClients
+      summary: find security server clients
+      operationId: findClients
       description: Administrator views the clients of the security server.
       parameters:
         - in: query
@@ -1182,6 +1182,101 @@ paths:
           description: request specified an invalid format
         '409':
           description: an existing item already exists
+        '500':
+          description: internal server error
+  /clients/{id}/subjects:
+    get: # ok
+      tags:
+        - security server
+      summary: find access right subjects
+      operationId: findSubjects
+      description: Administrator views the clients, globalgroups and localgroups of the security server as access right subjects
+      parameters:
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+        - in: query
+          name: member_name_group_description
+          description: pass an optional search string (name) for looking up subjects - name of a member or description of a group
+          example: NIIS
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 0
+            maxLength: 255
+        - in: query
+          name: subject_type
+          description: pass an optional search string (subject_type) for looking up subjects
+          required: false
+          schema:
+            $ref: '#/components/schemas/SubjectType'
+        - in: query
+          name: instance
+          description: pass an optional search string (instance) for looking up subjects - full instance id should be used
+          example: GOV
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 0
+            maxLength: 255
+        - in: query
+          name: member_class
+          description: pass an optional search string (member_class) for looking up subjects
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 0
+            maxLength: 255
+        - in: query
+          name: member_group_code
+          description: pass an optional search string (member_group_code) for looking up subjects - member_code of a member or group_code of a group
+          example: 1234 | Example group name
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 0
+            maxLength: 255
+        - in: query
+          name: subsystem_code
+          description: pass an optional search string (subsystem_code) for looking up subjects
+          example: Subsystem
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 0
+            maxLength: 255
+      responses:
+        '200':
+          description: list of subjects
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of Subjects
+                items:
+                  $ref: '#/components/schemas/Subject'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
         '500':
           description: internal server error
   /local-groups/{group_id}:
@@ -4085,9 +4180,16 @@ components:
           format: text
           description: subject id - can be a subsystem id <instance_id>:<member_class>:<member_code>:<subsystem> | globalgroup id <instance_id>:<group_code> | localgroup resource id in number format <id>
           example: DEV:ORG:1234:Subsystem | DEV:security-server-owners | 123
-          readOnly: true
           minLength: 1
           maxLength: 1279
+        member_name_group_description:
+          type: string
+          format: text
+          description: name of the subject - can be the name of a member or the description of a group
+          example: Security server owners
+          readOnly: true
+          minLength: 1
+          maxLength: 255
         subject_type:
           $ref: '#/components/schemas/SubjectType'
     SubjectType: # ok
