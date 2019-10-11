@@ -64,8 +64,6 @@ public class TokenServiceTest {
     private static final String TOKEN_NOT_FOUND = "token-404";
     private static final String UNRECOGNIZED_FAULT_CODE = "unknown-faultcode";
 
-    // to do: test with powermock, compare
-
     @Autowired
     private TokenService tokenService;
 
