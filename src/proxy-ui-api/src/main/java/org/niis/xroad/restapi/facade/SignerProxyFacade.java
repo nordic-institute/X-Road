@@ -144,7 +144,7 @@ public class SignerProxyFacade {
      */
     public byte[] generateCertRequest(String keyId, ClientId memberId, KeyUsageInfo keyUsage, String subjectName,
             GenerateCertRequest.RequestFormat format) throws Exception {
-        return generateCertRequest(keyId, memberId, keyUsage, subjectName, format);
+        return SignerProxy.generateCertRequest(keyId, memberId, keyUsage, subjectName, format);
     }
 
     /**

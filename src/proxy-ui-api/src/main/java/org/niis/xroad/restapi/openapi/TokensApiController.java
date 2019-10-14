@@ -83,8 +83,8 @@ public class TokensApiController implements TokensApi {
     @Override
     public ResponseEntity<Token> loginToken(String id, TokenPassword tokenPassword) {
         if (tokenPassword == null
-                    || tokenPassword.getPassword() == null
-                    || tokenPassword.getPassword().isEmpty()) {
+                || tokenPassword.getPassword() == null
+                || tokenPassword.getPassword().isEmpty()) {
             throw new BadRequestException("Missing token password");
         }
         char[] password = tokenPassword.getPassword().toCharArray();
