@@ -210,6 +210,13 @@
       "good": "Good",
       "suspended": "Suspended",
       "revoked": "Revoked"
+    },
+    "certStatus": {
+      "saved": "Saved",
+      "registration": "Registration in progress",
+      "registered": "Registered",
+      "deletion": "Deletion in progress",
+      "globalError": "Global error"
     }
   },
   "login": {

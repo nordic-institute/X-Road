@@ -22,23 +22,20 @@ export default Vue.extend({
     status() {
       switch (this.certificate.status) {
         case 'SAVED':
-          return 'Saved';
+          return this.$t('keys.certStatus.saved');
           break;
         case 'REGISTRATION_IN_PROGRESS':
-          return 'Registration in progress';
+          return this.$t('keys.certStatus.registration');
           break;
-
         case 'REGISTERED':
-          return 'Registered';
+          return this.$t('keys.certStatus.registered');
           break;
-
         case 'DELETION_IN_PROGRESS':
-          return 'Deletion in progress';
+          return this.$t('keys.certStatus.deletion');
           break;
         case 'GLOBAL_ERROR':
-          return 'Global error';
+          return this.$t('keys.certStatus.globalError');
           break;
-
         default:
           return '-';
           break;
