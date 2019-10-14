@@ -59,6 +59,7 @@ public class TokenService {
      * @return
      * @throws Exception
      */
+    @PreAuthorize("hasAuthority('VIEW_KEYS')")
     public List<TokenInfo> getAllTokens() throws Exception {
         return tokenRepository.getTokens();
     }

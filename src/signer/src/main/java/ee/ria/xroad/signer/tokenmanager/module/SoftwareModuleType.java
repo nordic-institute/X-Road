@@ -24,12 +24,14 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+
 /**
  * Software module type.
  */
 public class SoftwareModuleType implements ModuleType {
 
-    public static final String TYPE = "softToken";
+    public static final String TYPE = TokenInfo.SOFTWARE_MODULE_TYPE;
 
     @Override
     public String getType() {

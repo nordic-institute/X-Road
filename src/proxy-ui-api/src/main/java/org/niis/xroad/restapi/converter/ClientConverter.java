@@ -28,6 +28,7 @@ import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import com.google.common.collect.Streams;
 import org.apache.commons.lang.StringUtils;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Client;
@@ -84,13 +85,12 @@ public class ClientConverter {
     }
 
     /**
-     * convert a list of ClientType into a list of openapi Client class
+     * convert a group of ClientType into a list of openapi Client class
      * @param clientTypes
      * @return
      */
-    public List<Client> convert(List<ClientType> clientTypes) {
-        return clientTypes
-                .stream()
+    public List<Client> convert(Iterable<ClientType> clientTypes) {
+        return Streams.stream(clientTypes)
                 .map(this::convert)
                 .collect(Collectors.toList());
     }

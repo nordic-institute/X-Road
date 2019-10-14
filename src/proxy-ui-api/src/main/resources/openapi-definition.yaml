@@ -414,8 +414,8 @@ paths:
     get: # ok
       tags:
         - security server
-      summary: get security server clients
-      operationId: getClients
+      summary: find security server clients
+      operationId: findClients
       description: Administrator views the clients of the security server.
       parameters:
         - in: query
@@ -1184,6 +1184,101 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
+  /clients/{id}/subjects:
+    get: # ok
+      tags:
+        - security server
+      summary: find access right subjects
+      operationId: findSubjects
+      description: Administrator views the clients, globalgroups and localgroups of the security server as access right subjects
+      parameters:
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+        - in: query
+          name: member_name_group_description
+          description: pass an optional search string (name) for looking up subjects - name of a member or description of a group
+          example: NIIS
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 0
+            maxLength: 255
+        - in: query
+          name: subject_type
+          description: pass an optional search string (subject_type) for looking up subjects
+          required: false
+          schema:
+            $ref: '#/components/schemas/SubjectType'
+        - in: query
+          name: instance
+          description: pass an optional search string (instance) for looking up subjects - full instance id should be used
+          example: GOV
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 0
+            maxLength: 255
+        - in: query
+          name: member_class
+          description: pass an optional search string (member_class) for looking up subjects
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 0
+            maxLength: 255
+        - in: query
+          name: member_group_code
+          description: pass an optional search string (member_group_code) for looking up subjects - member_code of a member or group_code of a group
+          example: 1234 | Example group name
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 0
+            maxLength: 255
+        - in: query
+          name: subsystem_code
+          description: pass an optional search string (subsystem_code) for looking up subjects
+          example: Subsystem
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 0
+            maxLength: 255
+      responses:
+        '200':
+          description: list of subjects
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of Subjects
+                items:
+                  $ref: '#/components/schemas/Subject'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /local-groups/{group_id}:
     get: # ok
       tags:
@@ -1552,7 +1647,7 @@ paths:
           description: inteded usage for the key (signing or authentication)
           required: false
           schema:
-            $ref: '#/components/schemas/KeyUsageInfo'
+            $ref: '#/components/schemas/KeyUsageType'
         - in: query
           name: approved_ca
           description: approved certification service
@@ -3160,52 +3255,63 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
-    Certificate: # ok
+    TokenCertificateSigningRequest: # ok
       type: object
-      description: certificate
+      description: CSR for certificate that is stored in a Token
       required:
-        - issuer_common_name
-        - not_after
+        - id
+        - owner_id
+      properties:
+        id:
+          type: string
+          format: text
+          description: CSR id
+          example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
+          readOnly: true
+        owner_id:
+          type: string
+          format: text
+          description: client id of the owner member, <instance_id>:<member_class>:<member_code>
+          example: FI:GOV:123
+          minLength: 1
+          maxLength: 767
+          readOnly: true
+    TokenCertificate: # ok
+      type: object
+      description: certificate that is stored in a Token (auth or sign cert)
+      required:
         - ocsp_status
-        - client_id
-        - hash
+        - owner_id
+        - active
+        - saved_to_configuration
+        - certificate_details
         - status
       properties:
-        issuer_common_name:
-          type: string
-          format: text
-          description: certificate issuer common name
-          example: domain.com
-          minLength: 1
-          maxLength: 255
         ocsp_status:
-          $ref: '#/components/schemas/OcspStatus'
-        not_after:
-          type: string
-          format: date-time
-          description: certificate validity not after
-          example: '2018-12-15T00:00:00.001Z'
-          minLength: 24
-          maxLength: 24
-        hash:
+          $ref: '#/components/schemas/CertificateOcspStatus'
+        owner_id:
           type: string
           format: text
-          description: certificate SHA-1 hash
-          example: 1234567890ABCDEF
+          description: client id of the owner member, <instance_id>:<member_class>:<member_code>
+          example: FI:GOV:123
           minLength: 1
-          maxLength: 255
-        client_id:
-          type: string
-          format: text
-          description: <instance_id>:<member_class>:<member_code>:<subsystem>(optional)
-          example: FI:GOV:123:ABC
-          minLength: 1
-          maxLength: 255
+          maxLength: 767
+          readOnly: true
+        active:
+          type: boolean
+          description: if the certificate is active
+          example: true
+        saved_to_configuration:
+          type: boolean
+          description: if the certificate is saved to configuration
+          example: true
+        certificate_details:
+          $ref: '#/components/schemas/CertificateDetails'
         status:
           $ref: '#/components/schemas/CertificateStatus'
     CertificateDetails: # ok
       type: object
-      description: certificate details
+      description: certificate details for any kind of certificate (TLS, auth, sign)
       required:
         - issuer_distinguished_name
         - issuer_common_name
@@ -3222,7 +3328,6 @@ components:
         - rsa_public_key_exponent
         - hash
         - key_usages
-        - status
       properties:
         issuer_distinguished_name:
           type: string
@@ -3324,8 +3429,6 @@ components:
           uniqueItems: true
           items:
             $ref: '#/components/schemas/KeyUsage'
-        status:
-          $ref: '#/components/schemas/CertificateStatus'
     CertificateAuthority: # ok
       type: object
       description: certificate authority
@@ -3361,8 +3464,23 @@ components:
       description: certificate status
       example: IN_USE
       enum:
-        - IN_USE
+        - SAVED
+        - REGISTRATION_IN_PROGRESS
+        - REGISTERED
+        - DELETION_IN_PROGRESS
+        - GLOBAL_ERROR
+    CertificateOcspStatus: # ok
+      type: string
+      format: enum
+      description: certificate status
+      example: IN_USE
+      enum:
         - DISABLED
+        - EXPIRED
+        - OCSP_RESPONSE_UNKNOWN
+        - OCSP_RESPONSE_GOOD
+        - OCSP_RESPONSE_SUSPENDED
+        - OCSP_RESPONSE_REVOKED
     Client: # ok
       type: object
       description: x-road client
@@ -3610,12 +3728,12 @@ components:
       type: object
       description: key for the certificate
       required:
+        - id
         - name
         - label
-        - type
-        - status
-        - read_only
         - certificates
+        - certificate_signing_requests
+        - usage
       properties:
         id:
           type: string
@@ -3639,32 +3757,26 @@ components:
           example: key label
           minLength: 1
           maxLength: 255
-        type:
-          type: string
-          format: text
-          description: key type
-          example: AUTH
-          minLength: 1
-          maxLength: 255
-        status:
-          $ref: '#/components/schemas/KeyStatus'
-        read_only:
-          type: boolean
-          description: key read only status
-          example: true
         certificates:
           type: array
           description: list of certificates for the key
           items:
-            $ref: '#/components/schemas/Certificate'
-    KeyStatus: # ok
-      type: string
-      format: enum
-      description: key status
-      example: REGISTERED
-      enum:
-        - SAVED
-        - REGISTERED
+            $ref: '#/components/schemas/TokenCertificate'
+        certificate_signing_requests:
+          type: array
+          description: list of CSRs for the key
+          items:
+            $ref: '#/components/schemas/TokenCertificateSigningRequest'
+        usage:
+          $ref: '#/components/schemas/KeyUsageType'
+        available:
+          type: boolean
+          description: if the key is available
+          example: true
+        saved_to_configuration:
+          type: boolean
+          description: if the key is saved to configuration
+          example: true
     KeyUsage: # ok
       type: string
       format: enum
@@ -3680,14 +3792,27 @@ components:
         - CRL_SIGN
         - ENCIPHER_ONLY
         - DECIPHER_ONLY
-    KeyUsageInfo: # ok
+    KeyUsageType: # ok
       type: string
       format: enum
-      description: inteded usage for the key
+      description: intended usage for the key
       example: AUTHENTICATION
       enum:
         - AUTHENTICATION
         - SIGNING
+    KeyValuePair: # ok
+      type: object
+      description: key-value pair of strings
+      required:
+        - key
+        - value
+      properties:
+        key:
+          type: string
+          description: key
+        value:
+          type: string
+          description: value
     Language: # ok
       type: object
       description: language
@@ -4043,9 +4168,16 @@ components:
           format: text
           description: subject id - can be a subsystem id <instance_id>:<member_class>:<member_code>:<subsystem> | globalgroup id <instance_id>:<group_code> | localgroup resource id in number format <id>
           example: DEV:ORG:1234:Subsystem | DEV:security-server-owners | 123
-          readOnly: true
           minLength: 1
           maxLength: 1279
+        member_name_group_description:
+          type: string
+          format: text
+          description: name of the subject - can be the name of a member or the description of a group
+          example: Security server owners
+          readOnly: true
+          minLength: 1
+          maxLength: 255
         subject_type:
           $ref: '#/components/schemas/SubjectType'
     SubjectType: # ok
@@ -4097,7 +4229,7 @@ components:
           items:
             $ref: '#/components/schemas/CertificateAuthority'
         tls_certificate:
-          $ref: '#/components/schemas/Certificate'
+          $ref: '#/components/schemas/CertificateDetails'
         version:
           $ref: '#/components/schemas/Version'
     TimestampingService: # ok
@@ -4162,6 +4294,10 @@ components:
         - type
         - keys
         - status
+        - active
+        - available
+        - saved_to_configuration
+        - read_only
       properties:
         id:
           type: string
@@ -4188,6 +4324,32 @@ components:
             $ref: '#/components/schemas/Key'
         status:
           $ref: '#/components/schemas/TokenStatus'
+        active:
+          type: boolean
+          description: if the token is active
+          example: true
+        available:
+          type: boolean
+          description: if the token is available
+          example: true
+        saved_to_configuration:
+          type: boolean
+          description: if the token is saved to configuration
+          example: true
+        read_only:
+          type: boolean
+          description: if the token is read-only
+          example: true
+        serial_number:
+          type: string
+          format: text
+          description: serial number of the token
+          example: 12345
+        token_infos:
+          type: array
+          description: Contains label-value pairs of information
+          items:
+            $ref: '#/components/schemas/KeyValuePair'
     TokenStatus: # ok
       type: string
       format: text

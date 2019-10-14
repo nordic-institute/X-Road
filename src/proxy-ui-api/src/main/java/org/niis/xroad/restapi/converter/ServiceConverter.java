@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -35,7 +36,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -61,12 +61,12 @@ public class ServiceConverter {
     }
 
     /**
-     * Converts a collection of ServiceTypes to a list of Services
+     * Converts a group of ServiceTypes to a list of Services
      * @param serviceTypes
      * @return
      */
-    public List<Service> convertServices(Collection<ServiceType> serviceTypes, ClientId clientId) {
-        return serviceTypes.stream()
+    public List<Service> convertServices(Iterable<ServiceType> serviceTypes, ClientId clientId) {
+        return Streams.stream(serviceTypes)
                 .map(serviceType -> convert(serviceType, clientId))
                 .collect(Collectors.toList());
     }

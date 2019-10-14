@@ -1,6 +1,6 @@
 <template>
   <div class="row-wrap">
-    <div>{{status}}</div>
+    <div>{{$t(status)}}</div>
   </div>
 </template>
 
@@ -24,22 +24,22 @@ export default Vue.extend({
       }
       switch (this.ocspStatus) {
         case 'DISABLED':
-          return 'Disabled';
+          return 'keys.ocspStatus.disabled';
           break;
         case 'EXPIRED':
-          return 'Expired';
+          return 'keys.ocspStatus.expired';
           break;
         case 'OCSP_RESPONSE_UNKNOWN':
-          return 'Unknown';
+          return 'keys.ocspStatus.unknown';
           break;
         case 'OCSP_RESPONSE_GOOD':
-          return 'Good';
+          return 'keys.ocspStatus.good';
           break;
         case 'OCSP_RESPONSE_SUSPENDED':
-          return 'Suspended';
+          return 'keys.ocspStatus.suspended';
           break;
         case 'OCSP_RESPONSE_REVOKED':
-          return 'Revoked';
+          return 'keys.ocspStatus.revoked';
           break;
         default:
           return '-';
