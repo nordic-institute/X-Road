@@ -202,7 +202,15 @@
     "helpTitleSS": "Security Server TLS Certificate",
     "helpTextKeys": "Authentication key and certificate certify authenticity of a Security Server. They are used for authentication in connections between Security Servers. Signature key and certificate certify authenticity of an X-Road member. They are used for signing and verifying the integrity of mediated messages.",
     "helpTextApi": "API keys are used to authenticate API calls to Security Server’s management REST API. API keys are associated with roles that define the permissions granted to the API key.",
-    "helpTextSS": "Security Server’s TLS certificate is used in connections between the Security Server and an information system. The internal TLS certificate is used as both client and server certificate depending on the roles of the Security Server and information system."
+    "helpTextSS": "Security Server’s TLS certificate is used in connections between the Security Server and an information system. The internal TLS certificate is used as both client and server certificate depending on the roles of the Security Server and information system.",
+    "ocspStatus": {
+      "disabled": "Disabled",
+      "expired": "Expired",
+      "unknown": "Unknown",
+      "good": "Good",
+      "suspended": "Suspended",
+      "revoked": "Revoked"
+    }
   },
   "login": {
     "logIn": "Log in",

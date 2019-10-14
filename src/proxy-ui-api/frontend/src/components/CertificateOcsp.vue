@@ -24,22 +24,22 @@ export default Vue.extend({
       }
       switch (this.ocspStatus) {
         case 'DISABLED':
-          return 'Disabled';
+          return this.$t('keys.ocspStatus.disabled');
           break;
         case 'EXPIRED':
-          return 'Expired';
+          return this.$t('keys.ocspStatus.expired');
           break;
         case 'OCSP_RESPONSE_UNKNOWN':
-          return 'Unknown';
+          return this.$t('keys.ocspStatus.unknown');
           break;
         case 'OCSP_RESPONSE_GOOD':
-          return 'Good';
+          return this.$t('keys.ocspStatus.good');
           break;
         case 'OCSP_RESPONSE_SUSPENDED':
-          return 'Suspended';
+          return this.$t('keys.ocspStatus.suspended');
           break;
         case 'OCSP_RESPONSE_REVOKED':
-          return 'Revoked';
+          return this.$t('keys.ocspStatus.revoked');
           break;
         default:
           return '-';
