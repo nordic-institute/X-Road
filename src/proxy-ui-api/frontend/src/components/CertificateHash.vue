@@ -20,8 +20,6 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 .cert-hash {
-  color: #202020;
-  font-family: Roboto;
   font-size: 20px;
   font-weight: 500;
   letter-spacing: 0.5px;
@@ -29,8 +27,6 @@ export default Vue.extend({
 }
 
 .hash-info {
-  color: #202020;
-  font-family: Roboto;
   font-size: 16px;
 }
 </style>
