@@ -12,14 +12,6 @@
   border-radius: 4px;
 }
 
-$large-button-width: 140px;
-
-.xrd-big-button {
-  min-width: $large-button-width !important;
-  border-radius: 4px;
-  text-transform: uppercase;
-}
-
 .xrd-small-button {
   height: 24px !important;
   border-radius: 4px;
@@ -50,6 +42,13 @@ $large-button-width: 140px;
 .xrd-tabs {
   border-bottom: $XRoad-Grey40 solid 1px;
 }
+
+
+// Set validation provider to full width
+.validation-provider {
+  width: 100%;
+}
+
 
 // Override vuetify styling in alert dialog card
 .xrd-card {

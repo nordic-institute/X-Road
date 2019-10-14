@@ -66,7 +66,9 @@
         <template v-slot:content>
           <div>
             <div v-if="serviceDesc.type.toLowerCase() === 'wsdl'" class="refresh-row">
-              <div class="refresh-time">{{serviceDesc.refreshed_date | formatDateTime}}</div>
+              <div
+                class="refresh-time"
+              >{{$t('services.lastRefreshed')}} {{serviceDesc.refreshed_at | formatDateTime}}</div>
               <v-btn
                 v-if="showRefreshButton"
                 small

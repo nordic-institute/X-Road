@@ -1,18 +1,18 @@
 <template>
   <simpleDialog
     :dialog="dialog"
-    title="services.addWsdl"
+    title="login.logIn"
     @save="save"
     @cancel="cancel"
-    :disableSave="!isValid"
+    saveButtonText="login.logIn"
   >
     <div slot="content">
       <div class="dlg-edit-row">
-        <div class="dlg-row-title">{{$t('services.url')}}</div>
+        <div class="dlg-row-title">Token PIN</div>
         <ValidationProvider
-          rules="required|wsdlUrl"
-          ref="serviceUrl"
-          name="serviceUrl"
+          rules="required"
+          ref="tokenPin"
+          name="tokenPin"
           v-slot="{ errors }"
           class="validation-provider"
         >
@@ -20,7 +20,7 @@
             v-model="url"
             single-line
             class="dlg-row-input"
-            name="serviceUrl"
+            name="tokenPin"
             :error-messages="errors"
           ></v-text-field>
         </ValidationProvider>
@@ -64,14 +64,12 @@ export default Vue.extend({
       this.clear();
     },
     save(): void {
-      this.$emit('save', this.url);
+      this.$emit('save');
       this.clear();
     },
     clear(): void {
       this.url = '';
-      (this.$refs.serviceUrl as InstanceType<
-        typeof ValidationProvider
-      >).reset();
+      (this.$refs.tokenPin as InstanceType<typeof ValidationProvider>).reset();
     },
   },
 });

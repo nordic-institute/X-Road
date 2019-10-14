@@ -5,7 +5,7 @@
     :min-width="min_width"
     rounded
     color="primary"
-    class="xrd-big-button"
+    class="large-button"
     @click="click()"
   >
     <slot></slot>
@@ -42,5 +42,13 @@ export default Vue.extend({
 });
 </script>
 
-<style>
+<style lang="scss" scoped>
+$large-button-width: 140px;
+
+.large-button {
+  min-width: $large-button-width !important;
+  border-radius: 4px;
+  text-transform: uppercase;
+  background-color: white;
+}
 </style>

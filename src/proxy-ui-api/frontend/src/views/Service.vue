@@ -13,84 +13,94 @@
       <div class="apply-to-all-text">{{$t('services.applyToAll')}}</div>
     </div>
 
-    <div class="edit-row">
-      <div class="edit-title">
-        {{$t('services.serviceUrl')}}
-        <helpIcon :text="$t('services.urlTooltip')" />
+    <ValidationObserver ref="form" v-slot="{ validate, invalid }">
+      <div class="edit-row">
+        <div class="edit-title">
+          {{$t('services.serviceUrl')}}
+          <helpIcon :text="$t('services.urlTooltip')" />
+        </div>
+
+        <div class="edit-input">
+          <ValidationProvider
+            rules="required|wsdlUrl"
+            name="serviceUrl"
+            class="validation-provider"
+            v-slot="{ errors }"
+          >
+            <v-text-field
+              v-model="service.url"
+              @input="setTouched()"
+              single-line
+              class="description-input"
+              name="serviceUrl"
+              :error-messages="errors"
+            ></v-text-field>
+          </ValidationProvider>
+        </div>
+
+        <v-checkbox @change="setTouched()" v-model="url_all" color="primary" class="table-checkbox"></v-checkbox>
       </div>
 
-      <div class="edit-input">
-        <v-text-field
-          v-model="service.url"
-          @input="setTouched()"
-          single-line
-          class="description-input"
-          v-validate="'required|wsdlUrl'"
-          data-vv-as="field"
-          name="url_field"
-          :error-messages="errors.collect('url_field')"
-        ></v-text-field>
-      </div>
+      <div class="edit-row">
+        <div class="edit-title">
+          {{$t('services.timeoutSec')}}
+          <helpIcon :text="$t('services.timeoutTooltip')" />
+        </div>
+        <div class="edit-input">
+          <ValidationProvider
+            :rules="{ required: true, between: { min: 0, max: 1000 } }"
+            name="serviceTimeout"
+            class="validation-provider"
+            v-slot="{ errors }"
+          >
+            <v-text-field
+              v-model="service.timeout"
+              single-line
+              @input="setTouched()"
+              type="number"
+              style="max-width: 200px;"
+              name="serviceTimeout"
+              :error-messages="errors"
+            ></v-text-field>
+          </ValidationProvider>
+          <!-- 0 - 1000 -->
+        </div>
 
-      <v-checkbox @change="setTouched()" v-model="url_all" color="primary" class="table-checkbox"></v-checkbox>
-    </div>
-
-    <div class="edit-row">
-      <div class="edit-title">
-        {{$t('services.timeoutSec')}}
-        <helpIcon :text="$t('services.timeoutTooltip')" />
-      </div>
-      <div class="edit-input">
-        <v-text-field
-          v-model="service.timeout"
-          @input="setTouched()"
-          single-line
-          type="number"
-          style="max-width: 200px;"
-          v-validate="{ max_value: 1000, numeric: true, required: true, min_value: 0 }"
-          data-vv-as="field"
-          name="max_value_field"
-          :error-messages="errors.collect('max_value_field')"
-        ></v-text-field>
-        <!-- 0 - 1000 -->
-      </div>
-
-      <v-checkbox
-        @change="setTouched()"
-        v-model="timeout_all"
-        color="primary"
-        class="table-checkbox"
-      ></v-checkbox>
-    </div>
-
-    <div class="edit-row">
-      <div class="edit-title">
-        {{$t('services.verifyTls')}}
-        <helpIcon :text="$t('services.tlsTooltip')" />
-      </div>
-      <div class="edit-input">
         <v-checkbox
-          :disabled="!isHttps"
           @change="setTouched()"
-          v-model="service.ssl_auth"
+          v-model="timeout_all"
           color="primary"
           class="table-checkbox"
         ></v-checkbox>
-        <!--
-        <v-checkbox v-else color="primary" :disabled="true" class="table-checkbox"></v-checkbox>-->
       </div>
 
-      <v-checkbox
-        @change="setTouched()"
-        v-model="ssl_auth_all"
-        color="primary"
-        class="table-checkbox"
-      ></v-checkbox>
-    </div>
+      <div class="edit-row">
+        <div class="edit-title">
+          {{$t('services.verifyTls')}}
+          <helpIcon :text="$t('services.tlsTooltip')" />
+        </div>
+        <div class="edit-input">
+          <v-checkbox
+            :disabled="!isHttps"
+            @change="setTouched()"
+            v-model="service.ssl_auth"
+            color="primary"
+            class="table-checkbox"
+          ></v-checkbox>
+        </div>
 
-    <div class="button-wrap">
-      <large-button :disabled="disableSave" @click="save()">{{$t('action.save')}}</large-button>
-    </div>
+        <v-checkbox
+          @change="setTouched()"
+          v-model="ssl_auth_all"
+          color="primary"
+          class="table-checkbox"
+        ></v-checkbox>
+      </div>
+
+      <div class="button-wrap">
+        <large-button :disabled="invalid || disableSave" @click="save()">{{$t('action.save')}}</large-button>
+      </div>
+    </ValidationObserver>
 
     <div class="group-members-row">
       <div class="row-title">{{$t('access.accessRights')}}</div>
@@ -100,7 +110,11 @@
           outlined
           @click="removeAllMembers()"
         >{{$t('action.removeAll')}}</large-button>
-        <large-button outlined @click="showAddMembersDialog()">{{$t('access.addSubjects')}}</large-button>
+        <large-button
+          outlined
+          class="add-members-button"
+          @click="showAddMembersDialog()"
+        >{{$t('access.addSubjects')}}</large-button>
       </div>
     </div>
 
@@ -180,6 +194,11 @@ import HelpIcon from '@/components/HelpIcon.vue';
 import LargeButton from '@/components/LargeButton.vue';
 import { Service, AccessRightSubject } from '@/types.ts';
 import { isValidWsdlURL } from '@/util/helpers';
+import {
+  ValidationObserver,
+  ValidationProvider,
+  withValidation,
+} from 'vee-validate';
 
 type NullableSubject = undefined | AccessRightSubject;
 
@@ -190,6 +209,8 @@ export default Vue.extend({
     ConfirmDialog,
     HelpIcon,
     LargeButton,
+    ValidationProvider,
+    ValidationObserver,
   },
   props: {
     serviceId: {
@@ -244,26 +265,18 @@ export default Vue.extend({
       return false;
     },
 
-    disableSave() {
+    disableSave(): boolean {
       // service is undefined --> can't save
       if (!this.service) {
         return true;
       }
 
-      // errors in form --> can's save
-      if (this.errors.any()) {
-        return true;
-      }
-
-      // one of the "apply all" is checked --> save
-      /* if (this.ssl_auth_all || this.url_all || this.timeout_all) {
-        return false;
-      }
-      */
-
+      // inputs are not touched
       if (!this.touched) {
         return true;
       }
+
+      return false;
     },
   },
 
@@ -456,6 +469,10 @@ export default Vue.extend({
 }
 .row-buttons {
   display: flex;
+}
+
+.add-members-button {
+  margin-left: 20px;
 }
 
 .cert-hash {
