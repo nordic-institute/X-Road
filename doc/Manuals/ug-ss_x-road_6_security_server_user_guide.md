@@ -882,8 +882,6 @@ When a new WSDL file is added, the security server reads service information fro
 
 When a new REST service is added, the security server displays url and service code provided.
 
-![](img/add_openapi.png)
-
 **To add a REST service**, follow these steps.
 
 1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Services** icon on that row.
@@ -895,8 +893,6 @@ When a new REST service is added, the security server displays url and service c
 **To see the service details under the REST service**
 
 -   click the "**+**" symbol in front of the REST row to expand the service details.
-
-![](img/list_endpoints.png)
 
 
 ### 6.2 Refreshing a service description
@@ -1008,8 +1004,6 @@ To create API endpoint manually, follow these steps
 
 4.  Select HTTP request method and Path for the endpoint and click **OK**.
 
-![](img/add_endpoint.png)
-
 
 ## 7 Access Rights
 
@@ -1026,6 +1020,13 @@ There are two options for managing access rights in a security server.
 -   Service-based access rights management – if a single service needs to be opened/closed to multiple service clients (see [7.1](#71-changing-the-access-rights-of-a-service)).
 
 -   Service client-based access rights management – if a single service client needs multiple services opened/closed (see [7.2](#72-adding-a-service-client)).
+
+It is possible to define access rights on two levels for REST services:
+
+-   REST service level
+-   endpoint level
+
+In general, a REST service usually has multiple endpoints. When access rights are defined on the service level, they apply to all the endpoints of the REST service. Instead, defining access rights on the endpoint level gives access to specific endpoint(s) only.
 
 
 ### 7.1 Changing the Access Rights of a Service
