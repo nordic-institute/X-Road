@@ -32,11 +32,14 @@
         <template v-if="signCertificates && signCertificates.length > 0">
           <tr v-for="certificate in signCertificates" v-bind:key="certificate.name">
             <td>
-              <span class="cert-name" @click="viewCertificate(certificate)">{{certificate.name}}</span>
+              <span
+                class="cert-name"
+                @click="viewCertificate(certificate)"
+              >{{certificate.issuer_common_name}}</span>
             </td>
             <td>{{certificate.serial}}</td>
             <td>{{certificate.state}}</td>
-            <td>{{certificate.expires}}</td>
+            <td>{{certificate.not_after}}</td>
           </tr>
         </template>
       </table>
