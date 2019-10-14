@@ -992,7 +992,7 @@ To change service parameters, follow these steps.
 
 REST type service descriptions can contain API endpoints. The purpose of the endpoints is more fine-grained access control. More about that in chapter [7 Access Rights](#7-access-rights).
 
-When URL type of the REST service is an OpenAPI 3 description, endpoints are parsed from the service description automatically. Additionally manual endpoints can be added as needed. When URL type is REST API base path, all the endpoints need to be created manually.
+When URL type of the REST service is an OpenAPI 3 description, endpoints are parsed from the service description automatically. These endpoints cannot be manually updated or deleted. Additionally manual endpoints can be added as needed. When URL type is REST API base path, all the endpoints need to be created manually. Manually created endpoints can also be edited and deleted as needed.
 
 To create API endpoint manually, follow these steps
 
