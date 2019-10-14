@@ -1,7 +1,7 @@
 <template>
   <div class="row-wrap">
     <div :class="iconClass"></div>
-    <div>{{status}}</div>
+    <div>{{$t(status)}}</div>
   </div>
 </template>
 
@@ -22,19 +22,19 @@ export default Vue.extend({
     status() {
       switch (this.certificate.status) {
         case 'SAVED':
-          return this.$t('keys.certStatus.saved');
+          return 'keys.certStatus.saved';
           break;
         case 'REGISTRATION_IN_PROGRESS':
-          return this.$t('keys.certStatus.registration');
+          return 'keys.certStatus.registration';
           break;
         case 'REGISTERED':
-          return this.$t('keys.certStatus.registered');
+          return 'keys.certStatus.registered';
           break;
         case 'DELETION_IN_PROGRESS':
-          return this.$t('keys.certStatus.deletion');
+          return 'keys.certStatus.deletion';
           break;
         case 'GLOBAL_ERROR':
-          return this.$t('keys.certStatus.globalError');
+          return 'keys.certStatus.globalError';
           break;
         default:
           return '-';
