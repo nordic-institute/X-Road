@@ -22,7 +22,7 @@ export function remove(uri: string) {
 }
 
 /*
- * Wraps axios get method calls 
+ * Wraps axios get method calls
  */
 export function get(uri: string) {
   return axios.get(uri);
