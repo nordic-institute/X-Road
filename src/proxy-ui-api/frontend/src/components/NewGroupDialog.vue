@@ -1,7 +1,7 @@
 <template>
   <simpleDialog
     :dialog="dialog"
-    :title="$t('localGroup.addLocalGroup')"
+    title="localGroup.addLocalGroup"
     @save="save"
     @cancel="cancel"
     :disableSave="!formReady"

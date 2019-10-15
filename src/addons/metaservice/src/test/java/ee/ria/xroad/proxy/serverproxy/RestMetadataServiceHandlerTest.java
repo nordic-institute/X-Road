@@ -122,7 +122,7 @@ public class RestMetadataServiceHandlerTest {
         ServerConf.reload(new TestSuiteServerConf() {
             @Override
             public DescriptionType getDescriptionType(ServiceId service) {
-                return DescriptionType.OPENAPI3_DESCRIPTION;
+                return DescriptionType.OPENAPI3;
             }
             @Override
             public String getServiceDescriptionURL(ServiceId service) {
