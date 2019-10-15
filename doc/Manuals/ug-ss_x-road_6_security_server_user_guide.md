@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.30  
+Version: 2.31  
 Doc. ID: UG-SS
 
 ---
@@ -63,6 +63,7 @@ Doc. ID: UG-SS
  01.07.2019 | 2.28    | Changing the Security Server Owner chapter added (Chapter [3.4](#34-changing-the-security-server-owner)) | Petteri Kivimäki
  14.08.2019 | 2.29    | Added automatic backups | Ilkka Seppälä
  30.09.2019 | 2.30    | Added remote database migration guide | Ilkka Seppälä
+ 15.10.2019 | 2.31    | Updated REST services in chapter [6] | Ilkka Seppälä
 
 ## Table of Contents <!-- omit in toc --> 
 
@@ -120,6 +121,7 @@ Doc. ID: UG-SS
   - [6.4 Changing the Address of a service description](#64-changing-the-address-of-a-service-description)
   - [6.5 Deleting a service description](#65-deleting-a-service-description)
   - [6.6 Changing the Parameters of a Service](#66-changing-the-parameters-of-a-service)
+  - [6.7 Managing REST Endpoints](#67-managing-rest-endpoints)
 - [7 Access Rights](#7-access-rights)
   - [7.1 Changing the Access Rights of a Service](#71-changing-the-access-rights-of-a-service)
   - [7.2 Adding a Service Client](#72-adding-a-service-client)
@@ -853,9 +855,9 @@ To delete a key, follow these steps.
 
 X-Road supports both SOAP and REST services. The services are managed on two levels:
 
--   the addition, deletion, and deactivation of services is carried out on the WSDL / REST API level;
+-   the addition, deletion, and deactivation of services is carried out on the WSDL / REST API / OpenAPI 3 level;
 
--   the service address, internal network connection method, and the service timeout values are configured at the service level for SOAP services and at the API level for REST services. In addition, for SOAP / WSDL, it is easy to extend the configuration of one service to all the other services.
+-   the service address, internal network connection method, and the service timeout values are configured at the service level for SOAP services and at the API level for REST / OpenAPI 3 services. In addition, for SOAP / WSDL, it is easy to extend the configuration of one service to all the other services.
 
 
 ### 6.1 Adding a service description
@@ -884,29 +886,30 @@ When a new REST service is added, the security server displays url and service c
 
 1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Services** icon on that row.
 
-2.  Click **ADD REST**, enter the url and service code in the window that opens and click **OK**. Once the window is closed, the url and the service code are added to the table. By default, the REST API is added in disabled state (see [6.3](#63-enabling-and-disabling-a-service-description)).
+2.  Click **ADD REST**. Select whether the URL type is REST API base path or OpenAPI 3 description. Enter the url and service code in the window that opens and click **OK**.
 
-**To see the service the REST service**
+3.  Once the window is closed, the url and the service code are added to the table. If the added URL type was OpenAPI 3 description, the service description is parsed and endpoints are added under the service. By default, the REST service is added in disabled state (see [6.3](#63-enabling-and-disabling-a-service-description)).
 
--   click the "**+**" symbol in front of the REST row to expand the service description.
+**To see the service details under the REST service**
+
+-   click the "**+**" symbol in front of the REST row to expand the service details.
+
 
 ### 6.2 Refreshing a service description
 
 **Access rights:** [Service Administrator](#xroad-service-administrator)
 
-Upon refreshing, the security server reloads the WSDL file from the WSDL address to the security server and checks the service information in the reloaded file against existing services. If the composition of services in the new WSDL has changed compared to the current version, a warning is displayed and you can either continue with the refresh or cancel.
+Upon refreshing, the security server reloads the service description file from the service description URL to the security server and checks the service information in the reloaded file against existing services. If the composition of services in the new service description has changed compared to the current version, a warning is displayed and you can either continue with the refresh or cancel.
 
-To refresh the WSDL, follow these steps.
+To refresh the service description, follow these steps.
 
 1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Services** icon on that row.
 
-2.  Select from the table a WSDL to be refreshed and click **Refresh**.
+2.  Select from the table a WSDL or REST to be refreshed and click **Refresh**.
 
-3.  If the new WSDL contains changes compared to the current WSDL in the security server, a warning is displayed. To proceed with the refresh, click **Continue**.
+3.  If the new service description contains changes compared to the current service description in the security server, a warning is displayed. To proceed with the refresh, click **Continue**.
 
-When the WSDL is refreshed, the existing services’ settings are not overwritten.
-
-Refreshing a REST service is disabled.
+When the service description is refreshed, the existing services’ settings are not overwritten.
 
 
 ### 6.3 Enabling and Disabling a service description
@@ -944,7 +947,7 @@ To change the service description address, follow these steps.
 
 2.  Select from the table a service description whose information you wish to change and click **Edit**.
 
-3.  In the window that opens, edit the WSDL address for WSDL, and url and/or service code for REST, and click **OK**. The service information updates accordingly (see section [6.2](#62-refreshing-a-service-description)).
+3.  In the window that opens, edit the WSDL address for WSDL, URL and/or service code for REST, and click **OK**. The service information updates accordingly (see section [6.2](#62-refreshing-a-service-description)).
 
 
 ### 6.5 Deleting a service description
@@ -983,6 +986,25 @@ To change service parameters, follow these steps.
 3.  In the window that opens, configure the service parameters. To apply the selected parameter to all services described in the same service description, select the checkbox adjacent to this parameter in the **Apply to All in WSDL** column. To apply the configured parameters, click **OK**.
 
 
+### 6.7 Managing REST Endpoints
+
+**Access rights:** [Service Administrator](#xroad-service-administrator)
+
+REST type service descriptions can contain API endpoints. The purpose of the endpoints is more fine-grained access control. More about that in chapter [7 Access Rights](#7-access-rights).
+
+When URL type of the REST service is an OpenAPI 3 description, endpoints are parsed from the service description automatically. These endpoints cannot be manually updated or deleted. Additionally manual endpoints can be added as needed. When URL type is REST API base path, all the endpoints need to be created manually. Manually created endpoints can also be edited and deleted as needed.
+
+To create API endpoint manually, follow these steps
+
+1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Services** icon on that row.
+
+2.  Select from the table a REST service description where the endpoint is going to be added and click "**+**" to see the service details.
+
+3.  Select the service code item immediately under the service description level and click **Add Endpoint**.
+
+4.  Select HTTP request method and Path for the endpoint and click **OK**.
+
+
 ## 7 Access Rights
 
 Access rights can be granted to the following access right subjects.
@@ -999,6 +1021,13 @@ There are two options for managing access rights in a security server.
 
 -   Service client-based access rights management – if a single service client needs multiple services opened/closed (see [7.2](#72-adding-a-service-client)).
 
+It is possible to define access rights on two levels for REST services:
+
+-   REST service level
+-   endpoint level
+
+In general, a REST service usually has multiple endpoints. When access rights are defined on the service level, they apply to all the endpoints of the REST service. Instead, defining access rights on the endpoint level gives access to specific endpoint(s) only.
+
 
 ### 7.1 Changing the Access Rights of a Service
 
@@ -1008,7 +1037,7 @@ To change the access rights to a service, follow these steps.
 
 1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Services** icon on that row.
 
-2.  Select a service from the table and click **Access Rights**.
+2.  Select a service or endpoint from the table and click **Access Rights**.
 
 3.  In the window that opens, the access rights table displays information about all X-Road subsystems and groups that have access to the selected service.
 
@@ -1032,7 +1061,7 @@ To add a service client, follow these steps.
 
 3.  In the window that opens, locate and select a subject (a subsystem, or a local or global group) to which you want to grant access rights to and click **Next**.
 
-4.  Locate the service(s) whose access rights you want to grant to the selected subject. Click **Add Selected to ACL** to grant access rights to the selected services to this subject. Click **Add All to ACL** to grant access rights to all services in the filter to the subject.
+4.  Locate the service(s) whose access rights you want to grant to the selected subject. Click **Add Selected to ACL** to grant access rights to the selected services to this subject. Click **Add All to ACL** to grant access rights to all services in the filter to the subject. Note that access rights to REST API endpoints can not be added using this view, those need to be added on **Services** tab as described in [7.1](#71-changing-the-access-rights-of-a-service).
 
 The subject is added to the list of service clients, after which the service client's access rights view is displayed where the access rights can be changed.
 
@@ -1053,7 +1082,7 @@ To change the service client's access rights, follow these steps.
 
 -   To remove all access rights from the service client, click **Remove All** and then click **Confirm**.
 
--   To add access rights to a service client, start by clicking **Add Service**. In the window that opens, select the service(s) that you wish to grant to the subject (already granted services are displayed in gray) and click **Add Selected to ACL**. To add all services found by the search, click **Add All to ACL**.
+-   To add access rights to a service client, start by clicking **Add Service**. In the window that opens, select the service(s) that you wish to grant to the subject (already granted services are displayed in gray) and click **Add Selected to ACL**. To add all services found by the search, click **Add All to ACL**. Note that access rights to REST API endpoints can not be added using this view, those need to be added on **Services** tab as described in [7.1](#71-changing-the-access-rights-of-a-service).
 
 **Caution:** If you refresh the page, all service clients that do not have access rights to any services are removed from the service clients’ view.
 
