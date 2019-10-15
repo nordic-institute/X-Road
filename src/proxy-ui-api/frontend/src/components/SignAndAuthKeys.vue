@@ -313,6 +313,7 @@ export default Vue.extend({
     },
 
     fetchData(): void {
+      // Fetch tokens from backend
       api
         .get(`/tokens`)
         .then((res) => {
