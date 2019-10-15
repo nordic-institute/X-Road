@@ -49,6 +49,8 @@ import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
+import org.niis.xroad.restapi.openapi.model.Subject;
+import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.LocalGroupService;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
@@ -303,5 +305,13 @@ public class ClientsApiController implements ClientsApi {
                 addedServiceDescriptionType);
         return createCreatedResponse("/api/service-descriptions/{id}", addedServiceDescription,
                 addedServiceDescription.getId());
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
+    public ResponseEntity<List<Subject>> findSubjects(String encodedClientId, String memberNameGroupDescription,
+            SubjectType subjectType, String instance, String memberClass, String memberGroupCode,
+            String subsystemCode) {
+        return null;
     }
 }

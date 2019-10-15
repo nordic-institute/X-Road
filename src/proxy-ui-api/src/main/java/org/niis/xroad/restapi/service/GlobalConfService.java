@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
@@ -123,5 +124,13 @@ public class GlobalConfService {
             return false;
         }
         return GlobalConf.existsSecurityServer(securityServerId);
+    }
+
+    /**
+     * get a list of global groups as {@link GlobalGroupInfo}
+     */
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
+    public List<GlobalGroupInfo> getGlobalGroups(String... instanceIdentifier) {
+        return GlobalConf.getGlobalGroups(instanceIdentifier);
     }
 }

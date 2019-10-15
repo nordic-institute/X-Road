@@ -24,6 +24,8 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
+import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
@@ -39,6 +41,7 @@ import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.Error;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
@@ -73,13 +76,15 @@ public class ServiceService {
     private final ClientRepository clientRepository;
     private final LocalGroupRepository localGroupRepository;
     private final ServiceDescriptionRepository serviceDescriptionRepository;
+    private final GlobalConfService globalConfService;
 
     @Autowired
     public ServiceService(ClientRepository clientRepository, LocalGroupRepository localGroupRepository,
-            ServiceDescriptionRepository serviceDescriptionRepository) {
+            ServiceDescriptionRepository serviceDescriptionRepository, GlobalConfService globalConfService) {
         this.clientRepository = clientRepository;
         this.localGroupRepository = localGroupRepository;
         this.serviceDescriptionRepository = serviceDescriptionRepository;
+        this.globalConfService = globalConfService;
     }
 
     /**
@@ -276,5 +281,39 @@ public class ServiceService {
 
         subjectIds.addAll(localGroups);
         deleteServiceAccessRights(clientId, fullServiceCode, subjectIds);
+    }
+
+    /**
+     * Find access right holders by
+     * @param clientId
+     * @param memberNameGroupDescription
+     * @param subjectType
+     * @param instance
+     * @param memberClass
+     * @param memberGroupCode
+     * @param subsystemCode
+     * @return AccessRightHolderDto list
+     */
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
+    public List<AccessRightHolderDto> findAccessRightHolders(ClientId clientId, String memberNameGroupDescription,
+            SubjectType subjectType, String instance, String memberClass, String memberGroupCode,
+            String subsystemCode) {
+        List<AccessRightHolderDto> dtos = null;
+
+        // get client
+        // will throw a checked exception
+        ClientType client = clientRepository.getClient(clientId);
+
+        String xroadInstance = instance != null ? instance : globalConfService.getInstanceIdentifier();
+        // GlobalConf::getMembers (only subsystems)
+        List<MemberInfo> memberInfos = globalConfService.getGlobalMembers(xroadInstance);
+
+        // GlobalConf::getGlobalGroups
+        List<GlobalGroupInfo> globalGroupInfos = globalConfService.getGlobalGroups(xroadInstance);
+
+        // client.getLocalGroups
+        // --> filter by search params
+        // --> bake into AccessRightHolderDtos
+        return dtos;
     }
 }
