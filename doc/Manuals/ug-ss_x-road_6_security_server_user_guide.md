@@ -63,7 +63,7 @@ Doc. ID: UG-SS
  01.07.2019 | 2.28    | Changing the Security Server Owner chapter added (Chapter [3.4](#34-changing-the-security-server-owner)) | Petteri Kivimäki
  14.08.2019 | 2.29    | Added automatic backups | Ilkka Seppälä
  30.09.2019 | 2.30    | Added remote database migration guide | Ilkka Seppälä
- 14.09.2019 | 2.31    | Updated REST services in chapter [6] | Ilkka Seppälä
+ 15.10.2019 | 2.31    | Updated REST services in chapter [6] | Ilkka Seppälä
 
 ## Table of Contents <!-- omit in toc --> 
 
