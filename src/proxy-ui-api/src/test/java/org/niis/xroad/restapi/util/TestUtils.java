@@ -93,7 +93,7 @@ public final class TestUtils {
      * @return
      */
     public static GlobalGroupInfo getGlobalGroupInfo(String instance, String groupCode) {
-        return new GlobalGroupInfo(GlobalGroupId.create(instance, groupCode), groupCode);
+        return new GlobalGroupInfo(GlobalGroupId.create(instance, groupCode), groupCode + "-description");
     }
 
     /**

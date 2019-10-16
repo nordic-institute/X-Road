@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -48,6 +49,8 @@ import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
+import org.niis.xroad.restapi.openapi.model.Subject;
+import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.repository.TokenRepository;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
@@ -71,6 +74,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
@@ -113,6 +117,10 @@ public class ClientsApiControllerIntegrationTest {
     private static final String SUBSYSTEM1 = "SS1";
     private static final String SUBSYSTEM2 = "SS2";
     private static final String SUBSYSTEM3 = "SS3";
+    private List<GlobalGroupInfo> globalGroupInfos = new ArrayList<>(Arrays.asList(
+            TestUtils.getGlobalGroupInfo(INSTANCE_FI, "global-group"),
+            TestUtils.getGlobalGroupInfo(INSTANCE_FI, "global-group-1"),
+            TestUtils.getGlobalGroupInfo(INSTANCE_EE, "global-group-2")));
 
     @MockBean
     private GlobalConfService globalConfService;
@@ -144,6 +152,7 @@ public class ClientsApiControllerIntegrationTest {
         List<TokenInfo> mockTokens = createMockTokenInfos(null);
         when(tokenRepository.getTokens()).thenReturn(mockTokens);
         when(wsdlValidator.getWsdlValidatorCommand()).thenReturn("src/test/resources/validator/mock-wsdlvalidator.sh");
+        when(globalConfService.getGlobalGroups(any())).thenReturn(globalGroupInfos);
     }
 
     @Autowired
@@ -678,5 +687,14 @@ public class ClientsApiControllerIntegrationTest {
             assertErrorWithMetadata(WsdlValidator.ERROR_WSDL_VALIDATION_FAILED,
                     WsdlValidatorTest.MOCK_VALIDATOR_ERROR, expected);
         }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    public void findAllSubjects() {
+        ResponseEntity<List<Subject>> subjectsResponse = clientsApiController.findSubjects(CLIENT_ID_SS1, null,
+                null, null, null, null, null);
+        List<Subject> subjects = subjectsResponse.getBody();
+        assertEquals(9, subjects.size());
     }
 }

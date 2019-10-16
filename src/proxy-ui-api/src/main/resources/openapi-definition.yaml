@@ -4178,6 +4178,14 @@ components:
           readOnly: true
           minLength: 1
           maxLength: 255
+        local_group_code:
+          type: string
+          format: text
+          description: group code in case the object is a local group
+          example: My own Local group code
+          minLength: 1
+          maxLength: 255
+          readOnly: true
         subject_type:
           $ref: '#/components/schemas/SubjectType'
     SubjectType: # ok

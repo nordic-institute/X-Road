@@ -29,6 +29,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -37,6 +38,9 @@ import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.ConnectionTypeMapping;
 import org.niis.xroad.restapi.converter.LocalGroupConverter;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
+import org.niis.xroad.restapi.converter.SubjectConverter;
+import org.niis.xroad.restapi.converter.SubjectTypeMapping;
+import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.Error;
 import org.niis.xroad.restapi.exceptions.InvalidParametersException;
@@ -54,6 +58,7 @@ import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.LocalGroupService;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
+import org.niis.xroad.restapi.service.ServiceService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -90,6 +95,8 @@ public class ClientsApiController implements ClientsApi {
     private final CertificateDetailsConverter certificateDetailsConverter;
     private final ServiceDescriptionConverter serviceDescriptionConverter;
     private final ServiceDescriptionService serviceDescriptionService;
+    private final ServiceService serviceService;
+    private final SubjectConverter subjectConverter;
 
     /**
      * ClientsApiController constructor
@@ -101,6 +108,8 @@ public class ClientsApiController implements ClientsApi {
      * @param localGroupService
      * @param serviceDescriptionConverter
      * @param serviceDescriptionService
+     * @param serviceService
+     * @param subjectConverter
      */
 
     @Autowired
@@ -108,7 +117,8 @@ public class ClientsApiController implements ClientsApi {
             ClientConverter clientConverter, LocalGroupConverter localGroupConverter,
             LocalGroupService localGroupService, CertificateDetailsConverter certificateDetailsConverter,
             ServiceDescriptionConverter serviceDescriptionConverter,
-            ServiceDescriptionService serviceDescriptionService) {
+            ServiceDescriptionService serviceDescriptionService, ServiceService serviceService,
+            SubjectConverter subjectConverter) {
         this.request = request;
         this.clientService = clientService;
         this.tokenService = tokenService;
@@ -118,6 +128,8 @@ public class ClientsApiController implements ClientsApi {
         this.certificateDetailsConverter = certificateDetailsConverter;
         this.serviceDescriptionConverter = serviceDescriptionConverter;
         this.serviceDescriptionService = serviceDescriptionService;
+        this.serviceService = serviceService;
+        this.subjectConverter = subjectConverter;
     }
 
     /**
@@ -312,6 +324,11 @@ public class ClientsApiController implements ClientsApi {
     public ResponseEntity<List<Subject>> findSubjects(String encodedClientId, String memberNameGroupDescription,
             SubjectType subjectType, String instance, String memberClass, String memberGroupCode,
             String subsystemCode) {
-        return null;
+        ClientId clientId = clientConverter.convertId(encodedClientId);
+        XRoadObjectType xRoadObjectType = SubjectTypeMapping.map(subjectType).orElse(null);
+        List<AccessRightHolderDto> accessRightHolderDtos = serviceService.findAccessRightHolders(clientId,
+                memberNameGroupDescription, xRoadObjectType, instance, memberClass, memberGroupCode, subsystemCode);
+        List<Subject> subjects = subjectConverter.convert(accessRightHolderDtos);
+        return new ResponseEntity<>(subjects, HttpStatus.OK);
     }
 }

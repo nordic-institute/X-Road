@@ -131,7 +131,7 @@ public class ServicesApiController implements ServicesApi {
                 .collect(Collectors.toSet());
         subjects.getItems().removeIf(hasNumericIdAndIsLocalGroup);
         // Converter handles other errors such as unknown types and ids
-        List<XRoadId> xRoadIds = subjectConverter.convert(subjects.getItems());
+        List<XRoadId> xRoadIds = subjectConverter.convertId(subjects.getItems());
         serviceService.deleteServiceAccessRights(clientId, fullServiceCode, new HashSet<>(xRoadIds), localGroupIds);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

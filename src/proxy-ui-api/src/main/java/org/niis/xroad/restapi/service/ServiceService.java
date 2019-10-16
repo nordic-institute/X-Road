@@ -338,6 +338,8 @@ public class ServiceService {
         List<LocalGroupType> localGroups = client.getLocalGroup();
         localGroups.forEach(localGroup -> {
             AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
+            accessRightHolderDto.setGroupId(localGroup.getId().toString());
+            accessRightHolderDto.setGroupCode(localGroup.getGroupCode());
             accessRightHolderDto.setSubjectId(LocalGroupId.create(localGroup.getGroupCode()));
             accessRightHolderDto.setGroupDescription(localGroup.getDescription());
             dtos.add(accessRightHolderDto);
