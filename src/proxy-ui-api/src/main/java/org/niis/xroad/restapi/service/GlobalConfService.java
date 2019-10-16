@@ -99,6 +99,7 @@ public class GlobalConfService {
     /**
      * @return the instance identifier for this configuration source
      */
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
     public String getInstanceIdentifier() {
         return GlobalConf.getInstanceIdentifier();
     }

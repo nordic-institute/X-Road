@@ -24,8 +24,10 @@
  */
 package org.niis.xroad.restapi.util;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.GlobalGroupId;
 
 import org.niis.xroad.restapi.exceptions.Warning;
 import org.springframework.http.ResponseEntity;
@@ -82,6 +84,16 @@ public final class TestUtils {
     public static MemberInfo getMemberInfo(String instance, String memberClass, String memberCode, String subsystem) {
         return new MemberInfo(getClientId(instance, memberClass, memberCode, subsystem),
                 subsystem != null ? subsystem + NAME_APPENDIX : null);
+    }
+
+    /**
+     * Returns a new GlobalGroupInfo object
+     * @param instance
+     * @param groupCode
+     * @return
+     */
+    public static GlobalGroupInfo getGlobalGroupInfo(String instance, String groupCode) {
+        return new GlobalGroupInfo(GlobalGroupId.create(instance, groupCode), groupCode);
     }
 
     /**
