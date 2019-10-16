@@ -36,17 +36,21 @@ import java.time.OffsetDateTime;
 @Data
 public class AccessRightHolderDto {
     /**
-     * LocalGroup's PK - NULL if not a LOCALGROUP
+     * Group's PK - NULL if not a LOCALGROUP/GLOBALGROUP
      */
-    private String localGroupId;
+    private String groupId;
     /**
-     * LocalGroup's groupCode - NULL if not a LOCALGROUP
+     * Group's groupCode - NULL if not a LOCALGROUP/GLOBALGROUP
      */
-    private String localGroupCode;
+    private String groupCode;
     /**
-     * LocalGroup's groupDescription - NULL if not a LOCALGROUP
+     * Group's groupDescription - NULL if not a LOCALGROUP/GLOBALGROUP
      */
-    private String localGroupDescription;
+    private String groupDescription;
+    /**
+     * Member's name in global conf - NULL if not a MEMBER/SUBSYSTEM
+     */
+    private String memberName;
     private XRoadId subjectId;
     private OffsetDateTime rightsGiven;
 }

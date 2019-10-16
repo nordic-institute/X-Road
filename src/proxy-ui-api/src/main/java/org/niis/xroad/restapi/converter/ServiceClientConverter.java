@@ -85,9 +85,9 @@ public class ServiceClientConverter {
                 break;
             case LOCALGROUP:
                 LocalGroupId localGroupId = (LocalGroupId) subjectId;
-                serviceClient.setId(accessRightHolderDto.getLocalGroupId());
-                serviceClient.setLocalGroupCode(accessRightHolderDto.getLocalGroupCode());
-                serviceClient.setName(accessRightHolderDto.getLocalGroupDescription());
+                serviceClient.setId(accessRightHolderDto.getGroupId());
+                serviceClient.setLocalGroupCode(accessRightHolderDto.getGroupCode());
+                serviceClient.setName(accessRightHolderDto.getGroupDescription());
                 serviceClient.setSubjectType(SubjectTypeMapping.map(localGroupId.getObjectType()).get());
                 break;
             default:

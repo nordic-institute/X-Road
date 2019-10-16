@@ -32,6 +32,7 @@ import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
@@ -41,7 +42,6 @@ import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.Error;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
-import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
@@ -50,6 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -57,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -74,14 +76,17 @@ public class ServiceService {
     private static final String HTTPS = "https";
 
     private final ClientRepository clientRepository;
+    private final ClientService clientService;
     private final LocalGroupRepository localGroupRepository;
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final GlobalConfService globalConfService;
 
     @Autowired
-    public ServiceService(ClientRepository clientRepository, LocalGroupRepository localGroupRepository,
-            ServiceDescriptionRepository serviceDescriptionRepository, GlobalConfService globalConfService) {
+    public ServiceService(ClientRepository clientRepository, ClientService clientService,
+            LocalGroupRepository localGroupRepository, ServiceDescriptionRepository serviceDescriptionRepository,
+            GlobalConfService globalConfService) {
         this.clientRepository = clientRepository;
+        this.clientService = clientService;
         this.localGroupRepository = localGroupRepository;
         this.serviceDescriptionRepository = serviceDescriptionRepository;
         this.globalConfService = globalConfService;
@@ -182,9 +187,9 @@ public class ServiceService {
         if (subjectId.getObjectType() == XRoadObjectType.LOCALGROUP) {
             LocalGroupId localGroupId = (LocalGroupId) subjectId;
             LocalGroupType localGroupType = localGroupMap.get(localGroupId.getGroupCode());
-            accessRightHolderDto.setLocalGroupId(localGroupType.getId().toString());
-            accessRightHolderDto.setLocalGroupCode(localGroupType.getGroupCode());
-            accessRightHolderDto.setLocalGroupDescription(localGroupType.getDescription());
+            accessRightHolderDto.setGroupId(localGroupType.getId().toString());
+            accessRightHolderDto.setGroupCode(localGroupType.getGroupCode());
+            accessRightHolderDto.setGroupDescription(localGroupType.getDescription());
         }
         return accessRightHolderDto;
     }
@@ -296,24 +301,125 @@ public class ServiceService {
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
     public List<AccessRightHolderDto> findAccessRightHolders(ClientId clientId, String memberNameGroupDescription,
-            SubjectType subjectType, String instance, String memberClass, String memberGroupCode,
+            XRoadObjectType subjectType, String instance, String memberClass, String memberGroupCode,
             String subsystemCode) {
-        List<AccessRightHolderDto> dtos = null;
+        List<AccessRightHolderDto> dtos = new ArrayList<>();
 
         // get client
         // will throw a checked exception
         ClientType client = clientRepository.getClient(clientId);
 
-        String xroadInstance = instance != null ? instance : globalConfService.getInstanceIdentifier();
-        // GlobalConf::getMembers (only subsystems)
-        List<MemberInfo> memberInfos = globalConfService.getGlobalMembers(xroadInstance);
+        // ClientService::findGlobalClients (only subsystems) - leaves unregistered local clients out
+        List<MemberInfo> clients = globalConfService.getGlobalMembers();
+        List<AccessRightHolderDto> clientDtos = clients.stream()
+                .map(memberInfo -> {
+                    AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
+                    accessRightHolderDto.setSubjectId(memberInfo.getId());
+                    accessRightHolderDto.setMemberName(memberInfo.getName());
+                    return accessRightHolderDto;
+                })
+                .collect(Collectors.toList());
 
         // GlobalConf::getGlobalGroups
-        List<GlobalGroupInfo> globalGroupInfos = globalConfService.getGlobalGroups(xroadInstance);
+        String globalGroupInstance = instance != null ? instance : globalConfService.getInstanceIdentifier();
+        List<GlobalGroupInfo> globalGroupInfos = globalConfService.getGlobalGroups(globalGroupInstance);
+        List<AccessRightHolderDto> globalGroupDtos = globalGroupInfos.stream()
+                .map(globalGroupInfo -> {
+                    AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
+                    accessRightHolderDto.setSubjectId(globalGroupInfo.getId());
+                    accessRightHolderDto.setGroupDescription(globalGroupInfo.getDescription());
+                    return accessRightHolderDto;
+                })
+                .collect(Collectors.toList());
 
         // client.getLocalGroups
-        // --> filter by search params
-        // --> bake into AccessRightHolderDtos
-        return dtos;
+        List<LocalGroupType> localGroups = client.getLocalGroup();
+        List<AccessRightHolderDto> localGroupDtos = localGroups.stream()
+                .map(localGroup -> {
+                    AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
+                    accessRightHolderDto.setSubjectId(LocalGroupId.create(localGroup.getGroupCode()));
+                    accessRightHolderDto.setGroupDescription(localGroup.getDescription());
+                    return accessRightHolderDto;
+                })
+                .collect(Collectors.toList());
+
+        dtos.addAll(clientDtos);
+        dtos.addAll(globalGroupDtos);
+        dtos.addAll(localGroupDtos);
+
+        Predicate<AccessRightHolderDto> isMatchingSearchTerms = buildSubjectSearchPredicate(subjectType,
+                memberNameGroupDescription, instance, memberClass, memberGroupCode, subsystemCode);
+
+        return dtos.stream()
+                .filter(isMatchingSearchTerms)
+                .collect(Collectors.toList());
+    }
+
+    private Predicate<AccessRightHolderDto> buildSubjectSearchPredicate(XRoadObjectType subjectType,
+            String memberNameGroupDescription, String instance, String memberClass, String memberGroupCode,
+            String subsystemCode) {
+        Predicate<AccessRightHolderDto> searchPredicates = accessRightHolderDto -> true;
+        if (subjectType != null) {
+            searchPredicates.and(dto -> dto.getSubjectId().getObjectType() == subjectType);
+        }
+        if (!StringUtils.isEmpty(memberNameGroupDescription)) {
+            searchPredicates.and(dto -> {
+                String memberName = dto.getMemberName();
+                String groupDescription = dto.getGroupDescription();
+                boolean isMatch = (memberName != null && memberName.toLowerCase().contains(
+                        memberNameGroupDescription.toLowerCase()))
+                        || (groupDescription != null && groupDescription.toLowerCase().contains(
+                        memberNameGroupDescription.toLowerCase()));
+                return isMatch;
+            });
+        }
+        if (!StringUtils.isEmpty(instance)) {
+            searchPredicates.and(dto -> dto.getSubjectId().getXRoadInstance().toLowerCase()
+                    .contains(instance.toLowerCase()));
+        }
+        if (!StringUtils.isEmpty(memberClass)) {
+            searchPredicates.and(dto -> {
+                XRoadId xRoadId = dto.getSubjectId();
+                if (xRoadId instanceof ClientId) {
+                    return ((ClientId) xRoadId).getMemberClass().toLowerCase().contains(memberClass.toLowerCase());
+                } else {
+                    return false;
+                }
+            });
+        }
+        if (!StringUtils.isEmpty(subsystemCode)) {
+            searchPredicates.and(dto -> {
+                XRoadId xRoadId = dto.getSubjectId();
+                if (xRoadId instanceof ClientId) {
+                    String clientSubsystemCode = ((ClientId) xRoadId).getSubsystemCode();
+                    return clientSubsystemCode != null && clientSubsystemCode
+                            .toLowerCase()
+                            .contains(subsystemCode.toLowerCase());
+                } else {
+                    return false;
+                }
+            });
+        }
+        if (!StringUtils.isEmpty(memberGroupCode)) {
+            searchPredicates.and(dto -> {
+                XRoadId xRoadId = dto.getSubjectId();
+                if (xRoadId instanceof ClientId) {
+                    return ((ClientId) xRoadId).getMemberCode()
+                            .toLowerCase()
+                            .contains(memberGroupCode.toLowerCase());
+                } else if (xRoadId instanceof GlobalGroupId) {
+                    return ((GlobalGroupId) xRoadId).getGroupCode()
+                            .toLowerCase()
+                            .contains(memberGroupCode.toLowerCase());
+                } else if (xRoadId instanceof LocalGroupId) {
+                    return ((LocalGroupId) xRoadId).getGroupCode()
+                            .toLowerCase()
+                            .contains(memberGroupCode.toLowerCase());
+                } else {
+                    return false;
+                }
+            });
+        }
+        return searchPredicates;
     }
 }
