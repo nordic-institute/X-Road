@@ -25,11 +25,8 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.message.GetTokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
-
-import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotFound;
 
 /**
  * Handles requests for token info.
@@ -39,12 +36,8 @@ public class GetTokenInfoRequestHandler
 
     @Override
     protected Object handle(GetTokenInfo message) throws Exception {
-        TokenInfo tokenInfo = TokenManager.getTokenInfo(message.getTokenId());
-        if (tokenInfo == null) {
-            // we don't want to return nothing, this would cause timeout for caller
-            throw tokenNotFound(message.getTokenId());
-        }
-        return tokenInfo;
+        // findTokenInfo throws exception if not found. We want this since null means timeout for caller.
+        return TokenManager.findTokenInfo(message.getTokenId());
     }
 
 }
