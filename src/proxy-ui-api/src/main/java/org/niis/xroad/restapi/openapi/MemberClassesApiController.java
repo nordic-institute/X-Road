@@ -26,6 +26,7 @@ package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -46,14 +47,17 @@ import java.util.List;
 @PreAuthorize("denyAll")
 public class MemberClassesApiController implements MemberClassesApi {
 
+    private final GlobalConfFacade globalConfFacade;
     private final GlobalConfService globalConfService;
 
     /**
      * Constructor
-     * @param globalConfService
+     * @param globalConfFacade
      */
     @Autowired
-    public MemberClassesApiController(GlobalConfService globalConfService) {
+    public MemberClassesApiController(GlobalConfFacade globalConfFacade,
+            GlobalConfService globalConfService) {
+        this.globalConfFacade = globalConfFacade;
         this.globalConfService = globalConfService;
     }
 
@@ -64,7 +68,7 @@ public class MemberClassesApiController implements MemberClassesApi {
         if (currentInstance) {
             memberClasses = new ArrayList(globalConfService.getMemberClassesForThisInstance());
         } else {
-            memberClasses = new ArrayList(globalConfService.getMemberClasses());
+            memberClasses = new ArrayList(globalConfFacade.getMemberClasses());
         }
         return new ResponseEntity<>(memberClasses, HttpStatus.OK);
     }
@@ -72,10 +76,10 @@ public class MemberClassesApiController implements MemberClassesApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
     public ResponseEntity<List<String>> getMemberClassesForInstance(String instanceId) {
-        if (!globalConfService.getInstanceIdentifiers().contains(instanceId)) {
+        if (!globalConfFacade.getInstanceIdentifiers().contains(instanceId)) {
             throw new NotFoundException("instance identifier not found: " + instanceId);
         }
-        List<String> memberClasses = new ArrayList(globalConfService.getMemberClasses(instanceId));
+        List<String> memberClasses = new ArrayList(globalConfFacade.getMemberClasses(instanceId));
         return new ResponseEntity<>(memberClasses, HttpStatus.OK);
     }
 }

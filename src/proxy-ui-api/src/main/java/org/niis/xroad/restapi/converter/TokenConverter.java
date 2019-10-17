@@ -74,7 +74,7 @@ public class TokenConverter {
         Optional<TokenStatus> status = TokenStatusMapping.map(tokenInfo.getStatus());
         token.setStatus(status.orElse(null));
 
-        token.setActive(tokenInfo.isActive());
+        token.setLoggedIn(tokenInfo.isActive());
         token.setAvailable(tokenInfo.isAvailable());
         token.setSavedToConfiguration(isSavedToConfiguration(tokenInfo));
         token.setReadOnly(tokenInfo.isReadOnly());

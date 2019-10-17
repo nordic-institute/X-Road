@@ -170,7 +170,7 @@ public class ClientsApiController implements ClientsApi {
     public ResponseEntity<List<CertificateDetails>> getClientCertificates(String encodedId) {
         ClientType clientType = getClientType(encodedId);
         try {
-            List<CertificateDetails> certificates = tokenService.getAllTokens(clientType)
+            List<CertificateDetails> certificates = tokenService.getAllCertificates(clientType)
                     .stream()
                     .map(certificateDetailsConverter::convert)
                     .collect(toList());

@@ -22,30 +22,63 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.exceptions;
 
-import ee.ria.xroad.commonui.SignerProxy;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Repository;
-
-import java.util.List;
+import java.util.Collection;
 
 /**
- * Repository that handles tokens (acts as a wrapper to SignerProxy)
+ * Thrown if internal server error occurs.
+ * Results in http 500 INTERNAL_SERVER_ERROR
  */
-@Slf4j
-@Repository
-public class TokenRepository {
+@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+public class InternalServerErrorException extends DeviationAwareRuntimeException {
+    public InternalServerErrorException() {
+    }
+
+    public InternalServerErrorException(String msg) {
+        super(msg);
+    }
+
+    public InternalServerErrorException(String msg, Error error) {
+        super(msg, error);
+    }
+
+    public InternalServerErrorException(String msg, Throwable t, Error error) {
+        super(msg, t, error);
+    }
+
+    public InternalServerErrorException(Throwable t, Error error, Collection<Warning> warnings) {
+        super(t, error, warnings);
+    }
+
+    public InternalServerErrorException(Error error, Collection<Warning> warnings) {
+        super(error, warnings);
+    }
+
+    public InternalServerErrorException(Error error) {
+        super(error);
+    }
+
+    public InternalServerErrorException(Throwable t, Error error) {
+        super(t, error);
+    }
+
+
+
+
+
+
+
 
     /**
-     * get all tokens
-     * @return
-     * @throws Exception
+     * Use deviation data from original exception
+     * @param e
      */
-    public List<TokenInfo> getTokens() throws Exception {
-        return SignerProxy.getTokens();
+    public InternalServerErrorException(DeviationAwareRuntimeException e) {
+        this(e, e.getError(), e.getWarnings());
     }
 
 }

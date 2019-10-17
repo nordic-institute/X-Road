@@ -28,7 +28,9 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.TokenConverter;
+import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Token;
+import org.niis.xroad.restapi.openapi.model.TokenPassword;
 import org.niis.xroad.restapi.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -64,7 +66,6 @@ public class TokensApiController implements TokensApi {
         this.tokenConverter = tokenConverter;
     }
 
-
     @PreAuthorize("hasAuthority('VIEW_KEYS')")
     @Override
     public ResponseEntity<List<Token>> getTokens() {
@@ -76,5 +77,37 @@ public class TokensApiController implements TokensApi {
         }
         List<Token> tokens = tokenConverter.convert(tokenInfos);
         return new ResponseEntity<>(tokens, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAuthority('ACTIVATE_TOKEN')")
+    @Override
+    public ResponseEntity<Token> loginToken(String id, TokenPassword tokenPassword) {
+        if (tokenPassword == null
+                || tokenPassword.getPassword() == null
+                || tokenPassword.getPassword().isEmpty()) {
+            throw new BadRequestException("Missing token password");
+        }
+        char[] password = tokenPassword.getPassword().toCharArray();
+        tokenService.activateToken(id, password);
+        Token token = getTokenFromService(id);
+        return new ResponseEntity<>(token, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAuthority('DEACTIVATE_TOKEN')")
+    @Override
+    public ResponseEntity<Token> logoutToken(String id) {
+        tokenService.deactivateToken(id);
+        Token token = getTokenFromService(id);
+        return new ResponseEntity<>(token, HttpStatus.OK);
+    }
+
+    private Token getTokenFromService(String id) {
+        TokenInfo tokenInfo = null;
+        try {
+            tokenInfo = tokenService.getToken(id);
+        } catch (Exception e) {
+            throw new RuntimeException("reading token failed", e);
+        }
+        return tokenConverter.convert(tokenInfo);
     }
 }
