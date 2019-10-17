@@ -1204,7 +1204,7 @@ paths:
         - in: query
           name: member_name_group_description
           description: pass an optional search string (name) for looking up subjects - name of a member or description of a group
-          example: NIIS
+          example: NIIS | Some group description
           required: false
           schema:
             type: string
@@ -1239,7 +1239,7 @@ paths:
         - in: query
           name: member_group_code
           description: pass an optional search string (member_group_code) for looking up subjects - member_code of a member or group_code of a group
-          example: 1234 | Example group name
+          example: 1234 | Example group code
           required: false
           schema:
             type: string
@@ -1249,7 +1249,7 @@ paths:
         - in: query
           name: subsystem_code
           description: pass an optional search string (subsystem_code) for looking up subjects
-          example: Subsystem
+          example: Subsystem1
           required: false
           schema:
             type: string

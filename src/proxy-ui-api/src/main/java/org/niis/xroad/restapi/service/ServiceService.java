@@ -304,7 +304,7 @@ public class ServiceService {
         List<AccessRightHolderDto> dtos = new ArrayList<>();
 
         // get client
-        // will throw a checked exception
+        // will throw a checked exception - later
         ClientType client = clientRepository.getClient(clientId);
         if (client == null) {
             throw new NotFoundException("Client " + clientId.toShortString() + " not found",

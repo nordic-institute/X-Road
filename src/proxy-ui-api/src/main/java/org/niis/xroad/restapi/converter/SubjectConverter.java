@@ -76,7 +76,7 @@ public class SubjectConverter {
                 xRoadId = globalGroupConverter.convertId(encodedId);
                 break;
             case LOCALGROUP:
-                xRoadId = LocalGroupId.create(encodedId);
+                xRoadId = LocalGroupId.create(subject.getLocalGroupCode());
                 break;
             default:
                 throw new BadRequestException("Invalid subject type");
