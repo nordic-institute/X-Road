@@ -24,11 +24,11 @@
  */
 package org.niis.xroad.restapi.converter;
 
-import com.google.common.collect.Streams;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
+import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Subject;
@@ -95,21 +95,32 @@ public class SubjectConverter {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Convert {@link AccessRightHolderDto} to {@link Subject}
+     * @param accessRightHolderDto
+     * @return {@link Subject}
+     */
     public Subject convert(AccessRightHolderDto accessRightHolderDto) {
         Subject subject = new Subject();
-        String subjectsId = accessRightHolderDto.getGroupId() != null ?
-                accessRightHolderDto.getGroupId() : FormatUtils.xRoadIdToEncodedId(accessRightHolderDto.getSubjectId());
+        String subjectsId = accessRightHolderDto.getGroupId() != null
+                ? accessRightHolderDto.getGroupId() : FormatUtils.xRoadIdToEncodedId(
+                accessRightHolderDto.getSubjectId());
         subject.setId(subjectsId);
         subject.setLocalGroupCode(accessRightHolderDto.getGroupCode());
         SubjectType subjectType = SubjectTypeMapping
                 .map(accessRightHolderDto.getSubjectId().getObjectType()).orElse(null);
         subject.setSubjectType(subjectType);
-        String memberNameOrGroupDescription = accessRightHolderDto.getMemberName() != null ?
-                accessRightHolderDto.getMemberName() : accessRightHolderDto.getGroupDescription();
+        String memberNameOrGroupDescription = accessRightHolderDto.getMemberName() != null
+                ? accessRightHolderDto.getMemberName() : accessRightHolderDto.getGroupDescription();
         subject.setMemberNameGroupDescription(memberNameOrGroupDescription);
         return subject;
     }
 
+    /**
+     * Convert a group of {@link AccessRightHolderDto accessRightHolderDtos} to a list of {@link Subject subjects}
+     * @param accessRightHolderDtos
+     * @return List of {@link Subject subjects}
+     */
     public List<Subject> convert(Iterable<AccessRightHolderDto> accessRightHolderDtos) {
         return Streams.stream(accessRightHolderDtos)
                 .map(this::convert)

@@ -74,7 +74,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
@@ -105,6 +104,7 @@ import static org.niis.xroad.restapi.util.TestUtils.assertLocationHeader;
 public class ClientsApiControllerIntegrationTest {
     public static final String CLIENT_ID_SS1 = "FI:GOV:M1:SS1";
     public static final String CLIENT_ID_SS2 = "FI:GOV:M1:SS2";
+    public static final String CLIENT_ID_SS4 = "FI:GOV:M1:SS4";
     public static final String NEW_GROUPCODE = "groupx";
     public static final String GROUP_DESC = "GROUP_DESC";
     public static final String NAME_APPENDIX = "-name";
@@ -117,6 +117,7 @@ public class ClientsApiControllerIntegrationTest {
     private static final String SUBSYSTEM1 = "SS1";
     private static final String SUBSYSTEM2 = "SS2";
     private static final String SUBSYSTEM3 = "SS3";
+    private static final String GLOBAL_GROUP = "global-group";
     private List<GlobalGroupInfo> globalGroupInfos = new ArrayList<>(Arrays.asList(
             TestUtils.getGlobalGroupInfo(INSTANCE_FI, "global-group"),
             TestUtils.getGlobalGroupInfo(INSTANCE_FI, "global-group-1"),
@@ -696,5 +697,114 @@ public class ClientsApiControllerIntegrationTest {
                 null, null, null, null, null);
         List<Subject> subjects = subjectsResponse.getBody();
         assertEquals(9, subjects.size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    public void findSubjectsByName() {
+        ResponseEntity<List<Subject>> subjectsResponse = clientsApiController.findSubjects(CLIENT_ID_SS1,
+                SUBSYSTEM2 + NAME_APPENDIX, null, null, null, null, null);
+        List<Subject> subjects = subjectsResponse.getBody();
+        assertEquals(1, subjects.size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    public void findSubjectsByGroupDescription() {
+        ResponseEntity<List<Subject>> subjectsResponse = clientsApiController.findSubjects(CLIENT_ID_SS1,
+                GLOBAL_GROUP, null, null, null, null, null);
+        List<Subject> subjects = subjectsResponse.getBody();
+        assertEquals(3, subjects.size());
+
+        subjectsResponse = clientsApiController.findSubjects(CLIENT_ID_SS1,
+                "foo", null, null, null, null, null);
+        subjects = subjectsResponse.getBody();
+        assertEquals(2, subjects.size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    public void findSubjectsByType() {
+        ResponseEntity<List<Subject>> subjectsResponse = clientsApiController.findSubjects(CLIENT_ID_SS1,
+                null, SubjectType.LOCALGROUP, null, null, null, null);
+        List<Subject> subjects = subjectsResponse.getBody();
+        assertEquals(2, subjects.size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    public void findSubjectsByInstance() {
+        ResponseEntity<List<Subject>> subjectsResponse = clientsApiController.findSubjects(CLIENT_ID_SS1,
+                null, null, INSTANCE_EE, null, null, null);
+        List<Subject> subjects = subjectsResponse.getBody();
+        assertEquals(5, subjects.size()); // includes localgroups
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    public void findSubjectsByMemberClass() {
+        ResponseEntity<List<Subject>> subjectsResponse = clientsApiController.findSubjects(CLIENT_ID_SS1,
+                null, null, null, MEMBER_CLASS_GOV, null, null);
+        List<Subject> subjects = subjectsResponse.getBody();
+        assertEquals(3, subjects.size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    public void findSubjectsByMemberOrGroupCode() {
+        ResponseEntity<List<Subject>> subjectsResponse = clientsApiController.findSubjects(CLIENT_ID_SS1,
+                null, null, null, null, MEMBER_CODE_M1, null);
+        List<Subject> subjects = subjectsResponse.getBody();
+        assertEquals(3, subjects.size());
+
+        subjectsResponse = clientsApiController.findSubjects(CLIENT_ID_SS1,
+                null, null, null, null, "group1", null);
+        subjects = subjectsResponse.getBody();
+        assertEquals(1, subjects.size());
+
+        subjectsResponse = clientsApiController.findSubjects(CLIENT_ID_SS1,
+                null, null, null, null, "global-group-2", null);
+        subjects = subjectsResponse.getBody();
+        assertEquals(1, subjects.size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    public void findSubjectsBySubsystemCode() {
+        ResponseEntity<List<Subject>> subjectsResponse = clientsApiController.findSubjects(CLIENT_ID_SS1,
+                null, null, null, null, null, SUBSYSTEM2);
+        List<Subject> subjects = subjectsResponse.getBody();
+        assertEquals(1, subjects.size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    public void findSubjectsByAllSearchTerms() {
+        ResponseEntity<List<Subject>> subjectsResponse = clientsApiController.findSubjects(CLIENT_ID_SS1,
+                SUBSYSTEM3 + NAME_APPENDIX, SubjectType.SUBSYSTEM, INSTANCE_EE, MEMBER_CLASS_GOV, MEMBER_CODE_M2,
+                SUBSYSTEM3);
+        List<Subject> subjects = subjectsResponse.getBody();
+        assertEquals(1, subjects.size());
+    }
+
+    @Test(expected = NotFoundException.class)
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    public void findSubjectsClientNotFound() {
+        clientsApiController.findSubjects(CLIENT_ID_SS4, null, null, null, null, null, null);
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    public void findSubjectsNoResults() {
+        ResponseEntity<List<Subject>> subjectsResponse = clientsApiController.findSubjects(CLIENT_ID_SS1,
+                SUBSYSTEM3 + NAME_APPENDIX, SubjectType.LOCALGROUP, INSTANCE_EE, MEMBER_CLASS_GOV, MEMBER_CODE_M2,
+                SUBSYSTEM3);
+        List<Subject> subjects = subjectsResponse.getBody();
+        assertEquals(0, subjects.size());
+
+        subjectsResponse = clientsApiController.findSubjects(CLIENT_ID_SS1,
+                "nothing", null, null, null, "unknown-code", null);
+        subjects = subjectsResponse.getBody();
+        assertEquals(0, subjects.size());
     }
 }

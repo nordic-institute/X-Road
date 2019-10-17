@@ -77,17 +77,14 @@ public class ServiceService {
     private static final String HTTPS = "https";
 
     private final ClientRepository clientRepository;
-    private final ClientService clientService;
     private final LocalGroupRepository localGroupRepository;
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final GlobalConfService globalConfService;
 
     @Autowired
-    public ServiceService(ClientRepository clientRepository, ClientService clientService,
-            LocalGroupRepository localGroupRepository, ServiceDescriptionRepository serviceDescriptionRepository,
-            GlobalConfService globalConfService) {
+    public ServiceService(ClientRepository clientRepository, LocalGroupRepository localGroupRepository,
+            ServiceDescriptionRepository serviceDescriptionRepository, GlobalConfService globalConfService) {
         this.clientRepository = clientRepository;
-        this.clientService = clientService;
         this.localGroupRepository = localGroupRepository;
         this.serviceDescriptionRepository = serviceDescriptionRepository;
         this.globalConfService = globalConfService;
@@ -290,7 +287,7 @@ public class ServiceService {
     }
 
     /**
-     * Find access right holders by
+     * Find access right holders by search terms
      * @param clientId
      * @param memberNameGroupDescription
      * @param subjectType
@@ -298,7 +295,7 @@ public class ServiceService {
      * @param memberClass
      * @param memberGroupCode
      * @param subsystemCode
-     * @return AccessRightHolderDto list
+     * @return A List of {@link AccessRightHolderDto accessRightHolderDtos} or an empty List if nothing is found
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
     public List<AccessRightHolderDto> findAccessRightHolders(ClientId clientId, String memberNameGroupDescription,
@@ -309,6 +306,10 @@ public class ServiceService {
         // get client
         // will throw a checked exception
         ClientType client = clientRepository.getClient(clientId);
+        if (client == null) {
+            throw new NotFoundException("Client " + clientId.toShortString() + " not found",
+                    new Error(ClientService.CLIENT_NOT_FOUND_ERROR_CODE));
+        }
 
         // GlobalConf::getGlobalMembers (only subsystems) - leaves unregistered local clients out
         List<MemberInfo> clients = globalConfService.getGlobalMembers();
