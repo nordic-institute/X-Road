@@ -237,6 +237,13 @@ public class ServiceDescriptionService {
         return serviceDescriptionType;
     }
 
+    /**
+     * Create a new {@link EndpointType} for all Services in the provided {@link ServiceDescriptionType}.
+     * If an equal EndpointType already exists for the provided {@link ClientType} it will not be returned
+     * @param client
+     * @param newServiceDescription
+     * @return Only the newly created EndpointTypes
+     */
     private Collection<EndpointType> resolveNewEndpoints(ClientType client,
             ServiceDescriptionType newServiceDescription) {
         Map<String, EndpointType> endpointMap = new HashMap<>();
@@ -250,7 +257,7 @@ public class ServiceDescriptionService {
             endpointMap.put(endpointKey, endpointType);
         });
 
-        // remove all existing endpoints by equal combination key
+        // remove all existing endpoints with an equal combination key from the map
         client.getEndpoint().forEach(endpointType -> {
             String endpointKey = endpointType.getServiceCode() + endpointType.getMethod() + endpointType.getPath()
                     + endpointType.isGenerated();
