@@ -50,7 +50,7 @@
 import Vue from 'vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import SimpleDialog from '@/components/SimpleDialog.vue';
-import { isValidURL } from '@/util/helpers';
+import { isValidRestURL } from '@/util/helpers';
 
 export default Vue.extend({
   components: { SimpleDialog, ValidationProvider, ValidationObserver },
@@ -68,7 +68,7 @@ export default Vue.extend({
   },
   computed: {
     isValid(): boolean {
-      if (isValidURL(this.url) && this.serviceCode.length > 0) {
+      if (isValidRestURL(this.url) && this.serviceCode.length > 0) {
         return true;
       }
 

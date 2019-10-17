@@ -5,6 +5,8 @@
     @save="save"
     @cancel="cancel"
     saveButtonText="login.logIn"
+    :disableSave="!isValid"
+    :loading="loading"
   >
     <div slot="content">
       <div class="dlg-edit-row">
@@ -17,11 +19,12 @@
           class="validation-provider"
         >
           <v-text-field
-            v-model="url"
+            v-model="pin"
             single-line
             class="dlg-row-input"
             name="tokenPin"
             :error-messages="errors"
+            v-on:keyup.enter="save"
           ></v-text-field>
         </ValidationProvider>
       </div>
@@ -35,7 +38,7 @@ import Vue from 'vue';
 import axios from 'axios';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import SimpleDialog from '@/components/SimpleDialog.vue';
-import { isValidWsdlURL } from '@/util/helpers';
+import * as api from '@/util/api';
 
 export default Vue.extend({
   components: { SimpleDialog, ValidationProvider, ValidationObserver },
@@ -44,18 +47,26 @@ export default Vue.extend({
       type: Boolean,
       required: true,
     },
-  },
-
-  data() {
-    return {
-      url: '',
-    };
+    tokenId: {
+      type: String,
+    },
   },
 
   computed: {
     isValid(): boolean {
-      return isValidWsdlURL(this.url);
+      // Check that input is not empty
+      if (this.pin && this.pin.length > 0) {
+        return true;
+      }
+      return false;
     },
+  },
+
+  data() {
+    return {
+      pin: '',
+      loading: false,
+    };
   },
 
   methods: {
@@ -64,11 +75,30 @@ export default Vue.extend({
       this.clear();
     },
     save(): void {
-      this.$emit('save');
+      this.loading = true;
+      api
+        .put(`/tokens/${this.tokenId}/login`, {
+          password: this.pin,
+        })
+        .then((res) => {
+          this.loading = false;
+          this.$emit('save');
+        })
+        .catch((error) => {
+          this.loading = false;
+          if (error.response.status === 400) {
+            (this.$refs.tokenPin as InstanceType<
+              typeof ValidationProvider
+            >).setErrors([this.$t('keys.incorrectPin') as string]);
+          }
+
+          this.$bus.$emit('show-error', error.message);
+        });
+
       this.clear();
     },
     clear(): void {
-      this.url = '';
+      this.pin = '';
       (this.$refs.tokenPin as InstanceType<typeof ValidationProvider>).reset();
     },
   },
