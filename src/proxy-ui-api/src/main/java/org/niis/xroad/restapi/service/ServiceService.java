@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
@@ -38,7 +39,6 @@ import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.util.Arrays;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.exceptions.Error;
@@ -321,19 +321,32 @@ public class ServiceService {
         });
 
         // GlobalConf::getGlobalGroups
-        String[] globalGroupInstances = new String[] {};
-        if (instance != null) {
-            globalGroupInstances = Arrays.append(globalGroupInstances, instance);
-        } else {
-            globalGroupInstances = globalConfService.getInstanceIdentifiers().toArray(globalGroupInstances);
+        List<GlobalGroupInfo> globalGroupInfos = null;
+        List<String> globalGroupInstances = globalConfService.getInstanceIdentifiers();
+        // core throws CodedException if nothing is found for the provided instance/instances
+        try {
+            if (!StringUtils.isEmpty(instance)) {
+                List<String> globalGroupInstancesMatchingSearch = globalGroupInstances.stream()
+                        .filter(s -> s.contains(instance))
+                        .collect(Collectors.toList());
+                if (globalGroupInstancesMatchingSearch.size() > 0) {
+                    globalGroupInfos = globalConfService
+                            .getGlobalGroups(globalGroupInstancesMatchingSearch.toArray(new String[] {}));
+                }
+            } else {
+                globalGroupInfos = globalConfService.getGlobalGroups();
+            }
+        } catch (CodedException e) {
+            // no GlobalGroups found for the provided instance -> GlobalGroups are just ignored in the results
         }
-        List<GlobalGroupInfo> globalGroupInfos = globalConfService.getGlobalGroups(globalGroupInstances);
-        globalGroupInfos.forEach(globalGroupInfo -> {
-            AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
-            accessRightHolderDto.setSubjectId(globalGroupInfo.getId());
-            accessRightHolderDto.setGroupDescription(globalGroupInfo.getDescription());
-            dtos.add(accessRightHolderDto);
-        });
+        if (globalGroupInfos != null && globalGroupInfos.size() > 0) {
+            globalGroupInfos.forEach(globalGroupInfo -> {
+                AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
+                accessRightHolderDto.setSubjectId(globalGroupInfo.getId());
+                accessRightHolderDto.setGroupDescription(globalGroupInfo.getDescription());
+                dtos.add(accessRightHolderDto);
+            });
+        }
 
         // client.getLocalGroups
         List<LocalGroupType> localGroups = client.getLocalGroup();

@@ -122,6 +122,9 @@ public class ClientsApiControllerIntegrationTest {
             TestUtils.getGlobalGroupInfo(INSTANCE_FI, "global-group"),
             TestUtils.getGlobalGroupInfo(INSTANCE_FI, "global-group-1"),
             TestUtils.getGlobalGroupInfo(INSTANCE_EE, "global-group-2")));
+    private List<String> instanceIdentifiers = new ArrayList<>(Arrays.asList(
+            INSTANCE_FI,
+            INSTANCE_EE));
 
     @MockBean
     private GlobalConfService globalConfService;
@@ -154,6 +157,8 @@ public class ClientsApiControllerIntegrationTest {
         when(tokenRepository.getTokens()).thenReturn(mockTokens);
         when(wsdlValidator.getWsdlValidatorCommand()).thenReturn("src/test/resources/validator/mock-wsdlvalidator.sh");
         when(globalConfService.getGlobalGroups(any())).thenReturn(globalGroupInfos);
+        when(globalConfService.getInstanceIdentifier()).thenReturn(INSTANCE_FI);
+        when(globalConfService.getInstanceIdentifiers()).thenReturn(instanceIdentifiers);
     }
 
     @Autowired

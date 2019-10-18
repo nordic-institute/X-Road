@@ -75,6 +75,9 @@ public class ServiceServiceIntegrationTest {
             TestUtils.getGlobalGroupInfo(INSTANCE_FI, GLOBALGROUP_CODE),
             TestUtils.getGlobalGroupInfo(INSTANCE_FI, GLOBALGROUP_CODE1),
             TestUtils.getGlobalGroupInfo(INSTANCE_EE, GLOBALGROUP_CODE)));
+    private List<String> instanceIdentifiers = new ArrayList<>(Arrays.asList(
+            INSTANCE_FI,
+            INSTANCE_EE));
 
     @Autowired
     ServiceService serviceService;
@@ -86,15 +89,17 @@ public class ServiceServiceIntegrationTest {
     public void setup() {
         when(globalConfService.getGlobalMembers()).thenReturn(memberInfos);
         when(globalConfService.getInstanceIdentifier()).thenReturn(INSTANCE_FI);
+        when(globalConfService.getInstanceIdentifiers()).thenReturn(instanceIdentifiers);
         when(globalConfService.getGlobalGroups(any())).thenAnswer(invocation -> {
             Object[] args = invocation.getArguments();
             if (args.length == 0) {
                 return globalGroupInfos;
             }
-            List<String> instanceIdentifiers = new ArrayList<>(Arrays.asList(
+            List<String> foundInstanceIdentifiers = new ArrayList<>(Arrays.asList(
                     Arrays.copyOf(args, args.length, String[].class)));
             return globalGroupInfos.stream()
-                    .filter(globalGroupInfo -> instanceIdentifiers.contains(globalGroupInfo.getId().getXRoadInstance()))
+                    .filter(globalGroupInfo -> foundInstanceIdentifiers
+                            .contains(globalGroupInfo.getId().getXRoadInstance()))
                     .collect(Collectors.toList());
         });
     }
