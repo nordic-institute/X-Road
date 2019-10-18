@@ -112,8 +112,10 @@ public class TokensApiController implements TokensApi {
         TokenInfo tokenInfo = null;
         try {
             tokenInfo = tokenService.getToken(id);
-        } catch (Exception e) {
-            throw new RuntimeException("reading token failed", e);
+        } catch (TokenService.TokenNotFoundException e) {
+            throw e;
+        } catch (Throwable t) {
+            throw new RuntimeException("unknown error when reading a token", t);
         }
         return tokenConverter.convert(tokenInfo);
     }
