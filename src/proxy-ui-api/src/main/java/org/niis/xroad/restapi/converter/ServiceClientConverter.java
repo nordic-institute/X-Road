@@ -30,9 +30,10 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
+import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
-import org.niis.xroad.restapi.service.GlobalConfService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -45,14 +46,14 @@ import java.util.stream.Collectors;
 @Component
 public class ServiceClientConverter {
 
-    private final GlobalConfService globalConfService;
+    private final GlobalConfFacade globalConfFacade;
     private final ClientConverter clientConverter;
     private final GlobalGroupConverter globalGroupConverter;
 
     @Autowired
-    public ServiceClientConverter(GlobalConfService globalConfService, ClientConverter clientConverter,
+    public ServiceClientConverter(GlobalConfFacade globalConfFacade, ClientConverter clientConverter,
             GlobalGroupConverter globalGroupConverter) {
-        this.globalConfService = globalConfService;
+        this.globalConfFacade = globalConfFacade;
         this.clientConverter = clientConverter;
         this.globalGroupConverter = globalGroupConverter;
     }
@@ -72,13 +73,13 @@ public class ServiceClientConverter {
         switch (subjectId.getObjectType()) {
             case SUBSYSTEM:
                 ClientId serviceClientId = (ClientId) subjectId;
-                serviceClient.setName(globalConfService.getMemberName(serviceClientId));
+                serviceClient.setName(globalConfFacade.getMemberName(serviceClientId));
                 serviceClient.setId(clientConverter.convertId(serviceClientId));
                 serviceClient.setSubjectType(SubjectTypeMapping.map(serviceClientId.getObjectType()).get());
                 break;
             case GLOBALGROUP:
                 GlobalGroupId globalGroupId = (GlobalGroupId) subjectId;
-                serviceClient.setName(globalConfService.getGlobalGroupDescription(globalGroupId));
+                serviceClient.setName(globalConfFacade.getGlobalGroupDescription(globalGroupId));
                 serviceClient.setId(globalGroupConverter.convertId(globalGroupId));
                 serviceClient.setSubjectType(SubjectTypeMapping.map(globalGroupId.getObjectType()).get());
                 break;
@@ -99,13 +100,12 @@ public class ServiceClientConverter {
     }
 
     /**
-     * Convert a list of ServiceClientDtos to ServiceClients
+     * Convert a group of ServiceClientDtos to ServiceClients
      * @param accessRightHolderDtos
      * @return
      */
-    public List<ServiceClient> convertAccessRightHolderDtos(List<AccessRightHolderDto> accessRightHolderDtos) {
-        return accessRightHolderDtos
-                .stream()
+    public List<ServiceClient> convertAccessRightHolderDtos(Iterable<AccessRightHolderDto> accessRightHolderDtos) {
+        return Streams.stream(accessRightHolderDtos)
                 .map(this::convertAccessRightHolderDto)
                 .collect(Collectors.toList());
     }

@@ -37,6 +37,7 @@ public class NotFoundException extends DeviationAwareRuntimeException {
     public NotFoundException() {
     }
 
+
     public NotFoundException(String msg) {
         super(msg);
     }
@@ -55,6 +56,10 @@ public class NotFoundException extends DeviationAwareRuntimeException {
 
     public NotFoundException(Throwable t) {
         super(t);
+    }
+
+    public NotFoundException(Throwable t, Error error) {
+        super(t, error);
     }
 
 }

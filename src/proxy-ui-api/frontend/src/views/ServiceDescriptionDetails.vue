@@ -20,62 +20,65 @@
       </div>
     </div>
 
-    <div class="edit-row">
-      <div>{{$t('services.editUrl')}}</div>
-      <v-text-field
-        v-if="serviceDesc && serviceDesc.type === 'WSDL'"
-        v-model="serviceDesc.url"
-        single-line
-        hide-details
-        class="url-input"
-        v-validate="'required|wsdlUrl'"
-        data-vv-as="field"
-        name="url_field"
-        type="text"
-        :error-messages="errors.collect('url_field')"
-        @input="touched = true"
-      ></v-text-field>
-      <v-text-field
-        v-if="serviceDesc && serviceDesc.type === 'REST'"
-        v-model="serviceDesc.url"
-        single-line
-        hide-details
-        class="url-input"
-        v-validate="'required|restUrl'"
-        data-vv-as="field"
-        name="url_field"
-        type="text"
-        :error-messages="errors.collect('url_field')"
-        @input="touched = true"
-      ></v-text-field>
-    </div>
+    <ValidationObserver ref="form" v-slot="{ validate, invalid }">
+      <div class="edit-row">
+        <div>{{$t('services.editUrl')}}</div>
 
-    <div class="edit-row">
-      <template v-if="serviceDesc && serviceDesc.type === 'REST'">
-        <div>{{$t('services.editServiceCode')}}</div>
-        <v-text-field
-          v-model="serviceDesc.code"
-          single-line
-          hide-details
-          class="code-input"
-          :maxlength="255"
-          v-validate="'required'"
-          @input="touched = true"
-        ></v-text-field>
-      </template>
-    </div>
-
-    <v-card flat>
-      <div class="footer-button-wrap">
-        <large-button @click="close()" outlined>{{$t('action.cancel')}}</large-button>
-        <large-button
-          class="save-button"
-          :loading="saveBusy"
-          @click="save()"
-          :disabled="!canSave"
-        >{{$t('action.save')}}</large-button>
+        <ValidationProvider
+          v-if="serviceDesc && serviceDesc.type === 'WSDL'"
+          rules="required|wsdlUrl"
+          name="url"
+          v-slot="{ errors }"
+          class="validation-provider"
+        >
+          <v-text-field
+            v-model="serviceDesc.url"
+            single-line
+            class="url-input"
+            name="url"
+            :error-messages="errors"
+            type="text"
+            @input="touched = true"
+          ></v-text-field>
+        </ValidationProvider>
       </div>
-    </v-card>
+
+      <div class="edit-row">
+        <template v-if="serviceDesc && serviceDesc.type === 'REST'">
+          <div>{{$t('services.editServiceCode')}}</div>
+
+          <ValidationProvider
+            rules="required"
+            name="code_field"
+            v-slot="{ errors }"
+            class="validation-provider"
+          >
+            <v-text-field
+              v-model="serviceDesc.code"
+              single-line
+              class="code-input"
+              name="code_field"
+              type="text"
+              :maxlength="255"
+              :error-messages="errors"
+              @input="touched = true"
+            ></v-text-field>
+          </ValidationProvider>
+        </template>
+      </div>
+
+      <v-card flat>
+        <div class="footer-button-wrap">
+          <large-button @click="close()" outlined>{{$t('action.cancel')}}</large-button>
+          <large-button
+            class="save-button"
+            :loading="saveBusy"
+            @click="save()"
+            :disabled="!touched || invalid"
+          >{{$t('action.save')}}</large-button>
+        </div>
+      </v-card>
+    </ValidationObserver>
 
     <!-- Confirm dialog delete WSDL -->
     <confirmDialog
@@ -103,6 +106,7 @@
 import Vue from 'vue';
 import _ from 'lodash';
 import axios from 'axios';
+import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
 import SubViewTitle from '@/components/SubViewTitle.vue';
@@ -116,6 +120,8 @@ export default Vue.extend({
     ConfirmDialog,
     WarningDialog,
     LargeButton,
+    ValidationProvider,
+    ValidationObserver,
   },
   props: {
     id: {
@@ -136,12 +142,6 @@ export default Vue.extend({
   computed: {
     showDelete(): boolean {
       return this.$store.getters.hasPermission(Permissions.DELETE_WSDL);
-    },
-    canSave(): boolean {
-      if (this.touched && !this.errors.any()) {
-        return true;
-      }
-      return false;
     },
   },
   methods: {
@@ -236,6 +236,10 @@ export default Vue.extend({
   align-content: center;
   align-items: baseline;
   margin-top: 30px;
+
+  > div {
+    min-width: 90px;
+  }
 
   .code-input {
     margin-left: 60px;

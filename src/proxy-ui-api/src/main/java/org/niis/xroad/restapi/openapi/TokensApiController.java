@@ -24,13 +24,22 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.TokenConverter;
+import org.niis.xroad.restapi.exceptions.BadRequestException;
+import org.niis.xroad.restapi.openapi.model.Token;
+import org.niis.xroad.restapi.openapi.model.TokenPassword;
+import org.niis.xroad.restapi.service.TokenService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.context.request.NativeWebRequest;
 
-import java.util.Optional;
+import java.util.List;
 
 /**
  * tokens controller
@@ -41,16 +50,64 @@ import java.util.Optional;
 @PreAuthorize("denyAll")
 public class TokensApiController implements TokensApi {
 
-    private final NativeWebRequest request;
+    private final TokenService tokenService;
+    private final TokenConverter tokenConverter;
 
-    @org.springframework.beans.factory.annotation.Autowired
-    public TokensApiController(NativeWebRequest request) {
-        this.request = request;
+    /**
+     * TokensApiController constructor
+     * @param tokenService
+     * @param tokenConverter
+     */
+
+    @Autowired
+    public TokensApiController(TokenService tokenService,
+            TokenConverter tokenConverter) {
+        this.tokenService = tokenService;
+        this.tokenConverter = tokenConverter;
     }
 
+    @PreAuthorize("hasAuthority('VIEW_KEYS')")
     @Override
-    public Optional<NativeWebRequest> getRequest() {
-        return Optional.ofNullable(request);
+    public ResponseEntity<List<Token>> getTokens() {
+        List<TokenInfo> tokenInfos = null;
+        try {
+            tokenInfos = tokenService.getAllTokens();
+        } catch (Exception e) {
+            throw new RuntimeException("exception while reading tokens", e);
+        }
+        List<Token> tokens = tokenConverter.convert(tokenInfos);
+        return new ResponseEntity<>(tokens, HttpStatus.OK);
     }
 
+    @PreAuthorize("hasAuthority('ACTIVATE_TOKEN')")
+    @Override
+    public ResponseEntity<Token> loginToken(String id, TokenPassword tokenPassword) {
+        if (tokenPassword == null
+                || tokenPassword.getPassword() == null
+                || tokenPassword.getPassword().isEmpty()) {
+            throw new BadRequestException("Missing token password");
+        }
+        char[] password = tokenPassword.getPassword().toCharArray();
+        tokenService.activateToken(id, password);
+        Token token = getTokenFromService(id);
+        return new ResponseEntity<>(token, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAuthority('DEACTIVATE_TOKEN')")
+    @Override
+    public ResponseEntity<Token> logoutToken(String id) {
+        tokenService.deactivateToken(id);
+        Token token = getTokenFromService(id);
+        return new ResponseEntity<>(token, HttpStatus.OK);
+    }
+
+    private Token getTokenFromService(String id) {
+        TokenInfo tokenInfo = null;
+        try {
+            tokenInfo = tokenService.getToken(id);
+        } catch (Exception e) {
+            throw new RuntimeException("reading token failed", e);
+        }
+        return tokenConverter.convert(tokenInfo);
+    }
 }

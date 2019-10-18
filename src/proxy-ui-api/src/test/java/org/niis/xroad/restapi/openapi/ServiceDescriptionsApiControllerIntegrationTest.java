@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.IgnoreWarnings;
 import org.niis.xroad.restapi.openapi.model.Service;
@@ -39,7 +40,6 @@ import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionDisabledNotice;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
-import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.WsdlUrlValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -94,14 +94,14 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
     private ClientsApiController clientsApiController;
 
     @MockBean
-    private GlobalConfService globalConfService;
+    private GlobalConfFacade globalConfFacade;
 
     @MockBean
     private WsdlUrlValidator wsdlUrlValidator;
 
     @Before
     public void setup() {
-        when(globalConfService.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
+        when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
             Object[] args = invocation.getArguments();
             ClientId identifier = (ClientId) args[0];
             return identifier.getSubsystemCode() != null ? identifier.getSubsystemCode() + "NAME"

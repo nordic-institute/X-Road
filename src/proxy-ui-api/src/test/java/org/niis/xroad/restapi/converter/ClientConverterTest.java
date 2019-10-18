@@ -30,9 +30,9 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
-import org.niis.xroad.restapi.service.GlobalConfService;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -47,13 +47,13 @@ public class ClientConverterTest {
 
     @Before
     public void setup() {
-        GlobalConfService globalConfService = new GlobalConfService() {
+        GlobalConfFacade globalConfFacade = new GlobalConfFacade() {
             @Override
             public String getMemberName(ClientId identifier) {
                 return MEMBER_NAME_PREFIX + identifier.getMemberCode();
             }
         };
-        clientConverter = new ClientConverter(globalConfService);
+        clientConverter = new ClientConverter(globalConfFacade);
     }
 
     @Test

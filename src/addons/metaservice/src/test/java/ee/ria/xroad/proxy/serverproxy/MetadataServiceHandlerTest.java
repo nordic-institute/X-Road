@@ -661,7 +661,7 @@ public class MetadataServiceHandlerTest {
         wsdl.setClient(client);
         wsdl.setUrl(MOCK_SERVER_WSDL_URL);
         if (isRest) {
-            wsdl.setType(DescriptionType.OPENAPI3);
+            wsdl.setType(DescriptionType.REST);
         } else {
             wsdl.setType(DescriptionType.WSDL);
         }

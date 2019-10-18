@@ -41,7 +41,7 @@ export default Vue.extend({
     e1: 0,
   }),
   methods: {
-    cancel() {
+    cancel(): void {
       this.$router.replace({ name: RouteName.Clients });
     },
   },

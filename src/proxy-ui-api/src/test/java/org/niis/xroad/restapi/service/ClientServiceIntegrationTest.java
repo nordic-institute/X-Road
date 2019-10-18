@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,9 +86,9 @@ public class ClientServiceIntegrationTest {
 
     @Before
     public void setup() throws Exception {
-        GlobalConfService globalConfService = new GlobalConfService() {
+        GlobalConfFacade globalConfFacade = new GlobalConfFacade() {
             @Override
-            public List<MemberInfo> getGlobalMembers(String... instanceIdentifiers) {
+            public List<MemberInfo> getMembers(String... instanceIdentifiers) {
                 return new ArrayList<>(Arrays.asList(
                         TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1),
                         TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM2),
@@ -105,7 +106,7 @@ public class ClientServiceIntegrationTest {
                         : "test-member" + NAME_APPENDIX;
             }
         };
-        clientService = new ClientService(clientRepository, globalConfService);
+        clientService = new ClientService(clientRepository, globalConfFacade);
         pemBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
                 getResourceAsStream("google-cert.pem"));
         derBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
