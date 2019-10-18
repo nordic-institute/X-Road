@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.service;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +43,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_LOGIN_FAILED;
@@ -189,6 +191,18 @@ public class TokenService {
         return exception;
     }
 
+    public KeyInfo getKey(String tokenId, String keyId) {
+        TokenInfo tokenInfo = getToken(tokenId);
+        Optional<KeyInfo> keyInfo = tokenInfo.getKeyInfo().stream()
+                                            .filter(key -> keyId.equals(key.getId()))
+                                            .findFirst();
+        if (!keyInfo.isPresent()) {
+            throw new KeyNotFoundException("key with id " + keyId + " not found");
+        }
+
+        return keyInfo.get();
+    }
+
     // detect a couple of CodedException error codes from core
     static final String PIN_INCORRECT_FAULT_CODE = SIGNER_X + "." + X_PIN_INCORRECT;
     static final String TOKEN_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_TOKEN_NOT_FOUND;
@@ -210,6 +224,11 @@ public class TokenService {
     public static class TokenNotFoundException extends NotFoundException {
         public TokenNotFoundException(Throwable t) {
             super(t);
+        }
+    }
+    public static class KeyNotFoundException extends NotFoundException {
+        public KeyNotFoundException(String s) {
+            super(s);
         }
     }
 
