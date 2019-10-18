@@ -50,6 +50,7 @@ import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.service.TokenService;
+import org.niis.xroad.restapi.service.WsdlUrlValidator;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
@@ -125,6 +126,9 @@ public class ClientsApiControllerIntegrationTest {
     // partial mocking, just override getValidatorCommand()
     private WsdlValidator wsdlValidator;
 
+    @MockBean
+    private WsdlUrlValidator wsdlUrlValidator;
+
     @Before
     public void setup() throws Exception {
         when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
@@ -145,6 +149,8 @@ public class ClientsApiControllerIntegrationTest {
         List<TokenInfo> mockTokens = createMockTokenInfos(null);
         when(tokenService.getAllTokens()).thenReturn(mockTokens);
         when(wsdlValidator.getWsdlValidatorCommand()).thenReturn("src/test/resources/validator/mock-wsdlvalidator.sh");
+        // mock for URL validator - FormatUtils is tested independently
+        when(wsdlUrlValidator.isValidWsdlUrl(any())).thenReturn(true);
     }
 
     @Autowired

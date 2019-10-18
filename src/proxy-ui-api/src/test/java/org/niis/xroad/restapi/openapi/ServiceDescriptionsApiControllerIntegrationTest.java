@@ -40,6 +40,7 @@ import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionDisabledNotice;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
+import org.niis.xroad.restapi.service.WsdlUrlValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -95,6 +96,9 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
     @MockBean
     private GlobalConfFacade globalConfFacade;
 
+    @MockBean
+    private WsdlUrlValidator wsdlUrlValidator;
+
     @Before
     public void setup() {
         when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
@@ -103,6 +107,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
             return identifier.getSubsystemCode() != null ? identifier.getSubsystemCode() + "NAME"
                     : "test-member" + "NAME";
         });
+        when(wsdlUrlValidator.isValidWsdlUrl(any())).thenReturn(true);
     }
 
     @Test

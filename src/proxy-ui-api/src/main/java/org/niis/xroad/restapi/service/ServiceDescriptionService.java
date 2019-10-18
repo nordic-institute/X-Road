@@ -91,23 +91,25 @@ public class ServiceDescriptionService {
     private final ClientRepository clientRepository;
     private final ServiceChangeChecker serviceChangeChecker;
     private final WsdlValidator wsdlValidator;
+    private final WsdlUrlValidator wsdlUrlValidator;
 
     /**
      * ServiceDescriptionService constructor
      * @param serviceDescriptionRepository
      * @param clientService
      * @param clientRepository
+     * @param wsdlUrlValidator
      */
     @Autowired
     public ServiceDescriptionService(ServiceDescriptionRepository serviceDescriptionRepository,
-            ClientService clientService, ClientRepository clientRepository,
-            ServiceChangeChecker serviceChangeChecker,
-            WsdlValidator wsdlValidator) {
+            ClientService clientService, ClientRepository clientRepository, ServiceChangeChecker serviceChangeChecker,
+            WsdlValidator wsdlValidator, WsdlUrlValidator wsdlUrlValidator) {
         this.serviceDescriptionRepository = serviceDescriptionRepository;
         this.clientService = clientService;
         this.clientRepository = clientRepository;
         this.serviceChangeChecker = serviceChangeChecker;
         this.wsdlValidator = wsdlValidator;
+        this.wsdlUrlValidator = wsdlUrlValidator;
     }
 
     /**
@@ -190,8 +192,8 @@ public class ServiceDescriptionService {
      */
     @PreAuthorize("hasAuthority('ADD_WSDL')")
     public ServiceDescriptionType addWsdlServiceDescription(ClientId clientId,
-                                          String url,
-                                          boolean ignoreWarnings) {
+            String url,
+            boolean ignoreWarnings) {
         ClientType client = clientService.getClient(clientId);
         if (client == null) {
             throw new NotFoundException("Client with id " + clientId.toShortString() + " not found");
@@ -269,7 +271,7 @@ public class ServiceDescriptionService {
      * @return ServiceDescriptionType
      */
     private ServiceDescriptionType updateWsdlUrl(ServiceDescriptionType serviceDescriptionType, String url,
-                                                boolean ignoreWarnings) {
+            boolean ignoreWarnings) {
         // Shouldn't be able to edit e.g. REST service descriptions with a WSDL URL
         if (serviceDescriptionType.getType() != DescriptionType.WSDL) {
             throw new BadRequestException("Existing service description (id: "
@@ -335,7 +337,7 @@ public class ServiceDescriptionService {
      * one we are updating now.
      */
     private void checkForExistingWsdl(ClientType client, String url,
-                                      Long updatedServiceDescriptionId) throws ConflictException {
+            Long updatedServiceDescriptionId) throws ConflictException {
         client.getServiceDescription().forEach(serviceDescription -> {
             if (!serviceDescription.getId().equals(updatedServiceDescriptionId)) {
                 if (serviceDescription.getUrl().equalsIgnoreCase(url)) {
@@ -359,7 +361,6 @@ public class ServiceDescriptionService {
 
         return serviceDescriptionType;
     }
-
 
     private ServiceDescriptionType getServiceDescriptionOfType(ClientType client, String url,
             DescriptionType descriptionType) {
@@ -402,7 +403,6 @@ public class ServiceDescriptionService {
      * If non-fatal warnings, return those.
      * @param url
      * @return list of validation warnings that can be ignored by choice
-     *
      * @throws BadRequestException if fatal validation errors occurred
      */
     private List<String> validateWsdl(String url) throws BadRequestException {
@@ -442,7 +442,7 @@ public class ServiceDescriptionService {
         // throw error with service metadata if conflicted
         if (!conflictedServices.isEmpty()) {
             List<String> errorMetadata = new ArrayList();
-            for (ServiceType conflictedService: conflictedServices) {
+            for (ServiceType conflictedService : conflictedServices) {
                 // error metadata contains service name and service description url
                 errorMetadata.add(FormatUtils.getServiceFullName(conflictedService));
                 errorMetadata.add(conflictedService.getServiceDescription().getUrl());
@@ -450,7 +450,6 @@ public class ServiceDescriptionService {
             throw new ConflictException(new Error(ERROR_SERVICE_EXISTS, errorMetadata));
         }
     }
-
 
     @Data
     private class WsdlProcessingResult {
@@ -465,16 +464,16 @@ public class ServiceDescriptionService {
      * @param client client who is associated with the wsdl
      * @param url url of the wsdl
      * @param updatedServiceDescriptionId id of the service description we
-     *                                    will update with this wsdl, or null
-     *                                    if we're adding a new one
+     * will update with this wsdl, or null
+     * if we're adding a new one
      * @return parsed and validated wsdl and possible warnings
      */
     private WsdlProcessingResult processWsdl(ClientType client, String url,
-                                             Long updatedServiceDescriptionId) {
+            Long updatedServiceDescriptionId) {
 
         WsdlProcessingResult result = new WsdlProcessingResult();
         // check for valid url (is this not enough??)
-        if (!FormatUtils.isValidUrl(url)) {
+        if (!wsdlUrlValidator.isValidWsdlUrl(url)) {
             throw new BadRequestException("Malformed URL", new Error(ERROR_MALFORMED_URL));
         }
         // check if wsdl already exists
