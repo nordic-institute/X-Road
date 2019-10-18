@@ -66,6 +66,9 @@ public final class FormatUtils {
     }
 
     /**
+     * Validates a URL. A valid URL will start with either <i>http://</i> or <i>https://</i>. The host part of the URL
+     * should also conform to <a href="http://www.ietf.org/rfc/rfc3490.txt">RFC 3490</a>
+     * and {@link FormatUtils#URL_HOST_REGEX}
      * @param url
      * @return true or false depending on the validity of the provided url
      */
