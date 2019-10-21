@@ -44,6 +44,17 @@ public final class TokenTestUtils {
     /**
      * Creates TokenInfo object with some default values:
      * - id = "id"
+     * - other defaults from {@link TokenTestUtils#createTestTokenInfo(String, String)}
+     * @param friendlyName
+     * @return
+     */
+    public static TokenInfo createTestTokenInfo(String friendlyName) {
+        TokenInfo tokenInfo = createTestTokenInfo(friendlyName, "id");
+        return tokenInfo;
+    }
+
+    /**
+     * Creates TokenInfo object with some default values:
      * - readOnly = false
      * - available = true
      * - active = true
@@ -54,12 +65,13 @@ public final class TokenTestUtils {
      * - keyInfos = empty
      * - tokenInfo map = empty
      * @param friendlyName
+     * @param id
      * @return
      */
-    public static TokenInfo createTestTokenInfo(String friendlyName) {
+    public static TokenInfo createTestTokenInfo(String friendlyName, String id) {
         TokenInfo tokenInfo = new TokenInfo(TokenInfo.SOFTWARE_MODULE_TYPE,
                 friendlyName,
-                "id",
+                id,
                 false,
                 true,
                 true,

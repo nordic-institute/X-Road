@@ -69,7 +69,7 @@ public class TokenServiceTest {
     private static final String UNRECOGNIZED_FAULT_CODE_TOKEN_ID = "unknown-faultcode";
     private static final String GOOD_TOKEN_ID = "token-which-exists";
     private static final String GOOD_KEY_ID = "key-which-exists";
-    private static final String KEY_NOT_FOUND_KEY_ID = "key-which-does-not-exist";
+    private static final String KEY_NOT_FOUND_KEY_ID = "key-404";
 
     @Autowired
     private TokenService tokenService;
