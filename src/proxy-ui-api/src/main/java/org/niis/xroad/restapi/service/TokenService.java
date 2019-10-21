@@ -191,6 +191,15 @@ public class TokenService {
         return exception;
     }
 
+    /**
+     * Return one key
+     * @param tokenId
+     * @param keyId
+     * @throws KeyNotFoundException if key was not found
+     * @throws TokenNotFoundException if token was not found
+     * @return
+     */
+    @PreAuthorize("hasAuthority('VIEW_KEYS')")
     public KeyInfo getKey(String tokenId, String keyId) {
         TokenInfo tokenInfo = getToken(tokenId);
         Optional<KeyInfo> keyInfo = tokenInfo.getKeyInfo().stream()
