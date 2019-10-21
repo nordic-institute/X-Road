@@ -94,6 +94,7 @@ public class TokensApiController implements TokensApi {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('VIEW_KEYS')")
     public ResponseEntity<Key> getKey(String tokenId, String keyId) {
         Key key = getKeyFromService(tokenId, keyId);
         return new ResponseEntity<>(key, HttpStatus.OK);
