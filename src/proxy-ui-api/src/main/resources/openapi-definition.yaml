@@ -1471,12 +1471,48 @@ paths:
         '500':
           description: internal server error
   /keys/{id}:
+    get: # ok
+      tags:
+        - security server
+      summary: get information for the selected key in selected token
+      operationId: getKey
+      description: Administrator views key details.
+      parameters:
+        - in: path
+          name: id
+          description: id of the key
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '200':
+          description: key object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Key'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+
     put: # ok
       tags:
         - security server
       summary: update key information
       operationId: updateKey
-      description: Administrator updates the key information. to do - move all key operations under /token
+      description: Administrator updates the key information.
       parameters:
         - in: path
           name: id
@@ -3024,51 +3060,6 @@ paths:
           description: request specified an invalid format
         '409':
           description: an existing item already exists
-        '500':
-          description: internal server error
-  /tokens/{token_id}/keys/{key_id}:
-    get: # ok
-      tags:
-        - security server
-      summary: get information for the selected key in selected token
-      operationId: getKey
-      description: Administrator views key details.
-      parameters:
-        - in: path
-          name: token_id
-          description: id of the token
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-        - in: path
-          name: key_id
-          description: id of the key
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-      responses:
-        '200':
-          description: key object
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Key'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
         '500':
           description: internal server error
   /tokens/{id}/login:

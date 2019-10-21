@@ -69,7 +69,6 @@ public class TokenServiceTest {
     private static final String UNRECOGNIZED_FAULT_CODE_TOKEN_ID = "unknown-faultcode";
     private static final String GOOD_TOKEN_ID = "token-which-exists";
     private static final String GOOD_KEY_ID = "key-which-exists";
-    private static final String KEY_NOT_FOUND_KEY_ID = "key-404";
 
     @Autowired
     private TokenService tokenService;
@@ -200,28 +199,5 @@ public class TokenServiceTest {
 
         TokenInfo tokenInfo = tokenService.getToken(GOOD_TOKEN_ID);
         assertEquals("good-token", tokenInfo.getFriendlyName());
-    }
-
-    @Test
-    @WithMockUser(authorities = { "VIEW_KEYS" })
-    public void getKey() {
-
-        try {
-            tokenService.getKey(TOKEN_NOT_FOUND_TOKEN_ID, KEY_NOT_FOUND_KEY_ID);
-        } catch (TokenService.TokenNotFoundException expected) {
-        }
-
-        try {
-            tokenService.getKey(TOKEN_NOT_FOUND_TOKEN_ID, GOOD_KEY_ID);
-        } catch (TokenService.TokenNotFoundException expected) {
-        }
-
-        try {
-            tokenService.getKey(GOOD_TOKEN_ID, KEY_NOT_FOUND_KEY_ID);
-        } catch (TokenService.KeyNotFoundException expected) {
-        }
-
-        KeyInfo keyInfo = tokenService.getKey(GOOD_TOKEN_ID, GOOD_KEY_ID);
-        assertEquals(GOOD_KEY_ID, keyInfo.getId());
     }
 }

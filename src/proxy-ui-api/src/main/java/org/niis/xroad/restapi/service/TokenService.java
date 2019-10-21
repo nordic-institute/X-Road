@@ -27,7 +27,6 @@ package org.niis.xroad.restapi.service;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +42,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_LOGIN_FAILED;
@@ -78,8 +76,12 @@ public class TokenService {
      * @throws Exception
      */
     @PreAuthorize("hasAuthority('VIEW_KEYS')")
-    public List<TokenInfo> getAllTokens() throws Exception {
-        return signerProxyFacade.getTokens();
+    public List<TokenInfo> getAllTokens()  {
+        try {
+            return signerProxyFacade.getTokens();
+        } catch (Exception e) {
+            throw new RuntimeException("could not list all tokens", e);
+        }
     }
 
     /**
@@ -189,27 +191,6 @@ public class TokenService {
             exception = new TokenNotFoundException(e);
         }
         return exception;
-    }
-
-    /**
-     * Return one key
-     * @param tokenId
-     * @param keyId
-     * @throws KeyNotFoundException if key was not found
-     * @throws TokenNotFoundException if token was not found
-     * @return
-     */
-    @PreAuthorize("hasAuthority('VIEW_KEYS')")
-    public KeyInfo getKey(String tokenId, String keyId) {
-        TokenInfo tokenInfo = getToken(tokenId);
-        Optional<KeyInfo> keyInfo = tokenInfo.getKeyInfo().stream()
-                                            .filter(key -> keyId.equals(key.getId()))
-                                            .findFirst();
-        if (!keyInfo.isPresent()) {
-            throw new KeyNotFoundException("key with id " + keyId + " not found");
-        }
-
-        return keyInfo.get();
     }
 
     // detect a couple of CodedException error codes from core
