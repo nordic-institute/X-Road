@@ -149,7 +149,7 @@ public class TokenService {
      * CodedException (for example pin being locked). Error code is "core." + original error,
      * for example core.Signer.LoginFailed
      */
-    @PreAuthorize("hasAnyAuthority('ACTIVATE_TOKEN','DEACTIVATE_TOKEN')")
+    @PreAuthorize("hasAuthority('VIEW_KEYS')")
     public TokenInfo getToken(String id) throws TokenNotFoundException, UnspecifiedCoreCodedException {
         try {
             return signerProxyFacade.getToken(id);
