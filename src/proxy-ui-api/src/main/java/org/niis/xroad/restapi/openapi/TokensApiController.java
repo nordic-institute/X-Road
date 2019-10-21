@@ -24,11 +24,14 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.KeyConverter;
 import org.niis.xroad.restapi.converter.TokenConverter;
 import org.niis.xroad.restapi.exceptions.BadRequestException;
+import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.Token;
 import org.niis.xroad.restapi.openapi.model.TokenPassword;
 import org.niis.xroad.restapi.service.TokenService;
@@ -52,18 +55,22 @@ public class TokensApiController implements TokensApi {
 
     private final TokenService tokenService;
     private final TokenConverter tokenConverter;
+    private final KeyConverter keyConverter;
 
     /**
      * TokensApiController constructor
      * @param tokenService
      * @param tokenConverter
+     * @param keyConverter
      */
 
     @Autowired
     public TokensApiController(TokenService tokenService,
-            TokenConverter tokenConverter) {
+            TokenConverter tokenConverter,
+            KeyConverter keyConverter) {
         this.tokenService = tokenService;
         this.tokenConverter = tokenConverter;
+        this.keyConverter = keyConverter;
     }
 
     @PreAuthorize("hasAuthority('VIEW_KEYS')")
@@ -84,6 +91,12 @@ public class TokensApiController implements TokensApi {
     public ResponseEntity<Token> getToken(String id) {
         Token token = getTokenFromService(id);
         return new ResponseEntity<>(token, HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<Key> getKey(String tokenId, String keyId) {
+        Key key = getKeyFromService(tokenId, keyId);
+        return new ResponseEntity<>(key, HttpStatus.OK);
     }
 
     @PreAuthorize("hasAuthority('ACTIVATE_TOKEN')")
@@ -119,4 +132,17 @@ public class TokensApiController implements TokensApi {
         }
         return tokenConverter.convert(tokenInfo);
     }
+
+    private Key getKeyFromService(String tokenId, String keyId) {
+        KeyInfo keyInfo = null;
+        try {
+            keyInfo = tokenService.getKey(tokenId, keyId);
+        } catch (TokenService.TokenNotFoundException | TokenService.KeyNotFoundException e) {
+            throw e;
+        } catch (Throwable t) {
+            throw new RuntimeException("unknown error when reading a token", t);
+        }
+        return keyConverter.convert(keyInfo);
+    }
+
 }
