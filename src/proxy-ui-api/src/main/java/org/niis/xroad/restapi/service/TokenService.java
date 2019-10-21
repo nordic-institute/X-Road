@@ -216,11 +216,6 @@ public class TokenService {
             super(t);
         }
     }
-    public static class KeyNotFoundException extends NotFoundException {
-        public KeyNotFoundException(String s) {
-            super(s);
-        }
-    }
 
     /**
      * uses error code "core." + <fault code from CodedException>.
