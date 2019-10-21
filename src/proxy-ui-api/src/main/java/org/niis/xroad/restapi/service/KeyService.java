@@ -52,7 +52,7 @@ public class KeyService {
     private final TokenService tokenService;
 
     /**
-     * TokenService constructor
+     * KeyService constructor
      * @param signerProxyFacade
      * @param tokenService
      */
