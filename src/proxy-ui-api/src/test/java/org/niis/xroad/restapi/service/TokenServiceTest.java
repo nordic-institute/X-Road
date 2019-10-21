@@ -185,7 +185,7 @@ public class TokenServiceTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "DEACTIVATE_TOKEN" })
+    @WithMockUser(authorities = { "VIEW_KEYS" })
     public void getToken() {
 
         TokenInfo tokenInfo;
