@@ -24,6 +24,8 @@
  */
 package org.niis.xroad.restapi.util;
 
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
@@ -68,5 +70,41 @@ public final class TokenTestUtils {
                 new ArrayList<>(),
                 new HashMap<>());
         return tokenInfo;
+    }
+
+    /**
+     * Creates KeyInfo object with some default values:
+     * - id = "id"
+     * - other defaults from {@link TokenTestUtils#createTestKeyInfo(String)}
+     */
+    public static KeyInfo createTestKeyInfo() {
+        KeyInfo keyInfo = createTestKeyInfo("id");
+        return keyInfo;
+    }
+
+    /**
+     * Creates KeyInfo object with some default values:
+     * - available = true
+     * - usage = SIGNING
+     * - friendlyName = "friendly-name"
+     * - id = "id"
+     * - label = "label"
+     * - publicKey = "public-key"
+     * - certs = empty
+     * - certRequests = empty
+     * - signMechanismName = "sign-mechanism-name"
+     * @param id id
+     */
+    public static KeyInfo createTestKeyInfo(String id) {
+        KeyInfo keyInfo = new KeyInfo(true,
+                KeyUsageInfo.SIGNING,
+                "friendly-name",
+                id,
+                "label",
+                "public-key",
+                new ArrayList<>(),
+                new ArrayList<>(),
+                "sign-mechanism-name");
+        return keyInfo;
     }
 }
