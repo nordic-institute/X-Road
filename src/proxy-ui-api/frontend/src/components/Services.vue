@@ -272,7 +272,7 @@ export default Vue.extend({
       }
 
       api
-        .put(`/service-descriptions/${serviceDesc.id}/enable`)
+        .put(`/service-descriptions/${serviceDesc.id}/enable`, {})
         .then((res) => {
           this.$bus.$emit('show-success', 'services.enableSuccess');
         })
