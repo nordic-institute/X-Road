@@ -102,7 +102,6 @@ if [[ $DOWNGRADE == true ]]; then
     downgrade "1" "$VERSION" "$DEBJ9_CHANGELOG" "1"
     sed -i "1s/\-1/\-0/" $DEBJ9_CHANGELOG
 else
-    release_current
     sed -i "2a## $VERSION - UNRELEASED\n" ../CHANGELOG.md
     add_dch_entry "$DEB_CHANGELOG" "$VERSION" "Change history is found at /usr/share/doc/xroad-common/CHANGELOG.md.gz"
     add_dch_entry "$DEBJ9_CHANGELOG" "$VERSION" "Version bump"
