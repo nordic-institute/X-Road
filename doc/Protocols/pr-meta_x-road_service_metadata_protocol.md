@@ -5,7 +5,7 @@
 # X-Road: Service Metadata Protocol <!-- omit in toc --> 
 **Technical Specification**
 
-Version: 2.8  
+Version: 2.9  
 Doc. ID: PR-META
 
 ---
@@ -27,39 +27,40 @@ Doc. ID: PR-META
  15.10.2018 | 2.6     | Update Annex B                                                  | Petteri Kivimäki
  05.06.2019 | 2.7     | Add JSON response for listClients metadata API                  | Jarkko Hyöty
  30.07.2019 | 2.8     | Update listMethods and allowedMethods descriptions              | Ilkka Seppälä
+ 09.10.2019 | 2.9     | Remove listCentralServices from the OpenAPI definition          | Jarkko Hyöty
 
 ## Table of Contents <!-- omit in toc --> 
 
 <!-- toc -->
 <!-- vim-markdown-toc GFM -->
 
-- [License](#license)
-- [1 Introduction](#1-introduction)
-  - [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
-  - [1.2 References](#12-references)
-- [2 Retrieving List of Service Providers](#2-retrieving-list-of-service-providers)
-- [3 Retrieving List of Central Services](#3-retrieving-list-of-central-services)
-- [4 Retrieving List of Services](#4-retrieving-list-of-services)
-- [5 Retrieving the WSDL of a Service](#5-retrieving-the-wsdl-of-a-service)
-    - [X-Road protocol POST-request](#x-road-protocol-post-request)
-    - [HTTP GET-request](#http-get-request)
-    - [WSDL-information modifications](#wsdl-information-modifications)
-- [Annex A XML Schema for Messages](#annex-a-xml-schema-for-messages)
-- [Annex B listMethods, allowedMethods, and getWsdl service descriptions](#annex-b-listmethods-allowedmethods-and-getwsdl-service-descriptions)
-  - [WSDL](#wsdl)
-  - [OpenAPI definition](#openapi-definition)
-- [Annex C Example Messages](#annex-c-example-messages)
-  - [C.1 listClients Response](#c1-listclients-response)
-    - [XML Response](#xml-response)
-    - [JSON Response](#json-response)
-  - [C.2 listCentralServices Response](#c2-listcentralservices-response)
-  - [C.3 listMethods Request](#c3-listmethods-request)
-  - [C.4 listMethods Response](#c4-listmethods-response)
-  - [C.5 allowedMethods Request](#c5-allowedmethods-request)
-  - [C.6 allowedMethods Response](#c6-allowedmethods-response)
-  - [C.7 getWsdl Request](#c7-getwsdl-request)
-  - [C.8 getWsdl Response](#c8-getwsdl-response)
-  - [C.9 getWsdl Response attachment](#c9-getwsdl-response-attachment)
+* [License](#license)
+* [1 Introduction](#1-introduction)
+  * [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
+  * [1.2 References](#12-references)
+* [2 Retrieving List of Service Providers](#2-retrieving-list-of-service-providers)
+* [3 Retrieving List of Central Services](#3-retrieving-list-of-central-services)
+* [4 Retrieving List of Services](#4-retrieving-list-of-services)
+* [5 Retrieving the WSDL of a Service](#5-retrieving-the-wsdl-of-a-service)
+    * [X-Road protocol POST-request](#x-road-protocol-post-request)
+    * [HTTP GET-request](#http-get-request)
+    * [WSDL-information modifications](#wsdl-information-modifications)
+* [Annex A XML Schema for Messages](#annex-a-xml-schema-for-messages)
+* [Annex B listMethods, allowedMethods, and getWsdl service descriptions](#annex-b-listmethods-allowedmethods-and-getwsdl-service-descriptions)
+  * [WSDL](#wsdl)
+  * [OpenAPI definition](#openapi-definition)
+* [Annex C Example Messages](#annex-c-example-messages)
+  * [C.1 listClients Response](#c1-listclients-response)
+    * [XML Response](#xml-response)
+    * [JSON Response](#json-response)
+  * [C.2 listCentralServices Response](#c2-listcentralservices-response)
+  * [C.3 listMethods Request](#c3-listmethods-request)
+  * [C.4 listMethods Response](#c4-listmethods-response)
+  * [C.5 allowedMethods Request](#c5-allowedmethods-request)
+  * [C.6 allowedMethods Response](#c6-allowedmethods-response)
+  * [C.7 getWsdl Request](#c7-getwsdl-request)
+  * [C.8 getWsdl Response](#c8-getwsdl-response)
+  * [C.9 getWsdl Response attachment](#c9-getwsdl-response-attachment)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -537,20 +538,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/clientList'
-  /listCentralServices:
-    get:
-      tags:
-        - metaservices
-      summary: List central services defined in the X-Road instance
-      operationId: listCentralServices
-      parameters:
-        - name: xRoadInstance
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: List of central services
 components:
   schemas:
     clientList:

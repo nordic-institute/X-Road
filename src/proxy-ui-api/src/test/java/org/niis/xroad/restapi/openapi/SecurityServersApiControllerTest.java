@@ -59,7 +59,7 @@ public class SecurityServersApiControllerTest {
             "XRD2", "GOV", "M4", "server1");
 
     @MockBean
-    private GlobalConfService globalConfService;
+    private GlobalConfService globalConfFacade;
 
     @Autowired
     private SecurityServersApiController securityServersApiController;
@@ -67,7 +67,7 @@ public class SecurityServersApiControllerTest {
     @Before
     public void setup() {
         // securityServerExists = true when parameter = EXISTING_SERVER_ID
-        when(globalConfService.securityServerExists(any()))
+        when(globalConfFacade.securityServerExists(any()))
                 .thenAnswer(invocation -> invocation.getArguments()[0].equals(EXISTING_SERVER_ID));
     }
 

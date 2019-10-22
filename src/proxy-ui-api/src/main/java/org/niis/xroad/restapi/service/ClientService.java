@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.niis.xroad.restapi.exceptions.Error;
 import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -65,17 +66,17 @@ public class ClientService {
     public static final String CERTIFICATE_NOT_FOUND_ERROR_CODE = "certificate_not_found";
 
     private final ClientRepository clientRepository;
-    private final GlobalConfService globalConfService;
+    private final GlobalConfFacade globalConfFacade;
 
     /**
      * ClientService constructor
      * @param clientRepository
-     * @param globalConfService
+     * @param globalConfFacade
      */
     @Autowired
-    public ClientService(ClientRepository clientRepository, GlobalConfService globalConfService) {
+    public ClientService(ClientRepository clientRepository, GlobalConfFacade globalConfFacade) {
         this.clientRepository = clientRepository;
-        this.globalConfService = globalConfService;
+        this.globalConfFacade = globalConfFacade;
     }
 
     /**
@@ -93,7 +94,7 @@ public class ClientService {
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public List<ClientType> getAllGlobalClients() {
-        return globalConfService.getGlobalMembers()
+        return globalConfFacade.getMembers()
                 .stream()
                 .map(memberInfo -> {
                     ClientType clientType = new ClientType();
@@ -331,7 +332,7 @@ public class ClientService {
         List<Predicate<ClientType>> searchPredicates = new ArrayList<>();
         if (!StringUtils.isEmpty(name)) {
             searchPredicates.add(ct -> {
-                String memberName = globalConfService.getMemberName(ct.getIdentifier());
+                String memberName = globalConfFacade.getMemberName(ct.getIdentifier());
                 return memberName != null && memberName.toLowerCase().contains(name.toLowerCase());
             });
         }

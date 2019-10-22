@@ -31,8 +31,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
-import org.niis.xroad.restapi.service.GlobalConfService;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -54,14 +54,14 @@ public class LocalGroupConverterTest {
 
     @Before
     public void setup() {
-        GlobalConfService globalConfService = new GlobalConfService() {
+        GlobalConfFacade globalConfFacade = new GlobalConfFacade() {
             @Override
             public String getMemberName(ClientId identifier) {
                 return MEMBER_NAME_PREFIX + identifier.getMemberCode();
             }
         };
-        clientConverter = new ClientConverter(globalConfService);
-        localGroupConverter = new LocalGroupConverter(clientConverter, globalConfService);
+        clientConverter = new ClientConverter(globalConfFacade);
+        localGroupConverter = new LocalGroupConverter(clientConverter, globalConfFacade);
     }
 
     @Test

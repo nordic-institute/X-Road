@@ -22,30 +22,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.commonui.SignerProxy;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Repository;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.openapi.model.TokenCertificateSigningRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.List;
+import static org.junit.Assert.assertEquals;
 
-/**
- * Repository that handles tokens (acts as a wrapper to SignerProxy)
- */
-@Slf4j
-@Repository
-public class TokenRepository {
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class TokenCertificateSigningRequestConverterTest {
 
-    /**
-     * get all tokens
-     * @return
-     * @throws Exception
-     */
-    public List<TokenInfo> getTokens() throws Exception {
-        return SignerProxy.getTokens();
+    @Autowired
+    private TokenCertificateSigningRequestConverter csrConverter;
+
+    @Test
+    public void convert() {
+        CertRequestInfo certRequestInfo = new CertRequestInfo("id",
+                ClientId.create("a", "b", "c"),
+                "subject-name");
+        TokenCertificateSigningRequest csr = csrConverter.convert(certRequestInfo);
+        assertEquals("id", csr.getId());
+        assertEquals("a:b:c", csr.getOwnerId());
     }
 
 }

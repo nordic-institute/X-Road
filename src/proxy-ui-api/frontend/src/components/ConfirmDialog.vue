@@ -1,15 +1,15 @@
 <template>
-  <v-dialog :value="dialog" persistent :max-width="maxWidth">
-    <v-card>
-      <v-card-title class="headline">{{$t(title)}}</v-card-title>
-      <v-card-text>{{$t(text)}}</v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn color="primary" outlined text @click="cancel()">{{$t(cancelButtonText)}}</v-btn>
-        <v-btn color="primary" outlined text @click="accept()">{{$t(acceptButtonText)}}</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <simpleDialog
+    :dialog="dialog"
+    :title="title"
+    @save="accept"
+    @cancel="cancel"
+    :cancelButtonText="cancelButtonText"
+    :saveButtonText="acceptButtonText"
+    :showClose="false"
+  >
+    <div slot="content">{{$t(text)}}</div>
+  </simpleDialog>
 </template>
 
 <script lang="ts">
@@ -18,8 +18,12 @@
  */
 
 import Vue from 'vue';
+import SimpleDialog from '@/components/SimpleDialog.vue';
 
 export default Vue.extend({
+  components: {
+    SimpleDialog,
+  },
   props: {
     dialog: {
       type: Boolean,
@@ -41,10 +45,6 @@ export default Vue.extend({
       type: String,
       default: 'action.yes',
     },
-    maxWidth: {
-      type: String,
-      default: '290px',
-    },
   },
 
   methods: {
@@ -57,8 +57,4 @@ export default Vue.extend({
   },
 });
 </script>
-
-<style lang="scss" scoped>
-@import '../assets/colors';
-</style>
 

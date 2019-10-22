@@ -31,7 +31,6 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
-import org.niis.xroad.restapi.openapi.model.CertificateStatus;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -69,12 +68,6 @@ public class CertificateDetailsConverter {
     public CertificateDetails convert(CertificateInfo certificateInfo) {
         X509Certificate x509Certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
         CertificateDetails certificate = convert(x509Certificate);
-
-        if (certificateInfo.isActive()) {
-            certificate.setStatus(CertificateStatus.IN_USE);
-        } else {
-            certificate.setStatus(CertificateStatus.DISABLED);
-        }
         return certificate;
     }
 

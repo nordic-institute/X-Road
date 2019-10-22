@@ -3,7 +3,7 @@
     <v-flex mb-4>
       <h1 v-if="client" class="display-1 mb-3">{{client.subsystem_code}} (subsystem)</h1>
     </v-flex>
-    <v-tabs slot="extension" v-model="tab" class="xrd-tabs" color="secondary" grow>
+    <v-tabs v-model="tab" class="xrd-tabs" color="secondary" grow>
       <v-tabs-slider color="secondary"></v-tabs-slider>
       <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">{{ $t(tab.name) }}</v-tab>
     </v-tabs>

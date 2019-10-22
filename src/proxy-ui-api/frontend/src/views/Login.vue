@@ -20,26 +20,31 @@
               </v-toolbar>
               <v-card-text>
                 <v-form>
-                  <v-text-field
-                    id="username"
-                    name="username"
-                    :label="$t('login.username')"
-                    type="text"
-                    v-model="username"
-                    :error-messages="errors.collect('username')"
-                    data-vv-name="username"
-                    @keyup.enter="submit"
-                  ></v-text-field>
-                  <v-text-field
-                    id="password"
-                    name="password"
-                    :label="$t('login.password')"
-                    type="password"
-                    v-model="password"
-                    :error-messages="errors.collect('password')"
-                    data-vv-name="password"
-                    @keyup.enter="submit"
-                  ></v-text-field>
+                  <ValidationObserver ref="form" v-slot="{ validate }">
+                    <ValidationProvider name="username" rules="required" v-slot="{ errors }">
+                      <v-text-field
+                        id="username"
+                        name="username"
+                        :label="$t('fields.username')"
+                        :error-messages="errors"
+                        type="text"
+                        v-model="username"
+                        @keyup.enter="submit"
+                      ></v-text-field>
+                    </ValidationProvider>
+
+                    <ValidationProvider name="password" rules="required" v-slot="{ errors }">
+                      <v-text-field
+                        id="password"
+                        name="password"
+                        :label="$t('fields.password')"
+                        :error-messages="errors"
+                        type="password"
+                        v-model="password"
+                        @keyup.enter="submit"
+                      ></v-text-field>
+                    </ValidationProvider>
+                  </ValidationObserver>
                 </v-form>
               </v-card-text>
               <v-card-actions>
@@ -49,6 +54,7 @@
                   color="primary"
                   class="rounded-button"
                   @click="submit"
+                  min-width="120"
                   rounded
                   :disabled="isDisabled"
                   :loading="loading"
@@ -63,11 +69,22 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { VueConstructor } from 'vue';
 import { RouteName } from '@/global';
+import { ValidationProvider, ValidationObserver } from 'vee-validate';
 
-export default Vue.extend({
+export default (Vue as VueConstructor<
+  Vue & {
+    $refs: {
+      form: InstanceType<typeof ValidationObserver>;
+    };
+  }
+>).extend({
   name: 'login',
+  components: {
+    ValidationProvider,
+    ValidationObserver,
+  },
   data() {
     return {
       loading: false,
@@ -90,7 +107,8 @@ export default Vue.extend({
   methods: {
     async submit() {
       // Validate inputs
-      const isValid = await this.$validator.validateAll();
+
+      const isValid = await this.$refs.form.validate();
 
       if (!isValid) {
         return;
@@ -101,7 +119,7 @@ export default Vue.extend({
         password: this.password,
       };
 
-      this.$validator.reset();
+      this.$refs.form.reset();
       this.loading = true;
 
       this.$store
@@ -114,21 +132,20 @@ export default Vue.extend({
           (error) => {
             // Display invalid username/password error in inputs
             if (error.response && error.response.status === 401) {
-              this.errors.add({
-                field: 'username',
-                msg: '',
-              });
-              this.errors.add({
-                field: 'password',
-                msg: this.$t('login.errorMsg401') as string,
-              });
-
               // Clear inputs
               this.username = '';
               this.password = '';
-              // Set inputs to error state
-              this.errors.first('username');
-              this.errors.first('password');
+              this.$refs.form.reset();
+
+              // The whole view needs to be rendered so the "required" rule doesn't block
+              // "wrong unsername or password" error in inputs
+              this.$nextTick(() => {
+                // Set inputs to error state
+                this.$refs.form.setErrors({
+                  username: [''],
+                  password: [this.$t('login.errorMsg401') as string],
+                });
+              });
             }
             console.error(error);
             this.$bus.$emit('show-error', error.message);

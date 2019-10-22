@@ -94,23 +94,25 @@ public class ServiceDescriptionService {
     private final ClientRepository clientRepository;
     private final ServiceChangeChecker serviceChangeChecker;
     private final WsdlValidator wsdlValidator;
+    private final WsdlUrlValidator wsdlUrlValidator;
 
     /**
      * ServiceDescriptionService constructor
      * @param serviceDescriptionRepository
      * @param clientService
      * @param clientRepository
+     * @param wsdlUrlValidator
      */
     @Autowired
     public ServiceDescriptionService(ServiceDescriptionRepository serviceDescriptionRepository,
-            ClientService clientService, ClientRepository clientRepository,
-            ServiceChangeChecker serviceChangeChecker,
-            WsdlValidator wsdlValidator) {
+            ClientService clientService, ClientRepository clientRepository, ServiceChangeChecker serviceChangeChecker,
+            WsdlValidator wsdlValidator, WsdlUrlValidator wsdlUrlValidator) {
         this.serviceDescriptionRepository = serviceDescriptionRepository;
         this.clientService = clientService;
         this.clientRepository = clientRepository;
         this.serviceChangeChecker = serviceChangeChecker;
         this.wsdlValidator = wsdlValidator;
+        this.wsdlUrlValidator = wsdlUrlValidator;
     }
 
     /**
@@ -550,7 +552,7 @@ public class ServiceDescriptionService {
 
         WsdlProcessingResult result = new WsdlProcessingResult();
         // check for valid url (is this not enough??)
-        if (!FormatUtils.isValidUrl(url)) {
+        if (!wsdlUrlValidator.isValidWsdlUrl(url)) {
             throw new BadRequestException("Malformed URL", new Error(ERROR_MALFORMED_URL));
         }
         // check if wsdl already exists

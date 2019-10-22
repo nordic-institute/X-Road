@@ -2,17 +2,17 @@
   <v-dialog :value="dialog" :width="width" persistent>
     <v-card class="xrd-card">
       <v-card-title>
-        <span class="headline">{{title}}</span>
+        <span class="headline">{{$t(title)}}</span>
         <v-spacer />
-        <i @click="cancel()" id="dlg-close-x"></i>
+        <i v-if="showClose" @click="cancel()" id="dlg-close-x"></i>
       </v-card-title>
       <v-card-text class="content-wrapper">
         <slot name="content"></slot>
       </v-card-text>
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
-        <large-button outlined @click="cancel()">{{$t('action.cancel')}}</large-button>
-        <large-button :disabled="disableSaveButton" @click="save()">{{$t(saveButtonLabel)}}</large-button>
+        <large-button outlined @click="cancel()">{{$t(cancelButtonText)}}</large-button>
+        <large-button :disabled="disableSaveButton" @click="save()">{{$t(saveButtonText)}}</large-button>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -43,14 +43,22 @@ export default Vue.extend({
     disableSave: {
       type: Boolean,
     },
+    cancelButtonText: {
+      type: String,
+      default: 'action.cancel',
+    },
     // Text of the save button
-    saveButtonLabel: {
+    saveButtonText: {
       type: String,
       default: 'action.add',
     },
     width: {
       type: Number,
       default: 550,
+    },
+    showClose: {
+      type: Boolean,
+      default: true,
     },
   },
 
