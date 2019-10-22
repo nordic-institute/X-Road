@@ -26,6 +26,7 @@ package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -56,8 +57,10 @@ import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -177,8 +180,27 @@ public class ServiceDescriptionService {
             throw new NotFoundException("Service description with id " + id + " not found");
         }
         ClientType client = serviceDescriptionType.getClient();
+        cleanAccessRights(client, serviceDescriptionType);
+        cleanEndpoints(client, serviceDescriptionType);
         client.getServiceDescription().remove(serviceDescriptionType);
         clientRepository.saveOrUpdate(client);
+    }
+
+    private void cleanEndpoints(ClientType client, ServiceDescriptionType serviceDescriptionType) {
+        Set<String> servicesToRemove = serviceDescriptionType.getService()
+                .stream()
+                .map(ServiceType::getServiceCode)
+                .collect(Collectors.toSet());
+        client.getEndpoint().removeIf(endpointType -> servicesToRemove.contains(endpointType.getServiceCode()));
+    }
+
+    private void cleanAccessRights(ClientType client, ServiceDescriptionType serviceDescriptionType) {
+        Set<String> aclServiceCodesToRemove = serviceDescriptionType.getService()
+                .stream()
+                .map(ServiceType::getServiceCode)
+                .collect(Collectors.toSet());
+        client.getAcl().removeIf(accessRightType -> aclServiceCodesToRemove
+                .contains(accessRightType.getEndpoint().getServiceCode()));
     }
 
     /**
@@ -191,9 +213,7 @@ public class ServiceDescriptionService {
      * @throws ConflictException          URL already exists
      */
     @PreAuthorize("hasAuthority('ADD_WSDL')")
-    public ServiceDescriptionType addWsdlServiceDescription(ClientId clientId,
-            String url,
-            boolean ignoreWarnings) {
+    public ServiceDescriptionType addWsdlServiceDescription(ClientId clientId, String url, boolean ignoreWarnings) {
         ClientType client = clientService.getClient(clientId);
         if (client == null) {
             throw new NotFoundException("Client with id " + clientId.toShortString() + " not found");
@@ -210,9 +230,43 @@ public class ServiceDescriptionService {
         ServiceDescriptionType serviceDescriptionType = buildWsdlServiceDescription(client,
                 wsdlProcessingResult.getParsedServices(), url);
 
+        // get the new endpoints to add - skipping existing ones
+        Collection<EndpointType> endpointsToAdd = resolveNewEndpoints(client, serviceDescriptionType);
+
+        client.getEndpoint().addAll(endpointsToAdd);
         client.getServiceDescription().add(serviceDescriptionType);
         clientRepository.saveOrUpdateAndFlush(client);
         return serviceDescriptionType;
+    }
+
+    /**
+     * Create a new {@link EndpointType} for all Services in the provided {@link ServiceDescriptionType}.
+     * If an equal EndpointType already exists for the provided {@link ClientType} it will not be returned
+     * @param client
+     * @param newServiceDescription
+     * @return Only the newly created EndpointTypes
+     */
+    private Collection<EndpointType> resolveNewEndpoints(ClientType client,
+            ServiceDescriptionType newServiceDescription) {
+        Map<String, EndpointType> endpointMap = new HashMap<>();
+
+        // add all new endpoints into a hashmap with a combination key
+        newServiceDescription.getService().forEach(serviceType -> {
+            EndpointType endpointType = new EndpointType(serviceType.getServiceCode(), EndpointType.ANY_METHOD,
+                    EndpointType.ANY_PATH, true);
+            String endpointKey = endpointType.getServiceCode() + endpointType.getMethod() + endpointType.getPath()
+                    + endpointType.isGenerated();
+            endpointMap.put(endpointKey, endpointType);
+        });
+
+        // remove all existing endpoints with an equal combination key from the map
+        client.getEndpoint().forEach(endpointType -> {
+            String endpointKey = endpointType.getServiceCode() + endpointType.getMethod() + endpointType.getPath()
+                    + endpointType.isGenerated();
+            endpointMap.remove(endpointKey);
+        });
+
+        return endpointMap.values();
     }
 
     /**
@@ -306,10 +360,35 @@ public class ServiceDescriptionService {
         serviceDescriptionType.setRefreshedDate(new Date());
         serviceDescriptionType.setUrl(url);
 
+        List<String> newServiceCodes = newServices
+                .stream()
+                .map(ServiceType::getServiceCode)
+                .collect(Collectors.toList());
+
+        // service codes that will be REMOVED
+        List<String> removedServiceCodes = serviceChanges.getRemovedServices()
+                .stream()
+                .map(ServiceType::getServiceCode)
+                .collect(Collectors.toList());
+
         // replace all old services with the new ones
         serviceDescriptionType.getService().clear();
         serviceDescriptionType.getService().addAll(newServices);
-        serviceDescriptionRepository.saveOrUpdate(serviceDescriptionType);
+
+        // clear AccessRights that belong to non-existing services
+        client.getAcl().removeIf(accessRightType -> {
+            String serviceCode = accessRightType.getEndpoint().getServiceCode();
+            return removedServiceCodes.contains(serviceCode) && !newServiceCodes.contains(serviceCode);
+        });
+
+        // remove related endpoints
+        client.getEndpoint().removeIf(endpointType -> removedServiceCodes.contains(endpointType.getServiceCode()));
+
+        // add new endpoints
+        Collection<EndpointType> endpointsToAdd = resolveNewEndpoints(client, serviceDescriptionType);
+        client.getEndpoint().addAll(endpointsToAdd);
+
+        clientRepository.saveOrUpdate(client);
 
         return serviceDescriptionType;
     }
@@ -321,12 +400,12 @@ public class ServiceDescriptionService {
         List<Warning> warnings = new ArrayList<>();
         if (!CollectionUtils.isEmpty(changes.getAddedServices())) {
             Warning addedServicesWarning = new Warning(WARNING_ADDING_SERVICES,
-                    changes.getAddedServices());
+                    changes.getAddedFullServiceCodes());
             warnings.add(addedServicesWarning);
         }
         if (!CollectionUtils.isEmpty(changes.getRemovedServices())) {
             Warning deletedServicesWarning = new Warning(WARNING_DELETING_SERVICES,
-                    changes.getRemovedServices());
+                    changes.getRemovedFullServiceCodes());
             warnings.add(deletedServicesWarning);
         }
         return warnings;
