@@ -33,15 +33,17 @@
                       :items="instances"
                       label="Instance"
                       class="flex-input"
+                      clearable
                     ></v-select>
                   </div>
 
                   <div class="input-row">
                     <v-select
                       v-model="memberClass"
-                      :items="instances"
+                      :items="memberClasses"
                       :label="$t('member_class')"
                       class="flex-input"
+                      clearable
                     ></v-select>
                     <v-text-field
                       v-model="memberCode"
@@ -120,7 +122,6 @@ function initialState() {
     memberClass: '',
     memberCode: '',
     subsystemCode: '',
-    instances: [],
     expandPanel: [0],
     members: [],
     selectedIds: [] as string[],
@@ -144,6 +145,14 @@ export default Vue.extend({
     title: {
       type: String,
       default: 'localGroup.addMembers',
+    },
+    instances: {
+      type: Array,
+      required: true,
+    },
+    memberClasses: {
+      type: Array,
+      required: true,
     },
   },
 

@@ -455,26 +455,14 @@ export default Vue.extend({
       this.refreshWarningDialog = false;
     },
 
-    descClose(descId: string) {
-      const index = this.expanded.findIndex((element: any) => {
-        return element === descId;
-      });
-
-      if (index >= 0) {
-        this.expanded.splice(index, 1);
-      }
+    descClose(tokenId: string) {
+      this.$store.dispatch('hideDesc', tokenId);
     },
-    descOpen(descId: string) {
-      const index = this.expanded.findIndex((element: any) => {
-        return element === descId;
-      });
-
-      if (index === -1) {
-        this.expanded.push(descId);
-      }
+    descOpen(tokenId: string) {
+      this.$store.dispatch('expandDesc', tokenId);
     },
-    isExpanded(descId: string) {
-      return this.expanded.includes(descId);
+    isExpanded(tokenId: string) {
+      return this.$store.getters.descExpanded(tokenId);
     },
 
     fetchData(): void {
