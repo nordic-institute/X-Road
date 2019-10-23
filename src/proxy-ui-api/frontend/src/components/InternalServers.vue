@@ -231,7 +231,7 @@ export default Vue.extend({
 
     openCertificate(cert: any): void {
       this.$router.push({
-        name: RouteName.Certificate,
+        name: RouteName.ClientTlsCertificate,
         params: {
           id: this.id,
           hash: cert.hash,

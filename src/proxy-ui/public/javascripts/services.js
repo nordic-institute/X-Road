@@ -629,7 +629,7 @@
                 $("#params_wsdl_url").val(service.wsdl_id);
 
                 $("#wsdl_params_dialog").dialog("open");
-            } else if (service.service_type === 'OPENAPI3' || service.service_type === 'OPENAPI3_DESCRIPTION') {
+            } else if (service.service_type === 'REST' || service.service_type === 'OPENAPI3') {
                 // Open REST service edit dialog
                 $("#params_wsdl_id").val(service.wsdl_id);
                 $("#params_openapi3_url").val(service.wsdl_id);

@@ -37,7 +37,6 @@
       :custom-sort="customSort"
       :custom-filter="customFilter"
       hide-default-footer
-      expand
       class="elevation-0 data-table"
       item-key="id"
     >
@@ -76,7 +75,6 @@
 
       <template v-slot:item.status="{ item }">
         <div class="status-wrapper">
-          {{ item.status | capitalize }}
           <div :class="getStatusIconClass(item.status)"></div>
           <div class="status-text">{{ item.status | capitalize }}</div>
         </div>

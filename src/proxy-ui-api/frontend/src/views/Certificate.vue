@@ -3,60 +3,26 @@
     <div class="new-content">
       <subViewTitle :title="$t('cert.certificate')" @close="close" />
       <template v-if="certificate">
-        <div class="cert-hash">
-          <div>
-            <div class="hash-info">{{$t('cert.hashInfo')}}</div>
-            <div>{{certificate.hash | colonize}}</div>
-          </div>
-
-          <v-btn
+        <div class="cert-hash-wrapper">
+          <certificateHash :hash="certificate.hash" />
+          <large-button
             v-if="showDeleteButton"
             outlined
-            rounded
-            color="primary"
-            class="text-capitalize table-button rounded-button"
             @click="deleteCertificate()"
-          >{{$t('action.delete')}}</v-btn>
+          >{{$t('action.delete')}}</large-button>
         </div>
-
-        <certificate-line childKey="version" :sourceObject="certificate" />
-        <certificate-line childKey="serial" :sourceObject="certificate" />
-        <certificate-line childKey="signature_algorithm" :sourceObject="certificate" />
-        <certificate-line childKey="issuer_distinguished_name" :sourceObject="certificate" />
-        <certificate-line childKey="not_before" :sourceObject="certificate" date />
-        <certificate-line childKey="not_after" :sourceObject="certificate" date />
-        <certificate-line childKey="subject_distinguished_name" :sourceObject="certificate" />
-
-        <certificate-line childKey="public_key_algorithm" :sourceObject="certificate" />
-        <certificate-line
-          childKey="rsa_public_key_modulus"
-          :label="$t('cert.rsaModulus')"
-          :sourceObject="certificate"
-          chunk
-        />
-
-        <certificate-line
-          childKey="rsa_public_key_exponent"
-          :label="$t('cert.rsaExp')"
-          :sourceObject="certificate"
-        />
-
-        <certificate-line childKey="state" :sourceObject="certificate" />
-        <certificate-line childKey="key_usages" arrayType :sourceObject="certificate" />
-        <certificate-line childKey="signature" :sourceObject="certificate" chunk />
+        <certificateInfo :certificate="certificate" />
       </template>
     </div>
-    <v-dialog v-model="confirm" persistent max-width="290">
-      <v-card>
-        <v-card-title class="headline">{{$t('cert.deleteCertTitle')}}</v-card-title>
-        <v-card-text>{{$t('cert.deleteCertConfirm')}}</v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="primary" flat @click="confirm = false">{{$t('action.cancel')}}</v-btn>
-          <v-btn color="primary" flat @click="doDeleteCertificate()">{{$t('action.yes')}}</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+
+    <!-- Confirm dialog for delete -->
+    <confirmDialog
+      :dialog="confirm"
+      title="cert.deleteCertTitle"
+      text="cert.deleteCertConfirm"
+      @cancel="confirm = false"
+      @accept="doDeleteCertificate()"
+    />
   </div>
 </template>
 
@@ -65,12 +31,18 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
 import SubViewTitle from '@/components/SubViewTitle.vue';
-import CertificateLine from '@/components/CertificateLine.vue';
+import CertificateInfo from '@/components/CertificateInfo.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import LargeButton from '@/components/LargeButton.vue';
+import CertificateHash from '@/components/CertificateHash.vue';
 
 export default Vue.extend({
   components: {
+    CertificateInfo,
+    ConfirmDialog,
     SubViewTitle,
-    CertificateLine,
+    LargeButton,
+    CertificateHash,
   },
   props: {
     id: {
@@ -85,58 +57,47 @@ export default Vue.extend({
   data() {
     return {
       confirm: false,
-      certificate: null,
+      // TODO: mock data will be removed later
+      certificate: {
+        issuer_distinguished_name: 'CN=256be4e26302',
+        issuer_common_name: '256be4e26302',
+        subject_distinguished_name: 'CN=256be4e26302',
+        subject_common_name: '256be4e26302',
+        not_before: '2019-02-11T14:43:30Z',
+        not_after: '2039-02-06T14:43:30Z',
+        serial: '10691527287795546639',
+        version: 3,
+        signature_algorithm: 'SHA256withRSA',
+        signature:
+          '068447a5dfbb64ae543967e5064cac082e6a2f2ebc10342d3ae39f46a6b684a8648c9a21490723b6df0c477cdd112bb9b95b66335a913dcd218c66ac3b45c448b9848a6c3c77f5594e55223da1336faa8647733e8df02117d022df3db9e517b1f9b896390ef041e6264099ace7cc2075796dc21c15df13fb019fc650510288045651f2049343c9672ab00b1f62c368153807bae0659ca3b3fc0d4ff5bdc3d6e690aabd89b5a450197f61e0b497c99d6fa5da644d135d5fe649d2477963413ecc0ae81138383361b1cbddd97c63a1454f0865a91108cafd9cddce5a10b41f6a91371569707cd3337db99fdf423b3f949f1ab7b3419903644d3ba79a09050c3944',
+        public_key_algorithm: 'RSA',
+        rsa_public_key_modulus:
+          'cb9d763ab99f19f633b7cbd5a352c4f1c8eb4f528f43790d22fc9bac659d9799e5eb3b5eb4ec9b983583277ad13e91a8abb2752ea311bc136a43f3bfa050f013e5fe97d78d616a5acc1207b09b6155e6667d9e9735c5f22aaae23f1de62edc63f90e0cdbbf5b7c633f2f108c439913da1041562ac8b2d1de818c9ffb14052ee0f8be3548ef96a295f2f7f9491dcda8dc9a600fc8d1582633b03ea29a8b55a3fef8393276a7da1c1992c9fda092b148835e7757d004dfdd4edd0ee6690ae4ad39b8e471be2929cd612a4789db4044fde2b9db3ab1d642b202bf784cbd746d4f9c5775db86d64cf46c904dd26c5b3e79306ae97a627567d91a47acfe1fe918f675',
+        rsa_public_key_exponent: 65537,
+        hash: 'BDB76853CD148BB7D81CBC119EEDD26B89F90613',
+        key_usages: [
+          'DIGITAL_SIGNATURE',
+          'NON_REPUDIATION',
+          'KEY_ENCIPHERMENT',
+          'KEY_CERT_SIGN',
+        ],
+      },
     };
   },
-  computed: {
-    ...mapGetters(['tlsCertificates']),
-    showDeleteButton(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.DELETE_CLIENT_INTERNAL_CERT,
-      );
-    },
-  },
-  filters: {
-    pretty(value: any) {
-      return JSON.stringify(JSON.parse(value), null, 2);
-    },
-  },
+
   methods: {
     close(): void {
       this.$router.go(-1);
     },
     fetchData(clientId: string, hash: string): void {
-      this.$store.dispatch('fetchTlsCertificate', { clientId, hash }).then(
-        (response) => {
-          this.certificate = response.data;
-        },
-        (error) => {
-          this.$bus.$emit('show-error', error.message);
-        },
-      );
+      // TODO will be implemented on later task
     },
     deleteCertificate(): void {
       this.confirm = true;
     },
     doDeleteCertificate(): void {
       this.confirm = false;
-
-      this.$store
-        .dispatch('deleteTlsCertificate', {
-          clientId: this.id,
-          hash: this.hash,
-        })
-        .then(
-          (response) => {
-            this.$bus.$emit('show-success', 'cert.certDeleted');
-          },
-          (error) => {
-            this.$bus.$emit('show-error', error.message);
-          },
-        )
-        .finally(() => {
-          this.close();
-        });
+      // TODO will be implemented on later task
     },
   },
   created() {
@@ -155,23 +116,11 @@ export default Vue.extend({
   width: 100%;
 }
 
-.cert-hash {
+.cert-hash-wrapper {
   margin-top: 30px;
   display: flex;
   justify-content: space-between;
-  color: #202020;
-  font-family: Roboto;
-  font-size: 20px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  line-height: 30px;
   margin-bottom: 20px;
-}
-
-.hash-info {
-  color: #202020;
-  font-family: Roboto;
-  font-size: 16px;
 }
 </style>
 

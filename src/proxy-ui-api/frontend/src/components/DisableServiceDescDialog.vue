@@ -1,10 +1,10 @@
 <template>
   <simpleDialog
     :dialog="dialog"
-    :title="$t('services.disableTitle')"
+    title="services.disableTitle"
     @save="save"
     @cancel="cancel"
-    :saveButtonLabel="$t('action.ok')"
+    saveButtonText="action.ok"
   >
     <div slot="content">
       <div class="dlg-edit-row">
@@ -19,7 +19,6 @@
 // Dialog to confirm service description disabling
 import Vue from 'vue';
 import SimpleDialog from '@/components/SimpleDialog.vue';
-import { isValidURL } from '@/util/helpers';
 
 export default Vue.extend({
   components: { SimpleDialog },

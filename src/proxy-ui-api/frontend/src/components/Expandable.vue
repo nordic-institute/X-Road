@@ -12,13 +12,13 @@
       </div>
 
       <v-spacer />
-      <div>
+      <div class="action-wrap">
         <slot name="action">
           <v-switch class="switch"></v-switch>
         </slot>
       </div>
     </div>
-    <div v-if="isOpen">
+    <div v-if="isOpen" class="content-wrap">
       <slot name="content"></slot>
     </div>
   </div>
@@ -65,7 +65,6 @@ export default Vue.extend({
   display: flex;
   align-items: center;
   height: 48px;
-  width: 850px;
   border-radius: 4px;
   background-color: $XRoad-Grey10;
   box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.2);
@@ -73,6 +72,14 @@ export default Vue.extend({
 
 .switch {
   width: 60px;
+}
+
+.action-wrap {
+  padding-right: 8px;
+}
+
+.content-wrap {
+  padding: 10px;
 }
 </style>
 

@@ -53,8 +53,8 @@ module Clients::Services
 
   def servicedescription_add
     service_type = DescriptionType.value_of(params[:service_type])
-    if DescriptionType::OPENAPI3 == service_type ||
-      DescriptionType::OPENAPI3_DESCRIPTION == service_type
+    if DescriptionType::REST == service_type ||
+      DescriptionType::OPENAPI3 == service_type
       servicedescription_openapi3_add(params)
     elsif DescriptionType::WSDL == service_type
       servicedescription_wsdl_add(params)
@@ -104,8 +104,8 @@ module Clients::Services
 
   def servicedescription_edit
     service_type = DescriptionType.value_of(params[:service_type])
-    if DescriptionType::OPENAPI3 == service_type ||
-      DescriptionType::OPENAPI3_DESCRIPTION == service_type
+    if DescriptionType::REST == service_type ||
+      DescriptionType::OPENAPI3 == service_type
       servicedescription_openapi3_edit(params)
     elsif DescriptionType::WSDL == service_type
       servicedescription_wsdl_edit(params)
@@ -174,7 +174,7 @@ module Clients::Services
     audit_log_data[:clientIdentifier] = client.identifier
     servicedescriptions = servicedescriptions_by_urls(client, params[:wsdl_ids])
 
-    openapi3_descriptions = servicedescriptions.select { |item| item.type == DescriptionType::OPENAPI3_DESCRIPTION }
+    openapi3_descriptions = servicedescriptions.select { |item| item.type == DescriptionType::OPENAPI3 }
     wsdl_descriptions = servicedescriptions.select  { |item| item.type == DescriptionType::WSDL }
 
     # Refresh WSDL servicedescriptions
@@ -384,7 +384,7 @@ module Clients::Services
         services[service.serviceCode] = {
           :service_code => service.serviceCode,
           :title => service.title,
-          :service_description_type => DescriptionType::WSDL == servicedescription.type ? 'WSDL' : DescriptionType::OPENAPI3 == servicedescription.type ? 'OPENAPI3' : 'OPENAPI3_DESCRIPTION'
+          :service_description_type => DescriptionType::WSDL == servicedescription.type ? 'WSDL' : DescriptionType::REST == servicedescription.type ? 'REST' : 'OPENAPI3'
         }
       end
     end
@@ -397,7 +397,7 @@ module Clients::Services
   end
 
   ##
-  # Returns endpoints for the service if its servicedescriptiontype is OPENAPI3 or OPENAPI3_DESCRIPTION
+  # Returns endpoints for the service if its servicedescriptiontype is REST or OPENAPI3
   #
   def acl_service_endpoints
     authorize!(:view_service_acl)
@@ -560,7 +560,7 @@ module Clients::Services
     client = get_client(params[:client_id])
     openapi = nil
 
-    if DescriptionType::OPENAPI3_DESCRIPTION.name == params[:service_type]
+    if DescriptionType::OPENAPI3.name == params[:service_type]
       openapi = parse_openapi(url)
       base_url = openapi.base_url
     end
@@ -571,7 +571,7 @@ module Clients::Services
     servicedescription.disabledNotice = t('clients.default_disabled_service_notice')
     servicedescription.refreshedDate = Date.new
     servicedescription.client = client
-    servicedescription.type = openapi ? DescriptionType::OPENAPI3_DESCRIPTION : DescriptionType::OPENAPI3
+    servicedescription.type = openapi ? DescriptionType::OPENAPI3 : DescriptionType::REST
 
     audit_log_data[:clientIdentifier] = client.identifier
     audit_log_data[:wsdlUrl] = servicedescription.url
@@ -620,14 +620,14 @@ module Clients::Services
     audit_log_data[:clientIdentifier] = client.identifier
 
     servicedescription = client.serviceDescription.detect { |servicedescription|
-      [DescriptionType::OPENAPI3, DescriptionType::OPENAPI3_DESCRIPTION].include?(servicedescription.type) &&
+      [DescriptionType::REST, DescriptionType::OPENAPI3].include?(servicedescription.type) &&
         servicedescription.url == params[:wsdl_id]
     } or raise t("clients.service_description_does_not_exist")
 
     base_url = params[:openapi3_new_url]
     openapi = nil
 
-    if DescriptionType::OPENAPI3_DESCRIPTION == service_type
+    if DescriptionType::OPENAPI3 == service_type
       if params[:openapi3_new_url] != servicedescription.url
         openapi = parse_openapi(base_url)
         base_url = openapi.base_url
@@ -773,7 +773,7 @@ module Clients::Services
         :disabled => servicedescription.disabled,
         :disabled_notice => servicedescription.disabledNotice,
         :service_type => servicedescription.type.name,
-        :openapi3_service_code => DescriptionType::OPENAPI3 == servicedescription.type || DescriptionType::OPENAPI3_DESCRIPTION == servicedescription.type ? servicedescription.service.first.serviceCode : nil
+        :openapi3_service_code => DescriptionType::REST == servicedescription.type || DescriptionType::OPENAPI3 == servicedescription.type ? servicedescription.service.first.serviceCode : nil
       }
 
       servicedescription.service.each do |service|
@@ -797,7 +797,7 @@ module Clients::Services
           :disabled => servicedescription.disabled
         }
 
-        if DescriptionType::OPENAPI3_DESCRIPTION == servicedescription.type || DescriptionType::OPENAPI3 == servicedescription.type
+        if DescriptionType::OPENAPI3 == servicedescription.type || DescriptionType::REST == servicedescription.type
           unsortedEndpoints = []
           client.endpoint.each do |endpoint|
             if endpoint.service_code == service.service_code
