@@ -1,5 +1,7 @@
 # Change Log
 
+## 6.23.0 - UNRELEASED
+
 ## 6.22.0 - 2019-10-22
 - XRDDEV-450: Make a docker image of central server.
 - XRDDEV-501: Fix Test TSA on Ubuntu 18.
