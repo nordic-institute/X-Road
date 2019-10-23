@@ -22,24 +22,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.openapi;
+
+import org.niis.xroad.restapi.exceptions.DeviationAware;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.WarningDeviation;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.Collection;
 
 /**
- * A thing (an Exception) which (possibly) knows the detailed error code & metadata,
- * and warning codes & metadata, to send in REST API response body
+ * Thrown if there was a conflict, for example tried to add an item which already exists.
+ * Results in http 409 CONFLICT
  */
-public interface DeviationAware {
-    /**
-     * Return the error details, if any
-     * @return
-     */
-    ErrorDeviation getErrorDeviation();
+@ResponseStatus(value = HttpStatus.CONFLICT)
+public class ConflictException extends OpenApiException {
+    public ConflictException() {
+    }
 
-    /**
-     * Return warningDeviations, if any
-     * @return
-     */
-    Collection<WarningDeviation> getWarningDeviations();
+    public ConflictException(DeviationAware deviations) {
+        super(deviations.getErrorDeviation(), deviations.getWarningDeviations());
+    }
+
+    public ConflictException(String msg) {
+        super(msg);
+    }
+
+    public ConflictException(ErrorDeviation errorDeviation, Collection<WarningDeviation> warningDeviations) {
+        super(errorDeviation, warningDeviations);
+    }
+
+    public ConflictException(String msg, ErrorDeviation errorDeviation) {
+        super(msg, errorDeviation);
+    }
+
+    public ConflictException(ErrorDeviation errorDeviation) {
+        super(errorDeviation);
+    }
+
 }

@@ -32,7 +32,7 @@ import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.apache.commons.lang.StringUtils;
 import org.niis.xroad.restapi.converter.Converters;
-import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
 
 import java.net.IDN;
@@ -115,18 +115,18 @@ public final class FormatUtils {
     }
 
     /**
-     * in case of NumberFormatException we throw NotFoundException. Client should not
+     * in case of NumberFormatException we throw ResourceNotFoundException. Client should not
      * know about id parameter details, such as "it should be numeric" -
      * the resource with given id just cant be found, and that's all there is to it
      * @param id as String
      * @return id as Long
      */
-    public static Long parseLongIdOrThrowNotFound(String id) throws NotFoundException {
+    public static Long parseLongIdOrThrowNotFound(String id) throws ResourceNotFoundException {
         Long groupId = null;
         try {
             groupId = Long.valueOf(id);
         } catch (NumberFormatException nfe) {
-            throw new NotFoundException(nfe);
+            throw new ResourceNotFoundException("bad id", nfe);
         }
         return groupId;
     }

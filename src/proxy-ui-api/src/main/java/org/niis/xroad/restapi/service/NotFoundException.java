@@ -22,44 +22,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.service;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
 /**
- * Thrown if item was not found.
- * Results in http 404 NOT_FOUND
+ * Service layer exception, which is thrown if some item is not found
  */
-@ResponseStatus(value = HttpStatus.NOT_FOUND)
-public class NotFoundException extends DeviationAwareRuntimeException {
-
-    public NotFoundException() {
+public class NotFoundException extends ServiceException {
+    public NotFoundException(Throwable t, ErrorDeviation errorDeviation) {
+        super(t, errorDeviation);
     }
 
-
-    public NotFoundException(String msg) {
-        super(msg);
+    public NotFoundException(ErrorDeviation errorDeviation) {
+        super(errorDeviation);
     }
 
-    public NotFoundException(Error error) {
-        super(error);
+    public NotFoundException(String msg, ErrorDeviation errorDeviation) {
+        super(msg, errorDeviation);
     }
-
-    public NotFoundException(String msg, Error error) {
-        super(msg, error);
-    }
-
-    public NotFoundException(String msg, Throwable t) {
-        super(msg, t);
-    }
-
-    public NotFoundException(Throwable t) {
-        super(t);
-    }
-
-    public NotFoundException(Throwable t, Error error) {
-        super(t, error);
-    }
-
 }

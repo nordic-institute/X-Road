@@ -24,13 +24,11 @@
  */
 package org.niis.xroad.restapi.wsdl;
 
-import ee.ria.xroad.common.CodedException;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.restapi.exceptions.WsdlNotFoundException;
-import org.niis.xroad.restapi.exceptions.WsdlParseException;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.service.ServiceException;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -57,18 +55,16 @@ import javax.wsdl.xml.WSDLReader;
 import javax.xml.namespace.QName;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 /**
  * Utils for WSDL parsing
@@ -102,13 +98,12 @@ public final class WsdlParser {
      * Extracts the list of services that are described in the given WSDL.
      * @param wsdlUrl the URL from which the WSDL is available
      * @return collection of ServiceInfo objects
-     * @throws Exception in case of any errors
      */
-    public static Collection<ServiceInfo> parseWSDL(String wsdlUrl) throws WsdlParseException, WsdlNotFoundException {
+    public static Collection<ServiceInfo> parseWSDL(String wsdlUrl) throws WsdlNotFoundException, WsdlParseException {
         try {
             return internalParseWSDL(wsdlUrl);
-        } catch (WsdlNotFoundException e) {
-            throw e;
+        } catch (PrivateWsdlNotFoundException e) {
+            throw new WsdlNotFoundException(e);
         } catch (Exception e) {
             throw new WsdlParseException(clarifyWsdlParsingException(e));
         }
@@ -265,6 +260,15 @@ public final class WsdlParser {
         }
     }
 
+    /**
+     * keep this one private and dont let it leak
+     */
+    private static final class PrivateWsdlNotFoundException extends RuntimeException {
+        PrivateWsdlNotFoundException(Throwable t) {
+            super(t);
+        }
+    }
+
     private static final class TrustAllSslCertsWsdlLocator implements WSDLLocator {
 
         private static final int ERROR_RESPONSE_CODE = 500;
@@ -291,10 +295,8 @@ public final class WsdlParser {
                 log.trace("Received WSDL response: {}", new String(response));
 
                 return new InputSource(new ByteArrayInputStream(response));
-            } catch (FileNotFoundException e) {
-                throw new WsdlNotFoundException(e);
-            } catch (Exception e) {
-                throw new CodedException(X_INTERNAL_ERROR, e);
+            } catch (Throwable t) {
+                throw new PrivateWsdlNotFoundException(t);
             }
         }
 
@@ -346,6 +348,35 @@ public final class WsdlParser {
 
             conn.setSSLSocketFactory(ctx.getSocketFactory());
             conn.setHostnameVerifier(HostnameVerifiers.ACCEPT_ALL);
+        }
+    }
+
+    /**
+     * Thrown if WSDL parsing fails
+     */
+    public static class WsdlParseException extends InvalidWsdlException {
+        public WsdlParseException(Throwable t) {
+            super(toListOrNull(t.getMessage()));
+        }
+
+        private static List<String> toListOrNull(String message) {
+            if (message == null) {
+                return null;
+            } else {
+                return Collections.singletonList(message);
+            }
+        }
+    }
+
+    /**
+     * Thrown if WSDL file is not found
+     */
+    public static class WsdlNotFoundException extends ServiceException {
+
+        public static final String ERROR_WSDL_DOWNLOAD_FAILED = "wsdl_download_failed";
+
+        public WsdlNotFoundException(Throwable cause) {
+            super(cause, new ErrorDeviation(ERROR_WSDL_DOWNLOAD_FAILED));
         }
     }
 }

@@ -27,10 +27,10 @@ package org.niis.xroad.restapi.exceptions;
 import java.util.Collection;
 
 /**
- * RuntimeException that (possibly) carries error code.
- * Root of all deviation aware runtimeexceptions
+ * Checked exception that (possibly) carries error code.
+ * Root of all checked deviation aware exceptions
  */
-public class DeviationAwareRuntimeException extends RuntimeException implements DeviationAware {
+public class DeviationAwareException extends Exception implements DeviationAware {
 
     private final ErrorDeviation errorDeviation;
     private final Collection<WarningDeviation> warningDeviations;
@@ -48,7 +48,7 @@ public class DeviationAwareRuntimeException extends RuntimeException implements 
     /**
      * no args
      */
-    public DeviationAwareRuntimeException() {
+    public DeviationAwareException() {
         super();
         this.errorDeviation = null;
         this.warningDeviations = null;
@@ -57,7 +57,7 @@ public class DeviationAwareRuntimeException extends RuntimeException implements 
     /**
      * @param msg
      */
-    public DeviationAwareRuntimeException(String msg) {
+    public DeviationAwareException(String msg) {
         super(msg);
         this.errorDeviation = null;
         this.warningDeviations = null;
@@ -67,7 +67,7 @@ public class DeviationAwareRuntimeException extends RuntimeException implements 
      * @param msg
      * @param errorDeviation
      */
-    public DeviationAwareRuntimeException(String msg, ErrorDeviation errorDeviation) {
+    public DeviationAwareException(String msg, ErrorDeviation errorDeviation) {
         super(msg);
         this.errorDeviation = errorDeviation;
         this.warningDeviations = null;
@@ -77,7 +77,7 @@ public class DeviationAwareRuntimeException extends RuntimeException implements 
      * @param msg
      * @param t
      */
-    public DeviationAwareRuntimeException(String msg, Throwable t) {
+    public DeviationAwareException(String msg, Throwable t) {
         this(msg, t, null, null);
     }
 
@@ -86,7 +86,7 @@ public class DeviationAwareRuntimeException extends RuntimeException implements 
      * @param t
      * @param errorDeviation
      */
-    public DeviationAwareRuntimeException(String msg, Throwable t, ErrorDeviation errorDeviation) {
+    public DeviationAwareException(String msg, Throwable t, ErrorDeviation errorDeviation) {
         this(msg, t, errorDeviation, null);
     }
 
@@ -96,7 +96,7 @@ public class DeviationAwareRuntimeException extends RuntimeException implements 
      * @param errorDeviation
      * @param warningDeviations
      */
-    public DeviationAwareRuntimeException(String msg, Throwable t, ErrorDeviation errorDeviation,
+    public DeviationAwareException(String msg, Throwable t, ErrorDeviation errorDeviation,
                                           Collection<WarningDeviation> warningDeviations) {
         super(msg, t);
         this.errorDeviation = errorDeviation;
@@ -106,7 +106,7 @@ public class DeviationAwareRuntimeException extends RuntimeException implements 
     /**
      * @param errorDeviation
      */
-    public DeviationAwareRuntimeException(ErrorDeviation errorDeviation) {
+    public DeviationAwareException(ErrorDeviation errorDeviation) {
         this(errorDeviation, null);
     }
 
@@ -114,8 +114,7 @@ public class DeviationAwareRuntimeException extends RuntimeException implements 
      * @param errorDeviation
      * @param warningDeviations
      */
-    public DeviationAwareRuntimeException(ErrorDeviation errorDeviation,
-            Collection<WarningDeviation> warningDeviations) {
+    public DeviationAwareException(ErrorDeviation errorDeviation, Collection<WarningDeviation> warningDeviations) {
         this.errorDeviation = errorDeviation;
         this.warningDeviations = warningDeviations;
     }
@@ -123,7 +122,7 @@ public class DeviationAwareRuntimeException extends RuntimeException implements 
     /**
      * @param t
      */
-    public DeviationAwareRuntimeException(Throwable t) {
+    public DeviationAwareException(Throwable t) {
         this(t, null, null);
     }
 
@@ -131,7 +130,7 @@ public class DeviationAwareRuntimeException extends RuntimeException implements 
      * @param t
      * @param errorDeviation
      */
-    public DeviationAwareRuntimeException(Throwable t, ErrorDeviation errorDeviation) {
+    public DeviationAwareException(Throwable t, ErrorDeviation errorDeviation) {
         this(t, errorDeviation, null);
     }
 
@@ -140,7 +139,7 @@ public class DeviationAwareRuntimeException extends RuntimeException implements 
      * @param errorDeviation
      * @param warningDeviations
      */
-    public DeviationAwareRuntimeException(Throwable t, ErrorDeviation errorDeviation,
+    public DeviationAwareException(Throwable t, ErrorDeviation errorDeviation,
             Collection<WarningDeviation> warningDeviations) {
         super(t);
         this.errorDeviation = errorDeviation;

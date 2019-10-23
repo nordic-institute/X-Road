@@ -22,34 +22,21 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.wsdl;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-import java.util.Collection;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.service.ServiceException;
 
 /**
- * Thrown if WSDL validation fails
+ * Thrown if something went wrong in WSDL validation.
+ * Root class for all WSDL validation exceptions.
  */
-@ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class WsdlValidationException extends DeviationAwareRuntimeException {
-    public WsdlValidationException() {
+public class WsdlValidationException extends ServiceException {
+    public WsdlValidationException(ErrorDeviation errorDeviation) {
+        super(errorDeviation);
     }
 
-    public WsdlValidationException(Error error) {
-        super(error);
-    }
-
-    public WsdlValidationException(Throwable throwable, Error error) {
-        super(throwable, error);
-    }
-
-    public WsdlValidationException(Throwable throwable, Error error, Collection<Warning> warnings) {
-        super(throwable, error, warnings);
-    }
-
-    public WsdlValidationException(Error error, Collection<Warning> warnings) {
-        super(error, warnings);
+    public WsdlValidationException(Throwable t, ErrorDeviation errorDeviation) {
+        super(t, errorDeviation);
     }
 }

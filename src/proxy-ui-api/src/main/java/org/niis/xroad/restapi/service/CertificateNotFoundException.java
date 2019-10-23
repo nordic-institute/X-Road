@@ -22,30 +22,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.service;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-/**
- * Thrown if parameters were invalid.
- * Results in http 400 BAD_REQUEST
- */
-@ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class InvalidParametersException extends RuntimeException {
-    public InvalidParametersException() {
+public class CertificateNotFoundException extends NotFoundException {
+
+    public static final String ERROR_CERTIFICATE_NOT_FOUND = "certificate_not_found";
+
+    public CertificateNotFoundException(String s) {
+        super(s, createError());
     }
-
-    public InvalidParametersException(String msg) {
-        super(msg);
+    public CertificateNotFoundException() {
+        super(createError());
     }
-
-    public InvalidParametersException(String msg, Throwable t) {
-        super(msg, t);
+    private static ErrorDeviation createError() {
+        return new ErrorDeviation(ERROR_CERTIFICATE_NOT_FOUND);
     }
-
-    public InvalidParametersException(Throwable t) {
-        super(t);
-    }
-
 }

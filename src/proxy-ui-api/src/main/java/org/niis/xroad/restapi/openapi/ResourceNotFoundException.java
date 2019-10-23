@@ -22,24 +22,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.openapi;
 
-import java.util.Collection;
+import org.niis.xroad.restapi.exceptions.DeviationAware;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * A thing (an Exception) which (possibly) knows the detailed error code & metadata,
- * and warning codes & metadata, to send in REST API response body
+ * Thrown if item was not found.
+ * Results in http 404 NOT_FOUND
  */
-public interface DeviationAware {
-    /**
-     * Return the error details, if any
-     * @return
-     */
-    ErrorDeviation getErrorDeviation();
+@ResponseStatus(value = HttpStatus.NOT_FOUND)
+public class ResourceNotFoundException extends OpenApiException {
 
-    /**
-     * Return warningDeviations, if any
-     * @return
-     */
-    Collection<WarningDeviation> getWarningDeviations();
+    public ResourceNotFoundException() {
+    }
+
+    public ResourceNotFoundException(DeviationAware deviations) {
+        super(deviations.getErrorDeviation(), deviations.getWarningDeviations());
+    }
+
+    public ResourceNotFoundException(String msg) {
+        super(msg);
+    }
+
+    public ResourceNotFoundException(ErrorDeviation errorDeviation) {
+        super(errorDeviation);
+    }
+
+    public ResourceNotFoundException(String msg, ErrorDeviation errorDeviation) {
+        super(msg, errorDeviation);
+    }
+
+    public ResourceNotFoundException(String msg, Throwable t) {
+        super(msg, t);
+    }
+
+    public ResourceNotFoundException(Throwable t, ErrorDeviation errorDeviation) {
+        super(t, errorDeviation);
+    }
+
 }

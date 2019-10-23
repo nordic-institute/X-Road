@@ -27,7 +27,7 @@ package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 
-import org.niis.xroad.restapi.exceptions.BadRequestException;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.stereotype.Component;
 

@@ -24,22 +24,21 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
- * A thing (an Exception) which (possibly) knows the detailed error code & metadata,
- * and warning codes & metadata, to send in REST API response body
+ * An error that can't be ignored
  */
-public interface DeviationAware {
-    /**
-     * Return the error details, if any
-     * @return
-     */
-    ErrorDeviation getErrorDeviation();
+public class ErrorDeviation extends Deviation {
+    public ErrorDeviation(String code, List<String> metadata) {
+        super(code, metadata);
+    }
 
-    /**
-     * Return warningDeviations, if any
-     * @return
-     */
-    Collection<WarningDeviation> getWarningDeviations();
+    public ErrorDeviation(String code, String metadataItem) {
+        super(code, metadataItem);
+    }
+
+    public ErrorDeviation(String code) {
+        super(code);
+    }
 }

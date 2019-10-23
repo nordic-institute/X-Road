@@ -67,6 +67,7 @@ public class GlobalConfService {
     /**
      * @return member classes for current instance
      */
+    @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
     public Set<String> getMemberClassesForThisInstance() {
         return GlobalConf.getMemberClasses(globalConfFacade.getInstanceIdentifier());
     }

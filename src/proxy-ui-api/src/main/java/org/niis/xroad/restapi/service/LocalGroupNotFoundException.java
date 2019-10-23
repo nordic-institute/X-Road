@@ -22,24 +22,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.service;
 
-import java.util.Collection;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
 /**
- * A thing (an Exception) which (possibly) knows the detailed error code & metadata,
- * and warning codes & metadata, to send in REST API response body
+ * If local group was not found
  */
-public interface DeviationAware {
-    /**
-     * Return the error details, if any
-     * @return
-     */
-    ErrorDeviation getErrorDeviation();
-
-    /**
-     * Return warningDeviations, if any
-     * @return
-     */
-    Collection<WarningDeviation> getWarningDeviations();
+public class LocalGroupNotFoundException extends NotFoundException {
+    public static final String ERROR_LOCAL_GROUP_NOT_FOUND = "local_group_not_found";
+    public LocalGroupNotFoundException(String s) {
+        super(s, new ErrorDeviation(ERROR_LOCAL_GROUP_NOT_FOUND));
+    }
 }

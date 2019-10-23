@@ -22,24 +22,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.openapi;
 
-import java.util.Collection;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * A thing (an Exception) which (possibly) knows the detailed error code & metadata,
- * and warning codes & metadata, to send in REST API response body
+ * Thrown if parameters were invalid.
+ * Results in http 400 BAD_REQUEST
+ * to do: replace with BadRequestException and ServiceExceptions
  */
-public interface DeviationAware {
-    /**
-     * Return the error details, if any
-     * @return
-     */
-    ErrorDeviation getErrorDeviation();
+@ResponseStatus(value = HttpStatus.BAD_REQUEST)
+public class InvalidParametersException extends OpenApiException {
+    public InvalidParametersException() {
+    }
 
-    /**
-     * Return warningDeviations, if any
-     * @return
-     */
-    Collection<WarningDeviation> getWarningDeviations();
+    public InvalidParametersException(String msg) {
+        super(msg);
+    }
+
+    public InvalidParametersException(String msg, Throwable t) {
+        super(msg, t);
+    }
+
+    public InvalidParametersException(Throwable t) {
+        super(t);
+    }
+
 }
