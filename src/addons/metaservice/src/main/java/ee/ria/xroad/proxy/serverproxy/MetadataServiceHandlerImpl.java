@@ -144,6 +144,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
     @SneakyThrows
     public boolean canHandle(ServiceId requestServiceId,
             ProxyMessage requestProxyMessage) {
+
         requestMessage = requestProxyMessage.getSoap();
 
         switch (requestServiceId.getServiceCode()) {
@@ -215,8 +216,8 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
 
         MethodListType methodList = OBJECT_FACTORY.createMethodListType();
         methodList.getService().addAll(
-                ServerConf.getAllServices(
-                        request.getService().getClientId()));
+                ServerConf.getServicesByDescriptionType(
+                        request.getService().getClientId(), DescriptionType.WSDL));
 
         SoapMessageImpl result = createMethodListResponse(request,
                 OBJECT_FACTORY.createListMethodsResponse(methodList));
@@ -229,9 +230,9 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
 
         MethodListType methodList = OBJECT_FACTORY.createMethodListType();
         methodList.getService().addAll(
-                ServerConf.getAllowedServices(
+                ServerConf.getAllowedServicesByDescriptionType(
                         request.getService().getClientId(),
-                        request.getClient()));
+                        request.getClient(), DescriptionType.WSDL));
 
         SoapMessageImpl result = createMethodListResponse(request,
                 OBJECT_FACTORY.createAllowedMethodsResponse(methodList));
@@ -276,7 +277,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
     private String getWsdlUrl(ServiceId service) throws Exception {
         ServiceDescriptionType wsdl = ServerConfDatabaseCtx.doInTransaction(
                 session -> new ServiceDescriptionDAOImpl().getServiceDescription(session, service));
-        if (wsdl != null && wsdl.getType() == DescriptionType.OPENAPI3) {
+        if (wsdl != null && wsdl.getType() != DescriptionType.WSDL) {
             throw new CodedException(X_INVALID_SERVICE_TYPE,
                     "Service is a REST service and does not have a WSDL");
         }

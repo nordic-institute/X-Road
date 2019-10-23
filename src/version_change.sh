@@ -30,7 +30,7 @@ function downgrade {
 # Params: changelog location, version, message
 function add_dch_entry {
     sed -i "1s/\-0/\-1/" $1
-    dch -v "$2-0" -c $1 $3
+    dch -v "$2-0" --distribution stable -c $1 $3
 }
 
 function release_current {
@@ -102,7 +102,6 @@ if [[ $DOWNGRADE == true ]]; then
     downgrade "1" "$VERSION" "$DEBJ9_CHANGELOG" "1"
     sed -i "1s/\-1/\-0/" $DEBJ9_CHANGELOG
 else
-    release_current
     sed -i "2a## $VERSION - UNRELEASED\n" ../CHANGELOG.md
     add_dch_entry "$DEB_CHANGELOG" "$VERSION" "Change history is found at /usr/share/doc/xroad-common/CHANGELOG.md.gz"
     add_dch_entry "$DEBJ9_CHANGELOG" "$VERSION" "Version bump"

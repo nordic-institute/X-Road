@@ -3,7 +3,7 @@ dependencies {
     compile project(':proxy')
 
     testCompile "com.typesafe.akka:akka-testkit_2.11:$akkaVersion"
-    testCompile 'commons-cli:commons-cli:1.2'
+    testCompile 'commons-cli:commons-cli:1.4'
 }
 
 task runOpMonitoringBufferMemoryUsage(type: JavaExec) {

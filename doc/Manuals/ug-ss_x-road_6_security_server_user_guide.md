@@ -2,17 +2,17 @@
 | ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
 | -------------------------: |
 
-# SECURITY SERVER USER GUIDE
+# SECURITY SERVER USER GUIDE <!-- omit in toc --> 
 
 **X-ROAD 6**
 
-Version: 2.26  
+Version: 2.31  
 Doc. ID: UG-SS
 
 ---
 
 
-## Version history
+## Version history <!-- omit in toc --> 
 
  Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
@@ -59,111 +59,120 @@ Doc. ID: UG-SS
  06.02.2019 | 2.24    | Minor updates on security server client registration in Chapters [4.3](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client) and [4.4](#44-registering-a-security-server-client-in-the-x-road-governing-authority). | Petteri Kivimäki
  15.03.2019 | 2.25    | Update documentation to cover REST service usage in chapter [6] | Jarkko Hyöty
  16.04.2019 | 2.26    | Minor updates regarding REST services in chapter [6] | Petteri Kivimäki
+ 30.06.2019 | 2.27    | Update the default connection type from HTTP to HTTPS in chapter [9] | Petteri Kivimäki
+ 01.07.2019 | 2.28    | Changing the Security Server Owner chapter added (Chapter [3.4](#34-changing-the-security-server-owner)) | Petteri Kivimäki
+ 14.08.2019 | 2.29    | Added automatic backups | Ilkka Seppälä
+ 30.09.2019 | 2.30    | Added remote database migration guide | Ilkka Seppälä
+ 15.10.2019 | 2.31    | Updated REST services in chapter [6] | Ilkka Seppälä
 
-## Table of Contents
+## Table of Contents <!-- omit in toc --> 
 
 <!-- toc -->
 <!-- vim-markdown-toc GFM -->
 
-* [License](#license)
-* [1 Introduction](#1-introduction)
-  * [1.1 The X-Road Security Server](#11-the-x-road-security-server)
-  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
-  * [1.3 References](#13-references)
-* [2 User Management](#2-user-management)
-  * [2.1 User Roles](#21-user-roles)
-  * [2.2 Managing the Users](#22-managing-the-users)
-* [3 Security Server Registration](#3-security-server-registration)
-  * [3.1 Configuring the Signing Key and Certificate for the Security Server Owner](#31-configuring-the-signing-key-and-certificate-for-the-security-server-owner)
-    * [3.1.1 Generating a Signing Key](#311-generating-a-signing-key)
-    * [3.1.2 Generating a Certificate Signing Request for a Signing Key](#312-generating-a-certificate-signing-request-for-a-signing-key)
-    * [3.1.3 Importing a Certificate from the Local File System](#313-importing-a-certificate-from-the-local-file-system)
-    * [3.1.4 Importing a Certificate from a Security Token](#314-importing-a-certificate-from-a-security-token)
-  * [3.2 Configuring the Authentication Key and Certificate for the Security Server](#32-configuring-the-authentication-key-and-certificate-for-the-security-server)
-    * [3.2.1 Generating an Authentication Key](#321-generating-an-authentication-key)
-    * [3.2.2 Generating a Certificate Signing Request for an Authentication Key](#322-generating-a-certificate-signing-request-for-an-authentication-key)
-    * [3.2.3 Importing an Authentication Certificate from the Local File System](#323-importing-an-authentication-certificate-from-the-local-file-system)
-  * [3.3 Registering the Security Server in the X-Road Governing Authority](#33-registering-the-security-server-in-the-x-road-governing-authority)
-    * [3.3.1 Registering an Authentication Certificate](#331-registering-an-authentication-certificate)
-* [4 Security Server Clients](#4-security-server-clients)
-  * [4.1 Security Server Client States](#41-security-server-client-states)
-  * [4.2 Adding a Security Server Client](#42-adding-a-security-server-client)
-  * [4.3 Configuring a Signing Key and Certificate for a Security Server Client](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client)
-  * [4.4 Registering a Security Server Client in the X-Road Governing Authority](#44-registering-a-security-server-client-in-the-x-road-governing-authority)
-    * [4.4.1 Registering a Security Server Client](#441-registering-a-security-server-client)
-  * [4.5 Deleting a Client from the Security Server](#45-deleting-a-client-from-the-security-server)
-    * [4.5.1 Unregistering a Client](#451-unregistering-a-client)
-    * [4.5.2 Deleting a Client](#452-deleting-a-client)
-* [5 Security Tokens, Keys, and Certificates](#5-security-tokens-keys-and-certificates)
-  * [5.1 Availability States of Security Tokens, Keys, and Certificates](#51-availability-states-of-security-tokens-keys-and-certificates)
-  * [5.2 Registration States of Certificates](#52-registration-states-of-certificates)
-    * [5.2.1 Registration States of the Signing Certificate](#521-registration-states-of-the-signing-certificate)
-    * [5.2.2 Registration States of the Authentication Certificate](#522-registration-states-of-the-authentication-certificate)
-  * [5.3 Validity States of Certificates](#53-validity-states-of-certificates)
-  * [5.4 Activating and Disabling the Certificates](#54-activating-and-disabling-the-certificates)
-  * [5.5 Configuring and Registering an Authentication key and Certificate](#55-configuring-and-registering-an-authentication-key-and-certificate)
-  * [5.6 Deleting a Certificate](#56-deleting-a-certificate)
-    * [5.6.1 Unregistering an Authentication Certificate](#561-unregistering-an-authentication-certificate)
-    * [5.6.2 Deleting a Certificate or a certificate Signing Request notice](#562-deleting-a-certificate-or-a-certificate-signing-request-notice)
-  * [5.7 Deleting a Key](#57-deleting-a-key)
-* [6 X-Road Services](#6-x-road-services)
-  * [6.1 Adding a service description](#61-adding-a-service-description)
-      * [6.1.1 SOAP](#611-soap)
-      * [6.1.2 REST](#612-rest)
-  * [6.2 Refreshing a service description](#62-refreshing-a-service-description)
-  * [6.3 Enabling and Disabling a service description](#63-enabling-and-disabling-a-service-description)
-  * [6.4 Changing the Address of a service description](#64-changing-the-address-of-a-service-description)
-  * [6.5 Deleting a service description](#65-deleting-a-service-description)
-  * [6.6 Changing the Parameters of a Service](#66-changing-the-parameters-of-a-service)
-* [7 Access Rights](#7-access-rights)
-  * [7.1 Changing the Access Rights of a Service](#71-changing-the-access-rights-of-a-service)
-  * [7.2 Adding a Service Client](#72-adding-a-service-client)
-  * [7.3 Changing the Access Rights of a Service Client](#73-changing-the-access-rights-of-a-service-client)
-* [8 Local Access Right Groups](#8-local-access-right-groups)
-  * [8.1 Adding a Local Group](#81-adding-a-local-group)
-  * [8.2 Displaying and Changing the Members of a Local Group](#82-displaying-and-changing-the-members-of-a-local-group)
-  * [8.3 Changing the description of a Local Group](#83-changing-the-description-of-a-local-group)
-  * [8.4 Deleting a Local Group](#84-deleting-a-local-group)
-* [9 Communication with the Client Information Systems](#9-communication-with-the-client-information-systems)
-* [10 System Parameters](#10-system-parameters)
-  * [10.1 Managing the Configuration Anchor](#101-managing-the-configuration-anchor)
-  * [10.2 Managing the Timestamping Services](#102-managing-the-timestamping-services)
-  * [10.3 Changing the Internal TLS Key and Certificate](#103-changing-the-internal-tls-key-and-certificate)
-  * [10.4 Approved Certificate Authorities](#104-approved-certificate-authorities)
-* [11 Message Log](#11-message-log)
-  * [11.1 Changing the Configuration of the Message Log](#111-changing-the-configuration-of-the-message-log)
-    * [11.1.1 Common parameters](#1111-common-parameters)
-    * [11.1.2 Timestamping parameters](#1112-timestamping-parameters)
-    * [11.1.3 Archiving parameters](#1113-archiving-parameters)
-  * [11.2 Transferring the Archive Files from the Security Server](#112-transferring-the-archive-files-from-the-security-server)
-  * [11.3 Using a Remote Database](#113-using-a-remote-database)
-* [12 Audit Log](#12-audit-log)
-  * [12.1 Changing the Configuration of the Audit Log](#121-changing-the-configuration-of-the-audit-log)
-  * [12.2 Archiving the Audit Log](#122-archiving-the-audit-log)
-* [13 Back up and Restore](#13-back-up-and-restore)
-  * [13.1 Back up and Restore in the User Interface](#131-back-up-and-restore-in-the-user-interface)
-  * [13.2 Restore from the Command Line](#132-restore-from-the-command-line)
-* [14 Diagnostics](#14-diagnostics)
-  * [14.1 Examine security server services status information](#141-examine-security-server-services-status-information)
-* [15 Operational Monitoring](#15-operational-monitoring)
-  * [15.1 Operational Monitoring Buffer](#151-operational-monitoring-buffer)
-    * [15.1.1 Stopping the Collecting of Operational Data](#1511-stopping-the-collecting-of-operational-data)
-  * [15.2 Operational Monitoring Daemon](#152-operational-monitoring-daemon)
-    * [15.2.1 Configuring the Health Statistics Period](#1521-configuring-the-health-statistics-period)
-    * [15.2.2 Configuring the Parameters Related to Database Cleanup](#1522-configuring-the-parameters-related-to-database-cleanup)
-    * [15.2.3 Configuring the Parameters related to the HTTP Endpoint of the Operational Monitoring Daemon](#1523-configuring-the-parameters-related-to-the-http-endpoint-of-the-operational-monitoring-daemon)
-    * [15.2.4 Installing an External Operational Monitoring Daemon](#1524-installing-an-external-operational-monitoring-daemon)
-    * [15.2.5 Configuring an External Operational Monitoring Daemon and the Corresponding Security Server](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)
-    * [15.2.6 Monitoring Health Data over JMXMP](#1526-monitoring-health-data-over-jmxmp)
-* [16 Environmental Monitoring](#16-environmental-monitoring)
-  * [16.1 Usage via SOAP API](#161-usage-via-soap-api)
-  * [16.2 Usage via JMX API](#162-usage-via-jmx-api)
-  * [16.3 Limiting environmental monitoring remote data set](#163-limiting-environmental-monitoring-remote-data-set)
-* [17 Logs and System Services](#17-logs-and-system-services)
-  * [17.1 System Services](#171-system-services)
-  * [17.2 Logging configuration](#172-logging-configuration)
-  * [17.3 Fault Detail UUID](#173-fault-detail-uuid)
-* [18 Federation](#18-federation)
+- [License](#license)
+- [1 Introduction](#1-introduction)
+  - [1.1 The X-Road Security Server](#11-the-x-road-security-server)
+  - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+  - [1.3 References](#13-references)
+- [2 User Management](#2-user-management)
+  - [2.1 User Roles](#21-user-roles)
+  - [2.2 Managing the Users](#22-managing-the-users)
+- [3 Security Server Registration](#3-security-server-registration)
+  - [3.1 Configuring the Signing Key and Certificate for the Security Server Owner](#31-configuring-the-signing-key-and-certificate-for-the-security-server-owner)
+    - [3.1.1 Generating a Signing Key](#311-generating-a-signing-key)
+    - [3.1.2 Generating a Certificate Signing Request for a Signing Key](#312-generating-a-certificate-signing-request-for-a-signing-key)
+    - [3.1.3 Importing a Certificate from the Local File System](#313-importing-a-certificate-from-the-local-file-system)
+    - [3.1.4 Importing a Certificate from a Security Token](#314-importing-a-certificate-from-a-security-token)
+  - [3.2 Configuring the Authentication Key and Certificate for the Security Server](#32-configuring-the-authentication-key-and-certificate-for-the-security-server)
+    - [3.2.1 Generating an Authentication Key](#321-generating-an-authentication-key)
+    - [3.2.2 Generating a Certificate Signing Request for an Authentication Key](#322-generating-a-certificate-signing-request-for-an-authentication-key)
+    - [3.2.3 Importing an Authentication Certificate from the Local File System](#323-importing-an-authentication-certificate-from-the-local-file-system)
+  - [3.3 Registering the Security Server in the X-Road Governing Authority](#33-registering-the-security-server-in-the-x-road-governing-authority)
+    - [3.3.1 Registering an Authentication Certificate](#331-registering-an-authentication-certificate)
+  - [3.4 Changing the Security Server Owner](#34-changing-the-security-server-owner)
+- [4 Security Server Clients](#4-security-server-clients)
+  - [4.1 Security Server Client States](#41-security-server-client-states)
+  - [4.2 Adding a Security Server Client](#42-adding-a-security-server-client)
+  - [4.3 Configuring a Signing Key and Certificate for a Security Server Client](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client)
+  - [4.4 Registering a Security Server Client in the X-Road Governing Authority](#44-registering-a-security-server-client-in-the-x-road-governing-authority)
+    - [4.4.1 Registering a Security Server Client](#441-registering-a-security-server-client)
+  - [4.5 Deleting a Client from the Security Server](#45-deleting-a-client-from-the-security-server)
+    - [4.5.1 Unregistering a Client](#451-unregistering-a-client)
+    - [4.5.2 Deleting a Client](#452-deleting-a-client)
+- [5 Security Tokens, Keys, and Certificates](#5-security-tokens-keys-and-certificates)
+  - [5.1 Availability States of Security Tokens, Keys, and Certificates](#51-availability-states-of-security-tokens-keys-and-certificates)
+  - [5.2 Registration States of Certificates](#52-registration-states-of-certificates)
+    - [5.2.1 Registration States of the Signing Certificate](#521-registration-states-of-the-signing-certificate)
+    - [5.2.2 Registration States of the Authentication Certificate](#522-registration-states-of-the-authentication-certificate)
+  - [5.3 Validity States of Certificates](#53-validity-states-of-certificates)
+  - [5.4 Activating and Disabling the Certificates](#54-activating-and-disabling-the-certificates)
+  - [5.5 Configuring and Registering an Authentication key and Certificate](#55-configuring-and-registering-an-authentication-key-and-certificate)
+  - [5.6 Deleting a Certificate](#56-deleting-a-certificate)
+    - [5.6.1 Unregistering an Authentication Certificate](#561-unregistering-an-authentication-certificate)
+    - [5.6.2 Deleting a Certificate or a certificate Signing Request notice](#562-deleting-a-certificate-or-a-certificate-signing-request-notice)
+  - [5.7 Deleting a Key](#57-deleting-a-key)
+- [6 X-Road Services](#6-x-road-services)
+  - [6.1 Adding a service description](#61-adding-a-service-description)
+  - [6.1.1 SOAP](#611-soap)
+  - [6.1.2 REST](#612-rest)
+  - [6.2 Refreshing a service description](#62-refreshing-a-service-description)
+  - [6.3 Enabling and Disabling a service description](#63-enabling-and-disabling-a-service-description)
+  - [6.4 Changing the Address of a service description](#64-changing-the-address-of-a-service-description)
+  - [6.5 Deleting a service description](#65-deleting-a-service-description)
+  - [6.6 Changing the Parameters of a Service](#66-changing-the-parameters-of-a-service)
+  - [6.7 Managing REST Endpoints](#67-managing-rest-endpoints)
+- [7 Access Rights](#7-access-rights)
+  - [7.1 Changing the Access Rights of a Service](#71-changing-the-access-rights-of-a-service)
+  - [7.2 Adding a Service Client](#72-adding-a-service-client)
+  - [7.3 Changing the Access Rights of a Service Client](#73-changing-the-access-rights-of-a-service-client)
+- [8 Local Access Right Groups](#8-local-access-right-groups)
+  - [8.1 Adding a Local Group](#81-adding-a-local-group)
+  - [8.2 Displaying and Changing the Members of a Local Group](#82-displaying-and-changing-the-members-of-a-local-group)
+  - [8.3 Changing the description of a Local Group](#83-changing-the-description-of-a-local-group)
+  - [8.4 Deleting a Local Group](#84-deleting-a-local-group)
+- [9 Communication with the Client Information Systems](#9-communication-with-the-client-information-systems)
+- [10 System Parameters](#10-system-parameters)
+  - [10.1 Managing the Configuration Anchor](#101-managing-the-configuration-anchor)
+  - [10.2 Managing the Timestamping Services](#102-managing-the-timestamping-services)
+  - [10.3 Changing the Internal TLS Key and Certificate](#103-changing-the-internal-tls-key-and-certificate)
+  - [10.4 Approved Certificate Authorities](#104-approved-certificate-authorities)
+- [11 Message Log](#11-message-log)
+  - [11.1 Changing the Configuration of the Message Log](#111-changing-the-configuration-of-the-message-log)
+    - [11.1.1 Common parameters](#1111-common-parameters)
+    - [11.1.2 Timestamping parameters](#1112-timestamping-parameters)
+    - [11.1.3 Archiving parameters](#1113-archiving-parameters)
+  - [11.2 Transferring the Archive Files from the Security Server](#112-transferring-the-archive-files-from-the-security-server)
+  - [11.3 Using a Remote Database](#113-using-a-remote-database)
+- [12 Audit Log](#12-audit-log)
+  - [12.1 Changing the Configuration of the Audit Log](#121-changing-the-configuration-of-the-audit-log)
+  - [12.2 Archiving the Audit Log](#122-archiving-the-audit-log)
+- [13 Back up and Restore](#13-back-up-and-restore)
+  - [13.1 Back up and Restore in the User Interface](#131-back-up-and-restore-in-the-user-interface)
+  - [13.2 Restore from the Command Line](#132-restore-from-the-command-line)
+  - [13.3 Automatic Backups](#133-automatic-backups)
+- [14 Diagnostics](#14-diagnostics)
+  - [14.1 Examine security server services status information](#141-examine-security-server-services-status-information)
+- [15 Operational Monitoring](#15-operational-monitoring)
+  - [15.1 Operational Monitoring Buffer](#151-operational-monitoring-buffer)
+    - [15.1.1 Stopping the Collecting of Operational Data](#1511-stopping-the-collecting-of-operational-data)
+  - [15.2 Operational Monitoring Daemon](#152-operational-monitoring-daemon)
+    - [15.2.1 Configuring the Health Statistics Period](#1521-configuring-the-health-statistics-period)
+    - [15.2.2 Configuring the Parameters Related to Database Cleanup](#1522-configuring-the-parameters-related-to-database-cleanup)
+    - [15.2.3 Configuring the Parameters related to the HTTP Endpoint of the Operational Monitoring Daemon](#1523-configuring-the-parameters-related-to-the-http-endpoint-of-the-operational-monitoring-daemon)
+    - [15.2.4 Installing an External Operational Monitoring Daemon](#1524-installing-an-external-operational-monitoring-daemon)
+    - [15.2.5 Configuring an External Operational Monitoring Daemon and the Corresponding Security Server](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)
+    - [15.2.6 Monitoring Health Data over JMXMP](#1526-monitoring-health-data-over-jmxmp)
+- [16 Environmental Monitoring](#16-environmental-monitoring)
+  - [16.1 Usage via SOAP API](#161-usage-via-soap-api)
+  - [16.2 Usage via JMX API](#162-usage-via-jmx-api)
+  - [16.3 Limiting environmental monitoring remote data set](#163-limiting-environmental-monitoring-remote-data-set)
+- [17 Logs and System Services](#17-logs-and-system-services)
+  - [17.1 System Services](#171-system-services)
+  - [17.2 Logging configuration](#172-logging-configuration)
+  - [17.3 Fault Detail UUID](#173-fault-detail-uuid)
+- [18 Federation](#18-federation)
+- [19 Migrating to Remote Database Host](#19-migrating-to-remote-database-host)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -487,6 +496,33 @@ On submitting the request, the message "Request sent" is displayed, and the auth
 
 After the X-Road governing authority has accepted the registration, the registration state of the authentication certificate is set to “Registered” and the registration process is completed.
 
+### 3.4 Changing the Security Server Owner
+
+**Access rights:** [Registration Officer](#xroad-registration-officer)
+
+To change the security server owner the following actions must be completed.
+
+- The new Owner member must be added to the security server (see [4.2](#42-adding-a-security-server-client)).
+
+- A Signing Key and Certificate must be configured for the new Owner member (see [4.3](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client)).
+ 
+- The new Owner must be registered in the X-Road Governing Authority (see [4.3](#44-registering-a-security-server-client-in-the-x-road-governing-authority)).
+
+- The security server owner change request must be submitted from the security server. To submit an owner change request follow these steps.
+
+  1. On the **Configuration** menu, select **Security Server Clients**.
+
+  2. Select the new Owner member from the list of security server clients.
+
+  3. Click the **Details** icon and in the window that opens, click **Make Owner**.
+
+  4. Click **Confirm** to submit the request.
+
+- A request for changing the security server owner must be submitted to the X-Road governing authority according to the organizational procedures of the X-Road instance.
+
+- The owner change request must be approved by the X-Road governing authority.
+
+- New Authentication Key and Certificate should be configured for the new security server owner (see [3.2](#32-configuring-the-authentication-key-and-certificate-for-the-security-server)).
 
 ## 4 Security Server Clients
 
@@ -819,9 +855,9 @@ To delete a key, follow these steps.
 
 X-Road supports both SOAP and REST services. The services are managed on two levels:
 
--   the addition, deletion, and deactivation of services is carried out on the WSDL / REST API level;
+-   the addition, deletion, and deactivation of services is carried out on the WSDL / REST API / OpenAPI 3 level;
 
--   the service address, internal network connection method, and the service timeout values are configured at the service level for SOAP services and at the API level for REST services. In addition, for SOAP / WSDL, it is easy to extend the configuration of one service to all the other services.
+-   the service address, internal network connection method, and the service timeout values are configured at the service level for SOAP services and at the API level for REST / OpenAPI 3 services. In addition, for SOAP / WSDL, it is easy to extend the configuration of one service to all the other services.
 
 
 ### 6.1 Adding a service description
@@ -850,29 +886,30 @@ When a new REST service is added, the security server displays url and service c
 
 1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Services** icon on that row.
 
-2.  Click **ADD REST**, enter the url and service code in the window that opens and click **OK**. Once the window is closed, the url and the service code are added to the table. By default, the REST API is added in disabled state (see [6.3](#63-enabling-and-disabling-a-service-description)).
+2.  Click **ADD REST**. Select whether the URL type is REST API base path or OpenAPI 3 description. Enter the url and service code in the window that opens and click **OK**.
 
-**To see the service the REST service**
+3.  Once the window is closed, the url and the service code are added to the table. If the added URL type was OpenAPI 3 description, the service description is parsed and endpoints are added under the service. By default, the REST service is added in disabled state (see [6.3](#63-enabling-and-disabling-a-service-description)).
 
--   click the "**+**" symbol in front of the REST row to expand the service description.
+**To see the service details under the REST service**
+
+-   click the "**+**" symbol in front of the REST row to expand the service details.
+
 
 ### 6.2 Refreshing a service description
 
 **Access rights:** [Service Administrator](#xroad-service-administrator)
 
-Upon refreshing, the security server reloads the WSDL file from the WSDL address to the security server and checks the service information in the reloaded file against existing services. If the composition of services in the new WSDL has changed compared to the current version, a warning is displayed and you can either continue with the refresh or cancel.
+Upon refreshing, the security server reloads the service description file from the service description URL to the security server and checks the service information in the reloaded file against existing services. If the composition of services in the new service description has changed compared to the current version, a warning is displayed and you can either continue with the refresh or cancel.
 
-To refresh the WSDL, follow these steps.
+To refresh the service description, follow these steps.
 
 1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Services** icon on that row.
 
-2.  Select from the table a WSDL to be refreshed and click **Refresh**.
+2.  Select from the table a WSDL or REST to be refreshed and click **Refresh**.
 
-3.  If the new WSDL contains changes compared to the current WSDL in the security server, a warning is displayed. To proceed with the refresh, click **Continue**.
+3.  If the new service description contains changes compared to the current service description in the security server, a warning is displayed. To proceed with the refresh, click **Continue**.
 
-When the WSDL is refreshed, the existing services’ settings are not overwritten.
-
-Refreshing a REST service is disabled.
+When the service description is refreshed, the existing services’ settings are not overwritten.
 
 
 ### 6.3 Enabling and Disabling a service description
@@ -910,7 +947,7 @@ To change the service description address, follow these steps.
 
 2.  Select from the table a service description whose information you wish to change and click **Edit**.
 
-3.  In the window that opens, edit the WSDL address for WSDL, and url and/or service code for REST, and click **OK**. The service information updates accordingly (see section [6.2](#62-refreshing-a-service-description)).
+3.  In the window that opens, edit the WSDL address for WSDL, URL and/or service code for REST, and click **OK**. The service information updates accordingly (see section [6.2](#62-refreshing-a-service-description)).
 
 
 ### 6.5 Deleting a service description
@@ -949,6 +986,25 @@ To change service parameters, follow these steps.
 3.  In the window that opens, configure the service parameters. To apply the selected parameter to all services described in the same service description, select the checkbox adjacent to this parameter in the **Apply to All in WSDL** column. To apply the configured parameters, click **OK**.
 
 
+### 6.7 Managing REST Endpoints
+
+**Access rights:** [Service Administrator](#xroad-service-administrator)
+
+REST type service descriptions can contain API endpoints. The purpose of the endpoints is more fine-grained access control. More about that in chapter [7 Access Rights](#7-access-rights).
+
+When URL type of the REST service is an OpenAPI 3 description, endpoints are parsed from the service description automatically. These endpoints cannot be manually updated or deleted. Additionally manual endpoints can be added as needed. When URL type is REST API base path, all the endpoints need to be created manually. Manually created endpoints can also be edited and deleted as needed.
+
+To create API endpoint manually, follow these steps
+
+1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Services** icon on that row.
+
+2.  Select from the table a REST service description where the endpoint is going to be added and click "**+**" to see the service details.
+
+3.  Select the service code item immediately under the service description level and click **Add Endpoint**.
+
+4.  Select HTTP request method and Path for the endpoint and click **OK**.
+
+
 ## 7 Access Rights
 
 Access rights can be granted to the following access right subjects.
@@ -965,6 +1021,13 @@ There are two options for managing access rights in a security server.
 
 -   Service client-based access rights management – if a single service client needs multiple services opened/closed (see [7.2](#72-adding-a-service-client)).
 
+It is possible to define access rights on two levels for REST services:
+
+-   REST service level
+-   endpoint level
+
+In general, a REST service usually has multiple endpoints. When access rights are defined on the service level, they apply to all the endpoints of the REST service. Instead, defining access rights on the endpoint level gives access to specific endpoint(s) only.
+
 
 ### 7.1 Changing the Access Rights of a Service
 
@@ -974,7 +1037,7 @@ To change the access rights to a service, follow these steps.
 
 1.  On the **Configuration** menu, select **Security Server Clients**, select a client from the table and click the **Services** icon on that row.
 
-2.  Select a service from the table and click **Access Rights**.
+2.  Select a service or endpoint from the table and click **Access Rights**.
 
 3.  In the window that opens, the access rights table displays information about all X-Road subsystems and groups that have access to the selected service.
 
@@ -998,7 +1061,7 @@ To add a service client, follow these steps.
 
 3.  In the window that opens, locate and select a subject (a subsystem, or a local or global group) to which you want to grant access rights to and click **Next**.
 
-4.  Locate the service(s) whose access rights you want to grant to the selected subject. Click **Add Selected to ACL** to grant access rights to the selected services to this subject. Click **Add All to ACL** to grant access rights to all services in the filter to the subject.
+4.  Locate the service(s) whose access rights you want to grant to the selected subject. Click **Add Selected to ACL** to grant access rights to the selected services to this subject. Click **Add All to ACL** to grant access rights to all services in the filter to the subject. Note that access rights to REST API endpoints can not be added using this view, those need to be added on **Services** tab as described in [7.1](#71-changing-the-access-rights-of-a-service).
 
 The subject is added to the list of service clients, after which the service client's access rights view is displayed where the access rights can be changed.
 
@@ -1019,7 +1082,7 @@ To change the service client's access rights, follow these steps.
 
 -   To remove all access rights from the service client, click **Remove All** and then click **Confirm**.
 
--   To add access rights to a service client, start by clicking **Add Service**. In the window that opens, select the service(s) that you wish to grant to the subject (already granted services are displayed in gray) and click **Add Selected to ACL**. To add all services found by the search, click **Add All to ACL**.
+-   To add access rights to a service client, start by clicking **Add Service**. In the window that opens, select the service(s) that you wish to grant to the subject (already granted services are displayed in gray) and click **Add Selected to ACL**. To add all services found by the search, click **Add All to ACL**. Note that access rights to REST API endpoints can not be added using this view, those need to be added on **Services** tab as described in [7.1](#71-changing-the-access-rights-of-a-service).
 
 **Caution:** If you refresh the page, all service clients that do not have access rights to any services are removed from the service clients’ view.
 
@@ -1097,13 +1160,15 @@ A security server can use either the HTTP, HTTPS, or HTTPS NOAUTH protocol to co
 
 -   The HTTP protocol should be used if the information system server and the security server communicate in a private network segment where no other computers are connected to. Furthermore, the information system server must not allow interactive log-in.
 
--   The HTTPS protocol should be used if it is not possible to provide a separate network segment for the communication between the information system server and the security server. In that case, cryptographic methods are used to protect their communication against potential eavesdropping and interception. Before HTTPS can be used, internal TLS certificates must be created for the information system server(s) and loaded to the security server.
+-   The HTTPS protocol (**default for new clients**) should be used if it is not possible to provide a separate network segment for the communication between the information system server and the security server. In that case, cryptographic methods are used to protect their communication against potential eavesdropping and interception. Before HTTPS can be used, internal TLS certificates must be created for the information system server(s) and uploaded to the security server.
 
 -   The HTTPS NOAUTH protocol should be used if you want the security server to skip the verification of the information system TLS certificate.
 
    *Note:* If the HTTP connection method is selected, but the information system connects to the security server over HTTPS, then the connection is accepted, but the client’s internal TLS certificate is not verified (same behavior as with HTTPS NOAUTH).
 
-**By default the connection type for the security server owner is set to HTTPS to prevent security server clients from making operational monitoring data requests as a security server owner.**
+**By default the connection type for all the security server clients is set to HTTPS to prevent unauthorised use of the clients.**
+
+**It is strongly recommended to keep the connection type of the security server owner as HTTPS to prevent security server clients from making operational monitoring data requests as a security server owner.**
 
 To set the connection method for internal network servers in the **service consumer role**, follow these steps.
 
@@ -1509,6 +1574,10 @@ If it is absolutely necessary to restore the system from a backup made on a diff
     /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \
     -F –f /var/lib/xroad/backup/conf_backup_20140703-110438.tar
 
+### 13.3 Automatic Backups
+
+By default the Security Server backs up its configuration automatically once every day. Backups older than 30 days are automatically removed from the server. If needed, the automatic backup policies can be adjusted by editing the `/etc/cron.d/xroad-proxy` file.
+
 
 ## 14 Diagnostics
 
@@ -1814,3 +1883,93 @@ And the following will allow none:
 [configuration-client]
 allowed-federations=xe-test, all, none, ee-test
 ```
+
+## 19 Migrating to Remote Database Host
+
+Since version `6.22.0` Security Server supports using remote databases. In case you have an already running Security Server with local database, it is possible to migrate it to use remote database host instead. The instructions for this process are listed below.
+
+1. Shutdown X-Road processes.
+
+    ```
+    systemctl stop "xroad*"
+    ```
+
+2. Dump the local databases to be migrated. You can find the passwords of users `serverconf`, `messagelog` and `opmonitor` in `/etc/xroad/db.properties`. Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match. Also take into account that on a busy system the messagelog database can be quite large and therefore dump and restore can take considerable amount of time and disk space.
+
+    ```
+    pg_dump -F t -h 127.0.0.1 -p 5432 -U serverconf -f serverconf.dat serverconf
+    pg_dump -F t -h 127.0.0.1 -p 5432 -U messagelog -f messagelog.dat messagelog
+    pg_dump -F t -h 127.0.0.1 -p 5432 -U opmonitor_admin -f op-monitor.dat op-monitor
+    ```
+
+3. Shut down and mask local `postgresql` so it won't start when `xroad-proxy` starts.
+
+    ```
+    systemctl stop postgresql
+    systemctl mask postgresql
+    ```
+
+4. Connect to the remote database server as the superuser `postgres` and create roles, databases and access permissions as follows. Note that the line `GRANT serverconf to postgres` is AWS RDS specific and not necessary if the `postgres` user is a true super-user.
+
+    ```
+    psql -h <remote-db-url> -p <remote-db-port> -U postgres
+    CREATE ROLE serverconf LOGIN PASSWORD '<serverconf-password>';
+    GRANT serverconf to postgres;
+    CREATE DATABASE serverconf OWNER serverconf ENCODING 'UTF-8';
+    \c serverconf
+    CREATE EXTENSION IF NOT EXISTS hstore;
+    \c postgres
+
+    CREATE ROLE messagelog LOGIN PASSWORD '<messagelog-password>';
+    GRANT messagelog to postgres;
+    CREATE DATABASE messagelog OWNER messagelog ENCODING 'UTF-8';
+
+    CREATE ROLE opmonitor_admin LOGIN PASSWORD '<opmonitor_admin-password>';
+    CREATE ROLE opmonitor LOGIN PASSWORD '<opmonitor-password>';
+    GRANT opmonitor_admin to postgres;
+    CREATE DATABASE "op-monitor" OWNER opmonitor_admin ENCODING "UTF-8";
+    grant usage on schema public to opmonitor;
+    ```
+
+5. Restore the database dumps on the remote database host.
+
+    ```
+    pg_restore -h <remote-db-url> -p <remote-db-port> -U serverconf -O -n public -1 -d serverconf serverconf.dat
+    pg_restore -h <remote-db-url> -p <remote-db-port> -U messagelog -O -n public -1 -d messagelog messagelog.dat
+    pg_restore -h <remote-db-url> -p <remote-db-port> -U opmonitor_admin -O -n public -1 -d op-monitor op-monitor.dat
+    ```
+
+6. Create properties file `/etc/xroad.properties` containing the superuser password.
+
+    ```
+    sudo touch /etc/xroad.properties
+    sudo chown root:root /etc/xroad.properties
+    sudo chmod 600 /etc/xroad.properties
+    ```
+
+7. Edit `/etc/xroad.properties`.
+
+    ```
+    postgres.connection.password = <postgres-password>
+    op-monitor.database.admin_password = <opmonitor_admin-password>
+    serverconf.database.initialized = true
+    messagelog.database.initialized = true
+    op-monitor.database.initialized = true
+    ```
+
+8. Update `/etc/xroad/db.properties` contents with correct database host URLs and passwords.
+
+    ```
+    serverconf.hibernate.connection.url = jdbc:postgresql://<remote-db-url>:<remote-db-port>/serverconf
+    messagelog.hibernate.connection.url = jdbc:postgresql://<remote-db-url>:<remote-db-port>/messagelog
+    op-monitor.hibernate.connection.url = jdbc:postgresql://<remote-db-url>:<remote-db-port>/op-monitor
+    serverconf.hibernate.connection.password = <serverconf-password>
+    messagelog.hibernate.connection.password = <messagelog-password>
+    op-monitor.hibernate.connection.password = <opmonitor-password>
+    ```
+
+9. Start again the X-Road services.
+
+    ```
+    systemctl start "xroad*"
+    ```

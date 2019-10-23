@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.44  
+Version: 2.46  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -54,6 +54,8 @@ Doc. ID: UG-SYSPAR
 | 03.02.2019 | 2.42     | Added new Central Server parameter *auto-approve-client-reg-requests* | Petteri Kivimäki |
 | 02.04.2019 | 2.43     | Added new message log parameter *clean-transaction-batch* | Jarkko Hyöty |
 | 08.04.2019 | 2.44     | Update REST related message log parameters' descriptions | Petteri Kivimäki |
+| 30.04.2019 | 2.45     | Added new parameter *timestamp-retry-delay* | Petteri Kivimäki |
+| 02.07.2019 | 2.46     | Added new Central Server parameter *auto-approve-owner-change-requests* | Petteri Kivimäki |
 
 ## Table of Contents
 
@@ -312,6 +314,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 | timestamp-records-limit                          | 10000                                      |   |   | Maximum number of message records to time-stamp in one batch. If the number of message records in a single batch exceeds 70 % of `timestamp-records-limit` value, a warning is logged in `proxy.log`. |
 | timestamper-client-connect-timeout               | 20000                                      |   |   | The timestamper client connect timeout in milliseconds. A timeout of zero is interpreted as an infinite timeout. |
 | timestamper-client-read-timeout                  | 60000                                      |   |   | The timestamper client read timeout in milliseconds. A timeout of zero is interpreted as an infinite timeout. |
+| timestamp-retry-delay                            | 60                                         |   |   | Time-stamp retry delay in seconds when batch time-stamping fails. After failing to batch time-stamp, the timestamper waits for the time period defined by "timestamp-retry-delay" before trying again. This is repeated until fetching a time-stamp succeeds. After successfully fetching a time-stamp, the timestamper returns to normal time-stamping schedule. If the value of "timestamp-retry-delay" is higher than the value of the central server system parameter "timeStampingIntervalSeconds", the value of "timeStampingIntervalSeconds" is used. If the value of "timestamp-retry-delay" is zero, the value of "timeStampingIntervalSeconds" is used. |
 | archive-transaction-batch                        | 10000                                      |   |   | Size of transaction batch for archiving messagelog. This size is not exact because it will always make sure that last archived batch includes timestamp also (this might mean that it will go over transaction size).
 | max-loggable-body-size                           | 10485760 (10 MiB)                          |   |   | Maximum loggable REST message body size |
 | truncated-body-allowed                           | false                                      |   |   | If the REST message body exceeds the maximum loggable body size, truncate the body in the log (true) or reject the message (false). |
@@ -376,6 +379,7 @@ For instructions on how to change the parameter values, see section [Changing th
 | minimum-global-configuration-version | 2                          | The minimum supported global configuration version on the central server. This parameter is used if the central server needs to generate multiple versions of global configuration. Note that the support for global configuration V1 has been dropped in X-Road 6.20.0 and since that version the minimum value for this parameter is 2. |
 | auto-approve-auth-cert-reg-requests | false                       | True if automatic approval of auth cert registration requests is enabled for this X-Road instance. Automatic approval is applied to existing members only. |
 | auto-approve-client-reg-requests | false                          | True if automatic approval of client registration requests is enabled for this X-Road instance. Automatic approval is applied to existing members only. In addition, automatic approval is applied only if the client registration request has been signed by the member owning the subsystem to be registered as a security server client. |
+| auto-approve-owner-change-requests | false                        | True if automatic approval of owner change requests is enabled for this X-Road instance. Automatic approval is applied to existing members only. |
 
 #### 4.1.3 Signer parameters: `[signer]`
 

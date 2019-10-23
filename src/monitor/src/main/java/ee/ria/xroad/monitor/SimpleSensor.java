@@ -26,13 +26,11 @@ package ee.ria.xroad.monitor;
 
 import com.codahale.metrics.Gauge;
 
-import java.io.Serializable;
-
 /**
  * Simple {@link Gauge} implementation
  * @param <T>
  */
-public class SimpleSensor<T extends Serializable> implements Gauge<T> {
+public class SimpleSensor<T> implements Gauge<T> {
 
     private volatile T value;
 

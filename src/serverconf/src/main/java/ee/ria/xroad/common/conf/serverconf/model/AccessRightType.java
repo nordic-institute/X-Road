@@ -39,10 +39,7 @@ import java.util.Date;
 public class AccessRightType {
 
     private Long id;
-
-    private String serviceCode;
-
     private XRoadId subjectId;
-
+    private EndpointType endpoint;
     private Date rightsGiven;
 }

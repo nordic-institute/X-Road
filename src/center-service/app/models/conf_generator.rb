@@ -28,32 +28,32 @@ class ConfGenerator
 
   # return configuration version e.g. 1, 2...
   def getVersion
-    raise NotImplementedError.new("Not implemented")
+    raise NotImplementedError.new("Not implemented") # rubocop:disable all
   end
 
   # tells whether this configuration is the current one
   def isCurrentVersion?
-    raise NotImplementedError.new("Not implemented")
+    raise NotImplementedError.new("Not implemented") # rubocop:disable all
   end
 
   # generate private parameters
   def generatePrivateParameters
-    raise NotImplementedError.new("Not implemented")
+    raise NotImplementedError.new("Not implemented") # rubocop:disable all
   end
 
   # validate private parameters
   def validatePrivateParameters(private_parameters_xml)
-    raise NotImplementedError.new("Not implemented")
+    raise NotImplementedError.new("Not implemented") # rubocop:disable all
   end
 
   # generate shared parameters
   def generateSharedParameters
-    raise NotImplementedError.new("Not implemented")
+    raise NotImplementedError.new("Not implemented") # rubocop:disable all
   end
 
   # validate shared parameters
   def validateSharedParameters(shared_parameters_xml)
-    raise NotImplementedError.new("Not implemented")
+    raise NotImplementedError.new("Not implemented") # rubocop:disable all
   end
 
 end

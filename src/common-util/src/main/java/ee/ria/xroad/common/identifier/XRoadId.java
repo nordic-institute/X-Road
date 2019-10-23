@@ -24,6 +24,7 @@
  */
 package ee.ria.xroad.common.identifier;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang3.StringUtils;
@@ -119,6 +120,7 @@ public abstract class XRoadId implements Serializable {
     /**
      * Returns the fields for string format of this identifier.
      */
+    @JsonIgnore
     public abstract String[] getFieldsForStringFormat();
 
     protected static void validateField(String fieldName, String fieldValue) {

@@ -1,0 +1,16 @@
+[Unit]
+Description=Test CA
+After=network.target
+
+[Service]
+PermissionsStartOnly=true
+User=ca
+Group=ca
+WorkingDirectory=/home/ca/CA
+ExecStart=/usr/bin/python /home/ca/CA/ca.py
+Restart=on-failure
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target
+

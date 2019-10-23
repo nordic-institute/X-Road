@@ -65,11 +65,6 @@ public class TestServerConf extends EmptyServerConf {
     }
 
     @Override
-    public boolean isQueryAllowed(ClientId sender, ServiceId service) {
-        return true;
-    }
-
-    @Override
     public String getDisabledNotice(ServiceId service) {
         return null;
     }
@@ -92,6 +87,6 @@ public class TestServerConf extends EmptyServerConf {
 
     @Override
     public DescriptionType getDescriptionType(ServiceId service) {
-        return DescriptionType.OPENAPI3;
+        return DescriptionType.REST;
     }
 }

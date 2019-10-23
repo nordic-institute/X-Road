@@ -120,6 +120,18 @@ properties:
         soapFaultString:
           description: SOAP fault reason in case SoapFault received
           type: string
+        requestRestSize:
+          description: Size of the request (bytes)
+          type: integer
+          minimum: 0
+        responseRestSize:
+          description: Size of the response (bytes)
+          type: integer
+          minimum: 0
+        statusCode:
+          description: HTTP status code for the rest response
+          type: integer
+          minimum: 0
       required:
       - securityServerInternalIp
       - securityServerType

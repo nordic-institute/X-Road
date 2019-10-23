@@ -28,7 +28,6 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import java.util.Arrays;
 
-
 /**
  * Contains system-wide constants for system properties.
  */
@@ -39,6 +38,8 @@ public final class SystemProperties {
 
     /** The prefix for all properties. */
     public static final String PREFIX = "xroad.";
+
+    private static final String COMMA_SPLIT = "\\s*,\\s*";
 
     // Common -----------------------------------------------------------------
 
@@ -249,6 +250,8 @@ public final class SystemProperties {
 
     private static final String DEFAULT_CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS = "false";
 
+    private static final String DEFAULT_CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS = "false";
+
     private static final String DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
 
     private static final String DEFAULT_PROXY_CONNECTOR_INITIAL_IDLE_TIME = "30000";
@@ -431,6 +434,10 @@ public final class SystemProperties {
     /** Property name of enabling automatic approval of client registration requests. */
     public static final String CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS =
             PREFIX + "center.auto-approve-client-reg-requests";
+
+    /** Property name of enabling automatic approval of owner change requests. */
+    public static final String CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS =
+            PREFIX + "center.auto-approve-owner-change-requests";
 
     // Misc -------------------------------------------------------------------
 
@@ -986,6 +993,14 @@ public final class SystemProperties {
     }
 
     /**
+     * @return whether automatic approval of owner change requests is enabled, 'false' by default.
+     */
+    public static boolean getCenterAutoApproveOwnerChangeRequests() {
+        return Boolean.parseBoolean(System.getProperty(CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS,
+                DEFAULT_CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS));
+    }
+
+    /**
      * @return the HTTP port on which the monitor agent listens for administrative commands, '5588' by default.
      */
     public static int getMonitorAgentAdminPort() {
@@ -1200,7 +1215,7 @@ public final class SystemProperties {
      * @return protocols.
      */
     public static String[] getProxyClientTLSProtocols() {
-        return System.getProperty(PROXY_CLIENT_TLS_PROTOCOLS, "TLSv1.2").split(",");
+        return System.getProperty(PROXY_CLIENT_TLS_PROTOCOLS, "TLSv1.2").trim().split(COMMA_SPLIT);
     }
 
     private static final String DEFAULT_CLIENT_SSL_CIPHER_SUITES = "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,"
@@ -1218,7 +1233,7 @@ public final class SystemProperties {
      * @return cipher suites.
      */
     public static String[] getProxyClientTLSCipherSuites() {
-        return System.getProperty(PROXY_CLIENT_TLS_CIPHERS, DEFAULT_CLIENT_SSL_CIPHER_SUITES).split(",");
+        return System.getProperty(PROXY_CLIENT_TLS_CIPHERS, DEFAULT_CLIENT_SSL_CIPHER_SUITES).trim().split(COMMA_SPLIT);
     }
 
     private static final String DEFAULT_XROAD_SSL_CIPHER_SUITES = "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,"
@@ -1230,7 +1245,7 @@ public final class SystemProperties {
      * @return cipher suites.
      */
     public static String[] getXroadTLSCipherSuites() {
-        return System.getProperty(PROXY_XROAD_TLS_CIPHERS, DEFAULT_XROAD_SSL_CIPHER_SUITES).split(",");
+        return System.getProperty(PROXY_XROAD_TLS_CIPHERS, DEFAULT_XROAD_SSL_CIPHER_SUITES).trim().split(COMMA_SPLIT);
     }
 
     /**

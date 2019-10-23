@@ -124,6 +124,7 @@ en:
     client_reg: "Client registration"
     auth_cert_deletion: "Certificate deletion"
     client_deletion: "Client deletion"
+    owner_change: "Owner change"
     source: "Source"
     source_center: "X-Road center"
     source_security_server: "Security server"
@@ -148,6 +149,9 @@ en:
       client_reg:
         title: "Security Server Client Registration Request Details"
         legend: "Client Submitted for Registration"
+      owner_change:
+          title: "Security Server Owner Change Request Details"
+          legend: "New Owner Submitted for Registration"
       approve_confirm: "Are you sure you want to approve request?"
       revoke_confirm: "Are you sure you want to revoke request?"
       decline_confirm: "Are you sure you want to decline request?"

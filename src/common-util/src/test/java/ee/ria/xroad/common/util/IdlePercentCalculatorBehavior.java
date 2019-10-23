@@ -27,6 +27,7 @@ package ee.ria.xroad.common.util;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 /**
@@ -46,7 +47,7 @@ public class IdlePercentCalculatorBehavior {
                 27233052, 16826, 64593978, 188317718, 672029, 4, 4882, 0);
         double idlePercent = IdlePercentCalculator.calculate(
                 previous, current);
-
+        assertNotNull(idlePercent);
         log.info("Idle percent: '{}'", idlePercent);
     }
 

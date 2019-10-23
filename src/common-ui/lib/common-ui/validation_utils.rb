@@ -114,6 +114,7 @@ module CommonUi
 
     class Validator
       def validate(val, param)
+        # NOP
       end
     end
 
@@ -172,7 +173,7 @@ module CommonUi
       def validate(val, param)
         begin
           url = Addressable::URI.parse(val)
-          invalid = !["http", "https"].include?(url.scheme)
+          invalid = !["http", "https"].include?(url.scheme) || !url.host
         rescue Addressable::URI::InvalidURIError
           invalid = true
         end

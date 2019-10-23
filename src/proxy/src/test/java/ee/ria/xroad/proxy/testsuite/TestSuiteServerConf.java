@@ -28,17 +28,28 @@ import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /**
  * Test serverconf implementation.
  */
 public class TestSuiteServerConf extends EmptyServerConf {
+
+    private static final String EXPECTED_XR_INSTANCE = "EE";
+    private static final ClientId DEFAULT_CLIENT = ClientId.create(EXPECTED_XR_INSTANCE, "GOV",
+            "1234TEST_CLIENT", "SUBCODE5");
+    private static final String SERVICE1 = "SERVICE1";
+    private static final String SERVICE2 = "SERVICE2";
+    private static final String SERVICE3 = "SERVICE3";
+    private static final String SERVICE4 = "SERVICE4";
 
     @Override
     public SecurityServerId getIdentifier() {
@@ -63,7 +74,7 @@ public class TestSuiteServerConf extends EmptyServerConf {
     }
 
     @Override
-    public boolean isQueryAllowed(ClientId sender, ServiceId service) {
+    public boolean isQueryAllowed(ClientId sender, ServiceId service, String method, String path) {
         return currentTestCase().isQueryAllowed(sender, service);
     }
 
@@ -86,6 +97,38 @@ public class TestSuiteServerConf extends EmptyServerConf {
     @Override
     public IsAuthentication getIsAuthentication(ClientId client) {
         return IsAuthentication.NOSSL;
+    }
+
+    @Override
+    public List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
+        List<ServiceId> list = new ArrayList<>();
+        if (descriptionType == DescriptionType.REST) {
+            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE1));
+            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE2));
+        }
+        if (descriptionType == DescriptionType.OPENAPI3) {
+            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE3));
+        }
+        if (descriptionType == DescriptionType.WSDL) {
+            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE4));
+        }
+        return list;
+    }
+
+    @Override
+    public List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
+                                                               DescriptionType descriptionType) {
+        List<ServiceId> list = new ArrayList<>();
+        if (descriptionType == DescriptionType.REST) {
+            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE2));
+        }
+        if (descriptionType == DescriptionType.OPENAPI3) {
+            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE3));
+        }
+        if (descriptionType == DescriptionType.WSDL) {
+            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE4));
+        }
+        return list;
     }
 
     private static MessageTestCase currentTestCase() {

@@ -83,13 +83,11 @@ class DummyService extends Server implements StartStop {
         ServerConnector connector = new ServerConnector(this);
         connector.setName("httpConnector");
         connector.setPort(ProxyTestSuite.SERVICE_PORT);
-        connector.setSoLingerTime(0);
         addConnector(connector);
 
         ServerConnector sslConnector = createSslConnector();
         sslConnector.setName("httpsConnector");
         sslConnector.setPort(ProxyTestSuite.SERVICE_SSL_PORT);
-        sslConnector.setSoLingerTime(0);
         addConnector(sslConnector);
     }
 
@@ -98,7 +96,7 @@ class DummyService extends Server implements StartStop {
         serverCertChain = consumer.certChain;
         serverKey = consumer.key;
 
-        SslContextFactory cf = new SslContextFactory(false);
+        SslContextFactory.Server cf = new SslContextFactory.Server();
         cf.setNeedClientAuth(true);
 
         cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());

@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '2.0.1'
+    id 'com.github.johnrengelman.shadow' version '4.0.4'
 }
 
 dependencies {
@@ -11,11 +11,11 @@ dependencies {
     compile "org.eclipse.jetty:jetty-xml:$jettyVersion"
 
     testCompile project(':common-test')
-    testCompile 'org.hsqldb:hsqldb:2.4.1'
+    testCompile 'org.hsqldb:hsqldb:2.5.0'
     testCompile "com.typesafe.akka:akka-testkit_2.11:$akkaVersion"
 
-    testCompile 'org.powermock:powermock-api-mockito:1.6.5'
-    testCompile 'org.powermock:powermock-module-junit4:1.6.5'
+    testCompile 'org.powermock:powermock-api-mockito:1.6.6'
+    testCompile 'org.powermock:powermock-module-junit4:1.6.6'
     testCompile 'io.rest-assured:rest-assured:3.3.0'
 
     testCompile 'wsdl4j:wsdl4j:1.6.3'

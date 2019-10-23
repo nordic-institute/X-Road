@@ -52,12 +52,12 @@ class RequestWithProcessing < Request
 
   # Finds the processing for this request.
   def find_processing
-    throw "This method must be reimplemented in a subclass"
+    throw "This method must be reimplemented in a subclass" # rubocop:disable all
   end
 
   # Creates new instance of processing of the correct class for this request
   def new_processing
-    throw "This method must be reimplemented in a subclass"
+    throw "This method must be reimplemented in a subclass" # rubocop:disable all
   end
 
   def can_revoke?
@@ -66,7 +66,7 @@ class RequestWithProcessing < Request
   end
 
   def get_revoking_request_id
-    throw "This method must be reimplemented in a subclass"
+    throw "This method must be reimplemented in a subclass" # rubocop:disable all
   end
 
   private

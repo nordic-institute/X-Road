@@ -3,7 +3,6 @@ pipeline {
     stages {
         stage("SCM") {
           steps {
-            echo 'SCM'
             checkout scm
           }
         }
@@ -12,37 +11,40 @@ pipeline {
                 dockerfile {
                     dir 'src/packages/docker-compile'
                     additionalBuildArgs '--build-arg uid=$(id -u) --build-arg gid=$(id -g)'
-                    args '-itv cache-gradle:/mnt/gradle-cache -v cache-rvm:/home/builder/.rvm'
                     reuseNode true
                 }
             }
             steps {
                 sh 'cd src && ./update_ruby_dependencies.sh'
-                sh 'cd src && ./compile_code.sh'
+                sh 'cd src && ./compile_code.sh -nodaemon'
             }
         }
-        stage('Debian build') {
+        stage('Bionic build') {
             agent {
                 dockerfile {
-                    dir 'src/packages/docker-debbuild'
+                    dir 'src/packages/docker/deb-bionic'
                     args '-v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=/tmp'
                     reuseNode true
                 }
             }
             steps {
-                sh './src/deb-docker.sh'
+                script {
+                    sh './src/packages/build-deb.sh bionic'
+                }
             }
         }
         stage('RedHat build') {
             agent {
                 dockerfile {
-                    dir 'src/packages/docker-rpmbuild'
+                    dir 'src/packages/docker/rpm'
                     args '-v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=/workspace/src/packages'
                     reuseNode true
                 }
             }
             steps {
-                sh './src/rpm-docker.sh'
+                script {
+                    sh './src/packages/build-rpm.sh'
+                }
             }
         }
     }

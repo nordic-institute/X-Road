@@ -43,19 +43,13 @@ cp -a src/xroad-jetty9/ubuntu build/xroad-jetty9/
 ./download_jetty.sh
 
 case "$1" in
-    trusty)
-        prepare ubuntu14.04
-        builddeb build/xroad/ubuntu trusty ubuntu14.04 "$2"
-        builddeb build/xroad-jetty9/ubuntu trusty ubuntu14.04 "$2"
-        ;;
     bionic)
         prepare ubuntu18.04
         builddeb build/xroad/ubuntu bionic ubuntu18.04 "$2"
         builddeb build/xroad-jetty9/ubuntu bionic ubuntu18.04 "$2"
         ;;
     *)
-        echo "unknown distribution $dist"
+        echo "Unsupported distribution $dist"
         exit 1;
         ;;
 esac
-

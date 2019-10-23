@@ -17,6 +17,7 @@ BuildRequires: systemd
 Requires:  systemd
 Requires:  rlwrap, crudini
 Requires:  jre-1.8.0-headless >= 1.8.0.51
+Requires:  sudo
 
 %define src %{_topdir}/..
 
@@ -49,10 +50,10 @@ mkdir -p %{buildroot}/var/lib/xroad/backup
 mkdir -p %{buildroot}/etc/xroad/backup.d
 
 ln -s /usr/share/xroad/jlib/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/common-db.jar
-ln -s /usr/share/xroad/jlib/postgresql-42.2.5.jar %{buildroot}/usr/share/xroad/jlib/postgresql.jar
+ln -s /usr/share/xroad/jlib/postgresql-42.2.7.jar %{buildroot}/usr/share/xroad/jlib/postgresql.jar
 
 cp -p %{srcdir}/../../../common-db/build/libs/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/
-cp -p %{srcdir}/../../../proxy-ui/build/libs/postgresql-42.2.5.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../proxy-ui/build/libs/postgresql-42.2.7.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/default-configuration/common.ini %{buildroot}/etc/xroad/conf.d/
 cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{srcdir}/../../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/%{name}/securityserver-LICENSE.info
@@ -111,18 +112,20 @@ exit 1
 fi
 
 %post
-umask 007
+umask 027
 
 # ensure home directory ownership
 mkdir -p /var/lib/xroad/backup
 su - xroad -c "test -O /var/lib/xroad && test -G /var/lib/xroad" || chown xroad:xroad /var/lib/xroad
 chown xroad:xroad /var/lib/xroad/backup
-chmod 0775 /var/lib/xroad
+chmod 0755 /var/lib/xroad
+chmod -R go-w /var/lib/xroad
 
 # nicer log directory permissions
-mkdir -p -m1770 /var/log/xroad
-chmod 1770 /var/log/xroad
+mkdir -p -m1750 /var/log/xroad
+chmod 1750 /var/log/xroad
 chown xroad:adm /var/log/xroad
+chmod -R go-w /var/log/xroad
 
 #tmp folder
 mkdir -p /var/tmp/xroad

@@ -2,7 +2,7 @@
 
 This ansible playbook configures a master (1) - slave (n) security server cluster. In addition, setting up a load balancer (out of scope) is needed.
 
-The playbook has been tested in AWS EC2 using stock RHEL 7 and Ubuntu 14.04 AMIs running default X-Road security server installation. Other environments might require modifications to the playbook.
+The playbook has been tested in AWS EC2 using stock RHEL 7 and Ubuntu 18.04 AMIs running default X-Road security server installation. Other environments might require modifications to the playbook.
 
 ## Prerequisites
 
@@ -22,7 +22,7 @@ The playbook has been tested in AWS EC2 using stock RHEL 7 and Ubuntu 14.04 AMIs
 * Change the serverconf_password in group_vars/all and preferably encrypt the file using ansible vault. 
     * The serverconf_password is used to authenticate the local connections to the serverconf database. The default is 'serverconf'.
 
-All the servers in a cluster should have the same operating system (Ubuntu 14.04 or RHEL 7). The setup also assumes that the servers are in the same subnet. If that is not the case, one needs to modify master's pg_hba.nconf so that it accepts replication configurations from the correct network(s).
+All the servers in a cluster should have the same operating system (Ubuntu 18.04 or RHEL 7). The setup also assumes that the servers are in the same subnet. If that is not the case, one needs to modify master's pg_hba.nconf so that it accepts replication configurations from the correct network(s).
 
 ## Set up SSL keys certificates for PostgreSQL replication connections
 
@@ -57,4 +57,3 @@ The playbook does the following operations
 * installs upstart/systemd tasks on the slaves that replicates /etc/xroad from the master to slaves (using rsync over ssh)
 * installs /etc/xroad/conf.d/node.ini file and sets slave or master mode on each node
 * restarts xroad securityserver
-

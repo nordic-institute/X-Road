@@ -115,6 +115,7 @@ class InitController < ApplicationController
     render_json
   end
 
+  # rubocop:disable all
   def serverconf_init
     audit_log("Initialize server configuration", audit_log_data = {})
 
@@ -224,6 +225,7 @@ class InitController < ApplicationController
 
     render_json
   end
+  # rubocop:enable all
 
   def member_classes
     authorize!(:init_config)

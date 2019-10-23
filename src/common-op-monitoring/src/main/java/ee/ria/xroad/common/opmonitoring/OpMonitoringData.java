@@ -103,6 +103,7 @@ public class OpMonitoringData {
             "responseAttachmentCount";
 
     private static final String SUCCEEDED = "succeeded";
+    private static final String REST_RESPONSE_STATUS_CODE = "statusCode";
 
     private static final String SOAP_FAULT_CODE = "soapFaultCode";
     private static final String SOAP_FAULT_STRING = "soapFaultString";
@@ -389,6 +390,14 @@ public class OpMonitoringData {
      */
     public void setSucceeded(boolean succeeded) {
         data.put(SUCCEEDED, succeeded);
+    }
+
+    /**
+     * Sets rest response status code
+     * @param statusCode http status code for the response
+     */
+    public void setRestResponseStatusCode(int statusCode) {
+        data.put(REST_RESPONSE_STATUS_CODE, statusCode);
     }
 
     /**

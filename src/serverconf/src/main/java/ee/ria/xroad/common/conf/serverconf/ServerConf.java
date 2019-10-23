@@ -92,15 +92,25 @@ public class ServerConf {
     }
 
     /**
-     * @param sender the sender identifier
+     * @param sender  the sender identifier
      * @param service the service identifier
      * @return true, if member <code>sender</code> is allowed
      * to invoke service <code>serviceName</code>
      */
     public static boolean isQueryAllowed(ClientId sender, ServiceId service) {
         log.trace("isQueryAllowed({}, {})", sender, service);
+        return isQueryAllowed(sender, service, null, null);
+    }
 
-        return getInstance().isQueryAllowed(sender, service);
+    /**
+     * @param sender  the sender identifier
+     * @param service the service identifier
+     * @return true, if member <code>sender</code> is allowed
+     * to invoke service <code>serviceName</code>
+     */
+    public static boolean isQueryAllowed(ClientId sender, ServiceId service, String method, String path) {
+        log.trace("isQueryAllowed({}, {})", sender, service);
+        return getInstance().isQueryAllowed(sender, service, method, path);
     }
 
     /**
@@ -147,7 +157,18 @@ public class ServerConf {
 
     /**
      * @param serviceProvider the service provider identifier
-     * @param client the client identifier
+     * @return all the services offered by a service provider filtered by description type
+     */
+    public static List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider,
+                                                               DescriptionType descriptionType) {
+        log.trace("getServicesByDescriptionType({}, {})", serviceProvider, descriptionType);
+
+        return getInstance().getServicesByDescriptionType(serviceProvider, descriptionType);
+    }
+
+    /**
+     * @param serviceProvider the service provider identifier
+     * @param client          the client identifier
      * @return all the services by a service provider that the caller
      * has permission to invoke.
      */
@@ -156,6 +177,19 @@ public class ServerConf {
         log.trace("getAllowedServices({}, {})", serviceProvider, client);
 
         return getInstance().getAllowedServices(serviceProvider, client);
+    }
+
+    /**
+     * @param serviceProvider the service provider identifier
+     * @param client          the client identifier
+     * @return all the services by a service provider that the caller
+     * has permission to invoke filtered by description type
+     */
+    public static List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider,
+                                                     ClientId client, DescriptionType descriptionType) {
+        log.trace("getAllowedServicesByDescriptionType({}, {}, {})", serviceProvider, client, descriptionType);
+
+        return getInstance().getAllowedServicesByDescriptionType(serviceProvider, client, descriptionType);
     }
 
     /**
@@ -260,5 +294,15 @@ public class ServerConf {
         log.trace("getServiceAddress({})", service);
 
         return getInstance().getDescriptionType(service);
+    }
+
+    /**
+     * @param service the service identifier
+     * @return the service description url
+     */
+    public static String getServiceDescriptionURL(ServiceId service) {
+        log.trace("getServiceDescriptionURL({})", service);
+
+        return getInstance().getServiceDescriptionURL(service);
     }
 }

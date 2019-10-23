@@ -49,6 +49,7 @@ public class ClientType {
     private final List<LocalGroupType> localGroup = new ArrayList<>();
     private final List<CertificateType> isCert = new ArrayList<>();
     private final List<AccessRightType> acl = new ArrayList<>();
+    private final List<EndpointType> endpoint = new ArrayList<>();
 
     private Long id;
 
