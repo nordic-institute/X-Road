@@ -1,0 +1,371 @@
+{
+  "decisions": {
+    "146|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha-nightwatch>growl": {
+      "decision": "ignore",
+      "madeAt": 1571741364817,
+      "expiresAt": 1574333313233
+    },
+    "534|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha-nightwatch>debug": {
+      "decision": "ignore",
+      "madeAt": 1571741364818,
+      "expiresAt": 1574333313233
+    },
+    "593|@vue/cli-plugin-e2e-nightwatch>nightwatch>proxy-agent>https-proxy-agent": {
+      "decision": "ignore",
+      "madeAt": 1571741364818,
+      "expiresAt": 1574333313233
+    },
+    "593|@vue/cli-plugin-e2e-nightwatch>nightwatch>proxy-agent>pac-proxy-agent>https-proxy-agent": {
+      "decision": "ignore",
+      "madeAt": 1571741364818,
+      "expiresAt": 1574333313233
+    },
+    "607|@vue/cli-plugin-e2e-nightwatch>nightwatch>proxy-agent>http-proxy-agent": {
+      "decision": "ignore",
+      "madeAt": 1571741364818,
+      "expiresAt": 1574333313233
+    },
+    "607|@vue/cli-plugin-e2e-nightwatch>nightwatch>proxy-agent>pac-proxy-agent>http-proxy-agent": {
+      "decision": "ignore",
+      "madeAt": 1571741364818,
+      "expiresAt": 1574333313233
+    },
+    "1068|@vue/cli-plugin-e2e-nightwatch>nightwatch>lodash.defaultsdeep": {
+      "decision": "ignore",
+      "madeAt": 1571741364818,
+      "expiresAt": 1574333313233
+    },
+    "1070|@vue/cli-plugin-e2e-nightwatch>nightwatch>lodash.defaultsdeep": {
+      "decision": "ignore",
+      "madeAt": 1571741364818,
+      "expiresAt": 1574333313233
+    },
+    "1184|@vue/cli-plugin-e2e-nightwatch>nightwatch>proxy-agent>https-proxy-agent": {
+      "decision": "ignore",
+      "madeAt": 1571741364818,
+      "expiresAt": 1574333313233
+    },
+    "1184|@vue/cli-plugin-e2e-nightwatch>nightwatch>proxy-agent>pac-proxy-agent>https-proxy-agent": {
+      "decision": "ignore",
+      "madeAt": 1571741364818,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>babel-jest>babel-plugin-istanbul>test-exclude>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373921,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>babel-jest>babel-plugin-istanbul>test-exclude>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-config>babel-jest>babel-plugin-istanbul>test-exclude>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-runtime>jest-config>babel-jest>babel-plugin-istanbul>test-exclude>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runtime>jest-config>babel-jest>babel-plugin-istanbul>test-exclude>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-runtime>babel-plugin-istanbul>test-exclude>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runtime>babel-plugin-istanbul>test-exclude>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>jest-environment-jsdom>jest-util>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-config>jest-environment-jsdom>jest-util>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-runtime>jest-config>jest-environment-jsdom>jest-util>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runtime>jest-config>jest-environment-jsdom>jest-util>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-environment-jsdom>jest-util>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>jest-environment-node>jest-util>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-config>jest-environment-node>jest-util>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-runtime>jest-config>jest-environment-node>jest-util>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runtime>jest-config>jest-environment-node>jest-util>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>jest-jasmine2>jest-util>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-config>jest-jasmine2>jest-util>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-runtime>jest-config>jest-jasmine2>jest-util>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runtime>jest-config>jest-jasmine2>jest-util>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-jasmine2>jest-util>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>jest-util>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-config>jest-util>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-runtime>jest-config>jest-util>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runtime>jest-config>jest-util>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-runtime>jest-util>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runtime>jest-util>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-util>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-util>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>jest-jasmine2>expect>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-config>jest-jasmine2>expect>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-runtime>jest-config>jest-jasmine2>expect>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runtime>jest-config>jest-jasmine2>expect>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-jasmine2>expect>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>jest-jasmine2>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-config>jest-jasmine2>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-runtime>jest-config>jest-jasmine2>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runtime>jest-config>jest-jasmine2>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373922,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-jasmine2>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>jest-jasmine2>jest-snapshot>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-config>jest-jasmine2>jest-snapshot>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-runtime>jest-config>jest-jasmine2>jest-snapshot>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runtime>jest-config>jest-jasmine2>jest-snapshot>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-jasmine2>jest-snapshot>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-resolve-dependencies>jest-snapshot>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-runtime>jest-snapshot>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runtime>jest-snapshot>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-snapshot>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-runtime>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runtime>jest-message-util>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-config>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-runtime>jest-config>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runtime>jest-config>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-haste-map>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-haste-map>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-runtime>jest-haste-map>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runtime>jest-haste-map>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runner>jest-runtime>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-runtime>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    },
+    "786|@vue/cli-plugin-unit-jest>jest>jest-cli>micromatch>braces": {
+      "decision": "ignore",
+      "madeAt": 1571741373923,
+      "expiresAt": 1574333313233
+    }
+  },
+  "rules": {},
+  "version": 1
+}
