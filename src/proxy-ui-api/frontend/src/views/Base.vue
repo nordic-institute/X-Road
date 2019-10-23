@@ -44,7 +44,7 @@ export default Vue.extend({
   data() {
     return {
       interval: 0,
-      logoutDialog: false,
+      logoutDialog: false
     };
   },
   created() {
@@ -59,13 +59,17 @@ export default Vue.extend({
     pollSessionStatus() {
       return axios.get('/notifications/session-status').catch((error) => {
         if (error.response && error.response.status === 401) {
-          this.logoutDialog = true;
-          clearInterval(this.interval);
+  this.logoutDialog = true;
+
+
+  clearInterval(this.interval);       
+
+  
         }
       });
     },
     logout(): void {
-      this.$store.dispatch('logout');
+      this.$store.dispatch('logout')
       this.$router.replace({ name: RouteName.Login });
     },
   },
