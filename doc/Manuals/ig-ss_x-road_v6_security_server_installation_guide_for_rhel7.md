@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 1.4  
+Version: 1.5  
 Doc. ID: IG-SS-RHEL7
 
 ---
@@ -21,6 +21,7 @@ Doc. ID: IG-SS-RHEL7
  28.01.2018 | 1.2     | Update port 2080 documentation                                  | Petteri Kivimäki
  11.09.2019 | 1.3     | Remove Ubuntu 14.04 from supported platforms                    | Jarkko Hyöty
  12.09.2019 | 1.4     | Add instruction for remote database usage                       | Ilkka Seppälä
+ 10.10.2019 | 1.5     | Add instructions for binding xroad-proxy to ports 80,443        | Jarkko Hyöty
  
 ## Table of Contents <!-- omit in toc -->
 
@@ -93,27 +94,27 @@ The software can be installed both on physical and virtualized hardware (of the 
 **Caution**: Data necessary for the functioning of the operating system is not included.
 
 
- **Ref** |                                        | **Explanation**
- ------ | --------------------------------------- | ----------------------------------------------------------
- 1.0    | RHEL7 (v7.3 or newer), 64-bit<br>2 CPU, 4 GB RAM, 10 GB free disk space | Minimum requirements
- 1.1    | https://artifactory.niis.org/xroad-release-rpm               | X-Road package repository
- 1.2    | https://artifactory.niis.org/api/gpg/key/public | The repository key
- 1.3    |                                         | Account name in the user interface
- 1.4    | TCP 5500                                | Port for inbound connections (from the external network to the security server)<br> Message exchange between security servers
- &nbsp; | TCP 5577                                | Port for inbound connections (from the external network to the security server)<br> Querying of OCSP responses between security servers
- &nbsp; | TCP 9011                                | Port for inbound connections (from the external network to the security server)<br> Operational data monitoring daemon JMX listening port
-  &nbsp; | TCP 9999                                | Port for inbound connections (from the external network to the security server)<br> Environmental monitoring daemon JMX listening port
- 1.5  | TCP 5500                                  | Ports for outbound connections (from the security server to the external network)<br> Message exchange between security servers
- &nbsp; | TCP 5577                                | Ports for outbound connections (from the security server to the external network)<br> Querying of OCSP responses between security servers
- &nbsp; | TCP 4001                                | Ports for outbound connections (from the security server to the external network)<br> Communication with the central server
- &nbsp; | TCP 2080                                | Ports for outbound connections (from the security server to the internal network)<br> Message exchange between security server and operational data monitoring daemon (by default on localhost)
- &nbsp; | TCP 80                                  | Ports for outbound connections (from the security server to the external network)<br> Downloading global configuration
- &nbsp; | TCP 80,443                              | Ports for outbound connections (from the security server to the external network)<br> Most common OCSP and time-stamping services
- 1.6  | TCP 4000                                  | User interface (local network)
- 1.7  | TCP 8080                                  | Information system access points (in the local network)<br> Connections from information systems
- &nbsp; | TCP 8443                                | Information system access points (in the local network)<br> Connections from information systems
- 1.8  |                                           | Security server internal IP address(es) and hostname(s)
- 1.9  |                                           | Security server public IP address, NAT address
+| **Ref** |                           | **Explanation**
+| ------- | --------------------------| ----------------------------------------------------------
+| 1.0     | RHEL7 (v7.3 or newer), 64-bit2 CPU, 4 GB RAM, 10 GB free disk space | Minimum requirements
+| 1.1     | https://artifactory.niis.org/xroad-release-rpm  | X-Road package repository
+| 1.2     | https://artifactory.niis.org/api/gpg/key/public | The repository key
+| 1.3     |                          | Account name in the user interface
+| 1.4     | TCP 5500                 | Port for inbound connections (from the external network to the security server)<br>Message exchange between security servers 
+|         | TCP 5577                 | Port for inbound connections (from the external network to the security server)<br>Querying of OCSP responses between security servers
+|         | TCP 9011                 | Port for inbound connections (from the external network to the security server)<br>Operational data monitoring daemon JMX listening port
+|         | TCP 9999                 | Port for inbound connections (from the external network to the security server)<br>Environmental monitoring daemon JMX listening port
+| 1.5     | TCP 5500                 | Ports for outbound connections (from the security server to the external network)<br>Message exchange between security servers
+|         | TCP 5577                 | Ports for outbound connections (from the security server to the external network)<br>Querying of OCSP responses between security servers
+|         | TCP 4001                 | Ports for outbound connections (from the security server to the external network)<br>Communication with the central server
+|         | TCP 2080                 | Ports for outbound connections (from the security server to the internal network)<br>Message exchange between security server and operational data monitoring daemon (by default on localhost)
+|         | TCP 80                   | Ports for outbound connections (from the security server to the external network)<br>Downloading global configuration
+|         | TCP 80,443               | Ports for outbound connections (from the security server to the external network)<br>Most common OCSP and time-stamping services
+| 1.6     | TCP 4000                 | User interface (local network)
+| 1.7     | TCP 8080 (or TCP 80)     | Information system access points (in the local network)<br>Connections from information systems
+|         | TCP 8443 (or TCP 443)    | Information system access points (in the local network)<br>Connections from information systems
+| 1.8     |                          | Security server internal IP address(es) and hostname(s)
+| 1.9     |                          | Security server public IP address, NAT address
 
 
 ### 2.3 Requirements for the Security Server
@@ -174,7 +175,7 @@ To install the X-Road security server software on *RHEL7* operating system, foll
         sudo yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
         sudo yum-config-manager --add-repo https://artifactory.niis.org/xroad-release-rpm/rhel/7/current
 
-    The following packages are fetched from EPEL: `crudini`, `rlwrap` ja `nginx`.
+    The following packages are fetched from EPEL: _crudini_, _rlwrap_, and _nginx_.
 
 2.  Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 
@@ -221,10 +222,24 @@ To install the X-Road security server software on *RHEL7* operating system, foll
    
    User roles are discussed in detail in X-Road Security Server User Guide \[[UG-SS](#Ref_UG-SS)\].
 
-6. Once the installation is completed, start the security server
+6. (Optional step) Change xroad-proxy to use ports 80 and 443
 
-        sudo systemctl start xroad-proxy
+    By default, xroad-proxy listens for consumer information system connections on ports 8080 (HTTP) and 8443 (HTTPS). To use standard HTTP(S) ports 80 and 443, make the following modifications:
 
+    * Edit `/etc/xroad/conf.d/local.ini` and add the following properties in the `[proxy]` section:
+      ```
+      [proxy]
+      client-http-port=80
+      client-https-port=443
+      ```
+    * Check that the default http server listening on ports 80 (or 443) is not enabled
+      * Edit /etc/nginx/nginx.conf and remove the default http server block (`server { ... }`) or change it to listen on a different port.
+      * Test that configuration file syntax is OK: `sudo nginx -t`
+      * Reload nginx configuration (`sudo systemctl reload nginx`)
+
+7. Once the installation is completed, start the security server
+
+    `sudo systemctl start xroad-proxy`
 
 ### 2.6 Post-Installation Checks
 
@@ -316,21 +331,3 @@ If the configuration is successfully downloaded, the system asks for the followi
 
 -   Software token’s PIN (**reference data: 2.5**). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN has been lost.
 
-
-## 4 Installation Error handling
-
-### 4.1 UI Does Not Respond or Returns an Error Message
-
--    Open `/etc/xroad/nginx/default-xroad.conf` file using your favourite text editor.
-
-     Change the following line:
-
-         proxy pass http://localhost:8083
-     
-     to
-     
-         proxy pass http://127.0.0.1:8083
-     
-     Save the changes and restart Nginx:
-    
-         systemctl restart nginx

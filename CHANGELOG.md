@@ -1,6 +1,61 @@
 # Change Log
 
-## 6.22.0 - UNRELEASED
+## 6.22.0 - 2019-10-22
+- XRDDEV-450: Make a docker image of central server.
+- XRDDEV-501: Fix Test TSA on Ubuntu 18.
+- XRDDEV-474: Implement Security Server TSA recovery algorithm during TSA service breaks.
+- XRDDEV-384: Update Hibernate to version 5.3.10.
+- XRDDEV-288: Update supported platforms on X-Road build instructions.
+- XRDDEV-506: Fix operational monitoring does not record request_out_ts and response_in_ts values for REST requests and responses.
+- XRDDEV-508: Update Ubuntu package dependencies and install instructions.
+- XRDDEV-516: Added documentation of ownerChange management service.
+- XRDDEV-140: Add optional HSM device specific slot configuration.
+- XRDDEV-538: Increase the default metaspace memory of proxy component.
+- XRDDEV-462: Add JSON response for listClients metaservice.
+- XRDDEV-574: Fix undefined method error when WSDL is refreshed.
+- XRDDEV-456: Add support for injecting autologin pin via environment varible to Security Server Docker container.
+- XRDDEV-507: Set operational monitoring succeeded field based on REST service's HTTP response code.
+- XRDDEV-593: Add support for registering another member on Security Server.
+- XRDDEV-428: Change service client's default connection type from HTTP to HTTPS.
+- XRDDEV-476: Create new X-Road Security Architecture (ARC-SEC) document.
+- XRDDEV-573: Update serverconf database schema to support REST authorization.
+- XRDDEV-560: Implement new ownerChange central service.
+- XRDDEV-561: Update Central Server UI to support processing of Security Server owner change requests.
+- XRDDEV-562: Add support for sending owner change requests from Security Server.
+- XRDDEV-580: Add operational monitoring package as required for the installation of Finnish Security Server meta package.
+- XRDDEV-586: Implement support for fine-grained REST service authorization in xroad-proxy.
+- XRDSD-94: Make configuration reading more tolerant.
+- XRDDEV-517: Update Java dependencies to a newer version.
+- XRDDEV-464: Add REST metaservice allowedMethods. Change SOAP metaservice allowedMethods to return only SOAP services.
+- XRDDEV-463: Add REST metaservice listMethods. Change SOAP metaservice listMethods to return only SOAP services.
+- XRDDEV-465: Add REST metaservice getOpenAPI.
+- XRDDEV-468: Parse OpenAPI description when adding a REST service.
+- XRDDEV-136: Add automatic backups for Central and Security Server.
+- XRDDEV-612: Refactor REST access rights.
+- XRDDEV-615: Store OpenAPI endpoints into serverconf.
+- XRDDEV-571: Remove the need for PostgreSQL 'lo' extension.
+- XRDDEV-592: Update security server log file permissions.
+- XRDDEV-540: Fix Ubuntu install fails if admin user groups can not be modified.
+- XRDDEV-622: Add certificate profile for Iceland.
+- XRDDEV-649: Remove Ubuntu 14.04 packaging, references in documentation and support from Ansible installation scripts.
+- XRDDEV-636: Update Java dependencies.
+- XRDDEV-652: Add Ansible configuration option for extra locales.
+- XRDDEV-547: Add remote database support to Security Server.
+- XRDDEV-683: Fix installation on top of existing op-monitor.
+- XRDDEV-588: Security Server user interface for defining fine-grained access rules for REST services.
+- XRDDEV-682: Fixes to fine-grained REST service management UI.
+- XRDDEV-692: Update jackson-databind.
+- XRDDEV-691: Fix typo in add endpoint dialog.
+- XRDDEV-694: Fix listMethods not returning all REST services.
+- XRDDEV-695: Fix allowedMethods not returning all REST services.
+- XRDDEV-697: Fix metadata services documentation concerning listCentralServices.
+- XRDDEV-648: Make it possible to bind xroad-proxy to ports 80 and 443 on RHEL.
+- XRDDEV-696: Update REST endpoint type names to better reflect the endpoint type.
+- XRDDEV-710: Update Test CA documentation.
+- XRDDEV-704: Fix fine-grained REST service management missing from Security Server user guide.
+- XRDDEV-610: Metaspace for xroad-monitoring has been expanded from 50m to 60m.
+- XRDDEV-716: Update bouncy castle and jackson-databind.
+- XRDDEV-717: Fixed restarting xroad-proxy fails during internal key generation and certificate import.
 
 ## 6.21.1 - 2019-05-22
 - XRDDEV-526: Fix adding a WSDL with a newer version of an existing service fails.
