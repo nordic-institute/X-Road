@@ -55,7 +55,6 @@ import javax.wsdl.xml.WSDLReader;
 import javax.xml.namespace.QName;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
@@ -296,8 +295,6 @@ public final class WsdlParser {
                 log.trace("Received WSDL response: {}", new String(response));
 
                 return new InputSource(new ByteArrayInputStream(response));
-            } catch (FileNotFoundException e) {
-                throw new PrivateWsdlNotFoundException(e);
             } catch (Throwable t) {
                 throw new PrivateWsdlNotFoundException(t);
             }

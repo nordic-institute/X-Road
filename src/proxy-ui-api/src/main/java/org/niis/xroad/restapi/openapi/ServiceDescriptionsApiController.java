@@ -30,7 +30,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.ServiceConverter;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
-import org.niis.xroad.restapi.exceptions.DeviationAware;
 import org.niis.xroad.restapi.openapi.model.IgnoreWarnings;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
@@ -94,7 +93,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         } catch (ServiceDescriptionNotFoundException e) {
             throw new ResourceNotFoundException();
         }
-        return new ResponseEntity<Void>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @Override
@@ -112,7 +111,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         } catch (ServiceDescriptionNotFoundException e) {
             throw new ResourceNotFoundException();
         }
-        return new ResponseEntity<Void>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @Override
@@ -124,7 +123,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         } catch (ServiceDescriptionNotFoundException e) {
             throw new ResourceNotFoundException();
         }
-        return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @Override
@@ -147,7 +146,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
                     | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
                 throw new ConflictException(e);
             } catch (ServiceDescriptionNotFoundException e) {
-                throw new ResourceNotFoundException((DeviationAware) e);
+                throw new ResourceNotFoundException(e);
             }
             serviceDescription = serviceDescriptionConverter.convert(updatedServiceDescription);
         } else if (serviceDescriptionUpdate.getType() == ServiceType.REST) {
@@ -175,7 +174,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
                 | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
             throw new ConflictException(e);
         } catch (ServiceDescriptionNotFoundException e) {
-            throw new ResourceNotFoundException((DeviationAware) e);
+            throw new ResourceNotFoundException(e);
         }
         return new ResponseEntity<>(serviceDescription, HttpStatus.OK);
     }

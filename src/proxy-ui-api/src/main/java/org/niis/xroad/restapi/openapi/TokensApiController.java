@@ -28,7 +28,6 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.TokenConverter;
-import org.niis.xroad.restapi.exceptions.DeviationAware;
 import org.niis.xroad.restapi.openapi.model.Token;
 import org.niis.xroad.restapi.openapi.model.TokenPassword;
 import org.niis.xroad.restapi.service.TokenService;
@@ -86,7 +85,7 @@ public class TokensApiController implements TokensApi {
         try {
             tokenService.activateToken(id, password);
         } catch (TokenService.TokenNotFoundException e) {
-            throw new ResourceNotFoundException((DeviationAware) e);
+            throw new ResourceNotFoundException(e);
         } catch (TokenService.PinIncorrectException e) {
             throw new BadRequestException(e);
         }
@@ -100,7 +99,7 @@ public class TokensApiController implements TokensApi {
         try {
             tokenService.deactivateToken(id);
         } catch (TokenService.TokenNotFoundException e) {
-            throw new ResourceNotFoundException((DeviationAware) e);
+            throw new ResourceNotFoundException(e);
         }
         Token token = getTokenFromService(id);
         return new ResponseEntity<>(token, HttpStatus.OK);
@@ -111,7 +110,7 @@ public class TokensApiController implements TokensApi {
         try {
             tokenInfo = tokenService.getToken(id);
         } catch (TokenService.TokenNotFoundException e) {
-            throw new ResourceNotFoundException((DeviationAware) e);
+            throw new ResourceNotFoundException(e);
         }
         return tokenConverter.convert(tokenInfo);
     }

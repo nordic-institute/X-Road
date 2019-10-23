@@ -37,7 +37,6 @@ import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.ConnectionTypeMapping;
 import org.niis.xroad.restapi.converter.LocalGroupConverter;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
-import org.niis.xroad.restapi.exceptions.DeviationAware;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
@@ -324,7 +323,7 @@ public class ClientsApiController implements ClientsApi {
                 throw new BadRequestException(e);
             } catch (ClientNotFoundException e) {
                 // deviation data (errorcode + warnings) copied
-                throw new ResourceNotFoundException((DeviationAware) e);
+                throw new ResourceNotFoundException(e);
             } catch (ServiceDescriptionService.ServiceAlreadyExistsException
                     | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
                 // deviation data (errorcode + warnings) copied
