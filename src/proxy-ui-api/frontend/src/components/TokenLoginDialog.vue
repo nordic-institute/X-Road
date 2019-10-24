@@ -35,7 +35,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import axios from 'axios';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import SimpleDialog from '@/components/SimpleDialog.vue';
 import * as api from '@/util/api';

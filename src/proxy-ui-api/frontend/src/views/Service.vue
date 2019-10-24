@@ -186,9 +186,9 @@
 <script lang="ts">
 import Vue from 'vue';
 import _ from 'lodash';
-import axios from 'axios';
 import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
+import * as api from '@/util/api';
 import SubViewTitle from '@/components/SubViewTitle.vue';
 import AddMembersDialog from '@/components/AddMembersDialog.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
@@ -279,7 +279,7 @@ export default Vue.extend({
     },
 
     save(): void {
-      axios
+      api
         .patch(`/services/${this.serviceId}`, {
           service: this.service,
           timeout_all: this.timeout_all,
@@ -301,7 +301,7 @@ export default Vue.extend({
     },
 
     fetchData(serviceId: string): void {
-      axios
+      api
         .get(`/services/${serviceId}`)
         .then((res) => {
           this.service = res.data;
@@ -310,7 +310,7 @@ export default Vue.extend({
           this.$bus.$emit('show-error', error.message);
         });
 
-      axios
+      api
         .get(`/services/${serviceId}/access-rights`)
         .then((res) => {
           this.accessRights = res.data;
@@ -329,7 +329,7 @@ export default Vue.extend({
       this.addMembersDialogVisible = false;
       // this.fetchData(this.clientId);
 
-      axios
+      api
         .post(`/services/${this.serviceId}/access-rights`, {
           items: selectedIds,
         })
@@ -378,7 +378,7 @@ export default Vue.extend({
     },
 
     removeArrayOfMembers(members: any) {
-      axios
+      api
         .post(`/services/${this.serviceId}/delete`, {
           items: members,
         })
