@@ -669,7 +669,7 @@ used for TLS connections with the client information systems.
 - 4a. System failed to generate the key or the respective self-signed certificate.
     - 4a.1. System displays an error message “Failed to generate new key: 'X'” (where “X” is the reason of the failure). Use case terminates.
     
-- 5a. SS administrator selects (optional) to generate a new TLS certificate request.
+- 5a. SS administrator selects to generate a new TLS certificate request.
     - 5a.1. System prompts for defining a Distinguished name.
     - 5a.2. SS administrator inserts a Distinguished name.
     - 5a.3. System prompts a request to download the generated certificate request.
