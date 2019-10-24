@@ -198,6 +198,7 @@
     "keyInfo": "Key information",
     "keyId": "Key ID:",
     "label": "Label:",
+    "unknown": "Key type not specified",
     "incorrectPin": "Incorrect PIN",
     "readOnly": "Read-only:",
     "helpTitleKeys": "AUTH and SIGN Keys",
