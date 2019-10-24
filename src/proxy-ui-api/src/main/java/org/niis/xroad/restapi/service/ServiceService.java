@@ -29,6 +29,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
@@ -53,6 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -182,6 +184,13 @@ public class ServiceService {
         return serviceType;
     }
 
+    /**
+     * Makes an {@link AccessRightHolderDto} out of {@link AccessRightType}
+     * @param accessRightType The AccessRightType to convert from
+     * @param localGroupMap A Map containing {@link LocalGroupType LocalGroupTypes} mapped by
+     * their corresponding {@link LocalGroupType#groupCode}
+     * @return
+     */
     private AccessRightHolderDto accessRightTypeToDto(AccessRightType accessRightType,
             Map<String, LocalGroupType> localGroupMap) {
         AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
@@ -287,8 +296,91 @@ public class ServiceService {
      */
     @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
     public void deleteServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds,
-            Set<Long> localGroupIds) throws LocalGroupNotFoundException,
-            ClientNotFoundException, AccessRightNotFoundException, ServiceNotFoundException {
+            Set<Long> localGroupIds) throws LocalGroupNotFoundException, ClientNotFoundException,
+            AccessRightNotFoundException, ServiceNotFoundException {
+        Set<XRoadId> localGroups = getLocalGroupsAsXroadIds(localGroupIds);
+        subjectIds.addAll(localGroups);
+        deleteServiceAccessRights(clientId, fullServiceCode, subjectIds);
+    }
+
+    /**
+     * @param clientId
+     * @param fullServiceCode
+     * @param subjectIds
+     * @return List of {@link AccessRightHolderDto AccessRightHolderDtos}
+     * @throws ClientNotFoundException
+     * @throws ServiceNotFoundException
+     */
+    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
+    public List<AccessRightHolderDto> addServiceAccessRights(ClientId clientId, String fullServiceCode,
+            HashSet<XRoadId> subjectIds) throws ClientNotFoundException, ServiceNotFoundException {
+        ClientType clientType = clientRepository.getClient(clientId);
+        if (clientType == null) {
+            throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
+        }
+        ServiceType serviceType = getServiceFromClient(clientType, fullServiceCode);
+
+        Optional<EndpointType> existingEndpoint = clientType.getEndpoint().stream()
+                .filter(endpointType -> endpointType.getServiceCode().equals(serviceType.getServiceCode()))
+                .findFirst();
+
+        // get existing endpoint or create a new one - add it to the client's endpoint list as a side effect
+        EndpointType endpointType = existingEndpoint
+                .orElseGet(() -> {
+                    EndpointType newEndpointType = new EndpointType(serviceType.getServiceCode(),
+                            EndpointType.ANY_METHOD, EndpointType.ANY_PATH, true);
+                    clientType.getEndpoint().add(newEndpointType);
+                    return newEndpointType;
+                });
+
+        Date now = new Date();
+        subjectIds.forEach(subjectId -> {
+            AccessRightType newAccessRight = new AccessRightType();
+            newAccessRight.setEndpoint(endpointType);
+            newAccessRight.setSubjectId(subjectId);
+            newAccessRight.setRightsGiven(now);
+            clientType.getAcl().add(newAccessRight);
+        });
+
+        clientRepository.saveOrUpdate(clientType);
+
+        Map<String, LocalGroupType> localGroupMap = new HashMap<>();
+
+        clientType.getLocalGroup().forEach(localGroupType -> localGroupMap.put(localGroupType.getGroupCode(),
+                localGroupType));
+
+        List<AccessRightHolderDto> accessRightHolderDtos = new ArrayList<>();
+
+        clientType.getAcl().forEach(accessRightType -> {
+            if (accessRightType.getEndpoint().getServiceCode().equals(serviceType.getServiceCode())) {
+                AccessRightHolderDto accessRightHolderDto = accessRightTypeToDto(accessRightType, localGroupMap);
+                accessRightHolderDtos.add(accessRightHolderDto);
+            }
+        });
+
+        return accessRightHolderDtos;
+    }
+
+    /**
+     * @param clientId
+     * @param fullServiceCode
+     * @param subjectIds
+     * @param localGroupIds
+     * @return List of {@link AccessRightHolderDto AccessRightHolderDtos}
+     * @throws LocalGroupNotFoundException
+     * @throws ClientNotFoundException
+     * @throws ServiceNotFoundException
+     */
+    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
+    public List<AccessRightHolderDto> addServiceAccessRights(ClientId clientId, String fullServiceCode,
+            HashSet<XRoadId> subjectIds, Set<Long> localGroupIds) throws LocalGroupNotFoundException,
+            ClientNotFoundException, ServiceNotFoundException {
+        Set<XRoadId> localGroups = getLocalGroupsAsXroadIds(localGroupIds);
+        subjectIds.addAll(localGroups);
+        return addServiceAccessRights(clientId, fullServiceCode, subjectIds);
+    }
+
+    private Set<XRoadId> getLocalGroupsAsXroadIds(Set<Long> localGroupIds) throws LocalGroupNotFoundException {
         Set<XRoadId> localGroups = new HashSet<>();
         for (Long groupId : localGroupIds) {
             LocalGroupType localGroup = localGroupRepository.getLocalGroup(groupId); // no need to batch
@@ -297,8 +389,7 @@ public class ServiceService {
             }
             localGroups.add(LocalGroupId.create(localGroup.getGroupCode()));
         }
-        subjectIds.addAll(localGroups);
-        deleteServiceAccessRights(clientId, fullServiceCode, subjectIds);
+        return localGroups;
     }
 
     /**

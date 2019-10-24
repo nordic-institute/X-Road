@@ -125,8 +125,7 @@ public class ServicesApiController implements ServicesApi {
     public ResponseEntity<List<ServiceClient>> getServiceAccessRights(String encodedServiceId) {
         ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
-        List<AccessRightHolderDto> accessRightHolderDtos =
-                null;
+        List<AccessRightHolderDto> accessRightHolderDtos = null;
         try {
             accessRightHolderDtos = serviceService.getAccessRightHoldersByService(clientId, fullServiceCode);
         } catch (ClientNotFoundException | ServiceService.ServiceNotFoundException e) {
@@ -142,11 +141,7 @@ public class ServicesApiController implements ServicesApi {
         ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
         // LocalGroups with numeric ids (PK)
-        Set<Long> localGroupIds = subjects.getItems()
-                .stream()
-                .filter(hasNumericIdAndIsLocalGroup)
-                .map(subject -> Long.parseLong(subject.getId()))
-                .collect(Collectors.toSet());
+        Set<Long> localGroupIds = getLocalGroupIds(subjects);
         subjects.getItems().removeIf(hasNumericIdAndIsLocalGroup);
         // Converter handles other errors such as unknown types and ids
         List<XRoadId> xRoadIds = subjectConverter.convertId(subjects.getItems());
@@ -158,6 +153,35 @@ public class ServicesApiController implements ServicesApi {
             throw new BadRequestException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
+    @Override
+    public ResponseEntity<List<ServiceClient>> addServiceAccessRight(String encodedServiceId, Subjects subjects) {
+        ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
+        String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
+        Set<Long> localGroupIds = getLocalGroupIds(subjects);
+        subjects.getItems().removeIf(hasNumericIdAndIsLocalGroup);
+        List<XRoadId> xRoadIds = subjectConverter.convertId(subjects.getItems());
+        List<AccessRightHolderDto> accessRightHolderDtos;
+        try {
+            accessRightHolderDtos = serviceService.addServiceAccessRights(clientId, fullServiceCode,
+                    new HashSet<>(xRoadIds), localGroupIds);
+        } catch (ClientNotFoundException | ServiceService.ServiceNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (LocalGroupNotFoundException e) {
+            throw new BadRequestException(e);
+        }
+        List<ServiceClient> serviceClients = serviceClientConverter.convertAccessRightHolderDtos(accessRightHolderDtos);
+        return new ResponseEntity<>(serviceClients, HttpStatus.OK);
+    }
+
+    private Set<Long> getLocalGroupIds(Subjects subjects) {
+        return subjects.getItems()
+                .stream()
+                .filter(hasNumericIdAndIsLocalGroup)
+                .map(subject -> Long.parseLong(subject.getId()))
+                .collect(Collectors.toSet());
     }
 
     private Predicate<Subject> hasNumericIdAndIsLocalGroup = subject -> {
