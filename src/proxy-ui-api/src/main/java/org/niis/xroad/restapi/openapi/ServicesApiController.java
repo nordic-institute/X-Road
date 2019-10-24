@@ -34,13 +34,15 @@ import org.niis.xroad.restapi.converter.ServiceClientConverter;
 import org.niis.xroad.restapi.converter.ServiceConverter;
 import org.niis.xroad.restapi.converter.SubjectConverter;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
-import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
 import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.openapi.model.Subjects;
+import org.niis.xroad.restapi.service.ClientNotFoundException;
+import org.niis.xroad.restapi.service.InvalidUrlException;
+import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
 import org.niis.xroad.restapi.service.ServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -93,18 +95,29 @@ public class ServicesApiController implements ServicesApi {
         ClientId clientId = serviceConverter.parseClientId(id);
         String fullServiceCode = serviceConverter.parseFullServiceCode(id);
         Service service = serviceUpdate.getService();
-        Service updatedService = serviceConverter.convert(
-                serviceService.updateService(clientId, fullServiceCode, service.getUrl(), serviceUpdate.getUrlAll(),
-                        service.getTimeout(), serviceUpdate.getTimeoutAll(),
-                        Boolean.TRUE.equals(service.getSslAuth()), serviceUpdate.getSslAuthAll()),
-                clientId);
+        Service updatedService = null;
+        try {
+            updatedService = serviceConverter.convert(
+                    serviceService.updateService(clientId, fullServiceCode, service.getUrl(), serviceUpdate.getUrlAll(),
+                            service.getTimeout(), serviceUpdate.getTimeoutAll(),
+                            Boolean.TRUE.equals(service.getSslAuth()), serviceUpdate.getSslAuthAll()),
+                    clientId);
+        } catch (InvalidUrlException e) {
+            throw new BadRequestException(e);
+        } catch (ClientNotFoundException | ServiceService.ServiceNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
         return new ResponseEntity<>(updatedService, HttpStatus.OK);
     }
 
     private ServiceType getServiceType(String id) {
         ClientId clientId = serviceConverter.parseClientId(id);
         String fullServiceCode = serviceConverter.parseFullServiceCode(id);
-        return serviceService.getService(clientId, fullServiceCode);
+        try {
+            return serviceService.getService(clientId, fullServiceCode);
+        } catch (ServiceService.ServiceNotFoundException | ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
     }
 
     @Override
@@ -113,7 +126,12 @@ public class ServicesApiController implements ServicesApi {
         ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
         List<AccessRightHolderDto> accessRightHolderDtos =
-                serviceService.getAccessRightHoldersByService(clientId, fullServiceCode);
+                null;
+        try {
+            accessRightHolderDtos = serviceService.getAccessRightHoldersByService(clientId, fullServiceCode);
+        } catch (ClientNotFoundException | ServiceService.ServiceNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
         List<ServiceClient> serviceClients = serviceClientConverter.convertAccessRightHolderDtos(accessRightHolderDtos);
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
@@ -132,7 +150,13 @@ public class ServicesApiController implements ServicesApi {
         subjects.getItems().removeIf(hasNumericIdAndIsLocalGroup);
         // Converter handles other errors such as unknown types and ids
         List<XRoadId> xRoadIds = subjectConverter.convertId(subjects.getItems());
-        serviceService.deleteServiceAccessRights(clientId, fullServiceCode, new HashSet<>(xRoadIds), localGroupIds);
+        try {
+            serviceService.deleteServiceAccessRights(clientId, fullServiceCode, new HashSet<>(xRoadIds), localGroupIds);
+        } catch (ServiceService.ServiceNotFoundException | ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (LocalGroupNotFoundException | ServiceService.AccessRightNotFoundException e) {
+            throw new BadRequestException(e);
+        }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

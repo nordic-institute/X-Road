@@ -19,7 +19,6 @@
 // Dialog to confirm service description disabling
 import Vue from 'vue';
 import SimpleDialog from '@/components/SimpleDialog.vue';
-import { isValidURL } from '@/util/helpers';
 
 export default Vue.extend({
   components: { SimpleDialog },

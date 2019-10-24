@@ -31,7 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
-import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.IgnoreWarnings;
 import org.niis.xroad.restapi.openapi.model.Service;
@@ -39,7 +39,7 @@ import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionDisabledNotice;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
-import org.niis.xroad.restapi.service.GlobalConfService;
+import org.niis.xroad.restapi.service.WsdlUrlValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -93,16 +93,20 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
     private ClientsApiController clientsApiController;
 
     @MockBean
-    private GlobalConfService globalConfService;
+    private GlobalConfFacade globalConfFacade;
+
+    @MockBean
+    private WsdlUrlValidator wsdlUrlValidator;
 
     @Before
     public void setup() {
-        when(globalConfService.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
+        when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
             Object[] args = invocation.getArguments();
             ClientId identifier = (ClientId) args[0];
             return identifier.getSubsystemCode() != null ? identifier.getSubsystemCode() + "NAME"
                     : "test-member" + "NAME";
         });
+        when(wsdlUrlValidator.isValidWsdlUrl(any())).thenReturn(true);
     }
 
     @Test
@@ -127,13 +131,13 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         // serviceDescriptions that do not exist
         try {
             serviceDescriptionsApiController.enableServiceDescription("10000");
-            fail("should throw NotFoundException");
-        } catch (NotFoundException expected) {
+            fail("should throw ResourceNotFoundException");
+        } catch (ResourceNotFoundException expected) {
         }
         try {
             serviceDescriptionsApiController.enableServiceDescription("non-numeric-id");
-            fail("should throw NotFoundException");
-        } catch (NotFoundException expected) {
+            fail("should throw ResourceNotFoundException");
+        } catch (ResourceNotFoundException expected) {
         }
 
     }
@@ -169,13 +173,13 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         // serviceDescriptions that do not exist
         try {
             serviceDescriptionsApiController.enableServiceDescription("10000");
-            fail("should throw NotFoundException");
-        } catch (NotFoundException expected) {
+            fail("should throw ResourceNotFoundException");
+        } catch (ResourceNotFoundException expected) {
         }
         try {
             serviceDescriptionsApiController.enableServiceDescription("non-numeric-id");
-            fail("should throw NotFoundException");
-        } catch (NotFoundException expected) {
+            fail("should throw ResourceNotFoundException");
+        } catch (ResourceNotFoundException expected) {
         }
 
     }
@@ -212,7 +216,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
 
         ServiceDescriptionUpdate serviceDescriptionUpdate = new ServiceDescriptionUpdate()
                 .url("file:src/test/resources/wsdl/testservice.wsdl").type(ServiceType.WSDL);
-        // ignore warnings about adding and removing services
+        // ignore warningDeviations about adding and removing services
         serviceDescriptionUpdate.setIgnoreWarnings(true);
         serviceDescriptionsApiController.updateServiceDescription("1", serviceDescriptionUpdate);
         client = clientsApiController.getClient(CLIENT_ID_SS1).getBody();
@@ -249,7 +253,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         assertTrue(serviceCodes.contains(XROAD_GET_RANDOM_OLD));
         assertTrue(serviceCodes.contains(BMI_OLD));
 
-        // ignore warnings (about adding and deleting services)
+        // ignore warningDeviations (about adding and deleting services)
         ServiceDescription refreshed = serviceDescriptionsApiController.refreshServiceDescription("3",
                 new IgnoreWarnings().ignoreWarnings(true)).getBody();
         assertEquals(serviceDescription.getId(), refreshed.getId());
@@ -290,14 +294,14 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
 
         try {
             serviceDescriptionsApiController.getServiceDescription("123451");
-            fail("should throw NotFoundException to 404");
-        } catch (NotFoundException expected) {
+            fail("should throw ResourceNotFoundException to 404");
+        } catch (ResourceNotFoundException expected) {
         }
 
         try {
             serviceDescriptionsApiController.getServiceDescription("ugh");
-            fail("should throw NotFoundException to 404");
-        } catch (NotFoundException expected) {
+            fail("should throw ResourceNotFoundException to 404");
+        } catch (ResourceNotFoundException expected) {
         }
     }
 
@@ -321,14 +325,14 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
 
         try {
             serviceDescriptionsApiController.getServiceDescriptionServices("123451");
-            fail("should throw NotFoundException to 404");
-        } catch (NotFoundException expected) {
+            fail("should throw ResourceNotFoundException to 404");
+        } catch (ResourceNotFoundException expected) {
         }
 
         try {
             serviceDescriptionsApiController.getServiceDescriptionServices("ugh");
-            fail("should throw NotFoundException to 404");
-        } catch (NotFoundException expected) {
+            fail("should throw ResourceNotFoundException to 404");
+        } catch (ResourceNotFoundException expected) {
         }
     }
 

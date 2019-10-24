@@ -22,30 +22,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.commonui.SignerProxy;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Repository;
+public class InvalidUrlException extends ServiceException {
 
-import java.util.List;
+    public static final String ERROR_MALFORMED_URL = "malformed_url";
 
-/**
- * Repository that handles tokens (acts as a wrapper to SignerProxy)
- */
-@Slf4j
-@Repository
-public class TokenRepository {
 
-    /**
-     * get all tokens
-     * @return
-     * @throws Exception
-     */
-    public List<TokenInfo> getTokens() throws Exception {
-        return SignerProxy.getTokens();
+    public InvalidUrlException() {
+        super(createError());
+    }
+
+    public InvalidUrlException(String s) {
+        super(s, createError());
+    }
+
+    private static ErrorDeviation createError() {
+        return new ErrorDeviation(ERROR_MALFORMED_URL);
     }
 
 }

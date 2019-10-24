@@ -25,17 +25,14 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
-import ee.ria.xroad.common.conf.globalconf.MemberInfo;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -46,70 +43,11 @@ import java.util.Set;
 @PreAuthorize("denyAll")
 public class GlobalConfService {
 
-    /**
-     * get member name
-     */
-    @PreAuthorize("isAuthenticated()")
-    public String getMemberName(ClientId identifier) {
-        return GlobalConf.getMemberName(identifier);
-    }
+    private final GlobalConfFacade globalConfFacade;
 
-    /**
-     * get member name
-     */
-    @PreAuthorize("hasAuthority('VIEW_SERVICE_ACL')")
-    public String getGlobalGroupDescription(GlobalGroupId identifier) {
-        return GlobalConf.getGlobalGroupDescription(identifier);
-    }
-
-    /**
-     * get global members
-     */
-    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public List<MemberInfo> getGlobalMembers(String... instanceIdentifiers) {
-        return GlobalConf.getMembers(instanceIdentifiers);
-    }
-
-    /**
-     * @param instanceIdentifier the instance identifier
-     * @return member classes for given instance
-     */
-    @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
-    public Set<String> getMemberClasses(String instanceIdentifier) {
-        return GlobalConf.getMemberClasses(instanceIdentifier);
-    }
-
-    /**
-     * @return member classes for all member classes if
-     * no instance identifiers are specified
-     */
-    @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
-    public Set<String> getMemberClasses() {
-        return GlobalConf.getMemberClasses();
-    }
-
-    /**
-     * @return member classes for current instance
-     */
-    @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
-    public Set<String> getMemberClassesForThisInstance() {
-        return GlobalConf.getMemberClasses(getInstanceIdentifier());
-    }
-
-    /**
-     * @return the instance identifier for this configuration source
-     */
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
-    public String getInstanceIdentifier() {
-        return GlobalConf.getInstanceIdentifier();
-    }
-
-    /**
-     * @return all known instance identifiers
-     */
-    @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
-    public List<String> getInstanceIdentifiers() {
-        return GlobalConf.getInstanceIdentifiers();
+    @Autowired
+    public GlobalConfService(GlobalConfFacade globalConfFacade) {
+        this.globalConfFacade = globalConfFacade;
     }
 
     /**
@@ -118,7 +56,7 @@ public class GlobalConfService {
      */
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
     public boolean securityServerExists(SecurityServerId securityServerId) {
-        if (!getInstanceIdentifiers().contains(securityServerId.getXRoadInstance())) {
+        if (!globalConfFacade.getInstanceIdentifiers().contains(securityServerId.getXRoadInstance())) {
             // unless we check instance existence like this, we will receive
             // CodedException: InternalError: Invalid instance identifier: x -exception
             // which is hard to turn correctly into http 404 instead of 500
@@ -128,10 +66,10 @@ public class GlobalConfService {
     }
 
     /**
-     * get a list of global groups as {@link GlobalGroupInfo}
+     * @return member classes for current instance
      */
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
-    public List<GlobalGroupInfo> getGlobalGroups(String... instanceIdentifier) {
-        return GlobalConf.getGlobalGroups(instanceIdentifier);
+    @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
+    public Set<String> getMemberClassesForThisInstance() {
+        return GlobalConf.getMemberClasses(globalConfFacade.getInstanceIdentifier());
     }
 }

@@ -27,8 +27,11 @@ package org.niis.xroad.restapi.controller;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.domain.InvalidRoleNameException;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
+import org.niis.xroad.restapi.openapi.InvalidParametersException;
+import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -66,7 +69,12 @@ public class ApiKeyController {
      */
     @PostMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Map<String, Object> createKey(@RequestBody List<String> roles) {
-        Map.Entry<String, PersistentApiKeyType> createdKeyData = apiKeyRepository.create(roles);
+        Map.Entry<String, PersistentApiKeyType> createdKeyData = null;
+        try {
+            createdKeyData = apiKeyRepository.create(roles);
+        } catch (InvalidRoleNameException e) {
+            throw new InvalidParametersException(e);
+        }
         Map<String, Object> result = new HashMap();
         result.put("key", createdKeyData.getKey());
         result.put("roles", createdKeyData.getValue().getRoles());
@@ -101,7 +109,11 @@ public class ApiKeyController {
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     public ResponseEntity revoke(@PathVariable("id") long id) {
-        apiKeyRepository.removeById(id);
+        try {
+            apiKeyRepository.removeById(id);
+        } catch (ApiKeyRepository.ApiKeyNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
         return new ResponseEntity(HttpStatus.OK);
     }
 

@@ -7,7 +7,7 @@ export interface KeysState {
 }
 
 export const tokensState: KeysState = {
-  expandedTokens: []
+  expandedTokens: [],
 };
 
 export const getters: GetterTree<KeysState, RootState> = {
@@ -36,7 +36,7 @@ export const mutations: MutationTree<KeysState> = {
     if (index === -1) {
       state.expandedTokens.push(id);
     }
-  }
+  },
 };
 
 export const actions: ActionTree<KeysState, RootState> = {

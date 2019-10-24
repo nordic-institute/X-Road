@@ -30,7 +30,7 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
-import org.niis.xroad.restapi.exceptions.BadRequestException;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.util.FormatUtils;

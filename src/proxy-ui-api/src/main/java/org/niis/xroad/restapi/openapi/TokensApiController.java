@@ -29,6 +29,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.TokenConverter;
 import org.niis.xroad.restapi.openapi.model.Token;
+import org.niis.xroad.restapi.openapi.model.TokenPassword;
 import org.niis.xroad.restapi.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -64,17 +65,53 @@ public class TokensApiController implements TokensApi {
         this.tokenConverter = tokenConverter;
     }
 
-
     @PreAuthorize("hasAuthority('VIEW_KEYS')")
     @Override
     public ResponseEntity<List<Token>> getTokens() {
-        List<TokenInfo> tokenInfos = null;
-        try {
-            tokenInfos = tokenService.getAllTokens();
-        } catch (Exception e) {
-            throw new RuntimeException("exception while reading tokens", e);
-        }
+        List<TokenInfo> tokenInfos = tokenService.getAllTokens();
         List<Token> tokens = tokenConverter.convert(tokenInfos);
         return new ResponseEntity<>(tokens, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAuthority('ACTIVATE_TOKEN')")
+    @Override
+    public ResponseEntity<Token> loginToken(String id, TokenPassword tokenPassword) {
+        if (tokenPassword == null
+                || tokenPassword.getPassword() == null
+                || tokenPassword.getPassword().isEmpty()) {
+            throw new BadRequestException("Missing token password");
+        }
+        char[] password = tokenPassword.getPassword().toCharArray();
+        try {
+            tokenService.activateToken(id, password);
+        } catch (TokenService.TokenNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (TokenService.PinIncorrectException e) {
+            throw new BadRequestException(e);
+        }
+        Token token = getTokenFromService(id);
+        return new ResponseEntity<>(token, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAuthority('DEACTIVATE_TOKEN')")
+    @Override
+    public ResponseEntity<Token> logoutToken(String id) {
+        try {
+            tokenService.deactivateToken(id);
+        } catch (TokenService.TokenNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+        Token token = getTokenFromService(id);
+        return new ResponseEntity<>(token, HttpStatus.OK);
+    }
+
+    private Token getTokenFromService(String id) {
+        TokenInfo tokenInfo = null;
+        try {
+            tokenInfo = tokenService.getToken(id);
+        } catch (TokenService.TokenNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+        return tokenConverter.convert(tokenInfo);
     }
 }
