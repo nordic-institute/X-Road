@@ -4,8 +4,8 @@
 # X-Road: Use Case Model for Security Server Management
 **Analysis**
 
-Version: 1.8
-27.03.2019
+Version: 1.9
+24.10.2019
 <!-- 49 pages -->
 Doc. ID: UC-SS
 
@@ -30,7 +30,8 @@ Date       | Version | Description                                              
 29.08.2017 | 1.5     | Changed documentation type from docx to md file |   Lasse Matikainen
 19.02.2018 | 1.6     | Updated the negative case extension for backing up the central server | Tatu Repo
 06.03.2018 | 1.7     | Moved terms to term doc, added term doc reference and link, added internal MD-doc links | Tatu Repo
-278.03.2019 | 1.8     | Added use cases related to REST APIs | Janne Mattila
+27.03.2019 | 1.8     | Added use cases related to REST APIs | Janne Mattila
+27.03.2019 | 1.9     | Update use cases related to Security Server's TLS certificate | Guido Casalegno
 
 <!-- tocstop -->
 
@@ -622,7 +623,7 @@ information.
 
 **Related information**: -
 
-### 3.12 UC SS\_11: Generate a new TLS Key and Certificate for the Security Server
+### 3.12 UC SS\_11: Generate a New TLS Key and Certificate for the Security Server
 
 **System**: Security server
 
@@ -668,19 +669,13 @@ used for TLS connections with the client information systems.
 - 4a. System failed to generate the key or the respective self-signed certificate.
     - 4a.1. System displays an error message “Failed to generate new key: 'X'” (where “X” is the reason of the failure). Use case terminates.
     
-7.  SS administrator selects (optional) to generate a new TLS certificate request
-
-8.  System prompts for defining a Distinguished name
-
-9.  SS administrator inserts a Distinguished name
-
-9.  System prompts a request to download the generated certificate request
-
-10. The security server generates a certificate request using the current key and the provided Distinguished Name
-
-11. SS administrator downloads and saves the certificate request file to the local file system
-
-12. After a Certification Authority has approved a TLS certificate, SS administrator imports and saves the certificate file to the local file system
+- 5a. SS administrator selects (optional) to generate a new TLS certificate request.
+    - 5a.1. System prompts for defining a Distinguished name.
+    - 5a.2. SS administrator inserts a Distinguished name.
+    - 5a.3. System prompts a request to download the generated certificate request.
+    - 5a.4. The security server generates a certificate request using the current key and the provided Distinguished Name.
+    - 5a.5. SS administrator downloads and saves the certificate request file to the local file system.
+    - 5a.6. After a Certification Authority has approved a TLS certificate, SS administrator imports and saves the certificate file to the local file system.
 
 **Related information**:
 
