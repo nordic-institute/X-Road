@@ -114,6 +114,7 @@ module CommonUi
 
     class Validator
       def validate(val, param)
+        # NOP
       end
     end
 

@@ -35,6 +35,7 @@ class SystemStatusController < ApplicationController
   before_filter :verify_get, :only => [:check_status]
 
   def index
+    # NOP
   end
 
   def check_status

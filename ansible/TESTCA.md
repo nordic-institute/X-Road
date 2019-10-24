@@ -3,7 +3,7 @@
 **Note**. The test CA is for _testing and development purposes only_. It is not a secure certification authority.
 
 The `roles/xroad-ca/` directory contains a collection of scripts to set up an openssl-based test-CA environment for signing certificates and providing TSA and OCSP services during development. 
-The scripts require Ubuntu 18.04 (Ubuntu 14.04 should also work)
+The scripts require Ubuntu 18.04.
 
 You can initialize the test-CA server automatically [with Ansible.](README.md). This initializes a new test-CA server if one is listed in `ca-servers` category.
 
@@ -16,15 +16,11 @@ To customize test-CA DN details for Ansible installation, specify parameters in 
 Example group_vars configuration file with all of the test-CA parameters:
 
 ```
-xroad_ca_dn_country: "SE"
 xroad_ca_o: "Customized Test"
-xroad_ca_ou: "Customized Test CA OU"
 xroad_ca_cn: "Customized Test CA CN"
 xroad_ca_ocsp_o: "Customized Test"
-xroad_ca_ocsp_ou: "Customized Test OCSP OU"
 xroad_ca_ocsp_cn: "Customized Test OCSP CN"
 xroad_ca_tsa_o: "Customized Test"
-xroad_ca_tsa_ou: "Customized Test TSA OU"
 xroad_ca_tsa_cn: "Customized Test TSA CN"
 ```
 
@@ -32,7 +28,6 @@ xroad_ca_tsa_cn: "Customized Test TSA CN"
 
 ## 1. Contents of the roles/xroad-ca directory
 
-* `trusty-files/etc/init` - upstart-jobs for the TSA and OCSP
 * `bionic-files/lib/systemd/system` - systemd services for the TSA and OCSP
 * `common-files/etc/nginx` - nginx configuration for proxying TSA and OCSP requests
 * `common-files/home/ca/CA` - CA configuration, and scripts for signing certificates locally
@@ -54,6 +49,7 @@ xroad_ca_tsa_cn: "Customized Test TSA CN"
 	- `etc`
 	- `home`
 	- `usr`
+  - `lib`
 4. Copy `roles/xroad-ca/templates/init.sh` to `home/ca/CA/`
 5. Add user `ocsp` to group `ca`
 6. Grant `ca` ownership and all permissions to files under `/home/ca/CA`
@@ -64,15 +60,11 @@ xroad_ca_tsa_cn: "Customized Test TSA CN"
 11. Fill in parameters for CA, OCSP and TSA distinguished names (DN) in `/home/ca/CA/init.sh`:
 ```
 # dn parameters
-DN_COUNTRY="{{ xroad_ca_dn_country }}"
 DN_CA_O="{{ xroad_ca_o }}"
-DN_CA_OU="{{ xroad_ca_ou }}"
 DN_CA_CN="{{ xroad_ca_cn }}"
 DN_OCSP_O="{{ xroad_ca_ocsp_o }}"
-DN_OCSP_OU="{{ xroad_ca_ocsp_ou }}"
 DN_OCSP_CN="{{ xroad_ca_ocsp_cn }}"
 DN_TSA_O="{{ xroad_ca_tsa_o }}"
-DN_TSA_OU="{{ xroad_ca_tsa_ou }}"
 DN_TSA_CN="{{ xroad_ca_tsa_cn }}"
 ```
 CA, OCSP and TSA distinguished name field values can be selected freely,
@@ -90,33 +82,32 @@ Using recognizable and meaningful values helps to distinguish the certification 
 
 ---------------------------------------------
 
-## 4. (Re)start NGINX, OCSP and TSA services
+## 4. (Re)start NGINX, CA, OCSP and TSA services
 
 (Ansible does these steps automatically)
 
-1. Before starting the jobs, restart the nginx service to apply the proxy changes
-2. start the jobs by calling `sudo /sbin/start ocsp` and `sudo /sbin/start tsa`
-
-The jobs are located in `/etc/init` and are run as `ocsp`.
+1. Before starting the jobs, restart the nginx service to apply the proxy changes (sudo systemctl reload nginx)
+2. start the jobs by calling `sudo systemctl start ca ocsp tsa`
 
 ---------------------------------------------
 
-## 5. About the TSA and OCSP services
+## 5. About the CA, TSA, and OCSP services
 
 Both services use nginx as a proxy to redirect the requests to listened ports:
 
-- requests (POST) to `port 8888` go to `8889` for the openssl process started by the OCSP job
+- POST requests to `port 8888` go to the python process started by the OCSP job
+- GET requests to url `/testca` on `port 8888` go to the python process started by the CA job
 - requests (GET, POST) to `port 8899` go to `localhost:9999` for the python server started by the TSA job
 
 ---------------------------------------------
 
 ## 6. Configuring the central server to use the test-CA
-
 After the jobs have been successfully started, the test-CA is ready to be used in the test environment.
 
 To configure the central server to use the test-CA:
 
 1. Import the CA, TSA and OCSP certificates from `/home/ca/CA/certs` to the central server
+   - `ee.ria.xroad.common.certificateprofile.impl.EjbcaCertificateProfileInfoProvider` can be used as the certificate profile info provider.
 2. Configure the CA to use the test-CA OCSP through `port 8888` on the test-CA machine
 3. Configure the TSA to `port 8899` on the test-CA machine
 
@@ -215,5 +206,5 @@ Data Base Updated
 
 ## 8. Troubleshooting
 
-Systemd service logs can be viewed with journalctl -u service-name, e.g `journalctl -u ocsp`. Upstart (Ubuntu 14.04) logs are in /var/log/upstart/service-name.log
+Systemd service logs can be viewed with journalctl -u service-name, e.g `journalctl -u ocsp`.
 

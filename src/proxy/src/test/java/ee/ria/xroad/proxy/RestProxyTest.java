@@ -222,7 +222,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 if ("wsdl".equals(service.getServiceCode())) {
                     return DescriptionType.WSDL;
                 }
-                return DescriptionType.OPENAPI3;
+                return DescriptionType.REST;
             }
         });
 

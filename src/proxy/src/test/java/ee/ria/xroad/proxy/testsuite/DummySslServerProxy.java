@@ -57,9 +57,8 @@ import java.security.cert.X509Certificate;
 public class DummySslServerProxy extends Server implements StartStop {
 
     DummySslServerProxy() throws Exception {
-        SslContextFactory cf = new SslContextFactory(false);
+        SslContextFactory.Server cf = new SslContextFactory.Server();
         cf.setNeedClientAuth(true);
-
         cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
@@ -67,6 +66,7 @@ public class DummySslServerProxy extends Server implements StartStop {
                 new TrustManager[] {new DummyAuthTrustManager()},
                 new SecureRandom());
         cf.setSslContext(ctx);
+
 
         ServerConnector connector = new ServerConnector(this, cf);
 
