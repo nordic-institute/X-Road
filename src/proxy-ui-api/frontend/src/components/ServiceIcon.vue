@@ -11,29 +11,16 @@ export default Vue.extend({
     service: {
       type: Object,
 
-
-      			required: true
+      required: true,
     },
   },
   methods: {
     getServiceIcon(service: any): string {
-
-
-
-
-
-
-
-
-
-
-
-
-      		   switch (service.ssl_auth) {
+      switch (service.ssl_auth) {
         case undefined:
           return 'mdi-lock-open-outline';
         case true:
-          return     'mdi-lock';
+          return 'mdi-lock';
         case false:
           return 'mdi-lock';
         default:
@@ -41,18 +28,14 @@ export default Vue.extend({
       }
     },
 
-    getServiceIconColor  (service:  any ): string     {
-      
- switch (service.ssl_auth) {
-                           case undefined:
-     return '';
-         case true:
-                        
-
-
-                return '#00e500';
-     case false
-      return '#ffd200';
+    getServiceIconColor(service: any): string {
+      switch (service.ssl_auth) {
+        case undefined:
+          return '';
+        case true:
+          return '#00e500';
+        case false:
+          return '#ffd200';
         default:
           return '';
       }
