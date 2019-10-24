@@ -31,7 +31,7 @@ Date       | Version | Description                                              
 19.02.2018 | 1.6     | Updated the negative case extension for backing up the central server | Tatu Repo
 06.03.2018 | 1.7     | Moved terms to term doc, added term doc reference and link, added internal MD-doc links | Tatu Repo
 27.03.2019 | 1.8     | Added use cases related to REST APIs | Janne Mattila
-27.03.2019 | 1.9     | Update use cases related to Security Server's TLS certificate | Guido Casalegno
+24.10.2019 | 1.9     | Update use cases related to Security Server's TLS certificate | Guido Casalegno
 
 <!-- tocstop -->
 
