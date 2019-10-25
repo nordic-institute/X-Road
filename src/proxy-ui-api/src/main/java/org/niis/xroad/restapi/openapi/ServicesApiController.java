@@ -171,6 +171,8 @@ public class ServicesApiController implements ServicesApi {
             throw new ResourceNotFoundException(e);
         } catch (LocalGroupNotFoundException e) {
             throw new BadRequestException(e);
+        } catch (ServiceService.DuplicateAccessRightException e) {
+            throw new ConflictException(e);
         }
         List<ServiceClient> serviceClients = serviceClientConverter.convertAccessRightHolderDtos(accessRightHolderDtos);
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);

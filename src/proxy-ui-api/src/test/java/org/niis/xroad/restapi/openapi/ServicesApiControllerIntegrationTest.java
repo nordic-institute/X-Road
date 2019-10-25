@@ -38,6 +38,7 @@ import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
 import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.openapi.model.Subjects;
+import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -46,6 +47,8 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -78,6 +81,7 @@ public class ServicesApiControllerIntegrationTest {
     public static final String LOCAL_GROUP_ID_2 = "2";
     public static final String LOCAL_GROUP_CODE = "group1";
     public static final String LOCAL_GROUP_DESC = "foo";
+    public static final String SS1_CLIENT_ID = "FI:GOV:M1:SS1";
     public static final String SS2_CLIENT_ID = "FI:GOV:M1:SS2";
     public static final String SS3_CLIENT_ID = "FI:GOV:M1:SS3";
     public static final String SS4_CLIENT_ID = "FI:GOV:M1:SS4";
@@ -88,9 +92,21 @@ public class ServicesApiControllerIntegrationTest {
     public static final String SS1_PREDICT_WINNING_LOTTERY_NUMBERS = "FI:GOV:M1:SS1:predictWinningLotteryNumbers.v1";
     public static final String NEW_SERVICE_URL_HTTPS = "https://foo.bar";
     public static final String NEW_SERVICE_URL_HTTP = "http://foo.bar";
+    private static final String INSTANCE_FI = "FI";
+    private static final String INSTANCE_EE = "EE";
+    private static final String MEMBER_CLASS_GOV = "GOV";
+    private static final String MEMBER_CLASS_PRO = "PRO";
+    private static final String MEMBER_CODE_M1 = "M1";
+    private static final String MEMBER_CODE_M2 = "M2";
+    private static final String SUBSYSTEM1 = "SS1";
+    private static final String SUBSYSTEM2 = "SS2";
+    private static final String SUBSYSTEM3 = "SS3";
 
     @Autowired
     private ServicesApiController servicesApiController;
+
+    @Autowired
+    private ClientsApiController clientsApiController;
 
     @MockBean
     private GlobalConfFacade globalConfFacade;
@@ -108,6 +124,15 @@ public class ServicesApiControllerIntegrationTest {
             ClientId identifier = (ClientId) args[0];
             return NAME_FOR + identifier.toShortString().replace("/", ":");
         });
+        when(globalConfFacade.getMembers(any())).thenReturn(new ArrayList<>(Arrays.asList(
+                TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, null),
+                TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1),
+                TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM2),
+                TestUtils.getMemberInfo(INSTANCE_EE, MEMBER_CLASS_GOV, MEMBER_CODE_M2, SUBSYSTEM3),
+                TestUtils.getMemberInfo(INSTANCE_EE, MEMBER_CLASS_GOV, MEMBER_CODE_M1, null),
+                TestUtils.getMemberInfo(INSTANCE_EE, MEMBER_CLASS_PRO, MEMBER_CODE_M1, SUBSYSTEM1),
+                TestUtils.getMemberInfo(INSTANCE_EE, MEMBER_CLASS_PRO, MEMBER_CODE_M2, null))
+        ));
     }
 
     @Test
@@ -399,5 +424,21 @@ public class ServicesApiControllerIntegrationTest {
                 .addItemsItem(new Subject().id(LOCAL_GROUP_ID_2).subjectType(SubjectType.GLOBALGROUP))
                 .addItemsItem(new Subject().id(SS3_CLIENT_ID).subjectType(SubjectType.SUBSYSTEM));
         servicesApiController.deleteServiceAccessRight(SS1_GET_RANDOM, subjects).getBody();
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
+            "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    public void addAccessRights() {
+        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
+        assertEquals(3, serviceClients.size());
+
+        Subjects subjectsToAdd = new Subjects()
+                .addItemsItem(new Subject().id(LOCAL_GROUP_ID_2).subjectType(SubjectType.LOCALGROUP));
+
+        List<ServiceClient> updatedServiceClients = servicesApiController
+                .addServiceAccessRight(SS1_GET_RANDOM, subjectsToAdd).getBody();
+
+        assertEquals(4, updatedServiceClients.size());
     }
 }

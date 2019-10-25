@@ -313,7 +313,8 @@ public class ServiceService {
      */
     @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
     public List<AccessRightHolderDto> addServiceAccessRights(ClientId clientId, String fullServiceCode,
-            HashSet<XRoadId> subjectIds) throws ClientNotFoundException, ServiceNotFoundException {
+            HashSet<XRoadId> subjectIds) throws ClientNotFoundException, ServiceNotFoundException,
+            DuplicateAccessRightException {
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
@@ -334,13 +335,19 @@ public class ServiceService {
                 });
 
         Date now = new Date();
-        subjectIds.forEach(subjectId -> {
+        for (XRoadId subjectId : subjectIds) {
+            boolean accessRightExists = clientType.getAcl().stream()
+                    .anyMatch(accessRightType -> accessRightType.getSubjectId().equals(subjectId));
+            if (accessRightExists) {
+                throw new DuplicateAccessRightException("Subject " + subjectId.toShortString()
+                        + " already has an access right for service " + serviceType.getServiceCode());
+            }
             AccessRightType newAccessRight = new AccessRightType();
             newAccessRight.setEndpoint(endpointType);
             newAccessRight.setSubjectId(subjectId);
             newAccessRight.setRightsGiven(now);
             clientType.getAcl().add(newAccessRight);
-        });
+        }
 
         clientRepository.saveOrUpdate(clientType);
 
@@ -374,7 +381,7 @@ public class ServiceService {
     @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
     public List<AccessRightHolderDto> addServiceAccessRights(ClientId clientId, String fullServiceCode,
             HashSet<XRoadId> subjectIds, Set<Long> localGroupIds) throws LocalGroupNotFoundException,
-            ClientNotFoundException, ServiceNotFoundException {
+            ClientNotFoundException, ServiceNotFoundException, DuplicateAccessRightException {
         Set<XRoadId> localGroups = getLocalGroupsAsXroadIds(localGroupIds);
         subjectIds.addAll(localGroups);
         return addServiceAccessRights(clientId, fullServiceCode, subjectIds);
@@ -411,6 +418,17 @@ public class ServiceService {
 
         public AccessRightNotFoundException() {
             super(new ErrorDeviation(ERROR_ACCESSRIGHT_NOT_FOUND));
+        }
+    }
+
+    /**
+     * If duplicate access right was found
+     */
+    public static class DuplicateAccessRightException extends ServiceConflictException {
+        public static final String ERROR_DUPLICATE_ACCESSRIGHT = "duplicate_accessright";
+
+        public DuplicateAccessRightException(String msg) {
+            super(msg, new ErrorDeviation(ERROR_DUPLICATE_ACCESSRIGHT));
         }
     }
 
