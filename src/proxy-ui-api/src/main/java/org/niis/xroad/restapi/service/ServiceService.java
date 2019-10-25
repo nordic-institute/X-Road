@@ -336,9 +336,11 @@ public class ServiceService {
 
         Date now = new Date();
         for (XRoadId subjectId : subjectIds) {
-            boolean accessRightExists = clientType.getAcl().stream()
-                    .anyMatch(accessRightType -> accessRightType.getSubjectId().equals(subjectId));
-            if (accessRightExists) {
+            Optional<AccessRightType> existingAccessRight = clientType.getAcl().stream()
+                    .filter(accessRightType -> accessRightType.getSubjectId().equals(subjectId))
+                    .findFirst();
+
+            if (existingAccessRight.isPresent() && existingAccessRight.get().getEndpoint().equals(endpointType)) {
                 throw new DuplicateAccessRightException("Subject " + subjectId.toShortString()
                         + " already has an access right for service " + serviceType.getServiceCode());
             }

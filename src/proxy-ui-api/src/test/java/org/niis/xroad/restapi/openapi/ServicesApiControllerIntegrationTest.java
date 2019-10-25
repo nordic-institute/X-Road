@@ -430,15 +430,31 @@ public class ServicesApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
             "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
     public void addAccessRights() {
+        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_CALCULATE_PRIME).getBody();
+        assertEquals(0, serviceClients.size());
+
+        Subjects subjectsToAdd = new Subjects()
+                .addItemsItem(new Subject().id(LOCAL_GROUP_ID_2).subjectType(SubjectType.LOCALGROUP))
+                .addItemsItem(new Subject().id(GLOBAL_GROUP_ID).subjectType(SubjectType.GLOBALGROUP))
+                .addItemsItem(new Subject().id(SS2_CLIENT_ID).subjectType(SubjectType.GLOBALGROUP));
+
+        List<ServiceClient> updatedServiceClients = servicesApiController
+                .addServiceAccessRight(SS1_CALCULATE_PRIME, subjectsToAdd).getBody();
+
+        assertEquals(3, updatedServiceClients.size());
+    }
+
+    @Test(expected = ConflictException.class)
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
+            "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    public void addDuplicateAccessRight() {
         List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
         assertEquals(3, serviceClients.size());
 
         Subjects subjectsToAdd = new Subjects()
-                .addItemsItem(new Subject().id(LOCAL_GROUP_ID_2).subjectType(SubjectType.LOCALGROUP));
+                .addItemsItem(new Subject().id(LOCAL_GROUP_ID_2).subjectType(SubjectType.LOCALGROUP))
+                .addItemsItem(new Subject().id(SS2_CLIENT_ID).subjectType(SubjectType.SUBSYSTEM));
 
-        List<ServiceClient> updatedServiceClients = servicesApiController
-                .addServiceAccessRight(SS1_GET_RANDOM, subjectsToAdd).getBody();
-
-        assertEquals(4, updatedServiceClients.size());
+        servicesApiController.addServiceAccessRight(SS1_GET_RANDOM, subjectsToAdd);
     }
 }
