@@ -436,7 +436,7 @@ public class ServicesApiControllerIntegrationTest {
         Subjects subjectsToAdd = new Subjects()
                 .addItemsItem(new Subject().id(LOCAL_GROUP_ID_2).subjectType(SubjectType.LOCALGROUP))
                 .addItemsItem(new Subject().id(GLOBAL_GROUP_ID).subjectType(SubjectType.GLOBALGROUP))
-                .addItemsItem(new Subject().id(SS2_CLIENT_ID).subjectType(SubjectType.GLOBALGROUP));
+                .addItemsItem(new Subject().id(SS2_CLIENT_ID).subjectType(SubjectType.SUBSYSTEM));
 
         List<ServiceClient> updatedServiceClients = servicesApiController
                 .addServiceAccessRight(SS1_CALCULATE_PRIME, subjectsToAdd).getBody();
