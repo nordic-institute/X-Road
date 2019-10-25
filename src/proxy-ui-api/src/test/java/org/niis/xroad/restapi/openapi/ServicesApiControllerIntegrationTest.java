@@ -428,9 +428,10 @@ public class ServicesApiControllerIntegrationTest {
 
     @Test
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
-            "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+            "VIEW_CLIENT_SERVICES" })
     public void addAccessRights() {
-        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_CALCULATE_PRIME).getBody();
+        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(
+                SS1_CALCULATE_PRIME).getBody();
         assertEquals(0, serviceClients.size());
 
         Subjects subjectsToAdd = new Subjects()
@@ -446,7 +447,7 @@ public class ServicesApiControllerIntegrationTest {
 
     @Test(expected = ConflictException.class)
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
-            "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+            "VIEW_CLIENT_SERVICES" })
     public void addDuplicateAccessRight() {
         List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
         assertEquals(3, serviceClients.size());
