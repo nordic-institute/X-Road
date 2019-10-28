@@ -1,34 +1,32 @@
 
 var loginCommands = {
-  clearUsername: function() {
-    //this.clearValue('@usernameInput');
-    this
-     .setValue('@usernameInput','Z');
-    this.api
-     .keys([this.api.Keys.CONTROL, "a", this.api.Keys.CONTROL]);
-    this.api
-     .keys('\uE017');
+  clearValue2: function (selector) {
+    const { RIGHT_ARROW, BACK_SPACE } = this.api.Keys;
+    return this.getValue(selector, (result) => {
+      const chars = result.value.split('')
+      // Make sure cursor is at the end of the input
+      chars.forEach(() => this.setValue(selector, RIGHT_ARROW))
+      // Delete all the existing characters
+      chars.forEach(() => this.setValue(selector, BACK_SPACE))
+    })
+  },
+  clearUsername: function () {
+    this.clearValue2('@usernameInput');
     return this;
   },
-  clearPassword: function() {
-    //this.clearValue('@passwordInput');
-    this
-     .setValue('@passwordInput','Z');
-    this.api
-     .keys([this.api.Keys.CONTROL, "a", this.api.Keys.CONTROL]);
-    this.api
-     .keys('\uE017');
+  clearPassword: function () {
+    this.clearValue2('@passwordInput');
     return this;
   },
-  enterUsername: function(username) {
+  enterUsername: function (username) {
     this.setValue('@usernameInput', username);
     return this;
   },
-  enterPassword: function(password) {
+  enterPassword: function (password) {
     this.setValue('@passwordInput', password);
     return this;
   },
-  signin: function() {
+  signin: function () {
     this.click('@loginButton');
     return this;
   }
@@ -40,7 +38,6 @@ module.exports = {
   elements: {
     usernameInput: { selector: 'input[id=username]' },
     passwordInput: { selector: 'input[id=password]' },
-    loginButton: { selector: 'div.v-btn__content' }
-
+    loginButton: { selector: 'button[id=submit-button]' }
   }
 };
