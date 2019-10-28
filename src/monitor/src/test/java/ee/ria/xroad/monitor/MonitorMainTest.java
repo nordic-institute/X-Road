@@ -24,31 +24,25 @@
  */
 package ee.ria.xroad.monitor;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
- * Created by janne on 11.5.2017.
+ * Tests for {@link ee.ria.xroad.monitor.MonitorMain}
  */
-@Getter
-@RequiredArgsConstructor
-@ToString
-@EqualsAndHashCode
-public class CertificateMonitoringInfo {
-    private final CertificateType type;
-    private final String sha1hash;
-    private final String notBefore;
-    private final String notAfter;
-    private final boolean active;
+public class MonitorMainTest {
 
-    /**
-     * The type of the Certificate
-     */
-    public enum CertificateType {
-        AUTH_OR_SIGN,
-        SECURITY_SERVER_TLS,
-        INTERNAL_IS_CLIENT_TLS
+    @Test
+    public void testQuickSort() {
+        final int length = 10;
+        int[] arr = new int[length];
+        for (int i = 0; i < length; i++) {
+            arr[i] = length - 1 - i;
+        }
+        MonitorMain.quickSort(arr, 0, length - 1);
+        for (int i = 0; i < length; i++) {
+            assertEquals(i, arr[i]);
+        }
     }
 }
