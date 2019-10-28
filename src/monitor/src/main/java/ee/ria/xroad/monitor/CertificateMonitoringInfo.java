@@ -51,4 +51,9 @@ public class CertificateMonitoringInfo {
         SECURITY_SERVER_TLS,
         INTERNAL_IS_CLIENT_TLS
     }
+
+    public enum SomeOtherType {
+        PROFILE_NEW,
+        PROFILE_OLD
+    }
 }

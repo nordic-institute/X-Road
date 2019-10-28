@@ -76,6 +76,10 @@ public final class MonitorMain {
         registerShutdownHook();
         initAkka();
         startReporters();
+
+        final int length = 10;
+        int[] arr = new int[length];
+        quickSort(arr, 0, length - 1);
     }
 
     private MonitorMain() {
@@ -144,5 +148,39 @@ public final class MonitorMain {
                 .build();
 
         jmxReporter.start();
+    }
+
+    /**
+     * Quicksort array
+     * @param arr
+     * @param left
+     * @param right
+     */
+    public static void quickSort(int[] arr, int left, int right) {
+        int pivotIndex = left + (right - left) / 2;
+        int pivotValue = arr[pivotIndex];
+        int i = left;
+        int j = right;
+        while (i <= j) {
+            while (arr[i] < pivotValue) {
+                i++;
+            }
+            while (arr[j] > pivotValue) {
+                j--;
+            }
+            if (i <= j) {
+                int tmp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = tmp;
+                i++;
+                j--;
+            }
+            if (left < i) {
+                quickSort(arr, left, j);
+            }
+            if (right > i) {
+                quickSort(arr, i, right);
+            }
+        }
     }
 }
