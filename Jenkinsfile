@@ -32,6 +32,10 @@ pipeline {
                     reuseNode true
                 }
             }
+            environment {
+                GRADLE_OPTS = '-Dorg.gradle.daemon=false -Dsonar.host.url=https://sonarqube.niis.org'
+                JAVA_HOME = '/usr/lib/jvm/java-8-openjdk-amd64/'
+            }
             steps {
                 sh 'cd src && ./update_ruby_dependencies.sh'
                 withCredentials([string(credentialsId: 'sonarqube-user-token-2', variable: 'SONAR_TOKEN')]) {
