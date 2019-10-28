@@ -46,8 +46,8 @@ public class LimitRequestSizesConfiguration {
     FileUploadEndpointsConfiguration fileUploadEndpointsConfiguration;
 
     // size limits for file upload requests, and all other requests
-    private static final long REGULAR_REQUEST_SIZE_BYTE_LIMIT = 50 * 1024;
-    private static final long FILE_UPLOAD_REQUEST_SIZE_BYTE_LIMIT = 10 * 1024 * 1024;
+    private static final long REGULAR_REQUEST_SIZE_BYTE_LIMIT = 50 * 1024; // 50KB
+    private static final long FILE_UPLOAD_REQUEST_SIZE_BYTE_LIMIT = 10 * 1024 * 1024; // 10MB
 
     @Bean
     public FilterRegistrationBean<LimitRequestSizesFilter> basicRequestFilter() {

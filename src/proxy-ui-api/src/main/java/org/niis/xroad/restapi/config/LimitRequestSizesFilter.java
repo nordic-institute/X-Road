@@ -36,6 +36,7 @@ import javax.servlet.http.HttpServletRequestWrapper;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collection;
 
@@ -96,8 +97,8 @@ public class LimitRequestSizesFilter implements Filter {
      * Wrapper which limits request sizes to certains number of bytes. Attempt to read more
      * bytes than that results in {@link SizeLimitExceededException}
      * Implementation follows the example of Spring's ContentCachingRequestWrapper.
-     * Probably does not limit multipart-uploads properly, use
-     * web container specific properties for that
+     * Possibly does not limit multipart/form-data uploads properly, use
+     * web container specific properties (server.tomcat.max-http-post-size) for that
      */
     private static class SizeLimitingHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
@@ -129,6 +130,14 @@ public class LimitRequestSizesFilter implements Filter {
 
     /**
      * Stream that limits reading to certain number of bytes.
+     * Size limit is "best effort", it may fail to limit reading to the exact number of
+     * bytes specified, especially if
+     * {@link InputStream#skip(long)}},
+     * {@link InputStream#mark(int)}}, and
+     * {@link InputStream#reset()} are used and underlying stream does not used the overloaded read-methods
+     * (which support size counting and limiting) to implement those.
+     * Not threadsafe.
+     * Does not notify ReadListeners about errors due to maximum size exceeded.
      * Throws {@link SizeLimitExceededException} if maximum is exceeded.
      */
     private static class SizeLimitingServletInputStream extends ServletInputStream {
@@ -140,10 +149,17 @@ public class LimitRequestSizesFilter implements Filter {
             this.maxBytes = maxBytes;
         }
 
+        /**
+         * Increases number of read bytes by number
+         * @param number number of read bytes. If -1, interpreted as "EOF" and ignored
+         * @throws SizeLimitExceededException
+         */
         private void addReadBytesCount(long number) throws SizeLimitExceededException {
-            readSoFar = readSoFar + number;
-            if (readSoFar > maxBytes) {
-                throw new SizeLimitExceededException("request limit " + maxBytes + " exceeded");
+            if (number != -1) {
+                readSoFar = readSoFar + number;
+                if (readSoFar > maxBytes) {
+                    throw new SizeLimitExceededException("request limit " + maxBytes + " exceeded");
+                }
             }
         }
         private void addReadBytesCount() throws SizeLimitExceededException {
@@ -152,8 +168,11 @@ public class LimitRequestSizesFilter implements Filter {
 
         @Override
         public int read() throws IOException {
-            addReadBytesCount();
-            return this.is.read();
+            int value = this.is.read();
+            if (value != -1) {
+                addReadBytesCount();
+            }
+            return value;
         }
 
         @Override
@@ -192,6 +211,34 @@ public class LimitRequestSizesFilter implements Filter {
             this.is.setReadListener(readListener);
         }
 
+        @Override
+        public long skip(long l) throws IOException {
+            return this.is.skip(l);
+        }
 
+        @Override
+        public int available() throws IOException {
+            return this.is.available();
+        }
+
+        @Override
+        public void close() throws IOException {
+            this.is.close();
+        }
+
+        @Override
+        public synchronized void mark(int i) {
+            this.is.mark(i);
+        }
+
+        @Override
+        public synchronized void reset() throws IOException {
+            this.is.reset();
+        }
+
+        @Override
+        public boolean markSupported() {
+            return this.is.markSupported();
+        }
     }
 }
