@@ -3,13 +3,13 @@ file-upload-endpoints:
   endpointDefinitions:
     -
       httpMethod: POST
-      pathInfoEnding: /backups/upload
+      pathEnding: /backups/upload
     -
       httpMethod: POST
-      pathInfoEnding: /tls-certificates
+      pathEnding: /tls-certificates
     -
       httpMethod: POST
-      pathInfoEnding: /certificates
+      pathEnding: /certificates
     -
       httpMethod: POST
-      pathInfoEnding: /certificate/import
+      pathEnding: /certificate/import
