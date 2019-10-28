@@ -25,12 +25,11 @@
 package org.niis.xroad.restapi.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.Ordered;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
@@ -53,30 +52,29 @@ import java.util.EnumSet;
  */
 @Component
 @Slf4j
-public class LimitRequestSizesFilter {
+public class LimitRequestSizesConfiguration {
 
-    @ResponseStatus(value = HttpStatus.PAYLOAD_TOO_LARGE)
-    public static class SizeLimitExceededException extends RuntimeException {
-        public SizeLimitExceededException(String s) {
-            super(s);
-        }
-    }
+    @Autowired
+    FileUploadEndpointsConfiguration fileUploadEndpointsConfiguration;
+
+    private static final long REGULAR_REQUEST_SIZE_BYTE_LIMIT = 200;
+    private static final long FILE_UPLOAD_REQUEST_SIZE_BYTE_LIMIT = 10000;
 
     @Bean
-    public FilterRegistrationBean<JannenFilter> basicRequestFilter() {
-        FilterRegistrationBean<JannenFilter> bean = new FilterRegistrationBean<>();
+    public FilterRegistrationBean<LimitRequestSizesFilter> basicRequestFilter() {
+        FilterRegistrationBean<LimitRequestSizesFilter> bean = new FilterRegistrationBean<>();
         bean.setName("RegularLimitSizeFilter");
-        bean.setFilter(new JannenFilter(200, "tls-certificates"));
+        bean.setFilter(new LimitRequestSizesFilter(REGULAR_REQUEST_SIZE_BYTE_LIMIT, "tls-certificates"));
         bean.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
         bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
         return bean;
     }
 
     @Bean
-    public FilterRegistrationBean<JannenFilter> fileUploadFilter() {
-        FilterRegistrationBean<JannenFilter> bean = new FilterRegistrationBean<>();
+    public FilterRegistrationBean<LimitRequestSizesFilter> fileUploadFilter() {
+        FilterRegistrationBean<LimitRequestSizesFilter> bean = new FilterRegistrationBean<>();
         bean.setName("BinaryUploadLimitSizeFilter");
-        bean.setFilter(new JannenFilter(10000, false, "tls-certificates"));
+        bean.setFilter(new LimitRequestSizesFilter(FILE_UPLOAD_REQUEST_SIZE_BYTE_LIMIT, false, "tls-certificates"));
         bean.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
         bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
         return bean;
@@ -93,8 +91,8 @@ public class LimitRequestSizesFilter {
         private ServletInputStream inputStream;
         private BufferedReader reader;
 
-        private final int maxBytes;
-        public SizeLimitingHttpServletRequestWrapper(HttpServletRequest request, int maxBytes) {
+        private final long maxBytes;
+        public SizeLimitingHttpServletRequestWrapper(HttpServletRequest request, long maxBytes) {
             super(request);
             this.maxBytes = maxBytes;
         }
@@ -118,20 +116,20 @@ public class LimitRequestSizesFilter {
 
     private static class SizeLimitingServletInputStream extends ServletInputStream {
         private final ServletInputStream is;
-        private final int maxBytes;
-        private int readSoFar = 0;
-        SizeLimitingServletInputStream(ServletInputStream is, int maxBytes) {
+        private final long maxBytes;
+        private long readSoFar = 0;
+        SizeLimitingServletInputStream(ServletInputStream is, long maxBytes) {
             this.is = is;
             this.maxBytes = maxBytes;
         }
 
-        private void addReadBytesCount(int number) {
+        private void addReadBytesCount(long number) throws SizeLimitExceededException {
             readSoFar = readSoFar + number;
             if (readSoFar > maxBytes) {
                 throw new SizeLimitExceededException("request limit " + maxBytes + " exceeded");
             }
         }
-        private void addReadBytesCount() {
+        private void addReadBytesCount() throws SizeLimitExceededException {
             addReadBytesCount(1);
         }
 
@@ -180,18 +178,21 @@ public class LimitRequestSizesFilter {
 
     }
 
-    public static class JannenFilter implements Filter {
-        private final int maxBytes;
+    /**
+     * Servlet filter which limits request sizes to some amount of bytes
+     */
+    public static class LimitRequestSizesFilter implements Filter {
+        private final long maxBytes;
         private String[] excludedPathInfoEndings;
         private boolean exclude;
 
-        public JannenFilter(int maxBytes, String...excludedPathInfoEndings) {
+        public LimitRequestSizesFilter(long maxBytes, String...excludedPathInfoEndings) {
             this.maxBytes = maxBytes;
             this.excludedPathInfoEndings = excludedPathInfoEndings;
             this.exclude = true;
         }
 
-        public JannenFilter(int maxBytes, boolean exclude, String...excludedPathInfoEndings) {
+        public LimitRequestSizesFilter(long maxBytes, boolean exclude, String...excludedPathInfoEndings) {
             this.maxBytes = maxBytes;
             this.excludedPathInfoEndings = excludedPathInfoEndings;
             this.exclude = exclude;
