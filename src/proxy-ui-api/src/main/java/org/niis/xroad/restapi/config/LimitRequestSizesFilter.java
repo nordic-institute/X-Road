@@ -150,49 +150,64 @@ public class LimitRequestSizesFilter implements Filter {
         }
 
         /**
-         * Increases number of read bytes by number
-         * @param number number of read bytes. If -1, interpreted as "EOF" and ignored
-         * @throws SizeLimitExceededException
+         * Increases numberToAdd of read bytes by numerToAdd and throws exception if limit exceeded
+         * @param numberToAdd number of read bytes. If -1, interpreted as "EOF" and ignored
+         * @param localBefore local copy of read bytes at the start of the method which calls this
+         * @throws SizeLimitExceededException if limit for read bytes was exceeded
          */
-        private void addReadBytesCount(long number) throws SizeLimitExceededException {
-            if (number != -1) {
-                readSoFar = readSoFar + number;
+        private void increaseReadBytesCount(long localBefore, long numberToAdd) throws SizeLimitExceededException {
+            if (numberToAdd != -1) {
+                // we count what next counter value should be, in our opinion
+                long localNextReadSoFar = localBefore + numberToAdd;
+                // We do not decrease the counter.
+                // Counter may have been increased by another caller.
+                // For example readLine() usually calls read() and both
+                // attempt to increase the counter. In this case the increase from readLine()
+                // does overwrite the value from read()s, but only if it
+                // results in same, or larger, counter value.
+                if (localNextReadSoFar > readSoFar) {
+                    readSoFar = localNextReadSoFar;
+                }
                 if (readSoFar > maxBytes) {
                     throw new SizeLimitExceededException("request limit " + maxBytes + " exceeded");
                 }
             }
         }
-        private void addReadBytesCount() throws SizeLimitExceededException {
-            addReadBytesCount(1);
+        private void increaseReadBytesCount(long localBefore) throws SizeLimitExceededException {
+            increaseReadBytesCount(localBefore, 1);
         }
 
         @Override
         public int read() throws IOException {
+            long localReadSoFar = readSoFar;
             int value = this.is.read();
             if (value != -1) {
-                addReadBytesCount();
+                increaseReadBytesCount(localReadSoFar);
             }
             return value;
         }
 
         @Override
         public int read(byte[] b) throws IOException {
+            long localReadSoFar = readSoFar;
             int count = this.is.read(b);
-            addReadBytesCount(count);
+            increaseReadBytesCount(localReadSoFar, count);
             return count;
         }
 
         @Override
         public int read(final byte[] b, final int off, final int len) throws IOException {
+            long localReadSoFar = readSoFar;
             int count = this.is.read(b, off, len);
-            addReadBytesCount(count);
+            increaseReadBytesCount(localReadSoFar, count);
             return count;
         }
 
         @Override
         public int readLine(final byte[] b, final int off, final int len) throws IOException {
+            long localReadSoFar = readSoFar;
             int count = this.is.readLine(b, off, len);
-            addReadBytesCount(count);
+            increaseReadBytesCount(localReadSoFar, count);
             return count;
         }
 
