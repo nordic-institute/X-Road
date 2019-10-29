@@ -4,9 +4,8 @@ module.exports = {
   'Security server failed login': browser => {
    const frontPage = browser.page.ssFrontPage();
  
-   // Open SUT and check that page is loaded
-   frontPage
-      .navigate();
+    // Open SUT and check that page is loaded
+    browser.url(browser.globals.ss1_url);
     browser.waitForElementVisible('#app');
 
     // Enter invalid credentials
@@ -26,8 +25,7 @@ module.exports = {
     const mainPage = browser.page.ssMainPage();
 
     // Open SUT and check that page is loaded
-    frontPage
-      .navigate();
+    browser.url(browser.globals.ss1_url);
     browser.waitForElementVisible('#app');
 
     // Enter valid credentials

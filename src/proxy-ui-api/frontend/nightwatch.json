@@ -1,20 +1,41 @@
 {
-  "src_folders" : ["./tests/e2e/specs"],
-  "output_folder" : "./tests/e2e/reports",
-  "page_objects_path" : "./tests/e2e/pages",
+  "src_folders" : ["tests/e2e/specs"],
+  "output_folder" : "tests/e2e/reports",
+  "page_objects_path" : "tests/e2e/pages",
   "custom_assertions_path" : "",
-  "globals_path" : "./tests/e2e/env/globals.js",
+  "globals_path" : "tests/e2e/env/globals.js",
   "live_output" : false,
   "parallel_process_delay" : 10,
   "disable_colors": false,
   "test_workers" : false,
+  "selenium" : {
+    "log_path" : "slogs",
+    "cli_args" : {
+      "webdriver.chrome.logfile" : "cdlog.log",
+      "webdriver.chrome.verboseLogging" : "true",
+      "webdriver.ie.driver" : "",
+      "webdriver.firefox.profile" : ""
+    }
+  },
   "test_settings" : {
     "default": {
+      "desiredCapabilities": {
+        "selenium_port" : 4444
+      },
       "globals" : {
         "login_usr" : "xrd",
         "login_pwd" : "secret",
         "login_wrong_usr" : "foo",
-        "login_wrong_pwd" : "bar"
+        "login_wrong_pwd" : "bar",
+        "ss1_url" : "https://xroad-lxd-ss1.lxd:4000/#/login"
+      }
+    },
+    "ci-ff": {
+      "desiredCapabilities": {
+        "browserName": "firefox",
+        "javascriptEnabled": true,
+        "acceptSslCerts": true,
+        "acceptInsecureCerts": true
       }
     }
   }
