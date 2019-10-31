@@ -59,7 +59,7 @@ import static org.mockito.Mockito.when;
 @AutoConfigureTestDatabase
 @Slf4j
 @Transactional
-public class ServiceServiceIntegrationTest {
+public class AccessRightServiceTest {
 
     private static final String INSTANCE_FI = "FI";
     private static final String INSTANCE_EE = "EE";
@@ -81,7 +81,7 @@ public class ServiceServiceIntegrationTest {
             INSTANCE_EE));
 
     @Autowired
-    ServiceService serviceService;
+    AccessRightService accessRightService;
 
     @MockBean
     GlobalConfFacade globalConfFacade;
@@ -108,7 +108,7 @@ public class ServiceServiceIntegrationTest {
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
     public void findAllAccessRightHolders() throws Throwable {
-        List<AccessRightHolderDto> dtos = serviceService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
+        List<AccessRightHolderDto> dtos = accessRightService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
                 null, null, null, null, null);
         assertEquals(7, dtos.size());
     }
@@ -116,7 +116,7 @@ public class ServiceServiceIntegrationTest {
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
     public void findAccessRightHoldersByMemberOrGroupCode() throws Throwable {
-        List<AccessRightHolderDto> dtos = serviceService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
+        List<AccessRightHolderDto> dtos = accessRightService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
                 null, null, null, "1", null);
         assertEquals(4, dtos.size());
     }
@@ -124,7 +124,7 @@ public class ServiceServiceIntegrationTest {
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
     public void findAccessRightHoldersByMemberOrGroupCodeNoResults() throws Throwable {
-        List<AccessRightHolderDto> dtos = serviceService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
+        List<AccessRightHolderDto> dtos = accessRightService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
                 null, null, null, "öäöäöäöäöäöä", null);
         assertEquals(0, dtos.size());
     }
@@ -132,7 +132,7 @@ public class ServiceServiceIntegrationTest {
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
     public void findAccessRightHoldersByInstance() throws Throwable {
-        List<AccessRightHolderDto> dtos = serviceService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
+        List<AccessRightHolderDto> dtos = accessRightService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
                 null, INSTANCE_EE, null, null, null);
         assertEquals(4, dtos.size());
     }
@@ -140,7 +140,7 @@ public class ServiceServiceIntegrationTest {
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
     public void findAccessRightHoldersByInstanceAndSubSystem() throws Throwable {
-        List<AccessRightHolderDto> dtos = serviceService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
+        List<AccessRightHolderDto> dtos = accessRightService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
                 null, INSTANCE_FI, null, null, SUBSYSTEM1);
         assertEquals(1, dtos.size());
     }

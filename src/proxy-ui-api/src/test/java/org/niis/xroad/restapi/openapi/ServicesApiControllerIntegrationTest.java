@@ -58,8 +58,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.service.AccessRightService.AccessRightNotFoundException.ERROR_ACCESSRIGHT_NOT_FOUND;
 import static org.niis.xroad.restapi.service.ClientNotFoundException.ERROR_CLIENT_NOT_FOUND;
-import static org.niis.xroad.restapi.service.ServiceService.AccessRightNotFoundException.ERROR_ACCESSRIGHT_NOT_FOUND;
 import static org.niis.xroad.restapi.service.ServiceService.ServiceNotFoundException.ERROR_SERVICE_NOT_FOUND;
 
 /**
@@ -81,7 +81,6 @@ public class ServicesApiControllerIntegrationTest {
     public static final String LOCAL_GROUP_ID_2 = "2";
     public static final String LOCAL_GROUP_CODE = "group1";
     public static final String LOCAL_GROUP_DESC = "foo";
-    public static final String SS1_CLIENT_ID = "FI:GOV:M1:SS1";
     public static final String SS2_CLIENT_ID = "FI:GOV:M1:SS2";
     public static final String SS3_CLIENT_ID = "FI:GOV:M1:SS3";
     public static final String SS4_CLIENT_ID = "FI:GOV:M1:SS4";
@@ -104,9 +103,6 @@ public class ServicesApiControllerIntegrationTest {
 
     @Autowired
     private ServicesApiController servicesApiController;
-
-    @Autowired
-    private ClientsApiController clientsApiController;
 
     @MockBean
     private GlobalConfFacade globalConfFacade;
@@ -245,22 +241,22 @@ public class ServicesApiControllerIntegrationTest {
         assertEquals(3, serviceClients.size());
 
         ServiceClient serviceClient = getServiceClientByType(serviceClients, GLOBALGROUP).get();
-        assertEquals(NAME_FOR + GLOBAL_GROUP_CODE, serviceClient.getName());
-        assertEquals(GLOBAL_GROUP_ID, serviceClient.getId());
-        assertEquals(GLOBALGROUP, serviceClient.getSubjectType().name());
+        assertEquals(NAME_FOR + GLOBAL_GROUP_CODE, serviceClient.getSubject().getMemberNameGroupDescription());
+        assertEquals(GLOBAL_GROUP_ID, serviceClient.getSubject().getId());
+        assertEquals(GLOBALGROUP, serviceClient.getSubject().getSubjectType().name());
         assertNull(serviceClient.getAccessRights());
 
         serviceClient = getServiceClientByType(serviceClients, LOCALGROUP).get();
-        assertEquals(LOCAL_GROUP_ID_1, serviceClient.getId());
-        assertEquals(LOCAL_GROUP_CODE, serviceClient.getLocalGroupCode());
-        assertEquals(LOCAL_GROUP_DESC, serviceClient.getName());
-        assertEquals(LOCALGROUP, serviceClient.getSubjectType().name());
+        assertEquals(LOCAL_GROUP_ID_1, serviceClient.getSubject().getId());
+        assertEquals(LOCAL_GROUP_CODE, serviceClient.getSubject().getLocalGroupCode());
+        assertEquals(LOCAL_GROUP_DESC, serviceClient.getSubject().getMemberNameGroupDescription());
+        assertEquals(LOCALGROUP, serviceClient.getSubject().getSubjectType().name());
         assertNull(serviceClient.getAccessRights());
 
         serviceClient = getServiceClientByType(serviceClients, SUBSYSTEM).get();
-        assertEquals(NAME_FOR + SS2_CLIENT_ID, serviceClient.getName());
-        assertEquals(SS2_CLIENT_ID, serviceClient.getId());
-        assertEquals(SUBSYSTEM, serviceClient.getSubjectType().name());
+        assertEquals(NAME_FOR + SS2_CLIENT_ID, serviceClient.getSubject().getMemberNameGroupDescription());
+        assertEquals(SS2_CLIENT_ID, serviceClient.getSubject().getId());
+        assertEquals(SUBSYSTEM, serviceClient.getSubject().getSubjectType().name());
         assertNull(serviceClient.getAccessRights());
 
         serviceClients = servicesApiController.getServiceAccessRights(SS1_CALCULATE_PRIME).getBody();
@@ -288,7 +284,7 @@ public class ServicesApiControllerIntegrationTest {
     private Optional<ServiceClient> getServiceClientByType(List<ServiceClient> serviceClients, String type) {
         return serviceClients
                 .stream()
-                .filter(serviceClient -> serviceClient.getSubjectType().name().equals(type))
+                .filter(serviceClient -> serviceClient.getSubject().getSubjectType().name().equals(type))
                 .findFirst();
     }
 

@@ -52,6 +52,7 @@ import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.openapi.model.SubjectType;
+import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.ClientService;
@@ -100,6 +101,7 @@ public class ClientsApiController implements ClientsApi {
     private final ServiceDescriptionConverter serviceDescriptionConverter;
     private final ServiceDescriptionService serviceDescriptionService;
     private final ServiceService serviceService;
+    private final AccessRightService accessRightService;
     private final SubjectConverter subjectConverter;
 
     /**
@@ -112,6 +114,7 @@ public class ClientsApiController implements ClientsApi {
      * @param serviceDescriptionConverter
      * @param serviceDescriptionService
      * @param serviceService
+     * @param accessRightService
      * @param subjectConverter
      */
 
@@ -121,7 +124,7 @@ public class ClientsApiController implements ClientsApi {
             LocalGroupService localGroupService, CertificateDetailsConverter certificateDetailsConverter,
             ServiceDescriptionConverter serviceDescriptionConverter,
             ServiceDescriptionService serviceDescriptionService, ServiceService serviceService,
-            SubjectConverter subjectConverter) {
+            AccessRightService accessRightService, SubjectConverter subjectConverter) {
         this.clientService = clientService;
         this.tokenService = tokenService;
         this.clientConverter = clientConverter;
@@ -131,6 +134,7 @@ public class ClientsApiController implements ClientsApi {
         this.serviceDescriptionConverter = serviceDescriptionConverter;
         this.serviceDescriptionService = serviceDescriptionService;
         this.serviceService = serviceService;
+        this.accessRightService = accessRightService;
         this.subjectConverter = subjectConverter;
     }
 
@@ -355,15 +359,15 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
-    public ResponseEntity<List<Subject>> findSubjects(String encodedClientId, String memberNameGroupDescription,
+    public ResponseEntity<List<Subject>> findSubjects(String encodedClientId, String memberNameOrGroupDescription,
             SubjectType subjectType, String instance, String memberClass, String memberGroupCode,
             String subsystemCode) {
         ClientId clientId = clientConverter.convertId(encodedClientId);
         XRoadObjectType xRoadObjectType = SubjectTypeMapping.map(subjectType).orElse(null);
         List<AccessRightHolderDto> accessRightHolderDtos = null;
         try {
-            accessRightHolderDtos = serviceService.findAccessRightHolders(clientId,
-                    memberNameGroupDescription, xRoadObjectType, instance, memberClass, memberGroupCode, subsystemCode);
+            accessRightHolderDtos = accessRightService.findAccessRightHolders(clientId, memberNameOrGroupDescription,
+                    xRoadObjectType, instance, memberClass, memberGroupCode, subsystemCode);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }

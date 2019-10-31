@@ -40,6 +40,7 @@ import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
 import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.openapi.model.Subjects;
+import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
@@ -70,14 +71,16 @@ public class ServicesApiController implements ServicesApi {
     private final ServiceClientConverter serviceClientConverter;
     private final ServiceService serviceService;
     private final SubjectConverter subjectConverter;
+    private final AccessRightService accessRightService;
 
     @Autowired
     public ServicesApiController(ServiceConverter serviceConverter, ServiceClientConverter serviceClientConverter,
-            ServiceService serviceService, SubjectConverter subjectConverter) {
+            ServiceService serviceService, SubjectConverter subjectConverter, AccessRightService accessRightService) {
         this.serviceConverter = serviceConverter;
         this.serviceClientConverter = serviceClientConverter;
         this.serviceService = serviceService;
         this.subjectConverter = subjectConverter;
+        this.accessRightService = accessRightService;
     }
 
     @Override
@@ -127,7 +130,7 @@ public class ServicesApiController implements ServicesApi {
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
         List<AccessRightHolderDto> accessRightHolderDtos = null;
         try {
-            accessRightHolderDtos = serviceService.getAccessRightHoldersByService(clientId, fullServiceCode);
+            accessRightHolderDtos = accessRightService.getAccessRightHoldersByService(clientId, fullServiceCode);
         } catch (ClientNotFoundException | ServiceService.ServiceNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
@@ -146,10 +149,11 @@ public class ServicesApiController implements ServicesApi {
         // Converter handles other errors such as unknown types and ids
         List<XRoadId> xRoadIds = subjectConverter.convertId(subjects.getItems());
         try {
-            serviceService.deleteServiceAccessRights(clientId, fullServiceCode, new HashSet<>(xRoadIds), localGroupIds);
+            accessRightService.deleteServiceAccessRights(clientId, fullServiceCode, new HashSet<>(xRoadIds),
+                    localGroupIds);
         } catch (ServiceService.ServiceNotFoundException | ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (LocalGroupNotFoundException | ServiceService.AccessRightNotFoundException e) {
+        } catch (LocalGroupNotFoundException | AccessRightService.AccessRightNotFoundException e) {
             throw new BadRequestException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -165,13 +169,13 @@ public class ServicesApiController implements ServicesApi {
         List<XRoadId> xRoadIds = subjectConverter.convertId(subjects.getItems());
         List<AccessRightHolderDto> accessRightHolderDtos;
         try {
-            accessRightHolderDtos = serviceService.addServiceAccessRights(clientId, fullServiceCode,
+            accessRightHolderDtos = accessRightService.addServiceAccessRights(clientId, fullServiceCode,
                     new HashSet<>(xRoadIds), localGroupIds);
         } catch (ClientNotFoundException | ServiceService.ServiceNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (LocalGroupNotFoundException e) {
             throw new BadRequestException(e);
-        } catch (ServiceService.DuplicateAccessRightException e) {
+        } catch (AccessRightService.DuplicateAccessRightException e) {
             throw new ConflictException(e);
         }
         List<ServiceClient> serviceClients = serviceClientConverter.convertAccessRightHolderDtos(accessRightHolderDtos);
