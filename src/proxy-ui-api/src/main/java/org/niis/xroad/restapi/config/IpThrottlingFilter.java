@@ -103,9 +103,10 @@ public class IpThrottlingFilter extends GenericFilterBean {
         } else {
             // limit is exceeded, respond with 429 TOO_MANY_REQUESTS
             HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
-            httpResponse.setContentType("text/plain");
+            httpResponse.setContentType("application/json");
+            httpResponse.setCharacterEncoding("UTF-8");
             httpResponse.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-            httpResponse.getWriter().append("Too many requests");
+            httpResponse.getWriter().append("{\"status\":429}");
         }
     }
 
