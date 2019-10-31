@@ -1,5 +1,5 @@
 - name: Restart container
-  with_inventory_hostnames: ss-servers, cs-servers, cp-servers
+  with_inventory_hostnames: ss_servers, cs_servers, cp_servers
   lxd_container:
     name: "{{item}}"
     state: restarted

@@ -1,37 +1,37 @@
 #central servers (ubuntu lxd containers)
-[cs-servers]
+[cs_servers]
 xroad-lxd-cs ansible_connection=lxd
 
 #configuration proxies (ubuntu lxd containers, optional)
-[cp-servers]
+[cp_servers]
 #xroad-lxd-cp ansible_connection=lxd
 
 #certification authority, time stamping authority and ocsp service server for testing purposes (ubuntu)
-[ca-servers]
+[ca_servers]
 xroad-lxd-cs ansible_connection=lxd
 
 #security servers (ubuntu lxd containers)
-[ss-servers]
+[ss_servers]
 xroad-lxd-ss1 ansible_connection=lxd
 #for a more realistic setup, add at least one additional server
 #xroad-lxd-ss2 ansible_connection=lxd
 
-[ss-servers:children]
-centos-ss
+[ss_servers:children]
+centos_ss
 
 #security servers (centos lxd containers, not supported in variant ee)
-[centos-ss]
+[centos_ss]
 #xroad-lxd-rh-ss1 ansible_connection=lxd
 
 #container host
-[lxd-servers]
+[lxd_servers]
 localhost ansible_connection=local
 
 #compilation host
-[compile-servers]
+[compile_servers]
 localhost ansible_connection=local
 
 ### vars ###
 
-[ss-servers:vars]
+[ss_servers:vars]
 variant=vanilla
