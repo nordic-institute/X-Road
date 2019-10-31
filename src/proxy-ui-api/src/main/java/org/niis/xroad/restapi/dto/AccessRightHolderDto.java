@@ -36,15 +36,15 @@ import java.time.OffsetDateTime;
 @Data
 public class AccessRightHolderDto {
     /**
-     * Group's PK - NULL if not a LOCALGROUP
+     * primary key of a LocalGroup - NULL if not a LOCALGROUP
      */
     private String localGroupId;
     /**
-     * Group's localGroupCode - NULL if not a LOCALGROUP
+     * localGroupCode - NULL if not a LOCALGROUP
      */
     private String localGroupCode;
     /**
-     * Group's localGroupDescription - NULL if not a LOCALGROUP
+     * localGroupDescription - NULL if not a LOCALGROUP
      */
     private String localGroupDescription;
     /**
