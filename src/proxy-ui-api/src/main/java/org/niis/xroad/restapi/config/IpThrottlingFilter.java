@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.filter.GenericFilterBean;
 
 import javax.servlet.FilterChain;
@@ -51,35 +52,34 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @Slf4j
+/**
+ * Filter which rate limits requests
+ */
 public class IpThrottlingFilter extends GenericFilterBean {
 
-    public static final int CAPACITY = 10;
-    public static final int STATUS = 429;
+    public static final int MAX_REQUESTS_PER_SECOND = 20;
+    public static final int MAX_REQUESTS_PER_MINUTE = 10 * 60;
+    public static final int EXPIRE_BUCKETS_FROM_CACHE_MINUTES = 5;
 
+    // use Guava LoadingCache to store buckets, for easy eviction of old buckets
     LoadingCache<String, Bucket> bucketCache = CacheBuilder.newBuilder()
-            .expireAfterAccess(1, TimeUnit.MINUTES)
-//            .removalListener(new RemovalListener<Object, Object>() {
-//                @Override
-//                public void onRemoval(RemovalNotification<Object, Object> notification) {
-//                    logger.info("================removing from cache: " + notification);
-//                }
-//            })
+            .expireAfterAccess(EXPIRE_BUCKETS_FROM_CACHE_MINUTES, TimeUnit.MINUTES)
             .build(new CacheLoader<String, Bucket>() {
                        public Bucket load(String key) {
-                           Bucket bucket = standardBucket();
-//                            logger.info("===================for ip: " + key + " ,created bucket to cache: " + bucket);
+                           Bucket bucket = createStandardBucket();
                            return bucket;
                        }
                    }
             );
 
     /**
-     * 10 requests / minute
+     * create a new bucket
      * @return
      */
-    private static Bucket standardBucket() {
+    private static Bucket createStandardBucket() {
         return Bucket4j.builder()
-                .addLimit(Bandwidth.simple(CAPACITY, Duration.ofMinutes(1)))
+                .addLimit(Bandwidth.simple(MAX_REQUESTS_PER_SECOND, Duration.ofSeconds(1)))
+                .addLimit(Bandwidth.simple(MAX_REQUESTS_PER_MINUTE, Duration.ofMinutes(1)))
                 .build();
     }
 
@@ -97,14 +97,14 @@ public class IpThrottlingFilter extends GenericFilterBean {
         }
 
         // tryConsume returns false immediately if no tokens available with the bucket
-        if (bucket.tryConsume(1)) {
-            // the limit is not exceeded
+        if (bucket == null || bucket.tryConsume(1)) {
+            // the limit is not exceeded (or we could not use buckets)
             filterChain.doFilter(servletRequest, servletResponse);
         } else {
-            // limit is exceeded
+            // limit is exceeded, respond with 429 TOO_MANY_REQUESTS
             HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
             httpResponse.setContentType("text/plain");
-            httpResponse.setStatus(STATUS);
+            httpResponse.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             httpResponse.getWriter().append("Too many requests");
         }
     }
