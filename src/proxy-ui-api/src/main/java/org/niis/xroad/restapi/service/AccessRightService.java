@@ -27,7 +27,6 @@ package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
-import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
@@ -40,6 +39,7 @@ import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
@@ -50,7 +50,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -102,9 +101,9 @@ public class AccessRightService {
         if (subjectId.getObjectType() == XRoadObjectType.LOCALGROUP) {
             LocalGroupId localGroupId = (LocalGroupId) subjectId;
             LocalGroupType localGroupType = localGroupMap.get(localGroupId.getGroupCode());
-            accessRightHolderDto.setGroupId(localGroupType.getId().toString());
-            accessRightHolderDto.setGroupCode(localGroupType.getGroupCode());
-            accessRightHolderDto.setGroupDescription(localGroupType.getDescription());
+            accessRightHolderDto.setLocalGroupId(localGroupType.getId().toString());
+            accessRightHolderDto.setLocalGroupCode(localGroupType.getGroupCode());
+            accessRightHolderDto.setLocalGroupDescription(localGroupType.getDescription());
         }
         return accessRightHolderDto;
     }
@@ -327,12 +326,14 @@ public class AccessRightService {
     /**
      * Find access right holders by search terms
      * @param clientId
-     * @param memberNameOrGroupDescription
-     * @param subjectType
-     * @param instance
-     * @param memberClass
-     * @param memberGroupCode
-     * @param subsystemCode
+     * @param subjectType search term for subjectType. Null or empty value is considered a match
+     * @param memberNameOrGroupDescription search term for memberName or groupDescription (depending on subject's type).
+     * Null or empty value is considered a match
+     * @param instance search term for instance. Null or empty value is considered a match
+     * @param memberClass search term for memberClass. Null or empty value is considered a match
+     * @param memberGroupCode search term for memberCode or groupCode (depending on subject's type).
+     * Null or empty value is considered a match
+     * @param subsystemCode search term for subsystemCode. Null or empty value is considered a match
      * @return A List of {@link AccessRightHolderDto accessRightHolderDtos} or an empty List if nothing is found
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
@@ -342,24 +343,64 @@ public class AccessRightService {
         List<AccessRightHolderDto> dtos = new ArrayList<>();
 
         // get client
-        // will throw a checked exception - later
         ClientType client = clientRepository.getClient(clientId);
         if (client == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
         }
 
-        // GlobalConf::getGlobalMembers (only subsystems) - leaves unregistered local clients out
-        List<MemberInfo> clients = globalConfFacade.getMembers();
-        clients.forEach(memberInfo -> {
-            AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
-            accessRightHolderDto.setSubjectId(memberInfo.getId());
-            accessRightHolderDto.setMemberName(memberInfo.getName());
-            dtos.add(accessRightHolderDto);
-        });
+        // get global members
+        List<AccessRightHolderDto> globalMembers = getGlobalMembersAsDtos();
+        if (globalMembers.size() > 0) {
+            dtos.addAll(globalMembers);
+        }
 
-        // GlobalConf::getGlobalGroups
-        List<GlobalGroupInfo> globalGroupInfos = null;
+        // get global groups
+        List<AccessRightHolderDto> globalGroups = getGlobalGroupsAsDtos(instance);
+        if (globalMembers.size() > 0) {
+            dtos.addAll(globalGroups);
+        }
+
+        // get local groups
+        List<AccessRightHolderDto> localGroups = getLocalGroupsAsDtos(client.getLocalGroup());
+        if (localGroups.size() > 0) {
+            dtos.addAll(localGroups);
+        }
+
+        Predicate<AccessRightHolderDto> matchingSearchTerms = buildSubjectSearchPredicate(subjectType,
+                memberNameOrGroupDescription, instance, memberClass, memberGroupCode, subsystemCode);
+
+        return dtos.stream()
+                .filter(matchingSearchTerms)
+                .collect(Collectors.toList());
+    }
+
+    private List<AccessRightHolderDto> getLocalGroupsAsDtos(List<LocalGroupType> localGroupTypes) {
+        return localGroupTypes.stream()
+                .map(localGroup -> {
+                    AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
+                    accessRightHolderDto.setLocalGroupId(localGroup.getId().toString());
+                    accessRightHolderDto.setLocalGroupCode(localGroup.getGroupCode());
+                    accessRightHolderDto.setSubjectId(LocalGroupId.create(localGroup.getGroupCode()));
+                    accessRightHolderDto.setLocalGroupDescription(localGroup.getDescription());
+                    return accessRightHolderDto;
+                }).collect(Collectors.toList());
+    }
+
+    private List<AccessRightHolderDto> getGlobalMembersAsDtos() {
+        return globalConfFacade.getMembers().stream()
+                .map(memberInfo -> {
+                    AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
+                    accessRightHolderDto.setSubjectId(memberInfo.getId());
+                    accessRightHolderDto.setMemberName(memberInfo.getName());
+                    return accessRightHolderDto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    private List<AccessRightHolderDto> getGlobalGroupsAsDtos(String instance) {
+        List<AccessRightHolderDto> globalGroups = new ArrayList<>();
         List<String> globalGroupInstances = globalConfFacade.getInstanceIdentifiers();
+        List<GlobalGroupInfo> globalGroupInfos = null;
         // core throws CodedException if nothing is found for the provided instance/instances
         try {
             if (!StringUtils.isEmpty(instance)) {
@@ -380,103 +421,106 @@ public class AccessRightService {
             globalGroupInfos.forEach(globalGroupInfo -> {
                 AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
                 accessRightHolderDto.setSubjectId(globalGroupInfo.getId());
-                accessRightHolderDto.setGroupDescription(globalGroupInfo.getDescription());
-                dtos.add(accessRightHolderDto);
+                accessRightHolderDto.setLocalGroupDescription(globalGroupInfo.getDescription());
+                globalGroups.add(accessRightHolderDto);
             });
         }
-
-        // client.getLocalGroups
-        List<LocalGroupType> localGroups = client.getLocalGroup();
-        localGroups.forEach(localGroup -> {
-            AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
-            accessRightHolderDto.setGroupId(localGroup.getId().toString());
-            accessRightHolderDto.setGroupCode(localGroup.getGroupCode());
-            accessRightHolderDto.setSubjectId(LocalGroupId.create(localGroup.getGroupCode()));
-            accessRightHolderDto.setGroupDescription(localGroup.getDescription());
-            dtos.add(accessRightHolderDto);
-        });
-
-        Predicate<AccessRightHolderDto> matchingSearchTerms = buildSubjectSearchPredicate(subjectType,
-                memberNameOrGroupDescription, instance, memberClass, memberGroupCode, subsystemCode);
-
-        return dtos.stream()
-                .filter(matchingSearchTerms)
-                .collect(Collectors.toList());
+        return globalGroups;
     }
 
+    /**
+     * Composes a {@link Predicate} that will be used to filter {@link AccessRightHolderDto AccessRightHolderDtos}
+     * against the given search terms. The given AccessRightHolderDto has a {@link AccessRightHolderDto#subjectId}
+     * which can be of type {@link GlobalGroupId}, {@link LocalGroupId} or {@link ClientId}. When evaluating the
+     * Predicate the type of the Subject will be taken in account for example when testing if the search term
+     * {@code memberGroupCode} matches
+     * @param subjectType search term for subjectType. Null or empty value is considered a match
+     * @param memberNameOrGroupDescription search term for memberName or groupDescription (depending on subject's type).
+     * Null or empty value is considered a match
+     * @param instance search term for instance. Null or empty value is considered a match
+     * @param memberClass search term for memberClass. Null or empty value is considered a match
+     * @param memberGroupCode search term for memberCode or groupCode (depending on subject's type).
+     * Null or empty value is considered a match
+     * @param subsystemCode search term for subsystemCode. Null or empty value is considered a match
+     * @return Predicate
+     */
     private Predicate<AccessRightHolderDto> buildSubjectSearchPredicate(XRoadObjectType subjectType,
             String memberNameOrGroupDescription, String instance, String memberClass, String memberGroupCode,
             String subsystemCode) {
+        // Start by assuming the search is a match. If there are no search terms --> return all
         Predicate<AccessRightHolderDto> searchPredicate = accessRightHolderDto -> true;
+
+        // Ultimately members cannot have access rights to Services -> no members in the Subject search results.
+        searchPredicate = searchPredicate.and(dto -> dto.getSubjectId().getObjectType() != XRoadObjectType.MEMBER);
+
         if (subjectType != null) {
             searchPredicate = searchPredicate.and(dto -> dto.getSubjectId().getObjectType() == subjectType);
         }
+        // Check if the memberName or LocalGroup's description match with the search term
         if (!StringUtils.isEmpty(memberNameOrGroupDescription)) {
             searchPredicate = searchPredicate.and(dto -> {
                 String memberName = dto.getMemberName();
-                String groupDescription = dto.getGroupDescription();
-                boolean isMatch = (memberName != null && memberName.toLowerCase().contains(
-                        memberNameOrGroupDescription.toLowerCase()))
-                        || (groupDescription != null && groupDescription.toLowerCase().contains(
-                        memberNameOrGroupDescription.toLowerCase()));
+                String localGroupDescription = dto.getLocalGroupDescription();
+                boolean isMatch = StringUtils.containsIgnoreCase(memberName, memberNameOrGroupDescription)
+                        || StringUtils.containsIgnoreCase(localGroupDescription, memberNameOrGroupDescription);
                 return isMatch;
             });
         }
+        // Check if the instance of the subject matches with the search term
         if (!StringUtils.isEmpty(instance)) {
             searchPredicate = searchPredicate.and(dto -> {
                 XRoadId xRoadId = dto.getSubjectId();
-                // LocalGroups do not have explicit X-Road instances -> always return
+                // In case the Subject is a LocalGroup: LocalGroups do not have explicit X-Road instances
+                // -> always return
                 if (xRoadId instanceof LocalGroupId) {
                     return true;
                 } else {
-                    return dto.getSubjectId().getXRoadInstance().toLowerCase().contains(instance.toLowerCase());
+                    return StringUtils.containsIgnoreCase(dto.getSubjectId().getXRoadInstance(), instance);
                 }
             });
         }
+        // Check if the memberClass of the subject matches with the search term
         if (!StringUtils.isEmpty(memberClass)) {
             searchPredicate = searchPredicate.and(dto -> {
                 XRoadId xRoadId = dto.getSubjectId();
                 if (xRoadId instanceof ClientId) {
-                    return ((ClientId) xRoadId).getMemberClass().toLowerCase().contains(memberClass.toLowerCase());
+                    String clientMemberClass = ((ClientId) xRoadId).getMemberClass();
+                    return StringUtils.containsIgnoreCase(clientMemberClass, memberClass);
                 } else {
                     return false;
                 }
             });
         }
+        // Check if the subsystemCode of the subject matches with the search term
         if (!StringUtils.isEmpty(subsystemCode)) {
             searchPredicate = searchPredicate.and(dto -> {
                 XRoadId xRoadId = dto.getSubjectId();
                 if (xRoadId instanceof ClientId) {
                     String clientSubsystemCode = ((ClientId) xRoadId).getSubsystemCode();
-                    return clientSubsystemCode != null && clientSubsystemCode
-                            .toLowerCase()
-                            .contains(subsystemCode.toLowerCase());
+                    return StringUtils.containsIgnoreCase(clientSubsystemCode, subsystemCode);
                 } else {
                     return false;
                 }
             });
         }
+        // Check if the memberCode or groupCode of the subject matches with the search term
         if (!StringUtils.isEmpty(memberGroupCode)) {
             searchPredicate = searchPredicate.and(dto -> {
                 XRoadId xRoadId = dto.getSubjectId();
                 if (xRoadId instanceof ClientId) {
-                    return ((ClientId) xRoadId).getMemberCode()
-                            .toLowerCase()
-                            .contains(memberGroupCode.toLowerCase());
+                    String clientMemberCode = ((ClientId) xRoadId).getMemberCode();
+                    return StringUtils.containsIgnoreCase(clientMemberCode, memberGroupCode);
                 } else if (xRoadId instanceof GlobalGroupId) {
-                    return ((GlobalGroupId) xRoadId).getGroupCode()
-                            .toLowerCase()
-                            .contains(memberGroupCode.toLowerCase());
+                    String globalGroupCode = ((GlobalGroupId) xRoadId).getGroupCode();
+                    return StringUtils.containsIgnoreCase(globalGroupCode, memberGroupCode);
                 } else if (xRoadId instanceof LocalGroupId) {
-                    return ((LocalGroupId) xRoadId).getGroupCode()
-                            .toLowerCase()
-                            .contains(memberGroupCode.toLowerCase());
+                    String localGroupCode = ((LocalGroupId) xRoadId).getGroupCode();
+                    return StringUtils.containsIgnoreCase(localGroupCode, memberGroupCode);
                 } else {
                     return false;
                 }
             });
         }
-        searchPredicate = searchPredicate.and(dto -> dto.getSubjectId().getObjectType() != XRoadObjectType.MEMBER);
         return searchPredicate;
     }
 }

@@ -102,16 +102,16 @@ public class SubjectConverter {
      */
     public Subject convert(AccessRightHolderDto accessRightHolderDto) {
         Subject subject = new Subject();
-        String subjectsId = accessRightHolderDto.getGroupId() != null
-                ? accessRightHolderDto.getGroupId() : FormatUtils.xRoadIdToEncodedId(
+        String subjectsId = accessRightHolderDto.getLocalGroupId() != null
+                ? accessRightHolderDto.getLocalGroupId() : FormatUtils.xRoadIdToEncodedId(
                 accessRightHolderDto.getSubjectId());
         subject.setId(subjectsId);
-        subject.setLocalGroupCode(accessRightHolderDto.getGroupCode());
+        subject.setLocalGroupCode(accessRightHolderDto.getLocalGroupCode());
         SubjectType subjectType = SubjectTypeMapping
                 .map(accessRightHolderDto.getSubjectId().getObjectType()).orElse(null);
         subject.setSubjectType(subjectType);
         String memberNameOrGroupDescription = accessRightHolderDto.getMemberName() != null
-                ? accessRightHolderDto.getMemberName() : accessRightHolderDto.getGroupDescription();
+                ? accessRightHolderDto.getMemberName() : accessRightHolderDto.getLocalGroupDescription();
         subject.setMemberNameGroupDescription(memberNameOrGroupDescription);
         return subject;
     }

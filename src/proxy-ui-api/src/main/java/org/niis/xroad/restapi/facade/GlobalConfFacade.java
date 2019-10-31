@@ -97,7 +97,7 @@ public class GlobalConfFacade {
     /**
      * {@link GlobalConf#getGlobalGroups(String...)} ()}
      */
-    public List<GlobalGroupInfo> getGlobalGroups(String... instanceIdentifier) {
-        return GlobalConf.getGlobalGroups(instanceIdentifier);
+    public List<GlobalGroupInfo> getGlobalGroups(String... instanceIdentifiers) {
+        return GlobalConf.getGlobalGroups(instanceIdentifiers);
     }
 }
