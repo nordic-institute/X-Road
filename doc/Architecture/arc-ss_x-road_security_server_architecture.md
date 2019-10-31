@@ -288,7 +288,7 @@ User action events that change the system state or configuration are logged into
 The Jetty\[[2](#Ref_2)\] servlet engine hosts the user interface, listening on a port that is configurable in the X-Road configuration files.
 
 
-<a id="Ref_2" class="anchor"><listens/a>
+<a id="Ref_2" class="anchor"></a>
 \[2\] See <http://www.eclipse.org/jetty/> for details.
 
 
