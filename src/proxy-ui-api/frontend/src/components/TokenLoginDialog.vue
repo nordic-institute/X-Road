@@ -86,7 +86,10 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.loading = false;
-          if (error.response.status === 400) {
+          if (
+            error.response.status === 400 &&
+            error.response.data.error.code === 'pin_incorrect'
+          ) {
             (this.$refs.tokenPin as InstanceType<
               typeof ValidationProvider
             >).setErrors([this.$t('keys.incorrectPin') as string]);
