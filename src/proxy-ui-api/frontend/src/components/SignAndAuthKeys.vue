@@ -24,7 +24,11 @@
         :isOpen="isExpanded(token.id)"
       >
         <template v-slot:action>
-          <large-button @click="login(token, index)" v-if="!token.logged_in">{{$t('keys.logIn')}}</large-button>
+          <large-button
+            @click="login(token, index)"
+            v-if="!token.logged_in"
+            :disabled="!token.available"
+          >{{$t('keys.logIn')}}</large-button>
           <large-button
             @click="logout(token, index)"
             v-if="token.logged_in"
