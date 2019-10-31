@@ -3,6 +3,7 @@
     :outlined="outlined"
     :disabled="disabled"
     :min-width="min_width"
+    :loading="loading"
     rounded
     color="primary"
     class="large-button"
@@ -24,7 +25,13 @@ export default Vue.extend({
       type: Boolean,
       default: false,
     },
+    // Set button disabled state
     disabled: {
+      type: Boolean,
+      default: false,
+    },
+    // Show loading spinner
+    loading: {
       type: Boolean,
       default: false,
     },
