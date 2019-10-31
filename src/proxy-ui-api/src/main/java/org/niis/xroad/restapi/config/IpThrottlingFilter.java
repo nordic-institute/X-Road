@@ -24,9 +24,13 @@
  */
 package org.niis.xroad.restapi.config;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Bucket4j;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -41,16 +45,33 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 @Configuration
 @Order(Ordered.HIGHEST_PRECEDENCE)
+@Slf4j
 public class IpThrottlingFilter extends GenericFilterBean {
 
     public static final int CAPACITY = 10;
     public static final int STATUS = 429;
-    private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
+
+    LoadingCache<String, Bucket> bucketCache = CacheBuilder.newBuilder()
+            .expireAfterAccess(1, TimeUnit.MINUTES)
+//            .removalListener(new RemovalListener<Object, Object>() {
+//                @Override
+//                public void onRemoval(RemovalNotification<Object, Object> notification) {
+//                    logger.info("================removing from cache: " + notification);
+//                }
+//            })
+            .build(new CacheLoader<String, Bucket>() {
+                       public Bucket load(String key) {
+                           Bucket bucket = standardBucket();
+//                            logger.info("===================for ip: " + key + " ,created bucket to cache: " + bucket);
+                           return bucket;
+                       }
+                   }
+            );
 
     /**
      * 10 requests / minute
@@ -68,7 +89,12 @@ public class IpThrottlingFilter extends GenericFilterBean {
         HttpServletRequest httpRequest = (HttpServletRequest) servletRequest;
         String ip = httpRequest.getRemoteAddr();
 
-        Bucket bucket = buckets.computeIfAbsent(ip, x -> standardBucket());
+        Bucket bucket = null;
+        try {
+            bucket = bucketCache.get(ip);
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
 
         // tryConsume returns false immediately if no tokens available with the bucket
         if (bucket.tryConsume(1)) {
