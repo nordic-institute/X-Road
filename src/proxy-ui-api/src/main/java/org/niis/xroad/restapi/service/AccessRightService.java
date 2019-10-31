@@ -221,6 +221,7 @@ public class AccessRightService {
         }
         ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
 
+        // FIXME (for REST): When adding REST endpoints we also need to match the PATH and METHOD of the endpoint
         Optional<EndpointType> existingEndpoint = clientType.getEndpoint().stream()
                 .filter(endpointType -> endpointType.getServiceCode().equals(serviceType.getServiceCode()))
                 .findFirst();
@@ -235,6 +236,7 @@ public class AccessRightService {
                 });
 
         Date now = new Date();
+        // TODO: SubjectId is not saved -> needs to be fetched from db if exists -> otherwise create and save a new one
         for (XRoadId subjectId : subjectIds) {
             Optional<AccessRightType> existingAccessRight = clientType.getAcl().stream()
                     .filter(accessRightType -> accessRightType.getSubjectId().equals(subjectId))
@@ -315,7 +317,7 @@ public class AccessRightService {
     /**
      * If duplicate access right was found
      */
-    public static class DuplicateAccessRightException extends ServiceConflictException {
+    public static class DuplicateAccessRightException extends ServiceException {
         public static final String ERROR_DUPLICATE_ACCESSRIGHT = "duplicate_accessright";
 
         public DuplicateAccessRightException(String msg) {

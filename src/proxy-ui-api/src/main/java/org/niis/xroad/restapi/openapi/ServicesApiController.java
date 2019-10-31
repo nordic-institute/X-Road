@@ -145,9 +145,7 @@ public class ServicesApiController implements ServicesApi {
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
         // LocalGroups with numeric ids (PK)
         Set<Long> localGroupIds = getLocalGroupIds(subjects);
-        subjects.getItems().removeIf(hasNumericIdAndIsLocalGroup);
-        // Converter handles other errors such as unknown types and ids
-        List<XRoadId> xRoadIds = subjectConverter.convertId(subjects.getItems());
+        List<XRoadId> xRoadIds = getXRoadIdsButSkipLocalGroups(subjects);
         try {
             accessRightService.deleteServiceAccessRights(clientId, fullServiceCode, new HashSet<>(xRoadIds),
                     localGroupIds);
@@ -165,8 +163,7 @@ public class ServicesApiController implements ServicesApi {
         ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
         Set<Long> localGroupIds = getLocalGroupIds(subjects);
-        subjects.getItems().removeIf(hasNumericIdAndIsLocalGroup);
-        List<XRoadId> xRoadIds = subjectConverter.convertId(subjects.getItems());
+        List<XRoadId> xRoadIds = getXRoadIdsButSkipLocalGroups(subjects);
         List<AccessRightHolderDto> accessRightHolderDtos;
         try {
             accessRightHolderDtos = accessRightService.addServiceAccessRights(clientId, fullServiceCode,
@@ -182,6 +179,12 @@ public class ServicesApiController implements ServicesApi {
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 
+    private List<XRoadId> getXRoadIdsButSkipLocalGroups(Subjects subjects) {
+        // SubjectConverter cannot resolve the correct XRoadId from LocalGroup subject's numeric id
+        subjects.getItems().removeIf(hasNumericIdAndIsLocalGroup);
+        return subjectConverter.convertId(subjects.getItems());
+    }
+
     private Set<Long> getLocalGroupIds(Subjects subjects) {
         return subjects.getItems()
                 .stream()
@@ -190,6 +193,11 @@ public class ServicesApiController implements ServicesApi {
                 .collect(Collectors.toSet());
     }
 
+    /**
+     * The client-provided Subjects only contain id and subjectType when adding or deleting access rights.
+     * The id of a LocalGroup is numeric so SubjectConverter cannot resolve the correct XRoadId from it.
+     * Therefore LocalGroups need to be handled separately from other types of subjects.
+     */
     private Predicate<Subject> hasNumericIdAndIsLocalGroup = subject -> {
         boolean hasNumericId = StringUtils.isNumeric(subject.getId());
         boolean isLocalGroup = subject.getSubjectType() == SubjectType.LOCALGROUP;
