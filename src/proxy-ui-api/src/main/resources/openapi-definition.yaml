@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.12"
+  version: "1.0.13"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -860,7 +860,7 @@ paths:
       tags:
         - security server
       summary: get security server client certificates information
-      operationId: getClientCertificates
+      operationId: getClientSignCertificates
       description: Administrator views the certificates for the client.
       parameters:
         - in: path
@@ -882,7 +882,7 @@ paths:
                 uniqueItems: true
                 description: array of certificate (details) objects
                 items:
-                  $ref: '#/components/schemas/CertificateDetails'
+                  $ref: '#/components/schemas/TokenCertificate'
         '400':
           description: request was invalid
         '401':
