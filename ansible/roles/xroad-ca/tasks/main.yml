@@ -47,16 +47,6 @@
     - "etc"
     - "usr"
 
-- name: copy root user directories for trusty
-  copy:
-    src: "trusty-files/{{ item }}"
-    dest: /
-    group: "root"
-    owner: "root"
-  with_items:
-    - "etc"
-  when: ansible_distribution_release == "trusty"
-
 - name: copy root user directories for bionic
   copy:
     src: "bionic-files/{{ item }}"

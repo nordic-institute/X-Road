@@ -167,6 +167,7 @@ class KeysController < ApplicationController
     })
   end
 
+  # rubocop:disable all
   def generate_csr
     audit_log("Generate CSR", audit_log_data = {})
 
@@ -270,6 +271,7 @@ class KeysController < ApplicationController
       :redirect => csr_file
     })
   end
+  # rubocop:enable all
 
   def download_csr
     validate_params({

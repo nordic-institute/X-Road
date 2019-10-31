@@ -15,9 +15,9 @@ sourceSets {
 dependencies {
     compile 'org.apache.james:apache-mime4j-core:0.8.3'
     compile 'org.apache.commons:commons-lang3:3.9'
-    compile 'org.apache.santuario:xmlsec:2.1.3'
+    compile 'org.apache.santuario:xmlsec:2.1.4'
 
-    compile 'org.bouncycastle:bcpkix-jdk15on:1.54'
+    compile 'org.bouncycastle:bcpkix-jdk15on:1.64'
     compile 'commons-configuration:commons-configuration:1.10'
     compile 'commons-io:commons-io:2.6'
     compile 'commons-jxpath:commons-jxpath:1.3'
@@ -43,7 +43,7 @@ dependencies {
     compile "com.typesafe.akka:akka-remote_2.11:$akkaVersion"
     compile "com.typesafe.akka:akka-slf4j_2.11:$akkaVersion"
 
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.9.1'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.10.1'
     compile 'com.google.code.gson:gson:2.8.5'
     compile 'com.google.guava:guava:28.0-jre'
 

@@ -31,6 +31,7 @@ import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.cmp.PKIFreeText;
 import org.bouncycastle.asn1.cmp.PKIStatus;
 import org.bouncycastle.asn1.tsp.TimeStampResp;
+import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaCertStore;
 import org.bouncycastle.cms.CMSSignedData;
 import org.bouncycastle.tsp.TimeStampRequest;
@@ -57,8 +58,8 @@ final class TimestamperUtil {
             X509Certificate signerCertificate) throws Exception {
         CMSSignedData cms = tsResponse.getTimeStampToken().toCMSSignedData();
 
-        List<X509Certificate> collection = new ArrayList<>();
-        collection.add(signerCertificate);
+        List<X509CertificateHolder> collection = new ArrayList<>();
+        collection.add(new X509CertificateHolder(signerCertificate.getEncoded()));
         collection.addAll(cms.getCertificates().getMatches(null));
 
         return new TimeStampToken(CMSSignedData.replaceCertificatesAndCRLs(cms,

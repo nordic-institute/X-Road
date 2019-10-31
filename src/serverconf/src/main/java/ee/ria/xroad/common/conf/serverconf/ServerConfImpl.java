@@ -319,6 +319,7 @@ public class ServerConfImpl implements ServerConfProvider {
         return checkAccessRights(clientType, session, client, service, method, path);
     }
 
+    @SuppressWarnings("squid:S3776")
     private boolean checkAccessRights(ClientType clientType, Session session, ClientId client, ServiceId service,
             String method, String path) {
 
