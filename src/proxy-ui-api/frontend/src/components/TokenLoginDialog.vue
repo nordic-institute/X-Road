@@ -19,6 +19,7 @@
           class="validation-provider"
         >
           <v-text-field
+            type="password"
             v-model="pin"
             single-line
             class="dlg-row-input"
