@@ -31,8 +31,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
-import org.niis.xroad.restapi.exceptions.ConflictException;
-import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.Members;
@@ -116,8 +114,8 @@ public class LocalGroupsApiControllerIntegrationTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         try {
             localGroupsApiController.getGroup(INVALID_GROUP_ID);
-            fail("should throw NotFoundException");
-        } catch (NotFoundException expected) {
+            fail("should throw ResourceNotFoundException");
+        } catch (ResourceNotFoundException expected) {
             // nothing should be found
         }
     }
@@ -140,8 +138,8 @@ public class LocalGroupsApiControllerIntegrationTest {
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         try {
             localGroupsApiController.getGroup(GROUP_ID);
-            fail("should throw NotFoundException");
-        } catch (NotFoundException expected) {
+            fail("should throw ResourceNotFoundException");
+        } catch (ResourceNotFoundException expected) {
             // success
         }
     }

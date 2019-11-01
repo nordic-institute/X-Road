@@ -30,7 +30,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.exceptions.ConflictException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -68,7 +67,7 @@ public class LocalGroupServiceIntegrationTest {
 
     @Test
     @WithMockUser(authorities = { "ADD_LOCAL_GROUP", "VIEW_CLIENT_LOCAL_GROUPS" })
-    public void addLocalGroup() {
+    public void addLocalGroup() throws Exception {
         ClientId id = getM1Ss1ClientId();
         LocalGroupType localGroupType = new LocalGroupType();
         localGroupType.setGroupCode(NEW_GROUPCODE);
@@ -86,20 +85,20 @@ public class LocalGroupServiceIntegrationTest {
 
     @Test
     @WithMockUser(authorities = { "ADD_LOCAL_GROUP", "VIEW_CLIENT_LOCAL_GROUPS" })
-    public void addDuplicateLocalGroup() {
+    public void addDuplicateLocalGroup() throws Exception {
         ClientId id = getM1Ss1ClientId();
         LocalGroupType localGroupType = localGroupService.getLocalGroup(GROUP_ID);
         try {
             localGroupService.addLocalGroup(id, localGroupType);
             localGroupService.addLocalGroup(id, localGroupType);
-            fail("should have thrown ConflictException");
-        } catch (ConflictException expected) {
+            fail("should have thrown DuplicateLocalGroupCodeException");
+        } catch (LocalGroupService.DuplicateLocalGroupCodeException expected) {
         }
     }
 
     @Test
     @WithMockUser(authorities = { "ADD_LOCAL_GROUP", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_DESC" })
-    public void updateDescription() {
+    public void updateDescription() throws Exception {
         LocalGroupType localGroupType = localGroupService.getLocalGroup(GROUP_ID);
         assertEquals(localGroupType.getDescription(), GROUP_DESC);
         localGroupService.updateDescription(GROUP_ID, NEW_GROUP_DESC);

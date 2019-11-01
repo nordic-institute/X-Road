@@ -28,7 +28,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.common.collect.Streams;
-import org.niis.xroad.restapi.exceptions.BadRequestException;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;

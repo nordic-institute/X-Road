@@ -1,12 +1,12 @@
 {
-  "defaultSeverity": "warning",
+  "defaultSeverity": "error",
   "extends": [
     "tslint:recommended"
   ],
   "linterOptions": {
     "exclude": [
       "node_modules/**",
-      "/**/*.json"
+      "**/*.json"
     ]
   },
   "rules": {

@@ -25,7 +25,6 @@
 package org.niis.xroad.restapi.openapi;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,7 +76,7 @@ public class MemberClassesApiController implements MemberClassesApi {
     @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
     public ResponseEntity<List<String>> getMemberClassesForInstance(String instanceId) {
         if (!globalConfFacade.getInstanceIdentifiers().contains(instanceId)) {
-            throw new NotFoundException("instance identifier not found: " + instanceId);
+            throw new ResourceNotFoundException("instance identifier not found: " + instanceId);
         }
         List<String> memberClasses = new ArrayList(globalConfFacade.getMemberClasses(instanceId));
         return new ResponseEntity<>(memberClasses, HttpStatus.OK);

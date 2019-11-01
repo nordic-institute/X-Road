@@ -22,23 +22,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.service;
 
-import java.util.List;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.WarningDeviation;
+
+import java.util.Collection;
 
 /**
- * An error that can't be ignored
+ * If warnings were detected and they were not ignored
  */
-public class Error extends Deviation {
-    public Error(String code, List<String> metadata) {
-        super(code, metadata);
-    }
+public class UnhandledWarningsException extends ServiceException {
 
-    public Error(String code, String metadataItem) {
-        super(code, metadataItem);
-    }
+    public static final String ERROR_WARNINGS_DETECTED = "warnings_detected";
 
-    public Error(String code) {
-        super(code);
+    public UnhandledWarningsException(Collection<WarningDeviation> warningDeviations) {
+        super(new ErrorDeviation(ERROR_WARNINGS_DETECTED), warningDeviations);
     }
 }
