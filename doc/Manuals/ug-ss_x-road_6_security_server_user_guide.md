@@ -1877,7 +1877,7 @@ All REST APIs are protected by TLS. Since server uses self signed certificate, t
 with `curl` you need to use `--insecure` or `-k` option.
 
 Request sent to REST APIs have a *limit for maximum size*. If a too large request is sent
-to REST API, it will not be processed, and http status 431 Payload too large will be returned.
+to REST API, it will not be processed, and http status 413 Payload too large will be returned.
 There is a different limit for binary file uploads, and for other requests.
 
 Limits are
