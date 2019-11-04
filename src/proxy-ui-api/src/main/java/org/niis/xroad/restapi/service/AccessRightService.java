@@ -228,20 +228,7 @@ public class AccessRightService {
         }
         ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
 
-        // FIXME (for REST): When adding REST endpoints we also need to match the PATH and METHOD of the endpoint
-        Optional<EndpointType> existingEndpoint = clientType.getEndpoint().stream()
-                .filter(endpointType -> endpointType.getServiceCode().equals(serviceType.getServiceCode()))
-                .findFirst();
-
-        // get existing endpoint or create a new one - add it to the client's endpoint list as a side effect
-        EndpointType endpointType = existingEndpoint
-                .orElseGet(() -> {
-                    EndpointType newEndpointType = new EndpointType(serviceType.getServiceCode(),
-                            EndpointType.ANY_METHOD, EndpointType.ANY_PATH, true);
-                    clientType.getEndpoint().add(newEndpointType);
-                    return newEndpointType;
-                });
-
+        EndpointType endpointType = createEndpoint(clientType, serviceType);
         Date now = new Date();
 
         for (XRoadId subjectId : subjectIds) {
@@ -277,6 +264,27 @@ public class AccessRightService {
         });
 
         return accessRightHolderDtos;
+    }
+
+    private EndpointType createEndpoint(ClientType clientType, ServiceType serviceType) {
+        return createEndpoint(clientType, serviceType, EndpointType.ANY_METHOD, EndpointType.ANY_PATH, true);
+    }
+
+    private EndpointType createEndpoint(ClientType clientType, ServiceType serviceType, String endpointMethod,
+            String endpointPath, boolean isGenerated) {
+        // does the endpoint exists already?
+        Optional<EndpointType> existingEndpoint = clientType.getEndpoint().stream()
+                .filter(endpointType -> endpointType.getServiceCode().equals(serviceType.getServiceCode())
+                        && endpointType.getMethod().equals(endpointMethod)
+                        && endpointType.getPath().equals(endpointPath))
+                .findFirst();
+        // get existing endpoint or create a new one - add it to the client's endpoint list as a side effect
+        return existingEndpoint.orElseGet(() -> {
+            EndpointType newEndpointType = new EndpointType(serviceType.getServiceCode(),
+                    endpointMethod, endpointPath, isGenerated);
+            clientType.getEndpoint().add(newEndpointType);
+            return newEndpointType;
+        });
     }
 
     /**
