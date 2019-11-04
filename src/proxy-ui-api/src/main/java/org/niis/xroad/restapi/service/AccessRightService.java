@@ -44,6 +44,7 @@ import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
+import org.niis.xroad.restapi.repository.IdentifierRepository;
 import org.niis.xroad.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +53,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -74,14 +76,19 @@ public class AccessRightService {
     private final GlobalConfFacade globalConfFacade;
     private final ClientRepository clientRepository;
     private final ServiceService serviceService;
+    private final IdentifierRepository identifierRepository;
+    private final GlobalConfService globalConfService;
 
     @Autowired
     public AccessRightService(LocalGroupRepository localGroupRepository, GlobalConfFacade globalConfFacade,
-            ClientRepository clientRepository, ServiceService serviceService) {
+            ClientRepository clientRepository, ServiceService serviceService, IdentifierRepository identifierRepository,
+            GlobalConfService globalConfService) {
         this.localGroupRepository = localGroupRepository;
         this.globalConfFacade = globalConfFacade;
         this.clientRepository = clientRepository;
         this.serviceService = serviceService;
+        this.identifierRepository = identifierRepository;
+        this.globalConfService = globalConfService;
     }
 
     /**
@@ -204,16 +211,16 @@ public class AccessRightService {
     }
 
     /**
+     * Add access rights to services.
      * @param clientId
      * @param fullServiceCode
-     * @param subjectIds
+     * @param subjectIds must be persistent objects
      * @return List of {@link AccessRightHolderDto AccessRightHolderDtos}
      * @throws ClientNotFoundException
      * @throws ServiceService.ServiceNotFoundException
      */
-    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
-    public List<AccessRightHolderDto> addServiceAccessRights(ClientId clientId, String fullServiceCode,
-            HashSet<XRoadId> subjectIds) throws ClientNotFoundException, ServiceService.ServiceNotFoundException,
+    private List<AccessRightHolderDto> addServiceAccessRights(ClientId clientId, String fullServiceCode,
+            Set<XRoadId> subjectIds) throws ClientNotFoundException, ServiceService.ServiceNotFoundException,
             DuplicateAccessRightException {
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
@@ -236,7 +243,7 @@ public class AccessRightService {
                 });
 
         Date now = new Date();
-        // TODO: SubjectId is not saved -> needs to be fetched from db if exists -> otherwise create and save a new one
+
         for (XRoadId subjectId : subjectIds) {
             Optional<AccessRightType> existingAccessRight = clientType.getAcl().stream()
                     .filter(accessRightType -> accessRightType.getSubjectId().equals(subjectId))
@@ -273,6 +280,37 @@ public class AccessRightService {
     }
 
     /**
+     * Verify that all identifiers are authentic, then get the existing ones from the local db and persist
+     * the not-existing ones. This is a necessary step if we are changing identifier relations (such as adding
+     * access rights to services)
+     * @param xRoadIds {@link GlobalGroupId} or {@link ClientId}
+     * @return List of XRoadIds ({@link GlobalGroupId} or {@link ClientId})
+     * @throws IdentifierNotFoundException
+     */
+    private Set<XRoadId> getOrPersistSubsystemAndGlobalGroupIds(Set<XRoadId> xRoadIds)
+            throws IdentifierNotFoundException {
+        // Check that the identifiers exist in globalconf
+        // LocalGroups must be verified separately! (they do not exist in globalconf)
+        Set<XRoadId> subsystemsAndGlobalGroups = xRoadIds.stream()
+                .filter(xRoadId -> xRoadId.getObjectType() == XRoadObjectType.SUBSYSTEM
+                        || xRoadId.getObjectType() == XRoadObjectType.GLOBALGROUP)
+                .collect(Collectors.toSet());
+        if (!globalConfService.identifiersExist(subsystemsAndGlobalGroups)) {
+            // This exception should be pretty rare since it only occurs if bogus subjects are found
+            throw new IdentifierNotFoundException();
+        }
+        Collection<XRoadId> allIdsFromDb = identifierRepository.getIdentifiers();
+        Set<XRoadId> txEntities = allIdsFromDb.stream()
+                .filter(xRoadIds::contains) // this works because of the XRoadId equals and hashCode overrides
+                .collect(Collectors.toSet());
+        xRoadIds.removeAll(txEntities); // remove the persistent ones
+        identifierRepository.saveOrUpdate(xRoadIds); // persist the non-persisted
+        txEntities.addAll(xRoadIds); // add the newly persisted ids into the collection of already existing ids
+        return txEntities;
+    }
+
+    /**
+     * Adds access rights to services
      * @param clientId
      * @param fullServiceCode
      * @param subjectIds
@@ -284,13 +322,22 @@ public class AccessRightService {
      */
     @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
     public List<AccessRightHolderDto> addServiceAccessRights(ClientId clientId, String fullServiceCode,
-            HashSet<XRoadId> subjectIds, Set<Long> localGroupIds) throws LocalGroupNotFoundException,
-            ClientNotFoundException, ServiceService.ServiceNotFoundException, DuplicateAccessRightException {
+            Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws LocalGroupNotFoundException,
+            ClientNotFoundException, ServiceService.ServiceNotFoundException, DuplicateAccessRightException,
+            IdentifierNotFoundException {
+        // Get persistent entities in order to change relations
+        Set<XRoadId> txSubjects = getOrPersistSubsystemAndGlobalGroupIds(subjectIds);
         Set<XRoadId> localGroups = getLocalGroupsAsXroadIds(localGroupIds);
-        subjectIds.addAll(localGroups);
-        return addServiceAccessRights(clientId, fullServiceCode, subjectIds);
+        txSubjects.addAll(localGroups);
+        return addServiceAccessRights(clientId, fullServiceCode, txSubjects);
     }
 
+    /**
+     * Verify that all given {@link Long} ids are real, then return them as {@link LocalGroupId LocalGroupIds}
+     * @param localGroupIds
+     * @return
+     * @throws LocalGroupNotFoundException
+     */
     private Set<XRoadId> getLocalGroupsAsXroadIds(Set<Long> localGroupIds) throws LocalGroupNotFoundException {
         Set<XRoadId> localGroups = new HashSet<>();
         for (Long groupId : localGroupIds) {
@@ -312,17 +359,31 @@ public class AccessRightService {
         public AccessRightNotFoundException() {
             super(new ErrorDeviation(ERROR_ACCESSRIGHT_NOT_FOUND));
         }
+
+    }
+
+    /**
+     * If identifier was not found
+     */
+    public static class IdentifierNotFoundException extends NotFoundException {
+        public static final String ERROR_IDENTIFIER_NOT_FOUND = "identifier_not_found";
+
+        public IdentifierNotFoundException() {
+            super(new ErrorDeviation(ERROR_IDENTIFIER_NOT_FOUND));
+        }
     }
 
     /**
      * If duplicate access right was found
      */
     public static class DuplicateAccessRightException extends ServiceException {
+
         public static final String ERROR_DUPLICATE_ACCESSRIGHT = "duplicate_accessright";
 
         public DuplicateAccessRightException(String msg) {
             super(msg, new ErrorDeviation(ERROR_DUPLICATE_ACCESSRIGHT));
         }
+
     }
 
     /**

@@ -170,7 +170,7 @@ public class ServicesApiController implements ServicesApi {
                     new HashSet<>(xRoadIds), localGroupIds);
         } catch (ClientNotFoundException | ServiceService.ServiceNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (LocalGroupNotFoundException e) {
+        } catch (LocalGroupNotFoundException | AccessRightService.IdentifierNotFoundException e) {
             throw new BadRequestException(e);
         } catch (AccessRightService.DuplicateAccessRightException e) {
             throw new ConflictException(e);

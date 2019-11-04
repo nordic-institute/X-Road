@@ -25,7 +25,10 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
+import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
@@ -33,7 +36,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * global configuration service
@@ -63,6 +70,22 @@ public class GlobalConfService {
             return false;
         }
         return GlobalConf.existsSecurityServer(securityServerId);
+    }
+
+    /**
+     * @param identifiers
+     * @return whether the identifiers exist in global configuration
+     */
+    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
+    public boolean identifiersExist(Collection<XRoadId> identifiers) {
+        List<XRoadId> existingIdentifiers = new ArrayList<>();
+        existingIdentifiers.addAll(globalConfFacade.getGlobalGroups().stream()
+                .map(GlobalGroupInfo::getId)
+                .collect(Collectors.toList()));
+        existingIdentifiers.addAll(globalConfFacade.getMembers().stream()
+                .map(MemberInfo::getId)
+                .collect(Collectors.toList()));
+        return existingIdentifiers.containsAll(identifiers);
     }
 
     /**

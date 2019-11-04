@@ -38,6 +38,7 @@ import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
 import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.openapi.model.Subjects;
+import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -106,6 +107,9 @@ public class ServicesApiControllerIntegrationTest {
 
     @MockBean
     private GlobalConfFacade globalConfFacade;
+
+    @MockBean
+    private GlobalConfService globalConfService;
 
     @Before
     public void setup() {
@@ -426,6 +430,7 @@ public class ServicesApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
             "VIEW_CLIENT_SERVICES" })
     public void addAccessRights() {
+        when(globalConfService.identifiersExist(any())).thenReturn(true);
         List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(
                 SS1_CALCULATE_PRIME).getBody();
         assertEquals(0, serviceClients.size());
@@ -445,12 +450,28 @@ public class ServicesApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
             "VIEW_CLIENT_SERVICES" })
     public void addDuplicateAccessRight() {
+        when(globalConfService.identifiersExist(any())).thenReturn(true);
         List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
         assertEquals(3, serviceClients.size());
 
         Subjects subjectsToAdd = new Subjects()
                 .addItemsItem(new Subject().id(LOCAL_GROUP_ID_2).subjectType(SubjectType.LOCALGROUP))
                 .addItemsItem(new Subject().id(SS2_CLIENT_ID).subjectType(SubjectType.SUBSYSTEM));
+
+        servicesApiController.addServiceAccessRight(SS1_GET_RANDOM, subjectsToAdd);
+    }
+
+    @Test(expected = BadRequestException.class)
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
+            "VIEW_CLIENT_SERVICES" })
+    public void addBogusAccessRight() {
+        when(globalConfService.identifiersExist(any())).thenReturn(false);
+        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
+        assertEquals(3, serviceClients.size());
+
+        Subjects subjectsToAdd = new Subjects()
+                .addItemsItem(new Subject().id(LOCAL_GROUP_ID_2).subjectType(SubjectType.LOCALGROUP))
+                .addItemsItem(new Subject().id(SS2_CLIENT_ID + "foo").subjectType(SubjectType.SUBSYSTEM));
 
         servicesApiController.addServiceAccessRight(SS1_GET_RANDOM, subjectsToAdd);
     }

@@ -28,12 +28,13 @@ import ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * identifier repository
@@ -79,9 +80,20 @@ public class IdentifierRepository {
     }
 
     /**
+     * Executes a Hibernate persist(XRoadId) for multiple group members
+     * @param identifiers
+     */
+    public void saveOrUpdate(Collection<XRoadId> identifiers) {
+        Session session = persistenceUtils.getCurrentSession();
+        for (XRoadId identifier : identifiers) {
+            session.saveOrUpdate(identifier);
+        }
+    }
+
+    /**
      * return all identifiers
      */
-    public List<XRoadId> getIdentifiers() {
+    public Collection<XRoadId> getIdentifiers() {
         IdentifierDAOImpl identifierDAO = new IdentifierDAOImpl();
         return identifierDAO.findAll(persistenceUtils.getCurrentSession(), XRoadId.class);
     }
