@@ -72,7 +72,7 @@
     "certificate": "Certificate",
     "name": "Name",
     "ocsp": "OCSP status",
-    "serial": "Serial",
+    "hash": "Hash",
     "hashInfo": "Hash (SHA-1)",
     "rsaModulus": "RSA Public Key Modulus",
     "rsaExp": "RSA Public Key Exponent",

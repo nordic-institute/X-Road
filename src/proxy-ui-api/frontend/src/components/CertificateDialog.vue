@@ -9,7 +9,7 @@
         <br />
         {{$t('cert.ocsp')}}: {{certificate.ocsp_status}}
         <br />
-        {{$t('cert.serial')}}: {{certificate.certificate_details.hash}}
+        {{$t('cert.hash')}}: {{certificate.certificate_details.hash}}
         <br />
         {{$t('cert.state')}}:
         <template v-if="certificate.active">{{$t('cert.inUse')}}</template>
