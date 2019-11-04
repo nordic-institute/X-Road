@@ -85,9 +85,10 @@ public class ServiceService {
     }
 
     /**
+     * Get {@link ServiceType} from a {@link ClientType} by comparing the service code (with version).
      * @param client
      * @param fullServiceCode
-     * @return {@link ServiceType}
+     * @return ServiceType
      * @throws ServiceNotFoundException if service with fullServiceCode was not found
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
