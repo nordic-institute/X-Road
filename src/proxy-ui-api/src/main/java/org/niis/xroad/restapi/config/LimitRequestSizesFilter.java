@@ -26,9 +26,11 @@ package org.niis.xroad.restapi.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.util.unit.DataSize;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -56,17 +58,20 @@ public class LimitRequestSizesFilter extends OncePerRequestFilter {
     @Autowired
     FileUploadEndpointsConfiguration fileUploadEndpointsConfiguration;
 
-    private static final long REGULAR_REQUEST_SIZE_BYTE_LIMIT = 50 * 1024; // 50KB
-    private static final long FILE_UPLOAD_REQUEST_SIZE_BYTE_LIMIT = 10 * 1024 * 1024; // 10MB
+    @Value("${request.sizelimit.regular}")
+    private DataSize regularRequestSizeLimit;
+
+    @Value("${request.sizelimit.binary.upload}")
+    private DataSize fileUploadRequestSizeLimit;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         // set maxBytes based on if this is a file upload endpoint or a regular one
-        long maxBytes = REGULAR_REQUEST_SIZE_BYTE_LIMIT;
+        long maxBytes = regularRequestSizeLimit.toBytes();
         if (fileUploadEndpointsConfiguration.getEndpointDefinitions().stream()
                 .anyMatch(endpoint -> endpoint.matches(request))) {
-            maxBytes = FILE_UPLOAD_REQUEST_SIZE_BYTE_LIMIT;
+            maxBytes = fileUploadRequestSizeLimit.toBytes();
         }
 
         ServletRequest wrapped = new SizeLimitingHttpServletRequestWrapper(request, maxBytes);
