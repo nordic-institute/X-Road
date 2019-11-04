@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import i18n from './i18n';
 
 Vue.filter('capitalize', (value: string): string => {
   if (!value) { return ''; }
@@ -54,4 +55,35 @@ Vue.filter('formatDateTime', (value: string): string => {
   const date = new Date(value);
   return date.toISOString().substring(0, 10) + ' ' + date.toISOString().substring(11, 16);
 });
+
+// Return readable string from OCSP status code
+Vue.filter('ocspStatus', (value: string): string => {
+  if (!value) {
+    return '-';
+  }
+  switch (value) {
+    case 'DISABLED':
+      return i18n.t('keys.ocspStatus.disabled') as string;
+      break;
+    case 'EXPIRED':
+      return i18n.t('keys.ocspStatus.expired') as string;
+      break;
+    case 'OCSP_RESPONSE_UNKNOWN':
+      return i18n.t('keys.ocspStatus.unknown') as string;
+      break;
+    case 'OCSP_RESPONSE_GOOD':
+      return i18n.t('keys.ocspStatus.good') as string;
+      break;
+    case 'OCSP_RESPONSE_SUSPENDED':
+      return i18n.t('keys.ocspStatus.suspended') as string;
+      break;
+    case 'OCSP_RESPONSE_REVOKED':
+      return i18n.t('keys.ocspStatus.revoked') as string;
+      break;
+    default:
+      return '-';
+      break;
+  }
+});
+
 

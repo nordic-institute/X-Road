@@ -7,7 +7,7 @@
       <v-card-text v-if="certificate">
         {{$t('cert.name')}}: {{certificate.certificate_details.issuer_common_name}}
         <br />
-        {{$t('cert.ocsp')}}: {{certificate.ocsp_status}}
+        {{$t('cert.ocsp')}}: {{ certificate.ocsp_status | ocspStatus }}
         <br />
         {{$t('cert.hash')}}: {{certificate.certificate_details.hash}}
         <br />
