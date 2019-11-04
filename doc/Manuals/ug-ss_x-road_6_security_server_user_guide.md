@@ -65,7 +65,7 @@ Doc. ID: UG-SS
  14.08.2019 | 2.30    | Added automatic backups | Ilkka Seppälä
  29.09.2019 | 2.30-UI    | Added chapter [19.3](#193-correlation-id-http-header) on REST API correlation id | Janne Mattila
  30.09.2019 | 2.31    | Added remote database migration guide | Ilkka Seppälä
- 04.11.2019 | 2.31-UI | Added information about REST API rate limits | Janne Mattila
+ 04.11.2019 | 2.31-UI | Added information about REST API request size limits | Janne Mattila
 
 ## Table of Contents <!-- omit in toc --> 
 
