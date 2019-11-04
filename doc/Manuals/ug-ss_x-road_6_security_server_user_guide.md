@@ -1886,7 +1886,8 @@ Limits are
 
 If the default limits are too restricting, they can be overridden with command line arguments. Limits are set with
 application properties `request.sizelimit.regular` and `request.sizelimit.binary.upload`.
-Formats from [DataSize](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/unit/DataSize.html) class are supported
+Formats from [DataSize](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/unit/DataSize.html) class are supported.
+
 Example from a modified `/etc/xroad/services/proxy-ui-api.conf` (conf file modifications may be overwritten when
 installing upgraded packages):
 
