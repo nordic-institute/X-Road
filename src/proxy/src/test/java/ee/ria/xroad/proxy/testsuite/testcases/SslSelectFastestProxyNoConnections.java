@@ -56,7 +56,7 @@ public class SslSelectFastestProxyNoConnections extends SslMessageTestCase {
         GlobalConf.reload(new TestSuiteGlobalConf() {
             @Override
             public Collection<String> getProviderAddress(ClientId provider) {
-                return Arrays.asList("foo.invalid.", "bar.invalid.", "baz.invalid.");
+                return Arrays.asList("foo.invalid.", "bar.invalid.", "127.0.0,1");
             }
         });
     }
