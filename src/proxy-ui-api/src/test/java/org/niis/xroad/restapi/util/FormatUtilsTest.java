@@ -22,37 +22,51 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.util;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.junit.Test;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
- * Thrown if WSDL parsing fails
+ * Test FormatUtils
  */
-@ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class WsdlParseException extends DeviationAwareRuntimeException {
-    public WsdlParseException() {
+public class FormatUtilsTest {
+    private static final String VALID_HTTP_URL = "http://foo.bar:8080/baz";
+    private static final String VALID_HTTPS_URL = "https://foo.bar:8080/baz";
+    private static final String INVALID_HOST = "https://foobar.:8080/baz";
+    private static final String INVALID_PROTOCOL = "file:///tmp/localfile.wsdl";
+    private static final String MALFORMED_PROTOCOL = "htps://foo.bar:8080/baz";
+    private static final String NON_ASCII_HOST = "https://テスト.ホスト:8080/baz";
+
+    @Test
+    public void validHttpUrl() {
+        assertTrue(FormatUtils.isValidUrl(VALID_HTTP_URL));
     }
 
-    public WsdlParseException(String msg) {
-        super(msg);
+    @Test
+    public void validHttpsUrl() {
+        assertTrue(FormatUtils.isValidUrl(VALID_HTTPS_URL));
     }
 
-    public WsdlParseException(String msg, Throwable t) {
-        super(msg, t);
+    @Test
+    public void validNonAsciiUrl() {
+        assertTrue(FormatUtils.isValidUrl(NON_ASCII_HOST));
     }
 
-    public WsdlParseException(String msg, Throwable t, Error error) {
-        super(msg, t, error);
+    @Test
+    public void invalidUrlHost() {
+        assertFalse(FormatUtils.isValidUrl(INVALID_HOST));
     }
 
-    public WsdlParseException(Throwable t) {
-        super(t);
+    @Test
+    public void invalidUrlProtocol() {
+        assertFalse(FormatUtils.isValidUrl(INVALID_PROTOCOL));
     }
 
-    public WsdlParseException(Throwable t, Error error) {
-        super(t, error);
+    @Test
+    public void malformedUrlProtocol() {
+        assertFalse(FormatUtils.isValidUrl(MALFORMED_PROTOCOL));
     }
-
 }

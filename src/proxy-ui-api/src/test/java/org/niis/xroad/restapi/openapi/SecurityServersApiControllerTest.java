@@ -29,8 +29,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.exceptions.BadRequestException;
-import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.openapi.model.SecurityServer;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +57,7 @@ public class SecurityServersApiControllerTest {
             "XRD2", "GOV", "M4", "server1");
 
     @MockBean
-    private GlobalConfService globalConfService;
+    private GlobalConfService globalConfFacade;
 
     @Autowired
     private SecurityServersApiController securityServersApiController;
@@ -67,7 +65,7 @@ public class SecurityServersApiControllerTest {
     @Before
     public void setup() {
         // securityServerExists = true when parameter = EXISTING_SERVER_ID
-        when(globalConfService.securityServerExists(any()))
+        when(globalConfFacade.securityServerExists(any()))
                 .thenAnswer(invocation -> invocation.getArguments()[0].equals(EXISTING_SERVER_ID));
     }
 
@@ -85,7 +83,7 @@ public class SecurityServersApiControllerTest {
         assertEquals("server1", securityServer.getServerCode());
     }
 
-    @Test(expected = NotFoundException.class)
+    @Test(expected = ResourceNotFoundException.class)
     @WithMockUser(authorities = { "INIT_CONFIG" })
     public void getSecurityServerNoMatch() {
         securityServersApiController.getSecurityServer("XRD2:GOV:M4:server-does-not-exist");

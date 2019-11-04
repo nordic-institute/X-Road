@@ -34,8 +34,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.exceptions.ConflictException;
-import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,9 +84,9 @@ public class ClientServiceIntegrationTest {
 
     @Before
     public void setup() throws Exception {
-        GlobalConfService globalConfService = new GlobalConfService() {
+        GlobalConfFacade globalConfFacade = new GlobalConfFacade() {
             @Override
-            public List<MemberInfo> getGlobalMembers(String... instanceIdentifiers) {
+            public List<MemberInfo> getMembers(String... instanceIdentifiers) {
                 return new ArrayList<>(Arrays.asList(
                         TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1),
                         TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM2),
@@ -105,7 +104,7 @@ public class ClientServiceIntegrationTest {
                         : "test-member" + NAME_APPENDIX;
             }
         };
-        clientService = new ClientService(clientRepository, globalConfService);
+        clientService = new ClientService(clientRepository, globalConfFacade);
         pemBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
                 getResourceAsStream("google-cert.pem"));
         derBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
@@ -120,7 +119,7 @@ public class ClientServiceIntegrationTest {
     @Test
     @WithMockUser(authorities = { "EDIT_CLIENT_INTERNAL_CONNECTION_TYPE",
             "VIEW_CLIENT_DETAILS" })
-    public void updateConnectionType() {
+    public void updateConnectionType() throws Exception {
         ClientId id = TestUtils.getM1Ss1ClientId();
         ClientType clientType = clientService.getClient(id);
         assertEquals("SSLNOAUTH", clientType.getIsAuthentication());
@@ -195,8 +194,8 @@ public class ClientServiceIntegrationTest {
 
         try {
             clientService.addTlsCertificate(id, pemBytes);
-            fail("should have thrown ConflictException");
-        } catch (ConflictException expected) {
+            fail("should have thrown CertificateAlreadyExistsException");
+        } catch (ClientService.CertificateAlreadyExistsException expected) {
         }
     }
 
@@ -214,8 +213,8 @@ public class ClientServiceIntegrationTest {
 
         try {
             clientService.deleteTlsCertificate(id, "wrong hash");
-            fail("should have thrown NotFoundException");
-        } catch (NotFoundException expected) {
+            fail("should have thrown CertificateNotFoundException");
+        } catch (CertificateNotFoundException expected) {
         }
         clientType = clientService.getClient(id);
         assertEquals(1, clientType.getIsCert().size());

@@ -31,11 +31,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
-import org.niis.xroad.restapi.exceptions.ConflictException;
-import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.Members;
-import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -87,17 +85,17 @@ public class LocalGroupsApiControllerIntegrationTest {
     private LocalGroupsApiController localGroupsApiController;
 
     @MockBean
-    private GlobalConfService globalConfService;
+    private GlobalConfFacade globalConfFacade;
 
     @Before
     public void setup() {
-        when(globalConfService.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
+        when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
             Object[] args = invocation.getArguments();
             ClientId identifier = (ClientId) args[0];
             return identifier.getSubsystemCode() != null ? identifier.getSubsystemCode() + NAME_APPENDIX
                     : "test-member" + NAME_APPENDIX;
         });
-        when(globalConfService.getGlobalMembers(any())).thenReturn(new ArrayList<>(Arrays.asList(
+        when(globalConfFacade.getMembers(any())).thenReturn(new ArrayList<>(Arrays.asList(
                 TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, null),
                 TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1),
                 TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM2),
@@ -116,8 +114,8 @@ public class LocalGroupsApiControllerIntegrationTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         try {
             localGroupsApiController.getGroup(INVALID_GROUP_ID);
-            fail("should throw NotFoundException");
-        } catch (NotFoundException expected) {
+            fail("should throw ResourceNotFoundException");
+        } catch (ResourceNotFoundException expected) {
             // nothing should be found
         }
     }
@@ -140,8 +138,8 @@ public class LocalGroupsApiControllerIntegrationTest {
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         try {
             localGroupsApiController.getGroup(GROUP_ID);
-            fail("should throw NotFoundException");
-        } catch (NotFoundException expected) {
+            fail("should throw ResourceNotFoundException");
+        } catch (ResourceNotFoundException expected) {
             // success
         }
     }

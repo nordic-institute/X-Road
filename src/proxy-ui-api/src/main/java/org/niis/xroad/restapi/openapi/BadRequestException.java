@@ -22,8 +22,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.openapi;
 
+import org.niis.xroad.restapi.exceptions.DeviationAware;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -34,7 +37,12 @@ import java.util.Collection;
  * Results in http 400 BAD_REQUEST
  */
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class BadRequestException extends DeviationAwareRuntimeException {
+public class BadRequestException extends OpenApiException {
+
+    public BadRequestException(DeviationAware deviations) {
+        super(deviations.getErrorDeviation(), deviations.getWarningDeviations());
+    }
+
     public BadRequestException() {
     }
 
@@ -42,36 +50,28 @@ public class BadRequestException extends DeviationAwareRuntimeException {
         super(msg);
     }
 
-    public BadRequestException(String msg, Error error) {
-        super(msg, error);
+    public BadRequestException(String msg, ErrorDeviation errorDeviation) {
+        super(msg, errorDeviation);
     }
 
-    public BadRequestException(String msg, Throwable t, Error error) {
-        super(msg, t, error);
+    public BadRequestException(String msg, Throwable t, ErrorDeviation errorDeviation) {
+        super(msg, t, errorDeviation);
     }
 
-    public BadRequestException(Throwable t, Error error, Collection<Warning> warnings) {
-        super(t, error, warnings);
+    public BadRequestException(Throwable t, ErrorDeviation errorDeviation,
+            Collection<WarningDeviation> warningDeviations) {
+        super(t, errorDeviation, warningDeviations);
     }
 
-    public BadRequestException(Error error, Collection<Warning> warnings) {
-        super(error, warnings);
+    public BadRequestException(ErrorDeviation errorDeviation, Collection<WarningDeviation> warningDeviations) {
+        super(errorDeviation, warningDeviations);
     }
 
-    public BadRequestException(Error error) {
-        super(error);
+    public BadRequestException(ErrorDeviation errorDeviation) {
+        super(errorDeviation);
     }
 
-    public BadRequestException(Throwable t, Error error) {
-        super(t, error);
+    public BadRequestException(Throwable t, ErrorDeviation errorDeviation) {
+        super(t, errorDeviation);
     }
-
-    /**
-     * Use deviation data from original exception
-     * @param e
-     */
-    public BadRequestException(DeviationAwareRuntimeException e) {
-        this(e, e.getError(), e.getWarnings());
-    }
-
 }

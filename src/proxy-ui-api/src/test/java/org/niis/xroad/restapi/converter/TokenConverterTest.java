@@ -92,7 +92,7 @@ public class TokenConverterTest {
 
         Token token = tokenConverter.convert(tokenInfo);
 
-        assertEquals(true, token.getActive());
+        assertEquals(true, token.getLoggedIn());
         assertEquals(true, token.getAvailable());
         assertEquals("id", token.getId());
         assertNotNull(token.getKeys());

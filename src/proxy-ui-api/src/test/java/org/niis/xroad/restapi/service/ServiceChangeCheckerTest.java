@@ -80,21 +80,21 @@ public class ServiceChangeCheckerTest {
         List<ServiceType> newServices = Arrays.asList(foo1, random1);
         ServiceChangeChecker.ServiceChanges changes = serviceChangeChecker.check(oldServices, newServices);
         assertFalse(changes.isEmpty());
-        assertEquals(Arrays.asList("fooService.v1"), changes.getAddedServices());
-        assertEquals(Arrays.asList("getRandom"), changes.getRemovedServices());
+        assertEquals(Arrays.asList("fooService.v1"), changes.getAddedFullServiceCodes());
+        assertEquals(Arrays.asList("getRandom"), changes.getRemovedFullServiceCodes());
 
         List<ServiceType> allServices = Arrays.asList(random1, random, random2, foo1);
         List<String> allCodes = Arrays.asList("getRandom", "getRandom.v1", "getRandom.v2", "fooService.v1");
         List<ServiceType> noServices = new ArrayList<>();
         changes = serviceChangeChecker.check(noServices, allServices);
         assertFalse(changes.isEmpty());
-        assertEquals(new HashSet<>(allCodes), new HashSet<>(changes.getAddedServices()));
-        assertEquals(new HashSet<>(), new HashSet<>(changes.getRemovedServices()));
+        assertEquals(new HashSet<>(allCodes), new HashSet<>(changes.getAddedFullServiceCodes()));
+        assertEquals(new HashSet<>(), new HashSet<>(changes.getRemovedFullServiceCodes()));
 
         changes = serviceChangeChecker.check(allServices, noServices);
         assertFalse(changes.isEmpty());
-        assertEquals(new HashSet<>(), new HashSet<>(changes.getAddedServices()));
-        assertEquals(new HashSet<>(allCodes), new HashSet<>(changes.getRemovedServices()));
+        assertEquals(new HashSet<>(), new HashSet<>(changes.getAddedFullServiceCodes()));
+        assertEquals(new HashSet<>(allCodes), new HashSet<>(changes.getRemovedFullServiceCodes()));
     }
 
 }

@@ -31,9 +31,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.exceptions.ConflictException;
-import org.niis.xroad.restapi.exceptions.Error;
-import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -61,21 +60,18 @@ import java.util.stream.Collectors;
 @PreAuthorize("denyAll")
 public class ClientService {
 
-    public static final String CLIENT_NOT_FOUND_ERROR_CODE = "client_not_found";
-    public static final String CERTIFICATE_NOT_FOUND_ERROR_CODE = "certificate_not_found";
-
     private final ClientRepository clientRepository;
-    private final GlobalConfService globalConfService;
+    private final GlobalConfFacade globalConfFacade;
 
     /**
      * ClientService constructor
      * @param clientRepository
-     * @param globalConfService
+     * @param globalConfFacade
      */
     @Autowired
-    public ClientService(ClientRepository clientRepository, GlobalConfService globalConfService) {
+    public ClientService(ClientRepository clientRepository, GlobalConfFacade globalConfFacade) {
         this.clientRepository = clientRepository;
-        this.globalConfService = globalConfService;
+        this.globalConfFacade = globalConfFacade;
     }
 
     /**
@@ -93,7 +89,7 @@ public class ClientService {
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public List<ClientType> getAllGlobalClients() {
-        return globalConfService.getGlobalMembers()
+        return globalConfFacade.getMembers()
                 .stream()
                 .map(memberInfo -> {
                     ClientType clientType = new ClientType();
@@ -117,12 +113,11 @@ public class ClientService {
      * @param id
      * @param connectionType
      * @return
-     * @throws org.niis.xroad.restapi.exceptions.NotFoundException if
-     *                                                             client was not found
      * @throws IllegalArgumentException                            if connectionType was not supported value
+     * @throws ClientNotFoundException if client was not found
      */
     @PreAuthorize("hasAuthority('EDIT_CLIENT_INTERNAL_CONNECTION_TYPE')")
-    public ClientType updateConnectionType(ClientId id, String connectionType) {
+    public ClientType updateConnectionType(ClientId id, String connectionType) throws ClientNotFoundException {
         ClientType clientType = getClientType(id);
         // validate connectionType param by creating enum out of it
         IsAuthentication enumValue = IsAuthentication.valueOf(connectionType);
@@ -133,13 +128,12 @@ public class ClientService {
 
     /**
      * Get a ClientType
-     * @throws NotFoundException if not found
+     * @throws ClientNotFoundException if not found
      */
-    private ClientType getClientType(ClientId id) {
+    private ClientType getClientType(ClientId id) throws ClientNotFoundException {
         ClientType clientType = clientRepository.getClient(id);
         if (clientType == null) {
-            throw new NotFoundException(("client with id " + id + " not found"),
-                    new Error(CLIENT_NOT_FOUND_ERROR_CODE));
+            throw new ClientNotFoundException("client with id " + id + " not found");
         }
         return clientType;
     }
@@ -149,10 +143,12 @@ public class ClientService {
      * @param certBytes either PEM or DER -encoded certificate
      * @return created CertificateType with id populated
      * @throws CertificateException if certBytes was not a valid PEM or DER encoded certificate
-     * @throws ConflictException    if the certificate already exists
+     * @throws CertificateAlreadyExistsException if certificate already exists
+     * @throws ClientNotFoundException if client was not found
      */
     @PreAuthorize("hasAuthority('ADD_CLIENT_INTERNAL_CERT')")
-    public CertificateType addTlsCertificate(ClientId id, byte[] certBytes) throws CertificateException {
+    public CertificateType addTlsCertificate(ClientId id, byte[] certBytes)
+            throws CertificateException, CertificateAlreadyExistsException, ClientNotFoundException {
         X509Certificate x509Certificate;
         try {
             x509Certificate = CryptoUtils.readCertificate(certBytes);
@@ -161,22 +157,33 @@ public class ClientService {
         }
         String hash = calculateCertHexHash(x509Certificate);
         ClientType clientType = getClientType(id);
-        clientType.getIsCert().stream()
+        Optional<CertificateType> duplicate = clientType.getIsCert().stream()
                 .filter(cert -> hash.equalsIgnoreCase(calculateCertHexHash(cert.getData())))
-                .findAny()
-                .ifPresent(a -> {
-                    throw new ConflictException("certificate already exists");
-                });
+                .findFirst();
+        if (duplicate.isPresent()) {
+            throw new CertificateAlreadyExistsException("certificate already exists");
+        }
 
         CertificateType certificateType = new CertificateType();
         try {
             certificateType.setData(x509Certificate.getEncoded());
         } catch (CertificateEncodingException ex) {
+            // client cannot do anything about this
             throw new RuntimeException(ex);
         }
         clientType.getIsCert().add(certificateType);
         clientRepository.saveOrUpdateAndFlush(clientType);
         return certificateType;
+    }
+
+    /**
+     * If trying to add certificate which already exists
+     */
+    public static class CertificateAlreadyExistsException extends ServiceException {
+        public static final String ERROR_CERTIFICATE_ALREADY_EXISTS = "certificate_already_exists";
+        public CertificateAlreadyExistsException(String s) {
+            super(s, new ErrorDeviation(ERROR_CERTIFICATE_ALREADY_EXISTS));
+        }
     }
 
     /**
@@ -207,19 +214,21 @@ public class ClientService {
      * @param id
      * @param certificateHash
      * @return
-     * @throws NotFoundException if client of certificate was not found
+     * @throws ClientNotFoundException if client was not found
+     * @throws CertificateNotFoundException if certificate was not found
      */
     @PreAuthorize("hasAuthority('DELETE_CLIENT_INTERNAL_CERT')")
-    public ClientType deleteTlsCertificate(ClientId id, String certificateHash) {
+    public ClientType deleteTlsCertificate(ClientId id, String certificateHash)
+            throws ClientNotFoundException, CertificateNotFoundException {
         ClientType clientType = getClientType(id);
-        CertificateType certificateType = clientType.getIsCert().stream()
+        Optional<CertificateType> certificateType = clientType.getIsCert().stream()
                 .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
-                .findAny()
-                .orElseThrow(() ->
-                        new NotFoundException("certificate with hash " + certificateHash + " not found",
-                                new Error(CERTIFICATE_NOT_FOUND_ERROR_CODE)));
+                .findAny();
+        if (!certificateType.isPresent()) {
+            throw new CertificateNotFoundException();
+        }
 
-        clientType.getIsCert().remove(certificateType);
+        clientType.getIsCert().remove(certificateType.get());
         clientRepository.saveOrUpdate(clientType);
         return clientType;
     }
@@ -228,10 +237,12 @@ public class ClientService {
      * Returns a single client tls certificate that has matching hash
      * @param id
      * @param certificateHash
+     * @throws ClientNotFoundException if client was not found
      * @return
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENT_INTERNAL_CERT_DETAILS')")
-    public Optional<CertificateType> getTlsCertificate(ClientId id, String certificateHash) {
+    public Optional<CertificateType> getTlsCertificate(ClientId id, String certificateHash)
+            throws ClientNotFoundException {
         ClientType clientType = getClientType(id);
         Optional<CertificateType> certificateType = clientType.getIsCert().stream()
                 .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
@@ -331,7 +342,7 @@ public class ClientService {
         List<Predicate<ClientType>> searchPredicates = new ArrayList<>();
         if (!StringUtils.isEmpty(name)) {
             searchPredicates.add(ct -> {
-                String memberName = globalConfService.getMemberName(ct.getIdentifier());
+                String memberName = globalConfFacade.getMemberName(ct.getIdentifier());
                 return memberName != null && memberName.toLowerCase().contains(name.toLowerCase());
             });
         }

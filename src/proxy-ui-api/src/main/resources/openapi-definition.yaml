@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.12"
+  version: "1.0.13"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -503,7 +503,7 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: adds new client for the security server
+      summary: add new client for the security server
       operationId: addClient
       description: Adds new client to the system
       requestBody:
@@ -860,7 +860,7 @@ paths:
       tags:
         - security server
       summary: get security server client certificates information
-      operationId: getClientCertificates
+      operationId: getClientSignCertificates
       description: Administrator views the certificates for the client.
       parameters:
         - in: path
@@ -882,7 +882,7 @@ paths:
                 uniqueItems: true
                 description: array of certificate (details) objects
                 items:
-                  $ref: '#/components/schemas/CertificateDetails'
+                  $ref: '#/components/schemas/TokenCertificate'
         '400':
           description: request was invalid
         '401':
@@ -1583,7 +1583,7 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: adds new certificate for selected key
+      summary: add new certificate for selected key
       operationId: addCertificate
       description: Adds certificate to the system
       parameters:
@@ -2039,7 +2039,7 @@ paths:
     post:
       tags:
         - security server
-      summary: adds new access right for the selected service
+      summary: add new access right for the selected service
       operationId: addServiceAccessRight
       description: Adds access right to the service
       parameters:
@@ -2160,7 +2160,7 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: adds new access right for selected service client
+      summary: add new access right for selected service client
       operationId: addServiceClientAccessRight
       description: Adds access right to the service client.
       parameters:
@@ -3012,7 +3012,7 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: adds new key
+      summary: add new key
       operationId: addKey
       description: Adds key for selected token.
       parameters:
@@ -3065,7 +3065,7 @@ paths:
     put: # ok
       tags:
         - security server
-      summary: logins to token
+      summary: login to token
       operationId: loginToken
       description: Login to token
       parameters:
@@ -3077,7 +3077,20 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: TokenPassword
+              type: object
+              properties:
+                password:
+                  type: string
+                  format: text
+                  description: password for logging in to the token
+                  minLength: 1
+              example:
+                password: sm3!!ycat
       responses:
         '200':
           description: logged in
@@ -3113,7 +3126,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '200':
           description: logged out
@@ -3741,7 +3753,7 @@ components:
           description: key id
           example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
           minLength: 1
-          maxLength: 255
+          maxLength: 40
           readOnly: true
         name:
           type: string
@@ -4294,7 +4306,7 @@ components:
         - type
         - keys
         - status
-        - active
+        - logged_in
         - available
         - saved_to_configuration
         - read_only
@@ -4305,7 +4317,6 @@ components:
           description: token id
           example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
           minLength: 1
-          maxLength: 255
           readOnly: true
         name:
           type: string
@@ -4324,9 +4335,9 @@ components:
             $ref: '#/components/schemas/Key'
         status:
           $ref: '#/components/schemas/TokenStatus'
-        active:
+        logged_in:
           type: boolean
-          description: if the token is active
+          description: if the token has been logged in to
           example: true
         available:
           type: boolean

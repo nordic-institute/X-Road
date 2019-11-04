@@ -29,9 +29,9 @@ import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 
 import com.google.common.collect.Streams;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.GroupMember;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
-import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -49,12 +49,12 @@ import static org.niis.xroad.restapi.converter.Converters.ENCODED_ID_SEPARATOR;
 public class LocalGroupConverter {
 
     private final ClientConverter clientConverter;
-    private final GlobalConfService globalConfService;
+    private final GlobalConfFacade globalConfFacade;
 
     @Autowired
-    public LocalGroupConverter(ClientConverter clientConverter, GlobalConfService globalConfService) {
+    public LocalGroupConverter(ClientConverter clientConverter, GlobalConfFacade globalConfFacade) {
         this.clientConverter = clientConverter;
-        this.globalConfService = globalConfService;
+        this.globalConfFacade = globalConfFacade;
     }
 
     /**
@@ -127,7 +127,7 @@ public class LocalGroupConverter {
         GroupMember groupMember = new GroupMember();
         groupMember.setId(clientConverter.convertId(groupMemberType.getGroupMemberId()));
         groupMember.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(groupMemberType.getAdded()));
-        groupMember.setName(globalConfService.getMemberName(groupMemberType.getGroupMemberId()));
+        groupMember.setName(globalConfFacade.getMemberName(groupMemberType.getGroupMemberId()));
         return groupMember;
     }
 

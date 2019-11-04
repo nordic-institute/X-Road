@@ -22,23 +22,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.wsdl;
+
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
 import java.util.List;
 
 /**
- * A warning that can be ignored
+ * Thrown if WSDL was invalid
  */
-public class Warning extends Deviation {
-    public Warning(String code, List<String> metadata) {
-        super(code, metadata);
+public class InvalidWsdlException extends WsdlValidationException {
+
+    public static final String ERROR_INVALID_WSDL = "invalid_wsdl";
+
+    /**
+     * @param metadata describes why wsdl was invalid
+     */
+    public InvalidWsdlException(List<String> metadata) {
+        super(new ErrorDeviation(ERROR_INVALID_WSDL, metadata));
     }
 
-    public Warning(String code, String metadataItem) {
-        super(code, metadataItem);
-    }
-
-    public Warning(String code) {
-        super(code);
-    }
 }

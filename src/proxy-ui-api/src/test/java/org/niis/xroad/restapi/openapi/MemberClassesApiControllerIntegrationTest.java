@@ -29,7 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
-import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -67,6 +67,9 @@ import static org.mockito.Mockito.when;
 public class MemberClassesApiControllerIntegrationTest {
 
     @MockBean
+    private GlobalConfFacade globalConfFacade;
+
+    @MockBean
     private GlobalConfService globalConfService;
 
     private static final String INSTANCE_A = "instance_a";
@@ -91,7 +94,7 @@ public class MemberClassesApiControllerIntegrationTest {
         instanceMemberClasses.put(INSTANCE_A, A_MEMBER_CLASSES);
         instanceMemberClasses.put(INSTANCE_B, B_MEMBER_CLASSES);
         instanceMemberClasses.put(INSTANCE_C, new ArrayList<>());
-        when(globalConfService.getMemberClasses(anyString()))
+        when(globalConfFacade.getMemberClasses(anyString()))
                 .thenAnswer((Answer<Set<String>>) invocation -> {
                     List<String> classes = instanceMemberClasses.get(invocation.getArgument(0));
                     if (classes == null) {
@@ -100,10 +103,10 @@ public class MemberClassesApiControllerIntegrationTest {
                     return new HashSet(classes);
                 });
 
-        when(globalConfService.getMemberClasses())
+        when(globalConfFacade.getMemberClasses())
                 .thenReturn(UNION_MEMBER_CLASSES);
 
-        when(globalConfService.getInstanceIdentifiers())
+        when(globalConfFacade.getInstanceIdentifiers())
                 .thenReturn(INSTANCE_IDS);
 
         when(globalConfService.getMemberClassesForThisInstance())
@@ -130,8 +133,8 @@ public class MemberClassesApiControllerIntegrationTest {
 
         try {
             memberClassesApiController.getMemberClassesForInstance("instance which does not exist");
-            fail("should throw NotFoundException");
-        } catch (NotFoundException expected) {
+            fail("should throw ResourceNotFoundException");
+        } catch (ResourceNotFoundException expected) {
             // nothing should be found
         }
     }

@@ -35,9 +35,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
-import org.niis.xroad.restapi.exceptions.BadRequestException;
-import org.niis.xroad.restapi.exceptions.ConflictException;
-import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
@@ -48,8 +46,9 @@ import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
-import org.niis.xroad.restapi.repository.TokenRepository;
-import org.niis.xroad.restapi.service.GlobalConfService;
+import org.niis.xroad.restapi.openapi.model.TokenCertificate;
+import org.niis.xroad.restapi.service.TokenService;
+import org.niis.xroad.restapi.service.WsdlUrlValidator;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
@@ -69,6 +68,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -79,16 +79,16 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.restapi.service.ServiceDescriptionService.ERROR_INVALID_WSDL;
-import static org.niis.xroad.restapi.service.ServiceDescriptionService.ERROR_SERVICE_EXISTS;
-import static org.niis.xroad.restapi.service.ServiceDescriptionService.ERROR_WARNINGS_DETECTED;
-import static org.niis.xroad.restapi.service.ServiceDescriptionService.ERROR_WSDL_EXISTS;
+import static org.niis.xroad.restapi.service.ServiceDescriptionService.ServiceAlreadyExistsException.ERROR_SERVICE_EXISTS;
 import static org.niis.xroad.restapi.service.ServiceDescriptionService.WARNING_WSDL_VALIDATION_WARNINGS;
+import static org.niis.xroad.restapi.service.ServiceDescriptionService.WsdlUrlAlreadyExistsException.ERROR_WSDL_EXISTS;
+import static org.niis.xroad.restapi.service.UnhandledWarningsException.ERROR_WARNINGS_DETECTED;
 import static org.niis.xroad.restapi.util.CertificateTestUtils.getResource;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithMetadata;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithoutMetadata;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertWarning;
 import static org.niis.xroad.restapi.util.TestUtils.assertLocationHeader;
+import static org.niis.xroad.restapi.wsdl.InvalidWsdlException.ERROR_INVALID_WSDL;
 
 /**
  * Test ClientsApiController
@@ -115,24 +115,27 @@ public class ClientsApiControllerIntegrationTest {
     private static final String SUBSYSTEM3 = "SS3";
 
     @MockBean
-    private GlobalConfService globalConfService;
+    private GlobalConfFacade globalConfFacade;
 
     @MockBean
-    private TokenRepository tokenRepository;
+    private TokenService tokenService;
 
     @SpyBean
     // partial mocking, just override getValidatorCommand()
     private WsdlValidator wsdlValidator;
 
+    @MockBean
+    private WsdlUrlValidator wsdlUrlValidator;
+
     @Before
     public void setup() throws Exception {
-        when(globalConfService.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
+        when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
             Object[] args = invocation.getArguments();
             ClientId identifier = (ClientId) args[0];
             return identifier.getSubsystemCode() != null ? identifier.getSubsystemCode() + NAME_APPENDIX
                     : "test-member" + NAME_APPENDIX;
         });
-        when(globalConfService.getGlobalMembers(any())).thenReturn(new ArrayList<>(Arrays.asList(
+        when(globalConfFacade.getMembers(any())).thenReturn(new ArrayList<>(Arrays.asList(
                 TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, null),
                 TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1),
                 TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM2),
@@ -142,8 +145,10 @@ public class ClientsApiControllerIntegrationTest {
                 TestUtils.getMemberInfo(INSTANCE_EE, MEMBER_CLASS_PRO, MEMBER_CODE_M2, null))
         ));
         List<TokenInfo> mockTokens = createMockTokenInfos(null);
-        when(tokenRepository.getTokens()).thenReturn(mockTokens);
+        when(tokenService.getAllTokens()).thenReturn(mockTokens);
         when(wsdlValidator.getWsdlValidatorCommand()).thenReturn("src/test/resources/validator/mock-wsdlvalidator.sh");
+        // mock for URL validator - FormatUtils is tested independently
+        when(wsdlUrlValidator.isValidWsdlUrl(any())).thenReturn(true);
     }
 
     @Autowired
@@ -196,8 +201,8 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals("SS1", client.getSubsystemCode());
         try {
             clientsApiController.getClient("FI:GOV:M1:SS3");
-            fail("should throw NotFoundException to 404");
-        } catch (NotFoundException expected) {
+            fail("should throw ResourceNotFoundException to 404");
+        } catch (ResourceNotFoundException expected) {
         }
     }
 
@@ -219,37 +224,40 @@ public class ClientsApiControllerIntegrationTest {
 
     @Test
     @WithMockUser(authorities = "VIEW_CLIENT_DETAILS")
-    public void getClientCertificates() throws Exception {
-        ResponseEntity<List<CertificateDetails>> certificates =
-                clientsApiController.getClientCertificates("FI:GOV:M1");
+    public void getClientSignCertificates() throws Exception {
+        ResponseEntity<List<TokenCertificate>> certificates =
+                clientsApiController.getClientSignCertificates("FI:GOV:M1");
         assertEquals(HttpStatus.OK, certificates.getStatusCode());
         assertEquals(0, certificates.getBody().size());
         CertificateInfo mockCertificate = new CertificateInfo(
                 ClientId.create("FI", "GOV", "M1"),
                 true, true, CertificateInfo.STATUS_REGISTERED,
                 "id", CertificateTestUtils.getMockCertificateBytes(), null);
-        when(tokenRepository.getTokens()).thenReturn(createMockTokenInfos(mockCertificate));
-        certificates = clientsApiController.getClientCertificates("FI:GOV:M1");
+        when(tokenService.getSignCertificates(any())).thenReturn(Collections.singletonList(mockCertificate));
+
+        certificates = clientsApiController.getClientSignCertificates("FI:GOV:M1");
         assertEquals(HttpStatus.OK, certificates.getStatusCode());
         assertEquals(1, certificates.getBody().size());
-        CertificateDetails onlyCertificate = certificates.getBody().get(0);
-        assertEquals("N/A", onlyCertificate.getIssuerCommonName());
-        assertEquals(OffsetDateTime.parse("1970-01-01T00:00:00Z"), onlyCertificate.getNotBefore());
-        assertEquals(OffsetDateTime.parse("2038-01-01T00:00:00Z"), onlyCertificate.getNotAfter());
-        assertEquals("1", onlyCertificate.getSerial());
-        assertEquals(new Integer(3), onlyCertificate.getVersion());
-        assertEquals("SHA512withRSA", onlyCertificate.getSignatureAlgorithm());
-        assertEquals("RSA", onlyCertificate.getPublicKeyAlgorithm());
-        assertEquals("A2293825AA82A5429EC32803847E2152A303969C", onlyCertificate.getHash());
-        assertTrue(onlyCertificate.getSignature().startsWith("314b7a50a09a9b74322671"));
-        assertTrue(onlyCertificate.getRsaPublicKeyModulus().startsWith("9d888fbe089b32a35f58"));
-        assertEquals(new Integer(65537), onlyCertificate.getRsaPublicKeyExponent());
+        TokenCertificate onlyCertificate = certificates.getBody().get(0);
+        assertEquals("N/A", onlyCertificate.getCertificateDetails().getIssuerCommonName());
+        assertEquals(OffsetDateTime.parse("1970-01-01T00:00:00Z"),
+                onlyCertificate.getCertificateDetails().getNotBefore());
+        assertEquals(OffsetDateTime.parse("2038-01-01T00:00:00Z"),
+                onlyCertificate.getCertificateDetails().getNotAfter());
+        assertEquals("1", onlyCertificate.getCertificateDetails().getSerial());
+        assertEquals(new Integer(3), onlyCertificate.getCertificateDetails().getVersion());
+        assertEquals("SHA512withRSA", onlyCertificate.getCertificateDetails().getSignatureAlgorithm());
+        assertEquals("RSA", onlyCertificate.getCertificateDetails().getPublicKeyAlgorithm());
+        assertEquals("A2293825AA82A5429EC32803847E2152A303969C", onlyCertificate.getCertificateDetails().getHash());
+        assertTrue(onlyCertificate.getCertificateDetails().getSignature().startsWith("314b7a50a09a9b74322671"));
+        assertTrue(onlyCertificate.getCertificateDetails().getRsaPublicKeyModulus().startsWith("9d888fbe089b32a35f58"));
+        assertEquals(new Integer(65537), onlyCertificate.getCertificateDetails().getRsaPublicKeyExponent());
         assertEquals(new ArrayList<>(Arrays.asList(org.niis.xroad.restapi.openapi.model.KeyUsage.NON_REPUDIATION)),
-                new ArrayList<>(onlyCertificate.getKeyUsages()));
+                new ArrayList<>(onlyCertificate.getCertificateDetails().getKeyUsages()));
         try {
-            certificates = clientsApiController.getClientCertificates("FI:GOV:M2");
-            fail("should throw NotFoundException for 404");
-        } catch (NotFoundException expected) {
+            certificates = clientsApiController.getClientSignCertificates("FI:GOV:M2");
+            fail("should throw ResourceNotFoundException for 404");
+        } catch (ResourceNotFoundException expected) {
         }
     }
 
@@ -344,8 +352,8 @@ public class ClientsApiControllerIntegrationTest {
         try {
             clientsApiController.deleteClientTlsCertificate(CLIENT_ID_SS1,
                     CertificateTestUtils.getWidgitsCertificateHash());
-            fail("should have thrown NotFoundException");
-        } catch (NotFoundException expected) {
+            fail("should have thrown ResourceNotFoundException");
+        } catch (ResourceNotFoundException expected) {
         }
         assertEquals(0, clientsApiController.getClientTlsCertificates(CLIENT_ID_SS1).getBody().size());
     }
@@ -376,8 +384,8 @@ public class ClientsApiControllerIntegrationTest {
         try {
             clientsApiController.getClientTlsCertificate(CLIENT_ID_SS1,
                     "63a104b2bac1466");
-            fail("should have thrown NotFoundException");
-        } catch (NotFoundException expected) {
+            fail("should have thrown ResourceNotFoundException");
+        } catch (ResourceNotFoundException expected) {
         }
     }
 
@@ -496,8 +504,8 @@ public class ClientsApiControllerIntegrationTest {
         // client not found
         try {
             descriptions = clientsApiController.getClientServiceDescriptions("FI:GOV:M1:NONEXISTENT");
-            fail("should throw NotFoundException to 404");
-        } catch (NotFoundException expected) {
+            fail("should throw ResourceNotFoundException to 404");
+        } catch (ResourceNotFoundException expected) {
         }
 
         // bad client id
@@ -582,7 +590,7 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown ConflictException");
         } catch (ConflictException expected) {
-            assertEquals(ERROR_WSDL_EXISTS, expected.getError().getCode());
+            assertEquals(ERROR_WSDL_EXISTS, expected.getErrorDeviation().getCode());
         }
         serviceDescription = new ServiceDescriptionAdd().url("file:src/test/resources/wsdl/testservice.wsdl");
         serviceDescription.setType(ServiceType.WSDL);
@@ -607,7 +615,7 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            assertErrorWithoutMetadata(ERROR_INVALID_WSDL, expected);
+            assertEquals(ERROR_INVALID_WSDL, expected.getErrorDeviation().getCode());
         }
     }
 
@@ -629,7 +637,7 @@ public class ClientsApiControllerIntegrationTest {
                     expected);
         }
 
-        // now lets ignore the warnings
+        // now lets ignore the warningDeviations
         serviceDescription.setIgnoreWarnings(true);
         clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
         ResponseEntity<List<ServiceDescription>> descriptions =
@@ -648,7 +656,7 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            assertErrorWithMetadata(WsdlValidator.ERROR_WSDL_VALIDATION_FAILED,
+            assertErrorWithMetadata(ERROR_INVALID_WSDL,
                     WsdlValidatorTest.MOCK_VALIDATOR_ERROR, expected);
         }
 
@@ -658,7 +666,7 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            assertErrorWithMetadata(WsdlValidator.ERROR_WSDL_VALIDATION_FAILED,
+            assertErrorWithMetadata(ERROR_INVALID_WSDL,
                     WsdlValidatorTest.MOCK_VALIDATOR_ERROR, expected);
         }
 
@@ -675,7 +683,7 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            assertErrorWithMetadata(WsdlValidator.ERROR_WSDL_VALIDATION_FAILED,
+            assertErrorWithMetadata(ERROR_INVALID_WSDL,
                     WsdlValidatorTest.MOCK_VALIDATOR_ERROR, expected);
         }
     }

@@ -24,37 +24,21 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import java.util.List;
 
 /**
- * Thrown if item was not found.
- * Results in http 404 NOT_FOUND
+ * An error that can't be ignored
  */
-@ResponseStatus(value = HttpStatus.NOT_FOUND)
-public class NotFoundException extends DeviationAwareRuntimeException {
-
-    public NotFoundException() {
+public class ErrorDeviation extends Deviation {
+    public ErrorDeviation(String code, List<String> metadata) {
+        super(code, metadata);
     }
 
-    public NotFoundException(String msg) {
-        super(msg);
+    public ErrorDeviation(String code, String metadataItem) {
+        super(code, metadataItem);
     }
 
-    public NotFoundException(Error error) {
-        super(error);
+    public ErrorDeviation(String code) {
+        super(code);
     }
-
-    public NotFoundException(String msg, Error error) {
-        super(msg, error);
-    }
-
-    public NotFoundException(String msg, Throwable t) {
-        super(msg, t);
-    }
-
-    public NotFoundException(Throwable t) {
-        super(t);
-    }
-
 }

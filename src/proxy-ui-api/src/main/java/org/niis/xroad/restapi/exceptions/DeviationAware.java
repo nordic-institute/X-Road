@@ -35,11 +35,11 @@ public interface DeviationAware {
      * Return the error details, if any
      * @return
      */
-    Error getError();
+    ErrorDeviation getErrorDeviation();
 
     /**
-     * Return warnings, if any
+     * Return warningDeviations, if any
      * @return
      */
-    Collection<Warning> getWarnings();
+    Collection<WarningDeviation> getWarningDeviations();
 }

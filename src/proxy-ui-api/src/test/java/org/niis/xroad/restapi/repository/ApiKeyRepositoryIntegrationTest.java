@@ -27,10 +27,9 @@ package org.niis.xroad.restapi.repository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.domain.InvalidRoleNameException;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
-import org.niis.xroad.restapi.exceptions.InvalidParametersException;
-import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -59,7 +58,7 @@ public class ApiKeyRepositoryIntegrationTest {
     private ApiKeyRepository apiKeyRepository;
 
     @Test
-    public void testDelete() {
+    public void testDelete() throws Exception {
         String plainKey = apiKeyRepository.create(
                 Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"))
                 .getKey();
@@ -73,17 +72,17 @@ public class ApiKeyRepositoryIntegrationTest {
         try {
             apiKey = apiKeyRepository.get(plainKey);
             fail("should throw exception");
-        } catch (NotFoundException expected) {
+        } catch (ApiKeyRepository.ApiKeyNotFoundException expected) {
         }
         try {
             apiKeyRepository.remove(plainKey);
             fail("should throw exception");
-        } catch (NotFoundException expected) {
+        } catch (ApiKeyRepository.ApiKeyNotFoundException expected) {
         }
     }
 
     @Test
-    public void testSaveAndLoad() {
+    public void testSaveAndLoad() throws Exception {
         String plainKey = apiKeyRepository.create(
                 Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"))
                 .getKey();
@@ -98,17 +97,17 @@ public class ApiKeyRepositoryIntegrationTest {
     }
 
     @Test
-    public void testDifferentRoles() {
+    public void testDifferentRoles() throws Exception {
         try {
             String key = apiKeyRepository.create(new ArrayList<>()).getKey();
             fail("should fail due to missing roles");
-        } catch (InvalidParametersException expected) { }
+        } catch (InvalidRoleNameException expected) { }
 
         try {
             String key = apiKeyRepository.create(Arrays.asList("XROAD_SECURITY_OFFICER",
                     "FOOBAR")).getKey();
             fail("should fail due to bad role");
-        } catch (InvalidParametersException expected) { }
+        } catch (InvalidRoleNameException expected) { }
 
         String key = apiKeyRepository.create(Arrays.asList("XROAD_SECURITY_OFFICER",
                 "XROAD_REGISTRATION_OFFICER")).getKey();

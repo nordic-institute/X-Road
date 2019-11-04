@@ -49,6 +49,7 @@ public class TestSuiteServerConf extends EmptyServerConf {
     private static final String SERVICE1 = "SERVICE1";
     private static final String SERVICE2 = "SERVICE2";
     private static final String SERVICE3 = "SERVICE3";
+    private static final String SERVICE4 = "SERVICE4";
 
     @Override
     public SecurityServerId getIdentifier() {
@@ -101,9 +102,16 @@ public class TestSuiteServerConf extends EmptyServerConf {
     @Override
     public List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
         List<ServiceId> list = new ArrayList<>();
-        list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE1));
-        list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE2));
-        list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE3));
+        if (descriptionType == DescriptionType.REST) {
+            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE1));
+            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE2));
+        }
+        if (descriptionType == DescriptionType.OPENAPI3) {
+            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE3));
+        }
+        if (descriptionType == DescriptionType.WSDL) {
+            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE4));
+        }
         return list;
     }
 
@@ -111,8 +119,15 @@ public class TestSuiteServerConf extends EmptyServerConf {
     public List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
                                                                DescriptionType descriptionType) {
         List<ServiceId> list = new ArrayList<>();
-        list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE2));
-        list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE3));
+        if (descriptionType == DescriptionType.REST) {
+            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE2));
+        }
+        if (descriptionType == DescriptionType.OPENAPI3) {
+            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE3));
+        }
+        if (descriptionType == DescriptionType.WSDL) {
+            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE4));
+        }
         return list;
     }
 

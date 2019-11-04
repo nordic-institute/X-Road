@@ -1,4 +1,4 @@
-/**
+/*
  *  The MIT License
  *  Copyright (c) 2018 Estonian Information System Authority (RIA),
  *  Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -22,25 +22,21 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
+package org.niis.xroad.restapi.wsdl;
 
-package org.niis.xroad.restapi.exceptions;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.service.ServiceException;
 
 /**
- * Thrown if WSDL file is not found - internal wrapper runtime exception for FileNotFoundException
+ * Thrown if something went wrong in WSDL validation.
+ * Root class for all WSDL validation exceptions.
  */
-public class WsdlNotFoundException extends RuntimeException {
-    public WsdlNotFoundException() {
+public class WsdlValidationException extends ServiceException {
+    public WsdlValidationException(ErrorDeviation errorDeviation) {
+        super(errorDeviation);
     }
 
-    public WsdlNotFoundException(String message) {
-        super(message);
-    }
-
-    public WsdlNotFoundException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public WsdlNotFoundException(Throwable cause) {
-        super(cause);
+    public WsdlValidationException(Throwable t, ErrorDeviation errorDeviation) {
+        super(t, errorDeviation);
     }
 }
