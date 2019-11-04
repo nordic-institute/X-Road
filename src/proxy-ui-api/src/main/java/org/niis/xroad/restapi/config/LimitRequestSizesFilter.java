@@ -24,78 +24,60 @@
  */
 package org.niis.xroad.restapi.config;
 
-import javax.servlet.Filter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.web.filter.OncePerRequestFilter;
+
 import javax.servlet.FilterChain;
 import javax.servlet.ReadListener;
 import javax.servlet.ServletException;
 import javax.servlet.ServletInputStream;
 import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
+import javax.servlet.http.HttpServletResponse;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Collection;
 
+@Configuration
+@Order(Ordered.HIGHEST_PRECEDENCE + 1)
+@Slf4j
 /**
  * Servlet filter which limits request sizes to some amount of bytes
  */
-public class LimitRequestSizesFilter implements Filter {
-    private final long maxBytes;
-    private final Collection<FileUploadEndpointsConfiguration.EndpointDefinition> endpoints;
-    private final Mode mode;
+public class LimitRequestSizesFilter extends OncePerRequestFilter {
 
-    public enum Mode {
-        LIMIT_ENDPOINTS,
-        SKIP_ENDPOINTS
-    }
+    @Autowired
+    FileUploadEndpointsConfiguration fileUploadEndpointsConfiguration;
 
-    /**
-     * @param maxBytes number of bytes to limit requests to
-     * @param endpoints endpoints that are either filtered or skipped
-     * @param mode LIMIT_ENDPOINTS = size limit specified endpoints, ignore others
-     *             SKIP_ENDPOINTS = ignore specified endpoints, size limit all others
-     */
-    public LimitRequestSizesFilter(long maxBytes,
-            Collection<FileUploadEndpointsConfiguration.EndpointDefinition> endpoints,
-            Mode mode) {
-        this.maxBytes = maxBytes;
-        this.endpoints = endpoints;
-        this.mode = mode;
-    }
+    private static final long REGULAR_REQUEST_SIZE_BYTE_LIMIT = 50 * 1024; // 50KB
+    private static final long FILE_UPLOAD_REQUEST_SIZE_BYTE_LIMIT = 10 * 1024 * 1024; // 10MB
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response,
-            FilterChain chain) throws IOException, ServletException {
-
-        // default filtering setting depends on mode
-        boolean filterThisRequest = false;
-        if (mode == Mode.SKIP_ENDPOINTS) {
-            filterThisRequest = true;
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        // set maxBytes based on if this is a file upload endpoint or a regular one
+        long maxBytes = REGULAR_REQUEST_SIZE_BYTE_LIMIT;
+        if (fileUploadEndpointsConfiguration.getEndpointDefinitions().stream()
+                .anyMatch(endpoint -> endpoint.matches(request))) {
+            maxBytes = FILE_UPLOAD_REQUEST_SIZE_BYTE_LIMIT;
         }
 
-        // if endpoint is one of specified endpoints, change from default filtering
-        if (endpoints.stream().anyMatch(
-                endpoint -> endpoint.matches((HttpServletRequest) request))) {
-            filterThisRequest = !filterThisRequest;
-        }
+        ServletRequest wrapped = new SizeLimitingHttpServletRequestWrapper(request, maxBytes);
 
-        // if we filter this request, then wrap it
-        ServletRequest possiblyWrapped = request;
-        if (filterThisRequest) {
-            possiblyWrapped = new SizeLimitingHttpServletRequestWrapper(
-                    (HttpServletRequest) request, maxBytes);
-        }
-
-        chain.doFilter(possiblyWrapped, response);
+        // LimitRequestSizesExceptions will be handled by SpringInternalExceptionHandler
+        filterChain.doFilter(wrapped, response);
     }
 
     /**
      * Wrapper which limits request sizes to certains number of bytes. Attempt to read more
-     * bytes than that results in {@link SizeLimitExceededException}
+     * bytes than that results in {@link LimitRequestSizesException}
      * Implementation follows the example of Spring's ContentCachingRequestWrapper.
      * Possibly does not limit multipart/form-data uploads properly, use
      * web container specific properties (server.tomcat.max-http-post-size) for that
@@ -136,9 +118,10 @@ public class LimitRequestSizesFilter implements Filter {
      * {@link InputStream#mark(int)}}, and
      * {@link InputStream#reset()} are used and underlying stream does not used the overloaded read-methods
      * (which support size counting and limiting) to implement those.
-     * Not threadsafe.
+     * Not threadsafe (OncePerRequestFilter.shouldNotFilterAsyncDispatch default return value is "true", which means
+     * the filter will not be invoked during subsequent async dispatches).
      * Does not notify ReadListeners about errors due to maximum size exceeded.
-     * Throws {@link SizeLimitExceededException} if maximum is exceeded.
+     * Throws {@link LimitRequestSizesException} if maximum is exceeded.
      */
     private static class SizeLimitingServletInputStream extends ServletInputStream {
         private final ServletInputStream is;
@@ -153,9 +136,9 @@ public class LimitRequestSizesFilter implements Filter {
          * Increases numberToAdd of read bytes by numerToAdd and throws exception if limit exceeded
          * @param numberToAdd number of read bytes. If -1, interpreted as "EOF" and ignored
          * @param localBefore local copy of read bytes at the start of the method which calls this
-         * @throws SizeLimitExceededException if limit for read bytes was exceeded
+         * @throws LimitRequestSizesException if limit for read bytes was exceeded
          */
-        private void increaseReadBytesCount(long localBefore, long numberToAdd) throws SizeLimitExceededException {
+        private void increaseReadBytesCount(long localBefore, long numberToAdd) throws LimitRequestSizesException {
             if (numberToAdd != -1) {
                 // we count what next counter value should be, in our opinion
                 long localNextReadSoFar = localBefore + numberToAdd;
@@ -169,11 +152,11 @@ public class LimitRequestSizesFilter implements Filter {
                     readSoFar = localNextReadSoFar;
                 }
                 if (readSoFar > maxBytes) {
-                    throw new SizeLimitExceededException("request limit " + maxBytes + " exceeded");
+                    throw new LimitRequestSizesException("request limit " + maxBytes + " exceeded");
                 }
             }
         }
-        private void increaseReadBytesCount(long localBefore) throws SizeLimitExceededException {
+        private void increaseReadBytesCount(long localBefore) throws LimitRequestSizesException {
             increaseReadBytesCount(localBefore, 1);
         }
 
