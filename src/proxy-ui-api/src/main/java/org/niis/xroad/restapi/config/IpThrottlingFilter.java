@@ -31,6 +31,7 @@ import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Bucket4j;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -57,8 +58,12 @@ import java.util.concurrent.TimeUnit;
  */
 public class IpThrottlingFilter extends GenericFilterBean {
 
-    public static final int MAX_REQUESTS_PER_SECOND = 20;
-    public static final int MAX_REQUESTS_PER_MINUTE = 10 * 60;
+    @Value("${ratelimit.requests.per.second}")
+    private int rateLimitRequestsPerSecond;
+
+    @Value("${ratelimit.requests.per.minute}")
+    private int rateLimitRequestsPerMinute;
+
     public static final int EXPIRE_BUCKETS_FROM_CACHE_MINUTES = 5;
 
     // use Guava LoadingCache to store buckets, for easy eviction of old buckets
@@ -76,10 +81,10 @@ public class IpThrottlingFilter extends GenericFilterBean {
      * create a new bucket
      * @return
      */
-    private static Bucket createStandardBucket() {
+    private Bucket createStandardBucket() {
         return Bucket4j.builder()
-                .addLimit(Bandwidth.simple(MAX_REQUESTS_PER_SECOND, Duration.ofSeconds(1)))
-                .addLimit(Bandwidth.simple(MAX_REQUESTS_PER_MINUTE, Duration.ofMinutes(1)))
+                .addLimit(Bandwidth.simple(rateLimitRequestsPerSecond, Duration.ofSeconds(1)))
+                .addLimit(Bandwidth.simple(rateLimitRequestsPerMinute, Duration.ofMinutes(1)))
                 .build();
     }
 
