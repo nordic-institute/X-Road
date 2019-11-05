@@ -164,7 +164,7 @@ public class AccessRightServiceTest {
         subjectIds.add(GlobalGroupId.create(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE));
         Set<Long> localGroupIds = new HashSet<>();
         localGroupIds.add(2L);
-        List<AccessRightHolderDto> dtos = accessRightService.addServiceAccessRights(clientId,
+        List<AccessRightHolderDto> dtos = accessRightService.addSoapServiceAccessRights(clientId,
                 TestUtils.SERVICE_CALCULATE_PRIME, subjectIds, localGroupIds);
         assertEquals(3, dtos.size());
     }
@@ -185,7 +185,7 @@ public class AccessRightServiceTest {
         subjectIds.add(GlobalGroupId.create(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE));
         Set<Long> localGroupIds = new HashSet<>();
         localGroupIds.add(2L);
-        List<AccessRightHolderDto> dtos = accessRightService.addServiceAccessRights(clientId,
+        List<AccessRightHolderDto> dtos = accessRightService.addSoapServiceAccessRights(clientId,
                 TestUtils.SERVICE_CALCULATE_PRIME, subjectIds, localGroupIds);
         assertEquals(3, dtos.size());
         AccessRightHolderDto persistedSs3 = dtos.stream()
@@ -208,7 +208,7 @@ public class AccessRightServiceTest {
                 "nope"));
         Set<Long> localGroupIds = new HashSet<>();
         localGroupIds.add(2L);
-        accessRightService.addServiceAccessRights(clientId, TestUtils.SERVICE_CALCULATE_PRIME, subjectIds,
+        accessRightService.addSoapServiceAccessRights(clientId, TestUtils.SERVICE_CALCULATE_PRIME, subjectIds,
                 localGroupIds);
     }
 
@@ -224,7 +224,7 @@ public class AccessRightServiceTest {
                 "nope"));
         Set<Long> localGroupIds = new HashSet<>();
         localGroupIds.add(1L);
-        accessRightService.addServiceAccessRights(clientId, TestUtils.SERVICE_CALCULATE_PRIME, subjectIds,
+        accessRightService.addSoapServiceAccessRights(clientId, TestUtils.SERVICE_CALCULATE_PRIME, subjectIds,
                 localGroupIds);
     }
 }

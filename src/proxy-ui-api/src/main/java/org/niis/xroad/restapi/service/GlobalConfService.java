@@ -36,7 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -74,17 +73,25 @@ public class GlobalConfService {
 
     /**
      * @param identifiers
-     * @return whether the identifiers exist in global configuration
+     * @return whether the global group identifiers exist in global configuration
      */
     @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
-    public boolean identifiersExist(Collection<XRoadId> identifiers) {
-        List<XRoadId> existingIdentifiers = new ArrayList<>();
-        existingIdentifiers.addAll(globalConfFacade.getGlobalGroups().stream()
+    public boolean globalGroupsExist(Collection<XRoadId> identifiers) {
+        List<XRoadId> existingIdentifiers = globalConfFacade.getGlobalGroups().stream()
                 .map(GlobalGroupInfo::getId)
-                .collect(Collectors.toList()));
-        existingIdentifiers.addAll(globalConfFacade.getMembers().stream()
+                .collect(Collectors.toList());
+        return existingIdentifiers.containsAll(identifiers);
+    }
+
+    /**
+     * @param identifiers
+     * @return whether the members identifiers exist in global configuration
+     */
+    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
+    public boolean membersExist(Collection<XRoadId> identifiers) {
+        List<XRoadId> existingIdentifiers = globalConfFacade.getMembers().stream()
                 .map(MemberInfo::getId)
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList());
         return existingIdentifiers.containsAll(identifiers);
     }
 

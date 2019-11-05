@@ -148,7 +148,7 @@ public class ServicesApiController implements ServicesApi {
         Set<Long> localGroupIds = getLocalGroupIds(subjects);
         List<XRoadId> xRoadIds = getXRoadIdsButSkipLocalGroups(subjects);
         try {
-            accessRightService.deleteServiceAccessRights(clientId, fullServiceCode, new HashSet<>(xRoadIds),
+            accessRightService.deleteSoapServiceAccessRights(clientId, fullServiceCode, new HashSet<>(xRoadIds),
                     localGroupIds);
         } catch (ServiceService.ServiceNotFoundException | ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
@@ -167,7 +167,7 @@ public class ServicesApiController implements ServicesApi {
         List<XRoadId> xRoadIds = getXRoadIdsButSkipLocalGroups(subjects);
         List<AccessRightHolderDto> accessRightHolderDtos;
         try {
-            accessRightHolderDtos = accessRightService.addServiceAccessRights(clientId, fullServiceCode,
+            accessRightHolderDtos = accessRightService.addSoapServiceAccessRights(clientId, fullServiceCode,
                     new HashSet<>(xRoadIds), localGroupIds);
         } catch (ClientNotFoundException | ServiceService.ServiceNotFoundException e) {
             throw new ResourceNotFoundException(e);

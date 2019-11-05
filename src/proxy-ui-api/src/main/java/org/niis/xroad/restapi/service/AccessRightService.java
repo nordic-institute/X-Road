@@ -43,6 +43,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.openapi.InternalServerErrorException;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -157,8 +158,7 @@ public class AccessRightService {
      * @throws ServiceService.ServiceNotFoundException if service with given fullServicecode was not found
      * @throws AccessRightNotFoundException if attempted to delete access right that did not exist for the service
      */
-    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
-    public void deleteServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds)
+    private void deleteSoapServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds)
             throws ClientNotFoundException, AccessRightNotFoundException, ServiceService.ServiceNotFoundException {
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
@@ -200,12 +200,17 @@ public class AccessRightService {
      * @throws ServiceService.ServiceNotFoundException if service with given fullServicecode was not found
      */
     @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
-    public void deleteServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds,
+    public void deleteSoapServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds,
             Set<Long> localGroupIds) throws LocalGroupNotFoundException, ClientNotFoundException,
             AccessRightNotFoundException, ServiceService.ServiceNotFoundException {
-        Set<XRoadId> localGroups = getLocalGroupsAsXroadIds(localGroupIds);
-        subjectIds.addAll(localGroups);
-        deleteServiceAccessRights(clientId, fullServiceCode, subjectIds);
+        Set<XRoadId> idsToDelete = new HashSet<>();
+        if (localGroupIds != null) {
+            idsToDelete.addAll(getLocalGroupsAsXroadIds(localGroupIds));
+        }
+        if (subjectIds != null) {
+            idsToDelete.addAll(subjectIds);
+        }
+        deleteSoapServiceAccessRights(clientId, fullServiceCode, idsToDelete);
     }
 
     /**
@@ -217,7 +222,7 @@ public class AccessRightService {
      * @throws ClientNotFoundException
      * @throws ServiceService.ServiceNotFoundException
      */
-    private List<AccessRightHolderDto> addServiceAccessRights(ClientId clientId, String fullServiceCode,
+    private List<AccessRightHolderDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
             Set<XRoadId> subjectIds) throws ClientNotFoundException, ServiceService.ServiceNotFoundException,
             DuplicateAccessRightException {
         ClientType clientType = clientRepository.getClient(clientId);
@@ -226,7 +231,10 @@ public class AccessRightService {
         }
         ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
 
-        EndpointType endpointType = createEndpoint(clientType, serviceType);
+        // Get matching endpoint from client. This should never throw with SOAP services
+        EndpointType endpointType = getEndpoint(clientType, serviceType, EndpointType.ANY_METHOD,
+                EndpointType.ANY_PATH).orElseThrow(InternalServerErrorException::new);
+
         Date now = new Date();
 
         for (XRoadId subjectId : subjectIds) {
@@ -264,25 +272,21 @@ public class AccessRightService {
         return accessRightHolderDtos;
     }
 
-    private EndpointType createEndpoint(ClientType clientType, ServiceType serviceType) {
-        return createEndpoint(clientType, serviceType, EndpointType.ANY_METHOD, EndpointType.ANY_PATH, true);
-    }
-
-    private EndpointType createEndpoint(ClientType clientType, ServiceType serviceType, String endpointMethod,
-            String endpointPath, boolean isGenerated) {
-        // does the endpoint exists already?
-        Optional<EndpointType> existingEndpoint = clientType.getEndpoint().stream()
+    /**
+     * Get matching {@link EndpointType endpoint} from {@link ClientType#endpoint client's list of endpoints}.
+     * @param clientType
+     * @param serviceType
+     * @param endpointMethod
+     * @param endpointPath
+     * @return
+     */
+    private Optional<EndpointType> getEndpoint(ClientType clientType, ServiceType serviceType, String endpointMethod,
+            String endpointPath) {
+        return clientType.getEndpoint().stream()
                 .filter(endpointType -> endpointType.getServiceCode().equals(serviceType.getServiceCode())
                         && endpointType.getMethod().equals(endpointMethod)
                         && endpointType.getPath().equals(endpointPath))
                 .findFirst();
-        // get existing endpoint or create a new one - add it to the client's endpoint list as a side effect
-        return existingEndpoint.orElseGet(() -> {
-            EndpointType newEndpointType = new EndpointType(serviceType.getServiceCode(),
-                    endpointMethod, endpointPath, isGenerated);
-            clientType.getEndpoint().add(newEndpointType);
-            return newEndpointType;
-        });
     }
 
     /**
@@ -297,37 +301,56 @@ public class AccessRightService {
      * @throws ServiceService.ServiceNotFoundException
      */
     @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
-    public List<AccessRightHolderDto> addServiceAccessRights(ClientId clientId, String fullServiceCode,
+    public List<AccessRightHolderDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
             Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws LocalGroupNotFoundException,
             ClientNotFoundException, ServiceService.ServiceNotFoundException, DuplicateAccessRightException,
             IdentifierNotFoundException {
         // Get persistent entities in order to change relations
-        Set<XRoadId> txSubjects = getOrPersistSubsystemAndGlobalGroupIds(subjectIds);
-        Set<XRoadId> localGroups = getLocalGroupsAsXroadIds(localGroupIds);
-        txSubjects.addAll(localGroups);
-        return addServiceAccessRights(clientId, fullServiceCode, txSubjects);
+        Set<XRoadId> txSubjects = new HashSet<>();
+        if (subjectIds != null) {
+            txSubjects.addAll(getOrPersistSubsystemIds(subjectIds.stream()
+                    .filter(xRoadId -> xRoadId.getObjectType() == XRoadObjectType.SUBSYSTEM)
+                    .collect(Collectors.toSet())));
+            txSubjects.addAll(getOrPersistGlobalGroupIds(subjectIds.stream()
+                    .filter(xRoadId -> xRoadId.getObjectType() == XRoadObjectType.GLOBALGROUP)
+                    .collect(Collectors.toSet())));
+        }
+        if (localGroupIds != null) {
+            txSubjects.addAll(getLocalGroupsAsXroadIds(localGroupIds));
+        }
+        return addSoapServiceAccessRights(clientId, fullServiceCode, txSubjects);
     }
 
     /**
      * Verify that all identifiers are authentic, then get the existing ones from the local db and persist
      * the not-existing ones. This is a necessary step if we are changing identifier relations (such as adding
      * access rights to services)
-     * @param subjectIds {@link GlobalGroupId} or {@link ClientId}
+     * @param subsystemIds {@link GlobalGroupId} or {@link ClientId}
      * @return List of XRoadIds ({@link GlobalGroupId} or {@link ClientId})
      */
-    private Set<XRoadId> getOrPersistSubsystemAndGlobalGroupIds(Set<XRoadId> subjectIds)
+    private Set<XRoadId> getOrPersistSubsystemIds(Set<XRoadId> subsystemIds)
             throws IdentifierNotFoundException {
         // Check that the identifiers exist in globalconf
         // LocalGroups must be verified separately! (they do not exist in globalconf)
-        Set<XRoadId> subsystemsAndGlobalGroups = subjectIds.stream()
-                .filter(xRoadId -> xRoadId.getObjectType() == XRoadObjectType.SUBSYSTEM
-                        || xRoadId.getObjectType() == XRoadObjectType.GLOBALGROUP)
-                .collect(Collectors.toSet());
-        if (!globalConfService.identifiersExist(subsystemsAndGlobalGroups)) {
+        if (!globalConfService.membersExist(subsystemIds)) {
             // This exception should be pretty rare since it only occurs if bogus subjects are found
             throw new IdentifierNotFoundException();
         }
-        return identifierService.getOrPersistXroadIds(subsystemsAndGlobalGroups);
+        return identifierService.getOrPersistXroadIds(subsystemIds);
+    }
+
+    /**
+     * @param globalGroupIds
+     * @return
+     * @throws IdentifierNotFoundException
+     * @see AccessRightService#getOrPersistSubsystemIds(Set)
+     */
+    private Set<XRoadId> getOrPersistGlobalGroupIds(Set<XRoadId> globalGroupIds)
+            throws IdentifierNotFoundException {
+        if (!globalConfService.globalGroupsExist(globalGroupIds)) {
+            throw new IdentifierNotFoundException();
+        }
+        return identifierService.getOrPersistXroadIds(globalGroupIds);
     }
 
     /**
