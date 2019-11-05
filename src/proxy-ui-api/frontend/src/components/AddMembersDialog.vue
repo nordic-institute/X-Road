@@ -31,7 +31,7 @@
                     <v-select
                       v-model="instance"
                       :items="instances"
-                      label="Instance"
+                      :label="$t('instance')"
                       class="flex-input"
                       clearable
                     ></v-select>
@@ -189,7 +189,7 @@ export default Vue.extend({
           if (this.filtered && this.filtered.length > 0) {
             // Filter out members that are already added
             this.members = res.data.filter((member: any) => {
-              this.filtered.find((item: any) => {
+              return !this.filtered.find((item: any) => {
                 return item.id === member.id;
               });
             });
