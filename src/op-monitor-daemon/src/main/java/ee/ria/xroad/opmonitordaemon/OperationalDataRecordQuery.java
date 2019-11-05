@@ -58,6 +58,7 @@ import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SERVICE_MEMBER_C
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SERVICE_SUBSYSTEM_CODE;
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SERVICE_XROAD_INSTANCE;
 import static ee.ria.xroad.opmonitordaemon.OperationalDataOutputSpecFields.MONITORING_DATA_TS;
+import static ee.ria.xroad.opmonitordaemon.OperationalDataOutputSpecFields.OUTPUT_FIELDS;
 import static ee.ria.xroad.opmonitordaemon.OperationalDataOutputSpecFields.PUBLIC_OUTPUT_FIELDS;
 
 @SuppressWarnings("checkstyle:magicnumber")
@@ -105,9 +106,11 @@ final class OperationalDataRecordQuery {
         } else {
             if (!outputFields.isEmpty()) {
                 outputFields.forEach(s -> projection.add(from.get(s).alias(s)));
-            }
-            if (!outputFields.contains(MONITORING_DATA_TS)) {
-                projection.add(from.get(MONITORING_DATA_TS).alias(MONITORING_DATA_TS));
+                if (!outputFields.contains(MONITORING_DATA_TS)) {
+                    projection.add(from.get(MONITORING_DATA_TS).alias(MONITORING_DATA_TS));
+                }
+            } else {
+                OUTPUT_FIELDS.forEach(s -> projection.add(from.get(s).alias(s)));
             }
         }
     }
