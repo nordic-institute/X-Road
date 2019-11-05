@@ -112,7 +112,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import axios from 'axios';
+import * as api from '@/util/api';
 import LargeButton from '@/components/LargeButton.vue';
 
 function initialState() {
@@ -181,7 +181,7 @@ export default Vue.extend({
     },
     search(): void {
       this.noResults = false;
-      axios
+      api
         .get(
           `/clients?name=${this.name}&instance=${this.instance}&member_class=${this.memberClass}&member_code=${this.memberCode}&subsystem_code=${this.subsystemCode}&show_members=false&internal_search=false`,
         )
