@@ -3,7 +3,8 @@
 
 
 export interface Service {
-  'service_id': string;
+  'id': string;
+  'service_code': string;
   'code': string;
   'timeout': number;
   'ssl_auth': boolean;
