@@ -232,8 +232,9 @@ public class AccessRightService {
         ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
 
         // Get matching endpoint from client. This should never throw with SOAP services
-        EndpointType endpointType = getEndpoint(clientType, serviceType, EndpointType.ANY_METHOD,
-                EndpointType.ANY_PATH).orElseThrow(InternalServerErrorException::new);
+        EndpointType endpoint = getEndpoint(clientType, serviceType, EndpointType.ANY_METHOD, EndpointType.ANY_PATH)
+                .orElseThrow(() -> new InternalServerErrorException("Endpoint for SOAP service not found: "
+                        + fullServiceCode));
 
         Date now = new Date();
 
@@ -242,12 +243,12 @@ public class AccessRightService {
                     .filter(accessRightType -> accessRightType.getSubjectId().equals(subjectId))
                     .findFirst();
 
-            if (existingAccessRight.isPresent() && existingAccessRight.get().getEndpoint().equals(endpointType)) {
+            if (existingAccessRight.isPresent() && existingAccessRight.get().getEndpoint().equals(endpoint)) {
                 throw new DuplicateAccessRightException("Subject " + subjectId.toShortString()
                         + " already has an access right for service " + serviceType.getServiceCode());
             }
             AccessRightType newAccessRight = new AccessRightType();
-            newAccessRight.setEndpoint(endpointType);
+            newAccessRight.setEndpoint(endpoint);
             newAccessRight.setSubjectId(subjectId);
             newAccessRight.setRightsGiven(now);
             clientType.getAcl().add(newAccessRight);
