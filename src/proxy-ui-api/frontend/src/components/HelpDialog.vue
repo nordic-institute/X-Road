@@ -66,11 +66,11 @@ export default Vue.extend({
 @import '../assets/dialogs';
 
 .content-wrapper {
-  padding-top: 20px;
+  margin-top: 20px;
 }
 
 .title-wrap {
-  margin: 10px;
+  margin-bottom: 10px;
   width: 100%;
   text-align: center;
 }
