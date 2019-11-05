@@ -169,7 +169,8 @@ public class ServicesApiController implements ServicesApi {
         try {
             accessRightHolderDtos = accessRightService.addSoapServiceAccessRights(clientId, fullServiceCode,
                     new HashSet<>(xRoadIds), localGroupIds);
-        } catch (ClientNotFoundException | ServiceService.ServiceNotFoundException e) {
+        } catch (ClientNotFoundException | ServiceService.ServiceNotFoundException
+                | AccessRightService.EndpointNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (LocalGroupNotFoundException | IdentifierNotFoundException e) {
             throw new BadRequestException(e);

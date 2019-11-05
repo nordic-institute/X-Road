@@ -224,7 +224,7 @@ public class AccessRightService {
      */
     private List<AccessRightHolderDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
             Set<XRoadId> subjectIds) throws ClientNotFoundException, ServiceService.ServiceNotFoundException,
-            DuplicateAccessRightException {
+            DuplicateAccessRightException, EndpointNotFoundException {
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
@@ -233,8 +233,7 @@ public class AccessRightService {
 
         // Get matching endpoint from client. This should never throw with SOAP services
         EndpointType endpoint = getEndpoint(clientType, serviceType, EndpointType.ANY_METHOD, EndpointType.ANY_PATH)
-                .orElseThrow(() -> new InternalServerErrorException("Endpoint for SOAP service not found: "
-                        + fullServiceCode));
+                .orElseThrow(() -> new EndpointNotFoundException(fullServiceCode));
 
         Date now = new Date();
 
@@ -305,7 +304,7 @@ public class AccessRightService {
     public List<AccessRightHolderDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
             Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws LocalGroupNotFoundException,
             ClientNotFoundException, ServiceService.ServiceNotFoundException, DuplicateAccessRightException,
-            IdentifierNotFoundException {
+            IdentifierNotFoundException, EndpointNotFoundException {
         // Get persistent entities in order to change relations
         Set<XRoadId> txSubjects = new HashSet<>();
         if (subjectIds != null) {
@@ -370,6 +369,19 @@ public class AccessRightService {
             localGroups.add(LocalGroupId.create(localGroup.getGroupCode()));
         }
         return localGroups;
+    }
+
+    /**
+     * If endpoint was not found
+     */
+    public static class EndpointNotFoundException extends NotFoundException {
+        public static final String ERROR_ENDPOINT_NOT_FOUND = "endpoint_not_found";
+        private static final String msg = "Endpoint not found for service: %s";
+
+        public EndpointNotFoundException(String fullServiceName) {
+            super(String.format(msg, fullServiceName), new ErrorDeviation(ERROR_ENDPOINT_NOT_FOUND, fullServiceName));
+        }
+
     }
 
     /**
