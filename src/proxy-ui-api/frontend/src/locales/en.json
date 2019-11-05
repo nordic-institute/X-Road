@@ -240,6 +240,7 @@
   "member_name": "Member name",
   "member_code": "Member code",
   "subsystem_code": "Subsystem code",
+  "instance": "Instance",
   "warning": "Warning",
   "fields": {
     "password": "Password",
