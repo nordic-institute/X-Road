@@ -170,11 +170,12 @@
     />
 
     <!-- Add new members dialog -->
-    <addMembersDialog
+    <accessRightsDialog
       :dialog="addMembersDialogVisible"
       :filtered="[]"
       :memberClasses="[]"
       :instances="[]"
+      :id="service.id"
       title="access.addSubjectsTitle"
       @cancel="closeMembersDialog"
       @membersAdded="doAddMembers"
@@ -190,7 +191,7 @@ import axios from 'axios';
 import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
 import SubViewTitle from '@/components/SubViewTitle.vue';
-import AddMembersDialog from '@/components/AddMembersDialog.vue';
+import AccessRightsDialog from '@/components/AccessRightsDialog.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import HelpIcon from '@/components/HelpIcon.vue';
 import LargeButton from '@/components/LargeButton.vue';
@@ -207,7 +208,7 @@ type NullableSubject = undefined | AccessRightSubject;
 export default Vue.extend({
   components: {
     SubViewTitle,
-    AddMembersDialog,
+    AccessRightsDialog,
     ConfirmDialog,
     HelpIcon,
     LargeButton,
@@ -236,7 +237,8 @@ export default Vue.extend({
       timeout_all: false,
       ssl_auth_all: false,
       service: {
-        service_id: '',
+        id: '',
+        service_code: '',
         code: '',
         timeout: 0,
         ssl_auth: true,
@@ -319,19 +321,37 @@ export default Vue.extend({
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
         });
+
+      axios
+        .get(`/member-classes`)
+        .then((res) => {
+          this.memberClasses = res.data;
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
+
+      axios
+        .get(`/xroad-instances`)
+        .then((res) => {
+          this.instances = res.data;
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
     },
 
     showAddMembersDialog(): void {
       this.addMembersDialogVisible = true;
     },
 
-    doAddMembers(selectedIds: string[]): void {
+    doAddMembers(selected: any[]): void {
       this.addMembersDialogVisible = false;
       // this.fetchData(this.clientId);
 
       axios
         .post(`/services/${this.serviceId}/access-rights`, {
-          items: selectedIds,
+          items: selected,
         })
         .then((res) => {
           // this.service = res.data;
