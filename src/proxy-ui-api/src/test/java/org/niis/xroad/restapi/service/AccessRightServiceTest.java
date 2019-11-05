@@ -26,6 +26,9 @@ package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.GlobalGroupId;
+import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
@@ -40,14 +43,19 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -61,24 +69,19 @@ import static org.mockito.Mockito.when;
 @Transactional
 public class AccessRightServiceTest {
 
-    private static final String INSTANCE_FI = "FI";
-    private static final String INSTANCE_EE = "EE";
-    private static final String MEMBER_CLASS_GOV = "GOV";
-    private static final String MEMBER_CODE_M1 = "M1";
-    private static final String SUBSYSTEM1 = "SS1";
-    private static final String GLOBALGROUP_CODE = "GlobalGroup";
-    private static final String GLOBALGROUP_CODE1 = "GlobalGroup 1";
     private List<MemberInfo> memberInfos = new ArrayList<>(Arrays.asList(
-            TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, null),
-            TestUtils.getMemberInfo(INSTANCE_EE, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1),
-            TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1)));
+            TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, null),
+            TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
+                    TestUtils.SUBSYSTEM1),
+            TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
+                    TestUtils.SUBSYSTEM1)));
     private List<GlobalGroupInfo> globalGroupInfos = new ArrayList<>(Arrays.asList(
-            TestUtils.getGlobalGroupInfo(INSTANCE_FI, GLOBALGROUP_CODE),
-            TestUtils.getGlobalGroupInfo(INSTANCE_FI, GLOBALGROUP_CODE1),
-            TestUtils.getGlobalGroupInfo(INSTANCE_EE, GLOBALGROUP_CODE)));
+            TestUtils.getGlobalGroupInfo(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE),
+            TestUtils.getGlobalGroupInfo(TestUtils.INSTANCE_FI, TestUtils.GLOBALGROUP_CODE1),
+            TestUtils.getGlobalGroupInfo(TestUtils.INSTANCE_EE, TestUtils.DB_GLOBALGROUP_CODE)));
     private List<String> instanceIdentifiers = new ArrayList<>(Arrays.asList(
-            INSTANCE_FI,
-            INSTANCE_EE));
+            TestUtils.INSTANCE_FI,
+            TestUtils.INSTANCE_EE));
 
     @Autowired
     AccessRightService accessRightService;
@@ -86,10 +89,13 @@ public class AccessRightServiceTest {
     @MockBean
     GlobalConfFacade globalConfFacade;
 
+    @MockBean
+    GlobalConfService globalConfService;
+
     @Before
     public void setup() {
         when(globalConfFacade.getMembers()).thenReturn(memberInfos);
-        when(globalConfFacade.getInstanceIdentifier()).thenReturn(INSTANCE_FI);
+        when(globalConfFacade.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
         when(globalConfFacade.getInstanceIdentifiers()).thenReturn(instanceIdentifiers);
         when(globalConfFacade.getGlobalGroups(any())).thenAnswer(invocation -> {
             Object[] args = invocation.getArguments();
@@ -133,7 +139,7 @@ public class AccessRightServiceTest {
     @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
     public void findAccessRightHoldersByInstance() throws Throwable {
         List<AccessRightHolderDto> dtos = accessRightService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
-                null, INSTANCE_EE, null, null, null);
+                null, TestUtils.INSTANCE_EE, null, null, null);
         assertEquals(4, dtos.size());
     }
 
@@ -141,7 +147,84 @@ public class AccessRightServiceTest {
     @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
     public void findAccessRightHoldersByInstanceAndSubSystem() throws Throwable {
         List<AccessRightHolderDto> dtos = accessRightService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
-                null, INSTANCE_FI, null, null, SUBSYSTEM1);
+                null, TestUtils.INSTANCE_FI, null, null, TestUtils.SUBSYSTEM1);
         assertEquals(1, dtos.size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
+            "VIEW_CLIENT_SERVICES" })
+    public void addAccessRights() throws Throwable {
+        when(globalConfService.membersExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+        ClientId clientId = TestUtils.getM1Ss1ClientId();
+        Set<XRoadId> subjectIds = new HashSet<>();
+        subjectIds.add(ClientId.create(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
+                TestUtils.SUBSYSTEM2));
+        subjectIds.add(GlobalGroupId.create(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE));
+        Set<Long> localGroupIds = new HashSet<>();
+        localGroupIds.add(2L);
+        List<AccessRightHolderDto> dtos = accessRightService.addServiceAccessRights(clientId,
+                TestUtils.SERVICE_CALCULATE_PRIME, subjectIds, localGroupIds);
+        assertEquals(3, dtos.size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
+            "VIEW_CLIENT_SERVICES" })
+    public void addAccessRightsForNonLocalSubsystem() throws Throwable {
+        when(globalConfService.membersExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+        ClientId clientId = TestUtils.getM1Ss1ClientId();
+        Set<XRoadId> subjectIds = new HashSet<>();
+        ClientId ss3 = ClientId.create(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
+                TestUtils.SUBSYSTEM3);
+        Long ss3Pk = (Long) ReflectionTestUtils.getField(ss3, "id");
+        assertNull(ss3Pk); // SS3 does not exists (no primary key) but it will be created
+        subjectIds.add(ss3);
+        subjectIds.add(GlobalGroupId.create(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE));
+        Set<Long> localGroupIds = new HashSet<>();
+        localGroupIds.add(2L);
+        List<AccessRightHolderDto> dtos = accessRightService.addServiceAccessRights(clientId,
+                TestUtils.SERVICE_CALCULATE_PRIME, subjectIds, localGroupIds);
+        assertEquals(3, dtos.size());
+        AccessRightHolderDto persistedSs3 = dtos.stream()
+                .filter(accessRightHolderDto -> accessRightHolderDto.getSubjectId().equals(ss3))
+                .findFirst().get();
+        ClientId ss3PersistedSubjectId = (ClientId) persistedSs3.getSubjectId();
+        Long ss3PersistedPk = (Long) ReflectionTestUtils.getField(ss3PersistedSubjectId, "id");
+        assertNotNull(ss3PersistedPk); // SS3 has a primary key
+    }
+
+    @Test(expected = IdentifierNotFoundException.class)
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
+            "VIEW_CLIENT_SERVICES" })
+    public void addAccessRightsForNonExistingClient() throws Throwable {
+        when(globalConfService.membersExist(any())).thenReturn(false);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(false);
+        ClientId clientId = TestUtils.getM1Ss1ClientId();
+        Set<XRoadId> subjectIds = new HashSet<>();
+        subjectIds.add(ClientId.create(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
+                "nope"));
+        Set<Long> localGroupIds = new HashSet<>();
+        localGroupIds.add(2L);
+        accessRightService.addServiceAccessRights(clientId, TestUtils.SERVICE_CALCULATE_PRIME, subjectIds,
+                localGroupIds);
+    }
+
+    @Test(expected = IdentifierNotFoundException.class)
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
+            "VIEW_CLIENT_SERVICES" })
+    public void addDuplicateAccessRights() throws Throwable {
+        when(globalConfService.membersExist(any())).thenReturn(false);
+        when(globalConfService.globalGroupsExist(any())).thenReturn(false);
+        ClientId clientId = TestUtils.getM1Ss1ClientId();
+        Set<XRoadId> subjectIds = new HashSet<>();
+        subjectIds.add(ClientId.create(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
+                "nope"));
+        Set<Long> localGroupIds = new HashSet<>();
+        localGroupIds.add(1L);
+        accessRightService.addServiceAccessRights(clientId, TestUtils.SERVICE_CALCULATE_PRIME, subjectIds,
+                localGroupIds);
     }
 }

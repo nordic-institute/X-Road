@@ -40,14 +40,58 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 /**
- * Test utils for generic object creation
+ * Test utils for constants and generic object creation
  */
 public final class TestUtils {
-    private static final String INSTANCE_FI = "FI";
-    private static final String MEMBER_CLASS_GOV = "GOV";
-    private static final String MEMBER_CODE_M1 = "M1";
-    private static final String SUBSYSTEM1 = "SS1";
-    private static final String NAME_APPENDIX = "-name";
+
+    // Constants
+    public static final String NAME_APPENDIX = "-name";
+    public static final String LOCALGROUP = "LOCALGROUP";
+    public static final String GLOBALGROUP = "GLOBALGROUP";
+    public static final String GLOBALGROUP1 = "GLOBALGROUP1";
+    public static final String GLOBALGROUP2 = "GLOBALGROUP2";
+    public static final String GLOBALGROUP_CODE1 = "GLOBALGROUP_CODE1";
+    public static final String NAME_FOR = "Name for: ";
+    public static final String SS0_GET_RANDOM_V1 = "FI:GOV:M1:SS0:getRandom.v1";
+    public static final String SS1_GET_RANDOM_V1 = "FI:GOV:M1:SS1:getRandom.v1";
+    public static final String SS1_GET_RANDOM_V2 = "FI:GOV:M1:SS1:getRandom.v2";
+    public static final String SS1_CALCULATE_PRIME = "FI:GOV:M1:SS1:calculatePrime.v1";
+    public static final String SS1_PREDICT_WINNING_LOTTERY_NUMBERS = "FI:GOV:M1:SS1:predictWinningLotteryNumbers.v1";
+    public static final String URL_HTTPS = "https://foo.bar";
+    public static final String URL_HTTP = "http://foo.bar";
+    public static final String INSTANCE_FI = "FI";
+    public static final String INSTANCE_EE = "EE";
+    public static final String MEMBER_CLASS_GOV = "GOV";
+    public static final String MEMBER_CLASS_PRO = "PRO";
+    public static final String MEMBER_CODE_M1 = "M1";
+    public static final String MEMBER_CODE_M2 = "M2";
+    public static final String SUBSYSTEM = "SUBSYSTEM";
+    public static final String SUBSYSTEM1 = "SS1";
+    public static final String SUBSYSTEM2 = "SS2";
+    public static final String SUBSYSTEM3 = "SS3";
+    public static final String CLIENT_ID_SS1 = "FI:GOV:M1:SS1";
+    public static final String CLIENT_ID_SS2 = "FI:GOV:M1:SS2";
+    public static final String CLIENT_ID_SS3 = "FI:GOV:M1:SS3";
+    public static final String CLIENT_ID_SS4 = "FI:GOV:M1:SS4";
+    public static final String NEW_GROUPCODE = "NEW_GROUPCODE";
+    public static final String GROUP_DESC = "GROUP_DESC";
+    public static final String NEW_GROUP_DESC = "NEW_GROUP_DESC";
+    public static final String INVALID_GROUP_ID = "NOT_VALID";
+    public static final String FOO = "foo";
+    // values from initial test data: src/test/resources/data.sql
+    public static final String DB_GLOBALGROUP_ID = "FI:security-server-owners";
+    public static final String DB_GLOBALGROUP_CODE = "security-server-owners";
+    public static final String DB_LOCAL_GROUP_ID_1 = "1";
+    public static final String DB_LOCAL_GROUP_ID_2 = "2";
+    public static final String DB_LOCAL_GROUP_CODE = "group1";
+    // services from initial test data: src/test/resources/data.sql
+    public static final String SERVICE_XROAD_GET_RANDOM_OLD = "xroadGetRandomOld.v1";
+    public static final String SERVICE_BMI_OLD = "bodyMassIndexOld.v1";
+    public static final String SERVICE_GET_RANDOM = "getRandom.v1";
+    public static final String SERVICE_CALCULATE_PRIME = "calculatePrime.v1";
+    // services from wsdl test file: src/test/resources/testservice.wsdl
+    public static final String SERVICE_XROAD_GET_RANDOM = "xroadGetRandom.v1";
+    public static final String SERVICE_BMI = "bodyMassIndex.v1";
 
     private TestUtils() {
         // noop
