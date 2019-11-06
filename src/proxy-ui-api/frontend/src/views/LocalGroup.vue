@@ -113,8 +113,6 @@
       v-if="group"
       :dialog="addMembersDialogVisible"
       :filtered="group.members"
-      :instances="instances"
-      :memberClasses="memberClasses"
       @cancel="closeMembersDialog"
       @membersAdded="doAddMembers"
     />
@@ -176,8 +174,6 @@ export default Vue.extend({
       group: undefined as LocalGroup,
       groupCode: '',
       addMembersDialogVisible: false,
-      memberClasses: [],
-      instances: [],
     };
   },
   computed: {
@@ -231,24 +227,6 @@ export default Vue.extend({
           this.group = res.data;
           this.groupCode = res.data.code;
           this.description = res.data.description;
-        })
-        .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
-        });
-
-      axios
-        .get(`/member-classes`)
-        .then((res) => {
-          this.memberClasses = res.data;
-        })
-        .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
-        });
-
-      axios
-        .get(`/xroad-instances`)
-        .then((res) => {
-          this.instances = res.data;
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);

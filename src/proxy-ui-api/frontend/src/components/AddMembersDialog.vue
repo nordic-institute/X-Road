@@ -30,7 +30,7 @@
 
                     <v-select
                       v-model="instance"
-                      :items="instances"
+                      :items="xroadInstances"
                       :label="$t('instance')"
                       class="flex-input"
                       clearable
@@ -112,6 +112,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { mapGetters } from 'vuex';
 import * as api from '@/util/api';
 import LargeButton from '@/components/LargeButton.vue';
 
@@ -146,20 +147,13 @@ export default Vue.extend({
       type: String,
       default: 'localGroup.addMembers',
     },
-    instances: {
-      type: Array,
-      required: true,
-    },
-    memberClasses: {
-      type: Array,
-      required: true,
-    },
   },
 
   data() {
     return initialState();
   },
   computed: {
+    ...mapGetters(['xroadInstances', 'memberClasses']),
     canSave(): boolean {
       if (this.selectedIds.length > 0) {
         return true;
@@ -220,6 +214,10 @@ export default Vue.extend({
       // Reset initial state
       Object.assign(this.$data, initialState());
     },
+  },
+  created() {
+    this.$store.dispatch('fetchXroadInstances');
+    this.$store.dispatch('fetchMemberClasses');
   },
 });
 </script>
