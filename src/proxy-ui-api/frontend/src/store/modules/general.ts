@@ -8,9 +8,9 @@ export interface State {
   memberClasses: string[];
 }
 
-export const state: State = {
+export const generalState: State = {
   xroadInstances: [],
-  memberClasses: []
+  memberClasses: [],
 };
 
 export const getters: GetterTree<State, RootState> = {
@@ -28,7 +28,7 @@ export const mutations: MutationTree<State> = {
   },
   storeMemberClasses(state, memberClasses: string[]) {
     state.memberClasses = memberClasses;
-  }
+  },
 };
 
 export const actions: ActionTree<State, RootState> = {
@@ -57,7 +57,7 @@ export const actions: ActionTree<State, RootState> = {
 
 export const generalModule: Module<State, RootState> = {
   namespaced: false,
-  state: state,
+  state: generalState,
   getters,
   actions,
   mutations,
