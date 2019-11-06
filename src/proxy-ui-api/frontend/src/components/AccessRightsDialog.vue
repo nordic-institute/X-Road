@@ -30,7 +30,7 @@
 
                     <v-select
                       v-model="instance"
-                      :items="instances"
+                      :items="xroadInstances"
                       :label="$t('instance')"
                       class="flex-input"
                       clearable
@@ -126,7 +126,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import axios from 'axios';
+import * as api from '@/util/api';
 import { mapGetters } from 'vuex';
 import LargeButton from '@/components/LargeButton.vue';
 
@@ -167,21 +167,13 @@ export default Vue.extend({
       type: String,
       default: 'localGroup.addMembers',
     },
-    instances: {
-      type: Array,
-      required: true,
-    },
-    memberClasses: {
-      type: Array,
-      required: true,
-    },
   },
 
   data() {
     return initialState();
   },
   computed: {
-    ...mapGetters(['client']),
+    ...mapGetters(['xroadInstances', 'memberClasses']),
     canSave(): boolean {
       if (this.selectedIds.length > 0) {
         return true;
@@ -203,7 +195,7 @@ export default Vue.extend({
     },
     search(): void {
       this.noResults = false;
-      axios
+      api
         .get(
           `/clients/${this.$store.getters.client.id}/subjects?member_name_group_description=${this.name}&instance=${this.instance}&member_class=${this.memberClass}&member_group_code=${this.memberCode}&subsystem_code=${this.subsystemCode}`,
         )
@@ -242,6 +234,10 @@ export default Vue.extend({
       // Reset initial state
       Object.assign(this.$data, initialState());
     },
+  },
+  created() {
+    this.$store.dispatch('fetchXroadInstances');
+    this.$store.dispatch('fetchMemberClasses');
   },
 });
 </script>
