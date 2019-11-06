@@ -24,10 +24,10 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import lombok.AccessLevel;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import javax.net.SocketFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -37,7 +37,11 @@ import java.net.URI;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.nio.channels.UnresolvedAddressException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
 
@@ -46,9 +50,11 @@ import static org.apache.commons.io.IOUtils.closeQuietly;
  * More specifically, we initiate a connection to all specified addresses and
  * wait for any connection events using Selector. We return the first address
  * from the selector or null, if no connections can be made.
+ *
+ * Note! During selection, the selector will remove addresses from the provided list if the address is
+ * unresolvable or there is an error during connecting to the address.
  */
 @Slf4j
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 class FastestSocketSelector {
 
     @Data
@@ -57,22 +63,66 @@ class FastestSocketSelector {
         private final Socket socket;
     }
 
-    private final URI[] addresses;
-    private final int connectTimeout;
+    private List<URI> addresses = new ArrayList<>();
 
-    SocketInfo select() throws IOException {
+    void add(URI address) {
+        addresses.add(address);
+    }
+
+    void add(Collection<URI> address) {
+        addresses.addAll(address);
+    }
+
+    boolean remove(URI address) {
+        return addresses.remove(address);
+    }
+
+    boolean isEmpty() {
+        return addresses.isEmpty();
+    }
+
+    SocketInfo select(int timeout) throws IOException {
+        switch (addresses.size()) {
+            case 0:
+                return null;
+            case 1:
+                return connect(timeout);
+            default:
+                return doSelect(timeout);
+        }
+    }
+
+    private SocketInfo connect(int timeout) throws IOException {
+        final Socket socket = SocketFactory.getDefault().createSocket();
+        final URI uri = addresses.get(0);
+        try {
+            final InetSocketAddress address = new InetSocketAddress(uri.getHost(), uri.getPort());
+            socket.connect(address, timeout);
+            return new SocketInfo(uri, socket);
+        } catch (IOException | UnresolvedAddressException e) {
+            log.error("Could not connect to '{}'", uri, e);
+            try {
+                socket.close();
+            } catch (IOException ioe) {
+                //Ignored
+            }
+            return null;
+        }
+    }
+
+    private SocketInfo doSelect(int timeout) throws IOException {
         log.trace("select()");
         Selector selector = Selector.open();
         try {
             initConnections(selector);
-            SelectionKey key = selectFirstConnectedSocketChannel(selector);
+            SelectionKey key = selectFirstConnectedSocketChannel(selector, timeout);
             if (key == null) {
                 return null;
             }
-            final SocketChannel channel = (SocketChannel) key.channel();
+            final SocketChannel channel = (SocketChannel)key.channel();
             key.cancel();
             channel.configureBlocking(true);
-            return new SocketInfo((URI) key.attachment(), channel.socket());
+            return new SocketInfo((URI)key.attachment(), channel.socket());
         } finally {
             try {
                 closeSelector(selector);
@@ -82,7 +132,8 @@ class FastestSocketSelector {
         }
     }
 
-    private SelectionKey selectFirstConnectedSocketChannel(Selector selector) throws IOException {
+    private SelectionKey selectFirstConnectedSocketChannel(Selector selector, long connectTimeout) throws
+            IOException {
         log.trace("selectFirstConnectedSocketChannel()");
 
         while (!selector.keys().isEmpty()) {
@@ -95,6 +146,9 @@ class FastestSocketSelector {
                 SelectionKey key = it.next();
                 if (isConnected(key)) {
                     return key;
+                } else {
+                    //connection failed, do not consider this address any more
+                    addresses.remove(key.attachment());
                 }
                 it.remove();
             }
@@ -105,13 +159,13 @@ class FastestSocketSelector {
 
     private boolean isConnected(SelectionKey key) {
         if (key.isValid() && key.isConnectable()) {
-            SocketChannel channel = (SocketChannel) key.channel();
+            SocketChannel channel = (SocketChannel)key.channel();
             try {
                 return channel.finishConnect();
             } catch (Exception e) {
                 key.cancel();
                 closeQuietly(channel);
-                log.trace("Error connecting socket channel: {}", e);
+                log.trace("Error connecting socket channel: {}", e.getMessage());
             }
         }
         return false;
@@ -120,9 +174,11 @@ class FastestSocketSelector {
     private void initConnections(Selector selector) {
         log.trace("initConnections()");
 
-        for (URI target : addresses) {
+        for (Iterator<URI> iterator = addresses.iterator(); iterator.hasNext();) {
+            final URI target = iterator.next();
             final InetSocketAddress address = new InetSocketAddress(target.getHost(), target.getPort());
             if (address.isUnresolved()) {
+                iterator.remove();
                 continue;
             }
             SocketChannel channel = null;
@@ -139,6 +195,7 @@ class FastestSocketSelector {
             } catch (Exception e) {
                 if (key != null) {
                     key.cancel();
+                    iterator.remove();
                 }
                 closeQuietly(channel);
                 log.trace("Error connecting to '{}': {}", target, e);

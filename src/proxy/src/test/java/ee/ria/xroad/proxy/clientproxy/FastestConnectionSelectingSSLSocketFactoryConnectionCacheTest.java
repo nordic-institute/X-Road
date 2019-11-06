@@ -34,9 +34,11 @@ import org.junit.Test;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
@@ -52,19 +54,18 @@ public class FastestConnectionSelectingSSLSocketFactoryConnectionCacheTest {
 
     @Test
     public void testCacheKeyEqualsAndHashcode() throws URISyntaxException {
-        URI[] a1 = new URI[] {
-                new URI("https://localhost:5500"), new URI("http://10.10.10.10"), new URI("http://1.2.3.4")
-        };
+        List<URI> a1 = Arrays.asList(
+                new URI("https://localhost:5500"),
+                new URI("http://10.10.10.10"),
+                new URI("http://1.2.3.4"));
 
-        final List<URI> tmp = Arrays.asList(a1.clone());
-        Collections.rotate(tmp, 1);
-        final URI[] a2 = tmp.toArray(new URI[0]);
+        final List<URI> a2 = new ArrayList<>(a1);
+        Collections.rotate(a2, 1);
+        assert !Objects.equals(a1, a2);
 
-        assert !Arrays.equals(a1, a2);
-
-        URI[] a3 = new URI[] {
+        List<URI> a3 = Arrays.asList(
                 new URI("https://localhost:80"), new URI("http://10.10.10.10"), new URI("http://1.2.3.4")
-        };
+        );
 
         CacheKey k1 = new CacheKey(a1);
         CacheKey k2 = new CacheKey(a2);
@@ -106,7 +107,7 @@ public class FastestConnectionSelectingSSLSocketFactoryConnectionCacheTest {
                 .ticker(ticker)
                 .build();
 
-        CacheKey k = new CacheKey(new URI[] {new URI("https://localhost:5500")});
+        CacheKey k = new CacheKey(Arrays.asList(new URI("https://localhost:5500")));
         URI v = new URI("https://localhost:5500");
 
         cache.put(k, v);

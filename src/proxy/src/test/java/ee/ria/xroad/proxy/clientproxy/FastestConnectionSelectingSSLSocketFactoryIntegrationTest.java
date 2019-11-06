@@ -52,6 +52,8 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.List;
 
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.proxy.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
@@ -71,26 +73,25 @@ final class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
     }
 
     public static void main(String[] args) throws Exception {
-        URI[] addresses = {
+        List<URI> addresses = Arrays.asList(
                 new URI("https://localhost:8081"),
                 new URI("https://localhost:8082"),
-                new URI("https://localhost:8080")
-        };
+                new URI("https://localhost:8080"));
 
         logFH();
 
         testWithSender(addresses);
-        //testFastestSocketSelector(addresses);
+        testFastestSocketSelector(addresses);
     }
 
-    private static void testWithSender(URI[] addresses) throws Exception {
+    private static void testWithSender(List<URI> addresses) throws Exception {
         createClient();
 
         InputStream content =
                 new ByteArrayInputStream("Hello world".getBytes());
         for (int i = 0; i < 10; i++) {
             try (HttpSender sender = new HttpSender(client);) {
-                sender.setAttribute(ID_TARGETS, addresses);
+                sender.setAttribute(ID_TARGETS, addresses.toArray(new URI[0]));
                 sender.setConnectionTimeout(10);
                 sender.doPost(new URI("https://localhost:1234"), content,
                         CHUNKED_LENGTH, "text/plain");
@@ -102,11 +103,12 @@ final class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
         }
     }
 
-    private static void testFastestSocketSelector(URI[] addresses)
+    private static void testFastestSocketSelector(List<URI> addresses)
             throws Exception {
         for (int i = 0; i < 10; i++) {
-            FastestSocketSelector s = new FastestSocketSelector(addresses, 10);
-            SocketInfo si = s.select();
+            FastestSocketSelector s = new FastestSocketSelector();
+            s.add(addresses);
+            SocketInfo si = s.select(10);
 
             if (si != null) {
                 si.getSocket().close();
