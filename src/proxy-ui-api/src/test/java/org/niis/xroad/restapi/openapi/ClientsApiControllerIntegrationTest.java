@@ -49,6 +49,7 @@ import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.openapi.model.SubjectType;
+import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.WsdlUrlValidator;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
@@ -230,36 +231,38 @@ public class ClientsApiControllerIntegrationTest {
 
     @Test
     @WithMockUser(authorities = "VIEW_CLIENT_DETAILS")
-    public void getClientCertificates() throws Exception {
-        ResponseEntity<List<CertificateDetails>> certificates =
-                clientsApiController.getClientCertificates("FI:GOV:M1");
+    public void getClientSignCertificates() throws Exception {
+        ResponseEntity<List<TokenCertificate>> certificates =
+                clientsApiController.getClientSignCertificates("FI:GOV:M1");
         assertEquals(HttpStatus.OK, certificates.getStatusCode());
         assertEquals(0, certificates.getBody().size());
         CertificateInfo mockCertificate = new CertificateInfo(
                 ClientId.create("FI", "GOV", "M1"),
                 true, true, CertificateInfo.STATUS_REGISTERED,
                 "id", CertificateTestUtils.getMockCertificateBytes(), null);
-        when(tokenService.getAllCertificates(any())).thenReturn(Collections.singletonList(mockCertificate));
+        when(tokenService.getSignCertificates(any())).thenReturn(Collections.singletonList(mockCertificate));
 
-        certificates = clientsApiController.getClientCertificates("FI:GOV:M1");
+        certificates = clientsApiController.getClientSignCertificates("FI:GOV:M1");
         assertEquals(HttpStatus.OK, certificates.getStatusCode());
         assertEquals(1, certificates.getBody().size());
-        CertificateDetails onlyCertificate = certificates.getBody().get(0);
-        assertEquals("N/A", onlyCertificate.getIssuerCommonName());
-        assertEquals(OffsetDateTime.parse("1970-01-01T00:00:00Z"), onlyCertificate.getNotBefore());
-        assertEquals(OffsetDateTime.parse("2038-01-01T00:00:00Z"), onlyCertificate.getNotAfter());
-        assertEquals("1", onlyCertificate.getSerial());
-        assertEquals(new Integer(3), onlyCertificate.getVersion());
-        assertEquals("SHA512withRSA", onlyCertificate.getSignatureAlgorithm());
-        assertEquals("RSA", onlyCertificate.getPublicKeyAlgorithm());
-        assertEquals("A2293825AA82A5429EC32803847E2152A303969C", onlyCertificate.getHash());
-        assertTrue(onlyCertificate.getSignature().startsWith("314b7a50a09a9b74322671"));
-        assertTrue(onlyCertificate.getRsaPublicKeyModulus().startsWith("9d888fbe089b32a35f58"));
-        assertEquals(new Integer(65537), onlyCertificate.getRsaPublicKeyExponent());
+        TokenCertificate onlyCertificate = certificates.getBody().get(0);
+        assertEquals("N/A", onlyCertificate.getCertificateDetails().getIssuerCommonName());
+        assertEquals(OffsetDateTime.parse("1970-01-01T00:00:00Z"),
+                onlyCertificate.getCertificateDetails().getNotBefore());
+        assertEquals(OffsetDateTime.parse("2038-01-01T00:00:00Z"),
+                onlyCertificate.getCertificateDetails().getNotAfter());
+        assertEquals("1", onlyCertificate.getCertificateDetails().getSerial());
+        assertEquals(new Integer(3), onlyCertificate.getCertificateDetails().getVersion());
+        assertEquals("SHA512withRSA", onlyCertificate.getCertificateDetails().getSignatureAlgorithm());
+        assertEquals("RSA", onlyCertificate.getCertificateDetails().getPublicKeyAlgorithm());
+        assertEquals("A2293825AA82A5429EC32803847E2152A303969C", onlyCertificate.getCertificateDetails().getHash());
+        assertTrue(onlyCertificate.getCertificateDetails().getSignature().startsWith("314b7a50a09a9b74322671"));
+        assertTrue(onlyCertificate.getCertificateDetails().getRsaPublicKeyModulus().startsWith("9d888fbe089b32a35f58"));
+        assertEquals(new Integer(65537), onlyCertificate.getCertificateDetails().getRsaPublicKeyExponent());
         assertEquals(new ArrayList<>(Arrays.asList(org.niis.xroad.restapi.openapi.model.KeyUsage.NON_REPUDIATION)),
-                new ArrayList<>(onlyCertificate.getKeyUsages()));
+                new ArrayList<>(onlyCertificate.getCertificateDetails().getKeyUsages()));
         try {
-            certificates = clientsApiController.getClientCertificates("FI:GOV:M2");
+            certificates = clientsApiController.getClientSignCertificates("FI:GOV:M2");
             fail("should throw ResourceNotFoundException for 404");
         } catch (ResourceNotFoundException expected) {
         }

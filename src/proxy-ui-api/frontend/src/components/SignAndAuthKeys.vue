@@ -24,10 +24,14 @@
         :isOpen="isExpanded(token.id)"
       >
         <template v-slot:action>
-          <large-button @click="login(token, index)" v-if="!token.loggedIn">{{$t('keys.logIn')}}</large-button>
+          <large-button
+            @click="login(token, index)"
+            v-if="!token.logged_in"
+            :disabled="!token.available"
+          >{{$t('keys.logIn')}}</large-button>
           <large-button
             @click="logout(token, index)"
-            v-if="token.loggedIn"
+            v-if="token.logged_in"
             outlined
           >{{$t('keys.logOut')}}</large-button>
         </template>
@@ -47,9 +51,9 @@
               <large-button
                 outlined
                 class="button-spacing"
-                :disabled="!token.loggedIn"
+                :disabled="!token.logged_in"
               >{{$t('keys.addKey')}}</large-button>
-              <large-button outlined :disabled="!token.loggedIn">{{$t('keys.importCert')}}</large-button>
+              <large-button outlined :disabled="!token.logged_in">{{$t('keys.importCert')}}</large-button>
             </div>
 
             <!-- AUTH table -->
@@ -77,20 +81,25 @@
     <!-- Confirm dialog for logging out of token -->
     <confirmDialog
       :dialog="logoutDialog"
-      title="services.deleteTitle"
-      text="services.deleteWsdlText"
+      title="keys.logOutTitle"
+      text="keys.logOutText"
       @cancel="logoutDialog = false"
       @accept="acceptLogout()"
     />
 
-    <token-login-dialog :dialog="loginDialog" @cancel="loginDialog = false" @save="doLogin()" />
+    <token-login-dialog
+      v-if="selected && selected.token"
+      :dialog="loginDialog"
+      :tokenId="selected.token.id"
+      @cancel="loginDialog = false"
+      @save="doLogin"
+    />
   </div>
 </template>
 
 <script lang="ts">
 // View for services tab
 import Vue from 'vue';
-import axios from 'axios';
 import { Permissions, RouteName } from '@/global';
 import Expandable from '@/components/Expandable.vue';
 import WarningDialog from '@/components/WarningDialog.vue';
@@ -101,6 +110,7 @@ import TokenLoginDialog from '@/components/TokenLoginDialog.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import KeysTable from '@/components/KeysTable.vue';
 import { mapGetters } from 'vuex';
+import * as api from '@/util/api';
 
 import _ from 'lodash';
 
@@ -115,7 +125,7 @@ interface Token {
   status: string;
   token_infos: any[];
   type: string;
-  loggedIn?: boolean; // keeps track of the Token logged in status
+  logged_in?: boolean; // keeps track of the Token logged in status
 }
 
 interface ISelectedObject {
@@ -238,7 +248,7 @@ export default Vue.extend({
     certificateClick(cert: any): void {
       this.$router.push({
         name: RouteName.Certificate,
-        params: { hash: cert.hash },
+        params: { hash: cert.certificate_details.hash },
       });
     },
 
@@ -247,14 +257,12 @@ export default Vue.extend({
       this.loginDialog = true;
     },
 
-    doLogin(): void {
+    doLogin(password: string): void {
       if (!this.selected) {
         return;
       }
-      const token = this.selected.token;
-      const index = this.selected.index;
-      token.loggedIn = true;
-      Vue.set(this.tokens, index, token);
+
+      this.fetchData();
       this.loginDialog = false;
     },
 
@@ -267,10 +275,16 @@ export default Vue.extend({
       if (!this.selected) {
         return;
       }
-      const token = this.selected.token;
-      const index = this.selected.index;
-      token.loggedIn = false;
-      Vue.set(this.tokens, index, token);
+
+      api
+        .put(`/tokens/${this.selected.token.id}/logout`, {})
+        .then((res) => {
+          this.fetchData();
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
+
       this.logoutDialog = false;
     },
 
@@ -303,7 +317,8 @@ export default Vue.extend({
     },
 
     fetchData(): void {
-      axios
+      // Fetch tokens from backend
+      api
         .get(`/tokens`)
         .then((res) => {
           this.tokens = res.data;

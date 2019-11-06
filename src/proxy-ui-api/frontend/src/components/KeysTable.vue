@@ -27,9 +27,7 @@
             </div>
           </td>
           <td>{{cert.certificate_details.hash}}</td>
-          <td>
-            <certificateOcsp :ocspStatus="cert.ocsp_status" />
-          </td>
+          <td>{{ cert.ocsp_status | ocspStatus }}</td>
           <td>{{cert.certificate_details.not_after | formatDate}}</td>
           <td class="status-cell">
             <certificate-status :certificate="cert" />
@@ -45,12 +43,10 @@
  * Table component for an array of keys
  */
 import Vue from 'vue';
-import CertificateOcsp from '@/components/CertificateOcsp.vue';
 import CertificateStatus from '@/components/CertificateStatus.vue';
 
 export default Vue.extend({
   components: {
-    CertificateOcsp,
     CertificateStatus,
   },
   props: {

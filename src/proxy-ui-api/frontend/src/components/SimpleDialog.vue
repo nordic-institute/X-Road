@@ -12,7 +12,11 @@
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
         <large-button outlined @click="cancel()">{{$t(cancelButtonText)}}</large-button>
-        <large-button :disabled="disableSaveButton" @click="save()">{{$t(saveButtonText)}}</large-button>
+        <large-button
+          :disabled="disableSaveButton"
+          :loading="loading"
+          @click="save()"
+        >{{$t(saveButtonText)}}</large-button>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -59,6 +63,11 @@ export default Vue.extend({
     showClose: {
       type: Boolean,
       default: true,
+    },
+    // Set save button loading spinner
+    loading: {
+      type: Boolean,
+      default: false,
     },
   },
 

@@ -149,7 +149,7 @@ public class TokenServiceTest {
 
     @Test
     @WithMockUser(authorities = { "DEACTIVATE_TOKEN" })
-    public void deactiveToken() throws Exception {
+    public void deactivateToken() throws Exception {
         tokenService.deactivateToken("token-should-be-deactivatable");
 
         try {

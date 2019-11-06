@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -40,6 +41,7 @@ import org.niis.xroad.restapi.converter.LocalGroupConverter;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
 import org.niis.xroad.restapi.converter.SubjectConverter;
 import org.niis.xroad.restapi.converter.SubjectTypeMapping;
+import org.niis.xroad.restapi.converter.TokenCertificateConverter;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
@@ -52,6 +54,7 @@ import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.openapi.model.SubjectType;
+import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
@@ -59,7 +62,6 @@ import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.LocalGroupService;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
-import org.niis.xroad.restapi.service.ServiceService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
@@ -100,9 +102,9 @@ public class ClientsApiController implements ClientsApi {
     private final CertificateDetailsConverter certificateDetailsConverter;
     private final ServiceDescriptionConverter serviceDescriptionConverter;
     private final ServiceDescriptionService serviceDescriptionService;
-    private final ServiceService serviceService;
     private final AccessRightService accessRightService;
     private final SubjectConverter subjectConverter;
+    private final TokenCertificateConverter tokenCertificateConverter;
 
     /**
      * ClientsApiController constructor
@@ -113,9 +115,9 @@ public class ClientsApiController implements ClientsApi {
      * @param localGroupService
      * @param serviceDescriptionConverter
      * @param serviceDescriptionService
-     * @param serviceService
      * @param accessRightService
      * @param subjectConverter
+     * @param tokenCertificateConverter
      */
 
     @Autowired
@@ -123,8 +125,8 @@ public class ClientsApiController implements ClientsApi {
             ClientConverter clientConverter, LocalGroupConverter localGroupConverter,
             LocalGroupService localGroupService, CertificateDetailsConverter certificateDetailsConverter,
             ServiceDescriptionConverter serviceDescriptionConverter,
-            ServiceDescriptionService serviceDescriptionService, ServiceService serviceService,
-            AccessRightService accessRightService, SubjectConverter subjectConverter) {
+            ServiceDescriptionService serviceDescriptionService, AccessRightService accessRightService,
+            SubjectConverter subjectConverter, TokenCertificateConverter tokenCertificateConverter) {
         this.clientService = clientService;
         this.tokenService = tokenService;
         this.clientConverter = clientConverter;
@@ -133,9 +135,9 @@ public class ClientsApiController implements ClientsApi {
         this.certificateDetailsConverter = certificateDetailsConverter;
         this.serviceDescriptionConverter = serviceDescriptionConverter;
         this.serviceDescriptionService = serviceDescriptionService;
-        this.serviceService = serviceService;
         this.accessRightService = accessRightService;
         this.subjectConverter = subjectConverter;
+        this.tokenCertificateConverter = tokenCertificateConverter;
     }
 
     /**
@@ -187,17 +189,11 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
-    public ResponseEntity<List<CertificateDetails>> getClientCertificates(String encodedId) {
+    public ResponseEntity<List<TokenCertificate>> getClientSignCertificates(String encodedId) {
         ClientType clientType = getClientType(encodedId);
-        try {
-            List<CertificateDetails> certificates = tokenService.getAllCertificates(clientType)
-                    .stream()
-                    .map(certificateDetailsConverter::convert)
-                    .collect(toList());
-            return new ResponseEntity<>(certificates, HttpStatus.OK);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        List<CertificateInfo> certificateInfos = tokenService.getSignCertificates(clientType);
+        List<TokenCertificate> certificates = tokenCertificateConverter.convert(certificateInfos);
+        return new ResponseEntity<>(certificates, HttpStatus.OK);
     }
 
     /**

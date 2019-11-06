@@ -1,6 +1,6 @@
 ---
 - name: Ready all Ubuntu {{ubuntu_releasever}} containers
-  with_inventory_hostnames: all:!lxd-servers:!centos-ss
+  with_inventory_hostnames: all:!lxd_servers:!centos_ss
   lxd_container:
     name: "{{item}}"
     state: started
@@ -17,7 +17,7 @@
     - ubuntu-container-init
 
 - name: Ready all CentOS {{centos_releasever}} containers
-  with_inventory_hostnames: centos-ss
+  with_inventory_hostnames: centos_ss
   lxd_container:
     name: "{{item}}"
     state: started
@@ -38,4 +38,4 @@
   raw: >
     dpkg-query -f '${Status}' -W python python-minimal | grep -q 'ok installed' ||
     apt-get -qq update && apt-get -qq install python
-  with_inventory_hostnames: all:!lxd-servers:!centos-ss
+  with_inventory_hostnames: all:!lxd_servers:!centos_ss
