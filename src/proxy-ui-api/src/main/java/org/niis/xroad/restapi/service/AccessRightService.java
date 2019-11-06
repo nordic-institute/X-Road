@@ -43,7 +43,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
-import org.niis.xroad.restapi.openapi.InternalServerErrorException;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -214,13 +213,14 @@ public class AccessRightService {
     }
 
     /**
-     * Add access rights to services.
+     * Add access rights to SOAP services.
      * @param clientId
      * @param fullServiceCode
      * @param subjectIds must be persistent objects
      * @return List of {@link AccessRightHolderDto AccessRightHolderDtos}
      * @throws ClientNotFoundException
      * @throws ServiceService.ServiceNotFoundException
+     * @throws EndpointNotFoundException
      */
     private List<AccessRightHolderDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
             Set<XRoadId> subjectIds) throws ClientNotFoundException, ServiceService.ServiceNotFoundException,
@@ -290,7 +290,8 @@ public class AccessRightService {
     }
 
     /**
-     * Adds access rights to services
+     * Adds access rights to SOAP services. If the provided {@code subjectIds} do not exist in the serverconf db
+     * they will first be validated (that they exist in global conf) and then saved into the serverconf db.
      * @param clientId
      * @param fullServiceCode
      * @param subjectIds
@@ -299,6 +300,7 @@ public class AccessRightService {
      * @throws LocalGroupNotFoundException
      * @throws ClientNotFoundException
      * @throws ServiceService.ServiceNotFoundException
+     * @throws EndpointNotFoundException
      */
     @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
     public List<AccessRightHolderDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
@@ -332,7 +334,7 @@ public class AccessRightService {
             throws IdentifierNotFoundException {
         // Check that the identifiers exist in globalconf
         // LocalGroups must be verified separately! (they do not exist in globalconf)
-        if (!globalConfService.membersExist(subsystemIds)) {
+        if (!globalConfService.clientIdentifiersExist(subsystemIds)) {
             // This exception should be pretty rare since it only occurs if bogus subjects are found
             throw new IdentifierNotFoundException();
         }
@@ -347,7 +349,7 @@ public class AccessRightService {
      */
     private Set<XRoadId> getOrPersistGlobalGroupIds(Set<XRoadId> globalGroupIds)
             throws IdentifierNotFoundException {
-        if (!globalConfService.globalGroupsExist(globalGroupIds)) {
+        if (!globalConfService.globalGroupIdentifiersExist(globalGroupIds)) {
             throw new IdentifierNotFoundException();
         }
         return identifierService.getOrPersistXroadIds(globalGroupIds);
@@ -376,10 +378,11 @@ public class AccessRightService {
      */
     public static class EndpointNotFoundException extends NotFoundException {
         public static final String ERROR_ENDPOINT_NOT_FOUND = "endpoint_not_found";
-        private static final String msg = "Endpoint not found for service: %s";
+        private static final String MESSAGE = "Endpoint not found for service: %s";
 
         public EndpointNotFoundException(String fullServiceName) {
-            super(String.format(msg, fullServiceName), new ErrorDeviation(ERROR_ENDPOINT_NOT_FOUND, fullServiceName));
+            super(String.format(MESSAGE, fullServiceName), new ErrorDeviation(ERROR_ENDPOINT_NOT_FOUND,
+                    fullServiceName));
         }
 
     }

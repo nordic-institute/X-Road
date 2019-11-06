@@ -45,7 +45,6 @@ import static org.junit.Assert.assertNull;
 public final class TestUtils {
 
     // Constants
-    public static final String NAME_APPENDIX = "-name";
     public static final String LOCALGROUP = "LOCALGROUP";
     public static final String GLOBALGROUP = "GLOBALGROUP";
     public static final String GLOBALGROUP1 = "GLOBALGROUP1";
@@ -56,7 +55,6 @@ public final class TestUtils {
     public static final String SS1_GET_RANDOM_V1 = "FI:GOV:M1:SS1:getRandom.v1";
     public static final String SS1_GET_RANDOM_V2 = "FI:GOV:M1:SS1:getRandom.v2";
     public static final String SS1_CALCULATE_PRIME = "FI:GOV:M1:SS1:calculatePrime.v1";
-    public static final String SS1_PREDICT_WINNING_LOTTERY_NUMBERS = "FI:GOV:M1:SS1:predictWinningLotteryNumbers.v1";
     public static final String URL_HTTPS = "https://foo.bar";
     public static final String URL_HTTP = "http://foo.bar";
     public static final String INSTANCE_FI = "FI";
@@ -77,7 +75,6 @@ public final class TestUtils {
     public static final String GROUP_DESC = "GROUP_DESC";
     public static final String NEW_GROUP_DESC = "NEW_GROUP_DESC";
     public static final String INVALID_GROUP_ID = "NOT_VALID";
-    public static final String FOO = "foo";
     // values from initial test data: src/test/resources/data.sql
     public static final String DB_GLOBALGROUP_ID = "FI:security-server-owners";
     public static final String DB_GLOBALGROUP_CODE = "security-server-owners";
@@ -127,7 +124,7 @@ public final class TestUtils {
      */
     public static MemberInfo getMemberInfo(String instance, String memberClass, String memberCode, String subsystem) {
         return new MemberInfo(getClientId(instance, memberClass, memberCode, subsystem),
-                subsystem != null ? subsystem + NAME_APPENDIX : null);
+                subsystem != null ? NAME_FOR + subsystem : null);
     }
 
     /**

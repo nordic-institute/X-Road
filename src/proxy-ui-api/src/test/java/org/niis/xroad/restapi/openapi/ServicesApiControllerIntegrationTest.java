@@ -72,6 +72,9 @@ import static org.niis.xroad.restapi.service.ServiceService.ServiceNotFoundExcep
 @Transactional
 public class ServicesApiControllerIntegrationTest {
 
+    private static final String SS1_PREDICT_WINNING_LOTTERY_NUMBERS = "FI:GOV:M1:SS1:predictWinningLotteryNumbers.v1";
+    private static final String FOO = "foo";
+
     @Autowired
     private ServicesApiController servicesApiController;
 
@@ -214,7 +217,7 @@ public class ServicesApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
     public void getServiceNotFound() {
         try {
-            servicesApiController.getService(TestUtils.SS1_PREDICT_WINNING_LOTTERY_NUMBERS).getBody();
+            servicesApiController.getService(SS1_PREDICT_WINNING_LOTTERY_NUMBERS).getBody();
             fail("should throw ResourceNotFoundException");
         } catch (ResourceNotFoundException expected) {
             assertEquals(ERROR_SERVICE_NOT_FOUND, expected.getErrorDeviation().getCode());
@@ -238,7 +241,7 @@ public class ServicesApiControllerIntegrationTest {
         serviceClient = getServiceClientByType(serviceClients, TestUtils.LOCALGROUP).get();
         assertEquals(TestUtils.DB_LOCAL_GROUP_ID_1, serviceClient.getSubject().getId());
         assertEquals(TestUtils.DB_LOCAL_GROUP_CODE, serviceClient.getSubject().getLocalGroupCode());
-        assertEquals(TestUtils.FOO, serviceClient.getSubject().getMemberNameGroupDescription());
+        assertEquals(FOO, serviceClient.getSubject().getMemberNameGroupDescription());
         assertEquals(TestUtils.LOCALGROUP, serviceClient.getSubject().getSubjectType().name());
         assertNull(serviceClient.getAccessRights());
 
@@ -264,7 +267,7 @@ public class ServicesApiControllerIntegrationTest {
         }
 
         try {
-            servicesApiController.getServiceAccessRights(TestUtils.SS1_PREDICT_WINNING_LOTTERY_NUMBERS);
+            servicesApiController.getServiceAccessRights(SS1_PREDICT_WINNING_LOTTERY_NUMBERS);
             fail("should throw ResourceNotFoundException");
         } catch (ResourceNotFoundException expected) {
             assertEquals(ERROR_SERVICE_NOT_FOUND, expected.getErrorDeviation().getCode());
@@ -425,8 +428,8 @@ public class ServicesApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
             "VIEW_CLIENT_SERVICES" })
     public void addAccessRights() {
-        when(globalConfService.membersExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+        when(globalConfService.clientIdentifiersExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(true);
         List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(
                 TestUtils.SS1_CALCULATE_PRIME).getBody();
         assertEquals(0, serviceClients.size());
@@ -446,8 +449,8 @@ public class ServicesApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
             "VIEW_CLIENT_SERVICES" })
     public void addDuplicateAccessRight() {
-        when(globalConfService.membersExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+        when(globalConfService.clientIdentifiersExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(true);
         List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());
@@ -463,8 +466,8 @@ public class ServicesApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
             "VIEW_CLIENT_SERVICES" })
     public void addBogusAccessRight() {
-        when(globalConfService.membersExist(any())).thenReturn(false);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(false);
+        when(globalConfService.clientIdentifiersExist(any())).thenReturn(false);
+        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(false);
         List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());

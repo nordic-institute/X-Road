@@ -96,8 +96,8 @@ public class ClientServiceIntegrationTest {
         ));
         when(globalConfFacade.getMemberName(any())).thenAnswer(invocation -> {
             ClientId clientId = (ClientId) invocation.getArguments()[0];
-            return clientId.getSubsystemCode() != null ? clientId.getSubsystemCode() + TestUtils.NAME_APPENDIX
-                    : "test-member" + TestUtils.NAME_APPENDIX;
+            return clientId.getSubsystemCode() != null ? TestUtils.NAME_FOR + clientId.getSubsystemCode()
+                    : TestUtils.NAME_FOR + "test-member";
         });
         clientService = new ClientService(clientRepository, globalConfFacade);
         pemBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
@@ -222,7 +222,7 @@ public class ClientServiceIntegrationTest {
     /* Test LOCAL client search */
     @Test
     public void findLocalClientsByNameIncludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(TestUtils.SUBSYSTEM1 + TestUtils.NAME_APPENDIX, null,
+        List<ClientType> clients = clientService.findLocalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1, null,
                 null,
                 null, null, true);
         assertEquals(1, clients.size());
@@ -251,7 +251,7 @@ public class ClientServiceIntegrationTest {
 
     @Test
     public void findLocalClientsByAllTermsIncludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(TestUtils.SUBSYSTEM1 + TestUtils.NAME_APPENDIX,
+        List<ClientType> clients = clientService.findLocalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1,
                 TestUtils.INSTANCE_FI,
                 TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1, true);
         assertEquals(1, clients.size());
@@ -259,7 +259,7 @@ public class ClientServiceIntegrationTest {
 
     @Test
     public void findLocalClientsByNameExcludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(TestUtils.SUBSYSTEM1 + TestUtils.NAME_APPENDIX, null,
+        List<ClientType> clients = clientService.findLocalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1, null,
                 null,
                 null, null, false);
         assertEquals(1, clients.size());
@@ -288,7 +288,7 @@ public class ClientServiceIntegrationTest {
 
     @Test
     public void findLocalClientsByAllTermsExcludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(TestUtils.SUBSYSTEM1 + TestUtils.NAME_APPENDIX,
+        List<ClientType> clients = clientService.findLocalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1,
                 TestUtils.INSTANCE_FI,
                 TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1, false);
         assertEquals(1, clients.size());
@@ -297,7 +297,7 @@ public class ClientServiceIntegrationTest {
     /* Test GLOBAL client search */
     @Test
     public void findGlobalClientsByNameIncludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(TestUtils.SUBSYSTEM1 + TestUtils.NAME_APPENDIX, null,
+        List<ClientType> clients = clientService.findGlobalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1, null,
                 null,
                 null, null, true);
         assertEquals(2, clients.size());
@@ -326,7 +326,7 @@ public class ClientServiceIntegrationTest {
 
     @Test
     public void findGlobalClientsByAllTermsIncludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(TestUtils.SUBSYSTEM1 + TestUtils.NAME_APPENDIX,
+        List<ClientType> clients = clientService.findGlobalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1,
                 TestUtils.INSTANCE_FI,
                 TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1, true);
         assertEquals(1, clients.size());
@@ -334,7 +334,7 @@ public class ClientServiceIntegrationTest {
 
     @Test
     public void findGlobalClientsByNameExcludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(TestUtils.SUBSYSTEM1 + TestUtils.NAME_APPENDIX, null,
+        List<ClientType> clients = clientService.findGlobalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1, null,
                 null,
                 null, null, false);
         assertEquals(2, clients.size());
@@ -363,7 +363,7 @@ public class ClientServiceIntegrationTest {
 
     @Test
     public void findGlobalClientsByAllTermsExcludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(TestUtils.SUBSYSTEM1 + TestUtils.NAME_APPENDIX,
+        List<ClientType> clients = clientService.findGlobalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1,
                 TestUtils.INSTANCE_FI,
                 TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1, false);
         assertEquals(1, clients.size());

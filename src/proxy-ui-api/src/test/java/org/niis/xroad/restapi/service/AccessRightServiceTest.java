@@ -155,8 +155,8 @@ public class AccessRightServiceTest {
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
             "VIEW_CLIENT_SERVICES" })
     public void addAccessRights() throws Throwable {
-        when(globalConfService.membersExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+        when(globalConfService.clientIdentifiersExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(true);
         ClientId clientId = TestUtils.getM1Ss1ClientId();
         Set<XRoadId> subjectIds = new HashSet<>();
         subjectIds.add(ClientId.create(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
@@ -173,8 +173,8 @@ public class AccessRightServiceTest {
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
             "VIEW_CLIENT_SERVICES" })
     public void addAccessRightsForNonLocalSubsystem() throws Throwable {
-        when(globalConfService.membersExist(any())).thenReturn(true);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(true);
+        when(globalConfService.clientIdentifiersExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(true);
         ClientId clientId = TestUtils.getM1Ss1ClientId();
         Set<XRoadId> subjectIds = new HashSet<>();
         ClientId ss3 = ClientId.create(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
@@ -200,8 +200,8 @@ public class AccessRightServiceTest {
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
             "VIEW_CLIENT_SERVICES" })
     public void addAccessRightsForNonExistingClient() throws Throwable {
-        when(globalConfService.membersExist(any())).thenReturn(false);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(false);
+        when(globalConfService.clientIdentifiersExist(any())).thenReturn(false);
+        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(false);
         ClientId clientId = TestUtils.getM1Ss1ClientId();
         Set<XRoadId> subjectIds = new HashSet<>();
         subjectIds.add(ClientId.create(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
@@ -216,8 +216,8 @@ public class AccessRightServiceTest {
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
             "VIEW_CLIENT_SERVICES" })
     public void addDuplicateAccessRights() throws Throwable {
-        when(globalConfService.membersExist(any())).thenReturn(false);
-        when(globalConfService.globalGroupsExist(any())).thenReturn(false);
+        when(globalConfService.clientIdentifiersExist(any())).thenReturn(false);
+        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(false);
         ClientId clientId = TestUtils.getM1Ss1ClientId();
         Set<XRoadId> subjectIds = new HashSet<>();
         subjectIds.add(ClientId.create(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,

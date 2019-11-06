@@ -77,8 +77,8 @@ public class LocalGroupsApiControllerIntegrationTest {
         when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
             Object[] args = invocation.getArguments();
             ClientId identifier = (ClientId) args[0];
-            return identifier.getSubsystemCode() != null ? identifier.getSubsystemCode() + TestUtils.NAME_APPENDIX
-                    : "test-member" + TestUtils.NAME_APPENDIX;
+            return identifier.getSubsystemCode() != null ? TestUtils.NAME_FOR + identifier.getSubsystemCode()
+                    : TestUtils.NAME_FOR + "test-member";
         });
         when(globalConfFacade.getMembers(any())).thenReturn(new ArrayList<>(Arrays.asList(
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,

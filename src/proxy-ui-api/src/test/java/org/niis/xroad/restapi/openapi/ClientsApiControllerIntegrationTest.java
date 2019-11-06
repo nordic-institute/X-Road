@@ -128,8 +128,8 @@ public class ClientsApiControllerIntegrationTest {
         when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
             Object[] args = invocation.getArguments();
             ClientId identifier = (ClientId) args[0];
-            return identifier.getSubsystemCode() != null ? identifier.getSubsystemCode() + TestUtils.NAME_APPENDIX
-                    : "test-member" + TestUtils.NAME_APPENDIX;
+            return identifier.getSubsystemCode() != null ? TestUtils.NAME_FOR + identifier.getSubsystemCode()
+                    : TestUtils.NAME_FOR + "test-member";
         });
         when(globalConfFacade.getMembers(any())).thenReturn(new ArrayList<>(Arrays.asList(
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
@@ -177,7 +177,7 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(3, response.getBody().size());
         Client client = response.getBody().get(0);
-        assertEquals("test-member-name", client.getMemberName());
+        assertEquals(TestUtils.NAME_FOR + "test-member", client.getMemberName());
         assertEquals("M1", client.getMemberCode());
     }
 
@@ -190,7 +190,7 @@ public class ClientsApiControllerIntegrationTest {
         Client client = response.getBody();
         assertEquals(ConnectionType.HTTP, client.getConnectionType());
         assertEquals(ClientStatus.REGISTERED, client.getStatus());
-        assertEquals("test-member-name", client.getMemberName());
+        assertEquals(TestUtils.NAME_FOR + "test-member", client.getMemberName());
         assertEquals("GOV", client.getMemberClass());
         assertEquals("M1", client.getMemberCode());
         assertEquals("FI:GOV:M1", client.getId());
@@ -200,7 +200,7 @@ public class ClientsApiControllerIntegrationTest {
         client = response.getBody();
         assertEquals(ConnectionType.HTTPS_NO_AUTH, client.getConnectionType());
         assertEquals(ClientStatus.REGISTERED, client.getStatus());
-        assertEquals("SS1-name", client.getMemberName());
+        assertEquals(TestUtils.NAME_FOR + "SS1", client.getMemberName());
         assertEquals("GOV", client.getMemberClass());
         assertEquals("M1", client.getMemberCode());
         assertEquals("FI:GOV:M1:SS1", client.getId());
@@ -425,14 +425,14 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void findAllClientsByAllSearchTermsExcludeMembers() {
         ResponseEntity<List<Client>> clientsResponse = clientsApiController.findClients(
-                TestUtils.SUBSYSTEM1 + TestUtils.NAME_APPENDIX,
+                TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1,
                 TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1,
                 false, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertEquals(1, clientsResponse.getBody().size());
         List<Client> clients = clientsResponse.getBody();
         Client client = clients.get(0);
-        assertEquals(TestUtils.SUBSYSTEM1 + TestUtils.NAME_APPENDIX, client.getMemberName());
+        assertEquals(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1, client.getMemberName());
         assertEquals(TestUtils.MEMBER_CLASS_GOV, client.getMemberClass());
         assertEquals(TestUtils.MEMBER_CODE_M1, client.getMemberCode());
         assertEquals(TestUtils.SUBSYSTEM1, client.getSubsystemCode());
@@ -472,7 +472,7 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void findAllClientsByNameIncludeMembers() {
         ResponseEntity<List<Client>> clientsResponse = clientsApiController.findClients(
-                TestUtils.SUBSYSTEM2 + TestUtils.NAME_APPENDIX,
+                TestUtils.NAME_FOR + TestUtils.SUBSYSTEM2,
                 null, null, null, null, false, true);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertEquals(1, clientsResponse.getBody().size());
@@ -485,7 +485,7 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void findInternalClientsByAllSearchTermsExcludeMembers() {
         ResponseEntity<List<Client>> clientsResponse = clientsApiController.findClients(
-                TestUtils.SUBSYSTEM1 + TestUtils.NAME_APPENDIX,
+                TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1,
                 TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1,
                 false, true);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
@@ -713,7 +713,7 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
     public void findSubjectsByName() {
         ResponseEntity<List<Subject>> subjectsResponse = clientsApiController.findSubjects(TestUtils.CLIENT_ID_SS1,
-                TestUtils.SUBSYSTEM2 + TestUtils.NAME_APPENDIX, null, null, null, null, null);
+                TestUtils.NAME_FOR + TestUtils.SUBSYSTEM2, null, null, null, null, null);
         List<Subject> subjects = subjectsResponse.getBody();
         assertEquals(1, subjects.size());
     }
@@ -791,7 +791,7 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
     public void findSubjectsByAllSearchTerms() {
         ResponseEntity<List<Subject>> subjectsResponse = clientsApiController.findSubjects(TestUtils.CLIENT_ID_SS1,
-                TestUtils.SUBSYSTEM3 + TestUtils.NAME_APPENDIX, SubjectType.SUBSYSTEM, TestUtils.INSTANCE_EE,
+                TestUtils.NAME_FOR + TestUtils.SUBSYSTEM3, SubjectType.SUBSYSTEM, TestUtils.INSTANCE_EE,
                 TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M2,
                 TestUtils.SUBSYSTEM3);
         List<Subject> subjects = subjectsResponse.getBody();
@@ -808,7 +808,7 @@ public class ClientsApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
     public void findSubjectsNoResults() {
         ResponseEntity<List<Subject>> subjectsResponse = clientsApiController.findSubjects(TestUtils.CLIENT_ID_SS1,
-                TestUtils.SUBSYSTEM3 + TestUtils.NAME_APPENDIX, SubjectType.LOCALGROUP, TestUtils.INSTANCE_EE,
+                TestUtils.NAME_FOR + TestUtils.SUBSYSTEM3, SubjectType.LOCALGROUP, TestUtils.INSTANCE_EE,
                 TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M2,
                 TestUtils.SUBSYSTEM3);
         List<Subject> subjects = subjectsResponse.getBody();

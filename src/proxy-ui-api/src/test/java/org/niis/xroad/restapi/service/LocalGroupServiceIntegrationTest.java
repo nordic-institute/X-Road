@@ -55,6 +55,7 @@ import static org.junit.Assert.fail;
 public class LocalGroupServiceIntegrationTest {
 
     private static final Long GROUP_ID = 1L;
+    private static final String FOO = "foo";
 
     @Autowired
     private LocalGroupService localGroupService;
@@ -98,7 +99,7 @@ public class LocalGroupServiceIntegrationTest {
     @WithMockUser(authorities = { "ADD_LOCAL_GROUP", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_DESC" })
     public void updateDescription() throws Exception {
         LocalGroupType localGroupType = localGroupService.getLocalGroup(GROUP_ID);
-        assertEquals(localGroupType.getDescription(), TestUtils.FOO);
+        assertEquals(localGroupType.getDescription(), FOO);
         localGroupService.updateDescription(GROUP_ID, TestUtils.NEW_GROUP_DESC);
         localGroupType = localGroupService.getLocalGroup(GROUP_ID);
         assertEquals(localGroupType.getDescription(), TestUtils.NEW_GROUP_DESC);

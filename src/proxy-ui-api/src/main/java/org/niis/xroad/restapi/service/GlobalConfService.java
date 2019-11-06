@@ -76,7 +76,7 @@ public class GlobalConfService {
      * @return whether the global group identifiers exist in global configuration
      */
     @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
-    public boolean globalGroupsExist(Collection<XRoadId> identifiers) {
+    public boolean globalGroupIdentifiersExist(Collection<XRoadId> identifiers) {
         List<XRoadId> existingIdentifiers = globalConfFacade.getGlobalGroups().stream()
                 .map(GlobalGroupInfo::getId)
                 .collect(Collectors.toList());
@@ -88,7 +88,7 @@ public class GlobalConfService {
      * @return whether the members identifiers exist in global configuration
      */
     @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
-    public boolean membersExist(Collection<XRoadId> identifiers) {
+    public boolean clientIdentifiersExist(Collection<XRoadId> identifiers) {
         List<XRoadId> existingIdentifiers = globalConfFacade.getMembers().stream()
                 .map(MemberInfo::getId)
                 .collect(Collectors.toList());
