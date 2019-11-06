@@ -24,21 +24,14 @@
  */
 package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.LocalGroupId;
-import ee.ria.xroad.common.identifier.XRoadId;
-import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.repository.ClientRepository;
-import org.niis.xroad.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,14 +39,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * service class for handling services
@@ -67,15 +54,13 @@ public class ServiceService {
     private static final String HTTPS = "https";
 
     private final ClientRepository clientRepository;
-    private final LocalGroupRepository localGroupRepository;
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final WsdlUrlValidator wsdlUrlValidator;
 
     @Autowired
-    public ServiceService(ClientRepository clientRepository, LocalGroupRepository localGroupRepository,
-            ServiceDescriptionRepository serviceDescriptionRepository, WsdlUrlValidator wsdlUrlValidator) {
+    public ServiceService(ClientRepository clientRepository, ServiceDescriptionRepository serviceDescriptionRepository,
+            WsdlUrlValidator wsdlUrlValidator) {
         this.clientRepository = clientRepository;
-        this.localGroupRepository = localGroupRepository;
         this.serviceDescriptionRepository = serviceDescriptionRepository;
         this.wsdlUrlValidator = wsdlUrlValidator;
     }
@@ -100,9 +85,10 @@ public class ServiceService {
     }
 
     /**
+     * Get {@link ServiceType} from a {@link ClientType} by comparing the service code (with version).
      * @param client
      * @param fullServiceCode
-     * @return {@link ServiceType}
+     * @return ServiceType
      * @throws ServiceNotFoundException if service with fullServiceCode was not found
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
@@ -172,143 +158,14 @@ public class ServiceService {
         return serviceType;
     }
 
-    private AccessRightHolderDto accessRightTypeToDto(AccessRightType accessRightType,
-            Map<String, LocalGroupType> localGroupMap) {
-        AccessRightHolderDto accessRightHolderDto = new AccessRightHolderDto();
-        XRoadId subjectId = accessRightType.getSubjectId();
-        accessRightHolderDto.setRightsGiven(
-                FormatUtils.fromDateToOffsetDateTime(accessRightType.getRightsGiven()));
-        accessRightHolderDto.setSubjectId(subjectId);
-        if (subjectId.getObjectType() == XRoadObjectType.LOCALGROUP) {
-            LocalGroupId localGroupId = (LocalGroupId) subjectId;
-            LocalGroupType localGroupType = localGroupMap.get(localGroupId.getGroupCode());
-            accessRightHolderDto.setLocalGroupId(localGroupType.getId().toString());
-            accessRightHolderDto.setLocalGroupCode(localGroupType.getGroupCode());
-            accessRightHolderDto.setLocalGroupDescription(localGroupType.getDescription());
-        }
-        return accessRightHolderDto;
-    }
-
-    /**
-     * Get access right holders by Service
-     * @param clientId
-     * @param fullServiceCode
-     * @return
-     * @throws ClientNotFoundException if client with given id was not found
-     * @throws ServiceNotFoundException if service with given fullServicecode was not found
-     */
-    @PreAuthorize("hasAuthority('VIEW_SERVICE_ACL')")
-    public List<AccessRightHolderDto> getAccessRightHoldersByService(ClientId clientId, String fullServiceCode)
-            throws ClientNotFoundException, ServiceNotFoundException {
-        ClientType clientType = clientRepository.getClient(clientId);
-        if (clientType == null) {
-            throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
-        }
-
-        ServiceType serviceType = getServiceFromClient(clientType, fullServiceCode);
-
-        List<AccessRightHolderDto> accessRightHolderDtos = new ArrayList<>();
-
-        Map<String, LocalGroupType> localGroupMap = new HashMap<>();
-
-        clientType.getLocalGroup().forEach(localGroupType -> localGroupMap.put(localGroupType.getGroupCode(),
-                localGroupType));
-
-        clientType.getAcl().forEach(accessRightType -> {
-            if (accessRightType.getEndpoint().getServiceCode().equals(serviceType.getServiceCode())) {
-                AccessRightHolderDto accessRightHolderDto = accessRightTypeToDto(accessRightType, localGroupMap);
-                accessRightHolderDtos.add(accessRightHolderDto);
-            }
-        });
-
-        return accessRightHolderDtos;
-    }
-
-    /**
-     * Remove AccessRights from a Service
-     * @param clientId
-     * @param fullServiceCode
-     * @param subjectIds
-     * @throws ClientNotFoundException if client with given id was not found
-     * @throws ServiceNotFoundException if service with given fullServicecode was not found
-     * @throws AccessRightNotFoundException if attempted to delete access right that did not exist for the service
-     */
-    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
-    public void deleteServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds)
-            throws ClientNotFoundException, AccessRightNotFoundException, ServiceNotFoundException {
-        ClientType clientType = clientRepository.getClient(clientId);
-        if (clientType == null) {
-            throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
-        }
-
-        ServiceType serviceType = getServiceFromClient(clientType, fullServiceCode);
-
-        List<AccessRightType> accessRightsToBeRemoved = clientType.getAcl()
-                .stream()
-                .filter(accessRightType -> accessRightType.getEndpoint().getServiceCode()
-                        .equals(serviceType.getServiceCode()) && subjectIds.contains(accessRightType.getSubjectId()))
-                .collect(Collectors.toList());
-
-        List<XRoadId> subjectsToBeRemoved = accessRightsToBeRemoved
-                .stream()
-                .map(AccessRightType::getSubjectId)
-                .collect(Collectors.toList());
-
-        if (!subjectsToBeRemoved.containsAll(subjectIds)) {
-            throw new AccessRightNotFoundException();
-        }
-
-        clientType.getAcl().removeAll(accessRightsToBeRemoved);
-
-        clientRepository.saveOrUpdate(clientType);
-    }
-
-    /**
-     * Remove AccessRights from a Service
-     * @param clientId
-     * @param fullServiceCode
-     * @param subjectIds
-     * @param localGroupIds
-     * @throws LocalGroupNotFoundException if tried to remove local group access right
-     * for a local group that does not exist
-     * @throws AccessRightNotFoundException if tried to remove access rights that did not exist for the service
-     * @throws ClientNotFoundException if client with given id was not found
-     * @throws ServiceNotFoundException if service with given fullServicecode was not found
-     */
-    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
-    public void deleteServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds,
-            Set<Long> localGroupIds) throws LocalGroupNotFoundException,
-            ClientNotFoundException, AccessRightNotFoundException, ServiceNotFoundException {
-        Set<XRoadId> localGroups = new HashSet<>();
-        for (Long groupId: localGroupIds) {
-            LocalGroupType localGroup = localGroupRepository.getLocalGroup(groupId); // no need to batch
-            if (localGroup == null) {
-                throw new LocalGroupNotFoundException("LocalGroup with id " + groupId + " not found");
-            }
-            localGroups.add(LocalGroupId.create(localGroup.getGroupCode()));
-        }
-        subjectIds.addAll(localGroups);
-        deleteServiceAccessRights(clientId, fullServiceCode, subjectIds);
-    }
-
     /**
      * If service was not found
      */
     public static class ServiceNotFoundException extends NotFoundException {
         public static final String ERROR_SERVICE_NOT_FOUND = "service_not_found";
+
         public ServiceNotFoundException(String s) {
             super(s, new ErrorDeviation(ERROR_SERVICE_NOT_FOUND));
         }
     }
-
-    /**
-     * If access right was not found
-     */
-    public static class AccessRightNotFoundException extends NotFoundException {
-        public static final String ERROR_ACCESSRIGHT_NOT_FOUND = "accessright_not_found";
-        public AccessRightNotFoundException() {
-            super(new ErrorDeviation(ERROR_ACCESSRIGHT_NOT_FOUND));
-        }
-    }
-
 }

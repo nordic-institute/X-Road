@@ -22,35 +22,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.dto;
+package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.identifier.XRoadId;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-import lombok.Data;
+public class IdentifierNotFoundException extends NotFoundException {
 
-import java.time.OffsetDateTime;
+    public static final String ERROR_IDENTIFIER_NOT_FOUND = "identifier_not_found";
 
-/**
- * DTO for Service and ServiceClient access rights
- */
-@Data
-public class AccessRightHolderDto {
-    /**
-     * primary key of a LocalGroup - NULL if not a LOCALGROUP
-     */
-    private String localGroupId;
-    /**
-     * localGroupCode - NULL if not a LOCALGROUP
-     */
-    private String localGroupCode;
-    /**
-     * localGroupDescription - NULL if not a LOCALGROUP
-     */
-    private String localGroupDescription;
-    /**
-     * Member's name in global conf - NULL if not a MEMBER/SUBSYSTEM
-     */
-    private String memberName;
-    private XRoadId subjectId;
-    private OffsetDateTime rightsGiven;
+    public IdentifierNotFoundException() {
+        super(new ErrorDeviation(ERROR_IDENTIFIER_NOT_FOUND));
+    }
 }

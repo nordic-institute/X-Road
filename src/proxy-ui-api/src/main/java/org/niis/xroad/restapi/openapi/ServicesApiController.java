@@ -40,7 +40,9 @@ import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
 import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.openapi.model.Subjects;
+import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
+import org.niis.xroad.restapi.service.IdentifierNotFoundException;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
 import org.niis.xroad.restapi.service.ServiceService;
@@ -70,14 +72,16 @@ public class ServicesApiController implements ServicesApi {
     private final ServiceClientConverter serviceClientConverter;
     private final ServiceService serviceService;
     private final SubjectConverter subjectConverter;
+    private final AccessRightService accessRightService;
 
     @Autowired
     public ServicesApiController(ServiceConverter serviceConverter, ServiceClientConverter serviceClientConverter,
-            ServiceService serviceService, SubjectConverter subjectConverter) {
+            ServiceService serviceService, SubjectConverter subjectConverter, AccessRightService accessRightService) {
         this.serviceConverter = serviceConverter;
         this.serviceClientConverter = serviceClientConverter;
         this.serviceService = serviceService;
         this.subjectConverter = subjectConverter;
+        this.accessRightService = accessRightService;
     }
 
     @Override
@@ -125,10 +129,9 @@ public class ServicesApiController implements ServicesApi {
     public ResponseEntity<List<ServiceClient>> getServiceAccessRights(String encodedServiceId) {
         ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
-        List<AccessRightHolderDto> accessRightHolderDtos =
-                null;
+        List<AccessRightHolderDto> accessRightHolderDtos = null;
         try {
-            accessRightHolderDtos = serviceService.getAccessRightHoldersByService(clientId, fullServiceCode);
+            accessRightHolderDtos = accessRightService.getAccessRightHoldersByService(clientId, fullServiceCode);
         } catch (ClientNotFoundException | ServiceService.ServiceNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
@@ -142,24 +145,61 @@ public class ServicesApiController implements ServicesApi {
         ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
         // LocalGroups with numeric ids (PK)
-        Set<Long> localGroupIds = subjects.getItems()
-                .stream()
-                .filter(hasNumericIdAndIsLocalGroup)
-                .map(subject -> Long.parseLong(subject.getId()))
-                .collect(Collectors.toSet());
-        subjects.getItems().removeIf(hasNumericIdAndIsLocalGroup);
-        // Converter handles other errors such as unknown types and ids
-        List<XRoadId> xRoadIds = subjectConverter.convert(subjects.getItems());
+        Set<Long> localGroupIds = getLocalGroupIds(subjects);
+        List<XRoadId> xRoadIds = getXRoadIdsButSkipLocalGroups(subjects);
         try {
-            serviceService.deleteServiceAccessRights(clientId, fullServiceCode, new HashSet<>(xRoadIds), localGroupIds);
+            accessRightService.deleteSoapServiceAccessRights(clientId, fullServiceCode, new HashSet<>(xRoadIds),
+                    localGroupIds);
         } catch (ServiceService.ServiceNotFoundException | ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (LocalGroupNotFoundException | ServiceService.AccessRightNotFoundException e) {
+        } catch (LocalGroupNotFoundException | AccessRightService.AccessRightNotFoundException e) {
             throw new BadRequestException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
+    @Override
+    public ResponseEntity<List<ServiceClient>> addServiceAccessRight(String encodedServiceId, Subjects subjects) {
+        ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
+        String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
+        Set<Long> localGroupIds = getLocalGroupIds(subjects);
+        List<XRoadId> xRoadIds = getXRoadIdsButSkipLocalGroups(subjects);
+        List<AccessRightHolderDto> accessRightHolderDtos;
+        try {
+            accessRightHolderDtos = accessRightService.addSoapServiceAccessRights(clientId, fullServiceCode,
+                    new HashSet<>(xRoadIds), localGroupIds);
+        } catch (ClientNotFoundException | ServiceService.ServiceNotFoundException
+                | AccessRightService.EndpointNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (LocalGroupNotFoundException | IdentifierNotFoundException e) {
+            throw new BadRequestException(e);
+        } catch (AccessRightService.DuplicateAccessRightException e) {
+            throw new ConflictException(e);
+        }
+        List<ServiceClient> serviceClients = serviceClientConverter.convertAccessRightHolderDtos(accessRightHolderDtos);
+        return new ResponseEntity<>(serviceClients, HttpStatus.OK);
+    }
+
+    private List<XRoadId> getXRoadIdsButSkipLocalGroups(Subjects subjects) {
+        // SubjectConverter cannot resolve the correct XRoadId from LocalGroup subject's numeric id
+        subjects.getItems().removeIf(hasNumericIdAndIsLocalGroup);
+        return subjectConverter.convertId(subjects.getItems());
+    }
+
+    private Set<Long> getLocalGroupIds(Subjects subjects) {
+        return subjects.getItems()
+                .stream()
+                .filter(hasNumericIdAndIsLocalGroup)
+                .map(subject -> Long.parseLong(subject.getId()))
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * The client-provided Subjects only contain id and subjectType when adding or deleting access rights.
+     * The id of a LocalGroup is numeric so SubjectConverter cannot resolve the correct XRoadId from it.
+     * Therefore LocalGroups need to be handled separately from other types of subjects.
+     */
     private Predicate<Subject> hasNumericIdAndIsLocalGroup = subject -> {
         boolean hasNumericId = StringUtils.isNumeric(subject.getId());
         boolean isLocalGroup = subject.getSubjectType() == SubjectType.LOCALGROUP;
