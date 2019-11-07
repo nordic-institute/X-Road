@@ -661,6 +661,20 @@ used for TLS connections with the client information systems.
 6.  System logs the event “Generate new internal TLS key and
     certificate” to the audit log.
 
+7. SS administrator selects to generate a new TLS certificate request.
+
+8. System prompts for defining a Distinguished name.
+
+9. SS administrator inserts a Distinguished name.
+
+10. System prompts a request to download the generated certificate request.
+
+11. The security server generates a certificate request using the current key and the provided Distinguished Name.
+
+12. SS administrator downloads and saves the certificate request file to the local file system.
+
+13. After a Certification Authority has issued a TLS certificate, SS administrator imports and saves the certificate file to the local file system.
+
 **Extensions**:
 
 - 3a. SS administrator cancels the generating of the new TLS key.
@@ -668,14 +682,6 @@ used for TLS connections with the client information systems.
 
 - 4a. System failed to generate the key or the respective self-signed certificate.
     - 4a.1. System displays an error message “Failed to generate new key: 'X'” (where “X” is the reason of the failure). Use case terminates.
-    
-- 5a. SS administrator selects to generate a new TLS certificate request.
-    - 5a.1. System prompts for defining a Distinguished name.
-    - 5a.2. SS administrator inserts a Distinguished name.
-    - 5a.3. System prompts a request to download the generated certificate request.
-    - 5a.4. The security server generates a certificate request using the current key and the provided Distinguished Name.
-    - 5a.5. SS administrator downloads and saves the certificate request file to the local file system.
-    - 5a.6. After a Certification Authority has approved a TLS certificate, SS administrator imports and saves the certificate file to the local file system.
 
 **Related information**:
 
