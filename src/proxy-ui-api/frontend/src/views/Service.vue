@@ -385,12 +385,17 @@ export default Vue.extend({
       this.confirmMember = true;
       this.selectedMember = member;
     },
-    doRemoveMember() {
-      const member: AccessRightSubject = this
+    doRemoveSubject() {
+      const subject: AccessRightSubject = this
         .selectedMember as AccessRightSubject;
 
-      if (member && member.id) {
-        this.removeArrayOfMembers([member.id]);
+      if (subject && subject.subject.id) {
+        this.removeArrayOfMembers([
+          {
+            id: subject.subject.id,
+            subject_type: subject.subject.subject_type,
+          },
+        ]);
       }
 
       this.confirmMember = false;
@@ -399,7 +404,7 @@ export default Vue.extend({
 
     removeArrayOfMembers(members: any) {
       api
-        .post(`/services/${this.serviceId}/delete`, {
+        .post(`/services/${this.serviceId}/access-rights/delete`, {
           items: members,
         })
         .catch((error) => {
