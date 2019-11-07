@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.31  
+Version: 2.32  
 Doc. ID: UG-SS
 
 ---
@@ -64,6 +64,7 @@ Doc. ID: UG-SS
  14.08.2019 | 2.29    | Added automatic backups | Ilkka Seppälä
  30.09.2019 | 2.30    | Added remote database migration guide | Ilkka Seppälä
  15.10.2019 | 2.31    | Updated REST services in chapter [6] | Ilkka Seppälä
+ 07.11.2019 | 2.32    | Add more information about service descriptions to chapter [6] | Ilkka Seppälä
 
 ## Table of Contents <!-- omit in toc --> 
 
@@ -259,6 +260,11 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 18. <a id="Ref_MONITORING_XSD" class="anchor"></a>\[MONITORING_XSD\] X-Road XML schema for monitoring extension. [monitoring.xsd](../../src/addons/proxymonitor/common/src/main/resources/monitoring.xsd).
 
 19. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
+
+20. <a id="Ref_PR-META" class="anchor"></a>\[PR-META\] X-Road: Service Metadata Protocol. Document ID: [PR-META](../Protocols/pr-meta_x-road_service_metadata_protocol.md).
+
+21. <a id="Ref_PR-MREST" class="anchor"></a>\[PR-MREST\] X-Road: Service Metadata Protocol for REST. Document ID: [PR-MREST](../Protocols/pr-mrest_x-road_service_metadata_protocol_for_rest.md).
+
 
 ## 2 User Management
 
@@ -975,7 +981,9 @@ Service parameters are
 
 -   "Timeout (s)" – the maximum duration of a request to the database, in seconds;
 
--   "Verify TLS certificate" – toggles the verification of the certificate when a TLS connection is established.
+-   "Verify TLS certificate" – toggles the verification of the certificate when a TLS connection is established. This option is used for two different scenarios:
+    -   Between Security Server and service endpoint.
+    -   Between Security Server and service description URL, when metaservices getWsdl or getOpenAPI are used for this subsystem and service. See \[[PR-META](#Ref_PR-META)\] and \[[PR-MREST](#Ref_PR-MREST)\].
 
 To change service parameters, follow these steps.
 
