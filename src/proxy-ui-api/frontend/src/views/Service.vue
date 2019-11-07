@@ -106,14 +106,14 @@
       <div class="row-title">{{$t('access.accessRights')}}</div>
       <div class="row-buttons">
         <large-button
-          :disabled="!hasMembers"
+          :disabled="!hasSubjects"
           outlined
-          @click="removeAllMembers()"
+          @click="removeAllSubjects()"
         >{{$t('action.removeAll')}}</large-button>
         <large-button
           outlined
           class="add-members-button"
-          @click="showAddMembersDialog()"
+          @click="showAddSubjectsDialog()"
         >{{$t('access.addSubjects')}}</large-button>
       </div>
     </div>
@@ -126,11 +126,11 @@
           <th>{{$t('type')}}</th>
           <th></th>
         </tr>
-        <template v-if="accessRights">
-          <tr v-for="groupMember in accessRights" v-bind:key="groupMember.id">
-            <td>{{groupMember.subject.member_name_group_description}}</td>
-            <td>{{groupMember.subject.id}}</td>
-            <td>{{groupMember.subject.subject_type}}</td>
+        <template v-if="accessRightsSubjects">
+          <tr v-for="subject in accessRightsSubjects" v-bind:key="subject.id">
+            <td>{{subject.subject.member_name_group_description}}</td>
+            <td>{{subject.subject.id}}</td>
+            <td>{{subject.subject.subject_type}}</td>
             <td>
               <div class="button-wrap">
                 <v-btn
@@ -139,7 +139,7 @@
                   rounded
                   color="primary"
                   class="xrd-small-button"
-                  @click="removeMember(groupMember)"
+                  @click="removeSubject(subject)"
                 >{{$t('action.remove')}}</v-btn>
               </div>
             </td>
@@ -163,21 +163,21 @@
 
     <!-- Confirm dialog remove all Access Right subjects -->
     <confirmDialog
-      :dialog="confirmAllMembers"
+      :dialog="confirmAllSubjects"
       title="localGroup.removeAllTitle"
       text="localGroup.removeAllText"
-      @cancel="confirmAllMembers = false"
-      @accept="doRemoveAllMembers()"
+      @cancel="confirmAllSubjects = false"
+      @accept="doRemoveAllSubjects()"
     />
 
     <!-- Add access right subjects dialog -->
     <accessRightsDialog
-      :dialog="addMembersDialogVisible"
-      :filtered="accessRights"
+      :dialog="addSubjectsDialogVisible"
+      :filtered="accessRightsSubjects"
       :clientId="clientId"
       title="access.addSubjectsTitle"
-      @cancel="closeMembersDialog"
-      @membersAdded="doAddMembers"
+      @cancel="closeAccessRightsDialog"
+      @subjectsAdded="doAddSubjects"
     />
   </div>
 </template>
@@ -229,13 +229,13 @@ export default Vue.extend({
       touched: false,
       confirmGroup: false,
       confirmMember: false,
-      confirmAllMembers: false,
+      confirmAllSubjects: false,
       selectedMember: undefined as NullableSubject,
       description: undefined,
       url: '',
-      addMembersDialogVisible: false,
+      addSubjectsDialogVisible: false,
       timeout: 23,
-      accessRights: [],
+      accessRightsSubjects: [],
       url_all: false,
       timeout_all: false,
       ssl_auth_all: false,
@@ -256,8 +256,8 @@ export default Vue.extend({
       }
       return false;
     },
-    hasMembers(): boolean {
-      if (this.accessRights && this.accessRights.length > 0) {
+    hasSubjects(): boolean {
+      if (this.accessRightsSubjects && this.accessRightsSubjects.length > 0) {
         return true;
       }
       return false;
@@ -318,28 +318,25 @@ export default Vue.extend({
       api
         .get(`/services/${serviceId}/access-rights`)
         .then((res) => {
-          this.accessRights = res.data;
+          this.accessRightsSubjects = res.data;
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
         });
     },
 
-    showAddMembersDialog(): void {
-      this.addMembersDialogVisible = true;
+    showAddSubjectsDialog(): void {
+      this.addSubjectsDialogVisible = true;
     },
 
-    doAddMembers(selected: any[]): void {
-      this.addMembersDialogVisible = false;
-      // this.fetchData(this.clientId);
+    doAddSubjects(selected: any[]): void {
+      this.addSubjectsDialogVisible = false;
 
       api
         .post(`/services/${this.serviceId}/access-rights`, {
           items: selected,
         })
         .then((res) => {
-          // this.service = res.data;
-          console.log(res.data);
           this.fetchData(this.serviceId);
         })
         .catch((error) => {
@@ -347,28 +344,28 @@ export default Vue.extend({
         });
     },
 
-    closeMembersDialog(): void {
-      this.addMembersDialogVisible = false;
+    closeAccessRightsDialog(): void {
+      this.addSubjectsDialogVisible = false;
     },
 
-    removeAllMembers(): void {
-      this.confirmAllMembers = true;
+    removeAllSubjects(): void {
+      this.confirmAllSubjects = true;
     },
 
-    doRemoveAllMembers(): void {
+    doRemoveAllSubjects(): void {
       const subjects: any = [];
-      this.accessRights.forEach((subject: any) => {
+      this.accessRightsSubjects.forEach((subject: any) => {
         subjects.push({
           id: subject.subject.id,
           subject_type: subject.subject.subject_type,
         });
       });
 
-      this.removeArrayOfMembers(subjects);
-      this.confirmAllMembers = false;
+      this.removeArrayOfSubjects(subjects);
+      this.confirmAllSubjects = false;
     },
 
-    removeMember(member: any): void {
+    removeSubject(member: any): void {
       this.confirmMember = true;
       this.selectedMember = member;
     },
@@ -377,7 +374,7 @@ export default Vue.extend({
         .selectedMember as AccessRightSubject;
 
       if (subject && subject.subject.id) {
-        this.removeArrayOfMembers([
+        this.removeArrayOfSubjects([
           {
             id: subject.subject.id,
             subject_type: subject.subject.subject_type,
@@ -389,10 +386,10 @@ export default Vue.extend({
       this.selectedMember = undefined;
     },
 
-    removeArrayOfMembers(members: any) {
+    removeArrayOfSubjects(subjects: any) {
       api
         .post(`/services/${this.serviceId}/access-rights/delete`, {
-          items: members,
+          items: subjects,
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
@@ -432,7 +429,6 @@ export default Vue.extend({
 .edit-row {
   display: flex;
   align-items: baseline;
-  //  border: 1px solid gray;
 
   .description-input {
     width: 100%;
@@ -443,14 +439,12 @@ export default Vue.extend({
     display: flex;
     align-content: center;
     min-width: 200px;
-    //    border: 1px solid green;
     margin-right: 20px;
   }
 
   .edit-input {
     display: flex;
     align-content: center;
-    //    border: 1px solid blue;
     width: 100%;
   }
 }
@@ -460,7 +454,6 @@ export default Vue.extend({
   width: 100px;
   max-width: 100px;
   min-width: 100px;
-  //border: 1px solid red;
   margin-left: auto;
   margin-right: 0;
 }

@@ -2,7 +2,7 @@
   <v-dialog :value="dialog" width="850" scrollable persistent>
     <v-card class="xrd-card">
       <v-card-title>
-        <span class="headline">{{$t(title)}} kk</span>
+        <span class="headline">{{$t('access.addSubjectsTitle')}}</span>
         <v-spacer />
         <i @click="cancel()" id="close-x"></i>
       </v-card-title>
@@ -91,22 +91,22 @@
               <th>{{$t('type')}}</th>
             </tr>
           </thead>
-          <tbody v-if="members && members.length > 0">
-            <tr v-for="member in members" v-bind:key="member.id">
+          <tbody v-if="subjects && subjects.length > 0">
+            <tr v-for="subject in subjects" v-bind:key="subject.id">
               <td class="first-column">
                 <div class="checkbox-wrap">
-                  <v-checkbox @change="checkboxChange(member, $event)" color="primary"></v-checkbox>
+                  <v-checkbox @change="checkboxChange(subject, $event)" color="primary"></v-checkbox>
                 </div>
               </td>
 
-              <td>{{member.member_name_group_description}}</td>
-              <td v-if="member.subject_type === 'LOCALGROUP'">{{member.local_group_code}}</td>
-              <td v-else>{{member.id}}</td>
-              <td>{{member.subject_type}}</td>
+              <td>{{subject.member_name_group_description}}</td>
+              <td v-if="subject.subject_type === 'LOCALGROUP'">{{subject.local_group_code}}</td>
+              <td v-else>{{subject.id}}</td>
+              <td>{{subject.subject_type}}</td>
             </tr>
           </tbody>
         </table>
-        <div v-if="members.length < 1 && !noResults" class="empty-row"></div>
+        <div v-if="subjects.length < 1 && !noResults" class="empty-row"></div>
 
         <div v-if="noResults" class="empty-row">
           <p>{{$t('localGroup.noResults')}}</p>
@@ -139,7 +139,7 @@ function initialState() {
     memberCode: '',
     subsystemCode: '',
     expandPanel: [0],
-    members: [],
+    subjects: [],
     selectedIds: [] as string[],
     noResults: false,
     checkbox1: true,
@@ -161,10 +161,6 @@ export default Vue.extend({
     },
     filtered: {
       type: Array,
-    },
-    title: {
-      type: String,
-      default: 'localGroup.addMembers',
     },
   },
 
@@ -200,21 +196,21 @@ export default Vue.extend({
         )
         .then((res) => {
           if (this.filtered && this.filtered.length > 0) {
-            // Filter out members that are already added
-            this.members = res.data.filter((member: any) => {
-              return !this.filtered.find((item: any) => {
+            // Filter out subjects that are already added
+            this.subjects = res.data.filter((subject: any) => {
+              return !this.filtered.find((filterItem: any) => {
                 return (
-                  item.subject.id === member.id &&
-                  item.subject.subject_type === member.subject_type
+                  filterItem.subject.id === subject.id &&
+                  filterItem.subject.subject_type === subject.subject_type
                 );
               });
             });
           } else {
             // Show results straight if there is nothing to filter
-            this.members = res.data;
+            this.subjects = res.data;
           }
 
-          if (this.members.length < 1) {
+          if (this.subjects.length < 1) {
             this.noResults = true;
           }
         })
@@ -228,7 +224,7 @@ export default Vue.extend({
       this.$emit('cancel');
     },
     save(): void {
-      this.$emit('membersAdded', this.selectedIds);
+      this.$emit('subjectsAdded', this.selectedIds);
       this.clearForm();
     },
 
@@ -245,86 +241,11 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/colors';
 @import '../assets/tables';
+@import '../assets/add-dialogs';
 
 .first-column {
   width: 40px;
-}
-
-.exp-title {
-  text-align: right;
-  padding-right: 20px;
-}
-
-.input-row {
-  display: flex;
-  width: 100%;
-  justify-content: space-between;
-  padding-right: 10px;
-}
-
-.flex-wrap {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-}
-
-.flex-input {
-  margin: 4px;
-  max-width: 310px;
-}
-
-.search-wrap {
-  width: 100%;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.button-margin {
-  margin-right: 14px;
-}
-
-.empty-row {
-  padding: 10px;
-  width: 100%;
-  border-bottom: $XRoad-Grey10 solid 1px;
-  height: 48px;
-  text-align: center;
-}
-
-.fixed_header {
-  table-layout: fixed;
-  border-collapse: collapse;
-}
-
-.table-checkbox {
-  height: 38px;
-  padding: 0;
-  margin-top: 12px;
-}
-
-#close-x {
-  font-family: Roboto;
-  font-size: 34px;
-  font-weight: 300;
-  letter-spacing: 0.5px;
-  line-height: 21px;
-
-  cursor: pointer;
-  font-style: normal;
-  font-size: 50px;
-  color: $XRoad-Grey40;
-}
-
-#close-x:before {
-  content: '\00d7';
-}
-
-// Override vuetify default box-shadow
-.v-expansion-panel::before {
-  box-shadow: none;
 }
 </style>
 
