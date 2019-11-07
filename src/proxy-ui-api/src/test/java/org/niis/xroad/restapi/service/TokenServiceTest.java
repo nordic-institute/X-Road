@@ -25,12 +25,14 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -58,11 +60,13 @@ import static org.niis.xroad.restapi.service.TokenService.TOKEN_NOT_FOUND_FAULT_
 @Transactional
 public class TokenServiceTest {
 
-    private static final String WRONG_SOFTTOKEN_PIN = "wrong-soft-pin";
-    private static final String WRONG_HSM_PIN = "wrong-soft-pin";
-    private static final String UNKNOWN_LOGIN_FAIL = "unknown-login-fail";
-    private static final String TOKEN_NOT_FOUND = "token-404";
-    private static final String UNRECOGNIZED_FAULT_CODE = "unknown-faultcode";
+    // token ids for mocking
+    private static final String WRONG_SOFTTOKEN_PIN_TOKEN_ID = "wrong-soft-pin";
+    private static final String WRONG_HSM_PIN_TOKEN_ID = "wrong-soft-pin";
+    private static final String UNKNOWN_LOGIN_FAIL_TOKEN_ID = "unknown-login-fail";
+    private static final String TOKEN_NOT_FOUND_TOKEN_ID = "token-404";
+    private static final String UNRECOGNIZED_FAULT_CODE_TOKEN_ID = "unknown-faultcode";
+    private static final String GOOD_TOKEN_ID = "token-which-exists";
 
     @Autowired
     private TokenService tokenService;
@@ -75,15 +79,15 @@ public class TokenServiceTest {
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
             String tokenId = (String) args[0];
-            if (WRONG_SOFTTOKEN_PIN.equals(tokenId)) {
+            if (WRONG_SOFTTOKEN_PIN_TOKEN_ID.equals(tokenId)) {
                 throw new CodedException(PIN_INCORRECT_FAULT_CODE);
-            } else if (WRONG_HSM_PIN.equals(tokenId)) {
+            } else if (WRONG_HSM_PIN_TOKEN_ID.equals(tokenId)) {
                 throw new CodedException(LOGIN_FAILED_FAULT_CODE, CKR_PIN_INCORRECT_MESSAGE);
-            } else if (UNKNOWN_LOGIN_FAIL.equals(tokenId)) {
+            } else if (UNKNOWN_LOGIN_FAIL_TOKEN_ID.equals(tokenId)) {
                 throw new CodedException(LOGIN_FAILED_FAULT_CODE, "dont know what happened");
-            } else if (TOKEN_NOT_FOUND.equals(tokenId)) {
+            } else if (TOKEN_NOT_FOUND_TOKEN_ID.equals(tokenId)) {
                 throw new CodedException(TOKEN_NOT_FOUND_FAULT_CODE, "did not find it");
-            } else if (UNRECOGNIZED_FAULT_CODE.equals(tokenId)) {
+            } else if (UNRECOGNIZED_FAULT_CODE_TOKEN_ID.equals(tokenId)) {
                 throw new CodedException("foo", "bar");
             } else {
                 log.debug("activate successful");
@@ -94,15 +98,28 @@ public class TokenServiceTest {
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
             String tokenId = (String) args[0];
-            if (TOKEN_NOT_FOUND.equals(tokenId)) {
+            if (TOKEN_NOT_FOUND_TOKEN_ID.equals(tokenId)) {
                 throw new CodedException(TOKEN_NOT_FOUND_FAULT_CODE, "did not find it");
-            } else if (UNRECOGNIZED_FAULT_CODE.equals(tokenId)) {
+            } else if (UNRECOGNIZED_FAULT_CODE_TOKEN_ID.equals(tokenId)) {
                 throw new CodedException("foo", "bar");
             } else {
                 log.debug("deactivate successful");
             }
             return null;
         }).when(signerProxyFacade).deactivateToken(any());
+
+        TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo("good-token");
+
+        doAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
+            String tokenId = (String) args[0];
+            if (TOKEN_NOT_FOUND_TOKEN_ID.equals(tokenId)) {
+                throw new CodedException(TOKEN_NOT_FOUND_FAULT_CODE, "did not find it");
+            } else {
+                return tokenInfo;
+            }
+        }).when(signerProxyFacade).getToken(any());
+
     }
 
     @Test
@@ -112,19 +129,19 @@ public class TokenServiceTest {
         tokenService.activateToken("token-should-be-activatable", password);
 
         try {
-            tokenService.activateToken(WRONG_SOFTTOKEN_PIN, password);
+            tokenService.activateToken(WRONG_SOFTTOKEN_PIN_TOKEN_ID, password);
             fail("should have thrown exception");
         } catch (TokenService.PinIncorrectException expected) {
         }
 
         try {
-            tokenService.activateToken(WRONG_HSM_PIN, password);
+            tokenService.activateToken(WRONG_HSM_PIN_TOKEN_ID, password);
             fail("should have thrown exception");
         } catch (TokenService.PinIncorrectException expected) {
         }
 
         try {
-            tokenService.activateToken(UNKNOWN_LOGIN_FAIL, password);
+            tokenService.activateToken(UNKNOWN_LOGIN_FAIL_TOKEN_ID, password);
             fail("should have thrown exception");
         } catch (CodedException expected) {
             assertEquals(LOGIN_FAILED_FAULT_CODE, expected.getFaultCode());
@@ -132,13 +149,13 @@ public class TokenServiceTest {
         }
 
         try {
-            tokenService.activateToken(TOKEN_NOT_FOUND, password);
+            tokenService.activateToken(TOKEN_NOT_FOUND_TOKEN_ID, password);
             fail("should have thrown exception");
         } catch (TokenService.TokenNotFoundException expected) {
         }
 
         try {
-            tokenService.activateToken(UNRECOGNIZED_FAULT_CODE, password);
+            tokenService.activateToken(UNRECOGNIZED_FAULT_CODE_TOKEN_ID, password);
             fail("should have thrown exception");
         } catch (CodedException expected) {
             assertEquals("foo", expected.getFaultCode());
@@ -153,17 +170,33 @@ public class TokenServiceTest {
         tokenService.deactivateToken("token-should-be-deactivatable");
 
         try {
-            tokenService.deactivateToken(TOKEN_NOT_FOUND);
+            tokenService.deactivateToken(TOKEN_NOT_FOUND_TOKEN_ID);
             fail("should have thrown exception");
         } catch (TokenService.TokenNotFoundException expected) {
         }
 
         try {
-            tokenService.deactivateToken(UNRECOGNIZED_FAULT_CODE);
+            tokenService.deactivateToken(UNRECOGNIZED_FAULT_CODE_TOKEN_ID);
             fail("should have thrown exception");
         } catch (CodedException expected) {
             assertEquals("foo", expected.getFaultCode());
             assertEquals("bar", expected.getFaultString());
         }
     }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_KEYS" })
+    public void getToken() throws Exception {
+
+        TokenInfo tokenInfo;
+
+        try {
+            tokenInfo = tokenService.getToken(TOKEN_NOT_FOUND_TOKEN_ID);
+        } catch (TokenService.TokenNotFoundException expected) {
+        }
+
+        tokenInfo = tokenService.getToken(GOOD_TOKEN_ID);
+        assertEquals("good-token", tokenInfo.getFriendlyName());
+    }
+
 }

@@ -178,7 +178,7 @@ public class TokenService {
      * @param id
      * @throws TokenNotFoundException if token was not found
      */
-    @PreAuthorize("hasAnyAuthority('ACTIVATE_TOKEN','DEACTIVATE_TOKEN')")
+    @PreAuthorize("hasAuthority('VIEW_KEYS')")
     public TokenInfo getToken(String id) throws TokenNotFoundException {
         try {
             return signerProxyFacade.getToken(id);

@@ -263,10 +263,10 @@ public class ClientService {
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public List<ClientType> findLocalClients(String name, String instance, String propertyClass, String memberCode,
             String subsystemCode, boolean showMembers) {
-        List<Predicate<ClientType>> searchPredicates = buildClientSearchPredicates(name, instance, propertyClass,
+        Predicate<ClientType> matchingSearchTerms = buildClientSearchPredicate(name, instance, propertyClass,
                 memberCode, subsystemCode);
         return getAllLocalClients().stream()
-                .filter(searchPredicates.stream().reduce(p -> true, Predicate::and))
+                .filter(matchingSearchTerms)
                 .filter(ct -> showMembers || ct.getIdentifier().getSubsystemCode() != null)
                 .collect(Collectors.toList());
     }
@@ -284,10 +284,10 @@ public class ClientService {
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public List<ClientType> findGlobalClients(String name, String instance, String propertyClass, String memberCode,
             String subsystemCode, boolean showMembers) {
-        List<Predicate<ClientType>> searchPredicates = buildClientSearchPredicates(name, instance, propertyClass,
+        Predicate<ClientType> matchingSearchTerms = buildClientSearchPredicate(name, instance, propertyClass,
                 memberCode, subsystemCode);
         return getAllGlobalClients().stream()
-                .filter(searchPredicates.stream().reduce(p -> true, Predicate::and))
+                .filter(matchingSearchTerms)
                 .filter(clientType -> showMembers || clientType.getIdentifier().getSubsystemCode() != null)
                 .collect(Collectors.toList());
     }
@@ -337,31 +337,31 @@ public class ClientService {
         return new ArrayList<>(uniqueClientMap.values());
     }
 
-    private List<Predicate<ClientType>> buildClientSearchPredicates(String name, String instance,
+    private Predicate<ClientType> buildClientSearchPredicate(String name, String instance,
             String memberClass, String memberCode, String subsystemCode) {
-        List<Predicate<ClientType>> searchPredicates = new ArrayList<>();
+        Predicate<ClientType> clientTypePredicate = clientType -> true;
         if (!StringUtils.isEmpty(name)) {
-            searchPredicates.add(ct -> {
+            clientTypePredicate = clientTypePredicate.and(ct -> {
                 String memberName = globalConfFacade.getMemberName(ct.getIdentifier());
                 return memberName != null && memberName.toLowerCase().contains(name.toLowerCase());
             });
         }
         if (!StringUtils.isEmpty(instance)) {
-            searchPredicates.add(ct -> ct.getIdentifier().getXRoadInstance().toLowerCase()
+            clientTypePredicate = clientTypePredicate.and(ct -> ct.getIdentifier().getXRoadInstance().toLowerCase()
                     .contains(instance.toLowerCase()));
         }
         if (!StringUtils.isEmpty(memberClass)) {
-            searchPredicates.add(ct -> ct.getIdentifier().getMemberClass().toLowerCase()
+            clientTypePredicate = clientTypePredicate.and(ct -> ct.getIdentifier().getMemberClass().toLowerCase()
                     .contains(memberClass.toLowerCase()));
         }
         if (!StringUtils.isEmpty(memberCode)) {
-            searchPredicates.add(ct -> ct.getIdentifier().getMemberCode().toLowerCase()
+            clientTypePredicate = clientTypePredicate.and(ct -> ct.getIdentifier().getMemberCode().toLowerCase()
                     .contains(memberCode.toLowerCase()));
         }
         if (!StringUtils.isEmpty(subsystemCode)) {
-            searchPredicates.add(ct -> ct.getIdentifier().getSubsystemCode() != null
+            clientTypePredicate = clientTypePredicate.and(ct -> ct.getIdentifier().getSubsystemCode() != null
                     && ct.getIdentifier().getSubsystemCode().toLowerCase().contains(subsystemCode.toLowerCase()));
         }
-        return searchPredicates;
+        return clientTypePredicate;
     }
 }

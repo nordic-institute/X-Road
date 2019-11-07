@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.31  
+Version: 2.31-UI
 Doc. ID: UG-SS
 
 ---
@@ -66,6 +66,7 @@ Doc. ID: UG-SS
  29.09.2019 | 2.29-UI    | Added chapter [19.3](#193-correlation-id-http-header) on REST API correlation id | Janne Mattila
  30.09.2019 | 2.30    | Added remote database migration guide | Ilkka Seppälä
  15.10.2019 | 2.31    | Updated REST services in chapter [6] | Ilkka Seppälä
+ 04.11.2019 | 2.31-UI | Added information about REST API rate limits | Janne Mattila
 
 ## Table of Contents <!-- omit in toc --> 
 
@@ -1903,6 +1904,23 @@ Management REST APIs are protected with an API key based authentication. To exec
 
 All REST APIs are protected by TLS. Since server uses self signed certificate, the caller needs to accept this (for example
 with `curl` you need to use `--insecure` or `-k` option.
+
+REST APIs are *rate limited*. Rate limits apply per each calling IP. If the number of calls
+from one IP address exceeds the limit, REST APIs return http status 429 Too Many Requests.
+
+Limits are
+- 600 requests per minute
+- 20 requests per second
+
+If the default limits are too restricting, they can be overridden with command line arguments. Limits are set with
+application properties `ratelimit.requests.per.second` and `ratelimit.requests.per.minute`. Example from a
+modified `/etc/xroad/services/proxy-ui-api.conf` (conf file modifications may be overwritten when
+installing upgraded packages):
+
+```
+PROXY_UI_API_PARAMS=" --ratelimit.requests.per.second=100 -Xmx192m -XX:MaxMetaspaceSize=128m \
+-Djna.tmpdir=/var/lib/xroad"
+```
 
 ### 19.1 API key management operations
 

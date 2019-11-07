@@ -29,8 +29,10 @@ import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import com.google.common.collect.Streams;
+import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Subject;
+import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -57,7 +59,7 @@ public class SubjectConverter {
      * @param subject
      * @return {@link XRoadId}
      */
-    public XRoadId convert(Subject subject) {
+    public XRoadId convertId(Subject subject) {
         XRoadObjectType subjectType = SubjectTypeMapping.map(subject.getSubjectType()).get();
         String encodedId = subject.getId();
         int separators;
@@ -74,7 +76,7 @@ public class SubjectConverter {
                 xRoadId = globalGroupConverter.convertId(encodedId);
                 break;
             case LOCALGROUP:
-                xRoadId = LocalGroupId.create(encodedId);
+                xRoadId = LocalGroupId.create(subject.getLocalGroupCode());
                 break;
             default:
                 throw new BadRequestException("Invalid subject type");
@@ -87,10 +89,41 @@ public class SubjectConverter {
      * @param subjects
      * @return List of {@link XRoadId xRoadIds}
      */
-    public List<XRoadId> convert(Iterable<Subject> subjects) {
+    public List<XRoadId> convertId(Iterable<Subject> subjects) {
         return Streams.stream(subjects)
-                .map(this::convert)
+                .map(this::convertId)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Convert {@link AccessRightHolderDto} to {@link Subject}
+     * @param accessRightHolderDto
+     * @return {@link Subject}
+     */
+    public Subject convert(AccessRightHolderDto accessRightHolderDto) {
+        Subject subject = new Subject();
+        String subjectsId = accessRightHolderDto.getLocalGroupId() != null
+                ? accessRightHolderDto.getLocalGroupId() : FormatUtils.xRoadIdToEncodedId(
+                accessRightHolderDto.getSubjectId());
+        subject.setId(subjectsId);
+        subject.setLocalGroupCode(accessRightHolderDto.getLocalGroupCode());
+        SubjectType subjectType = SubjectTypeMapping
+                .map(accessRightHolderDto.getSubjectId().getObjectType()).orElse(null);
+        subject.setSubjectType(subjectType);
+        String memberNameOrGroupDescription = accessRightHolderDto.getMemberName() != null
+                ? accessRightHolderDto.getMemberName() : accessRightHolderDto.getLocalGroupDescription();
+        subject.setMemberNameGroupDescription(memberNameOrGroupDescription);
+        return subject;
+    }
+
+    /**
+     * Convert a group of {@link AccessRightHolderDto accessRightHolderDtos} to a list of {@link Subject subjects}
+     * @param accessRightHolderDtos
+     * @return List of {@link Subject subjects}
+     */
+    public List<Subject> convert(Iterable<AccessRightHolderDto> accessRightHolderDtos) {
+        return Streams.stream(accessRightHolderDtos)
+                .map(this::convert)
+                .collect(Collectors.toList());
+    }
 }

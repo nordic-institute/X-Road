@@ -22,22 +22,51 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.protocol.handler;
+package org.niis.xroad.restapi.util;
 
-import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
-import ee.ria.xroad.signer.protocol.message.GetTokenInfo;
-import ee.ria.xroad.signer.tokenmanager.TokenManager;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
- * Handles requests for token info.
+ * Test utils for working with tokens
  */
-public class GetTokenInfoRequestHandler
-        extends AbstractRequestHandler<GetTokenInfo> {
+public final class TokenTestUtils {
 
-    @Override
-    protected Object handle(GetTokenInfo message) throws Exception {
-        // findTokenInfo throws exception if not found. We want this since null means timeout for caller.
-        return TokenManager.findTokenInfo(message.getTokenId());
+    private TokenTestUtils() {
+        // noop
     }
 
+    /**
+     * Creates TokenInfo object with some default values:
+     * - id = "id"
+     * - readOnly = false
+     * - available = true
+     * - active = true
+     * - serialNumber = "serial-number"
+     * - label = "label"
+     * - slotIndex = 123
+     * - tokenStatus = OK
+     * - keyInfos = empty
+     * - tokenInfo map = empty
+     * @param friendlyName
+     * @return
+     */
+    public static TokenInfo createTestTokenInfo(String friendlyName) {
+        TokenInfo tokenInfo = new TokenInfo(TokenInfo.SOFTWARE_MODULE_TYPE,
+                friendlyName,
+                "id",
+                false,
+                true,
+                true,
+                "serial-number",
+                "label",
+                123,
+                TokenStatusInfo.OK,
+                new ArrayList<>(),
+                new HashMap<>());
+        return tokenInfo;
+    }
 }

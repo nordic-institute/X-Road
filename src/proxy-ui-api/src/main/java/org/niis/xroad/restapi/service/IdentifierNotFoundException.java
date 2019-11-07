@@ -22,22 +22,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.protocol.handler;
+package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
-import ee.ria.xroad.signer.protocol.message.GetTokenInfo;
-import ee.ria.xroad.signer.tokenmanager.TokenManager;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-/**
- * Handles requests for token info.
- */
-public class GetTokenInfoRequestHandler
-        extends AbstractRequestHandler<GetTokenInfo> {
+public class IdentifierNotFoundException extends NotFoundException {
 
-    @Override
-    protected Object handle(GetTokenInfo message) throws Exception {
-        // findTokenInfo throws exception if not found. We want this since null means timeout for caller.
-        return TokenManager.findTokenInfo(message.getTokenId());
+    public static final String ERROR_IDENTIFIER_NOT_FOUND = "identifier_not_found";
+
+    public IdentifierNotFoundException() {
+        super(new ErrorDeviation(ERROR_IDENTIFIER_NOT_FOUND));
     }
-
 }

@@ -29,6 +29,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +39,10 @@ import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.ConnectionTypeMapping;
 import org.niis.xroad.restapi.converter.LocalGroupConverter;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
+import org.niis.xroad.restapi.converter.SubjectConverter;
+import org.niis.xroad.restapi.converter.SubjectTypeMapping;
 import org.niis.xroad.restapi.converter.TokenCertificateConverter;
+import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Client;
@@ -48,7 +52,10 @@ import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
+import org.niis.xroad.restapi.openapi.model.Subject;
+import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
+import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.ClientService;
@@ -95,6 +102,8 @@ public class ClientsApiController implements ClientsApi {
     private final CertificateDetailsConverter certificateDetailsConverter;
     private final ServiceDescriptionConverter serviceDescriptionConverter;
     private final ServiceDescriptionService serviceDescriptionService;
+    private final AccessRightService accessRightService;
+    private final SubjectConverter subjectConverter;
     private final TokenCertificateConverter tokenCertificateConverter;
 
     /**
@@ -106,6 +115,8 @@ public class ClientsApiController implements ClientsApi {
      * @param localGroupService
      * @param serviceDescriptionConverter
      * @param serviceDescriptionService
+     * @param accessRightService
+     * @param subjectConverter
      * @param tokenCertificateConverter
      */
 
@@ -114,8 +125,8 @@ public class ClientsApiController implements ClientsApi {
             ClientConverter clientConverter, LocalGroupConverter localGroupConverter,
             LocalGroupService localGroupService, CertificateDetailsConverter certificateDetailsConverter,
             ServiceDescriptionConverter serviceDescriptionConverter,
-            ServiceDescriptionService serviceDescriptionService,
-            TokenCertificateConverter tokenCertificateConverter) {
+            ServiceDescriptionService serviceDescriptionService, AccessRightService accessRightService,
+            SubjectConverter subjectConverter, TokenCertificateConverter tokenCertificateConverter) {
         this.clientService = clientService;
         this.tokenService = tokenService;
         this.clientConverter = clientConverter;
@@ -124,6 +135,8 @@ public class ClientsApiController implements ClientsApi {
         this.certificateDetailsConverter = certificateDetailsConverter;
         this.serviceDescriptionConverter = serviceDescriptionConverter;
         this.serviceDescriptionService = serviceDescriptionService;
+        this.accessRightService = accessRightService;
+        this.subjectConverter = subjectConverter;
         this.tokenCertificateConverter = tokenCertificateConverter;
     }
 
@@ -162,7 +175,7 @@ public class ClientsApiController implements ClientsApi {
      * @param encodedId id that is encoded with the <INSTANCE>:<MEMBER_CLASS>:....
      * encoding
      * @return
-     * @throws ResourceNotFoundException   if client does not exist
+     * @throws ResourceNotFoundException if client does not exist
      * @throws BadRequestException if encodedId was not proper encoded client ID
      */
     private ClientType getClientType(String encodedId) {
@@ -319,7 +332,7 @@ public class ClientsApiController implements ClientsApi {
                         clientConverter.convertId(id),
                         serviceDescription.getUrl(), serviceDescription.getIgnoreWarnings());
             } catch (WsdlParser.WsdlNotFoundException | UnhandledWarningsException
-                                             | InvalidUrlException | InvalidWsdlException e) {
+                    | InvalidUrlException | InvalidWsdlException e) {
                 // deviation data (errorcode + warnings) copied
                 throw new BadRequestException(e);
             } catch (ClientNotFoundException e) {
@@ -338,5 +351,23 @@ public class ClientsApiController implements ClientsApi {
                 addedServiceDescriptionType);
         return createCreatedResponse("/api/service-descriptions/{id}", addedServiceDescription,
                 addedServiceDescription.getId());
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
+    public ResponseEntity<List<Subject>> findSubjects(String encodedClientId, String memberNameOrGroupDescription,
+            SubjectType subjectType, String instance, String memberClass, String memberGroupCode,
+            String subsystemCode) {
+        ClientId clientId = clientConverter.convertId(encodedClientId);
+        XRoadObjectType xRoadObjectType = SubjectTypeMapping.map(subjectType).orElse(null);
+        List<AccessRightHolderDto> accessRightHolderDtos = null;
+        try {
+            accessRightHolderDtos = accessRightService.findAccessRightHolders(clientId, memberNameOrGroupDescription,
+                    xRoadObjectType, instance, memberClass, memberGroupCode, subsystemCode);
+        } catch (ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+        List<Subject> subjects = subjectConverter.convert(accessRightHolderDtos);
+        return new ResponseEntity<>(subjects, HttpStatus.OK);
     }
 }
