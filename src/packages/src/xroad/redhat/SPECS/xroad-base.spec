@@ -122,10 +122,10 @@ chmod 0755 /var/lib/xroad
 chmod -R go-w /var/lib/xroad
 
 # nicer log directory permissions
-mkdir -p -m1750 /var/log/xroad
-chmod 1750 /var/log/xroad
-chown xroad:adm /var/log/xroad
+mkdir -p /var/log/xroad
 chmod -R go-w /var/log/xroad
+chmod 1770 /var/log/xroad
+chown xroad:adm /var/log/xroad
 
 #tmp folder
 mkdir -p /var/tmp/xroad
