@@ -26,6 +26,11 @@ export interface ServiceDescription {
 
 
 export interface AccessRightSubject {
-  'id': string;
-  'name': string;
+  'rights_given_at': string;
+  'subject': {
+    'id': string;
+    'member_name_group_description': string;
+    'subject_type': string;
+  };
 }
+

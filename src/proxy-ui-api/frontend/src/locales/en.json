@@ -145,7 +145,9 @@
     "tlsTooltip": "Verify TLS certificate when a secure connection is established",
     "deleting_services": "Deleting services:",
     "adding_services": "Adding services:",
-    "wsdl_validation_warnings": "Validation warnings:"
+    "wsdl_validation_warnings": "Validation warnings:",
+    "memberNameGroupDesc": "Member name / Group description",
+    "idGroupCode": "ID / Group code"
   },
   "access": {
     "accessRights": "Access Rights",
@@ -241,6 +243,7 @@
   "member_code": "Member code",
   "subsystem_code": "Subsystem code",
   "instance": "Instance",
+  "type": "Type",
   "warning": "Warning",
   "fields": {
     "password": "Password",

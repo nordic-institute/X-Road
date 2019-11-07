@@ -121,15 +121,16 @@
     <v-card flat>
       <table class="xrd-table group-members-table">
         <tr>
-          <th>{{$t('localGroup.name')}}</th>
-          <th>{{$t('localGroup.id')}}</th>
+          <th>{{$t('services.memberNameGroupDesc')}}</th>
+          <th>{{$t('services.idGroupCode')}}</th>
+          <th>{{$t('type')}}</th>
           <th></th>
         </tr>
         <template v-if="accessRights">
           <tr v-for="groupMember in accessRights" v-bind:key="groupMember.id">
-            <td>{{groupMember.name}}</td>
-            <td>{{groupMember.id}}</td>
-
+            <td>{{groupMember.subject.member_name_group_description}}</td>
+            <td>{{groupMember.subject.id}}</td>
+            <td>{{groupMember.subject.subject_type}}</td>
             <td>
               <div class="button-wrap">
                 <v-btn
@@ -151,16 +152,16 @@
       </div>
     </v-card>
 
-    <!-- Confirm dialog remove member -->
+    <!-- Confirm dialog remove Access Right subject -->
     <confirmDialog
       :dialog="confirmMember"
       title="localGroup.removeTitle"
       text="localGroup.removeText"
       @cancel="confirmMember = false"
-      @accept="doRemoveMember()"
+      @accept="doRemoveSubject()"
     />
 
-    <!-- Confirm dialog remove all members -->
+    <!-- Confirm dialog remove all Access Right subjects -->
     <confirmDialog
       :dialog="confirmAllMembers"
       title="localGroup.removeAllTitle"
@@ -169,13 +170,11 @@
       @accept="doRemoveAllMembers()"
     />
 
-    <!-- Add new members dialog -->
+    <!-- Add access right subjects dialog -->
     <accessRightsDialog
       :dialog="addMembersDialogVisible"
-      :filtered="[]"
-      :memberClasses="[]"
-      :instances="[]"
-      :id="service.id"
+      :filtered="accessRights"
+      :clientId="clientId"
       title="access.addSubjectsTitle"
       @cancel="closeMembersDialog"
       @membersAdded="doAddMembers"
@@ -217,6 +216,10 @@ export default Vue.extend({
   },
   props: {
     serviceId: {
+      type: String,
+      required: true,
+    },
+    clientId: {
       type: String,
       required: true,
     },
@@ -316,25 +319,6 @@ export default Vue.extend({
         .get(`/services/${serviceId}/access-rights`)
         .then((res) => {
           this.accessRights = res.data;
-          console.log(res.data);
-        })
-        .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
-        });
-
-      api
-        .get(`/member-classes`)
-        .then((res) => {
-          this.memberClasses = res.data;
-        })
-        .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
-        });
-
-      api
-        .get(`/xroad-instances`)
-        .then((res) => {
-          this.instances = res.data;
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
@@ -372,12 +356,15 @@ export default Vue.extend({
     },
 
     doRemoveAllMembers(): void {
-      const ids: any = [];
-      this.accessRights.forEach((member: any) => {
-        ids.push(member.id);
+      const subjects: any = [];
+      this.accessRights.forEach((subject: any) => {
+        subjects.push({
+          id: subject.subject.id,
+          subject_type: subject.subject.subject_type,
+        });
       });
 
-      this.removeArrayOfMembers(ids);
+      this.removeArrayOfMembers(subjects);
       this.confirmAllMembers = false;
     },
 

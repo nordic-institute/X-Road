@@ -82,14 +82,13 @@
         </v-expansion-panels>
 
         <!-- Table -->
-
         <table class="xrd-table members-table fixed_header">
           <thead>
             <tr>
               <th class="first-column"></th>
-              <th>Member name / Group description</th>
-              <th>ID / Group code</th>
-              <th>Type</th>
+              <th>{{$t('services.memberNameGroupDesc')}}</th>
+              <th>{{$t('services.idGroupCode')}}</th>
+              <th>{{$t('type')}}</th>
             </tr>
           </thead>
           <tbody v-if="members && members.length > 0">
@@ -156,7 +155,7 @@ export default Vue.extend({
       type: Boolean,
       required: true,
     },
-    id: {
+    clientId: {
       type: String,
       required: true,
     },
@@ -197,14 +196,17 @@ export default Vue.extend({
       this.noResults = false;
       api
         .get(
-          `/clients/${this.$store.getters.client.id}/subjects?member_name_group_description=${this.name}&instance=${this.instance}&member_class=${this.memberClass}&member_group_code=${this.memberCode}&subsystem_code=${this.subsystemCode}`,
+          `/clients/${this.clientId}/subjects?member_name_group_description=${this.name}&instance=${this.instance}&member_class=${this.memberClass}&member_group_code=${this.memberCode}&subsystem_code=${this.subsystemCode}`,
         )
         .then((res) => {
           if (this.filtered && this.filtered.length > 0) {
             // Filter out members that are already added
             this.members = res.data.filter((member: any) => {
               return !this.filtered.find((item: any) => {
-                return item.id === member.id;
+                return (
+                  item.subject.id === member.id &&
+                  item.subject.subject_type === member.subject_type
+                );
               });
             });
           } else {
