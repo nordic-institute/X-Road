@@ -73,6 +73,13 @@ public class TokensApiController implements TokensApi {
         return new ResponseEntity<>(tokens, HttpStatus.OK);
     }
 
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_KEYS')")
+    public ResponseEntity<Token> getToken(String id) {
+        Token token = getTokenFromService(id);
+        return new ResponseEntity<>(token, HttpStatus.OK);
+    }
+
     @PreAuthorize("hasAuthority('ACTIVATE_TOKEN')")
     @Override
     public ResponseEntity<Token> loginToken(String id, TokenPassword tokenPassword) {
