@@ -61,13 +61,23 @@ public class IdentifierService {
      */
     @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
     public Set<XRoadId> getOrPersistXroadIds(Set<XRoadId> xRoadIds) {
-        Collection<XRoadId> allIdsFromDb = identifierRepository.getIdentifiers();
-        Set<XRoadId> txEntities = allIdsFromDb.stream()
-                .filter(xRoadIds::contains) // this works because of the XRoadId equals and hashCode overrides
-                .collect(Collectors.toSet());
+        Set<XRoadId> txEntities = getXroadIds(xRoadIds);
         xRoadIds.removeAll(txEntities); // remove the persistent ones
         identifierRepository.saveOrUpdate(xRoadIds); // persist the non-persisted
         txEntities.addAll(xRoadIds); // add the newly persisted ids into the collection of already existing ids
         return txEntities;
+    }
+
+    /**
+     * Get the existing {@link XRoadId xRoadIds} from the local db
+     * @param xRoadIds
+     * @return List of XRoadIds
+     */
+    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
+    public Set<XRoadId> getXroadIds(Set<XRoadId> xRoadIds) {
+        Collection<XRoadId> allIdsFromDb = identifierRepository.getIdentifiers();
+        return allIdsFromDb.stream()
+                .filter(xRoadIds::contains) // this works because of the XRoadId equals and hashCode overrides
+                .collect(Collectors.toSet());
     }
 }
