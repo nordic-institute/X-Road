@@ -22,36 +22,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.restapi.service;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-import java.util.Collection;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
 /**
- * Thrown if there was a conflict, for example tried to add an item which already exists.
- * Results in http 409 CONFLICT
+ * Service layer exception, which is thrown if some item is not found
  */
-@ResponseStatus(value = HttpStatus.CONFLICT)
-public class ConflictException extends DeviationAwareRuntimeException {
-    public ConflictException() {
+public class NotFoundException extends ServiceException {
+    public NotFoundException(Throwable t, ErrorDeviation errorDeviation) {
+        super(t, errorDeviation);
     }
 
-    public ConflictException(String msg) {
-        super(msg);
+    public NotFoundException(ErrorDeviation errorDeviation) {
+        super(errorDeviation);
     }
 
-    public ConflictException(Error error, Collection<Warning> warnings) {
-        super(error, warnings);
+    public NotFoundException(String msg, ErrorDeviation errorDeviation) {
+        super(msg, errorDeviation);
     }
-
-    public ConflictException(String msg, Error error) {
-        super(msg, error);
-    }
-
-    public ConflictException(Error error) {
-        super(error);
-    }
-
 }

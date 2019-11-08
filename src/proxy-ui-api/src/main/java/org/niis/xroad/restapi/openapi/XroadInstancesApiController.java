@@ -24,7 +24,7 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import org.niis.xroad.restapi.service.GlobalConfService;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,17 +42,17 @@ import java.util.List;
 @PreAuthorize("denyAll")
 public class XroadInstancesApiController implements XroadInstancesApi {
 
-    private final GlobalConfService globalConfService;
+    private final GlobalConfFacade globalConfFacade;
 
     @Autowired
-    public XroadInstancesApiController(GlobalConfService globalConfService) {
-        this.globalConfService = globalConfService;
+    public XroadInstancesApiController(GlobalConfFacade globalConfFacade) {
+        this.globalConfFacade = globalConfFacade;
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_XROAD_INSTANCES')")
     public ResponseEntity<List<String>> getXroadInstances() {
-        List<String> xroadInstances = globalConfService.getInstanceIdentifiers();
+        List<String> xroadInstances = globalConfFacade.getInstanceIdentifiers();
         return new ResponseEntity<>(xroadInstances, HttpStatus.OK);
     }
 }

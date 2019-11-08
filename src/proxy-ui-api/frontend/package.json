@@ -5,11 +5,13 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "test:unit": "vue-cli-service test:unit",
-    "test:e2e": "vue-cli-service test:e2e",
     "lint": "vue-cli-service lint",
     "build:report": "vue-cli-service build --report",
-    "test:coverage": "vue-cli-service test:unit --coverage"
+    "test:unit": "vue-cli-service test:unit",
+    "test:e2e": "vue-cli-service test:e2e",
+    "test:coverage": "vue-cli-service test:unit --coverage",
+    "check-audit": "check-audit",
+    "resolve-audit": "resolve-audit"
   },
   "dependencies": {
     "axios": "^0.19.0",
@@ -37,6 +39,7 @@
     "@vue/test-utils": "^1.0.0-beta.20",
     "babel-core": "7.0.0-bridge.0",
     "node-sass": "^4.12.0",
+    "npm-audit-resolver": "2.0.1",
     "sass": "^1.17.4",
     "sass-loader": "^8.0.0",
     "ts-jest": "^24.0.2",

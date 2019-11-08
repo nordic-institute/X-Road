@@ -32,12 +32,11 @@ import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.apache.commons.lang.StringUtils;
 import org.niis.xroad.restapi.converter.Converters;
-import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
 
+import java.net.IDN;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -47,6 +46,11 @@ import java.util.Date;
  * Format utils
  */
 public final class FormatUtils {
+    public static final String HTTPS_PROTOCOL = "https://";
+    public static final String HTTP_PROTOCOL = "http://";
+    public static final String URL_HOST_REGEX = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*"
+            + "([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$";
+
     private FormatUtils() {
         // noop
     }
@@ -62,18 +66,24 @@ public final class FormatUtils {
     }
 
     /**
+     * Validates a URL. A valid URL will start with either <i>http://</i> or <i>https://</i>. The host part of the URL
+     * should also conform to <a href="http://www.ietf.org/rfc/rfc3490.txt">RFC 3490</a>
+     * and {@link FormatUtils#URL_HOST_REGEX}
      * @param url
      * @return true or false depending on the validity of the provided url
      */
     public static boolean isValidUrl(String url) {
+        boolean hasValidProtocol;
+        boolean hasValidHost;
         try {
+            hasValidProtocol = url.startsWith(HTTPS_PROTOCOL) || url.startsWith(HTTP_PROTOCOL);
             URL wsdlUrl = new URL(url);
-            URI uri = wsdlUrl.toURI();
-            uri.parseServerAuthority();
-        } catch (MalformedURLException | URISyntaxException e) {
+            String asciiHost = IDN.toASCII(wsdlUrl.getHost());
+            hasValidHost = asciiHost.matches(URL_HOST_REGEX);
+        } catch (MalformedURLException | IllegalArgumentException e) {
             return false;
         }
-        return true;
+        return hasValidProtocol && hasValidHost;
     }
 
     /**
@@ -105,18 +115,18 @@ public final class FormatUtils {
     }
 
     /**
-     * in case of NumberFormatException we throw NotFoundException. Client should not
+     * in case of NumberFormatException we throw ResourceNotFoundException. Client should not
      * know about id parameter details, such as "it should be numeric" -
      * the resource with given id just cant be found, and that's all there is to it
      * @param id as String
      * @return id as Long
      */
-    public static Long parseLongIdOrThrowNotFound(String id) throws NotFoundException {
+    public static Long parseLongIdOrThrowNotFound(String id) throws ResourceNotFoundException {
         Long groupId = null;
         try {
             groupId = Long.valueOf(id);
         } catch (NumberFormatException nfe) {
-            throw new NotFoundException(nfe);
+            throw new ResourceNotFoundException("bad id", nfe);
         }
         return groupId;
     }

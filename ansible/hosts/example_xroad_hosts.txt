@@ -1,33 +1,33 @@
 #central servers (ubuntu)
-[cs-servers]
+[cs_servers]
 cs1.mydomain.com ansible_ssh_user=ubuntu
 cs2.mydomain.com ansible_ssh_user=ubuntu
 
 #security servers (ubuntu or rhel)
-[ss-servers]
+[ss_servers]
 ss1.mydomain.com ansible_ssh_user=ubuntu
 ss2.mydomain.com ansible_ssh_user=ubuntu
 rh1.mydomain.com ansible_ssh_user=ec2-user
 rh2.mydomain.com ansible_ssh_user=ec2-user
 
 #configuration proxies (ubuntu)
-[cp-servers]
+[cp_servers]
 cp.mydomain.com ansible_ssh_user=ubuntu
 
 #certification authority, time stamping authority and ocsp service server (ubuntu)
-[ca-servers]
+[ca_servers]
 ca.mydomain.com ansible_ssh_user=ubuntu
 
 #a custom super group for overriding variable defaults
 [example:children]
-cs-servers
-ss-servers
-cp-servers
-ca-servers
+cs_servers
+ss_servers
+cp_servers
+ca_servers
 
 ### vars ###
 
-[ss-servers:vars]
+[ss_servers:vars]
 variant=vanilla
 
 [all:vars]

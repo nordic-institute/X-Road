@@ -37,6 +37,7 @@ import org.niis.xroad.restapi.openapi.model.KeyValuePair;
 import org.niis.xroad.restapi.openapi.model.Token;
 import org.niis.xroad.restapi.openapi.model.TokenStatus;
 import org.niis.xroad.restapi.openapi.model.TokenType;
+import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -92,7 +93,7 @@ public class TokenConverterTest {
 
         Token token = tokenConverter.convert(tokenInfo);
 
-        assertEquals(true, token.getActive());
+        assertEquals(true, token.getLoggedIn());
         assertEquals(true, token.getAvailable());
         assertEquals("id", token.getId());
         assertNotNull(token.getKeys());
@@ -156,18 +157,7 @@ public class TokenConverterTest {
         unsavedKey.getCerts().clear();
         unsavedKey.getCertRequests().clear();
 
-        TokenInfo tokenInfo = new TokenInfo(TokenInfo.SOFTWARE_MODULE_TYPE,
-                "friendly-name",
-                "id",
-                false,
-                true,
-                true,
-                "serial-number",
-                "label",
-                123,
-                TokenStatusInfo.OK,
-                new ArrayList<KeyInfo>(),
-                new HashMap<String, String>());
+        TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo("friendly-name");
 
         tokenInfo.getKeyInfo().clear();
         assertEquals(false, tokenConverter.convert(tokenInfo).getSavedToConfiguration());

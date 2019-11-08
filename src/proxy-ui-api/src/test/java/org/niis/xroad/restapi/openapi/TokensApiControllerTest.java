@@ -24,9 +24,7 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
@@ -35,6 +33,7 @@ import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.Token;
 import org.niis.xroad.restapi.openapi.model.TokenStatus;
 import org.niis.xroad.restapi.service.TokenService;
+import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -45,9 +44,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -71,18 +68,7 @@ public class TokensApiControllerTest {
 
     @Before
     public void setUp() throws Exception {
-        TokenInfo tokenInfo = new TokenInfo(TokenInfo.SOFTWARE_MODULE_TYPE,
-                "friendly-name",
-                "id",
-                false,
-                true,
-                true,
-                "serial-number",
-                "label",
-                123,
-                TokenStatusInfo.OK,
-                new ArrayList<KeyInfo>(),
-                new HashMap<String, String>());
+        TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo("friendly-name");
         when(tokenService.getAllTokens()).thenReturn(Collections.singletonList(tokenInfo));
     }
 

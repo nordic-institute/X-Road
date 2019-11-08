@@ -4,8 +4,8 @@
 # X-Road: Use Case Model for Security Server Management
 **Analysis**
 
-Version: 1.8
-27.03.2019
+Version: 1.9
+24.10.2019
 <!-- 49 pages -->
 Doc. ID: UC-SS
 
@@ -30,7 +30,8 @@ Date       | Version | Description                                              
 29.08.2017 | 1.5     | Changed documentation type from docx to md file |   Lasse Matikainen
 19.02.2018 | 1.6     | Updated the negative case extension for backing up the central server | Tatu Repo
 06.03.2018 | 1.7     | Moved terms to term doc, added term doc reference and link, added internal MD-doc links | Tatu Repo
-278.03.2019 | 1.8     | Added use cases related to REST APIs | Janne Mattila
+27.03.2019 | 1.8     | Added use cases related to REST APIs | Janne Mattila
+24.10.2019 | 1.9     | Update use cases related to Security Server's TLS certificate | Guido Casalegno
 
 <!-- tocstop -->
 
@@ -581,7 +582,7 @@ certificate.
 -   See \[[X509](#Ref_X509)\] for detailed information on the contents of
     certificates.
 
-### 3.11 UC SS\_10: View the Internal TLS Certificate of the Security Server
+### 3.11 UC SS\_10: View the Security Server TLS Certificate
 
 **System**: Security server
 
@@ -591,32 +592,32 @@ certificate.
 
 **Actors:** SS administrator
 
-**Brief Description**: SS administrator views the information about the
-internal TLS certificate of the security server.
+**Brief Description**: SS administrator views the information about the the security server's TLS certificate.
 
 **Preconditions**: -
 
-**Postconditions**: The internal TLS certificate information has been
+**Postconditions**: The Security Server's TLS certificate information has been
 displayed to SS administrator.
 
-**Trigger**: SS administrator wants to view the internal TLS certificate
+**Trigger**: SS administrator wants to view the security server's TLS certificate
 information.
 
 **Main Success Scenario**:
 
-1.  SS administrator selects to view the internal TLS certificate of the
-    security server.
+1.  SS administrator selects to view the Security Server's TLS certificate.
 
-2.  System displays the SHA-1 hash value of the internal TLS
-    certificate. The SS administrator has a possibility to choose
-    amongst the following actions:
+2.  System displays the SHA-1 hash value of the Security Server's TLS certificate. The SS administrator has a possibility to choose amongst the following actions:
 
     -   generate a new TLS key and certificate for the security server:
         3.12 ;
+        
+    -   generate a new TLS certificate request: 3.12 ;
+  
+    -   import a TLS certificate request: 3.12 ;
 
-    -   view the details of the internal TLS certificate: 3.10 ;
+    -   view the details of the security server's TLS certificate: 3.10 ;
 
-    -   export the internal TLS certificate: 3.13 .
+    -   export the security server's TLS certificate: 3.13 .
 
 **Extensions**: -
 
@@ -632,7 +633,7 @@ information.
 
 **Actors:** SS administrator
 
-**Brief Description**: SS administrator generates an internal TLS key
+**Brief Description**: SS administrator generates a TLS key
 and respective self-signed certificate for the security server.
 
 **Preconditions**: -
@@ -660,6 +661,20 @@ used for TLS connections with the client information systems.
 6.  System logs the event “Generate new internal TLS key and
     certificate” to the audit log.
 
+7. SS administrator selects to generate a new TLS certificate request.
+
+8. System prompts for defining a Distinguished name.
+
+9. SS administrator inserts a Distinguished name.
+
+10. System prompts a request to download the generated certificate request.
+
+11. The security server generates a certificate request using the current key and the provided Distinguished Name.
+
+12. SS administrator downloads and saves the certificate request file to the local file system.
+
+13. After a Certification Authority has issued a TLS certificate, SS administrator imports and saves the certificate file to the local file system.
+
 **Extensions**:
 
 - 3a. SS administrator cancels the generating of the new TLS key.
@@ -674,7 +689,7 @@ used for TLS connections with the client information systems.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.13 UC SS\_12: Export the Internal TLS Certificate of the Security Server
+### 3.13 UC SS\_12: Export the TLS Certificate of the Security Server
 
 **System**: Security server
 
@@ -1616,24 +1631,83 @@ token.
 
 4.  System parses the user input: 3.42.
 
-5.  System generates a key with the inserted label on the token.
+5.  SS administrator
 
-6.  System logs the event “Generate key” to the audit log.
+    -   selects the intended usage of the certificate (signing or
+        authentication) if the usage of the key the CSR is generated for
+        has not been assigned before,
+
+    -   selects the security server client the certificate will be
+        issued for (only for signing certificates) from the list of this
+        security server's clients,
+
+    -   selects the certification service from the list of approved
+        certification services that will issue the certificate and
+
+    -   selects the format of the certificate signing request (PEM or
+        DER).
+
+6.  System uses the certificate profile info class described for the
+    selected CA to display the subject distinguished name fields of the
+    CSR, prefilling the values available for the system.
+
+7.  User inserts the values of the subject distinguished name that were
+    not prefilled by the system.
+
+8.  System parses the user input: 3.42.
+
+9.  SS administrator either
+
+    -   selects to cancel the key creation: process aborted
+    
+    -   selects to generate the key creation: process continue to step 10
+
+10.  System generates a key with the inserted label on the token.
+
+11.  System verifies, that information of the token holding the key the
+    CSR was generated for has not been previously saved to the system
+    configuration and saves the token information.
+
+12.  System verifies, that the key the CSR was generated for has not been
+    previously saved to the system configuration and saves the key
+    information, assigning the key usage according to the certificate
+    usage selected for the generated CSR.
+
+13.  System saves a notice about the generated CSR to the system
+    configuration.
+
+14. System logs the event “Generate CSR” to the audit log.
+
+15.  System generates the certificate signing request and prompts the
+    request file for downloading.
+
+16. SS administrator saves the CSR file to the local file system.
+
 
 **Extensions**:
-
-- 3a. SS administrator cancels the key generation. Use case terminates.
 
 - 4a. The process of parsing the user input terminated with an error message.
     - 4a.1. System displays the termination message from the parsing process.
     - 4a.2. System logs the event “Generate key failed” to the audit log.
     - 4a.3. SS administrator selects to reinsert the label. Use case continues form step 2.
     - 4a.3a. SS administrator selects to terminate the use case.
+    
+- 8a. The process of parsing the user input terminated with an error message.
+    - 8a.1. System displays the termination message from the parsing process.
+    - 8a.2. System logs the event “Generate CSR failed” to the audit log.
+    - 8a.3. SS administrator selects to reinsert the distinguished name. Use case continues form step 5.
+        - 5a.3a. SS administrator selects to terminate the use case.
 
-- 5a. The generation of the key failed (e.g., token is inaccessible).
-    - 3a.1. System displays the error message describing the encountered error. If the key generation failed on a hardware token, then the error message is an error code from the PKCS \#11 cryptographic token interface (see \[PKCS11\]).
-    - 3a.2. System logs the event “Generate key failed” to the audit log.
-    - 3a.3. Use case terminates.
+- 10a. The generation of the key failed (e.g., token is inaccessible).
+    - 10a.1. System displays the error message describing the encountered error. If the key generation failed on a hardware token, then the error message is an error code from the PKCS \#11 cryptographic token interface (see \[PKCS11\]).
+    - 10a.2. System logs the event “Generate key failed” to the audit log.
+    - 10a.3. Use case terminates.
+
+- 15a. The generation of the CSR failed (e.g., token is inaccessible).
+    - 15a.1. System displays the error message describing the encountered error. If the key which the CSR was to be generated for is stored on a hardware token, then the error message might be an error code from the PKCS \#11 cryptographic token interface (see \[PKCS11\]).
+    - 15a.2. System logs the event “Generate CSR failed” to the audit log.
+    - 15a.3. Use case terminates.
+
 
 **Related information**:
 

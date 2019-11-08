@@ -25,7 +25,6 @@
 package org.niis.xroad.restapi.wsdl;
 
 import org.junit.Test;
-import org.niis.xroad.restapi.exceptions.WsdlValidationException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,11 +33,6 @@ import java.util.List;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithMetadata;
-import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithoutMetadata;
-import static org.niis.xroad.restapi.wsdl.WsdlValidator.ERROR_WSDL_VALIDATION_FAILED;
-import static org.niis.xroad.restapi.wsdl.WsdlValidator.ERROR_WSDL_VALIDATOR_NOT_EXECUTABLE;
 
 /**
  * Test WSDLValidator
@@ -50,20 +44,18 @@ public class WsdlValidatorTest {
     public static final String MOCK_VALIDATOR_WARNING = "WARNING: this can be ignored";
 
     @Test
-    public void validatorNotExecutable() {
+    public void validatorNotExecutable() throws Exception {
         WsdlValidator wsdlValidator = new WsdlValidator();
         wsdlValidator.setWsdlValidatorCommand("/bin/foobar-validator");
         try {
             wsdlValidator.executeValidator("src/test/resources/wsdl/error.wsdl");
             fail("should have thrown WsdlValidationException");
-        } catch (WsdlValidationException expected) {
-            assertErrorWithoutMetadata(ERROR_WSDL_VALIDATOR_NOT_EXECUTABLE, expected);
-            assertNull(expected.getWarnings());
+        } catch (WsdlValidator.WsdlValidatorNotExecutableException expected) {
         }
     }
 
     @Test
-    public void shouldHandleWarnings() {
+    public void shouldHandleWarnings() throws Exception {
         WsdlValidator wsdlValidator = new WsdlValidator();
         wsdlValidator.setWsdlValidatorCommand("src/test/resources/validator/mock-wsdlvalidator.sh");
         List<String> warnings = wsdlValidator.executeValidator("src/test/resources/wsdl/warning.wsdl");
@@ -73,20 +65,21 @@ public class WsdlValidatorTest {
     }
 
     @Test
-    public void shouldFailValidation() {
+    public void shouldFailValidation() throws Exception {
         WsdlValidator wsdlValidator = new WsdlValidator();
         wsdlValidator.setWsdlValidatorCommand("src/test/resources/validator/mock-wsdlvalidator.sh");
         try {
             wsdlValidator.executeValidator("src/test/resources/wsdl/error.wsdl");
             fail("should have thrown WsdlValidationException");
-        } catch (WsdlValidationException expected) {
-            assertErrorWithMetadata(ERROR_WSDL_VALIDATION_FAILED, MOCK_VALIDATOR_ERROR, expected);
+        } catch (WsdlValidator.WsdlValidationFailedException expected) {
+            assertEquals(Collections.singletonList(MOCK_VALIDATOR_ERROR),
+                    expected.getErrorDeviation().getMetadata());
         }
     }
 
 
     @Test
-    public void shouldPassValidation() {
+    public void shouldPassValidation() throws Exception {
         WsdlValidator wsdlValidator = new WsdlValidator();
         wsdlValidator.setWsdlValidatorCommand("src/test/resources/validator/mock-wsdlvalidator.sh");
         List<String> warnings = wsdlValidator.executeValidator("src/test/resources/wsdl/testservice.wsdl");

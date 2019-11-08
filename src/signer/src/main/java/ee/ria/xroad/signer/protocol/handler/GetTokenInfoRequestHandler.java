@@ -36,7 +36,8 @@ public class GetTokenInfoRequestHandler
 
     @Override
     protected Object handle(GetTokenInfo message) throws Exception {
-        return TokenManager.getTokenInfo(message.getTokenId());
+        // findTokenInfo throws exception if not found. We want this since null means timeout for caller.
+        return TokenManager.findTokenInfo(message.getTokenId());
     }
 
 }
