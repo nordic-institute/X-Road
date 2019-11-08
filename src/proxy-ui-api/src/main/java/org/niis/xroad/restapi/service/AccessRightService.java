@@ -292,6 +292,7 @@ public class AccessRightService {
     /**
      * Adds access rights to SOAP services. If the provided {@code subjectIds} do not exist in the serverconf db
      * they will first be validated (that they exist in global conf) and then saved into the serverconf db.
+     * LocalGroup ids will also be verified and if they don't exist in the serverconf db they will be saved
      * @param clientId
      * @param fullServiceCode
      * @param subjectIds
@@ -318,7 +319,10 @@ public class AccessRightService {
                     .collect(Collectors.toSet())));
         }
         if (localGroupIds != null) {
-            txSubjects.addAll(getLocalGroupsAsXroadIds(localGroupIds));
+            Set<XRoadId> localGroupXroadIds = getLocalGroupsAsXroadIds(localGroupIds);
+            // Get LocalGroupIds from serverconf db - or save them if they don't exist
+            Set<XRoadId> txLocalGroupXroadIds = identifierService.getOrPersistXroadIds(localGroupXroadIds);
+            txSubjects.addAll(txLocalGroupXroadIds);
         }
         return addSoapServiceAccessRights(clientId, fullServiceCode, txSubjects);
     }
@@ -362,15 +366,15 @@ public class AccessRightService {
      * @throws LocalGroupNotFoundException
      */
     private Set<XRoadId> getLocalGroupsAsXroadIds(Set<Long> localGroupIds) throws LocalGroupNotFoundException {
-        Set<XRoadId> localGroups = new HashSet<>();
+        Set<XRoadId> localGroupXRoadIds = new HashSet<>();
         for (Long groupId : localGroupIds) {
             LocalGroupType localGroup = localGroupRepository.getLocalGroup(groupId); // no need to batch
             if (localGroup == null) {
                 throw new LocalGroupNotFoundException("LocalGroup with id " + groupId + " not found");
             }
-            localGroups.add(LocalGroupId.create(localGroup.getGroupCode()));
+            localGroupXRoadIds.add(LocalGroupId.create(localGroup.getGroupCode()));
         }
-        return localGroups;
+        return localGroupXRoadIds;
     }
 
     /**
