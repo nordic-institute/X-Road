@@ -13,7 +13,8 @@ RUN mkdir -p /mnt/gradle-cache && chown -R builder:builder /mnt/gradle-cache
 RUN apt-get -qq update && \
     apt-get -qq upgrade && \
     apt-get -qq install curl software-properties-common gawk \
-    openjdk-8-jdk-headless build-essential git unzip debhelper
+    openjdk-8-jdk-headless build-essential git unzip debhelper \
+    nodejs npm
 
 USER builder
 

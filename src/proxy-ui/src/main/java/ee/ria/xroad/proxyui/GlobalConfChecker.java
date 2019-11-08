@@ -75,7 +75,7 @@ public class GlobalConfChecker implements Job {
         GlobalConf.reload(); // XXX: temporary fix
 
         updateAuthCertStatuses(doInTransaction(session -> {
-            ServerConfType serverConf = new ServerConfDAOImpl().getConf();
+            ServerConfType serverConf = new ServerConfDAOImpl().getConf(session);
             SecurityServerId securityServerId = null;
 
             try {

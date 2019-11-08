@@ -2,7 +2,7 @@
 Description=X-Road Proxy
 After=network.target
 Wants=postgresql.service nginx.service
-Wants=xroad-signer.service xroad-confclient.service xroad-jetty9.service
+Wants=xroad-signer.service xroad-confclient.service xroad-jetty9.service xroad-proxy-ui-api.service
 
 [Service]
 EnvironmentFile=-/etc/sysconfig/xroad-proxy

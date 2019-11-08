@@ -6,6 +6,8 @@ buildscript {
 
 plugins {
     id 'org.sonarqube' version '2.7.1'
+    id "io.spring.dependency-management" version "1.0.8.RELEASE" apply false
+    id 'org.springframework.boot' version '2.1.3.RELEASE' apply false
     id 'com.github.hierynomus.license' version '0.15.0'
     id 'org.owasp.dependencycheck' version '5.2.2'
     id 'jacoco'
@@ -23,8 +25,8 @@ def getRubySourceCheckCommand(def projectPath) {
 sonarqube {
     properties {
         property "sonar.host.url", "https://sonarqube.niis.org"
-        property "sonar.projectKey", "xroad"
-        property "sonar.projectName", "X-Road"
+        property "sonar.projectKey", "xroad-rest-ui"
+        property "sonar.projectName", "X-Road-REST-UI"
         property "sonar.projectDescription", "Data Exchange Layer"
         property "sonar.projectVersion", xroadVersion
         property "sonar.dependencyCheck.reportPath", "build/reports/owasp-dependency-check/dependency-check-report.xml"
@@ -78,6 +80,7 @@ subprojects {
     apply plugin: 'idea'
     apply plugin: 'checkstyle'
     apply plugin: 'jacoco'
+
     group = 'ee.ria.xroad'
     version = '1.0'
 
