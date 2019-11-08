@@ -35,6 +35,7 @@ java_import Java::ee.ria.xroad.common.CodedException
 
 class AuthCertRegistrationController < ManagementRequestController
     @@auth_cert_registration_mutex = Mutex.new
+    @@host_validator = CommonUi::ValidationUtils::HostValidator.new
 
     private
 
@@ -51,9 +52,11 @@ class AuthCertRegistrationController < ManagementRequestController
     def handle_auth_cert_registration
         req_type = ManagementRequestParser.parseAuthCertRegRequest(@request_soap)
         security_server = security_server_id(req_type.getServer())
-
         verify_xroad_instance(security_server)
         verify_owner(security_server)
+
+        address = req_type.address
+        @@host_validator.validate(address, :address)
 
         req = nil
         auth_cert_reg_request = nil
@@ -68,7 +71,7 @@ class AuthCertRegistrationController < ManagementRequestController
             req = AuthCertRegRequest.new(
                 :security_server => security_server,
                 :auth_cert => auth_cert_bytes,
-                :address => req_type.getAddress(),
+                :address => address,
                 :origin => Request::SECURITY_SERVER)
             req.register()
 
@@ -76,7 +79,7 @@ class AuthCertRegistrationController < ManagementRequestController
                 auth_cert_reg_request = AuthCertRegRequest.new(
                     :security_server => security_server,
                     :auth_cert => auth_cert_bytes,
-                    :address => req_type.getAddress(),
+                    :address => address,
                     :origin => Request::CENTER)
                 auth_cert_reg_request.register()
             end

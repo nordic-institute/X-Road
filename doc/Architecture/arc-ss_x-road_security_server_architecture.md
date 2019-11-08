@@ -367,7 +367,12 @@ The user interface W in \[[Figure 2](#Ref_Security_Server_process_diagram)\] ser
 
 Xroad-jetty communicates with Central Server's management services interface M (see \[[PR-MSERV](#Ref_PR-MSERV)\]).
 
-Global configuration is downloaded from Central Server utilizing xroad-confclient. Xroad-confclient can be executed in one-shot mode through interface C in \[[Figure 2](#Ref_Security_Server_process_diagram)\].
+Global configuration is downloaded from Central Server (or Configuration Proxy in some cases) utilizing xroad-confclient and stored on disk.
+
+Xroad-jetty communicates with xroad-confclient in three different scenarios:
+- When configuration anchor is uploaded to Security Server, it launches fetching of global conf using admin port interface C of xroad-confclient.
+- To get the status of global configuration fetching for diagnostics, it accesses xroad-confclient admin port interface C.
+- Xroad-jetty also reads the global configuration files on disk directly.
 
 Xroad-jetty communicates with xroad-signer interface S to manage token, key, and certificate information. Currently the signer protocol is strictly internal and there is no documentation about it.
 
@@ -427,7 +432,7 @@ Xroad-confclient is responsible for fetching global configuration from a configu
 
 #### 3.4.2 Encapsulated data
 
-Xroad-confclient downloads the global configuration and stores it to local disk. Other processes xroad-proxy and xroad-signer access the files on the disk directly.
+Xroad-confclient downloads the global configuration and stores it to local disk. Other processes xroad-proxy, xroad-jetty and xroad-signer access the files on the disk directly.
 
 #### 3.4.3 Messaging
 
