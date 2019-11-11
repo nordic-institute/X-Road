@@ -77,7 +77,7 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public SecurityServerId getIdentifier() {
         return tx(session -> {
-            ServerConfType confType = getConf();
+            ServerConfType confType = getConf(session);
             ClientType owner = confType.getOwner();
             if (owner == null) {
                 throw new CodedException(X_MALFORMED_SERVERCONF, "Owner is not set");
@@ -167,7 +167,7 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public List<ClientId> getMembers() {
-        return tx(session -> getConf().getClient().stream()
+        return tx(session -> getConf(session).getClient().stream()
                 .map(c -> c.getIdentifier())
                 .collect(Collectors.toList()));
     }
@@ -257,7 +257,7 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public List<String> getTspUrl() {
-        return tx(session -> getConf().getTsp().stream()
+        return tx(session -> getConf(session).getTsp().stream()
                 .map(tsp -> tsp.getUrl())
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toList()));
@@ -288,8 +288,8 @@ public class ServerConfImpl implements ServerConfProvider {
 
     // ------------------------------------------------------------------------
 
-    protected ServerConfType getConf() {
-        return new ServerConfDAOImpl().getConf();
+    protected ServerConfType getConf(Session session) {
+        return new ServerConfDAOImpl().getConf(session);
     }
 
     protected ClientType getClient(Session session, ClientId c) {
@@ -381,7 +381,7 @@ public class ServerConfImpl implements ServerConfProvider {
                 .findFirst().orElse(null);
     }
 
-    protected static <T> T tx(TransactionCallback<T> t) {
+    protected <T> T tx(TransactionCallback<T> t) {
         try {
             return doInTransaction(t);
         } catch (Exception e) {

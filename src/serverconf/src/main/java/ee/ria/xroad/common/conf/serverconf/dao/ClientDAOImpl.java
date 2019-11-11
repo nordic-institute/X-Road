@@ -81,8 +81,8 @@ public class ClientDAOImpl extends AbstractDAOImpl<ClientType> {
     /**
      * Returns the client for the given client identifier.
      * @param session the session
-     * @param id      the client identifier
-     * @return the client
+     * @param id the client identifier
+     * @return the client, or null if matching client was not found
      */
     public ClientType getClient(Session session, ClientId id) {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
