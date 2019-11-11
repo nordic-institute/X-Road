@@ -31,7 +31,7 @@ import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampTask;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +48,7 @@ import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransactio
  */
 @Slf4j
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-public class TaskQueue extends UntypedActor {
+public class TaskQueue extends UntypedAbstractActor {
 
     static final String START_TIMESTAMPING = "StartTimestamping";
     static final String START_TIMESTAMPING_RETRY_MODE = "StartTimestampingRetryMode";

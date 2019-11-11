@@ -34,7 +34,7 @@ import ee.ria.xroad.common.messagelog.archive.DigestEntry;
 import ee.ria.xroad.common.messagelog.archive.LogArchiveBase;
 import ee.ria.xroad.common.messagelog.archive.LogArchiveWriter;
 
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
@@ -66,7 +66,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class LogArchiver extends UntypedActor {
+public class LogArchiver extends UntypedAbstractActor {
 
     private static final int MAX_RECORDS_IN_ARCHIVE = 10;
     private static final int MAX_RECORDS_IN_BATCH = 360;

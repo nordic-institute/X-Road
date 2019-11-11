@@ -39,9 +39,9 @@ dependencies {
     compile 'org.apache.httpcomponents:httpclient:4.5.6'
     compile 'org.apache.httpcomponents:httpasyncclient:4.1.4'
 
-    compile "com.typesafe.akka:akka-actor_2.11:$akkaVersion"
-    compile "com.typesafe.akka:akka-remote_2.11:$akkaVersion"
-    compile "com.typesafe.akka:akka-slf4j_2.11:$akkaVersion"
+    compile "com.typesafe.akka:akka-actor_$akkaVersion"
+    compile "com.typesafe.akka:akka-remote_$akkaVersion"
+    compile "com.typesafe.akka:akka-slf4j_$akkaVersion"
 
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.10.1'
     compile 'com.google.code.gson:gson:2.8.5'

@@ -39,7 +39,7 @@ import ee.ria.xroad.signer.util.TokenAndKey;
 
 import akka.actor.ActorRef;
 import akka.actor.Props;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
@@ -208,7 +208,7 @@ public class GenerateCertRequestRequestHandler extends AbstractRequestHandler<Ge
         }
     }
 
-    static class SignatureReceiverActor extends UntypedActor {
+    static class SignatureReceiverActor extends UntypedAbstractActor {
 
         private final TokenContentSigner signer;
 
