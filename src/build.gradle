@@ -25,8 +25,8 @@ def getRubySourceCheckCommand(def projectPath) {
 sonarqube {
     properties {
         property "sonar.host.url", "https://sonarqube.niis.org"
-        property "sonar.projectKey", "xroad-rest-ui"
-        property "sonar.projectName", "X-Road-REST-UI"
+        property "sonar.projectKey", "xroad"
+        property "sonar.projectName", "X-Road"
         property "sonar.projectDescription", "Data Exchange Layer"
         property "sonar.projectVersion", xroadVersion
         property "sonar.dependencyCheck.reportPath", "build/reports/owasp-dependency-check/dependency-check-report.xml"
@@ -80,7 +80,6 @@ subprojects {
     apply plugin: 'idea'
     apply plugin: 'checkstyle'
     apply plugin: 'jacoco'
-
     group = 'ee.ria.xroad'
     version = '1.0'
 
