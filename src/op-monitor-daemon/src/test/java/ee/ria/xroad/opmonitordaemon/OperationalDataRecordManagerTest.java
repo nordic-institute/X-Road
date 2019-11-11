@@ -122,6 +122,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
         result = queryRecords(1474968970L, 1474968990L);
         assertEquals(1, result.size());
+        assertNotNull(result.getRecords().get(0).getMessageId());
         assertEquals(1474968980L, result.getRecords().get(0)
                 .getMonitoringDataTs().longValue());
 
