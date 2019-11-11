@@ -1,0 +1,22 @@
+{
+  "src_folders" : ["./tests/e2e/specs"],
+  "output_folder" : "./tests/e2e/reports",
+  "page_objects_path" : "./tests/e2e/pages",
+  "custom_assertions_path" : "",
+  "globals_path" : "./tests/e2e/env/globals.js",
+  "live_output" : false,
+  "parallel_process_delay" : 10,
+  "disable_colors": false,
+  "test_workers" : false,
+  "test_settings" : {
+    "default": {
+      "globals" : {
+        "login_usr" : "xrd",
+        "login_pwd" : "secret",
+        "login_wrong_usr" : "foo",
+        "login_wrong_pwd" : "bar"
+      }
+    }
+  }
+}
+
