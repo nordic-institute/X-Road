@@ -121,4 +121,17 @@ public class TokensApiController implements TokensApi {
         }
         return tokenConverter.convert(tokenInfo);
     }
+
+    @PreAuthorize("hasAuthority('EDIT_KEYTABLE_FRIENDLY_NAMES')")
+    @Override
+    public ResponseEntity<Token> updateToken(String id, String name) {
+        TokenInfo tokenInfo = null;
+        try {
+            tokenInfo = tokenService.updateTokenFriendlyName(id, name);
+        } catch (TokenService.TokenNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+        Token token = tokenConverter.convert(tokenInfo);
+        return new ResponseEntity<>(token, HttpStatus.OK);
+    }
 }
