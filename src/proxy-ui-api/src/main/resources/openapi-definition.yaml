@@ -2986,6 +2986,8 @@ paths:
             schema:
               title: TokenName
               type: object
+              required:
+                - name
               properties:
                 name:
                   type: string
