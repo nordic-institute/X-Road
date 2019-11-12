@@ -29,6 +29,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.TokenConverter;
 import org.niis.xroad.restapi.openapi.model.Token;
+import org.niis.xroad.restapi.openapi.model.TokenName;
 import org.niis.xroad.restapi.openapi.model.TokenPassword;
 import org.niis.xroad.restapi.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -124,10 +125,10 @@ public class TokensApiController implements TokensApi {
 
     @PreAuthorize("hasAuthority('EDIT_KEYTABLE_FRIENDLY_NAMES')")
     @Override
-    public ResponseEntity<Token> updateToken(String id, String name) {
+    public ResponseEntity<Token> updateToken(String id, TokenName tokenName) {
         TokenInfo tokenInfo = null;
         try {
-            tokenInfo = tokenService.updateTokenFriendlyName(id, name);
+            tokenInfo = tokenService.updateTokenFriendlyName(id, tokenName.getName());
         } catch (TokenService.TokenNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }

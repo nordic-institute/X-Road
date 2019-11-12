@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.13"
+  version: "1.0.14"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -2964,7 +2964,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    put: # ok
+    patch: # ok
       tags:
         - security server
       summary: update security server token information
@@ -2980,15 +2980,21 @@ paths:
             format: text
             minLength: 1
             maxLength: 255
-        - in: query
-          name: name
-          description: friendly name of the token
-          required: false
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: TokenName
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: friendly name of the token
+                  format: text
+                  minLength: 1
+                  maxLength: 255
+              example:
+                name: my-token-0
       responses:
         '200':
           description: token modified
