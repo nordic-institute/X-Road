@@ -124,16 +124,6 @@ public class TokenServiceTest {
 
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
-            String tokenId = (String) args[0];
-            if (TOKEN_NOT_FOUND_TOKEN_ID.equals(tokenId)) {
-                throw new CodedException(TOKEN_NOT_FOUND_FAULT_CODE, "did not find it");
-            } else {
-                return tokenInfo;
-            }
-        }).when(signerProxyFacade).getToken(any());
-
-        doAnswer(invocation -> {
-            Object[] args = invocation.getArguments();
             String newTokenName = (String) args[1];
             ReflectionTestUtils.setField(tokenInfo, "friendlyName", newTokenName);
             return null;
