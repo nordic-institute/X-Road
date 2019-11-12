@@ -21,6 +21,7 @@
             type="text"
             :maxlength="255"
             :error-messages="errors"
+            :loading="loading"
             @input="touched = true"
           ></v-text-field>
         </ValidationProvider>
@@ -83,6 +84,7 @@ export default Vue.extend({
     return {
       touched: false,
       saveBusy: false,
+      loading: false,
       token: {},
     };
   },
@@ -92,11 +94,23 @@ export default Vue.extend({
     },
 
     save(): void {
-      // TODO will be implemented later
       this.saveBusy = true;
+
+      api
+        .put(`/tokens/${this.id}`, this.token)
+        .then((res) => {
+          this.$bus.$emit('show-success', 'keys.tokenSaved');
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
 
     fetchData(id: string): void {
+      this.loading = true;
       api
         .get(`/tokens/${this.id}`)
         .then((res) => {
@@ -104,6 +118,9 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
   },
