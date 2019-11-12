@@ -17,7 +17,7 @@
           <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
         </div>
         <tr v-for="cert in key.certificates" v-bind:key="cert.id">
-          <td>
+          <td class="td-name">
             <div class="name-wrap">
               <v-icon class="icon" @click="certificateClick(cert)">mdi-file-document-outline</v-icon>
               <div
@@ -33,6 +33,23 @@
             <certificate-status :certificate="cert" />
           </td>
         </tr>
+
+        <template
+          v-if="key.certificate_signing_requests && key.certificate_signing_requests.length > 0"
+        >
+          <tr v-for="req in key.certificate_signing_requests" v-bind:key="req.id">
+            <td class="td-name">
+              <div class="name-wrap">
+                <i class="icon-xrd_certificate icon" @click="certificateClick(req)"></i>
+                <div class="clickable-link" @click="certificateClick(cert)">Request</div>
+              </div>
+            </td>
+            <td>{{req.id}}</td>
+            <td></td>
+            <td></td>
+            <td class="status-cell"></td>
+          </tr>
+        </template>
       </tbody>
     </table>
   </div>
@@ -80,17 +97,24 @@ export default Vue.extend({
 .icon {
   margin-left: 18px;
   margin-right: 20px;
+  cursor: pointer;
+}
+
+.td-name {
+  text-align: center;
+  vertical-align: middle;
 }
 
 .clickable-link {
   text-decoration: underline;
   cursor: pointer;
+  height: 100%;
 }
 
 .name-wrap {
   display: flex;
   flex-direction: row;
-  align-items: baseline;
+  align-items: center;
 }
 
 .name-wrap-top {

@@ -73,6 +73,14 @@
               @keyClick="keyClick"
               @certificateClick="certificateClick"
             />
+            <!-- Keys with unknown type -->
+            <unknown-keys-table
+              v-if="getOtherKeys(token.keys).length > 0"
+              :keys="getOtherKeys(token.keys)"
+              title="keys.unknown"
+              @keyClick="keyClick"
+              @certificateClick="certificateClick"
+            />
           </div>
         </template>
       </expandable>
@@ -109,6 +117,7 @@ import CertificateStatus from '@/components/CertificateStatus.vue';
 import TokenLoginDialog from '@/components/TokenLoginDialog.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import KeysTable from '@/components/KeysTable.vue';
+import UnknownKeysTable from '@/components/UnknownKeysTable.vue';
 import { mapGetters } from 'vuex';
 import * as api from '@/util/api';
 
@@ -145,6 +154,7 @@ export default Vue.extend({
     TokenLoginDialog,
     ConfirmDialog,
     KeysTable,
+    UnknownKeysTable,
   },
   data() {
     return {
@@ -301,6 +311,15 @@ export default Vue.extend({
       // Filter out service deascriptions that don't include search term
       const filtered = keys.filter((key: any) => {
         return key.usage === 'SIGNING';
+      });
+
+      return filtered;
+    },
+
+    getOtherKeys(keys: any): any {
+      // Filter out service deascriptions that don't include search term
+      const filtered = keys.filter((key: any) => {
+        return key.usage !== 'SIGNING' && key.usage !== 'AUTHENTICATION';
       });
 
       return filtered;
