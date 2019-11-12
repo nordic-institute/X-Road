@@ -25,12 +25,14 @@
 package ee.ria.xroad.proxy;
 
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.proxy.testutil.TestGlobalConf;
 import ee.ria.xroad.proxy.testutil.TestServerConf;
 import ee.ria.xroad.proxy.testutil.TestService;
 
@@ -42,6 +44,8 @@ import javax.servlet.ServletOutputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
@@ -264,6 +268,27 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .header("X-Road-Error", "Server.ServerProxy.AccessDenied");
     }
 
+    @Test
+    public void shouldSelectResolvableAddress() throws IOException {
+
+        GlobalConf.reload(new TestGlobalConf() {
+            @Override
+            public Collection<String> getProviderAddress(ClientId provider) {
+                return Arrays.asList("127.0.0.1", "server.invalid.", "127.0.0,78", "\ufeffzero\u200B.width", "::1");
+            }
+        });
+
+        given()
+                .baseUri("http://127.0.0.1")
+                .port(proxyClientPort)
+                .header("Content-Type", "application/json")
+                .header("X-Road-Client", "EE/BUSINESS/consumer/sub")
+                .body("{\"value\" : 42}")
+                .post(PREFIX + "/EE/BUSINESS/producer/sub/echo")
+                .then()
+                .statusCode(200)
+                .body("value", Matchers.equalTo(42));
+    }
 
     private static final TestService.Handler LARGE_OBJECT_HANDLER = (target, request, response) -> {
         response.setStatus(200);

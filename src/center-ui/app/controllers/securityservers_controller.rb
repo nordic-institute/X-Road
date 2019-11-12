@@ -254,7 +254,7 @@ class SecurityserversController < ApplicationController
       :serverCode => [:required],
       :ownerCode => [:required],
       :ownerClass => [:required],
-      :address => [:required]
+      :address => [:required, :host]
     })
 
     audit_log_data[:serverCode] = params[:serverCode]
