@@ -105,7 +105,7 @@
  */
 import Vue from 'vue';
 import _ from 'lodash';
-import axios from 'axios';
+import * as api from '@/util/api';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
@@ -151,7 +151,7 @@ export default Vue.extend({
 
     save(): void {
       this.saveBusy = true;
-      axios
+      api
         .patch(`/service-descriptions/${this.id}`, this.serviceDesc)
         .then((res) => {
           this.$bus.$emit('show-success', 'localGroup.descSaved');
@@ -170,7 +170,7 @@ export default Vue.extend({
     },
 
     fetchData(id: string): void {
-      axios
+      api
         .get(`/service-descriptions/${id}`)
         .then((res) => {
           this.serviceDesc = res.data;
@@ -182,8 +182,8 @@ export default Vue.extend({
     doDeleteServiceDesc(): void {
       this.confirmDelete = false;
 
-      axios
-        .delete(`/service-descriptions/${this.id}`)
+      api
+        .remove(`/service-descriptions/${this.id}`)
         .then(() => {
           this.$bus.$emit('show-success', 'services.deleted');
           this.$router.go(-1);
@@ -202,7 +202,7 @@ export default Vue.extend({
 
       tempDesc.ignore_warnings = true;
 
-      axios
+      api
         .patch(`/service-descriptions/${this.id}`, tempDesc)
         .then((res) => {
           this.$bus.$emit('show-success', 'localGroup.descSaved');
