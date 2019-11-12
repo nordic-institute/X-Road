@@ -10,7 +10,7 @@
   >
     <div slot="content">
       <div class="dlg-edit-row">
-        <div class="dlg-row-title">Token PIN</div>
+        <div class="dlg-row-title">{{$t('fields.tokenPin')}}</div>
         <ValidationProvider
           rules="required"
           ref="tokenPin"
