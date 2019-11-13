@@ -190,10 +190,19 @@ export default Vue.extend({
     },
     search(): void {
       this.noResults = false;
+
+      let query = `/clients/${this.clientId}/subjects?member_name_group_description=${this.name}&instance=${this.instance}&member_group_code=${this.memberCode}&subsystem_code=${this.subsystemCode}`;
+
+      if (this.memberClass) {
+        query = query + `&member_class=${this.memberClass}`;
+      }
+
+      if (this.subjectType) {
+        query = query + `&subject_type=${this.subjectType}`;
+      }
+
       api
-        .get(
-          `/clients/${this.clientId}/subjects?member_name_group_description=${this.name}&instance=${this.instance}&member_class=${this.memberClass}&member_group_code=${this.memberCode}&subsystem_code=${this.subsystemCode}`,
-        )
+        .get(query)
         .then((res) => {
           if (this.filtered && this.filtered.length > 0) {
             // Filter out subjects that are already added
