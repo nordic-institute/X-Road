@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-@PreAuthorize("denyAll")
+@PreAuthorize("isAuthenticated()")
 public class GlobalConfService {
 
     private final GlobalConfFacade globalConfFacade;
@@ -60,7 +60,6 @@ public class GlobalConfService {
      * @param securityServerId
      * @return whether the security server exists in current instance's global configuration
      */
-    @PreAuthorize("hasAuthority('INIT_CONFIG')")
     public boolean securityServerExists(SecurityServerId securityServerId) {
         if (!globalConfFacade.getInstanceIdentifiers().contains(securityServerId.getXRoadInstance())) {
             // unless we check instance existence like this, we will receive
@@ -75,7 +74,6 @@ public class GlobalConfService {
      * @param identifiers
      * @return whether the global group identifiers exist in global configuration
      */
-    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
     public boolean globalGroupIdentifiersExist(Collection<XRoadId> identifiers) {
         List<XRoadId> existingIdentifiers = globalConfFacade.getGlobalGroups().stream()
                 .map(GlobalGroupInfo::getId)
@@ -87,7 +85,6 @@ public class GlobalConfService {
      * @param identifiers
      * @return whether the members identifiers exist in global configuration
      */
-    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
     public boolean clientIdentifiersExist(Collection<XRoadId> identifiers) {
         List<XRoadId> existingIdentifiers = globalConfFacade.getMembers().stream()
                 .map(MemberInfo::getId)
@@ -98,7 +95,6 @@ public class GlobalConfService {
     /**
      * @return member classes for current instance
      */
-    @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
     public Set<String> getMemberClassesForThisInstance() {
         return GlobalConf.getMemberClasses(globalConfFacade.getInstanceIdentifier());
     }

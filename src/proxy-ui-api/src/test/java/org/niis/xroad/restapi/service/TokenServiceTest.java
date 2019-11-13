@@ -58,6 +58,7 @@ import static org.niis.xroad.restapi.service.TokenService.TOKEN_NOT_FOUND_FAULT_
 @AutoConfigureTestDatabase
 @Slf4j
 @Transactional
+@WithMockUser
 public class TokenServiceTest {
 
     // token ids for mocking
@@ -123,7 +124,6 @@ public class TokenServiceTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "ACTIVATE_TOKEN" })
     public void activateToken() throws Exception {
         char[] password = "foobar".toCharArray();
         tokenService.activateToken("token-should-be-activatable", password);
@@ -165,7 +165,6 @@ public class TokenServiceTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "DEACTIVATE_TOKEN" })
     public void deactivateToken() throws Exception {
         tokenService.deactivateToken("token-should-be-deactivatable");
 
@@ -185,7 +184,6 @@ public class TokenServiceTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_KEYS" })
     public void getToken() throws Exception {
 
         TokenInfo tokenInfo;
