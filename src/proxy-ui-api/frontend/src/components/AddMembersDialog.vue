@@ -175,10 +175,19 @@ export default Vue.extend({
     },
     search(): void {
       this.noResults = false;
+      let query = `/clients?name=${this.name}&member_code=${this.memberCode}&subsystem_code=${this.subsystemCode}&show_members=false&internal_search=false`;
+
+      // These checks are needed because instance and member class (dropdowns) return undefined if they are first selected and then cleared
+      if (this.instance) {
+        query = query + `&instance=${this.instance}`;
+      }
+
+      if (this.memberClass) {
+        query = query + `&member_class=${this.memberClass}`;
+      }
+
       api
-        .get(
-          `/clients?name=${this.name}&instance=${this.instance}&member_class=${this.memberClass}&member_code=${this.memberCode}&subsystem_code=${this.subsystemCode}&show_members=false&internal_search=false`,
-        )
+        .get(query)
         .then((res) => {
           if (this.filtered && this.filtered.length > 0) {
             // Filter out members that are already added
