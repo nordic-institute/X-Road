@@ -30,13 +30,20 @@
           <th>{{$t('cert.expires')}}</th>
         </tr>
         <template v-if="signCertificates && signCertificates.length > 0">
-          <tr v-for="certificate in signCertificates" v-bind:key="certificate.name">
+          <tr
+            v-for="certificate in signCertificates"
+            v-bind:key="certificate.certificate_details.hash"
+          >
             <td>
-              <span class="cert-name" @click="viewCertificate(certificate)">{{certificate.name}}</span>
+              <span
+                class="cert-name"
+                @click="viewCertificate(certificate)"
+              >{{certificate.certificate_details.issuer_common_name}}</span>
             </td>
-            <td>{{certificate.serial}}</td>
-            <td>{{certificate.state}}</td>
-            <td>{{certificate.expires}}</td>
+            <td>{{certificate.certificate_details.serial}}</td>
+            <td v-if="certificate.active">{{$t('cert.inUse')}}</td>
+            <td v-else>{{$t('cert.disabled')}}</td>
+            <td>{{certificate.certificate_details.not_after | formatDate}}</td>
           </tr>
         </template>
       </table>

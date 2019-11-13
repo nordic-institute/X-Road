@@ -279,7 +279,7 @@ class ApplicationController < BaseController
   end
 
   def restart_service(name)
-    output = %x[sudo restart #{name} 2>&1]
+    output = %x[sudo service #{name} restart 2>&1]
 
     if $?.exitstatus != 0
       error(t('application.restart_service_failed',

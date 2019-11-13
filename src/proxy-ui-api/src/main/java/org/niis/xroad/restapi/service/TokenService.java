@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.service;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_LOGIN_FAILED;
@@ -80,6 +82,19 @@ public class TokenService {
     }
 
     /**
+     * get all sign certificates for a given client.
+     *
+     * @param clientType client who's member certificates need to be
+     *                   linked to
+     * @return
+     * @throws Exception
+     */
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
+    public List<CertificateInfo> getSignCertificates(ClientType clientType) {
+        return getCertificates(clientType, true);
+    }
+
+    /**
      * get all certificates for a given client.
      *
      * @param clientType client who's member certificates need to be
@@ -88,14 +103,30 @@ public class TokenService {
      * @throws Exception
      */
     @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
-    public List<CertificateInfo> getAllCertificates(ClientType clientType) throws Exception {
+    public List<CertificateInfo> getAllCertificates(ClientType clientType) {
+        return getCertificates(clientType, false);
+    }
+
+    /**
+     * Get all certificates for a given client
+     * @param clientType
+     * @param onlySignCertificates if true, return only signing certificates
+     * @return
+     */
+    private List<CertificateInfo> getCertificates(ClientType clientType, boolean onlySignCertificates) {
         List<TokenInfo> tokenInfos = getAllTokens();
+        Predicate<KeyInfo> keyInfoPredicate = keyInfo -> true;
+        if (onlySignCertificates) {
+            keyInfoPredicate = keyInfo -> keyInfo.isForSigning();
+        }
         return tokenInfos.stream()
                 .flatMap(tokenInfo -> tokenInfo.getKeyInfo().stream())
+                .filter(keyInfoPredicate)
                 .flatMap(keyInfo -> keyInfo.getCerts().stream())
                 .filter(certificateInfo -> clientType.getIdentifier().memberEquals(certificateInfo.getMemberId()))
                 .collect(toList());
     }
+
 
     /**
      * Activate a token
@@ -147,7 +178,7 @@ public class TokenService {
      * @param id
      * @throws TokenNotFoundException if token was not found
      */
-    @PreAuthorize("hasAnyAuthority('ACTIVATE_TOKEN','DEACTIVATE_TOKEN')")
+    @PreAuthorize("hasAuthority('VIEW_KEYS')")
     public TokenInfo getToken(String id) throws TokenNotFoundException {
         try {
             return signerProxyFacade.getToken(id);

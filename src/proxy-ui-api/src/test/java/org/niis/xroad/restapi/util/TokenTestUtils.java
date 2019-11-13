@@ -22,48 +22,51 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.testsuite.testcases;
+package org.niis.xroad.restapi.util;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.proxy.testsuite.Message;
-import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
-import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
-import java.util.Arrays;
-import java.util.Collection;
-
-import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
- * Tests that correct error occurs when none of the hosts can be connected to.
+ * Test utils for working with tokens
  */
-public class SslSelectFastestProxyNoConnections extends SslMessageTestCase {
+public final class TokenTestUtils {
+
+    private TokenTestUtils() {
+        // noop
+    }
 
     /**
-     * Constructs the test case.
+     * Creates TokenInfo object with some default values:
+     * - id = "id"
+     * - readOnly = false
+     * - available = true
+     * - active = true
+     * - serialNumber = "serial-number"
+     * - label = "label"
+     * - slotIndex = 123
+     * - tokenStatus = OK
+     * - keyInfos = empty
+     * - tokenInfo map = empty
+     * @param friendlyName
+     * @return
      */
-    public SslSelectFastestProxyNoConnections() {
-        requestFileName = "getstate.query";
-        responseFile = "getstate.answer";
-    }
-
-    @Override
-    protected void startUp() throws Exception {
-        super.startUp();
-
-        GlobalConf.reload(new TestSuiteGlobalConf() {
-            @Override
-            public Collection<String> getProviderAddress(ClientId provider) {
-                return Arrays.asList("foo.invalid.", "bar.invalid.", "127.0.0,1");
-            }
-        });
-    }
-
-    @Override
-    protected void validateFaultResponse(Message receivedResponse)
-            throws Exception {
-        assertErrorCodeStartsWith(SERVER_CLIENTPROXY_X, X_NETWORK_ERROR);
+    public static TokenInfo createTestTokenInfo(String friendlyName) {
+        TokenInfo tokenInfo = new TokenInfo(TokenInfo.SOFTWARE_MODULE_TYPE,
+                friendlyName,
+                "id",
+                false,
+                true,
+                true,
+                "serial-number",
+                "label",
+                123,
+                TokenStatusInfo.OK,
+                new ArrayList<>(),
+                new HashMap<>());
+        return tokenInfo;
     }
 }

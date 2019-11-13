@@ -17,6 +17,8 @@
       - apt-transport-https
       - apt-utils
       - net-tools
+      - locales
+      - software-properties-common
 
 - name: install bionic apt repo key
   apt_key:

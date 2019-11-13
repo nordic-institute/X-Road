@@ -24,7 +24,11 @@
 #
 
 require 'addressable/uri'
-require 'addressable/idna'
+
+java_import Java::com.google.common.net.InternetDomainName
+java_import Java::com.google.common.net.InetAddresses
+java_import Java::java.net.IDN
+
 
 module CommonUi
   module ValidationUtils
@@ -78,7 +82,7 @@ module CommonUi
 
         validators.each do |validator|
           if validator == :required && (!params || !params[param] ||
-               (params[param].is_a?(String) && params[param].length == 0))
+            (params[param].is_a?(String) && params[param].length == 0))
             raise ValidationError.new(param, :required),
               I18n.t('validation.missing_param', :param => param)
           end
@@ -89,7 +93,7 @@ module CommonUi
     def run_validators(params_validators, params)
       params.each do |param, value|
         unless params_validators.is_a?(Hash) &&
-            validators = params_validators[param.to_sym]
+          validators = params_validators[param.to_sym]
           raise ValidationError.new(param, :unexpected),
             I18n.t('validation.unexpected_param', :param => param)
         end
@@ -188,15 +192,9 @@ module CommonUi
     class HostValidator < Validator
       def validate(val, param)
         begin
-          ascii_val = Addressable::IDNA.to_ascii(val)
-          host_regexp = %r{
-            ^
-            (([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*
-            ([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])
-            $
-          }x
-
-          invalid = !(ascii_val =~ host_regexp)
+          # do not allow zero-width space (U+FEFF, U+200B)
+          invalid = val.include?("\ufeff") || val.include?("\u200b") ||
+            !(InternetDomainName::is_valid(IDN::to_ascii(val, 0)) || InetAddresses::is_inet_address(val))
         rescue
           invalid = true
         end

@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.12"
+  version: "1.0.13"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -860,7 +860,7 @@ paths:
       tags:
         - security server
       summary: get security server client certificates information
-      operationId: getClientCertificates
+      operationId: getClientSignCertificates
       description: Administrator views the certificates for the client.
       parameters:
         - in: path
@@ -882,7 +882,7 @@ paths:
                 uniqueItems: true
                 description: array of certificate (details) objects
                 items:
-                  $ref: '#/components/schemas/CertificateDetails'
+                  $ref: '#/components/schemas/TokenCertificate'
         '400':
           description: request was invalid
         '401':
@@ -1204,7 +1204,7 @@ paths:
         - in: query
           name: member_name_group_description
           description: pass an optional search string (name) for looking up subjects - name of a member or description of a group
-          example: NIIS
+          example: NIIS | Some group description
           required: false
           schema:
             type: string
@@ -1239,7 +1239,7 @@ paths:
         - in: query
           name: member_group_code
           description: pass an optional search string (member_group_code) for looking up subjects - member_code of a member or group_code of a group
-          example: 1234 | Example group name
+          example: 1234 | Example group code
           required: false
           schema:
             type: string
@@ -1249,7 +1249,7 @@ paths:
         - in: query
           name: subsystem_code
           description: pass an optional search string (subsystem_code) for looking up subjects
-          example: Subsystem
+          example: Subsystem1
           required: false
           schema:
             type: string
@@ -4008,35 +4008,12 @@ components:
       type: object
       description: service client
       required:
-        - id
-        - subject_type
-        - name
+        - subject
+        - rights_given_at
         - access_rights
       properties:
-        id:
-          type: string
-          format: text
-          description: a subsystem id <instance_id>:<member_class>:<member_code>:<subsystem> | globalgroup id <instance_id>:<group_code> | localgroup resource id in number format <id>
-          example: DEV:ORG:1234:Subsystem | DEV:security-server-owners | 123
-          minLength: 1
-          maxLength: 1279
-        subject_type:
-          $ref: '#/components/schemas/SubjectType'
-        name:
-          type: string
-          format: text
-          description: service client name
-          example: Security server owners
-          minLength: 1
-          maxLength: 255
-        local_group_code:
-          type: string
-          format: text
-          description: group code in case the object is a local group
-          example: My own Local group code
-          minLength: 1
-          maxLength: 255
-          readOnly: true
+        subject:
+          $ref: '#/components/schemas/Subject'
         rights_given_at:
           type: string
           format: date-time
@@ -4190,6 +4167,14 @@ components:
           readOnly: true
           minLength: 1
           maxLength: 255
+        local_group_code:
+          type: string
+          format: text
+          description: group code in case the object is a local group
+          example: My own Local group code
+          minLength: 1
+          maxLength: 255
+          readOnly: true
         subject_type:
           $ref: '#/components/schemas/SubjectType'
     SubjectType: # ok

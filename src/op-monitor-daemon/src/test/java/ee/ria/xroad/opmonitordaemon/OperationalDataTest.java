@@ -143,7 +143,7 @@ public class OperationalDataTest extends BaseTestUsingDB {
             if ((i + 1) % configuredBatchSize == 0) {
                 session.flush();
                 session.clear();
-           }
+            }
         }
 
         // Check that the expected number of records has been inserted.
