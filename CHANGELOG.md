@@ -2,6 +2,11 @@
 
 ## 6.23.0 - UNRELEASED
 
+## 6.22.1 - 2019-11-07
+- XRDDEV-730: Validate security server addresses.
+- XRDDEV-734: Fix missing operationaldata.
+- XRDDEV-741: Fix too strict log directory permissions.
+
 ## 6.22.0 - 2019-10-22
 - XRDDEV-450: Make a docker image of central server.
 - XRDDEV-501: Fix Test TSA on Ubuntu 18.

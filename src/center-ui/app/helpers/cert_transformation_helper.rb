@@ -91,7 +91,7 @@ module CertTransformationHelper
       return nil
     end
 
-    id = cert_id.is_a?(Integer) ? cert_id :cert_id.to_i
+    id = cert_id.is_a?(Integer) ? cert_id : cert_id.to_i
 
     result = session[:temp_certs][id]
 
