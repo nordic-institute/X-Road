@@ -29,7 +29,6 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -48,17 +47,14 @@ import java.util.Optional;
 @PreAuthorize("denyAll")
 public class KeyService {
 
-    private final SignerProxyFacade signerProxyFacade;
     private final TokenService tokenService;
 
     /**
      * KeyService constructor
-     * @param signerProxyFacade
      * @param tokenService
      */
     @Autowired
-    public KeyService(SignerProxyFacade signerProxyFacade, TokenService tokenService) {
-        this.signerProxyFacade = signerProxyFacade;
+    public KeyService(TokenService tokenService) {
         this.tokenService = tokenService;
     }
 
