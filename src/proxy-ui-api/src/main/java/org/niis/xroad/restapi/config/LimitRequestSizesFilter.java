@@ -55,14 +55,18 @@ import java.io.InputStreamReader;
  */
 public class LimitRequestSizesFilter extends OncePerRequestFilter {
 
-    @Autowired
-    FileUploadEndpointsConfiguration fileUploadEndpointsConfiguration;
+    private final FileUploadEndpointsConfiguration fileUploadEndpointsConfiguration;
 
     @Value("${request.sizelimit.regular}")
     private DataSize regularRequestSizeLimit;
 
     @Value("${request.sizelimit.binary.upload}")
     private DataSize fileUploadRequestSizeLimit;
+
+    @Autowired
+    public LimitRequestSizesFilter(FileUploadEndpointsConfiguration fileUploadEndpointsConfiguration) {
+        this.fileUploadEndpointsConfiguration = fileUploadEndpointsConfiguration;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
