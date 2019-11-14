@@ -1913,33 +1913,29 @@ Limits are
 - 10MB for file uploads
 - 50KB for other requests
 
-If the default limits are too restricting, they can be overridden with command line arguments. Limits are set with
-application properties `request.sizelimit.regular` and `request.sizelimit.binary.upload`.
-Formats from [DataSize](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/unit/DataSize.html) class are supported.
-
-Example from a modified `/etc/xroad/services/proxy-ui-api.conf` (conf file modifications may be overwritten when
-installing upgraded packages):
-
-```
-PROXY_UI_API_PARAMS=" --request.sizelimit.regular=100KB -Xmx192m -XX:MaxMetaspaceSize=128m \
--Djna.tmpdir=/var/lib/xroad"
-```
-
-REST APIs are *rate limited*. Rate limits apply per each calling IP. If the number of calls
+REST APIs are also *rate limited*. Rate limits apply per each calling IP. If the number of calls
 from one IP address exceeds the limit, REST APIs return http status 429 Too Many Requests.
 
 Limits are
 - 600 requests per minute
 - 20 requests per second
 
-If the default limits are too restricting, they can be overridden with command line arguments. Limits are set with
-application properties `ratelimit.requests.per.second` and `ratelimit.requests.per.minute`. Example from a
-modified `/etc/xroad/services/proxy-ui-api.conf` (conf file modifications may be overwritten when
-installing upgraded packages):
+If the default limits are too restricting (or too loose), they can be overridden with command line arguments. Limits are set with
+application properties
+- `request.sizelimit.regular`
+- `request.sizelimit.binary.upload`
+- `ratelimit.requests.per.second`
+- `ratelimit.requests.per.minute`
+
+Size limit parameters support formats from Formats from [DataSize](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/unit/DataSize.html),
+for example `5MB`.
+
+Command line arguments can be modified using configuration file `local.conf`.
+Example from `/etc/xroad/services/local.conf` with modifications:
 
 ```
-PROXY_UI_API_PARAMS=" --ratelimit.requests.per.second=100 -Xmx192m -XX:MaxMetaspaceSize=128m \
--Djna.tmpdir=/var/lib/xroad"
+PROXY_UI_API_PARAMS=" $PROXY_UI_API_PARAMS -Dratelimit.requests.per.second=100"
+PROXY_UI_API_PARAMS=" $PROXY_UI_API_PARAMS -Drequest.sizelimit.binary.upload=1MB"
 ```
 
 ### 19.1 API key management operations
