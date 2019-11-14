@@ -87,7 +87,7 @@ public class KeysApiControllerTest {
         try {
             keysApiController.getKey(KEY_NOT_FOUND_KEY_ID);
             fail("should have thrown exception");
-        } catch (KeyService.KeyNotFoundException expected) {
+        } catch (ResourceNotFoundException expected) {
         }
 
         ResponseEntity<Key> response = keysApiController.getKey(GOOD_KEY_ID);

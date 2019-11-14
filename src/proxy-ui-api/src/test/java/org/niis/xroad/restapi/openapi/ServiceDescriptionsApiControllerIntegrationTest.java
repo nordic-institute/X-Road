@@ -31,7 +31,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
-import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.IgnoreWarnings;
@@ -40,6 +39,8 @@ import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionDisabledNotice;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
+import org.niis.xroad.restapi.service.WsdlUrlValidator;
+import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -73,19 +74,6 @@ import static org.mockito.Mockito.when;
 @Slf4j
 public class ServiceDescriptionsApiControllerIntegrationTest {
 
-    public static final String CLIENT_ID_SS1 = "FI:GOV:M1:SS1";
-    public static final String CLIENT_ID_SS2 = "FI:GOV:M1:SS2";
-    // services from initial test data: src/test/resources/data.sql
-    public static final String XROAD_GET_RANDOM_OLD = "xroadGetRandomOld.v1";
-    public static final String BMI_OLD = "bodyMassIndexOld.v1";
-
-    public static final String GET_RANDOM = "getRandom.v1";
-    public static final String CALCULATE_PRIME = "calculatePrime.v1";
-
-    // services from wsdl test file: src/test/resources/testservice.wsdl
-    public static final String XROAD_GET_RANDOM = "xroadGetRandom.v1";
-    public static final String BMI = "bodyMassIndex.v1";
-
     @Autowired
     private ServiceDescriptionsApiController serviceDescriptionsApiController;
 
@@ -95,6 +83,9 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
     @MockBean
     private GlobalConfFacade globalConfFacade;
 
+    @MockBean
+    private WsdlUrlValidator wsdlUrlValidator;
+
     @Before
     public void setup() {
         when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
@@ -103,6 +94,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
             return identifier.getSubsystemCode() != null ? identifier.getSubsystemCode() + "NAME"
                     : "test-member" + "NAME";
         });
+        when(wsdlUrlValidator.isValidWsdlUrl(any())).thenReturn(true);
     }
 
     @Test
@@ -111,7 +103,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         // serviceDescription that was disabled
         serviceDescriptionsApiController.enableServiceDescription("2");
         Optional<ServiceDescription> serviceDescription = getServiceDescription(
-                clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1).getBody(), "2");
+                clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1).getBody(), "2");
         assertTrue(serviceDescription.isPresent());
         assertFalse(serviceDescription.get().getDisabled());
         assertEquals("Kaputt", serviceDescription.get().getDisabledNotice());
@@ -119,7 +111,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         // serviceDescription that was enabled
         serviceDescriptionsApiController.enableServiceDescription("1");
         serviceDescription = getServiceDescription(
-                clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1).getBody(), "1");
+                clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1).getBody(), "1");
         assertTrue(serviceDescription.isPresent());
         assertFalse(serviceDescription.get().getDisabled());
         assertEquals("Out of order", serviceDescription.get().getDisabledNotice());
@@ -127,13 +119,13 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         // serviceDescriptions that do not exist
         try {
             serviceDescriptionsApiController.enableServiceDescription("10000");
-            fail("should throw NotFoundException");
-        } catch (NotFoundException expected) {
+            fail("should throw ResourceNotFoundException");
+        } catch (ResourceNotFoundException expected) {
         }
         try {
             serviceDescriptionsApiController.enableServiceDescription("non-numeric-id");
-            fail("should throw NotFoundException");
-        } catch (NotFoundException expected) {
+            fail("should throw ResourceNotFoundException");
+        } catch (ResourceNotFoundException expected) {
         }
 
     }
@@ -152,7 +144,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         serviceDescriptionsApiController.disableServiceDescription("2",
                 new ServiceDescriptionDisabledNotice().disabledNotice("foo-notice"));
         Optional<ServiceDescription> serviceDescription = getServiceDescription(
-                clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1).getBody(), "2");
+                clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1).getBody(), "2");
         assertTrue(serviceDescription.isPresent());
         assertTrue(serviceDescription.get().getDisabled());
         assertEquals("foo-notice", serviceDescription.get().getDisabledNotice());
@@ -161,7 +153,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         serviceDescriptionsApiController.disableServiceDescription("1",
                 new ServiceDescriptionDisabledNotice().disabledNotice("foo-notice"));
         serviceDescription = getServiceDescription(
-                clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1).getBody(), "1");
+                clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1).getBody(), "1");
         assertTrue(serviceDescription.isPresent());
         assertTrue(serviceDescription.get().getDisabled());
         assertEquals("foo-notice", serviceDescription.get().getDisabledNotice());
@@ -169,13 +161,13 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         // serviceDescriptions that do not exist
         try {
             serviceDescriptionsApiController.enableServiceDescription("10000");
-            fail("should throw NotFoundException");
-        } catch (NotFoundException expected) {
+            fail("should throw ResourceNotFoundException");
+        } catch (ResourceNotFoundException expected) {
         }
         try {
             serviceDescriptionsApiController.enableServiceDescription("non-numeric-id");
-            fail("should throw NotFoundException");
-        } catch (NotFoundException expected) {
+            fail("should throw ResourceNotFoundException");
+        } catch (ResourceNotFoundException expected) {
         }
 
     }
@@ -183,73 +175,73 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "DELETE_WSDL", "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
     public void deleteServiceDescription() {
-        Client client = clientsApiController.getClient(CLIENT_ID_SS1).getBody();
+        Client client = clientsApiController.getClient(TestUtils.CLIENT_ID_SS1).getBody();
         assertNotNull(client);
         serviceDescriptionsApiController.deleteServiceDescription("2");
         List<ServiceDescription> serviceDescriptions =
-                clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1).getBody();
+                clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1).getBody();
         assertEquals(2, serviceDescriptions.size());
-        client = clientsApiController.getClient(CLIENT_ID_SS1).getBody();
+        client = clientsApiController.getClient(TestUtils.CLIENT_ID_SS1).getBody();
         assertNotNull(client);
     }
 
     @Test
     @WithMockUser(authorities = { "EDIT_WSDL", "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
     public void updateServiceDescription() {
-        Client client = clientsApiController.getClient(CLIENT_ID_SS1).getBody();
+        Client client = clientsApiController.getClient(TestUtils.CLIENT_ID_SS1).getBody();
         assertNotNull(client);
         ServiceDescription serviceDescription = getServiceDescription(
-                clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1).getBody(), "1").get();
+                clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1).getBody(), "1").get();
         assertEquals("https://soapservice.com/v1/Endpoint?wsdl", serviceDescription.getUrl());
         Set<String> serviceIds = getServiceIds(serviceDescription);
         Set<String> serviceCodes = getServiceCodes(serviceDescription);
         assertEquals(3, serviceIds.size());
-        assertTrue(serviceIds.contains(CLIENT_ID_SS1 + ":" + GET_RANDOM));
-        assertTrue(serviceIds.contains(CLIENT_ID_SS1 + ":" + CALCULATE_PRIME));
+        assertTrue(serviceIds.contains(TestUtils.CLIENT_ID_SS1 + ":" + TestUtils.SERVICE_GET_RANDOM));
+        assertTrue(serviceIds.contains(TestUtils.CLIENT_ID_SS1 + ":" + TestUtils.SERVICE_CALCULATE_PRIME));
         assertEquals(3, serviceCodes.size());
-        assertTrue(serviceCodes.contains(GET_RANDOM));
-        assertTrue(serviceCodes.contains(CALCULATE_PRIME));
+        assertTrue(serviceCodes.contains(TestUtils.SERVICE_GET_RANDOM));
+        assertTrue(serviceCodes.contains(TestUtils.SERVICE_CALCULATE_PRIME));
 
         ServiceDescriptionUpdate serviceDescriptionUpdate = new ServiceDescriptionUpdate()
                 .url("file:src/test/resources/wsdl/testservice.wsdl").type(ServiceType.WSDL);
-        // ignore warnings about adding and removing services
+        // ignore warningDeviations about adding and removing services
         serviceDescriptionUpdate.setIgnoreWarnings(true);
         serviceDescriptionsApiController.updateServiceDescription("1", serviceDescriptionUpdate);
-        client = clientsApiController.getClient(CLIENT_ID_SS1).getBody();
+        client = clientsApiController.getClient(TestUtils.CLIENT_ID_SS1).getBody();
         assertNotNull(client);
         serviceDescription = getServiceDescription(
-                clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS1).getBody(), "1").get();
+                clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1).getBody(), "1").get();
         assertEquals("file:src/test/resources/wsdl/testservice.wsdl", serviceDescription.getUrl());
         serviceIds = getServiceIds(serviceDescription);
         serviceCodes = getServiceCodes(serviceDescription);
         assertEquals(2, serviceIds.size());
-        assertFalse(serviceIds.contains(CLIENT_ID_SS1 + ":" + GET_RANDOM));
-        assertFalse(serviceIds.contains(CLIENT_ID_SS1 + ":" + CALCULATE_PRIME));
-        assertTrue(serviceIds.contains(CLIENT_ID_SS1 + ":" + XROAD_GET_RANDOM));
-        assertTrue(serviceIds.contains(CLIENT_ID_SS1 + ":" + BMI));
+        assertFalse(serviceIds.contains(TestUtils.CLIENT_ID_SS1 + ":" + TestUtils.SERVICE_GET_RANDOM));
+        assertFalse(serviceIds.contains(TestUtils.CLIENT_ID_SS1 + ":" + TestUtils.SERVICE_CALCULATE_PRIME));
+        assertTrue(serviceIds.contains(TestUtils.CLIENT_ID_SS1 + ":" + TestUtils.SERVICE_XROAD_GET_RANDOM));
+        assertTrue(serviceIds.contains(TestUtils.CLIENT_ID_SS1 + ":" + TestUtils.SERVICE_BMI));
 
         assertEquals(2, serviceCodes.size());
-        assertFalse(serviceCodes.contains(GET_RANDOM));
-        assertFalse(serviceCodes.contains(CALCULATE_PRIME));
-        assertTrue(serviceCodes.contains(XROAD_GET_RANDOM));
-        assertTrue(serviceCodes.contains(BMI));
+        assertFalse(serviceCodes.contains(TestUtils.SERVICE_GET_RANDOM));
+        assertFalse(serviceCodes.contains(TestUtils.SERVICE_CALCULATE_PRIME));
+        assertTrue(serviceCodes.contains(TestUtils.SERVICE_XROAD_GET_RANDOM));
+        assertTrue(serviceCodes.contains(TestUtils.SERVICE_BMI));
     }
 
     @Test
     @WithMockUser(authorities = { "REFRESH_WSDL", "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
     public void refreshServiceDescription() {
         ServiceDescription serviceDescription = getServiceDescription(
-                clientsApiController.getClientServiceDescriptions(CLIENT_ID_SS2).getBody(), "3").get();
+                clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS2).getBody(), "3").get();
         Set<String> serviceIds = getServiceIds(serviceDescription);
         Set<String> serviceCodes = getServiceCodes(serviceDescription);
         assertEquals(2, serviceIds.size());
-        assertTrue(serviceIds.contains(CLIENT_ID_SS2 + ":" + XROAD_GET_RANDOM_OLD));
-        assertTrue(serviceIds.contains(CLIENT_ID_SS2 + ":" + BMI_OLD));
+        assertTrue(serviceIds.contains(TestUtils.CLIENT_ID_SS2 + ":" + TestUtils.SERVICE_XROAD_GET_RANDOM_OLD));
+        assertTrue(serviceIds.contains(TestUtils.CLIENT_ID_SS2 + ":" + TestUtils.SERVICE_BMI_OLD));
         assertEquals(2, serviceCodes.size());
-        assertTrue(serviceCodes.contains(XROAD_GET_RANDOM_OLD));
-        assertTrue(serviceCodes.contains(BMI_OLD));
+        assertTrue(serviceCodes.contains(TestUtils.SERVICE_XROAD_GET_RANDOM_OLD));
+        assertTrue(serviceCodes.contains(TestUtils.SERVICE_BMI_OLD));
 
-        // ignore warnings (about adding and deleting services)
+        // ignore warningDeviations (about adding and deleting services)
         ServiceDescription refreshed = serviceDescriptionsApiController.refreshServiceDescription("3",
                 new IgnoreWarnings().ignoreWarnings(true)).getBody();
         assertEquals(serviceDescription.getId(), refreshed.getId());
@@ -257,17 +249,17 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         serviceCodes = getServiceCodes(refreshed);
         assertEquals(2, serviceIds.size());
         // refreshed wsdl has updated serviceIds and the refreshedDate should be updated
-        assertFalse(serviceIds.contains(CLIENT_ID_SS2 + ":" + XROAD_GET_RANDOM_OLD));
-        assertFalse(serviceIds.contains(CLIENT_ID_SS2 + ":" + BMI_OLD));
-        assertTrue(serviceIds.contains(CLIENT_ID_SS2 + ":" + XROAD_GET_RANDOM));
-        assertTrue(serviceIds.contains(CLIENT_ID_SS2 + ":" + BMI));
+        assertFalse(serviceIds.contains(TestUtils.CLIENT_ID_SS2 + ":" + TestUtils.SERVICE_XROAD_GET_RANDOM_OLD));
+        assertFalse(serviceIds.contains(TestUtils.CLIENT_ID_SS2 + ":" + TestUtils.SERVICE_BMI_OLD));
+        assertTrue(serviceIds.contains(TestUtils.CLIENT_ID_SS2 + ":" + TestUtils.SERVICE_XROAD_GET_RANDOM));
+        assertTrue(serviceIds.contains(TestUtils.CLIENT_ID_SS2 + ":" + TestUtils.SERVICE_BMI));
 
         assertEquals(2, serviceCodes.size());
         // refreshed wsdl has updated serviceCodes and the refreshedDate should be updated
-        assertFalse(serviceCodes.contains(XROAD_GET_RANDOM_OLD));
-        assertFalse(serviceCodes.contains(BMI_OLD));
-        assertTrue(serviceCodes.contains(XROAD_GET_RANDOM));
-        assertTrue(serviceCodes.contains(BMI));
+        assertFalse(serviceCodes.contains(TestUtils.SERVICE_XROAD_GET_RANDOM_OLD));
+        assertFalse(serviceCodes.contains(TestUtils.SERVICE_BMI_OLD));
+        assertTrue(serviceCodes.contains(TestUtils.SERVICE_XROAD_GET_RANDOM));
+        assertTrue(serviceCodes.contains(TestUtils.SERVICE_BMI));
         assertTrue(refreshed.getRefreshedAt().isAfter(serviceDescription.getRefreshedAt()));
     }
 
@@ -282,22 +274,22 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         Set<String> serviceIds = getServiceIds(serviceDescription);
         Set<String> serviceCodes = getServiceCodes(serviceDescription);
         assertEquals(3, serviceIds.size());
-        assertTrue(serviceIds.contains(CLIENT_ID_SS1 + ":" + GET_RANDOM));
-        assertTrue(serviceIds.contains(CLIENT_ID_SS1 + ":" + CALCULATE_PRIME));
+        assertTrue(serviceIds.contains(TestUtils.CLIENT_ID_SS1 + ":" + TestUtils.SERVICE_GET_RANDOM));
+        assertTrue(serviceIds.contains(TestUtils.CLIENT_ID_SS1 + ":" + TestUtils.SERVICE_CALCULATE_PRIME));
         assertEquals(3, serviceCodes.size());
-        assertTrue(serviceCodes.contains(GET_RANDOM));
-        assertTrue(serviceCodes.contains(CALCULATE_PRIME));
+        assertTrue(serviceCodes.contains(TestUtils.SERVICE_GET_RANDOM));
+        assertTrue(serviceCodes.contains(TestUtils.SERVICE_CALCULATE_PRIME));
 
         try {
             serviceDescriptionsApiController.getServiceDescription("123451");
-            fail("should throw NotFoundException to 404");
-        } catch (NotFoundException expected) {
+            fail("should throw ResourceNotFoundException to 404");
+        } catch (ResourceNotFoundException expected) {
         }
 
         try {
             serviceDescriptionsApiController.getServiceDescription("ugh");
-            fail("should throw NotFoundException to 404");
-        } catch (NotFoundException expected) {
+            fail("should throw ResourceNotFoundException to 404");
+        } catch (ResourceNotFoundException expected) {
         }
     }
 
@@ -309,9 +301,9 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         List<Service> services = response.getBody();
         assertEquals(3, services.size());
-        Service getRandomService = getService(services, CLIENT_ID_SS1 + ":" + GET_RANDOM);
+        Service getRandomService = getService(services, TestUtils.CLIENT_ID_SS1 + ":" + TestUtils.SERVICE_GET_RANDOM);
         assertEquals("https://soapservice.com/v1/Endpoint", getRandomService.getUrl());
-        assertEquals(GET_RANDOM, getRandomService.getServiceCode());
+        assertEquals(TestUtils.SERVICE_GET_RANDOM, getRandomService.getServiceCode());
 
         // test one without services - should return OK but empty list
         // (resource exists, but is an empty collection)
@@ -321,14 +313,14 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
 
         try {
             serviceDescriptionsApiController.getServiceDescriptionServices("123451");
-            fail("should throw NotFoundException to 404");
-        } catch (NotFoundException expected) {
+            fail("should throw ResourceNotFoundException to 404");
+        } catch (ResourceNotFoundException expected) {
         }
 
         try {
             serviceDescriptionsApiController.getServiceDescriptionServices("ugh");
-            fail("should throw NotFoundException to 404");
-        } catch (NotFoundException expected) {
+            fail("should throw ResourceNotFoundException to 404");
+        } catch (ResourceNotFoundException expected) {
         }
     }
 

@@ -24,7 +24,6 @@
  */
 package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -34,14 +33,13 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.exceptions.ConflictException;
-import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,6 +52,8 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 /**
  * test client service
@@ -65,17 +65,6 @@ import static org.junit.Assert.fail;
 @Transactional
 public class ClientServiceIntegrationTest {
 
-    private static final String INSTANCE_FI = "FI";
-    private static final String INSTANCE_EE = "EE";
-    private static final String MEMBER_CLASS_GOV = "GOV";
-    private static final String MEMBER_CLASS_PRO = "PRO";
-    private static final String MEMBER_CODE_M1 = "M1";
-    private static final String MEMBER_CODE_M2 = "M2";
-    private static final String SUBSYSTEM1 = "SS1";
-    private static final String SUBSYSTEM2 = "SS2";
-    private static final String SUBSYSTEM3 = "SS3";
-    private static final String NAME_APPENDIX = "-name";
-
     @Autowired
     private ClientRepository clientRepository;
     private ClientService clientService;
@@ -84,28 +73,32 @@ public class ClientServiceIntegrationTest {
     private byte[] derBytes;
     private byte[] sqlFileBytes;
 
+    @MockBean
+    private GlobalConfFacade globalConfFacade;
+
     @Before
     public void setup() throws Exception {
-        GlobalConfFacade globalConfFacade = new GlobalConfFacade() {
-            @Override
-            public List<MemberInfo> getMembers(String... instanceIdentifiers) {
-                return new ArrayList<>(Arrays.asList(
-                        TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1),
-                        TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM2),
-                        TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, null),
-                        TestUtils.getMemberInfo(INSTANCE_EE, MEMBER_CLASS_PRO, MEMBER_CODE_M2, SUBSYSTEM3),
-                        TestUtils.getMemberInfo(INSTANCE_EE, MEMBER_CLASS_PRO, MEMBER_CODE_M1, null),
-                        TestUtils.getMemberInfo(INSTANCE_EE, MEMBER_CLASS_PRO, MEMBER_CODE_M1, SUBSYSTEM1),
-                        TestUtils.getMemberInfo(INSTANCE_EE, MEMBER_CLASS_PRO, MEMBER_CODE_M2, null))
-                );
-            }
-
-            @Override
-            public String getMemberName(ClientId identifier) {
-                return identifier.getSubsystemCode() != null ? identifier.getSubsystemCode() + NAME_APPENDIX
-                        : "test-member" + NAME_APPENDIX;
-            }
-        };
+        when(globalConfFacade.getMembers(any())).thenReturn(new ArrayList<>(Arrays.asList(
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
+                        TestUtils.SUBSYSTEM1),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
+                        TestUtils.SUBSYSTEM2),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
+                        null),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2,
+                        TestUtils.SUBSYSTEM3),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1,
+                        null),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1,
+                        TestUtils.SUBSYSTEM1),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2,
+                        null))
+        ));
+        when(globalConfFacade.getMemberName(any())).thenAnswer(invocation -> {
+            ClientId clientId = (ClientId) invocation.getArguments()[0];
+            return clientId.getSubsystemCode() != null ? TestUtils.NAME_FOR + clientId.getSubsystemCode()
+                    : TestUtils.NAME_FOR + "test-member";
+        });
         clientService = new ClientService(clientRepository, globalConfFacade);
         pemBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
                 getResourceAsStream("google-cert.pem"));
@@ -121,7 +114,7 @@ public class ClientServiceIntegrationTest {
     @Test
     @WithMockUser(authorities = { "EDIT_CLIENT_INTERNAL_CONNECTION_TYPE",
             "VIEW_CLIENT_DETAILS" })
-    public void updateConnectionType() {
+    public void updateConnectionType() throws Exception {
         ClientId id = TestUtils.getM1Ss1ClientId();
         ClientType clientType = clientService.getClient(id);
         assertEquals("SSLNOAUTH", clientType.getIsAuthentication());
@@ -196,8 +189,8 @@ public class ClientServiceIntegrationTest {
 
         try {
             clientService.addTlsCertificate(id, pemBytes);
-            fail("should have thrown ConflictException");
-        } catch (ConflictException expected) {
+            fail("should have thrown CertificateAlreadyExistsException");
+        } catch (ClientService.CertificateAlreadyExistsException expected) {
         }
     }
 
@@ -215,8 +208,8 @@ public class ClientServiceIntegrationTest {
 
         try {
             clientService.deleteTlsCertificate(id, "wrong hash");
-            fail("should have thrown NotFoundException");
-        } catch (NotFoundException expected) {
+            fail("should have thrown CertificateNotFoundException");
+        } catch (CertificateNotFoundException expected) {
         }
         clientType = clientService.getClient(id);
         assertEquals(1, clientType.getIsCert().size());
@@ -229,142 +222,150 @@ public class ClientServiceIntegrationTest {
     /* Test LOCAL client search */
     @Test
     public void findLocalClientsByNameIncludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(SUBSYSTEM1 + NAME_APPENDIX, null, null,
+        List<ClientType> clients = clientService.findLocalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1, null,
+                null,
                 null, null, true);
         assertEquals(1, clients.size());
     }
 
     @Test
     public void findLocalClientsByInstanceIncludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(null, INSTANCE_FI, null,
+        List<ClientType> clients = clientService.findLocalClients(null, TestUtils.INSTANCE_FI, null,
                 null, null, true);
         assertEquals(3, clients.size());
     }
 
     @Test
     public void findLocalClientsByClassIncludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(null, null, MEMBER_CLASS_GOV,
+        List<ClientType> clients = clientService.findLocalClients(null, null, TestUtils.MEMBER_CLASS_GOV,
                 null, null, true);
         assertEquals(3, clients.size());
     }
 
     @Test
     public void findLocalClientsByInstanceAndMemberCodeIncludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(null, INSTANCE_FI, null,
-                MEMBER_CODE_M1, null, true);
+        List<ClientType> clients = clientService.findLocalClients(null, TestUtils.INSTANCE_FI, null,
+                TestUtils.MEMBER_CODE_M1, null, true);
         assertEquals(3, clients.size());
     }
 
     @Test
     public void findLocalClientsByAllTermsIncludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(SUBSYSTEM1 + NAME_APPENDIX, INSTANCE_FI,
-                MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1, true);
+        List<ClientType> clients = clientService.findLocalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1,
+                TestUtils.INSTANCE_FI,
+                TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1, true);
         assertEquals(1, clients.size());
     }
 
     @Test
     public void findLocalClientsByNameExcludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(SUBSYSTEM1 + NAME_APPENDIX, null, null,
+        List<ClientType> clients = clientService.findLocalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1, null,
+                null,
                 null, null, false);
         assertEquals(1, clients.size());
     }
 
     @Test
     public void findLocalClientsByInstanceExcludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(null, INSTANCE_FI, null,
+        List<ClientType> clients = clientService.findLocalClients(null, TestUtils.INSTANCE_FI, null,
                 null, null, false);
         assertEquals(2, clients.size());
     }
 
     @Test
     public void findLocalClientsByClassExcludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(null, null, MEMBER_CLASS_GOV,
+        List<ClientType> clients = clientService.findLocalClients(null, null, TestUtils.MEMBER_CLASS_GOV,
                 null, null, false);
         assertEquals(2, clients.size());
     }
 
     @Test
     public void findLocalClientsByInstanceAndMemberCodeExcludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(null, INSTANCE_FI, null,
-                MEMBER_CODE_M1, null, false);
+        List<ClientType> clients = clientService.findLocalClients(null, TestUtils.INSTANCE_FI, null,
+                TestUtils.MEMBER_CODE_M1, null, false);
         assertEquals(2, clients.size());
     }
 
     @Test
     public void findLocalClientsByAllTermsExcludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(SUBSYSTEM1 + NAME_APPENDIX, INSTANCE_FI,
-                MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1, false);
+        List<ClientType> clients = clientService.findLocalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1,
+                TestUtils.INSTANCE_FI,
+                TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1, false);
         assertEquals(1, clients.size());
     }
 
     /* Test GLOBAL client search */
     @Test
     public void findGlobalClientsByNameIncludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(SUBSYSTEM1 + NAME_APPENDIX, null, null,
+        List<ClientType> clients = clientService.findGlobalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1, null,
+                null,
                 null, null, true);
         assertEquals(2, clients.size());
     }
 
     @Test
     public void findGlobalClientsByInstanceIncludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(null, INSTANCE_EE, null,
+        List<ClientType> clients = clientService.findGlobalClients(null, TestUtils.INSTANCE_EE, null,
                 null, null, true);
         assertEquals(4, clients.size());
     }
 
     @Test
     public void findGlobalClientsByClassIncludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(null, null, MEMBER_CLASS_GOV,
+        List<ClientType> clients = clientService.findGlobalClients(null, null, TestUtils.MEMBER_CLASS_GOV,
                 null, null, true);
         assertEquals(3, clients.size());
     }
 
     @Test
     public void findGlobalClientsByInstanceAndMemberCodeIncludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(null, INSTANCE_FI, null,
-                MEMBER_CODE_M1, null, true);
+        List<ClientType> clients = clientService.findGlobalClients(null, TestUtils.INSTANCE_FI, null,
+                TestUtils.MEMBER_CODE_M1, null, true);
         assertEquals(3, clients.size());
     }
 
     @Test
     public void findGlobalClientsByAllTermsIncludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(SUBSYSTEM1 + NAME_APPENDIX, INSTANCE_FI,
-                MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1, true);
+        List<ClientType> clients = clientService.findGlobalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1,
+                TestUtils.INSTANCE_FI,
+                TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1, true);
         assertEquals(1, clients.size());
     }
 
     @Test
     public void findGlobalClientsByNameExcludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(SUBSYSTEM1 + NAME_APPENDIX, null, null,
+        List<ClientType> clients = clientService.findGlobalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1, null,
+                null,
                 null, null, false);
         assertEquals(2, clients.size());
     }
 
     @Test
     public void findGlobalClientsByInstanceExcludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(null, INSTANCE_EE, null,
+        List<ClientType> clients = clientService.findGlobalClients(null, TestUtils.INSTANCE_EE, null,
                 null, null, false);
         assertEquals(2, clients.size());
     }
 
     @Test
     public void findGlobalClientsByClassExcludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(null, null, MEMBER_CLASS_GOV,
+        List<ClientType> clients = clientService.findGlobalClients(null, null, TestUtils.MEMBER_CLASS_GOV,
                 null, null, false);
         assertEquals(2, clients.size());
     }
 
     @Test
     public void findGlobalClientsByInstanceAndMemberCodeExcludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(null, INSTANCE_FI, null,
-                MEMBER_CODE_M1, null, false);
+        List<ClientType> clients = clientService.findGlobalClients(null, TestUtils.INSTANCE_FI, null,
+                TestUtils.MEMBER_CODE_M1, null, false);
         assertEquals(2, clients.size());
     }
 
     @Test
     public void findGlobalClientsByAllTermsExcludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(SUBSYSTEM1 + NAME_APPENDIX, INSTANCE_FI,
-                MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1, false);
+        List<ClientType> clients = clientService.findGlobalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1,
+                TestUtils.INSTANCE_FI,
+                TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1, false);
         assertEquals(1, clients.size());
     }
 }

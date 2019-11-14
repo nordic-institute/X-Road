@@ -34,6 +34,7 @@ import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.dto.AccessRightHolderDto;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
+import org.niis.xroad.restapi.openapi.model.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -66,6 +67,7 @@ public class ServiceClientConverter {
      */
     public ServiceClient convertAccessRightHolderDto(AccessRightHolderDto accessRightHolderDto) {
         ServiceClient serviceClient = new ServiceClient();
+        Subject subject = new Subject();
         serviceClient.setRightsGivenAt(accessRightHolderDto.getRightsGiven());
 
         XRoadId subjectId = accessRightHolderDto.getSubjectId();
@@ -73,22 +75,25 @@ public class ServiceClientConverter {
         switch (subjectId.getObjectType()) {
             case SUBSYSTEM:
                 ClientId serviceClientId = (ClientId) subjectId;
-                serviceClient.setName(globalConfFacade.getMemberName(serviceClientId));
-                serviceClient.setId(clientConverter.convertId(serviceClientId));
-                serviceClient.setSubjectType(SubjectTypeMapping.map(serviceClientId.getObjectType()).get());
+                subject.setMemberNameGroupDescription(globalConfFacade.getMemberName(serviceClientId));
+                subject.setId(clientConverter.convertId(serviceClientId));
+                subject.setSubjectType(SubjectTypeMapping.map(serviceClientId.getObjectType()).get());
+                serviceClient.setSubject(subject);
                 break;
             case GLOBALGROUP:
                 GlobalGroupId globalGroupId = (GlobalGroupId) subjectId;
-                serviceClient.setName(globalConfFacade.getGlobalGroupDescription(globalGroupId));
-                serviceClient.setId(globalGroupConverter.convertId(globalGroupId));
-                serviceClient.setSubjectType(SubjectTypeMapping.map(globalGroupId.getObjectType()).get());
+                subject.setMemberNameGroupDescription(globalConfFacade.getGlobalGroupDescription(globalGroupId));
+                subject.setId(globalGroupConverter.convertId(globalGroupId));
+                subject.setSubjectType(SubjectTypeMapping.map(globalGroupId.getObjectType()).get());
+                serviceClient.setSubject(subject);
                 break;
             case LOCALGROUP:
                 LocalGroupId localGroupId = (LocalGroupId) subjectId;
-                serviceClient.setId(accessRightHolderDto.getLocalGroupId());
-                serviceClient.setLocalGroupCode(accessRightHolderDto.getLocalGroupCode());
-                serviceClient.setName(accessRightHolderDto.getLocalGroupDescription());
-                serviceClient.setSubjectType(SubjectTypeMapping.map(localGroupId.getObjectType()).get());
+                subject.setId(accessRightHolderDto.getLocalGroupId());
+                subject.setLocalGroupCode(accessRightHolderDto.getLocalGroupCode());
+                subject.setMemberNameGroupDescription(accessRightHolderDto.getLocalGroupDescription());
+                subject.setSubjectType(SubjectTypeMapping.map(localGroupId.getObjectType()).get());
+                serviceClient.setSubject(subject);
                 break;
             default:
                 break;

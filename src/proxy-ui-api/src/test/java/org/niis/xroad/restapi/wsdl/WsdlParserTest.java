@@ -25,8 +25,6 @@
 package org.niis.xroad.restapi.wsdl;
 
 import org.junit.Test;
-import org.niis.xroad.restapi.exceptions.WsdlNotFoundException;
-import org.niis.xroad.restapi.exceptions.WsdlParseException;
 
 import java.util.Collection;
 
@@ -51,7 +49,7 @@ public class WsdlParserTest {
      * Test if an invalid WSDL is recognized.
      * @throws Exception in case of any errors
      */
-    @Test(expected = WsdlParseException.class)
+    @Test(expected = WsdlParser.WsdlParseException.class)
     public void readInvalidWsdl() throws Exception {
         WsdlParser.parseWSDL("file:src/test/resources/wsdl/invalid.wsdl");
     }
@@ -60,7 +58,7 @@ public class WsdlParserTest {
      * Test if an invalid URL is recognized.
      * @throws Exception in case of any errors
      */
-    @Test(expected = WsdlParseException.class)
+    @Test(expected = WsdlParser.WsdlNotFoundException.class)
     public void readWsdlFromInvalidUrl() throws Exception {
         WsdlParser.parseWSDL("http://localhost:1234/foo.wsdl");
     }
@@ -69,7 +67,7 @@ public class WsdlParserTest {
      * Test if a fault XML is recognized.
      * @throws Exception in case of any errors
      */
-    @Test(expected = WsdlParseException.class)
+    @Test(expected = WsdlParser.WsdlParseException.class)
     public void readFaultInsteadOfWsdl() throws Exception {
         WsdlParser.parseWSDL("file:src/test/resources/fault.xml");
     }
@@ -78,7 +76,7 @@ public class WsdlParserTest {
      * Test if NotFound is recognized.
      * @throws Exception in case of any errors
      */
-    @Test(expected = WsdlNotFoundException.class)
+    @Test(expected = WsdlParser.WsdlNotFoundException.class)
     public void tryReadNotFoundWsdl() throws Exception {
         WsdlParser.parseWSDL("file:src/test/resources/wsdl/notfound.wsdl");
     }

@@ -106,7 +106,7 @@ public class TokensApiControllerTest {
         try {
             tokensApiController.getToken(TOKEN_NOT_FOUND_TOKEN_ID);
             fail("should have thrown exception");
-        } catch (TokenService.TokenNotFoundException expected) {
+        } catch (ResourceNotFoundException expected) {
         }
 
         ResponseEntity<Token> response = tokensApiController.getToken(GOOD_TOKEN_ID);

@@ -25,7 +25,10 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
+import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
@@ -33,7 +36,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * global configuration service
@@ -49,6 +55,7 @@ public class GlobalConfService {
     public GlobalConfService(GlobalConfFacade globalConfFacade) {
         this.globalConfFacade = globalConfFacade;
     }
+
     /**
      * @param securityServerId
      * @return whether the security server exists in current instance's global configuration
@@ -65,10 +72,34 @@ public class GlobalConfService {
     }
 
     /**
+     * @param identifiers
+     * @return whether the global group identifiers exist in global configuration
+     */
+    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
+    public boolean globalGroupIdentifiersExist(Collection<XRoadId> identifiers) {
+        List<XRoadId> existingIdentifiers = globalConfFacade.getGlobalGroups().stream()
+                .map(GlobalGroupInfo::getId)
+                .collect(Collectors.toList());
+        return existingIdentifiers.containsAll(identifiers);
+    }
+
+    /**
+     * @param identifiers
+     * @return whether the members identifiers exist in global configuration
+     */
+    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
+    public boolean clientIdentifiersExist(Collection<XRoadId> identifiers) {
+        List<XRoadId> existingIdentifiers = globalConfFacade.getMembers().stream()
+                .map(MemberInfo::getId)
+                .collect(Collectors.toList());
+        return existingIdentifiers.containsAll(identifiers);
+    }
+
+    /**
      * @return member classes for current instance
      */
+    @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
     public Set<String> getMemberClassesForThisInstance() {
         return GlobalConf.getMemberClasses(globalConfFacade.getInstanceIdentifier());
     }
-
 }

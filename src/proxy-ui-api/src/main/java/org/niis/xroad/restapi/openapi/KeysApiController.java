@@ -70,15 +70,12 @@ public class KeysApiController implements KeysApi {
     }
 
     private Key getKeyFromService(String keyId) {
-        KeyInfo keyInfo = null;
         try {
-            keyInfo = keyService.getKey(keyId);
+            KeyInfo keyInfo = keyService.getKey(keyId);
+            return keyConverter.convert(keyInfo);
         } catch (KeyService.KeyNotFoundException e) {
-            throw e;
-        } catch (Throwable t) {
-            throw new RuntimeException("unknown error when reading a key", t);
+            throw new ResourceNotFoundException(e);
         }
-        return keyConverter.convert(keyInfo);
     }
 
 }

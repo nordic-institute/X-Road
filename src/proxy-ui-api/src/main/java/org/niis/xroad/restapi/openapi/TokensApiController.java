@@ -29,7 +29,6 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.KeyConverter;
 import org.niis.xroad.restapi.converter.TokenConverter;
-import org.niis.xroad.restapi.exceptions.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Token;
 import org.niis.xroad.restapi.openapi.model.TokenPassword;
 import org.niis.xroad.restapi.service.KeyService;
@@ -74,12 +73,7 @@ public class TokensApiController implements TokensApi {
     @PreAuthorize("hasAuthority('VIEW_KEYS')")
     @Override
     public ResponseEntity<List<Token>> getTokens() {
-        List<TokenInfo> tokenInfos = null;
-        try {
-            tokenInfos = tokenService.getAllTokens();
-        } catch (Exception e) {
-            throw new RuntimeException("exception while reading tokens", e);
-        }
+        List<TokenInfo> tokenInfos = tokenService.getAllTokens();
         List<Token> tokens = tokenConverter.convert(tokenInfos);
         return new ResponseEntity<>(tokens, HttpStatus.OK);
     }
@@ -100,7 +94,13 @@ public class TokensApiController implements TokensApi {
             throw new BadRequestException("Missing token password");
         }
         char[] password = tokenPassword.getPassword().toCharArray();
-        tokenService.activateToken(id, password);
+        try {
+            tokenService.activateToken(id, password);
+        } catch (TokenService.TokenNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (TokenService.PinIncorrectException e) {
+            throw new BadRequestException(e);
+        }
         Token token = getTokenFromService(id);
         return new ResponseEntity<>(token, HttpStatus.OK);
     }
@@ -108,7 +108,11 @@ public class TokensApiController implements TokensApi {
     @PreAuthorize("hasAuthority('DEACTIVATE_TOKEN')")
     @Override
     public ResponseEntity<Token> logoutToken(String id) {
-        tokenService.deactivateToken(id);
+        try {
+            tokenService.deactivateToken(id);
+        } catch (TokenService.TokenNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
         Token token = getTokenFromService(id);
         return new ResponseEntity<>(token, HttpStatus.OK);
     }
@@ -118,9 +122,7 @@ public class TokensApiController implements TokensApi {
         try {
             tokenInfo = tokenService.getToken(id);
         } catch (TokenService.TokenNotFoundException e) {
-            throw e;
-        } catch (Throwable t) {
-            throw new RuntimeException("unknown error when reading a token", t);
+            throw new ResourceNotFoundException(e);
         }
         return tokenConverter.convert(tokenInfo);
     }

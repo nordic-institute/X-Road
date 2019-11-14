@@ -1,0 +1,15 @@
+# define file upload endpoints in yaml since it is more convenient than with .properties
+file-upload-endpoints:
+  endpointDefinitions:
+    -
+      httpMethod: POST
+      pathEnding: /backups/upload
+    -
+      httpMethod: POST
+      pathEnding: /tls-certificates
+    -
+      httpMethod: POST
+      pathEnding: /certificates
+    -
+      httpMethod: POST
+      pathEnding: /certificate/import

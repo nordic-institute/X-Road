@@ -31,8 +31,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
-import org.niis.xroad.restapi.exceptions.BadRequestException;
-import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
@@ -40,8 +38,8 @@ import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
 import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.openapi.model.Subjects;
-import org.niis.xroad.restapi.service.ClientService;
-import org.niis.xroad.restapi.service.ServiceService;
+import org.niis.xroad.restapi.service.GlobalConfService;
+import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -50,6 +48,8 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -59,6 +59,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.service.AccessRightService.AccessRightNotFoundException.ERROR_ACCESSRIGHT_NOT_FOUND;
+import static org.niis.xroad.restapi.service.ClientNotFoundException.ERROR_CLIENT_NOT_FOUND;
+import static org.niis.xroad.restapi.service.ServiceService.ServiceNotFoundException.ERROR_SERVICE_NOT_FOUND;
 
 /**
  * Test ServicesApiController
@@ -69,26 +72,8 @@ import static org.mockito.Mockito.when;
 @Transactional
 public class ServicesApiControllerIntegrationTest {
 
-    public static final String LOCALGROUP = "LOCALGROUP";
-    public static final String GLOBALGROUP = "GLOBALGROUP";
-    public static final String SUBSYSTEM = "SUBSYSTEM";
-    public static final String NAME_FOR = "Name for: ";
-    public static final String GLOBAL_GROUP_CODE = "security-server-owners";
-    public static final String GLOBAL_GROUP_ID = "FI:security-server-owners";
-    public static final String LOCAL_GROUP_ID_1 = "1";
-    public static final String LOCAL_GROUP_ID_2 = "2";
-    public static final String LOCAL_GROUP_CODE = "group1";
-    public static final String LOCAL_GROUP_DESC = "foo";
-    public static final String SS2_CLIENT_ID = "FI:GOV:M1:SS2";
-    public static final String SS3_CLIENT_ID = "FI:GOV:M1:SS3";
-    public static final String SS4_CLIENT_ID = "FI:GOV:M1:SS4";
-    public static final String SS0_GET_RANDOM = "FI:GOV:M1:SS0:getRandom.v1";
-    public static final String SS1_GET_RANDOM = "FI:GOV:M1:SS1:getRandom.v1";
-    public static final String SS1_GET_RANDOM_V2 = "FI:GOV:M1:SS1:getRandom.v2";
-    public static final String SS1_CALCULATE_PRIME = "FI:GOV:M1:SS1:calculatePrime.v1";
-    public static final String SS1_PREDICT_WINNING_LOTTERY_NUMBERS = "FI:GOV:M1:SS1:predictWinningLotteryNumbers.v1";
-    public static final String NEW_SERVICE_URL_HTTPS = "https://foo.bar";
-    public static final String NEW_SERVICE_URL_HTTP = "http://foo.bar";
+    private static final String SS1_PREDICT_WINNING_LOTTERY_NUMBERS = "FI:GOV:M1:SS1:predictWinningLotteryNumbers.v1";
+    private static final String FOO = "foo";
 
     @Autowired
     private ServicesApiController servicesApiController;
@@ -96,110 +81,135 @@ public class ServicesApiControllerIntegrationTest {
     @MockBean
     private GlobalConfFacade globalConfFacade;
 
+    @MockBean
+    private GlobalConfService globalConfService;
+
     @Before
     public void setup() {
         when(globalConfFacade.getGlobalGroupDescription(any())).thenAnswer((Answer<String>) invocation -> {
             Object[] args = invocation.getArguments();
             GlobalGroupId id = (GlobalGroupId) args[0];
-            return NAME_FOR + id.getGroupCode();
+            return TestUtils.NAME_FOR + id.getGroupCode();
         });
 
         when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
             Object[] args = invocation.getArguments();
             ClientId identifier = (ClientId) args[0];
-            return NAME_FOR + identifier.toShortString().replace("/", ":");
+            return TestUtils.NAME_FOR + identifier.toShortString().replace("/", ":");
         });
+        when(globalConfFacade.getMembers(any())).thenReturn(new ArrayList<>(Arrays.asList(
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
+                        null),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
+                        TestUtils.SUBSYSTEM1),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
+                        TestUtils.SUBSYSTEM2),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M2,
+                        TestUtils.SUBSYSTEM3),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
+                        null),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1,
+                        TestUtils.SUBSYSTEM1),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2,
+                        null))
+        ));
     }
 
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS", "VIEW_CLIENT_DETAILS" })
     public void updateServiceHttps() {
-        Service service = servicesApiController.getService(SS1_GET_RANDOM).getBody();
+        Service service = servicesApiController.getService(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(60, service.getTimeout().intValue());
 
         service.setTimeout(10);
         service.setSslAuth(false);
-        service.setUrl(NEW_SERVICE_URL_HTTPS);
+        service.setUrl(TestUtils.URL_HTTPS);
         ServiceUpdate serviceUpdate = new ServiceUpdate().service(service);
 
-        Service updatedService = servicesApiController.updateService(SS1_GET_RANDOM, serviceUpdate).getBody();
+        Service updatedService = servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1,
+                serviceUpdate).getBody();
         assertEquals(10, updatedService.getTimeout().intValue());
         assertEquals(false, updatedService.getSslAuth());
-        assertEquals(NEW_SERVICE_URL_HTTPS, updatedService.getUrl());
+        assertEquals(TestUtils.URL_HTTPS, updatedService.getUrl());
     }
 
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS", "VIEW_CLIENT_DETAILS" })
     public void updateServiceHttp() {
-        Service service = servicesApiController.getService(SS1_GET_RANDOM).getBody();
+        Service service = servicesApiController.getService(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(60, service.getTimeout().intValue());
 
         service.setTimeout(10);
         service.setSslAuth(true); // value does not matter if http - will aways be set to null
-        service.setUrl(NEW_SERVICE_URL_HTTP);
+        service.setUrl(TestUtils.URL_HTTP);
         ServiceUpdate serviceUpdate = new ServiceUpdate().service(service);
 
-        Service updatedService = servicesApiController.updateService(SS1_GET_RANDOM, serviceUpdate).getBody();
+        Service updatedService = servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1,
+                serviceUpdate).getBody();
         assertEquals(10, updatedService.getTimeout().intValue());
         assertNull(updatedService.getSslAuth());
-        assertEquals(NEW_SERVICE_URL_HTTP, updatedService.getUrl());
+        assertEquals(TestUtils.URL_HTTP, updatedService.getUrl());
     }
 
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS", "VIEW_CLIENT_DETAILS" })
     public void updateServiceAll() {
-        Service service = servicesApiController.getService(SS1_GET_RANDOM).getBody();
+        Service service = servicesApiController.getService(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(60, service.getTimeout().intValue());
 
         service.setTimeout(10);
         service.setSslAuth(false);
-        service.setUrl(NEW_SERVICE_URL_HTTPS);
+        service.setUrl(TestUtils.URL_HTTPS);
         ServiceUpdate serviceUpdate = new ServiceUpdate().service(service).urlAll(true)
                 .sslAuthAll(true).timeoutAll(true);
 
-        Service updatedService = servicesApiController.updateService(SS1_GET_RANDOM, serviceUpdate).getBody();
+        Service updatedService = servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1,
+                serviceUpdate).getBody();
         assertEquals(10, updatedService.getTimeout().intValue());
         assertEquals(false, updatedService.getSslAuth());
-        assertEquals(NEW_SERVICE_URL_HTTPS, updatedService.getUrl());
+        assertEquals(TestUtils.URL_HTTPS, updatedService.getUrl());
 
-        Service otherServiceFromSameServiceDesc = servicesApiController.getService(SS1_CALCULATE_PRIME).getBody();
+        Service otherServiceFromSameServiceDesc = servicesApiController.getService(
+                TestUtils.SS1_CALCULATE_PRIME).getBody();
 
         assertEquals(10, otherServiceFromSameServiceDesc.getTimeout().intValue());
         assertEquals(false, otherServiceFromSameServiceDesc.getSslAuth());
-        assertEquals(NEW_SERVICE_URL_HTTPS, otherServiceFromSameServiceDesc.getUrl());
+        assertEquals(TestUtils.URL_HTTPS, otherServiceFromSameServiceDesc.getUrl());
     }
 
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS", "VIEW_CLIENT_DETAILS" })
     public void updateServiceOnlyUrlAll() {
-        Service service = servicesApiController.getService(SS1_GET_RANDOM).getBody();
+        Service service = servicesApiController.getService(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(60, service.getTimeout().intValue());
 
         service.setTimeout(10);
         service.setSslAuth(true);
-        service.setUrl(NEW_SERVICE_URL_HTTPS);
+        service.setUrl(TestUtils.URL_HTTPS);
         ServiceUpdate serviceUpdate = new ServiceUpdate().service(service).urlAll(true);
 
-        Service updatedService = servicesApiController.updateService(SS1_GET_RANDOM, serviceUpdate).getBody();
+        Service updatedService = servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1,
+                serviceUpdate).getBody();
         assertEquals(10, updatedService.getTimeout().intValue());
         assertEquals(true, updatedService.getSslAuth());
-        assertEquals(NEW_SERVICE_URL_HTTPS, updatedService.getUrl());
+        assertEquals(TestUtils.URL_HTTPS, updatedService.getUrl());
 
-        Service otherServiceFromSameServiceDesc = servicesApiController.getService(SS1_CALCULATE_PRIME).getBody();
+        Service otherServiceFromSameServiceDesc = servicesApiController.getService(
+                TestUtils.SS1_CALCULATE_PRIME).getBody();
 
         assertEquals(60, otherServiceFromSameServiceDesc.getTimeout().intValue());
         assertEquals(false, otherServiceFromSameServiceDesc.getSslAuth());
-        assertEquals(NEW_SERVICE_URL_HTTPS, otherServiceFromSameServiceDesc.getUrl());
+        assertEquals(TestUtils.URL_HTTPS, otherServiceFromSameServiceDesc.getUrl());
     }
 
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
     public void getServiceClientNotFound() {
         try {
-            servicesApiController.getService(SS0_GET_RANDOM).getBody();
-            fail("should throw NotFoundException");
-        } catch (NotFoundException expected) {
-            assertEquals(ClientService.CLIENT_NOT_FOUND_ERROR_CODE, expected.getError().getCode());
+            servicesApiController.getService(TestUtils.SS0_GET_RANDOM_V1).getBody();
+            fail("should throw ResourceNotFoundException");
+        } catch (ResourceNotFoundException expected) {
+            assertEquals(ERROR_CLIENT_NOT_FOUND, expected.getErrorDeviation().getCode());
         }
     }
 
@@ -208,63 +218,66 @@ public class ServicesApiControllerIntegrationTest {
     public void getServiceNotFound() {
         try {
             servicesApiController.getService(SS1_PREDICT_WINNING_LOTTERY_NUMBERS).getBody();
-            fail("should throw NotFoundException");
-        } catch (NotFoundException expected) {
-            assertEquals(ServiceService.ERROR_SERVICE_NOT_FOUND, expected.getError().getCode());
+            fail("should throw ResourceNotFoundException");
+        } catch (ResourceNotFoundException expected) {
+            assertEquals(ERROR_SERVICE_NOT_FOUND, expected.getErrorDeviation().getCode());
         }
     }
 
     @Test
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
     public void getServiceAccessRights() {
-        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
+        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(
+                TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());
 
-        ServiceClient serviceClient = getServiceClientByType(serviceClients, GLOBALGROUP).get();
-        assertEquals(NAME_FOR + GLOBAL_GROUP_CODE, serviceClient.getName());
-        assertEquals(GLOBAL_GROUP_ID, serviceClient.getId());
-        assertEquals(GLOBALGROUP, serviceClient.getSubjectType().name());
+        ServiceClient serviceClient = getServiceClientByType(serviceClients, TestUtils.GLOBALGROUP).get();
+        assertEquals(TestUtils.NAME_FOR + TestUtils.DB_GLOBALGROUP_CODE,
+                serviceClient.getSubject().getMemberNameGroupDescription());
+        assertEquals(TestUtils.DB_GLOBALGROUP_ID, serviceClient.getSubject().getId());
+        assertEquals(TestUtils.GLOBALGROUP, serviceClient.getSubject().getSubjectType().name());
         assertNull(serviceClient.getAccessRights());
 
-        serviceClient = getServiceClientByType(serviceClients, LOCALGROUP).get();
-        assertEquals(LOCAL_GROUP_ID_1, serviceClient.getId());
-        assertEquals(LOCAL_GROUP_CODE, serviceClient.getLocalGroupCode());
-        assertEquals(LOCAL_GROUP_DESC, serviceClient.getName());
-        assertEquals(LOCALGROUP, serviceClient.getSubjectType().name());
+        serviceClient = getServiceClientByType(serviceClients, TestUtils.LOCALGROUP).get();
+        assertEquals(TestUtils.DB_LOCAL_GROUP_ID_1, serviceClient.getSubject().getId());
+        assertEquals(TestUtils.DB_LOCAL_GROUP_CODE, serviceClient.getSubject().getLocalGroupCode());
+        assertEquals(FOO, serviceClient.getSubject().getMemberNameGroupDescription());
+        assertEquals(TestUtils.LOCALGROUP, serviceClient.getSubject().getSubjectType().name());
         assertNull(serviceClient.getAccessRights());
 
-        serviceClient = getServiceClientByType(serviceClients, SUBSYSTEM).get();
-        assertEquals(NAME_FOR + SS2_CLIENT_ID, serviceClient.getName());
-        assertEquals(SS2_CLIENT_ID, serviceClient.getId());
-        assertEquals(SUBSYSTEM, serviceClient.getSubjectType().name());
+        serviceClient = getServiceClientByType(serviceClients, TestUtils.SUBSYSTEM).get();
+        assertEquals(TestUtils.NAME_FOR + TestUtils.CLIENT_ID_SS2,
+                serviceClient.getSubject().getMemberNameGroupDescription());
+        assertEquals(TestUtils.CLIENT_ID_SS2, serviceClient.getSubject().getId());
+        assertEquals(TestUtils.SUBSYSTEM, serviceClient.getSubject().getSubjectType().name());
         assertNull(serviceClient.getAccessRights());
 
-        serviceClients = servicesApiController.getServiceAccessRights(SS1_CALCULATE_PRIME).getBody();
+        serviceClients = servicesApiController.getServiceAccessRights(TestUtils.SS1_CALCULATE_PRIME).getBody();
         assertTrue(serviceClients.isEmpty());
 
         // different versions of a service should have the same access rights
-        serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM_V2).getBody();
+        serviceClients = servicesApiController.getServiceAccessRights(TestUtils.SS1_GET_RANDOM_V2).getBody();
         assertEquals(3, serviceClients.size());
 
         try {
-            servicesApiController.getServiceAccessRights(SS0_GET_RANDOM);
-            fail("should throw NotFoundException");
-        } catch (NotFoundException expected) {
-            assertEquals(ClientService.CLIENT_NOT_FOUND_ERROR_CODE, expected.getError().getCode());
+            servicesApiController.getServiceAccessRights(TestUtils.SS0_GET_RANDOM_V1);
+            fail("should throw ResourceNotFoundException");
+        } catch (ResourceNotFoundException expected) {
+            assertEquals(ERROR_CLIENT_NOT_FOUND, expected.getErrorDeviation().getCode());
         }
 
         try {
             servicesApiController.getServiceAccessRights(SS1_PREDICT_WINNING_LOTTERY_NUMBERS);
-            fail("should throw NotFoundException");
-        } catch (NotFoundException expected) {
-            assertEquals(ServiceService.ERROR_SERVICE_NOT_FOUND, expected.getError().getCode());
+            fail("should throw ResourceNotFoundException");
+        } catch (ResourceNotFoundException expected) {
+            assertEquals(ERROR_SERVICE_NOT_FOUND, expected.getErrorDeviation().getCode());
         }
     }
 
     private Optional<ServiceClient> getServiceClientByType(List<ServiceClient> serviceClients, String type) {
         return serviceClients
                 .stream()
-                .filter(serviceClient -> serviceClient.getSubjectType().name().equals(type))
+                .filter(serviceClient -> serviceClient.getSubject().getSubjectType().name().equals(type))
                 .findFirst();
     }
 
@@ -272,14 +285,15 @@ public class ServicesApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
             "VIEW_CLIENT_SERVICES" })
     public void deleteServiceAccessRights() {
-        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
+        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(
+                TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());
 
         Subjects subjects = new Subjects()
-                .addItemsItem(new Subject().id(GLOBAL_GROUP_ID).subjectType(SubjectType.GLOBALGROUP));
+                .addItemsItem(new Subject().id(TestUtils.DB_GLOBALGROUP_ID).subjectType(SubjectType.GLOBALGROUP));
 
-        servicesApiController.deleteServiceAccessRight(SS1_GET_RANDOM, subjects).getBody();
-        serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
+        servicesApiController.deleteServiceAccessRight(TestUtils.SS1_GET_RANDOM_V1, subjects).getBody();
+        serviceClients = servicesApiController.getServiceAccessRights(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(2, serviceClients.size());
     }
 
@@ -287,15 +301,16 @@ public class ServicesApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
             "VIEW_CLIENT_SERVICES" })
     public void deleteMultipleServiceAccessRights() {
-        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
+        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(
+                TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());
 
         Subjects subjects = new Subjects()
-                .addItemsItem(new Subject().id(GLOBAL_GROUP_ID).subjectType(SubjectType.GLOBALGROUP))
-                .addItemsItem(new Subject().id(SS2_CLIENT_ID).subjectType(SubjectType.SUBSYSTEM));
+                .addItemsItem(new Subject().id(TestUtils.DB_GLOBALGROUP_ID).subjectType(SubjectType.GLOBALGROUP))
+                .addItemsItem(new Subject().id(TestUtils.CLIENT_ID_SS2).subjectType(SubjectType.SUBSYSTEM));
 
-        servicesApiController.deleteServiceAccessRight(SS1_GET_RANDOM, subjects).getBody();
-        serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
+        servicesApiController.deleteServiceAccessRight(TestUtils.SS1_GET_RANDOM_V1, subjects).getBody();
+        serviceClients = servicesApiController.getServiceAccessRights(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(1, serviceClients.size());
     }
 
@@ -303,15 +318,16 @@ public class ServicesApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
             "VIEW_CLIENT_SERVICES" })
     public void deleteMultipleSameServiceAccessRights() {
-        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
+        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(
+                TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());
 
         Subjects subjects = new Subjects()
-                .addItemsItem(new Subject().id(GLOBAL_GROUP_ID).subjectType(SubjectType.GLOBALGROUP))
-                .addItemsItem(new Subject().id(GLOBAL_GROUP_ID).subjectType(SubjectType.GLOBALGROUP));
+                .addItemsItem(new Subject().id(TestUtils.DB_GLOBALGROUP_ID).subjectType(SubjectType.GLOBALGROUP))
+                .addItemsItem(new Subject().id(TestUtils.DB_GLOBALGROUP_ID).subjectType(SubjectType.GLOBALGROUP));
 
-        servicesApiController.deleteServiceAccessRight(SS1_GET_RANDOM, subjects).getBody();
-        serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
+        servicesApiController.deleteServiceAccessRight(TestUtils.SS1_GET_RANDOM_V1, subjects).getBody();
+        serviceClients = servicesApiController.getServiceAccessRights(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(2, serviceClients.size());
     }
 
@@ -319,41 +335,44 @@ public class ServicesApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
             "VIEW_CLIENT_SERVICES" })
     public void deleteServiceAccessRightsWrongType() {
-        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
+        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(
+                TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());
 
         Subjects subjects = new Subjects()
-                .addItemsItem(new Subject().id(SS2_CLIENT_ID).subjectType(SubjectType.GLOBALGROUP));
-        servicesApiController.deleteServiceAccessRight(SS1_GET_RANDOM, subjects).getBody();
+                .addItemsItem(new Subject().id(TestUtils.CLIENT_ID_SS2).subjectType(SubjectType.GLOBALGROUP));
+        servicesApiController.deleteServiceAccessRight(TestUtils.SS1_GET_RANDOM_V1, subjects).getBody();
     }
 
     @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
             "VIEW_CLIENT_SERVICES" })
     public void deleteServiceAccessRightsWrongTypeLocalGroup() {
-        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
+        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(
+                TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());
 
         Subjects subjects = new Subjects()
-                .addItemsItem(new Subject().id(SS2_CLIENT_ID).subjectType(SubjectType.LOCALGROUP));
-        servicesApiController.deleteServiceAccessRight(SS1_GET_RANDOM, subjects).getBody();
+                .addItemsItem(new Subject().id(TestUtils.CLIENT_ID_SS2).subjectType(SubjectType.LOCALGROUP));
+        servicesApiController.deleteServiceAccessRight(TestUtils.SS1_GET_RANDOM_V1, subjects).getBody();
     }
 
     @Test
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
             "VIEW_CLIENT_SERVICES" })
     public void deleteServiceAccessRightsWithRedundantSubjects() {
-        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
+        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(
+                TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());
 
         Subjects subjects = new Subjects()
-                .addItemsItem(new Subject().id(SS2_CLIENT_ID).subjectType(SubjectType.SUBSYSTEM))
-                .addItemsItem(new Subject().id(SS3_CLIENT_ID).subjectType(SubjectType.SUBSYSTEM))
-                .addItemsItem(new Subject().id(SS4_CLIENT_ID).subjectType(SubjectType.SUBSYSTEM));
+                .addItemsItem(new Subject().id(TestUtils.CLIENT_ID_SS2).subjectType(SubjectType.SUBSYSTEM))
+                .addItemsItem(new Subject().id(TestUtils.CLIENT_ID_SS3).subjectType(SubjectType.SUBSYSTEM))
+                .addItemsItem(new Subject().id(TestUtils.CLIENT_ID_SS4).subjectType(SubjectType.SUBSYSTEM));
         try {
-            servicesApiController.deleteServiceAccessRight(SS1_GET_RANDOM, subjects).getBody();
+            servicesApiController.deleteServiceAccessRight(TestUtils.SS1_GET_RANDOM_V1, subjects).getBody();
         } catch (BadRequestException expected) {
-            assertEquals(ServiceService.ERROR_ACCESSRIGHT_NOT_FOUND, expected.getError().getCode());
+            assertEquals(ERROR_ACCESSRIGHT_NOT_FOUND, expected.getErrorDeviation().getCode());
         }
     }
 
@@ -361,17 +380,18 @@ public class ServicesApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
             "VIEW_CLIENT_SERVICES" })
     public void deleteServiceAccessRightsLocalGroupsWithRedundantSubjects() {
-        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
+        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(
+                TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());
 
         Subjects subjects = new Subjects()
-                .addItemsItem(new Subject().id(LOCAL_GROUP_ID_1).subjectType(SubjectType.LOCALGROUP))
-                .addItemsItem(new Subject().id(SS3_CLIENT_ID).subjectType(SubjectType.SUBSYSTEM))
-                .addItemsItem(new Subject().id(LOCAL_GROUP_ID_2).subjectType(SubjectType.LOCALGROUP));
+                .addItemsItem(new Subject().id(TestUtils.DB_LOCAL_GROUP_ID_1).subjectType(SubjectType.LOCALGROUP))
+                .addItemsItem(new Subject().id(TestUtils.CLIENT_ID_SS3).subjectType(SubjectType.SUBSYSTEM))
+                .addItemsItem(new Subject().id(TestUtils.DB_LOCAL_GROUP_ID_2).subjectType(SubjectType.LOCALGROUP));
         try {
-            servicesApiController.deleteServiceAccessRight(SS1_GET_RANDOM, subjects).getBody();
+            servicesApiController.deleteServiceAccessRight(TestUtils.SS1_GET_RANDOM_V1, subjects).getBody();
         } catch (BadRequestException expected) {
-            assertEquals(ServiceService.ERROR_ACCESSRIGHT_NOT_FOUND, expected.getError().getCode());
+            assertEquals(ERROR_ACCESSRIGHT_NOT_FOUND, expected.getErrorDeviation().getCode());
         }
     }
 
@@ -379,26 +399,83 @@ public class ServicesApiControllerIntegrationTest {
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
             "VIEW_CLIENT_SERVICES" })
     public void deleteServiceAccessRightsWrongLocalGroupId() {
-        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
+        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(
+                TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());
 
         Subjects subjects = new Subjects()
-                .addItemsItem(new Subject().id(LOCAL_GROUP_CODE).subjectType(SubjectType.LOCALGROUP))
-                .addItemsItem(new Subject().id(SS3_CLIENT_ID).subjectType(SubjectType.SUBSYSTEM))
-                .addItemsItem(new Subject().id(LOCAL_GROUP_ID_2).subjectType(SubjectType.LOCALGROUP));
-        servicesApiController.deleteServiceAccessRight(SS1_GET_RANDOM, subjects).getBody();
+                .addItemsItem(new Subject().id(TestUtils.DB_LOCAL_GROUP_CODE).subjectType(SubjectType.LOCALGROUP))
+                .addItemsItem(new Subject().id(TestUtils.CLIENT_ID_SS3).subjectType(SubjectType.SUBSYSTEM))
+                .addItemsItem(new Subject().id(TestUtils.DB_LOCAL_GROUP_ID_2).subjectType(SubjectType.LOCALGROUP));
+        servicesApiController.deleteServiceAccessRight(TestUtils.SS1_GET_RANDOM_V1, subjects).getBody();
     }
 
     @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
             "VIEW_CLIENT_SERVICES" })
     public void deleteServiceAccessRightsWrongLocalGroupType() {
-        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(SS1_GET_RANDOM).getBody();
+        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(
+                TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(3, serviceClients.size());
 
         Subjects subjects = new Subjects()
-                .addItemsItem(new Subject().id(LOCAL_GROUP_ID_2).subjectType(SubjectType.GLOBALGROUP))
-                .addItemsItem(new Subject().id(SS3_CLIENT_ID).subjectType(SubjectType.SUBSYSTEM));
-        servicesApiController.deleteServiceAccessRight(SS1_GET_RANDOM, subjects).getBody();
+                .addItemsItem(new Subject().id(TestUtils.DB_LOCAL_GROUP_ID_2).subjectType(SubjectType.GLOBALGROUP))
+                .addItemsItem(new Subject().id(TestUtils.CLIENT_ID_SS3).subjectType(SubjectType.SUBSYSTEM));
+        servicesApiController.deleteServiceAccessRight(TestUtils.SS1_GET_RANDOM_V1, subjects).getBody();
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
+            "VIEW_CLIENT_SERVICES" })
+    public void addAccessRights() {
+        when(globalConfService.clientIdentifiersExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(true);
+        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(
+                TestUtils.SS1_CALCULATE_PRIME).getBody();
+        assertEquals(0, serviceClients.size());
+
+        Subjects subjectsToAdd = new Subjects()
+                .addItemsItem(new Subject().id(TestUtils.DB_LOCAL_GROUP_ID_2).subjectType(SubjectType.LOCALGROUP))
+                .addItemsItem(new Subject().id(TestUtils.DB_GLOBALGROUP_ID).subjectType(SubjectType.GLOBALGROUP))
+                .addItemsItem(new Subject().id(TestUtils.CLIENT_ID_SS2).subjectType(SubjectType.SUBSYSTEM));
+
+        List<ServiceClient> updatedServiceClients = servicesApiController
+                .addServiceAccessRight(TestUtils.SS1_CALCULATE_PRIME, subjectsToAdd).getBody();
+
+        assertEquals(3, updatedServiceClients.size());
+    }
+
+    @Test(expected = ConflictException.class)
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
+            "VIEW_CLIENT_SERVICES" })
+    public void addDuplicateAccessRight() {
+        when(globalConfService.clientIdentifiersExist(any())).thenReturn(true);
+        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(true);
+        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(
+                TestUtils.SS1_GET_RANDOM_V1).getBody();
+        assertEquals(3, serviceClients.size());
+
+        Subjects subjectsToAdd = new Subjects()
+                .addItemsItem(new Subject().id(TestUtils.DB_LOCAL_GROUP_ID_2).subjectType(SubjectType.LOCALGROUP))
+                .addItemsItem(new Subject().id(TestUtils.CLIENT_ID_SS2).subjectType(SubjectType.SUBSYSTEM));
+
+        servicesApiController.addServiceAccessRight(TestUtils.SS1_GET_RANDOM_V1, subjectsToAdd);
+    }
+
+    @Test(expected = BadRequestException.class)
+    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
+            "VIEW_CLIENT_SERVICES" })
+    public void addBogusAccessRight() {
+        when(globalConfService.clientIdentifiersExist(any())).thenReturn(false);
+        when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(false);
+        List<ServiceClient> serviceClients = servicesApiController.getServiceAccessRights(
+                TestUtils.SS1_GET_RANDOM_V1).getBody();
+        assertEquals(3, serviceClients.size());
+
+        Subjects subjectsToAdd = new Subjects()
+                .addItemsItem(new Subject().id(TestUtils.DB_LOCAL_GROUP_ID_2).subjectType(SubjectType.LOCALGROUP))
+                .addItemsItem(new Subject().id(TestUtils.CLIENT_ID_SS2 + "foo").subjectType(SubjectType.SUBSYSTEM));
+
+        servicesApiController.addServiceAccessRight(TestUtils.SS1_GET_RANDOM_V1, subjectsToAdd);
     }
 }

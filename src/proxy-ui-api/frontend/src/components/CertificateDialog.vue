@@ -5,15 +5,17 @@
         <span class="headline">{{$t('cert.certificate')}}</span>
       </v-card-title>
       <v-card-text v-if="certificate">
-        {{$t('cert.name')}}: {{certificate.name}}
+        {{$t('cert.name')}}: {{certificate.certificate_details.issuer_common_name}}
         <br />
-        {{$t('cert.csp')}}: {{certificate.csp}}
+        {{$t('cert.ocsp')}}: {{ certificate.ocsp_status | ocspStatus }}
         <br />
-        {{$t('cert.serial')}}: {{certificate.serial}}
+        {{$t('cert.hash')}}: {{certificate.certificate_details.hash}}
         <br />
-        {{$t('cert.state')}}: {{certificate.state}}
+        {{$t('cert.state')}}:
+        <template v-if="certificate.active">{{$t('cert.inUse')}}</template>
+        <template v-else>{{$t('cert.disabled')}}</template>
         <br />
-        {{$t('cert.expires')}}: {{certificate.expires}}
+        {{$t('cert.expires')}}: {{certificate.certificate_details.not_after}}
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>

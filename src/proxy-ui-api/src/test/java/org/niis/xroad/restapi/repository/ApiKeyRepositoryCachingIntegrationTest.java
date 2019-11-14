@@ -86,7 +86,7 @@ public class ApiKeyRepositoryCachingIntegrationTest {
     }
 
     @Test
-    public void testCacheEviction() {
+    public void testCacheEviction() throws Exception {
         // "store" one key
         when(entityManager.unwrap(any())).thenReturn(session);
         when(session.createQuery(anyString())).thenReturn(query);
@@ -121,7 +121,7 @@ public class ApiKeyRepositoryCachingIntegrationTest {
     }
 
     @Test
-    public void testGet() {
+    public void testGet() throws Exception {
         // "store" one key
         when(entityManager.unwrap(any())).thenReturn(session);
         when(session.createQuery(anyString())).thenReturn(query);

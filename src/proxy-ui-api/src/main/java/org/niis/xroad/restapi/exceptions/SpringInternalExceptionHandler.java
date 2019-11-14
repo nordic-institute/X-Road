@@ -25,6 +25,8 @@
 package org.niis.xroad.restapi.exceptions;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.niis.xroad.restapi.config.LimitRequestSizesException;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
@@ -49,9 +51,19 @@ public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandl
                                                              HttpHeaders headers, HttpStatus status,
                                                              WebRequest request) {
         log.error("exception caught", ex);
+        if (causedBySizeLimitExceeded(ex)) {
+            status = HttpStatus.PAYLOAD_TOO_LARGE;
+        }
         ErrorInfo errorInfo = new ErrorInfo();
         errorInfo.setStatus(status.value());
         return super.handleExceptionInternal(ex, errorInfo, headers,
                 status, request);
+    }
+
+    /**
+     * LimitRequestSizesException is typically wrapped in an HttpMessageNotReadableException
+     */
+    private boolean causedBySizeLimitExceeded(Throwable t) {
+        return ExceptionUtils.indexOfThrowable(t, LimitRequestSizesException.class) != -1;
     }
 }

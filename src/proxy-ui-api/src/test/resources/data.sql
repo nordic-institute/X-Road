@@ -66,7 +66,13 @@ values (6, 1, 'getRandom', 'v2', 'getrandom-v2-title', 'https://soapservice.com/
 
 
 INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
-values (1, 2, 'getRandom', '*', '**', false);
+values (1, 2, 'getRandom', '*', '**', true);
+
+INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
+values (2, 3, 'bodyMassIndexOld', '*', '**', true);
+
+INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
+values (3, 2, 'calculatePrime', '*', '**', true);
 
 
 INSERT INTO ACCESSRIGHT (ID, SUBJECT_ID, RIGHTS_GIVEN, CLIENT_ID, ENDPOINT_ID)

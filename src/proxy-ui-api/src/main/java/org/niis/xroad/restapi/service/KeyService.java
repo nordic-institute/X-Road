@@ -28,7 +28,7 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.exceptions.NotFoundException;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -69,7 +69,7 @@ public class KeyService {
      * @return
      */
     @PreAuthorize("hasAuthority('VIEW_KEYS')")
-    public KeyInfo getKey(String keyId) {
+    public KeyInfo getKey(String keyId) throws KeyNotFoundException {
         Collection<TokenInfo> tokens = tokenService.getAllTokens();
         Optional<KeyInfo> keyInfo = tokens.stream()
                 .map(TokenInfo::getKeyInfo)
@@ -84,8 +84,10 @@ public class KeyService {
     }
 
     public static class KeyNotFoundException extends NotFoundException {
+        public static final String ERROR_KEY_NOT_FOUND = "key_not_found";
+
         public KeyNotFoundException(String s) {
-            super(s);
+            super(s, new ErrorDeviation(ERROR_KEY_NOT_FOUND));
         }
     }
 }

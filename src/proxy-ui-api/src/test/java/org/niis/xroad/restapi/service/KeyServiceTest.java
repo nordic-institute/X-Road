@@ -76,7 +76,7 @@ public class KeyServiceTest {
 
     @Test
     @WithMockUser(authorities = { "VIEW_KEYS" })
-    public void getKey() {
+    public void getKey() throws Exception {
         try {
             keyService.getKey(KEY_NOT_FOUND_KEY_ID);
         } catch (KeyService.KeyNotFoundException expected) {

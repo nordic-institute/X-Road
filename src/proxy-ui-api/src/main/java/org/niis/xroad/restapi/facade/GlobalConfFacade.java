@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.facade;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
@@ -79,7 +80,6 @@ public class GlobalConfFacade {
         return GlobalConf.getMemberClasses();
     }
 
-
     /**
      * {@link GlobalConf#getInstanceIdentifier()}
      */
@@ -94,4 +94,10 @@ public class GlobalConfFacade {
         return GlobalConf.getInstanceIdentifiers();
     }
 
+    /**
+     * {@link GlobalConf#getGlobalGroups(String...)} ()}
+     */
+    public List<GlobalGroupInfo> getGlobalGroups(String... instanceIdentifiers) {
+        return GlobalConf.getGlobalGroups(instanceIdentifiers);
+    }
 }
