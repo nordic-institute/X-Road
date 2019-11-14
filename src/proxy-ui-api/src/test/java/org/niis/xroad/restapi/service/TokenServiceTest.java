@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
@@ -67,6 +68,7 @@ public class TokenServiceTest {
     private static final String TOKEN_NOT_FOUND_TOKEN_ID = "token-404";
     private static final String UNRECOGNIZED_FAULT_CODE_TOKEN_ID = "unknown-faultcode";
     private static final String GOOD_TOKEN_ID = "token-which-exists";
+    private static final String GOOD_KEY_ID = "key-which-exists";
 
     @Autowired
     private TokenService tokenService;
@@ -109,6 +111,8 @@ public class TokenServiceTest {
         }).when(signerProxyFacade).deactivateToken(any());
 
         TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo("good-token");
+        KeyInfo keyInfo = TokenTestUtils.createTestKeyInfo(GOOD_KEY_ID);
+        tokenInfo.getKeyInfo().add(keyInfo);
 
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
@@ -188,15 +192,12 @@ public class TokenServiceTest {
     @WithMockUser(authorities = { "VIEW_KEYS" })
     public void getToken() throws Exception {
 
-        TokenInfo tokenInfo;
-
         try {
-            tokenInfo = tokenService.getToken(TOKEN_NOT_FOUND_TOKEN_ID);
+            tokenService.getToken(TOKEN_NOT_FOUND_TOKEN_ID);
         } catch (TokenService.TokenNotFoundException expected) {
         }
 
-        tokenInfo = tokenService.getToken(GOOD_TOKEN_ID);
+        TokenInfo tokenInfo = tokenService.getToken(GOOD_TOKEN_ID);
         assertEquals("good-token", tokenInfo.getFriendlyName());
     }
-
 }

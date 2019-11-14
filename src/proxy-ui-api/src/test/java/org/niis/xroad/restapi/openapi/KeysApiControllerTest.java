@@ -24,15 +24,14 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.openapi.model.Token;
-import org.niis.xroad.restapi.openapi.model.TokenStatus;
-import org.niis.xroad.restapi.service.TokenService;
+import org.niis.xroad.restapi.openapi.model.Key;
+import org.niis.xroad.restapi.service.KeyService;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -44,73 +43,55 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.when;
 
 /**
- * test tokens api
+ * test keys api
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureTestDatabase
 @Transactional
 @Slf4j
-public class TokensApiControllerTest {
+public class KeysApiControllerTest {
 
-    private static final String TOKEN_NOT_FOUND_TOKEN_ID = "token-404";
-    private static final String GOOD_TOKEN_ID = "token-which-exists";
+    private static final String KEY_NOT_FOUND_KEY_ID = "key-404";
+    private static final String GOOD_KEY_ID = "key-which-exists";
 
     @MockBean
-    private TokenService tokenService;
+    private KeyService keyService;
 
     @Autowired
-    private TokensApiController tokensApiController;
+    private KeysApiController keysApiController;
 
     @Before
     public void setUp() throws Exception {
-        TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo("friendly-name", GOOD_TOKEN_ID);
-        when(tokenService.getAllTokens()).thenReturn(Collections.singletonList(tokenInfo));
-
+        KeyInfo keyInfo = TokenTestUtils.createTestKeyInfo(GOOD_KEY_ID);
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
-            String tokenId = (String) args[0];
-            if (GOOD_TOKEN_ID.equals(tokenId)) {
-                return tokenInfo;
+            String keyId = (String) args[0];
+            if (!GOOD_KEY_ID.equals(keyId)) {
+                throw new KeyService.KeyNotFoundException("foo");
             } else {
-                throw new TokenService.TokenNotFoundException(new RuntimeException());
+                return keyInfo;
             }
-        }).when(tokenService).getToken(any());
+        }).when(keyService).getKey(any());
     }
 
     @Test
     @WithMockUser(authorities = { "VIEW_KEYS" })
-    public void getTokens() {
-        ResponseEntity<List<Token>> response = tokensApiController.getTokens();
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        List<Token> tokens = response.getBody();
-        assertEquals(1, tokens.size());
-        Token token = tokens.iterator().next();
-        assertEquals(TokenStatus.OK, token.getStatus());
-        assertEquals("friendly-name", token.getName());
-    }
-
-    @Test
-    @WithMockUser(authorities = { "VIEW_KEYS" })
-    public void getToken() {
+    public void getKey() {
         try {
-            tokensApiController.getToken(TOKEN_NOT_FOUND_TOKEN_ID);
+            keysApiController.getKey(KEY_NOT_FOUND_KEY_ID);
             fail("should have thrown exception");
         } catch (ResourceNotFoundException expected) {
         }
 
-        ResponseEntity<Token> response = tokensApiController.getToken(GOOD_TOKEN_ID);
+        ResponseEntity<Key> response = keysApiController.getKey(GOOD_KEY_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(GOOD_TOKEN_ID, response.getBody().getId());
+        assertEquals(GOOD_KEY_ID, response.getBody().getId());
     }
 }
