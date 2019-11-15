@@ -40,6 +40,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
@@ -69,6 +70,7 @@ public class TokenServiceTest {
     private static final String UNRECOGNIZED_FAULT_CODE_TOKEN_ID = "unknown-faultcode";
     private static final String GOOD_TOKEN_ID = "token-which-exists";
     private static final String GOOD_KEY_ID = "key-which-exists";
+    private static final String GOOD_TOKEN_NAME = "good-token";
 
     @Autowired
     private TokenService tokenService;
@@ -110,7 +112,7 @@ public class TokenServiceTest {
             return null;
         }).when(signerProxyFacade).deactivateToken(any());
 
-        TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo("good-token");
+        TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo(GOOD_TOKEN_NAME);
         KeyInfo keyInfo = TokenTestUtils.createTestKeyInfo(GOOD_KEY_ID);
         tokenInfo.getKeyInfo().add(keyInfo);
 
@@ -124,6 +126,12 @@ public class TokenServiceTest {
             }
         }).when(signerProxyFacade).getToken(any());
 
+        doAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
+            String newTokenName = (String) args[1];
+            ReflectionTestUtils.setField(tokenInfo, "friendlyName", newTokenName);
+            return null;
+        }).when(signerProxyFacade).setTokenFriendlyName(any(), any());
     }
 
     @Test
@@ -189,6 +197,21 @@ public class TokenServiceTest {
     }
 
     @Test
+    @WithMockUser(authorities = { "EDIT_KEYTABLE_FRIENDLY_NAMES", "VIEW_KEYS" })
+    public void updateTokenFriendlyName() throws Exception {
+        TokenInfo tokenInfo = tokenService.getToken(GOOD_TOKEN_ID);
+        assertEquals(GOOD_TOKEN_NAME, tokenInfo.getFriendlyName());
+        tokenInfo = tokenService.updateTokenFriendlyName(GOOD_TOKEN_ID, "friendly-neighborhood");
+        assertEquals("friendly-neighborhood", tokenInfo.getFriendlyName());
+    }
+
+    @Test(expected = TokenService.TokenNotFoundException.class)
+    @WithMockUser(authorities = { "EDIT_KEYTABLE_FRIENDLY_NAMES", "VIEW_KEYS" })
+    public void updateNonExistingTokenFriendlyName() throws Exception {
+        tokenService.updateTokenFriendlyName(TOKEN_NOT_FOUND_TOKEN_ID, "new-name");
+    }
+
+    @Test
     @WithMockUser(authorities = { "VIEW_KEYS" })
     public void getToken() throws Exception {
 
@@ -198,6 +221,6 @@ public class TokenServiceTest {
         }
 
         TokenInfo tokenInfo = tokenService.getToken(GOOD_TOKEN_ID);
-        assertEquals("good-token", tokenInfo.getFriendlyName());
+        assertEquals(GOOD_TOKEN_NAME, tokenInfo.getFriendlyName());
     }
 }
