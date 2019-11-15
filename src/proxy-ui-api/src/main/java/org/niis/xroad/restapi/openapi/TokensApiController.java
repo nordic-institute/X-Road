@@ -27,12 +27,10 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.converter.KeyConverter;
 import org.niis.xroad.restapi.converter.TokenConverter;
 import org.niis.xroad.restapi.openapi.model.Token;
 import org.niis.xroad.restapi.openapi.model.TokenName;
 import org.niis.xroad.restapi.openapi.model.TokenPassword;
-import org.niis.xroad.restapi.service.KeyService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -59,14 +57,11 @@ public class TokensApiController implements TokensApi {
      * TokensApiController constructor
      * @param tokenService
      * @param tokenConverter
-     * @param keyConverter
      */
 
     @Autowired
     public TokensApiController(TokenService tokenService,
-            TokenConverter tokenConverter,
-            KeyConverter keyConverter,
-            KeyService keyService) {
+            TokenConverter tokenConverter) {
         this.tokenService = tokenService;
         this.tokenConverter = tokenConverter;
     }
