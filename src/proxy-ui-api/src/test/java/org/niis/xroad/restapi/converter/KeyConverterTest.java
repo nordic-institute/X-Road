@@ -36,6 +36,7 @@ import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.KeyUsageType;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
+import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -91,15 +92,7 @@ public class KeyConverterTest {
     @Test
     public void isSavedToConfiguration() throws Exception {
         // test different combinations of keys and certs and the logic for isSavedToConfiguration
-        KeyInfo info = new KeyInfo(true,
-                KeyUsageInfo.SIGNING,
-                "friendly-name",
-                "id",
-                "label",
-                "public-key",
-                new ArrayList<>(),
-                new ArrayList<>(),
-                "sign-mechanism-name");
+        KeyInfo info = TokenTestUtils.createTestKeyInfo();
 
         info.getCerts().clear();
         info.getCertRequests().clear();

@@ -77,7 +77,7 @@ public class TokenService {
         try {
             return signerProxyFacade.getTokens();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("could not list all tokens", e);
         }
     }
 
