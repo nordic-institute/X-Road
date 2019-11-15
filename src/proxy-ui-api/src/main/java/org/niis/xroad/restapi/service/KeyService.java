@@ -24,11 +24,13 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -38,24 +40,29 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import static org.niis.xroad.restapi.service.TokenService.isCausedByTokenNotFound;
+
 /**
  * Service that handles keys
  */
 @Slf4j
 @Service
 @Transactional
-@PreAuthorize("denyAll")
+@PreAuthorize("isAuthenticated()")
 public class KeyService {
 
     private final TokenService tokenService;
+    private final SignerProxyFacade signerProxyFacade;
 
     /**
      * KeyService constructor
      * @param tokenService
+     * @param signerProxyFacade
      */
     @Autowired
-    public KeyService(TokenService tokenService) {
+    public KeyService(TokenService tokenService, SignerProxyFacade signerProxyFacade) {
         this.tokenService = tokenService;
+        this.signerProxyFacade = signerProxyFacade;
     }
 
     /**
@@ -64,7 +71,6 @@ public class KeyService {
      * @throws KeyNotFoundException if key was not found
      * @return
      */
-    @PreAuthorize("hasAuthority('VIEW_KEYS')")
     public KeyInfo getKey(String keyId) throws KeyNotFoundException {
         Collection<TokenInfo> tokens = tokenService.getAllTokens();
         Optional<KeyInfo> keyInfo = tokens.stream()
@@ -77,6 +83,29 @@ public class KeyService {
         }
 
         return keyInfo.get();
+    }
+
+    /**
+     * Generate a new key for selected token
+     * @param tokenId
+     * @param keyLabel
+     * @return {@link KeyInfo}
+     * @throws TokenNotFoundException
+     */
+    public KeyInfo addKey(String tokenId, String keyLabel) throws TokenNotFoundException {
+        KeyInfo keyInfo = null;
+        try {
+            keyInfo = signerProxyFacade.generateKey(tokenId, keyLabel);
+        } catch (CodedException e) {
+            if (isCausedByTokenNotFound(e)) {
+                throw new TokenNotFoundException(e);
+            } else {
+                throw e;
+            }
+        } catch (Exception other) {
+            throw new RuntimeException("adding a new key failed", other);
+        }
+        return keyInfo;
     }
 
     public static class KeyNotFoundException extends NotFoundException {

@@ -230,7 +230,7 @@ public class TokenService {
         return false;
     }
 
-    private boolean isCausedByTokenNotFound(CodedException e) {
+    static boolean isCausedByTokenNotFound(CodedException e) {
         return TOKEN_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
     }
 
@@ -239,26 +239,6 @@ public class TokenService {
     static final String TOKEN_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_TOKEN_NOT_FOUND;
     static final String LOGIN_FAILED_FAULT_CODE = SIGNER_X + "." + X_LOGIN_FAILED;
     static final String CKR_PIN_INCORRECT_MESSAGE = "Login failed: CKR_PIN_INCORRECT";
-
-    /**
-     * If token was not found
-     */
-    public static class TokenNotFoundException extends NotFoundException {
-
-        public static final String ERROR_TOKEN_NOT_FOUND = "token_not_found";
-
-        public TokenNotFoundException(String s) {
-            super(s, createError());
-        }
-
-        public TokenNotFoundException(Throwable t) {
-            super(t, createError());
-        }
-
-        private static ErrorDeviation createError() {
-            return new ErrorDeviation(ERROR_TOKEN_NOT_FOUND);
-        }
-    }
 
     public static class PinIncorrectException extends ServiceException {
 

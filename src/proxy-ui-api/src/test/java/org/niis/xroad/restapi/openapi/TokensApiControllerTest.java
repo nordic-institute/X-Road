@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.Token;
 import org.niis.xroad.restapi.openapi.model.TokenStatus;
+import org.niis.xroad.restapi.service.TokenNotFoundException;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +84,7 @@ public class TokensApiControllerTest {
             if (GOOD_TOKEN_ID.equals(tokenId)) {
                 return tokenInfo;
             } else {
-                throw new TokenService.TokenNotFoundException(new RuntimeException());
+                throw new TokenNotFoundException(new RuntimeException());
             }
         }).when(tokenService).getToken(any());
     }

@@ -163,7 +163,7 @@ public class TokenServiceTest {
         try {
             tokenService.activateToken(TOKEN_NOT_FOUND_TOKEN_ID, password);
             fail("should have thrown exception");
-        } catch (TokenService.TokenNotFoundException expected) {
+        } catch (TokenNotFoundException expected) {
         }
 
         try {
@@ -184,7 +184,7 @@ public class TokenServiceTest {
         try {
             tokenService.deactivateToken(TOKEN_NOT_FOUND_TOKEN_ID);
             fail("should have thrown exception");
-        } catch (TokenService.TokenNotFoundException expected) {
+        } catch (TokenNotFoundException expected) {
         }
 
         try {
@@ -205,7 +205,7 @@ public class TokenServiceTest {
         assertEquals("friendly-neighborhood", tokenInfo.getFriendlyName());
     }
 
-    @Test(expected = TokenService.TokenNotFoundException.class)
+    @Test(expected = TokenNotFoundException.class)
     @WithMockUser(authorities = { "EDIT_KEYTABLE_FRIENDLY_NAMES", "VIEW_KEYS" })
     public void updateNonExistingTokenFriendlyName() throws Exception {
         tokenService.updateTokenFriendlyName(TOKEN_NOT_FOUND_TOKEN_ID, "new-name");
@@ -217,7 +217,7 @@ public class TokenServiceTest {
 
         try {
             tokenService.getToken(TOKEN_NOT_FOUND_TOKEN_ID);
-        } catch (TokenService.TokenNotFoundException expected) {
+        } catch (TokenNotFoundException expected) {
         }
 
         TokenInfo tokenInfo = tokenService.getToken(GOOD_TOKEN_ID);
