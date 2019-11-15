@@ -206,6 +206,12 @@ public class TokenServiceTest {
         assertEquals("friendly-neighborhood", tokenInfo.getFriendlyName());
     }
 
+    @Test(expected = TokenService.TokenNotFoundException.class)
+    @WithMockUser(authorities = { "EDIT_KEYTABLE_FRIENDLY_NAMES", "VIEW_KEYS" })
+    public void updateNonExistingTokenFriendlyName() throws Exception {
+        tokenService.updateTokenFriendlyName(TOKEN_NOT_FOUND_TOKEN_ID, "new-name");
+    }
+
     @Test
     @WithMockUser(authorities = { "VIEW_KEYS" })
     public void getToken() throws Exception {
