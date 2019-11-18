@@ -95,6 +95,22 @@ public class DevelopmentUserDetailsAuthenticationConfiguration {
                         "XROAD_SERVICE_ADMINISTRATOR",
                         "XROAD_SYSTEM_ADMINISTRATOR",
                         "XROAD-XROAD_SECURITYSERVER_OBSERVER-ADMINISTRATOR")
+                .authorities("VIEW_CLIENTS",
+                        "ADD_CLIENT",
+                        "SEND_CLIENT_REG_REQ",
+                        "VIEW_CLIENT_DETAILS",
+                        "SEND_CLIENT_DEL_REQ",
+                        "DELETE_CLIENT",
+                        "VIEW_CLIENT_LOCAL_GROUPS",
+                        "VIEW_KEYS",
+                        "ACTIVATE_TOKEN",
+                        "DEACTIVATE_TOKEN",
+                        "ROLE_XROAD_SECURITY_OFFICER",
+                        "ROLE_XROAD_REGISTRATION_OFFICER",
+                        "ROLE_XROAD_SERVICE_ADMINISTRATOR",
+                        "ROLE_XROAD_SYSTEM_ADMINISTRATOR",
+                        "ROLE_XROAD-XROAD_SECURITYSERVER_OBSERVER-ADMINISTRATOR")
+
                 .build());
 
         users.add(User.withDefaultPasswordEncoder()

@@ -202,10 +202,10 @@ dependencies {
     testImplementation('org.hsqldb:hsqldb')
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
-    developmentOnly project(':proxy-ui-api-devtools')
-//    if (!excludeDevToolsSetting) {
-//        developmentOnly project(':proxy-ui-api-devtools')
-//    }
+//    developmentOnly project(':proxy-ui-api-devtools')
+    if (!excludeDevToolsSetting) {
+        developmentOnly project(':proxy-ui-api-devtools')
+    }
     // openapi-generator related
     implementation('io.springfox:springfox-swagger2:2.8.0')
     implementation('io.springfox:springfox-swagger-ui:2.8.0')
