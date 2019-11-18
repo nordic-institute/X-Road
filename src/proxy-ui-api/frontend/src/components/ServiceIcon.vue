@@ -10,7 +10,6 @@ export default Vue.extend({
   props: {
     service: {
       type: Object,
-
       required: true,
     },
   },

@@ -299,7 +299,7 @@ export default Vue.extend({
     },
 
     getAuthKeys(keys: any): any {
-      // Filter out service deascriptions that don't include search term
+      // Filter out service descriptions that don't include search term
       const filtered = keys.filter((key: any) => {
         return key.usage === 'AUTHENTICATION';
       });
@@ -308,7 +308,7 @@ export default Vue.extend({
     },
 
     getSignKeys(keys: any): any {
-      // Filter out service deascriptions that don't include search term
+      // Filter out service descriptions that don't include search term
       const filtered = keys.filter((key: any) => {
         return key.usage === 'SIGNING';
       });
@@ -317,7 +317,7 @@ export default Vue.extend({
     },
 
     getOtherKeys(keys: any): any {
-      // Filter out service deascriptions that don't include search term
+      // Filter out service descriptions that don't include search term
       const filtered = keys.filter((key: any) => {
         return key.usage !== 'SIGNING' && key.usage !== 'AUTHENTICATION';
       });
