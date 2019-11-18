@@ -289,6 +289,7 @@ export default Vue.extend({
       api
         .put(`/tokens/${this.selected.token.id}/logout`, {})
         .then((res) => {
+          this.$bus.$emit('show-success', 'keys.loggedOut');
           this.fetchData();
         })
         .catch((error) => {

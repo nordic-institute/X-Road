@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.31-UI
+Version: 2.34
 Doc. ID: UG-SS
 
 ---
@@ -58,15 +58,15 @@ Doc. ID: UG-SS
  15.11.2018 | 2.23    | Minor updates for Ubuntu 18.04 | Jarkko Hyöty
  06.02.2019 | 2.24    | Minor updates on security server client registration in Chapters [4.3](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client) and [4.4](#44-registering-a-security-server-client-in-the-x-road-governing-authority). | Petteri Kivimäki
  15.03.2019 | 2.25    | Update documentation to cover REST service usage in chapter [6] | Jarkko Hyöty
- 26.03.2019 | 2.26-UI    | Added chapter on API keys [19](#19-management-rest-apis) | Janne Mattila
- 16.04.2019 | 2.26    | Minor updates regarding REST services in chapter [6] | Petteri Kivimäki
- 30.06.2019 | 2.27    | Update the default connection type from HTTP to HTTPS in chapter [9] | Petteri Kivimäki
- 01.07.2019 | 2.28    | Changing the Security Server Owner chapter added (Chapter [3.4](#34-changing-the-security-server-owner)) | Petteri Kivimäki
- 14.08.2019 | 2.29    | Added automatic backups | Ilkka Seppälä
- 29.09.2019 | 2.29-UI    | Added chapter [19.3](#193-correlation-id-http-header) on REST API correlation id | Janne Mattila
- 30.09.2019 | 2.30    | Added remote database migration guide | Ilkka Seppälä
- 15.10.2019 | 2.31    | Updated REST services in chapter [6] | Ilkka Seppälä
- 04.11.2019 | 2.31-UI | Added information about REST API rate limits | Janne Mattila
+ 26.03.2019 | 2.26    | Added chapter on API keys [19](#19-management-rest-apis) | Janne Mattila
+ 16.04.2019 | 2.27    | Minor updates regarding REST services in chapter [6] | Petteri Kivimäki
+ 30.06.2019 | 2.28    | Update the default connection type from HTTP to HTTPS in chapter [9] | Petteri Kivimäki
+ 01.07.2019 | 2.29    | Changing the Security Server Owner chapter added (Chapter [3.4](#34-changing-the-security-server-owner)) | Petteri Kivimäki
+ 14.08.2019 | 2.30    | Added automatic backups | Ilkka Seppälä
+ 29.09.2019 | 2.31    | Added chapter [19.3](#193-correlation-id-http-header) on REST API correlation id | Janne Mattila
+ 30.09.2019 | 2.32    | Added remote database migration guide | Ilkka Seppälä
+ 15.10.2019 | 2.33    | Updated REST services in chapter [6] | Ilkka Seppälä
+ 04.11.2019 | 2.34    | Added information about REST API request rate and size limits | Janne Mattila
 
 ## Table of Contents <!-- omit in toc --> 
 
@@ -1905,21 +1905,37 @@ Management REST APIs are protected with an API key based authentication. To exec
 All REST APIs are protected by TLS. Since server uses self signed certificate, the caller needs to accept this (for example
 with `curl` you need to use `--insecure` or `-k` option.
 
-REST APIs are *rate limited*. Rate limits apply per each calling IP. If the number of calls
+Request sent to REST APIs have a *limit for maximum size*. If a too large request is sent
+to REST API, it will not be processed, and http status 413 Payload too large will be returned.
+There is a different limit for binary file uploads, and for other requests.
+
+Limits are
+- 10MB for file uploads
+- 50KB for other requests
+
+REST APIs are also *rate limited*. Rate limits apply per each calling IP. If the number of calls
 from one IP address exceeds the limit, REST APIs return http status 429 Too Many Requests.
 
 Limits are
 - 600 requests per minute
 - 20 requests per second
 
-If the default limits are too restricting, they can be overridden with command line arguments. Limits are set with
-application properties `ratelimit.requests.per.second` and `ratelimit.requests.per.minute`. Example from a
-modified `/etc/xroad/services/proxy-ui-api.conf` (conf file modifications may be overwritten when
-installing upgraded packages):
+If the default limits are too restricting (or too loose), they can be overridden with command line arguments. Limits are set with
+application properties
+- `request.sizelimit.regular`
+- `request.sizelimit.binary.upload`
+- `ratelimit.requests.per.second`
+- `ratelimit.requests.per.minute`
+
+Size limit parameters support formats from Formats from [DataSize](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/unit/DataSize.html),
+for example `5MB`.
+
+Command line arguments can be modified using configuration file `local.conf`.
+Example from `/etc/xroad/services/local.conf` with modifications:
 
 ```
-PROXY_UI_API_PARAMS=" --ratelimit.requests.per.second=100 -Xmx192m -XX:MaxMetaspaceSize=128m \
--Djna.tmpdir=/var/lib/xroad"
+PROXY_UI_API_PARAMS=" $PROXY_UI_API_PARAMS -Dratelimit.requests.per.second=100"
+PROXY_UI_API_PARAMS=" $PROXY_UI_API_PARAMS -Drequest.sizelimit.binary.upload=1MB"
 ```
 
 ### 19.1 API key management operations
