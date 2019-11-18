@@ -24,11 +24,13 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -37,6 +39,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+
+import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 
 /**
  * Service that handles keys
@@ -47,6 +52,7 @@ import java.util.Optional;
 @PreAuthorize("denyAll")
 public class KeyService {
 
+    private final SignerProxyFacade signerProxyFacade;
     private final TokenService tokenService;
 
     /**
@@ -54,8 +60,9 @@ public class KeyService {
      * @param tokenService
      */
     @Autowired
-    public KeyService(TokenService tokenService) {
+    public KeyService(TokenService tokenService, SignerProxyFacade signerProxyFacade) {
         this.tokenService = tokenService;
+        this.signerProxyFacade = signerProxyFacade;
     }
 
     /**
@@ -79,11 +86,40 @@ public class KeyService {
         return keyInfo.get();
     }
 
+    @PreAuthorize("hasAuthority('EDIT_KEYS')")
+    public KeyInfo updateKeyFriendlyName(String id, String friendlyName) throws KeyNotFoundException {
+        KeyInfo keyInfo = null;
+        try {
+            signerProxyFacade.setKeyFriendlyName(id, friendlyName);
+            keyInfo = getKey(id);
+        } catch (CodedException e) {
+            if(KEY_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode())) {
+                throw new KeyNotFoundException(e);
+            } else {
+                throw e;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Update key friendly name failed", e);
+        }
+
+        return keyInfo;
+    }
+
+    static final String KEY_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_KEY_NOT_FOUND;
+
     public static class KeyNotFoundException extends NotFoundException {
         public static final String ERROR_KEY_NOT_FOUND = "key_not_found";
 
         public KeyNotFoundException(String s) {
             super(s, new ErrorDeviation(ERROR_KEY_NOT_FOUND));
+        }
+
+        public KeyNotFoundException(Throwable t) {
+            super(t, createError());
+        }
+
+        private static ErrorDeviation createError() {
+            return new ErrorDeviation(ERROR_KEY_NOT_FOUND);
         }
     }
 }
