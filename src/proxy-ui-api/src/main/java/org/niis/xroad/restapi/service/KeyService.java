@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import static org.niis.xroad.restapi.service.TokenService.isCausedByTokenNotActive;
 import static org.niis.xroad.restapi.service.TokenService.isCausedByTokenNotFound;
 
 /**
@@ -92,13 +93,16 @@ public class KeyService {
      * @return {@link KeyInfo}
      * @throws TokenNotFoundException
      */
-    public KeyInfo addKey(String tokenId, String keyLabel) throws TokenNotFoundException {
+    public KeyInfo addKey(String tokenId, String keyLabel) throws TokenNotFoundException,
+            TokenService.TokenNotActiveException {
         KeyInfo keyInfo = null;
         try {
             keyInfo = signerProxyFacade.generateKey(tokenId, keyLabel);
         } catch (CodedException e) {
             if (isCausedByTokenNotFound(e)) {
                 throw new TokenNotFoundException(e);
+            } else if (isCausedByTokenNotActive(e)) {
+                throw new TokenService.TokenNotActiveException(e);
             } else {
                 throw e;
             }

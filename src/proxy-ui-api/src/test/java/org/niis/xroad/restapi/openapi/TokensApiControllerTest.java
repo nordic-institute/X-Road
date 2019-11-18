@@ -55,6 +55,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_ACTIVE;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_FOUND;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -74,6 +75,7 @@ public class TokensApiControllerTest {
 
     private static final String TOKEN_NOT_FOUND_TOKEN_ID = "token-404";
     private static final String GOOD_TOKEN_ID = "token-which-exists";
+    private static final String NOT_ACTIVE_TOKEN_ID = "token-not-active";
     private static final String KEY_LABEL = "key-label";
 
     @MockBean
@@ -107,9 +109,12 @@ public class TokensApiControllerTest {
             if (GOOD_TOKEN_ID.equals(tokenId)) {
                 ReflectionTestUtils.setField(keyInfo, "label", keyLabel);
                 return keyInfo;
-            } else {
+            } else if (NOT_ACTIVE_TOKEN_ID.equals(tokenId)) {
+                throw new CodedException.Fault(SIGNER_X + "." + X_TOKEN_NOT_ACTIVE, null);
+            } else if (TOKEN_NOT_FOUND_TOKEN_ID.equals(tokenId)) {
                 throw new CodedException.Fault(SIGNER_X + "." + X_TOKEN_NOT_FOUND, null);
             }
+            throw new RuntimeException("given tokenId not supported in mocked method SignerProxyFacade#generateKey");
         }).when(signerProxyFacade).generateKey(any(), any());
     }
 
@@ -149,6 +154,12 @@ public class TokensApiControllerTest {
             tokensApiController.addKey(TOKEN_NOT_FOUND_TOKEN_ID, new KeyLabel().label(KEY_LABEL));
             fail("should have thrown exception");
         } catch (ResourceNotFoundException expected) {
+        }
+
+        try {
+            tokensApiController.addKey(NOT_ACTIVE_TOKEN_ID, new KeyLabel().label(KEY_LABEL));
+            fail("should have thrown exception");
+        } catch (ConflictException expected) {
         }
     }
 }
