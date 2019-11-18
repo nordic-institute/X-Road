@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div>
+    <div v-if="sourceObject[childKey]">
       <b v-if="label" class="cert-label">{{label}}:</b>
       <b v-else class="cert-label">{{childKey | prettyTitle | upperCaseWords}}:</b>
 

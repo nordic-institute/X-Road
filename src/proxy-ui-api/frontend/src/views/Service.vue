@@ -186,9 +186,13 @@
 <script lang="ts">
 import Vue from 'vue';
 import _ from 'lodash';
+<<<<<<< HEAD
 import * as api from '@/util/api';
+=======
+>>>>>>> develop
 import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
+import * as api from '@/util/api';
 import SubViewTitle from '@/components/SubViewTitle.vue';
 import AccessRightsDialog from '@/components/AccessRightsDialog.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';

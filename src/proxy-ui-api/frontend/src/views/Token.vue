@@ -1,5 +1,5 @@
 <template>
-  <div class="xrd-tab-max-width">
+  <div class="xrd-tab-max-width xrd-view-common">
     <div>
       <subViewTitle :title="$t('keys.tokenDetails')" @close="close" />
     </div>
@@ -59,7 +59,7 @@
  */
 import Vue from 'vue';
 import _ from 'lodash';
-import axios from 'axios';
+import * as api from '@/util/api';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { Permissions } from '@/global';
 import SubViewTitle from '@/components/SubViewTitle.vue';
@@ -83,12 +83,7 @@ export default Vue.extend({
     return {
       touched: false,
       saveBusy: false,
-      // TODO: mock data will be removed later
-      token: {
-        id: '999056789ABCDEF0123456789ABCDEF0123456789ABCDEF',
-        name: 'softToken-2',
-        type: 'SOFTWARE',
-      },
+      token: {},
     };
   },
   methods: {
@@ -102,7 +97,14 @@ export default Vue.extend({
     },
 
     fetchData(id: string): void {
-      // TODO will be implemented later
+      api
+        .get(`/tokens/${this.id}`)
+        .then((res) => {
+          this.token = res.data;
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
     },
   },
   created() {

@@ -122,12 +122,16 @@
 <script lang="ts">
 import Vue from 'vue';
 import _ from 'lodash';
+<<<<<<< HEAD
 import * as api from '@/util/api';
+=======
+>>>>>>> develop
 import { Permissions } from '@/global';
 import SubViewTitle from '@/components/SubViewTitle.vue';
 import AddMembersDialog from '@/components/AddMembersDialog.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import LargeButton from '@/components/LargeButton.vue';
+import * as api from '@/util/api';
 
 interface IGroupMember {
   id: string;

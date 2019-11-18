@@ -28,6 +28,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import * as api from '@/util/api';
 import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
 import SubViewTitle from '@/components/SubViewTitle.vue';
@@ -45,10 +46,6 @@ export default Vue.extend({
     CertificateHash,
   },
   props: {
-    id: {
-      type: String,
-      required: true,
-    },
     hash: {
       type: String,
       required: true,
@@ -89,8 +86,15 @@ export default Vue.extend({
     close(): void {
       this.$router.go(-1);
     },
-    fetchData(clientId: string, hash: string): void {
-      // TODO will be implemented on later task
+    fetchData(hash: string): void {
+      api
+        .get(`/certificates/${hash}`)
+        .then((res) => {
+          this.certificate = res.data;
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
     },
     deleteCertificate(): void {
       this.confirm = true;
@@ -101,7 +105,7 @@ export default Vue.extend({
     },
   },
   created() {
-    this.fetchData(this.id, this.hash);
+    this.fetchData(this.hash);
   },
 });
 </script>

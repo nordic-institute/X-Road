@@ -77,7 +77,7 @@ public class TokenService {
         try {
             return signerProxyFacade.getTokens();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("could not list all tokens", e);
         }
     }
 
@@ -191,6 +191,30 @@ public class TokenService {
         } catch (Exception other) {
             throw new RuntimeException("get token failed", other);
         }
+    }
+
+    /**
+     * update token friendly name
+     * @param tokenId
+     * @param friendlyName
+     * @throws TokenNotFoundException if token was not found
+     */
+    @PreAuthorize("hasAuthority('EDIT_KEYTABLE_FRIENDLY_NAMES')")
+    public TokenInfo updateTokenFriendlyName(String tokenId, String friendlyName) throws TokenNotFoundException {
+        TokenInfo tokenInfo = null;
+        try {
+            signerProxyFacade.setTokenFriendlyName(tokenId, friendlyName);
+            tokenInfo = signerProxyFacade.getToken(tokenId);
+        } catch (CodedException e) {
+            if (isCausedByTokenNotFound(e)) {
+                throw new TokenNotFoundException(e);
+            } else {
+                throw e;
+            }
+        } catch (Exception other) {
+            throw new RuntimeException("update token friendly name failed", other);
+        }
+        return tokenInfo;
     }
 
     private boolean isCausedByIncorrectPin(CodedException e) {

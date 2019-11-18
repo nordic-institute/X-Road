@@ -22,7 +22,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import axios from 'axios';
+import * as api from '@/util/api';
 import SimpleDialog from '@/components/SimpleDialog.vue';
 
 export default Vue.extend({
@@ -59,7 +59,7 @@ export default Vue.extend({
       this.$emit('cancel');
     },
     save(): void {
-      axios
+      api
         .post(`/clients/${this.id}/local-groups`, {
           code: this.code,
           description: this.description,
