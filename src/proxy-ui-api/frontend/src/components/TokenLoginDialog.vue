@@ -10,7 +10,7 @@
   >
     <div slot="content">
       <div class="dlg-edit-row">
-        <div class="dlg-row-title">{{$t('keys.tokenPin')}}</div>
+        <div class="dlg-row-title">{{$t('fields.tokenPin')}}</div>
         <ValidationProvider
           rules="required"
           ref="tokenPin"
@@ -36,7 +36,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import axios from 'axios';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import SimpleDialog from '@/components/SimpleDialog.vue';
 import * as api from '@/util/api';

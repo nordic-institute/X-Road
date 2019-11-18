@@ -1,14 +1,10 @@
 <template>
-  <div class="xrd-tab-max-width">
+  <div class="xrd-tab-max-width xrd-view-common">
     <div>
       <subViewTitle v-if="key.type == 'SIGN'" :title="$t('keys.signDetailsTitle')" @close="close" />
       <subViewTitle v-if="key.type == 'AUTH'" :title="$t('keys.authDetailsTitle')" @close="close" />
       <div class="delete-wrap">
-        <large-button
-          v-if="showDelete"
-          @click="confirmDelete = true"
-          outlined
-        >{{$t('action.delete')}}</large-button>
+        <large-button @click="confirmDelete = true" outlined>{{$t('action.delete')}}</large-button>
       </div>
     </div>
 
@@ -69,7 +65,7 @@
       title="keys.deleteTitle"
       text="keys.deleteKeyText"
       @cancel="confirmDelete = false"
-      @accept="doDeleteServiceDesc()"
+      @accept="doDeleteKey()"
     />
   </div>
 </template>
@@ -80,7 +76,7 @@
  */
 import Vue from 'vue';
 import _ from 'lodash';
-import axios from 'axios';
+import * as api from '@/util/api';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
@@ -107,62 +103,42 @@ export default Vue.extend({
       confirmDelete: false,
       touched: false,
       saveBusy: false,
-      // TODO: mock data will be removed later
-      key: {
-        id: '09CDEF0123456789ABCDEF',
-        name: 'nimi name',
-        label: 'olooi',
-        type: 'SIGN',
-        status: 'REGISTERED',
-        read_only: true,
-        certificates: [
-          {
-            issuer_common_name: 'adr.com',
-            ocsp_status: 'SUCCESS',
-            not_after: '2018-12-15T00:00:00.001Z',
-            hash: '8890ABCDEF',
-            client_id: 'FI:GOV:123:ABC',
-            status: 'DISABLE',
-          },
-          {
-            issuer_common_name: 'popo.com',
-            ocsp_status: 'SUCCESS',
-            not_after: '2018-12-15T00:00:00.001Z',
-            hash: '0997890ABCDEF',
-            client_id: 'FI:GOV:123:ABC',
-            status: 'IN_USE',
-          },
-          {
-            issuer_common_name: 'iiop.com',
-            ocsp_status: 'SUCCESS',
-            not_after: '2018-10-15T00:00:00.001Z',
-            hash: '89897890ABCDEF',
-            client_id: 'FI:GOV:123:ABC',
-            status: 'DISABLED',
-          },
-        ],
-      },
+      key: {},
     };
   },
-  computed: {
-    showDelete(): boolean {
-      return this.$store.getters.hasPermission(Permissions.DELETE_WSDL);
-    },
-  },
+
   methods: {
     close(): void {
       this.$router.go(-1);
     },
 
     save(): void {
-      // TODO will be implemented on later task
       this.saveBusy = true;
+
+      api
+        .put(`/keys/${this.id}`, this.key)
+        .then((res) => {
+          this.saveBusy = false;
+          this.$bus.$emit('show-success', 'key saved');
+          this.close();
+        })
+        .catch((error) => {
+          this.saveBusy = false;
+          this.$bus.$emit('show-error', error.message);
+        });
     },
 
     fetchData(id: string): void {
-      // TODO will be implemented on later task
+      api
+        .get(`/keys/${id}`)
+        .then((res) => {
+          this.key = res.data;
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
     },
-    doDeleteServiceDesc(): void {
+    doDeleteKey(): void {
       this.confirmDelete = false;
       // TODO will be implemented on later task
     },

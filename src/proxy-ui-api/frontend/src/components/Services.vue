@@ -134,8 +134,8 @@
 <script lang="ts">
 // View for services tab
 import Vue from 'vue';
-import axios from 'axios';
 import { Permissions, RouteName } from '@/global';
+import * as api from '@/util/api';
 import Expandable from '@/components/Expandable.vue';
 import AddWsdlDialog from '@/components/AddWsdlDialog.vue';
 import AddRestDialog from '@/components/AddRestDialog.vue';
@@ -271,8 +271,8 @@ export default Vue.extend({
         return;
       }
 
-      axios
-        .put(`/service-descriptions/${serviceDesc.id}/enable`)
+      api
+        .put(`/service-descriptions/${serviceDesc.id}/enable`, {})
         .then((res) => {
           this.$bus.$emit('show-success', 'services.enableSuccess');
         })
@@ -295,7 +295,7 @@ export default Vue.extend({
       this.disableDescDialog = false;
       this.forceUpdateSwitch(index, true);
 
-      axios
+      api
         .put(`/service-descriptions/${subject.id}/disable`, {
           disabled_notice: notice,
         })
@@ -327,7 +327,7 @@ export default Vue.extend({
     wsdlSave(url: string): void {
       this.wsdlUrl = url;
       this.addWsdlBusy = true;
-      axios
+      api
         .post(`/clients/${this.id}/service-descriptions`, {
           url,
           type: 'WSDL',
@@ -356,7 +356,7 @@ export default Vue.extend({
     },
 
     acceptSaveWarning(): void {
-      axios
+      api
         .post(`/clients/${this.id}/service-descriptions`, {
           url: this.wsdlUrl,
           type: 'WSDL',
@@ -386,7 +386,7 @@ export default Vue.extend({
     },
 
     restSave(rest: any): void {
-      axios
+      api
         .post(`/clients/${this.id}/service-descriptions`, {
           url: rest.url,
           rest_service_code: rest.serviceCode,
@@ -411,7 +411,7 @@ export default Vue.extend({
 
     refreshWsdl(wsdl: any): void {
       this.refreshWsdlBusy = true;
-      axios
+      api
         .put(`/service-descriptions/${wsdl.id}/refresh`, wsdl)
         .then((res) => {
           this.$bus.$emit('show-success', 'services.wsdlRefreshed');
@@ -432,7 +432,7 @@ export default Vue.extend({
     },
 
     acceptRefreshWarning(): void {
-      axios
+      api
         .put(`/service-descriptions/${this.wsdlRefreshId}/refresh`, {
           ignore_warnings: true,
         })
@@ -466,7 +466,7 @@ export default Vue.extend({
     },
 
     fetchData(): void {
-      axios
+      api
         .get(`/clients/${this.id}/service-descriptions`)
         .then((res) => {
           this.serviceDescriptions = res.data;

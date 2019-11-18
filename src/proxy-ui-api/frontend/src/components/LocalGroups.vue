@@ -46,7 +46,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import axios from 'axios';
+import * as api from '@/util/api';
 import NewGroupDialog from '@/components/NewGroupDialog.vue';
 
 import { mapGetters } from 'vuex';
@@ -106,7 +106,7 @@ export default Vue.extend({
     },
 
     fetchGroups(id: string): void {
-      axios
+      api
         .get(`/clients/${id}/local-groups`)
         .then((res) => {
           this.groups = res.data;
