@@ -25,7 +25,6 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -42,13 +41,13 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -78,7 +77,7 @@ class FastestConnectionSelectingSSLSocketFactory
      */
     public static final int CACHED_TIMEOUT = 5000;
 
-    public static final int MIN_TIMEOUT = 1000;
+    public static final int MIN_TIMEOUT = 5000;
 
     public static final int CACHE_MAXIMUM_SIZE = 10000;
 
@@ -107,13 +106,11 @@ class FastestConnectionSelectingSSLSocketFactory
     public Socket connectSocket(int timeout, Socket socket, HttpHost host, InetSocketAddress remoteAddress,
             InetSocketAddress localAddress, HttpContext context) throws IOException {
         // Discard dummy socket.
-        if (socket != null) {
-            socket.close();
-        }
+        closeQuietly(socket);
 
         // Read target addresses from the context.
-        final List<URI> addressesFromContext = Arrays.asList(getAddressesFromContext(context));
-        final boolean useCache = cachingEnabled && (addressesFromContext.size() > 1);
+        final URI[] addressesFromContext = getAddressesFromContext(context);
+        final boolean useCache = cachingEnabled && (addressesFromContext.length > 1);
         final FastestSocketSelector selector = new FastestSocketSelector();
 
         CacheKey cacheKey = null;
@@ -136,35 +133,19 @@ class FastestConnectionSelectingSSLSocketFactory
         }
 
         if (selector.isEmpty()) {
-            selector.add(addressesFromContext);
+            selector.addAll(addressesFromContext);
         }
 
         Exception deferredException = null;
         int connectTimeout = (cachedURI == null ? timeout : CACHED_TIMEOUT);
         while (!selector.isEmpty()) {
-            // Select the fastest address if more than one address is provided.
-            // see also FastestSocketSelector
-            SocketInfo selectedSocket = selector.select(connectTimeout);
-            if (selectedSocket == null) {
-                if (cachedURI != null) {
-                    log.trace("Could not connect to {}, removing from cache", cachedURI);
-                    selectedHosts.invalidate(cacheKey);
-                    selector.add(addressesFromContext);
-                    selector.remove(cachedURI);
-                    cachedURI = null;
-                    connectTimeout = timeout;
-                    continue;
-                } else {
-                    break;
-                }
-            }
-
+            SocketInfo selectedSocket = null;
+            SSLSocket sslSocket = null;
             try {
-                final Socket s = selectedSocket.getSocket();
-                //XRDDEV-248: use connection timeout as read timeout during SSL handshake
-                s.setSoTimeout(connectTimeout);
-                s.setSoLinger(false, 0);
-                SSLSocket sslSocket = wrapToSSLSocket(s);
+                // Select the fastest address if more than one address is provided.
+                // see also FastestSocketSelector
+                selectedSocket = selector.select(connectTimeout);
+                sslSocket = wrapToSSLSocket(selectedSocket.getSocket(), connectTimeout);
                 prepareAndVerify(sslSocket, selectedSocket.getUri(), context);
                 configureSocket(sslSocket);
                 log.trace("Connected to {}", selectedSocket.getUri());
@@ -175,32 +156,49 @@ class FastestConnectionSelectingSSLSocketFactory
                     selectedHosts.put(cacheKey, selectedSocket.getUri());
                 }
                 return sslSocket;
-            } catch (IOException | CodedException e) {
-                selector.remove(selectedSocket.getUri());
+            } catch (IOException | RuntimeException e) {
                 deferredException = e;
-                try {
-                    selectedSocket.getSocket().close();
-                } catch (IOException ioe) {
-                    //ignore
+                closeQuietly(sslSocket);
+                if (selectedSocket != null) {
+                    log.trace("Failed to connect to {}", selectedSocket.getUri(), e);
+                    closeQuietly(selectedSocket.getSocket());
+                } else {
+                    log.debug("Failed to connect", e);
                 }
-                //if there are addresses left, try again but using reduced connection timeout.
-                connectTimeout = Math.max(MIN_TIMEOUT, connectTimeout / 2);
+                if (cachedURI != null) {
+                    selectedHosts.asMap().remove(cacheKey, cachedURI);
+                    selector.addAll(addressesFromContext);
+                    selector.remove(cachedURI);
+                    cachedURI = null;
+                    connectTimeout = timeout;
+                } else {
+                    if (selectedSocket == null) {
+                        //selection failed, bail out
+                        break;
+                    }
+                    selector.remove(selectedSocket.getUri());
+                    //if there are addresses left, try again but using reduced connection timeout.
+                    connectTimeout = Math.max(MIN_TIMEOUT, connectTimeout / 2);
+                }
             }
         }
-
-        if (deferredException == null) {
-            throw couldNotConnectException(addressesFromContext);
-        } else if (deferredException instanceof IOException) {
-            throw (IOException)deferredException;
-        } else {
-            throw ErrorCodes.translateException(deferredException);
-        }
+        throw couldNotConnectException(addressesFromContext, deferredException);
     }
 
     @Override
     protected void prepareSocket(final SSLSocket socket) throws IOException {
         socket.setEnabledProtocols(new String[] {CryptoUtils.SSL_PROTOCOL});
         socket.setEnabledCipherSuites(SystemProperties.getXroadTLSCipherSuites());
+    }
+
+    static void closeQuietly(Closeable closeable) {
+        if (closeable != null) {
+            try {
+                closeable.close();
+            } catch (IOException e) {
+                //ignore
+            }
+        }
     }
 
     private static void updateOpMonitoringData(HttpContext context,
@@ -245,11 +243,13 @@ class FastestConnectionSelectingSSLSocketFactory
         verify(context, sslSocket.getSession(), selectedAddress);
     }
 
-    private SSLSocket wrapToSSLSocket(Socket socket) throws IOException {
+    private SSLSocket wrapToSSLSocket(Socket socket, int connectTimeout) throws IOException {
         if (socket instanceof SSLSocket) {
             return (SSLSocket)socket;
         }
-
+        //XRDDEV-248: use connection timeout as read timeout during SSL handshake
+        socket.setSoTimeout(connectTimeout);
+        socket.setSoLinger(false, 0);
         Socket sslSocket = socketfactory.createSocket(socket,
                 socket.getInetAddress().getHostName(), socket.getPort(), SystemProperties.isUseSslSocketAutoClose());
         if (sslSocket instanceof SSLSocket) {
@@ -267,20 +267,24 @@ class FastestConnectionSelectingSSLSocketFactory
         throw new CodedException(X_INTERNAL_ERROR, "Target hosts not specified in http context");
     }
 
-    private static CodedException couldNotConnectException(List<URI> addresses) {
-        log.error("Could not connect to any target host ({})", addresses);
-        return new CodedException(X_NETWORK_ERROR,
-                String.format("Could not connect to any target host (%s)", Arrays.toString(addresses.toArray())));
+    private static CodedException couldNotConnectException(URI[] addresses, Exception cause) {
+        log.error("Could not connect to any target host ({})", (Object)addresses);
+        if (cause instanceof CodedException) {
+            return (CodedException)cause;
+        } else {
+            return new CodedException(X_NETWORK_ERROR, cause, "Could not connect to any target host (%s)",
+                    Arrays.toString(addresses));
+        }
     }
 
     static final class CacheKey {
         private final URI[] addresses;
         private final int hash;
 
-        CacheKey(List<URI> addresses) {
+        CacheKey(URI[] addresses) {
             // address lists are small, using an sorted arraylist as a key
             // will have a lower overhead than using a hashset or treeset
-            final URI[] tmp = addresses.toArray(new URI[0]);
+            final URI[] tmp = addresses.clone();
             Arrays.sort(tmp);
             this.addresses = tmp;
             this.hash = Arrays.hashCode(this.addresses);

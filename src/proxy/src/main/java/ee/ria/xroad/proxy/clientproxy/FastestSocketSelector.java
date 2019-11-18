@@ -37,13 +37,11 @@ import java.net.URI;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
-import java.nio.channels.UnresolvedAddressException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.apache.commons.io.IOUtils.closeQuietly;
+import static ee.ria.xroad.proxy.clientproxy.FastestConnectionSelectingSSLSocketFactory.closeQuietly;
 
 /**
  * Given a list of addresses, selects the first one to respond.
@@ -55,7 +53,7 @@ import static org.apache.commons.io.IOUtils.closeQuietly;
  * unresolvable or there is an error during connecting to the address.
  */
 @Slf4j
-class FastestSocketSelector {
+final class FastestSocketSelector {
 
     @Data
     static final class SocketInfo {
@@ -69,8 +67,10 @@ class FastestSocketSelector {
         addresses.add(address);
     }
 
-    void add(Collection<URI> address) {
-        addresses.addAll(address);
+    void addAll(URI... address) {
+        for (URI u : address) {
+            addresses.add(u);
+        }
     }
 
     boolean remove(URI address) {
@@ -84,7 +84,7 @@ class FastestSocketSelector {
     SocketInfo select(int timeout) throws IOException {
         switch (addresses.size()) {
             case 0:
-                return null;
+                throw new IOException("No addresses to select from");
             case 1:
                 return connect(timeout);
             default:
@@ -92,21 +92,20 @@ class FastestSocketSelector {
         }
     }
 
+    @SuppressWarnings("squid:S2095")
     private SocketInfo connect(int timeout) throws IOException {
-        final Socket socket = SocketFactory.getDefault().createSocket();
         final URI uri = addresses.get(0);
+        Socket socket = null;
         try {
+            socket = SocketFactory.getDefault().createSocket();
             final InetSocketAddress address = new InetSocketAddress(uri.getHost(), uri.getPort());
             socket.connect(address, timeout);
             return new SocketInfo(uri, socket);
-        } catch (IOException | UnresolvedAddressException e) {
+        } catch (Exception e) {
+            addresses.remove(uri);
             log.error("Could not connect to '{}'", uri, e);
-            try {
-                socket.close();
-            } catch (IOException ioe) {
-                //Ignored
-            }
-            return null;
+            closeQuietly(socket);
+            throw e;
         }
     }
 
@@ -116,9 +115,6 @@ class FastestSocketSelector {
         try {
             initConnections(selector);
             SelectionKey key = selectFirstConnectedSocketChannel(selector, timeout);
-            if (key == null) {
-                return null;
-            }
             final SocketChannel channel = (SocketChannel)key.channel();
             key.cancel();
             channel.configureBlocking(true);
@@ -138,23 +134,18 @@ class FastestSocketSelector {
 
         while (!selector.keys().isEmpty()) {
             if (selector.select(connectTimeout) == 0) { // Block until something happens
-                return null;
+                break;
             }
-
             Iterator<SelectionKey> it = selector.selectedKeys().iterator();
             while (it.hasNext()) {
                 SelectionKey key = it.next();
                 if (isConnected(key)) {
                     return key;
-                } else {
-                    //connection failed, do not consider this address any more
-                    addresses.remove(key.attachment());
                 }
                 it.remove();
             }
         }
-
-        return null;
+        throw new IOException("Unable to connect to any of the provided addresses.");
     }
 
     private boolean isConnected(SelectionKey key) {
@@ -163,6 +154,8 @@ class FastestSocketSelector {
             try {
                 return channel.finishConnect();
             } catch (Exception e) {
+                //connection failed, do not consider this address any more
+                addresses.remove(key.attachment());
                 key.cancel();
                 closeQuietly(channel);
                 log.trace("Error connecting socket channel: {}", e.getMessage());
