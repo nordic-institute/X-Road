@@ -110,7 +110,6 @@
 import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
 import Expandable from '@/components/Expandable.vue';
-import WarningDialog from '@/components/WarningDialog.vue';
 import ServiceIcon from '@/components/ServiceIcon.vue';
 import LargeButton from '@/components/LargeButton.vue';
 import CertificateStatus from '@/components/CertificateStatus.vue';
@@ -147,7 +146,6 @@ type SelectedObject = undefined | ISelectedObject;
 export default Vue.extend({
   components: {
     Expandable,
-    WarningDialog,
     ServiceIcon,
     LargeButton,
     CertificateStatus,
