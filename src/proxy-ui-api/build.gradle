@@ -158,10 +158,6 @@ jar {
     classifier = 'plainDependency'
 }
 
-//def plainDependencyFile = file("$buildDir/libs/proxy-ui-api-1.0-dependency.jar")
-//def plainDependencyFile = file("/home/janne/projects/niis/xroad-ui/git/fix-devtools2/X-Road/src/proxy-ui-api/build/libs/proxy-ui-api-1.0-plainDependency.jar")
-// /home/janne/projects/niis/xroad-ui/git/fix-devtools2/X-Road/src/proxy-ui-api/build/libs
-
 configurations {
     compile {
         exclude group: 'org.hibernate', module: 'hibernate-hikaricp'
@@ -170,13 +166,6 @@ configurations {
     runtimeClasspath {
         extendsFrom developmentOnly
     }
-//    plainDependency {
-//        extendsFrom compile
-//        artifacts {
-//            archives plainDependencyFile
-////            plainDependencyFile
-//        }
-//    }
 }
 
 
