@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
@@ -44,9 +45,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 
+import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -82,6 +89,10 @@ public class KeyServiceTest {
             ReflectionTestUtils.setField(keyInfo, "friendlyName", newKeyName);
             return null;
         }).when(signerProxyFacade).setKeyFriendlyName(any(), any());
+
+        doThrow(KeyService.KeyNotFoundException.class)
+                .when(signerProxyFacade)
+                .setKeyFriendlyName(anyString(), eq("new-friendly-name-update-fails"));
     }
 
     @Test
@@ -105,9 +116,15 @@ public class KeyServiceTest {
     }
 
     @Test(expected = KeyService.KeyNotFoundException.class)
-    @WithMockUser(authorities = { "VIEW_KEYS" })
+    @WithMockUser(authorities = { "EDIT_KEYTABLE_FRIENDLY_NAMES", "VIEW_KEYS" })
     public void updateKeyFriendlyNameWithoutRights() throws Exception {
         keyService.updateKeyFriendlyName(KEY_NOT_FOUND_KEY_ID, "new-friendly-name");
+    }
+
+    @Test(expected = KeyService.KeyNotFoundException.class)
+    @WithMockUser(authorities = { "EDIT_KEYTABLE_FRIENDLY_NAMES", "VIEW_KEYS" })
+    public void updateFriendlyNameUpdateFails() throws Exception {
+        keyService.updateKeyFriendlyName(GOOD_KEY_ID, "new-friendly-name-update-fails");
     }
 
 }

@@ -92,8 +92,10 @@ public class KeyService {
         try {
             signerProxyFacade.setKeyFriendlyName(id, friendlyName);
             keyInfo = getKey(id);
+        } catch (KeyNotFoundException e) {
+            throw new KeyNotFoundException(e.getMessage());
         } catch (CodedException e) {
-            if (KEY_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode())) {
+            if ((SIGNER_X + "." + X_KEY_NOT_FOUND).equals(e.getMessage())) {
                 throw new KeyNotFoundException(e);
             } else {
                 throw e;
@@ -104,8 +106,6 @@ public class KeyService {
 
         return keyInfo;
     }
-
-    static final String KEY_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_KEY_NOT_FOUND;
 
     public static class KeyNotFoundException extends NotFoundException {
         public static final String ERROR_KEY_NOT_FOUND = "key_not_found";
