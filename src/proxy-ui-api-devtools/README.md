@@ -14,7 +14,6 @@ This builds devtools-enabled package `build/libs/proxy-ui-api-devtools-1.0.jar`
 ## Development authentication
 
 You can use dummy in-memory authentication by activating profile `devtools-test-auth`.
-You also need to activate either `devtools-http` or `devtools-https`.
 
 Logins for development authentication:
 - u: security-officer p: password
