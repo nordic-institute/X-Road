@@ -47,7 +47,7 @@ server {
 
 - `development` profile toggles some "safe" development aspects. It enables more logging and supports
 accessing signer from a remote IP.
-- other development profiles exist in a separate module, which is not included in a regular build. See proxy-ui-api-devtools](../proxy-ui-api-devtools/README.md)
+- other development profiles exist in a separate module, which is not included in a regular build. See [proxy-ui-api-devtools](../proxy-ui-api-devtools/README.md)
 
 
 # Api key database tables
