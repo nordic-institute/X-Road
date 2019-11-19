@@ -36,7 +36,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
  * and actuator endpoint
  */
 @Configuration
-@Profile("devtools")
+@Profile({"devtools-http", "devtools-https"})
 @Order(DevToolsWebSecurityConfig.AFTER_STATIC_ASSETS)
 public class DevToolsWebSecurityConfig extends WebSecurityConfigurerAdapter {
     public static final int AFTER_STATIC_ASSETS = 10;

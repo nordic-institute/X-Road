@@ -162,10 +162,6 @@ configurations {
     compile {
         exclude group: 'org.hibernate', module: 'hibernate-hikaricp'
     }
-    developmentOnly
-    runtimeClasspath {
-        extendsFrom developmentOnly
-    }
 }
 
 
