@@ -65,7 +65,7 @@
 
                     <v-select
                       v-model="subjectType"
-                      :items="subjectTypes"
+                      :items="subjectTypeItems"
                       label="Subject type"
                       class="flex-input"
                       clearable
@@ -100,7 +100,9 @@
               </td>
 
               <td>{{subject.member_name_group_description}}</td>
-              <td v-if="subject.subject_type === 'LOCALGROUP'">{{subject.local_group_code}}</td>
+              <td
+                v-if="subject.subject_type === subjectTypes.LOCALGROUP"
+              >{{subject.local_group_code}}</td>
               <td v-else>{{subject.id}}</td>
               <td>{{subject.subject_type}}</td>
             </tr>
@@ -143,6 +145,7 @@ function initialState() {
     memberClass: '',
     memberCode: '',
     subsystemCode: '',
+    subjectTypes: SubjectTypes,
     expandPanel: [0],
     subjects: [],
     selectedIds: [] as string[],
@@ -180,7 +183,7 @@ export default Vue.extend({
       }
       return false;
     },
-    subjectTypes(): object[] {
+    subjectTypeItems(): object[] {
       // Returns items for subject type select with translated texts
       return [
         {
