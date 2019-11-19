@@ -86,14 +86,14 @@ public class KeyService {
         return keyInfo.get();
     }
 
-    @PreAuthorize("hasAuthority('EDIT_KEYS')")
+    @PreAuthorize("hasAuthority('EDIT_KEYTABLE_FRIENDLY_NAMES')")
     public KeyInfo updateKeyFriendlyName(String id, String friendlyName) throws KeyNotFoundException {
         KeyInfo keyInfo = null;
         try {
             signerProxyFacade.setKeyFriendlyName(id, friendlyName);
             keyInfo = getKey(id);
         } catch (CodedException e) {
-            if(KEY_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode())) {
+            if (KEY_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode())) {
                 throw new KeyNotFoundException(e);
             } else {
                 throw e;

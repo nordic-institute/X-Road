@@ -62,7 +62,6 @@ export enum Permissions {
   EDIT_SERVICE_ACL = 'EDIT_SERVICE_ACL',
   EDIT_SERVICE_PARAMS = 'EDIT_SERVICE_PARAMS',
   EDIT_WSDL = 'EDIT_WSDL', // client > services > edit service description
-  EDIT_KEYS = 'EDIT_KEYS',
   ENABLE_DISABLE_WSDL = 'ENABLE_DISABLE_WSDL',  // client > services > enable / disable WSDL switch
   EXPORT_CLIENT_SERVICES_ACL = 'EXPORT_CLIENT_SERVICES_ACL',
   EXPORT_INTERNAL_SSL_CERT = 'EXPORT_INTERNAL_SSL_CERT', // export certificate in client "internal servers" view

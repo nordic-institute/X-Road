@@ -80,7 +80,7 @@ public class KeysApiController implements KeysApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('EDIT_KEYS')")
+    @PreAuthorize("hasAuthority('EDIT_KEYTABLE_FRIENDLY_NAMES')")
     public ResponseEntity<Key> updateKey(String id, KeyName keyName) {
         KeyInfo keyInfo = null;
         try {
