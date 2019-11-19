@@ -17,55 +17,11 @@ buildscript {
     }
 }
 
-configurations {
-    compile {
-        exclude group: 'org.hibernate', module: 'hibernate-hikaricp'
-    }
-    developmentOnly
-    runtimeClasspath {
-        extendsFrom developmentOnly
-    }
-}
-
 sourceSets {
     main {
         java.srcDirs = ['src/main/java', 'build/generated-sources']
     }
 }
-
-//ext.excludeDevToolsSetting = project.hasProperty('activate-devtools-do-not-use-in-production') ? false : true
-//
-//if (!excludeDevToolsSetting) {
-//    def pass = ''
-//    try {
-//        new SwingBuilder().edt {
-//            dialog(modal: true, // Otherwise the build will continue running before you closed the dialog
-//                    title: 'Confirm devtools build', // Dialog title
-//                    alwaysOnTop: true, // pretty much what the name says
-//                    resizable: false, // Don't allow the user to resize the dialog
-//                    locationRelativeTo: null, // Place dialog in center of the screen
-//                    pack: true, // We need to pack the dialog (so it will take the size of it's children
-//                    show: true // Let's show it
-//            ) {
-//                vbox { // Put everything below each other
-//                    label(text: "Are you sure you want to include development tool dependencies in built jar? "
-//        + "Development tools must not be included in non-development environments")
-//                    input = textField()
-//                    button(defaultButton: true, text: 'OK', actionPerformed: {
-//                        pass = input.text; // Set pass variable to value of input field
-//                        dispose(); // Close dialog
-//                    })
-//                }
-//            }
-//        }
-//    } catch (Exception ignored) {
-//        throw new GradleException('Stopped build, could not get confirmation for devtools build. Did you try to build in headless environment or with gradle daemon?')
-//    }
-//    pass = new String(pass)
-//    if (pass != "y") {
-//        throw new GradleException('Stopped build since devtools confirmation was not acceptable')
-//    }
-//}
 
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
@@ -82,13 +38,7 @@ bootRun {
 
 bootJar {
     excludeDevtools = true
-//    excludeDevtools = excludeDevToolsSetting
-//    if (!excludeDevToolsSetting) {
-//        appendix = "devtools"
-//    }
-//    println 'excludeDevTools in bootJar=' + excludeDevToolsSetting
 }
-
 
 processResources {
     from ('frontend/dist/') {
@@ -203,6 +153,33 @@ dependencyManagement {
     }
 }
 
+jar {
+    enabled = true
+    classifier = 'plainDependency'
+}
+
+//def plainDependencyFile = file("$buildDir/libs/proxy-ui-api-1.0-dependency.jar")
+//def plainDependencyFile = file("/home/janne/projects/niis/xroad-ui/git/fix-devtools2/X-Road/src/proxy-ui-api/build/libs/proxy-ui-api-1.0-plainDependency.jar")
+// /home/janne/projects/niis/xroad-ui/git/fix-devtools2/X-Road/src/proxy-ui-api/build/libs
+
+configurations {
+    compile {
+        exclude group: 'org.hibernate', module: 'hibernate-hikaricp'
+    }
+    developmentOnly
+    runtimeClasspath {
+        extendsFrom developmentOnly
+    }
+//    plainDependency {
+//        extendsFrom compile
+//        artifacts {
+//            archives plainDependencyFile
+////            plainDependencyFile
+//        }
+//    }
+}
+
+
 dependencies {
     implementation project(':serverconf')
     implementation project(':common-ui')
@@ -225,12 +202,6 @@ dependencies {
     testImplementation('org.springframework.security:spring-security-test')
     testImplementation('org.hsqldb:hsqldb')
 
-//    developmentOnly("org.springframework.boot:spring-boot-devtools")
-//    developmentOnly project(':proxy-ui-api-devtools')
-//    if (!excludeDevToolsSetting) {
-//        developmentOnly project(':proxy-ui-api-devtools')
-//    } ei taida toimia
-    // openapi-generator related
     implementation('io.springfox:springfox-swagger2:2.8.0')
     implementation('io.springfox:springfox-swagger-ui:2.8.0')
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
