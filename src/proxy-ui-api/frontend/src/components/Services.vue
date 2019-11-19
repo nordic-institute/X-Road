@@ -256,7 +256,7 @@ export default Vue.extend({
     serviceClick(service: any): void {
       this.$router.push({
         name: RouteName.Service,
-        params: { serviceId: service.id },
+        params: { serviceId: service.id, clientId: this.id },
       });
     },
     switchChanged(event: any, serviceDesc: any, index: number): void {

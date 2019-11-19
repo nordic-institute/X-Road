@@ -3,7 +3,8 @@
 
 
 export interface Service {
-  'service_id': string;
+  'id': string;
+  'service_code': string;
   'code': string;
   'timeout': number;
   'ssl_auth': boolean;
@@ -25,6 +26,11 @@ export interface ServiceDescription {
 
 
 export interface AccessRightSubject {
-  'id': string;
-  'name': string;
+  'rights_given_at': string;
+  'subject': {
+    'id': string;
+    'member_name_group_description': string;
+    'subject_type': string;
+  };
 }
+

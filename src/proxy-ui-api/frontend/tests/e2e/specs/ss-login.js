@@ -2,10 +2,10 @@
 module.exports = {
   tags: ['ss', 'login'],
   'Security server failed login': browser => {
-   const frontPage = browser.page.ssFrontPage();
- 
-   // Open SUT and check that page is loaded
-   frontPage
+    const frontPage = browser.page.ssFrontPage();
+
+    // Open SUT and check that page is loaded
+    frontPage
       .navigate();
     browser.waitForElementVisible('#app');
 
@@ -17,10 +17,10 @@ module.exports = {
 
     // Verify error message
     browser
-      .useXpath().waitForElementVisible('//div[contains(@class, "v-messages__message") and text()="Wrong username or password"]')
+      .useXpath().waitForElementVisible('//div[text() = "Wrong username or password"]')
       .useCss()
       .end();
-  }, 
+  },
   'Security server passed login': browser => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
@@ -49,4 +49,5 @@ module.exports = {
 
     browser
       .end()
-}};
+  }
+};

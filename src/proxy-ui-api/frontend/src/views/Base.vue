@@ -34,8 +34,8 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import axios from 'axios';
 import { RouteName } from '@/global';
+import * as api from '@/util/api';
 import Toolbar from '../components/Toolbar.vue';
 export default Vue.extend({
   components: {
@@ -57,7 +57,7 @@ export default Vue.extend({
       this.logout();
     },
     pollSessionStatus() {
-      return axios.get('/notifications/session-status').catch((error) => {
+      return api.get('/notifications/session-status').catch((error) => {
         if (error.response && error.response.status === 401) {
           this.logoutDialog = true;
           clearInterval(this.interval);

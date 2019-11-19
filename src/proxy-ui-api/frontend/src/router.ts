@@ -251,7 +251,7 @@ const router = new Router({
         },
         {
           name: RouteName.Service,
-          path: '/service/:serviceId',
+          path: '/service/:clientId/:serviceId',
           components: {
             default: Service,
           },
