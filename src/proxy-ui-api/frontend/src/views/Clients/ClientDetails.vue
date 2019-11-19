@@ -105,7 +105,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/tables';
+@import '../../assets/tables';
 
 .detail-table {
   margin-top: 40px;

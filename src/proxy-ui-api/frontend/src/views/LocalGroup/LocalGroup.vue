@@ -124,7 +124,7 @@ import Vue from 'vue';
 import _ from 'lodash';
 import { Permissions } from '@/global';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import AddMembersDialog from '@/components/AddMembersDialog.vue';
+import AddMembersDialog from './AddMembersDialog.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import * as api from '@/util/api';
@@ -329,8 +329,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/colors';
-@import '../assets/tables';
+@import '../../assets/colors';
+@import '../../assets/tables';
 
 .edit-row {
   display: flex;

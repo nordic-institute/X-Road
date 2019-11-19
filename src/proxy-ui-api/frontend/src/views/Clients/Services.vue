@@ -137,9 +137,9 @@ import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
 import * as api from '@/util/api';
 import Expandable from '@/components/ui/Expandable.vue';
-import AddWsdlDialog from '@/components/AddWsdlDialog.vue';
-import AddRestDialog from '@/components/AddRestDialog.vue';
-import DisableServiceDescDialog from '@/components/DisableServiceDescDialog.vue';
+import AddWsdlDialog from './AddWsdlDialog.vue';
+import AddRestDialog from './AddRestDialog.vue';
+import DisableServiceDescDialog from './DisableServiceDescDialog.vue';
 import WarningDialog from '@/components/WarningDialog.vue';
 import ServiceIcon from '@/components/ServiceIcon.vue';
 
@@ -484,7 +484,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/tables';
+@import '../../assets/tables';
 
 .wrapper {
   margin-top: 20px;

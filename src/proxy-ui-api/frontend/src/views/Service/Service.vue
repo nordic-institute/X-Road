@@ -190,7 +190,7 @@ import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import AccessRightsDialog from '@/components/AccessRightsDialog.vue';
+import AccessRightsDialog from './AccessRightsDialog.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
@@ -414,8 +414,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/colors';
-@import '../assets/tables';
+@import '../../assets/colors';
+@import '../../assets/tables';
 
 .apply-to-all {
   display: flex;

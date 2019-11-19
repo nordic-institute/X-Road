@@ -232,7 +232,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/tables';
-@import '../assets/add-dialogs';
+@import '../../assets/tables';
+@import '../../assets/add-dialogs';
 </style>
 

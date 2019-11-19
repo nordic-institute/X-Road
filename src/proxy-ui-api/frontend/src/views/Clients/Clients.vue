@@ -1,13 +1,13 @@
 <template>
   <v-layout align-center justify-center column>
-    <clientsDataTable/>
+    <clientsDataTable />
   </v-layout>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import ClientsDataTable from '../components/ClientsDataTable.vue';
+import ClientsDataTable from './ClientsDataTable.vue';
 export default Vue.extend({
   components: {
     ClientsDataTable,

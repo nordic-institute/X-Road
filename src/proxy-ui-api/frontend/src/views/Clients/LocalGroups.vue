@@ -47,7 +47,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
-import NewGroupDialog from '@/components/NewGroupDialog.vue';
+import NewGroupDialog from './NewGroupDialog.vue';
 
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
@@ -120,7 +120,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/tables';
+@import '../../assets/tables';
 
 .cert-name {
   text-decoration: underline;
