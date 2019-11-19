@@ -60,7 +60,7 @@
  * Table component for an array of keys
  */
 import Vue from 'vue';
-import CertificateStatus from '@/components/CertificateStatus.vue';
+import CertificateStatus from './CertificateStatus.vue';
 
 export default Vue.extend({
   components: {
@@ -93,7 +93,7 @@ export default Vue.extend({
 
 
 <style lang="scss" scoped>
-@import '../assets/tables';
+@import '../../assets/tables';
 .icon {
   margin-left: 18px;
   margin-right: 20px;

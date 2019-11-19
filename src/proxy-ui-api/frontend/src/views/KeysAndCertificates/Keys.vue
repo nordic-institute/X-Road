@@ -31,12 +31,10 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
-import SignAndAuthKeys from '@/components/SignAndAuthKeys.vue';
 import HelpDialog from '@/components/HelpDialog.vue';
 
 export default Vue.extend({
   components: {
-    SignAndAuthKeys,
     HelpDialog,
   },
   data: () => ({

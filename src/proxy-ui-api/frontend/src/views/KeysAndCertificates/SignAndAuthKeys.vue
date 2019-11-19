@@ -110,13 +110,13 @@
 import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
 import Expandable from '@/components/ui/Expandable.vue';
-import ServiceIcon from '@/components/ServiceIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import CertificateStatus from '@/components/CertificateStatus.vue';
-import TokenLoginDialog from '@/components/TokenLoginDialog.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-import KeysTable from '@/components/KeysTable.vue';
-import UnknownKeysTable from '@/components/UnknownKeysTable.vue';
+import ServiceIcon from '@/components/ui/ServiceIcon.vue';
+import CertificateStatus from './CertificateStatus.vue';
+import TokenLoginDialog from './TokenLoginDialog.vue';
+import KeysTable from './KeysTable.vue';
+import UnknownKeysTable from './UnknownKeysTable.vue';
 import { mapGetters } from 'vuex';
 import * as api from '@/util/api';
 
@@ -354,7 +354,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/tables';
+@import '../../assets/tables';
 
 .wrapper {
   margin-top: 20px;
