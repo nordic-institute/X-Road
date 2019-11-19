@@ -81,7 +81,7 @@ public class KeyServiceTest {
             String newKeyName = (String) arguments[1];
             ReflectionTestUtils.setField(keyInfo, "friendlyName", newKeyName);
             return null;
-        }).when(signerProxyFacade).setKeyFriendlyName(any(),any() );
+        }).when(signerProxyFacade).setKeyFriendlyName(any(), any());
     }
 
     @Test
