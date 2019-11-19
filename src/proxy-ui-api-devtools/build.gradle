@@ -1,3 +1,10 @@
+buildscript {
+    ext {
+        springCloudSleuthVersion = '2.1.3.RELEASE'
+    }
+}
+
+apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 
 dependencyManagement {
@@ -6,10 +13,31 @@ dependencyManagement {
     }
 }
 
+bootJar {
+    excludeDevtools = false
+}
+
+configurations {
+    developmentOnly
+    runtimeClasspath {
+        extendsFrom developmentOnly
+    }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-sleuth:${springCloudSleuthVersion}"
+    }
+}
+
 dependencies {
+    implementation project(':proxy-ui-api')
     implementation('org.springframework.boot:spring-boot-starter-security')
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation('org.springframework.boot:spring-boot-starter-actuator')
+    implementation('org.springframework.cloud:spring-cloud-starter-sleuth')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')
+
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
 }
