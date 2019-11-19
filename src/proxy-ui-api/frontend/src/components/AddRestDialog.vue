@@ -49,7 +49,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import SimpleDialog from '@/components/SimpleDialog.vue';
+import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 import { isValidRestURL } from '@/util/helpers';
 
 export default Vue.extend({
@@ -96,5 +96,4 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../assets/dialogs';
 </style>
-
 

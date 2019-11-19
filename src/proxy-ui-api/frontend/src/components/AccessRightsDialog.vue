@@ -129,7 +129,7 @@
 import Vue from 'vue';
 import * as api from '@/util/api';
 import { mapGetters } from 'vuex';
-import LargeButton from '@/components/LargeButton.vue';
+import LargeButton from '@/components/ui/LargeButton.vue';
 
 enum SubjectTypes {
   GLOBALGROUP = 'GLOBALGROUP',

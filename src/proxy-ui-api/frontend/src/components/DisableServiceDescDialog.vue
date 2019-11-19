@@ -18,7 +18,7 @@
 <script lang="ts">
 // Dialog to confirm service description disabling
 import Vue from 'vue';
-import SimpleDialog from '@/components/SimpleDialog.vue';
+import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 
 export default Vue.extend({
   components: { SimpleDialog },

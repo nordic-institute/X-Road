@@ -136,7 +136,7 @@
 import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
 import * as api from '@/util/api';
-import Expandable from '@/components/Expandable.vue';
+import Expandable from '@/components/ui/Expandable.vue';
 import AddWsdlDialog from '@/components/AddWsdlDialog.vue';
 import AddRestDialog from '@/components/AddRestDialog.vue';
 import DisableServiceDescDialog from '@/components/DisableServiceDescDialog.vue';

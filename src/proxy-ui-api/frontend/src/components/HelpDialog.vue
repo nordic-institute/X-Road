@@ -23,7 +23,7 @@
 /** Component for help dialogs */
 
 import Vue from 'vue';
-import LargeButton from '@/components/LargeButton.vue';
+import LargeButton from '@/components/ui/LargeButton.vue';
 
 export default Vue.extend({
   components: {

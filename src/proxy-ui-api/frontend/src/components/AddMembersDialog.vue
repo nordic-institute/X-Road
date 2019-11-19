@@ -114,7 +114,7 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import * as api from '@/util/api';
-import LargeButton from '@/components/LargeButton.vue';
+import LargeButton from '@/components/ui/LargeButton.vue';
 
 function initialState() {
   return {

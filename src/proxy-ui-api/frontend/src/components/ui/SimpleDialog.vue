@@ -26,7 +26,7 @@
 /** Base component for simple dialogs */
 
 import Vue from 'vue';
-import LargeButton from '@/components/LargeButton.vue';
+import LargeButton from '@/components/ui/LargeButton.vue';
 
 export default Vue.extend({
   components: {
@@ -93,7 +93,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/colors';
+@import '../../assets/colors';
 
 .content-wrapper {
   margin-top: 18px;

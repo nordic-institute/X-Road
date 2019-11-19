@@ -123,10 +123,10 @@
 import Vue from 'vue';
 import _ from 'lodash';
 import { Permissions } from '@/global';
-import SubViewTitle from '@/components/SubViewTitle.vue';
+import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import AddMembersDialog from '@/components/AddMembersDialog.vue';
-import ConfirmDialog from '@/components/ConfirmDialog.vue';
-import LargeButton from '@/components/LargeButton.vue';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import LargeButton from '@/components/ui/LargeButton.vue';
 import * as api from '@/util/api';
 
 interface IGroupMember {

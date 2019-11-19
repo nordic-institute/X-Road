@@ -62,9 +62,9 @@ import _ from 'lodash';
 import * as api from '@/util/api';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { Permissions } from '@/global';
-import SubViewTitle from '@/components/SubViewTitle.vue';
-import ConfirmDialog from '@/components/ConfirmDialog.vue';
-import LargeButton from '@/components/LargeButton.vue';
+import SubViewTitle from '@/components/ui/SubViewTitle.vue';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import LargeButton from '@/components/ui/LargeButton.vue';
 
 export default Vue.extend({
   components: {

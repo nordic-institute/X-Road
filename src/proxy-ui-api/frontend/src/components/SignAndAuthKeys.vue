@@ -109,12 +109,12 @@
 // View for services tab
 import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
-import Expandable from '@/components/Expandable.vue';
+import Expandable from '@/components/ui/Expandable.vue';
 import ServiceIcon from '@/components/ServiceIcon.vue';
-import LargeButton from '@/components/LargeButton.vue';
+import LargeButton from '@/components/ui/LargeButton.vue';
 import CertificateStatus from '@/components/CertificateStatus.vue';
 import TokenLoginDialog from '@/components/TokenLoginDialog.vue';
-import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import KeysTable from '@/components/KeysTable.vue';
 import UnknownKeysTable from '@/components/UnknownKeysTable.vue';
 import { mapGetters } from 'vuex';

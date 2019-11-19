@@ -29,7 +29,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/colors';
+@import '../../assets/colors';
 
 .new-content {
   max-width: 850px;

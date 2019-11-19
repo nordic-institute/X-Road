@@ -49,7 +49,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped >
-@import '../assets/colors';
+@import '../../assets/colors';
 
 .no-hover:hover:before,
 .no-hover:focus:before {

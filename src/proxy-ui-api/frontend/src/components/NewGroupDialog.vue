@@ -23,7 +23,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
-import SimpleDialog from '@/components/SimpleDialog.vue';
+import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 
 export default Vue.extend({
   components: { SimpleDialog },
