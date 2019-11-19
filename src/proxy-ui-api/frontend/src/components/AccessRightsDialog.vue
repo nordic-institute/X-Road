@@ -129,11 +129,16 @@ import * as api from '@/util/api';
 import { mapGetters } from 'vuex';
 import LargeButton from '@/components/LargeButton.vue';
 
+enum SubjectTypes {
+  GLOBALGROUP = 'GLOBALGROUP',
+  LOCALGROUP = 'LOCALGROUP',
+  SUBSYSTEM = 'SUBSYSTEM',
+}
+
 function initialState() {
   return {
     name: '',
     subjectType: '',
-    subjectTypes: ['GLOBALGROUP', 'LOCALGROUP', 'SUBSYSTEM'],
     instance: '',
     memberClass: '',
     memberCode: '',
@@ -175,8 +180,24 @@ export default Vue.extend({
       }
       return false;
     },
+    subjectTypes(): object[] {
+      // Returns items for subject type select with translated texts
+      return [
+        {
+          text: this.$t('subjectType.globalGroup'),
+          value: SubjectTypes.GLOBALGROUP,
+        },
+        {
+          text: this.$t('subjectType.localGroup'),
+          value: SubjectTypes.LOCALGROUP,
+        },
+        {
+          text: this.$t('subjectType.subsystem'),
+          value: SubjectTypes.SUBSYSTEM,
+        },
+      ];
+    },
   },
-
   methods: {
     checkboxChange(subject: any, event: any): void {
       if (event === true) {

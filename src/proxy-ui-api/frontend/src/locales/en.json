@@ -241,6 +241,11 @@
     "invalidRest": "REST URL is not valid",
     "invalidWsdl": "WSDL URL is not valid"
   },
+  "subjectType": {
+    "globalGroup": "GLOBALGROUP",
+    "localGroup": "LOCALGROUP",
+    "subsystem": "SUBSYSTEM"
+  },
   "name": "Name",
   "member_class": "Member class",
   "member_name": "Member name",
