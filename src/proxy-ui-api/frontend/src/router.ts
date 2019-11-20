@@ -243,7 +243,7 @@ const router = new Router({
         },
         {
           name: RouteName.ServiceDescriptionDetails,
-          path: '/services/details/:id',
+          path: '/service-description/:id',
           components: {
             default: ServiceDescriptionDetails,
           },
