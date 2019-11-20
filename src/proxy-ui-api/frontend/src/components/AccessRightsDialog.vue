@@ -1,8 +1,8 @@
 <template>
-  <v-dialog :value="dialog" width="750" scrollable persistent>
+  <v-dialog :value="dialog" width="850" scrollable persistent>
     <v-card class="xrd-card">
       <v-card-title>
-        <span class="headline">{{$t(title)}}</span>
+        <span class="headline">{{$t('access.addSubjectsTitle')}}</span>
         <v-spacer />
         <i @click="cancel()" id="close-x"></i>
       </v-card-title>
@@ -47,19 +47,30 @@
                     ></v-select>
                     <v-text-field
                       v-model="memberCode"
-                      :label="$t('member_code')"
+                      label="Member group code"
                       single-line
                       hide-details
                       class="flex-input"
                     ></v-text-field>
                   </div>
-                  <v-text-field
-                    v-model="subsystemCode"
-                    :label="$t('subsystem_code')"
-                    single-line
-                    hide-details
-                    class="flex-input"
-                  ></v-text-field>
+
+                  <div class="input-row">
+                    <v-text-field
+                      v-model="subsystemCode"
+                      :label="$t('subsystem_code')"
+                      single-line
+                      hide-details
+                      class="flex-input"
+                    ></v-text-field>
+
+                    <v-select
+                      v-model="subjectType"
+                      :items="subjectTypeItems"
+                      label="Subject type"
+                      class="flex-input"
+                      clearable
+                    ></v-select>
+                  </div>
                 </div>
 
                 <div class="search-wrap">
@@ -71,29 +82,33 @@
         </v-expansion-panels>
 
         <!-- Table -->
-
         <table class="xrd-table members-table fixed_header">
           <thead>
             <tr>
-              <th></th>
-              <th>{{$t('name')}}</th>
-              <th>{{$t('localGroup.id')}}</th>
+              <th class="first-column"></th>
+              <th>{{$t('services.memberNameGroupDesc')}}</th>
+              <th>{{$t('services.idGroupCode')}}</th>
+              <th>{{$t('type')}}</th>
             </tr>
           </thead>
-          <tbody v-if="members && members.length > 0">
-            <tr v-for="member in members" v-bind:key="member.id">
-              <td>
+          <tbody v-if="subjects && subjects.length > 0">
+            <tr v-for="subject in subjects" v-bind:key="subject.id">
+              <td class="first-column">
                 <div class="checkbox-wrap">
-                  <v-checkbox @change="checkboxChange(member.id, $event)" color="primary"></v-checkbox>
+                  <v-checkbox @change="checkboxChange(subject, $event)" color="primary"></v-checkbox>
                 </div>
               </td>
 
-              <td>{{member.member_name}}</td>
-              <td>{{member.id}}</td>
+              <td>{{subject.member_name_group_description}}</td>
+              <td
+                v-if="subject.subject_type === subjectTypes.LOCALGROUP"
+              >{{subject.local_group_code}}</td>
+              <td v-else>{{subject.id}}</td>
+              <td>{{subject.subject_type}}</td>
             </tr>
           </tbody>
         </table>
-        <div v-if="members.length < 1 && !noResults" class="empty-row"></div>
+        <div v-if="subjects.length < 1 && !noResults" class="empty-row"></div>
 
         <div v-if="noResults" class="empty-row">
           <p>{{$t('localGroup.noResults')}}</p>
@@ -112,19 +127,27 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
 import * as api from '@/util/api';
+import { mapGetters } from 'vuex';
 import LargeButton from '@/components/LargeButton.vue';
+
+enum SubjectTypes {
+  GLOBALGROUP = 'GLOBALGROUP',
+  LOCALGROUP = 'LOCALGROUP',
+  SUBSYSTEM = 'SUBSYSTEM',
+}
 
 function initialState() {
   return {
     name: '',
+    subjectType: '',
     instance: '',
     memberClass: '',
     memberCode: '',
     subsystemCode: '',
+    subjectTypes: SubjectTypes,
     expandPanel: [0],
-    members: [],
+    subjects: [],
     selectedIds: [] as string[],
     noResults: false,
     checkbox1: true,
@@ -140,12 +163,12 @@ export default Vue.extend({
       type: Boolean,
       required: true,
     },
+    clientId: {
+      type: String,
+      required: true,
+    },
     filtered: {
       type: Array,
-    },
-    title: {
-      type: String,
-      default: 'localGroup.addMembers',
     },
   },
 
@@ -160,14 +183,30 @@ export default Vue.extend({
       }
       return false;
     },
+    subjectTypeItems(): object[] {
+      // Returns items for subject type select with translated texts
+      return [
+        {
+          text: this.$t('subjectType.globalGroup'),
+          value: SubjectTypes.GLOBALGROUP,
+        },
+        {
+          text: this.$t('subjectType.localGroup'),
+          value: SubjectTypes.LOCALGROUP,
+        },
+        {
+          text: this.$t('subjectType.subsystem'),
+          value: SubjectTypes.SUBSYSTEM,
+        },
+      ];
+    },
   },
-
   methods: {
-    checkboxChange(id: string, event: any): void {
+    checkboxChange(subject: any, event: any): void {
       if (event === true) {
-        this.selectedIds.push(id);
+        this.selectedIds.push(subject);
       } else {
-        const index = this.selectedIds.indexOf(id);
+        const index = this.selectedIds.indexOf(subject);
         if (index > -1) {
           this.selectedIds.splice(index, 1);
         }
@@ -175,9 +214,9 @@ export default Vue.extend({
     },
     search(): void {
       this.noResults = false;
-      let query = `/clients?name=${this.name}&member_code=${this.memberCode}&subsystem_code=${this.subsystemCode}&show_members=false&internal_search=false`;
+      let query = `/clients/${this.clientId}/subjects?member_name_group_description=${this.name}&member_group_code=${this.memberCode}&subsystem_code=${this.subsystemCode}`;
 
-      // These checks are needed because instance and member class (dropdowns) return undefined if they are first selected and then cleared
+      // These checks are needed because instance, subject type and member class (dropdowns) return undefined if they are first selected and then cleared
       if (this.instance) {
         query = query + `&instance=${this.instance}`;
       }
@@ -186,22 +225,29 @@ export default Vue.extend({
         query = query + `&member_class=${this.memberClass}`;
       }
 
+      if (this.subjectType) {
+        query = query + `&subject_type=${this.subjectType}`;
+      }
+
       api
         .get(query)
         .then((res) => {
           if (this.filtered && this.filtered.length > 0) {
-            // Filter out members that are already added
-            this.members = res.data.filter((member: any) => {
-              return !this.filtered.find((item: any) => {
-                return item.id === member.id;
+            // Filter out subjects that are already added
+            this.subjects = res.data.filter((subject: any) => {
+              return !this.filtered.find((filterItem: any) => {
+                return (
+                  filterItem.subject.id === subject.id &&
+                  filterItem.subject.subject_type === subject.subject_type
+                );
               });
             });
           } else {
             // Show results straight if there is nothing to filter
-            this.members = res.data;
+            this.subjects = res.data;
           }
 
-          if (this.members.length < 1) {
+          if (this.subjects.length < 1) {
             this.noResults = true;
           }
         })
@@ -215,7 +261,7 @@ export default Vue.extend({
       this.$emit('cancel');
     },
     save(): void {
-      this.$emit('membersAdded', this.selectedIds);
+      this.$emit('subjectsAdded', this.selectedIds);
       this.clearForm();
     },
 
@@ -234,5 +280,9 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../assets/tables';
 @import '../assets/add-dialogs';
+
+.first-column {
+  width: 40px;
+}
 </style>
 

@@ -73,6 +73,14 @@
               @keyClick="keyClick"
               @certificateClick="certificateClick"
             />
+            <!-- Keys with unknown type -->
+            <unknown-keys-table
+              v-if="getOtherKeys(token.keys).length > 0"
+              :keys="getOtherKeys(token.keys)"
+              title="keys.unknown"
+              @keyClick="keyClick"
+              @certificateClick="certificateClick"
+            />
           </div>
         </template>
       </expandable>
@@ -102,13 +110,13 @@
 import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
 import Expandable from '@/components/Expandable.vue';
-import WarningDialog from '@/components/WarningDialog.vue';
 import ServiceIcon from '@/components/ServiceIcon.vue';
 import LargeButton from '@/components/LargeButton.vue';
 import CertificateStatus from '@/components/CertificateStatus.vue';
 import TokenLoginDialog from '@/components/TokenLoginDialog.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import KeysTable from '@/components/KeysTable.vue';
+import UnknownKeysTable from '@/components/UnknownKeysTable.vue';
 import { mapGetters } from 'vuex';
 import * as api from '@/util/api';
 
@@ -138,13 +146,13 @@ type SelectedObject = undefined | ISelectedObject;
 export default Vue.extend({
   components: {
     Expandable,
-    WarningDialog,
     ServiceIcon,
     LargeButton,
     CertificateStatus,
     TokenLoginDialog,
     ConfirmDialog,
     KeysTable,
+    UnknownKeysTable,
   },
   data() {
     return {
@@ -290,7 +298,7 @@ export default Vue.extend({
     },
 
     getAuthKeys(keys: any): any {
-      // Filter out service deascriptions that don't include search term
+      // Filter out service descriptions that don't include search term
       const filtered = keys.filter((key: any) => {
         return key.usage === 'AUTHENTICATION';
       });
@@ -299,9 +307,18 @@ export default Vue.extend({
     },
 
     getSignKeys(keys: any): any {
-      // Filter out service deascriptions that don't include search term
+      // Filter out service descriptions that don't include search term
       const filtered = keys.filter((key: any) => {
         return key.usage === 'SIGNING';
+      });
+
+      return filtered;
+    },
+
+    getOtherKeys(keys: any): any {
+      // Filter out service descriptions that don't include search term
+      const filtered = keys.filter((key: any) => {
+        return key.usage !== 'SIGNING' && key.usage !== 'AUTHENTICATION';
       });
 
       return filtered;

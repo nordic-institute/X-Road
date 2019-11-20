@@ -113,8 +113,6 @@
       v-if="group"
       :dialog="addMembersDialogVisible"
       :filtered="group.members"
-      :instances="instances"
-      :memberClasses="memberClasses"
       @cancel="closeMembersDialog"
       @membersAdded="doAddMembers"
     />
@@ -124,12 +122,12 @@
 <script lang="ts">
 import Vue from 'vue';
 import _ from 'lodash';
-import axios from 'axios';
 import { Permissions } from '@/global';
 import SubViewTitle from '@/components/SubViewTitle.vue';
 import AddMembersDialog from '@/components/AddMembersDialog.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import LargeButton from '@/components/LargeButton.vue';
+import * as api from '@/util/api';
 
 interface IGroupMember {
   id: string;
@@ -176,8 +174,6 @@ export default Vue.extend({
       group: undefined as LocalGroup,
       groupCode: '',
       addMembersDialogVisible: false,
-      memberClasses: [],
-      instances: [],
     };
   },
   computed: {
@@ -211,8 +207,11 @@ export default Vue.extend({
     },
 
     saveDescription(): void {
-      axios
-        .put(`/local-groups/${this.groupId}?description=${this.description}`)
+      api
+        .put(
+          `/local-groups/${this.groupId}?description=${this.description}`,
+          {},
+        )
         .then((res) => {
           this.$bus.$emit('show-success', 'localGroup.descSaved');
           this.group = res.data;
@@ -225,30 +224,12 @@ export default Vue.extend({
     },
 
     fetchData(clientId: string, groupId: number | string): void {
-      axios
+      api
         .get(`/local-groups/${groupId}`)
         .then((res) => {
           this.group = res.data;
           this.groupCode = res.data.code;
           this.description = res.data.description;
-        })
-        .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
-        });
-
-      axios
-        .get(`/member-classes`)
-        .then((res) => {
-          this.memberClasses = res.data;
-        })
-        .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
-        });
-
-      axios
-        .get(`/xroad-instances`)
-        .then((res) => {
-          this.instances = res.data;
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
@@ -262,7 +243,7 @@ export default Vue.extend({
     doAddMembers(selectedIds: string[]): void {
       this.addMembersDialogVisible = false;
 
-      axios
+      api
         .post(`/local-groups/${this.groupId}/members`, {
           items: selectedIds,
         })
@@ -312,7 +293,7 @@ export default Vue.extend({
     },
 
     removeArrayOfMembers(members: string[]) {
-      axios
+      api
         .post(`/local-groups/${this.groupId}/members/delete`, {
           items: members,
         })
@@ -330,8 +311,8 @@ export default Vue.extend({
     doDeleteGroup(): void {
       this.confirmGroup = false;
 
-      axios
-        .delete(`/local-groups/${this.groupId}`)
+      api
+        .remove(`/local-groups/${this.groupId}`)
         .then(() => {
           this.$bus.$emit('show-success', 'localGroup.groupDeleted');
           this.$router.go(-1);

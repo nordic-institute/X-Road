@@ -513,25 +513,21 @@ After the X-Road governing authority has accepted the registration, the registra
 
 To change the security server owner the following actions must be completed.
 
-- The new Owner member must be added to the security server (see [4.2](#42-adding-a-security-server-client)).
+- A new member must be added to the security server (see [4.2](#42-adding-a-security-server-client)). If needed, specify the token on which the member is configured
 
-- A Signing Key and Certificate must be configured for the new Owner member (see [4.3](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client)).
+- If not yet available, a Signing Key and Certificate must be configured for the new member (see [4.3](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client)).
  
-- The new Owner must be registered in the X-Road Governing Authority (see [4.3](#44-registering-a-security-server-client-in-the-x-road-governing-authority)).
+- The new member must be registered in the X-Road Governing Authority (see [4.3](#44-registering-a-security-server-client-in-the-x-road-governing-authority)).
 
 - The security server owner change request must be submitted from the security server. To submit an owner change request follow these steps.
 
-  1. On the **Configuration** menu, select **Security Server Clients**.
+  1. In the **Member Detail view** click **Make Owner**.
+  
+  2. Click **Make Owner** to submit a change request.
 
-  2. Select the new Owner member from the list of security server clients.
+- The change request is sent to the X-Road governing authority according to the organizational procedures of the X-Road instance.
 
-  3. Click the **Details** icon and in the window that opens, click **Make Owner**.
-
-  4. Click **Confirm** to submit the request.
-
-- A request for changing the security server owner must be submitted to the X-Road governing authority according to the organizational procedures of the X-Road instance.
-
-- The owner change request must be approved by the X-Road governing authority.
+- Once the change request is approved by the X-Road governing authority, the member will automatically become the Owner Member.
 
 - New Authentication Key and Certificate should be configured for the new security server owner (see [3.2](#32-configuring-the-authentication-key-and-certificate-for-the-security-server)).
 
