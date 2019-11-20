@@ -246,8 +246,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/tables';
-@import '../../assets/colors';
+@import '../../../assets/tables';
+@import '../../../assets/colors';
 
 .select-connection {
   max-width: 240px;

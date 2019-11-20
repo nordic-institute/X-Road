@@ -50,7 +50,7 @@ export default Vue.extend({
 
 
 <style lang="scss" scoped>
-@import '../../assets/tables';
+@import '../../../assets/tables';
 .icon {
   margin-left: 18px;
   margin-right: 20px;
