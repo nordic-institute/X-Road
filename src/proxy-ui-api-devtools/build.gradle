@@ -32,14 +32,14 @@ dependencyManagement {
 
 dependencies {
     implementation files('$buildDir/../../proxy-ui-api/build/libs/proxy-ui-api-1.0-plainDependency.jar')
-    compile project(path: ':proxy-ui-api')
+    implementation project(path: ':proxy-ui-api')
     implementation('org.springframework.boot:spring-boot-starter-security')
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation('org.springframework.boot:spring-boot-starter-actuator')
+    implementation('org.springframework.boot:spring-boot-starter-data-jpa')
     implementation('org.springframework.cloud:spring-cloud-starter-sleuth')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')
 
-    compile("org.springframework.boot:spring-boot-devtools")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 }

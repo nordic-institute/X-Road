@@ -37,8 +37,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
  */
 @Configuration
 @Profile({"devtools-hotdeploy"})
-@Order(DevToolsWebSecurityConfig.AFTER_STATIC_ASSETS)
-public class DevToolsWebSecurityConfig extends WebSecurityConfigurerAdapter {
+@Order(DevtoolsWebSecurityConfig.AFTER_STATIC_ASSETS)
+public class DevtoolsWebSecurityConfig extends WebSecurityConfigurerAdapter {
     public static final int AFTER_STATIC_ASSETS = 10;
 
     @Override
