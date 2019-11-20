@@ -90,7 +90,7 @@ import Vue from 'vue';
 
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
-import CertificateIcon from '@/components/CertificateIcon.vue';
+import CertificateIcon from './CertificateIcon.vue';
 export default Vue.extend({
   components: {
     CertificateIcon,

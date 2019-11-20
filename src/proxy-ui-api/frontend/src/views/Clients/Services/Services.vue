@@ -140,7 +140,7 @@ import Expandable from '@/components/ui/Expandable.vue';
 import AddWsdlDialog from './AddWsdlDialog.vue';
 import AddRestDialog from './AddRestDialog.vue';
 import DisableServiceDescDialog from './DisableServiceDescDialog.vue';
-import WarningDialog from '@/components/ui/WarningDialog.vue';
+import WarningDialog from '@/components/service/WarningDialog.vue';
 import ServiceIcon from '@/components/ui/ServiceIcon.vue';
 
 import _ from 'lodash';

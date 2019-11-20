@@ -34,7 +34,7 @@
  */
 
 import Vue from 'vue';
-import CertificateLine from '@/components/CertificateLine.vue';
+import CertificateLine from './CertificateLine.vue';
 
 export default Vue.extend({
   components: {

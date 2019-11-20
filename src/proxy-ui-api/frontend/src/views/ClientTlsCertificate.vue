@@ -31,10 +31,10 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import CertificateInfo from '@/components/CertificateInfo.vue';
+import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import CertificateHash from '@/components/CertificateHash.vue';
+import CertificateHash from '@/components/certificate/CertificateHash.vue';
 
 export default Vue.extend({
   components: {
