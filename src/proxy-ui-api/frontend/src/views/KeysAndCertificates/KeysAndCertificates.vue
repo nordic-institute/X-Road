@@ -31,7 +31,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
-import HelpDialog from '@/components/HelpDialog.vue';
+import HelpDialog from '@/components/ui/HelpDialog.vue';
 
 export default Vue.extend({
   components: {

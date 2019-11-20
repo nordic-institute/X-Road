@@ -5,7 +5,7 @@
         <span class="headline">{{$t(title)}}</span>
       </v-card-title>
       <v-card-text class="content-wrapper">
-        <v-img :src="require('./../assets/'+imageSrc)"></v-img>
+        <v-img :src="require('./../../assets/'+imageSrc)"></v-img>
         <div class="title-wrap">
           <h2>{{$t(title)}}</h2>
         </div>
@@ -63,7 +63,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/dialogs';
+@import '../../assets/dialogs';
 
 .content-wrapper {
   margin-top: 20px;
