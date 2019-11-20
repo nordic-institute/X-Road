@@ -150,6 +150,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/detail-views';
+@import '../../assets/detail-views';
 </style>
 
