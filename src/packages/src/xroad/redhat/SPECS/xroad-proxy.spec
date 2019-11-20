@@ -46,6 +46,8 @@ mkdir -p %{buildroot}/etc/logrotate.d
 mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}/etc/xroad/backup.d
 mkdir -p %{buildroot}/etc/cron.d
+mkdir -p %{buildroot}/etc/xroad/nginx
+mkdir -p %{buildroot}/etc/nginx/conf.d
 
 cp -p %{_sourcedir}/proxy/xroad-proxy-setup.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{_sourcedir}/proxy/xroad-initdb.sh %{buildroot}/usr/share/xroad/scripts/
@@ -67,10 +69,12 @@ cp -p %{srcdir}/../../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/
 cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/CHANGELOG.md
 cp -p %{srcdir}/common/proxy/etc/xroad/backup.d/??_xroad-proxy %{buildroot}/etc/xroad/backup.d/
 cp -p %{_sourcedir}/proxy/xroad-proxy %{buildroot}/etc/cron.d/
+cp -p %{srcdir}/common/proxy/etc/xroad/nginx/xroad-proxy.conf %{buildroot}/etc/xroad/nginx/
 
 ln -s /usr/share/xroad/jlib/proxy-1.0.jar %{buildroot}/usr/share/xroad/jlib/proxy.jar
 ln -s /etc/xroad/conf.d/proxy-ui-jetty-logback-context-name.xml %{buildroot}/etc/xroad/conf.d/jetty-logback-context-name.xml
 ln -s /usr/share/xroad/bin/xroad-add-admin-user.sh %{buildroot}/usr/bin/xroad-add-admin-user
+ln -s /etc/xroad/nginx/xroad-proxy.conf %{buildroot}/etc/nginx/conf.d/xroad-proxy
 
 %clean
 rm -rf %{buildroot}
@@ -90,6 +94,7 @@ rm -rf %{buildroot}
 %config /etc/xroad/jetty/ocsp-responder.xml
 %config /etc/xroad/services/jetty.conf
 %config(noreplace) %attr(644,root,root) /etc/pam.d/xroad
+%config /etc/xroad/nginx/xroad-proxy.conf
 %attr(0440,xroad,xroad) %config /etc/xroad/backup.d/??_xroad-proxy
 
 %attr(644,root,root) %{_unitdir}/xroad-proxy.service
@@ -120,6 +125,7 @@ rm -rf %{buildroot}
 /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh
 /usr/share/xroad/scripts/autobackup_xroad_proxy_configuration.sh
 /usr/share/xroad/scripts/get_security_server_id.sh
+/etc/nginx/conf.d/xroad-proxy
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/securityserver-LICENSE.info
 %doc /usr/share/doc/%{name}/CHANGELOG.md

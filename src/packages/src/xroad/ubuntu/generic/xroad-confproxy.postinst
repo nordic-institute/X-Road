@@ -4,9 +4,6 @@
 
 case "$1" in
     configure)
-        dpkg-divert --package xroad-confproxy --add --rename --divert /etc/xroad/nginx/default-xroad.conf.disabled /etc/xroad/nginx/default-xroad.conf
-        rm -f /etc/nginx/sites-enabled/default-xroad
-
         mkdir -p  /var/lib/xroad/public
         chmod 755 /var/lib/xroad/public
         chown xroad:xroad /var/lib/xroad/public
