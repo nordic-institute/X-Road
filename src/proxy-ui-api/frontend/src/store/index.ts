@@ -3,6 +3,7 @@ import Vue from 'vue';
 import Vuex, { StoreOptions } from 'vuex';
 import VuexPersistence from 'vuex-persist';
 import { RootState } from './types';
+import { generalModule } from './modules/general';
 import { mockDataModule } from './modules/mockData';
 import { clientsModule } from './modules/clients';
 import { clientModule } from './modules/client';
@@ -22,6 +23,7 @@ const store: StoreOptions<RootState> = {
   },
   modules: {
     user,
+    generalModule,
     mockDataModule,
     clientsModule,
     clientModule,

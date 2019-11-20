@@ -8,7 +8,7 @@
     "lint": "vue-cli-service lint",
     "build:report": "vue-cli-service build --report",
     "test:unit": "vue-cli-service test:unit",
-    "test:e2e": "vue-cli-service test:e2e",
+    "test:e2e": "vue-cli-service test:e2e --headless",
     "test:coverage": "vue-cli-service test:unit --coverage",
     "check-audit": "check-audit",
     "resolve-audit": "resolve-audit"
@@ -24,7 +24,7 @@
     "vue-router": "^3.1.2",
     "vuetify": "^2.0.14",
     "vuex": "^3.0.1",
-    "vuex-persist": "2.1.0",
+    "vuex-persist": "2.1.1",
     "vuex-router-sync": "^5.0.0"
   },
   "devDependencies": {
@@ -38,12 +38,13 @@
     "@vue/cli-service": "^4.0.3",
     "@vue/test-utils": "^1.0.0-beta.20",
     "babel-core": "7.0.0-bridge.0",
+    "chromedriver": "78.0.1",
     "node-sass": "^4.12.0",
-    "npm-audit-resolver": "2.0.1",
+    "npm-audit-resolver": "2.1.0",
     "sass": "^1.17.4",
     "sass-loader": "^8.0.0",
     "ts-jest": "^24.0.2",
-    "typescript": "3.6.4",
+    "typescript": "3.7.2",
     "vue-cli-plugin-i18n": "^0.6.0",
     "vue-cli-plugin-vuetify": "^1.0.2",
     "vue-template-compiler": "^2.6.10",

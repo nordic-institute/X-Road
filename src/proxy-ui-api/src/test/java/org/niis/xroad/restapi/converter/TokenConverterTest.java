@@ -25,7 +25,6 @@
 package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
@@ -43,7 +42,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -75,8 +73,7 @@ public class TokenConverterTest {
         tokenInfos.put("key1", "value1");
         tokenInfos.put("key2", "value2");
         // keyinfo not used, keyConverter mocked
-        KeyInfo dummyKeyInfo = new KeyInfo(false, KeyUsageInfo.SIGNING,
-                null, null, null, null, new ArrayList<>(), new ArrayList<>(), null);
+        KeyInfo dummyKeyInfo = TokenTestUtils.createTestKeyInfo();
 
         TokenInfo tokenInfo = new TokenInfo(TokenInfo.SOFTWARE_MODULE_TYPE,
                 "friendly-name",
@@ -130,25 +127,8 @@ public class TokenConverterTest {
     @Test
     public void isSavedToConfiguration() throws Exception {
         // test different combinations of saved and unsaved keys and the logic for isSavedToConfiguration
-        KeyInfo savedKey = new KeyInfo(true,
-                KeyUsageInfo.SIGNING,
-                "friendly-name",
-                "id",
-                "label",
-                "public-key",
-                new ArrayList<>(),
-                new ArrayList<>(),
-                "sign-mechanism-name");
-
-        KeyInfo unsavedKey = new KeyInfo(true,
-                KeyUsageInfo.SIGNING,
-                "friendly-name",
-                "id",
-                "label",
-                "public-key",
-                new ArrayList<>(),
-                new ArrayList<>(),
-                "sign-mechanism-name");
+        KeyInfo savedKey = TokenTestUtils.createTestKeyInfo();
+        KeyInfo unsavedKey = TokenTestUtils.createTestKeyInfo();
 
         savedKey.getCerts().clear();
         savedKey.getCertRequests().clear();

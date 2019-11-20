@@ -8,6 +8,13 @@ export function post(uri: string, data: any) {
 }
 
 /*
+ * Wraps axios patch method calls with data
+ */
+export function patch(uri: string, data: any) {
+  return axios.patch(uri, data);
+}
+
+/*
  * Wraps axios put method calls with data
  */
 export function put(uri: string, data: any) {
