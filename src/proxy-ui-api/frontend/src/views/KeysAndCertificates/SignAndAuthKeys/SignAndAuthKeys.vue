@@ -159,13 +159,7 @@ export default Vue.extend({
       search: '',
       logoutDialog: false,
       loginDialog: false,
-      selectedServiceDesc: undefined,
-      selectedIndex: -1,
-      componentKey: 0,
-      expanded: [] as string[],
       tokens: [],
-      addWsdlBusy: false,
-      refreshWsdlBusy: false,
       selected: undefined as SelectedObject,
     };
   },
