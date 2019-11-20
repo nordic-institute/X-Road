@@ -65,5 +65,13 @@ if [[ $(getenforce) != "Disabled" ]]; then
 
     # allow httpd to connecto to non-standard port 4000
     semanage port -a -t http_port_t  -p tcp 4000 || true
+
+    # allow httpd to connect to non-standard port 5000 (keep this as long as we have the dual old & new UI)
+    if ! semanage port -m -t http_port_t  -p tcp 5000
+    then
+        echo "could not modify SELinux port 5000, will add instead"
+        semanage port -a -t http_port_t  -p tcp 5000 || true
+    fi
+
 fi
 
