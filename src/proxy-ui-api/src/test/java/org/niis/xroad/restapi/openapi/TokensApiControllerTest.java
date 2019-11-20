@@ -48,10 +48,13 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
 /**
- * test system api
+ * test tokens api
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -59,6 +62,9 @@ import static org.mockito.Mockito.when;
 @Transactional
 @Slf4j
 public class TokensApiControllerTest {
+
+    private static final String TOKEN_NOT_FOUND_TOKEN_ID = "token-404";
+    private static final String GOOD_TOKEN_ID = "token-which-exists";
 
     @MockBean
     private TokenService tokenService;
@@ -68,8 +74,18 @@ public class TokensApiControllerTest {
 
     @Before
     public void setUp() throws Exception {
-        TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo("friendly-name");
+        TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo("friendly-name", GOOD_TOKEN_ID);
         when(tokenService.getAllTokens()).thenReturn(Collections.singletonList(tokenInfo));
+
+        doAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
+            String tokenId = (String) args[0];
+            if (GOOD_TOKEN_ID.equals(tokenId)) {
+                return tokenInfo;
+            } else {
+                throw new TokenService.TokenNotFoundException(new RuntimeException());
+            }
+        }).when(tokenService).getToken(any());
     }
 
     @Test
@@ -84,4 +100,17 @@ public class TokensApiControllerTest {
         assertEquals("friendly-name", token.getName());
     }
 
+    @Test
+    @WithMockUser(authorities = { "VIEW_KEYS" })
+    public void getToken() {
+        try {
+            tokensApiController.getToken(TOKEN_NOT_FOUND_TOKEN_ID);
+            fail("should have thrown exception");
+        } catch (ResourceNotFoundException expected) {
+        }
+
+        ResponseEntity<Token> response = tokensApiController.getToken(GOOD_TOKEN_ID);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(GOOD_TOKEN_ID, response.getBody().getId());
+    }
 }

@@ -1,7 +1,5 @@
 #!/bin/sh
 
-service xroad-proxy-ui-api restart
-
 #DEBHELPER#
 
 exit 0
