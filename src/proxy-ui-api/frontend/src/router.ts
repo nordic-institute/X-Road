@@ -1,10 +1,13 @@
 import Router, { Route } from 'vue-router';
 import { sync } from 'vuex-router-sync';
-import Login from './views/Login.vue';
+import AppLogin from './views/AppLogin.vue';
 import Base from './views/Base.vue';
 import Clients from '@/views/Clients/Clients.vue';
 import Client from '@/views/Clients/Client.vue';
 import Keys from '@/views/KeysAndCertificates/Keys.vue';
+import SignAndAuthKeys from '@/views/KeysAndCertificates/SignAndAuthKeys/SignAndAuthKeys.vue';
+import SSTlsCertificate from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/SSTlsCertificate.vue';
+import ApiKey from '@/views/KeysAndCertificates/ApiKey/ApiKey.vue';
 import Settings from '@/views/Settings/Settings.vue';
 import SystemParameters from '@/views/Settings/SystemParameters.vue';
 import BackupAndRestore from '@/views/Settings/BackupAndRestore.vue';
@@ -15,18 +18,15 @@ import Subsystem from './views/Clients/Subsystem.vue';
 import TabsBase from '@/views/TabsBase.vue';
 import ClientTlsCertificate from '@/views/ClientTlsCertificate.vue';
 import Error from '@/views/Error.vue';
-import ClientDetails from '@/views/Clients/ClientDetails.vue';
-import InternalServers from '@/views/Clients/InternalServers.vue';
-import LocalGroups from '@/views/Clients/LocalGroups.vue';
+import ClientDetails from '@/views/Clients/Details/ClientDetails.vue';
+import InternalServers from '@/views/Clients/InternalServers/InternalServers.vue';
+import LocalGroups from '@/views/Clients/LocalGroups/LocalGroups.vue';
 import LocalGroup from '@/views/LocalGroup/LocalGroup.vue';
-import Services from '@/views/Clients/Services.vue';
-import ServiceClients from '@/views/Clients/ServiceClients.vue';
+import Services from '@/views/Clients/Services/Services.vue';
+import ServiceClients from '@/views/Clients/ServiceClients/ServiceClients.vue';
 import ServiceDescriptionDetails from '@/views/ServiceDescriptionDetails.vue';
-import SignAndAuthKeys from '@/views/KeysAndCertificates/SignAndAuthKeys.vue';
-import SSTlsCertificate from '@/views/KeysAndCertificates/SSTlsCertificate.vue';
-import ApiKey from '@/views/KeysAndCertificates/ApiKey.vue';
-import Token from '@/views/Token.vue';
-import Key from '@/views/Key.vue';
+import TokenDetails from '@/views/TokenDetails.vue';
+import KeyDetails from '@/views/KeyDetails.vue';
 import Certificate from '@/views/Certificate.vue';
 import Service from '@/views/Service/Service.vue';
 import store from './store';
@@ -212,7 +212,7 @@ const router = new Router({
           name: RouteName.Token,
           path: '/token/:id',
           components: {
-            default: Token,
+            default: TokenDetails,
           },
           props: { default: true },
         },
@@ -220,7 +220,7 @@ const router = new Router({
           name: RouteName.Key,
           path: '/key/:id',
           components: {
-            default: Key,
+            default: KeyDetails,
           },
           props: { default: true },
         },
@@ -262,7 +262,7 @@ const router = new Router({
     {
       path: '/login',
       name: RouteName.Login,
-      component: Login,
+      component: AppLogin,
     },
     {
       path: '*',
