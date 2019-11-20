@@ -97,15 +97,16 @@ export default Vue.extend({
       this.saveBusy = true;
 
       api
-        .put(`/tokens/${this.id}`, this.token)
+        .patch(`/tokens/${this.id}`, this.token)
         .then((res) => {
           this.$bus.$emit('show-success', 'keys.tokenSaved');
+          this.$router.go(-1);
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
         })
         .finally(() => {
-          this.loading = false;
+          this.saveBusy = false;
         });
     },
 
