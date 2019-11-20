@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
@@ -44,6 +45,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 
+import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -86,9 +89,15 @@ public class KeyServiceTest {
             return null;
         }).when(signerProxyFacade).setKeyFriendlyName(any(), any());
 
-        doThrow(KeyService.KeyNotFoundException.class)
-                .when(signerProxyFacade)
-                .setKeyFriendlyName(anyString(), eq("new-friendly-name-update-fails"));
+        doAnswer(invocation -> {
+            Object[] arguments = invocation.getArguments();
+            String newKeyName = (String) arguments[1];
+            if("new-friendly-name-update-fails".equals(newKeyName)) {
+                throw new CodedException(SIGNER_X + "." + X_KEY_NOT_FOUND);
+            }
+            return null;
+        }).when(signerProxyFacade).setKeyFriendlyName(anyString(), eq("new-friendly-name-update-fails"));
+
     }
 
     @Test
