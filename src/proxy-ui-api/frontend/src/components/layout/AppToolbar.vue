@@ -1,7 +1,7 @@
 <template>
   <v-toolbar dark color="#202020" class="elevation-2">
     <v-img
-      :src="require('../assets/xroad_logo_64.png')"
+      :src="require('../../assets/xroad_logo_64.png')"
       height="64"
       width="128"
       max-height="64"

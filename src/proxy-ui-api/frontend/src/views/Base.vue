@@ -36,7 +36,7 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { RouteName } from '@/global';
 import * as api from '@/util/api';
-import Toolbar from '../components/Toolbar.vue';
+import Toolbar from '../components/layout/AppToolbar.vue';
 export default Vue.extend({
   components: {
     Toolbar,
