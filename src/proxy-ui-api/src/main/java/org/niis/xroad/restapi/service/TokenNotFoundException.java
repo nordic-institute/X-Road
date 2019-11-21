@@ -22,42 +22,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.monitor.test;
+package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.monitor.common.SystemMetricsRequest;
-import ee.ria.xroad.monitor.common.SystemMetricsResponse;
-
-import akka.actor.ActorSelection;
-import akka.actor.UntypedAbstractActor;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
 /**
- * Test caller for monitoring service
+ * If token was not found
  */
-public class ClientActor extends UntypedAbstractActor {
+public class TokenNotFoundException extends NotFoundException {
+    public static final String ERROR_TOKEN_NOT_FOUND = "token_not_found";
 
-    private LoggingAdapter log = Logging.getLogger(getContext().system(), this);
-
-    private ActorSelection selection =
-            getContext().actorSelection("akka.tcp://xroad-monitor@127.0.0.1:2552/user/MetricsProviderActor");
-
-    @Override
-    public void preStart() throws Exception {
-        log.info("ActorSelection={}", selection);
-        super.preStart();
+    public TokenNotFoundException(String s) {
+        super(s, createError());
     }
 
-    @Override
-    public void onReceive(Object o) throws Exception {
-        if (o.equals("Start")) {
-            selection.tell(new SystemMetricsRequest(null, true), getSelf());
-            log.info("ClientActor sent SystemMetricsRequest");
-        } else if (o instanceof SystemMetricsResponse) {
-            SystemMetricsResponse response = (SystemMetricsResponse) o;
-            log.info("ClientActor received SystemMetricsResponse");
-        } else {
-            unhandled(o);
-        }
+    public TokenNotFoundException(Throwable t) {
+        super(t, createError());
+    }
+
+    private static ErrorDeviation createError() {
+        return new ErrorDeviation(ERROR_TOKEN_NOT_FOUND);
     }
 }

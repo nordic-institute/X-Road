@@ -57,7 +57,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @Transactional
-@PreAuthorize("denyAll")
+@PreAuthorize("isAuthenticated()")
 public class ClientService {
 
     private final ClientRepository clientRepository;
@@ -78,7 +78,6 @@ public class ClientService {
      * return all clients that are registered on the instance
      * @return
      */
-    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public List<ClientType> getAllLocalClients() {
         return clientRepository.getAllLocalClients();
     }
@@ -87,7 +86,6 @@ public class ClientService {
      * return all global clients as ClientTypes
      * @return
      */
-    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public List<ClientType> getAllGlobalClients() {
         return globalConfFacade.getMembers()
                 .stream()
@@ -103,7 +101,6 @@ public class ClientService {
      * return one client
      * @param id
      */
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
     public ClientType getClient(ClientId id) {
         return clientRepository.getClient(id);
     }
@@ -116,7 +113,6 @@ public class ClientService {
      * @throws IllegalArgumentException                            if connectionType was not supported value
      * @throws ClientNotFoundException if client was not found
      */
-    @PreAuthorize("hasAuthority('EDIT_CLIENT_INTERNAL_CONNECTION_TYPE')")
     public ClientType updateConnectionType(ClientId id, String connectionType) throws ClientNotFoundException {
         ClientType clientType = getClientType(id);
         // validate connectionType param by creating enum out of it
@@ -146,7 +142,6 @@ public class ClientService {
      * @throws CertificateAlreadyExistsException if certificate already exists
      * @throws ClientNotFoundException if client was not found
      */
-    @PreAuthorize("hasAuthority('ADD_CLIENT_INTERNAL_CERT')")
     public CertificateType addTlsCertificate(ClientId id, byte[] certBytes)
             throws CertificateException, CertificateAlreadyExistsException, ClientNotFoundException {
         X509Certificate x509Certificate;
@@ -217,7 +212,6 @@ public class ClientService {
      * @throws ClientNotFoundException if client was not found
      * @throws CertificateNotFoundException if certificate was not found
      */
-    @PreAuthorize("hasAuthority('DELETE_CLIENT_INTERNAL_CERT')")
     public ClientType deleteTlsCertificate(ClientId id, String certificateHash)
             throws ClientNotFoundException, CertificateNotFoundException {
         ClientType clientType = getClientType(id);
@@ -240,7 +234,6 @@ public class ClientService {
      * @throws ClientNotFoundException if client was not found
      * @return
      */
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_INTERNAL_CERT_DETAILS')")
     public Optional<CertificateType> getTlsCertificate(ClientId id, String certificateHash)
             throws ClientNotFoundException {
         ClientType clientType = getClientType(id);
@@ -260,7 +253,6 @@ public class ClientService {
      * @param showMembers include members (without susbsystemCode) in the results
      * @return ClientType list
      */
-    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public List<ClientType> findLocalClients(String name, String instance, String propertyClass, String memberCode,
             String subsystemCode, boolean showMembers) {
         Predicate<ClientType> matchingSearchTerms = buildClientSearchPredicate(name, instance, propertyClass,
@@ -281,7 +273,6 @@ public class ClientService {
      * @param showMembers include members (without susbsystemCode) in the results
      * @return ClientType list
      */
-    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public List<ClientType> findGlobalClients(String name, String instance, String propertyClass, String memberCode,
             String subsystemCode, boolean showMembers) {
         Predicate<ClientType> matchingSearchTerms = buildClientSearchPredicate(name, instance, propertyClass,
@@ -297,7 +288,6 @@ public class ClientService {
      * @param clientId
      * @return
      */
-    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public Optional<ClientType> findByClientId(ClientId clientId) {
         return getAllGlobalClients()
                 .stream()
@@ -317,7 +307,6 @@ public class ClientService {
      * @param internalSearch search only in the local clients
      * @return ClientType list
      */
-    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public List<ClientType> findClients(String name, String instance, String memberClass, String memberCode,
             String subsystemCode, boolean showMembers, boolean internalSearch) {
         List<ClientType> clients = findLocalClients(name, instance, memberClass, memberCode, subsystemCode,

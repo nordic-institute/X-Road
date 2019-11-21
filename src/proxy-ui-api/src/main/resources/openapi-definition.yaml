@@ -3109,7 +3109,7 @@ paths:
         '406':
           description: request specified an invalid format
         '409':
-          description: an existing item already exists
+          description: an existing item already exists or token not logged in
         '500':
           description: internal server error
   /tokens/{id}/login:

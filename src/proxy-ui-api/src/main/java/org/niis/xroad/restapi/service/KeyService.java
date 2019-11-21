@@ -42,6 +42,8 @@ import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static org.niis.xroad.restapi.service.TokenService.isCausedByTokenNotActive;
+import static org.niis.xroad.restapi.service.TokenService.isCausedByTokenNotFound;
 
 /**
  * Service that handles keys
@@ -49,7 +51,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 @Slf4j
 @Service
 @Transactional
-@PreAuthorize("denyAll")
+@PreAuthorize("isAuthenticated()")
 public class KeyService {
 
     private final SignerProxyFacade signerProxyFacade;
@@ -58,6 +60,7 @@ public class KeyService {
     /**
      * KeyService constructor
      * @param tokenService
+     * @param signerProxyFacade
      */
     @Autowired
     public KeyService(TokenService tokenService, SignerProxyFacade signerProxyFacade) {
@@ -68,10 +71,9 @@ public class KeyService {
     /**
      * Return one key
      * @param keyId
-     * @throws KeyNotFoundException if key was not found
      * @return
+     * @throws KeyNotFoundException if key was not found
      */
-    @PreAuthorize("hasAuthority('VIEW_KEYS')")
     public KeyInfo getKey(String keyId) throws KeyNotFoundException {
         Collection<TokenInfo> tokens = tokenService.getAllTokens();
         Optional<KeyInfo> keyInfo = tokens.stream()
@@ -86,7 +88,6 @@ public class KeyService {
         return keyInfo.get();
     }
 
-    @PreAuthorize("hasAuthority('EDIT_KEYTABLE_FRIENDLY_NAMES')")
     public KeyInfo updateKeyFriendlyName(String id, String friendlyName) throws KeyNotFoundException {
         KeyInfo keyInfo = null;
         try {
@@ -104,6 +105,32 @@ public class KeyService {
             throw new RuntimeException("Update key friendly name failed", e);
         }
 
+        return keyInfo;
+    }
+
+    /**
+     * Generate a new key for selected token
+     * @param tokenId
+     * @param keyLabel
+     * @return {@link KeyInfo}
+     * @throws TokenNotFoundException
+     */
+    public KeyInfo addKey(String tokenId, String keyLabel) throws TokenNotFoundException,
+            TokenService.TokenNotActiveException {
+        KeyInfo keyInfo = null;
+        try {
+            keyInfo = signerProxyFacade.generateKey(tokenId, keyLabel);
+        } catch (CodedException e) {
+            if (isCausedByTokenNotFound(e)) {
+                throw new TokenNotFoundException(e);
+            } else if (isCausedByTokenNotActive(e)) {
+                throw new TokenService.TokenNotActiveException(e);
+            } else {
+                throw e;
+            }
+        } catch (Exception other) {
+            throw new RuntimeException("adding a new key failed", other);
+        }
         return keyInfo;
     }
 

@@ -24,14 +24,20 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.restapi.openapi.model.Key;
+import org.niis.xroad.restapi.openapi.model.KeyLabel;
 import org.niis.xroad.restapi.openapi.model.Token;
 import org.niis.xroad.restapi.openapi.model.TokenStatus;
+import org.niis.xroad.restapi.service.TokenNotFoundException;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,11 +48,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
 
+import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_ACTIVE;
+import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_FOUND;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -65,9 +75,13 @@ public class TokensApiControllerTest {
 
     private static final String TOKEN_NOT_FOUND_TOKEN_ID = "token-404";
     private static final String GOOD_TOKEN_ID = "token-which-exists";
+    private static final String NOT_ACTIVE_TOKEN_ID = "token-not-active";
+    private static final String KEY_LABEL = "key-label";
 
     @MockBean
     private TokenService tokenService;
+    @MockBean
+    private SignerProxyFacade signerProxyFacade;
 
     @Autowired
     private TokensApiController tokensApiController;
@@ -75,6 +89,7 @@ public class TokensApiControllerTest {
     @Before
     public void setUp() throws Exception {
         TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo("friendly-name", GOOD_TOKEN_ID);
+        KeyInfo keyInfo = TokenTestUtils.createTestKeyInfo();
         when(tokenService.getAllTokens()).thenReturn(Collections.singletonList(tokenInfo));
 
         doAnswer(invocation -> {
@@ -83,9 +98,24 @@ public class TokensApiControllerTest {
             if (GOOD_TOKEN_ID.equals(tokenId)) {
                 return tokenInfo;
             } else {
-                throw new TokenService.TokenNotFoundException(new RuntimeException());
+                throw new TokenNotFoundException(new RuntimeException());
             }
         }).when(tokenService).getToken(any());
+
+        doAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
+            String tokenId = (String) args[0];
+            String keyLabel = (String) args[1];
+            if (GOOD_TOKEN_ID.equals(tokenId)) {
+                ReflectionTestUtils.setField(keyInfo, "label", keyLabel);
+                return keyInfo;
+            } else if (NOT_ACTIVE_TOKEN_ID.equals(tokenId)) {
+                throw new CodedException.Fault(SIGNER_X + "." + X_TOKEN_NOT_ACTIVE, null);
+            } else if (TOKEN_NOT_FOUND_TOKEN_ID.equals(tokenId)) {
+                throw new CodedException.Fault(SIGNER_X + "." + X_TOKEN_NOT_FOUND, null);
+            }
+            throw new RuntimeException("given tokenId not supported in mocked method SignerProxyFacade#generateKey");
+        }).when(signerProxyFacade).generateKey(any(), any());
     }
 
     @Test
@@ -112,5 +142,25 @@ public class TokensApiControllerTest {
         ResponseEntity<Token> response = tokensApiController.getToken(GOOD_TOKEN_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(GOOD_TOKEN_ID, response.getBody().getId());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "GENERATE_KEY" })
+    public void addKey() {
+        ResponseEntity<Key> response = tokensApiController.addKey(GOOD_TOKEN_ID, new KeyLabel().label(KEY_LABEL));
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        Key key = response.getBody();
+        assertEquals(KEY_LABEL, key.getLabel());
+        try {
+            tokensApiController.addKey(TOKEN_NOT_FOUND_TOKEN_ID, new KeyLabel().label(KEY_LABEL));
+            fail("should have thrown exception");
+        } catch (ResourceNotFoundException expected) {
+        }
+
+        try {
+            tokensApiController.addKey(NOT_ACTIVE_TOKEN_ID, new KeyLabel().label(KEY_LABEL));
+            fail("should have thrown exception");
+        } catch (ConflictException expected) {
+        }
     }
 }

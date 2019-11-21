@@ -27,7 +27,7 @@ package ee.ria.xroad.common.messagelog;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.util.JobManager;
 
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,7 +39,7 @@ import java.util.Map;
  * Base class for log manager actors.
  */
 @Slf4j
-public abstract class AbstractLogManager extends UntypedActor {
+public abstract class AbstractLogManager extends UntypedAbstractActor {
 
     @Getter
     protected static Map<String, DiagnosticsStatus> statusMap = new HashMap<>();

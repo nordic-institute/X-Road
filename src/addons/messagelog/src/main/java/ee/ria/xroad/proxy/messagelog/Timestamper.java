@@ -30,7 +30,7 @@ import ee.ria.xroad.common.messagelog.MessageRecord;
 
 import akka.actor.ActorRef;
 import akka.actor.Props;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -42,7 +42,7 @@ import java.io.Serializable;
  * Timestamper is responsible for routing timestamping tasks to the timestamp worker.
  */
 @Slf4j
-public class Timestamper extends UntypedActor {
+public class Timestamper extends UntypedAbstractActor {
 
     @Data
     @RequiredArgsConstructor
