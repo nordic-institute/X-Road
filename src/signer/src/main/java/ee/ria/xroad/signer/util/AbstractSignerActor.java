@@ -28,14 +28,14 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.message.SuccessResponse;
 
 import akka.actor.ActorRef;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 
 /**
  * A generic actor base.
  */
-public abstract class AbstractSignerActor extends UntypedActor {
+public abstract class AbstractSignerActor extends UntypedAbstractActor {
 
     protected void sendResponse(Object message) {
         if (getSender() != ActorRef.noSender()) {

@@ -2,14 +2,14 @@ import { mount, createLocalVue } from '@vue/test-utils';
 import { SilenceWarnHack } from './silenceWarnHack';
 import VueRouter from 'vue-router';
 import Vuetify from 'vuetify';
-import Toolbar from '@/components/ServiceIcon.vue';
+import ServiceIcon from '@/components/ui/ServiceIcon.vue';
 
 const silenceWarnHack = new SilenceWarnHack();
 
 const localVue = createLocalVue();
 localVue.use(VueRouter);
 
-describe('Toolbar', () => {
+describe('ServiceIcon', () => {
   let wrapper: any;
   let vuetify;
 
@@ -27,7 +27,7 @@ describe('Toolbar', () => {
     localVue.use(Vuetify);
     silenceWarnHack.disable();
 
-    wrapper = mount(Toolbar, {
+    wrapper = mount(ServiceIcon, {
       localVue,
       router,
       propsData: {

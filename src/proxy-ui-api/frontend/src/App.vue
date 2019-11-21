@@ -12,7 +12,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import axios from 'axios';
-import SnackbarMixin from './components/SnackbarMixin.vue';
+import SnackbarMixin from '@/components/ui/SnackbarMixin.vue';
 import { RouteName } from '@/global';
 
 export default Vue.extend({
