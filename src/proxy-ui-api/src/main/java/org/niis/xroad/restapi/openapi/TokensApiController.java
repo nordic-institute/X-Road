@@ -24,13 +24,19 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.KeyConverter;
 import org.niis.xroad.restapi.converter.TokenConverter;
+import org.niis.xroad.restapi.openapi.model.Key;
+import org.niis.xroad.restapi.openapi.model.KeyLabel;
 import org.niis.xroad.restapi.openapi.model.Token;
 import org.niis.xroad.restapi.openapi.model.TokenName;
 import org.niis.xroad.restapi.openapi.model.TokenPassword;
+import org.niis.xroad.restapi.service.KeyService;
+import org.niis.xroad.restapi.service.TokenNotFoundException;
 import org.niis.xroad.restapi.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -50,18 +56,25 @@ import java.util.List;
 @PreAuthorize("denyAll")
 public class TokensApiController implements TokensApi {
 
+    private final KeyConverter keyConverter;
+    private final KeyService keyService;
     private final TokenService tokenService;
     private final TokenConverter tokenConverter;
 
     /**
      * TokensApiController constructor
+     * @param keyConverter
+     * @param keyService
      * @param tokenService
      * @param tokenConverter
      */
 
     @Autowired
-    public TokensApiController(TokenService tokenService,
+    public TokensApiController(KeyConverter keyConverter, KeyService keyService,
+            TokenService tokenService,
             TokenConverter tokenConverter) {
+        this.keyConverter = keyConverter;
+        this.keyService = keyService;
         this.tokenService = tokenService;
         this.tokenConverter = tokenConverter;
     }
@@ -92,7 +105,7 @@ public class TokensApiController implements TokensApi {
         char[] password = tokenPassword.getPassword().toCharArray();
         try {
             tokenService.activateToken(id, password);
-        } catch (TokenService.TokenNotFoundException e) {
+        } catch (TokenNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (TokenService.PinIncorrectException e) {
             throw new BadRequestException(e);
@@ -106,7 +119,7 @@ public class TokensApiController implements TokensApi {
     public ResponseEntity<Token> logoutToken(String id) {
         try {
             tokenService.deactivateToken(id);
-        } catch (TokenService.TokenNotFoundException e) {
+        } catch (TokenNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
         Token token = getTokenFromService(id);
@@ -117,7 +130,7 @@ public class TokensApiController implements TokensApi {
         TokenInfo tokenInfo = null;
         try {
             tokenInfo = tokenService.getToken(id);
-        } catch (TokenService.TokenNotFoundException e) {
+        } catch (TokenNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
         return tokenConverter.convert(tokenInfo);
@@ -126,13 +139,26 @@ public class TokensApiController implements TokensApi {
     @PreAuthorize("hasAuthority('EDIT_KEYTABLE_FRIENDLY_NAMES')")
     @Override
     public ResponseEntity<Token> updateToken(String id, TokenName tokenName) {
-        TokenInfo tokenInfo = null;
         try {
-            tokenInfo = tokenService.updateTokenFriendlyName(id, tokenName.getName());
-        } catch (TokenService.TokenNotFoundException e) {
+            TokenInfo tokenInfo = tokenService.updateTokenFriendlyName(id, tokenName.getName());
+            Token token = tokenConverter.convert(tokenInfo);
+            return new ResponseEntity<>(token, HttpStatus.OK);
+        } catch (TokenNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
-        Token token = tokenConverter.convert(tokenInfo);
-        return new ResponseEntity<>(token, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAuthority('GENERATE_KEY')")
+    @Override
+    public ResponseEntity<Key> addKey(String tokenId, KeyLabel keyLabel) {
+        try {
+            KeyInfo keyInfo = keyService.addKey(tokenId, keyLabel.getLabel());
+            Key key = keyConverter.convert(keyInfo);
+            return ApiUtil.createCreatedResponse("/api/keys/{keyId}", key, key.getId());
+        } catch (TokenNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (TokenService.TokenNotActiveException e) {
+            throw new ConflictException(e);
+        }
     }
 }

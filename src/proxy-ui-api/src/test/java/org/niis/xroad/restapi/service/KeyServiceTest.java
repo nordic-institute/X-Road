@@ -60,6 +60,7 @@ import static org.mockito.Mockito.when;
 @AutoConfigureTestDatabase
 @Slf4j
 @Transactional
+@WithMockUser
 public class KeyServiceTest {
 
     // token ids for mocking
@@ -92,7 +93,6 @@ public class KeyServiceTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_KEYS" })
     public void getKey() throws Exception {
         try {
             keyService.getKey(KEY_NOT_FOUND_KEY_ID);
@@ -103,7 +103,6 @@ public class KeyServiceTest {
     }
 
     @Test
-    @WithMockUser(authorities = {"VIEW_KEYS", "EDIT_KEYTABLE_FRIENDLY_NAMES"})
     public void updateKeyFriendlyName() throws Exception {
         KeyInfo keyInfo = keyService.getKey(GOOD_KEY_ID);
         assertEquals("friendly-name", keyInfo.getFriendlyName());
@@ -112,13 +111,11 @@ public class KeyServiceTest {
     }
 
     @Test(expected = KeyService.KeyNotFoundException.class)
-    @WithMockUser(authorities = { "EDIT_KEYTABLE_FRIENDLY_NAMES", "VIEW_KEYS" })
     public void updateKeyFriendlyNameKeyNotExist() throws Exception {
         keyService.updateKeyFriendlyName(KEY_NOT_FOUND_KEY_ID, "new-friendly-name");
     }
 
     @Test(expected = KeyService.KeyNotFoundException.class)
-    @WithMockUser(authorities = { "EDIT_KEYTABLE_FRIENDLY_NAMES", "VIEW_KEYS" })
     public void updateFriendlyNameUpdatingKeyFails() throws Exception {
         keyService.updateKeyFriendlyName(GOOD_KEY_ID, "new-friendly-name-update-fails");
     }
