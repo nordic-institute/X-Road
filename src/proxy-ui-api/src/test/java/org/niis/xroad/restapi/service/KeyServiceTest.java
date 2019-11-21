@@ -49,8 +49,6 @@ import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
@@ -84,18 +82,12 @@ public class KeyServiceTest {
         doAnswer(invocation -> {
             Object[] arguments = invocation.getArguments();
             String newKeyName = (String) arguments[1];
+            if ("new-friendly-name-update-fails".equals(newKeyName)) {
+                throw new CodedException(SIGNER_X + "." + X_KEY_NOT_FOUND);
+            }
             ReflectionTestUtils.setField(keyInfo, "friendlyName", newKeyName);
             return null;
         }).when(signerProxyFacade).setKeyFriendlyName(any(), any());
-
-        doAnswer(invocation -> {
-            Object[] arguments = invocation.getArguments();
-            String newKeyName = (String) arguments[1];
-            if("new-friendly-name-update-fails".equals(newKeyName)) {
-                throw new CodedException(SIGNER_X + "." + X_KEY_NOT_FOUND);
-            }
-            return null;
-        }).when(signerProxyFacade).setKeyFriendlyName(anyString(), eq("new-friendly-name-update-fails"));
 
     }
 
@@ -121,13 +113,13 @@ public class KeyServiceTest {
 
     @Test(expected = KeyService.KeyNotFoundException.class)
     @WithMockUser(authorities = { "EDIT_KEYTABLE_FRIENDLY_NAMES", "VIEW_KEYS" })
-    public void updateKeyFriendlyNameWithoutRights() throws Exception {
+    public void updateKeyFriendlyNameKeyNotExist() throws Exception {
         keyService.updateKeyFriendlyName(KEY_NOT_FOUND_KEY_ID, "new-friendly-name");
     }
 
     @Test(expected = KeyService.KeyNotFoundException.class)
     @WithMockUser(authorities = { "EDIT_KEYTABLE_FRIENDLY_NAMES", "VIEW_KEYS" })
-    public void updateFriendlyNameUpdateFails() throws Exception {
+    public void updateFriendlyNameUpdatingKeyFails() throws Exception {
         keyService.updateKeyFriendlyName(GOOD_KEY_ID, "new-friendly-name-update-fails");
     }
 
