@@ -63,6 +63,7 @@ import static org.mockito.Mockito.when;
 @AutoConfigureTestDatabase
 @Slf4j
 @Transactional
+@WithMockUser
 public class ClientServiceIntegrationTest {
 
     @Autowired
@@ -112,8 +113,6 @@ public class ClientServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "EDIT_CLIENT_INTERNAL_CONNECTION_TYPE",
-            "VIEW_CLIENT_DETAILS" })
     public void updateConnectionType() throws Exception {
         ClientId id = TestUtils.getM1Ss1ClientId();
         ClientType clientType = clientService.getClient(id);
@@ -133,7 +132,6 @@ public class ClientServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_CLIENT_INTERNAL_CERT" })
     public void addCertificatePem() throws Exception {
 
         ClientId id = TestUtils.getM1Ss1ClientId();
@@ -148,7 +146,6 @@ public class ClientServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_CLIENT_INTERNAL_CERT" })
     public void addInvalidCertificate() throws Exception {
 
         ClientId id = TestUtils.getM1Ss1ClientId();
@@ -163,7 +160,6 @@ public class ClientServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_CLIENT_INTERNAL_CERT" })
     public void addCertificateDer() throws Exception {
 
         ClientId id = TestUtils.getM1Ss1ClientId();
@@ -178,7 +174,6 @@ public class ClientServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_CLIENT_INTERNAL_CERT" })
     public void addDuplicate() throws Exception {
 
         ClientId id = TestUtils.getM1Ss1ClientId();
@@ -195,8 +190,6 @@ public class ClientServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_CLIENT_INTERNAL_CERT",
-            "DELETE_CLIENT_INTERNAL_CERT" })
     public void deleteCertificate() throws Exception {
 
         ClientId id = TestUtils.getM1Ss1ClientId();

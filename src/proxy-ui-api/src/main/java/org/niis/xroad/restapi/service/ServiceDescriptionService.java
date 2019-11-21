@@ -65,7 +65,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @Transactional
-@PreAuthorize("denyAll")
+@PreAuthorize("isAuthenticated()")
 public class ServiceDescriptionService {
 
     public static final int DEFAULT_SERVICE_TIMEOUT = 60;
@@ -105,7 +105,6 @@ public class ServiceDescriptionService {
      * Disable 1-n services
      * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given ids were not found
      */
-    @PreAuthorize("hasAuthority('ENABLE_DISABLE_WSDL')")
     public void disableServices(Collection<Long> serviceDescriptionIds,
             String disabledNotice) throws ServiceDescriptionNotFoundException {
         toggleServices(false, serviceDescriptionIds, disabledNotice);
@@ -115,7 +114,6 @@ public class ServiceDescriptionService {
      * Enable 1-n services
      * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given ids were not found
      */
-    @PreAuthorize("hasAuthority('ENABLE_DISABLE_WSDL')")
     public void enableServices(Collection<Long> serviceDescriptionIds) throws ServiceDescriptionNotFoundException {
         toggleServices(true, serviceDescriptionIds, null);
     }
@@ -159,7 +157,6 @@ public class ServiceDescriptionService {
      * Delete one ServiceDescription
      * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given id was not found
      */
-    @PreAuthorize("hasAuthority('DELETE_WSDL')")
     public void deleteServiceDescription(Long id) throws ServiceDescriptionNotFoundException {
         ServiceDescriptionType serviceDescriptionType = serviceDescriptionRepository.getServiceDescription(id);
         if (serviceDescriptionType == null) {
@@ -203,7 +200,6 @@ public class ServiceDescriptionService {
      * @throws WsdlUrlAlreadyExistsException conflict: another service description has same url
      * @throws ServiceAlreadyExistsException conflict: same service exists in another SD
      */
-    @PreAuthorize("hasAuthority('ADD_WSDL')")
     public ServiceDescriptionType addWsdlServiceDescription(ClientId clientId, String url, boolean ignoreWarnings)
             throws InvalidWsdlException,
                            WsdlParser.WsdlNotFoundException,
@@ -280,7 +276,6 @@ public class ServiceDescriptionService {
      * @throws WsdlUrlAlreadyExistsException conflict: another service description has same url
      * @throws ServiceAlreadyExistsException conflict: same service exists in another SD
      */
-    @PreAuthorize("hasAuthority('EDIT_WSDL')")
     public ServiceDescriptionType updateWsdlUrl(Long id, String url, boolean ignoreWarnings)
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
                            ServiceDescriptionNotFoundException,
@@ -310,7 +305,6 @@ public class ServiceDescriptionService {
      * @throws WsdlUrlAlreadyExistsException conflict: another service description has same url
      * @throws ServiceAlreadyExistsException conflict: same service exists in another SD
      */
-    @PreAuthorize("hasAuthority('REFRESH_WSDL')")
     public ServiceDescriptionType refreshServiceDescription(Long id, boolean ignoreWarnings)
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
                            ServiceDescriptionNotFoundException, WrongServiceDescriptionTypeException,
@@ -336,7 +330,6 @@ public class ServiceDescriptionService {
      * @param id
      * @return ServiceDescriptionType
      */
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
     public ServiceDescriptionType getServiceDescriptiontype(Long id) {
         return serviceDescriptionRepository.getServiceDescription(id);
     }

@@ -68,7 +68,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @Transactional
-@PreAuthorize("denyAll")
+@PreAuthorize("isAuthenticated()")
 public class AccessRightService {
     private final LocalGroupRepository localGroupRepository;
     private final GlobalConfFacade globalConfFacade;
@@ -121,7 +121,6 @@ public class AccessRightService {
      * @throws ClientNotFoundException if client with given id was not found
      * @throws ServiceService.ServiceNotFoundException if service with given fullServicecode was not found
      */
-    @PreAuthorize("hasAuthority('VIEW_SERVICE_ACL')")
     public List<AccessRightHolderDto> getAccessRightHoldersByService(ClientId clientId, String fullServiceCode)
             throws ClientNotFoundException, ServiceService.ServiceNotFoundException {
         ClientType clientType = clientRepository.getClient(clientId);
@@ -198,7 +197,6 @@ public class AccessRightService {
      * @throws ClientNotFoundException if client with given id was not found
      * @throws ServiceService.ServiceNotFoundException if service with given fullServicecode was not found
      */
-    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
     public void deleteSoapServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds,
             Set<Long> localGroupIds) throws LocalGroupNotFoundException, ClientNotFoundException,
             AccessRightNotFoundException, ServiceService.ServiceNotFoundException {
@@ -303,7 +301,6 @@ public class AccessRightService {
      * @throws ServiceService.ServiceNotFoundException
      * @throws EndpointNotFoundException
      */
-    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
     public List<AccessRightHolderDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
             Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws LocalGroupNotFoundException,
             ClientNotFoundException, ServiceService.ServiceNotFoundException, DuplicateAccessRightException,
@@ -429,7 +426,6 @@ public class AccessRightService {
      * @param subsystemCode search term for subsystemCode. Null or empty value is considered a match
      * @return A List of {@link AccessRightHolderDto accessRightHolderDtos} or an empty List if nothing is found
      */
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
     public List<AccessRightHolderDto> findAccessRightHolders(ClientId clientId, String memberNameOrGroupDescription,
             XRoadObjectType subjectType, String instance, String memberClass, String memberGroupCode,
             String subsystemCode) throws ClientNotFoundException {

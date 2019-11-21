@@ -49,7 +49,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 @Slf4j
 @Service
 @Transactional
-@PreAuthorize("denyAll")
+@PreAuthorize("isAuthenticated()")
 public class KeyService {
 
     private final SignerProxyFacade signerProxyFacade;
@@ -71,7 +71,6 @@ public class KeyService {
      * @throws KeyNotFoundException if key was not found
      * @return
      */
-    @PreAuthorize("hasAuthority('VIEW_KEYS')")
     public KeyInfo getKey(String keyId) throws KeyNotFoundException {
         Collection<TokenInfo> tokens = tokenService.getAllTokens();
         Optional<KeyInfo> keyInfo = tokens.stream()
@@ -86,7 +85,6 @@ public class KeyService {
         return keyInfo.get();
     }
 
-    @PreAuthorize("hasAuthority('EDIT_KEYTABLE_FRIENDLY_NAMES')")
     public KeyInfo updateKeyFriendlyName(String id, String friendlyName) throws KeyNotFoundException {
         KeyInfo keyInfo = null;
         try {
