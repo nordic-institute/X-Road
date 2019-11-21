@@ -154,7 +154,7 @@ public class TokensApiController implements TokensApi {
         try {
             KeyInfo keyInfo = keyService.addKey(tokenId, keyLabel.getLabel());
             Key key = keyConverter.convert(keyInfo);
-            return new ResponseEntity<>(key, HttpStatus.OK);
+            return ApiUtil.createCreatedResponse("/api/keys/{keyId}", key, key.getId());
         } catch (TokenNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (TokenService.TokenNotActiveException e) {

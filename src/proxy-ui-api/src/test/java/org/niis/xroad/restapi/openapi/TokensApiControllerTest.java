@@ -148,6 +148,7 @@ public class TokensApiControllerTest {
     @WithMockUser(authorities = { "GENERATE_KEY" })
     public void addKey() {
         ResponseEntity<Key> response = tokensApiController.addKey(GOOD_TOKEN_ID, new KeyLabel().label(KEY_LABEL));
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
         Key key = response.getBody();
         assertEquals(KEY_LABEL, key.getLabel());
         try {
