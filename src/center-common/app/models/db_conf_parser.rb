@@ -31,8 +31,9 @@ class DbConfParser
   end
 
   def parse
-    ini_conf = Java::org.apache.commons.configuration.\
-        HierarchicalINIConfiguration.new(@conf_file)
+    ini_conf = Java::org.apache.commons.configuration.HierarchicalINIConfiguration.new
+    ini_conf.setDelimiterParsingDisabled(true)
+    ini_conf.load(@conf_file)
 
     db_conf = {
         "adapter" => ini_conf.getString("adapter"),
@@ -40,8 +41,14 @@ class DbConfParser
         "username" => ini_conf.getString("username"),
         "password" => ini_conf.getString("password"),
         "database" => ini_conf.getString("database"),
-        "reconnect" => ini_conf.getBoolean("reconnect")
+        "host" => ini_conf.getString("host", "localhost"),
+        "port" => ini_conf.getInt("port", 5432),
+        "reconnect" => ini_conf.getBoolean("reconnect", true)
     }
+
+    if ini_conf.getString("url")
+      db_conf["url"] = ini_conf.getString("url")
+    end
 
     return { @environment => db_conf }
   end
