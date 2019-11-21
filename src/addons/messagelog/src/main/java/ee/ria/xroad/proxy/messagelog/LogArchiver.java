@@ -34,7 +34,6 @@ import ee.ria.xroad.common.messagelog.archive.LogArchiveBase;
 import ee.ria.xroad.common.messagelog.archive.LogArchiveWriter;
 
 import akka.actor.UntypedAbstractActor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
