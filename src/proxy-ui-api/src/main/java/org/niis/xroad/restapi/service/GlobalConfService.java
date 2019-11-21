@@ -103,7 +103,6 @@ public class GlobalConfService {
     /**
      * @return approved CAs for current instance
      */
-    @PreAuthorize("hasAuthority('GENERATE_AUTH_CERT_REQ') or hasAuthority('GENERATE_SIGN_CERT_REQ')")
     public Collection<ApprovedCAInfo> getApprovedCAsForThisInstance() {
         return globalConfFacade.getApprovedCAs(globalConfFacade.getInstanceIdentifier());
     }
