@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @Transactional
-@PreAuthorize("denyAll")
+@PreAuthorize("isAuthenticated()")
 public class LocalGroupService {
 
     private final LocalGroupRepository localGroupRepository;
@@ -76,7 +76,6 @@ public class LocalGroupService {
      * @param groupId
      * @return the LocalGroupType, or null if not found
      */
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
     public LocalGroupType getLocalGroup(Long groupId) {
         return localGroupRepository.getLocalGroup(groupId);
     }
@@ -86,7 +85,6 @@ public class LocalGroupService {
      * @return LocalGroupType
      * @throws LocalGroupNotFoundException if local group with given id was not found
      */
-    @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_DESC')")
     public LocalGroupType updateDescription(Long groupId, String description) throws LocalGroupNotFoundException {
         LocalGroupType localGroupType = getLocalGroup(groupId);
         if (localGroupType == null) {
@@ -105,7 +103,6 @@ public class LocalGroupService {
      * @throws DuplicateLocalGroupCodeException if local group with given code already exists
      * @throws ClientNotFoundException if client with given id was not found
      */
-    @PreAuthorize("hasAuthority('ADD_LOCAL_GROUP')")
     public LocalGroupType addLocalGroup(ClientId id, LocalGroupType localGroupTypeToAdd)
             throws DuplicateLocalGroupCodeException, ClientNotFoundException {
         ClientType clientType = clientRepository.getClient(id);
@@ -132,7 +129,6 @@ public class LocalGroupService {
      * @throws LocalGroupNotFoundException if local group with given id was not found
      * @throws LocalGroupMemberNotFoundException if local group member was not found
      */
-    @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
     public void addLocalGroupMembers(Long groupId, List<ClientId> memberIds) throws MemberAlreadyExistsException,
             LocalGroupNotFoundException, LocalGroupMemberNotFoundException {
         LocalGroupType localGroupType = getLocalGroup(groupId);
@@ -168,7 +164,6 @@ public class LocalGroupService {
      * @param groupId
      * @throws LocalGroupNotFoundException if local group with given id was not found
      */
-    @PreAuthorize("hasAuthority('DELETE_LOCAL_GROUP')")
     public void deleteLocalGroup(Long groupId) throws LocalGroupNotFoundException {
         LocalGroupType existingLocalGroupType = getLocalGroup(groupId);
         if (existingLocalGroupType == null) {
@@ -183,7 +178,6 @@ public class LocalGroupService {
      * @param items
      * @throws LocalGroupMemberNotFoundException if local group member was not found in the group
      */
-    @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
     public void deleteGroupMember(LocalGroupType localGroupType, List<ClientId> items)
             throws LocalGroupMemberNotFoundException {
         List<GroupMemberType> membersToBeRemoved = localGroupType.getGroupMember().stream()

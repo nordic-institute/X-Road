@@ -54,7 +54,7 @@ import static java.util.stream.Collectors.toList;
 @Slf4j
 @Service
 @Transactional
-@PreAuthorize("denyAll")
+@PreAuthorize("isAuthenticated()")
 public class TokenService {
 
     private final SignerProxyFacade signerProxyFacade;
@@ -70,10 +70,8 @@ public class TokenService {
 
     /**
      * get all tokens
-     *
      * @return
      */
-    @PreAuthorize("hasAuthority('VIEW_KEYS')")
     public List<TokenInfo> getAllTokens() {
         try {
             return signerProxyFacade.getTokens();
@@ -84,26 +82,22 @@ public class TokenService {
 
     /**
      * get all sign certificates for a given client.
-     *
      * @param clientType client who's member certificates need to be
-     *                   linked to
+     * linked to
      * @return
      * @throws Exception
      */
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
     public List<CertificateInfo> getSignCertificates(ClientType clientType) {
         return getCertificates(clientType, true);
     }
 
     /**
      * get all certificates for a given client.
-     *
      * @param clientType client who's member certificates need to be
-     *                   linked to
+     * linked to
      * @return
      * @throws Exception
      */
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
     public List<CertificateInfo> getAllCertificates(ClientType clientType) {
         return getCertificates(clientType, false);
     }
@@ -128,7 +122,6 @@ public class TokenService {
                 .collect(toList());
     }
 
-
     /**
      * Activate a token
      * @param id id of token
@@ -136,7 +129,6 @@ public class TokenService {
      * @throws TokenNotFoundException if token was not found
      * @throws PinIncorrectException if token login failed due to wrong ping
      */
-    @PreAuthorize("hasAuthority('ACTIVATE_TOKEN')")
     public void activateToken(String id, char[] password) throws
             TokenNotFoundException, PinIncorrectException {
         try {
@@ -159,7 +151,6 @@ public class TokenService {
      * @param id id of token
      * @throws TokenNotFoundException if token was not found
      */
-    @PreAuthorize("hasAuthority('DEACTIVATE_TOKEN')")
     public void deactivateToken(String id) throws TokenNotFoundException {
         try {
             signerProxyFacade.deactivateToken(id);
@@ -179,7 +170,6 @@ public class TokenService {
      * @param id
      * @throws TokenNotFoundException if token was not found
      */
-    @PreAuthorize("hasAuthority('VIEW_KEYS')")
     public TokenInfo getToken(String id) throws TokenNotFoundException {
         try {
             return signerProxyFacade.getToken(id);
@@ -200,7 +190,6 @@ public class TokenService {
      * @param friendlyName
      * @throws TokenNotFoundException if token was not found
      */
-    @PreAuthorize("hasAuthority('EDIT_KEYTABLE_FRIENDLY_NAMES')")
     public TokenInfo updateTokenFriendlyName(String tokenId, String friendlyName) throws TokenNotFoundException {
         TokenInfo tokenInfo = null;
         try {

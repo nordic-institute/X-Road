@@ -52,6 +52,7 @@ import static org.junit.Assert.fail;
 @AutoConfigureTestDatabase
 @Slf4j
 @Transactional
+@WithMockUser
 public class LocalGroupServiceIntegrationTest {
 
     private static final Long GROUP_ID = 1L;
@@ -65,7 +66,6 @@ public class LocalGroupServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_LOCAL_GROUP", "VIEW_CLIENT_LOCAL_GROUPS" })
     public void addLocalGroup() throws Exception {
         ClientId id = getM1Ss1ClientId();
         LocalGroupType localGroupType = new LocalGroupType();
@@ -83,7 +83,6 @@ public class LocalGroupServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_LOCAL_GROUP", "VIEW_CLIENT_LOCAL_GROUPS" })
     public void addDuplicateLocalGroup() throws Exception {
         ClientId id = getM1Ss1ClientId();
         LocalGroupType localGroupType = localGroupService.getLocalGroup(GROUP_ID);
@@ -96,7 +95,6 @@ public class LocalGroupServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_LOCAL_GROUP", "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_DESC" })
     public void updateDescription() throws Exception {
         LocalGroupType localGroupType = localGroupService.getLocalGroup(GROUP_ID);
         assertEquals(localGroupType.getDescription(), FOO);

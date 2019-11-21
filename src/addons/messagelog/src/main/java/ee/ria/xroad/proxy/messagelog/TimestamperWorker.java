@@ -27,7 +27,7 @@ package ee.ria.xroad.proxy.messagelog;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampTask;
 
 import akka.actor.ActorRef;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,7 +39,7 @@ import java.util.List;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class TimestamperWorker extends UntypedActor {
+public class TimestamperWorker extends UntypedAbstractActor {
 
     private final List<String> tspUrls;
 

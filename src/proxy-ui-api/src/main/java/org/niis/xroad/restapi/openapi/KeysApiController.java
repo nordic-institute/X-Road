@@ -29,6 +29,7 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.KeyConverter;
 import org.niis.xroad.restapi.openapi.model.Key;
+import org.niis.xroad.restapi.openapi.model.KeyName;
 import org.niis.xroad.restapi.service.KeyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -76,6 +77,19 @@ public class KeysApiController implements KeysApi {
         } catch (KeyService.KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('EDIT_KEYTABLE_FRIENDLY_NAMES')")
+    public ResponseEntity<Key> updateKey(String id, KeyName keyName) {
+        KeyInfo keyInfo = null;
+        try {
+            keyInfo = keyService.updateKeyFriendlyName(id, keyName.getName());
+        } catch (KeyService.KeyNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+        Key key = keyConverter.convert(keyInfo);
+        return new ResponseEntity<>(key, HttpStatus.OK);
     }
 
 }

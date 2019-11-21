@@ -40,6 +40,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static org.niis.xroad.restapi.service.TokenService.isCausedByTokenNotActive;
 import static org.niis.xroad.restapi.service.TokenService.isCausedByTokenNotFound;
 
@@ -52,8 +54,8 @@ import static org.niis.xroad.restapi.service.TokenService.isCausedByTokenNotFoun
 @PreAuthorize("isAuthenticated()")
 public class KeyService {
 
-    private final TokenService tokenService;
     private final SignerProxyFacade signerProxyFacade;
+    private final TokenService tokenService;
 
     /**
      * KeyService constructor
@@ -69,8 +71,8 @@ public class KeyService {
     /**
      * Return one key
      * @param keyId
-     * @throws KeyNotFoundException if key was not found
      * @return
+     * @throws KeyNotFoundException if key was not found
      */
     public KeyInfo getKey(String keyId) throws KeyNotFoundException {
         Collection<TokenInfo> tokens = tokenService.getAllTokens();
@@ -84,6 +86,26 @@ public class KeyService {
         }
 
         return keyInfo.get();
+    }
+
+    public KeyInfo updateKeyFriendlyName(String id, String friendlyName) throws KeyNotFoundException {
+        KeyInfo keyInfo = null;
+        try {
+            signerProxyFacade.setKeyFriendlyName(id, friendlyName);
+            keyInfo = getKey(id);
+        } catch (KeyNotFoundException e) {
+            throw e;
+        } catch (CodedException e) {
+            if ((SIGNER_X + "." + X_KEY_NOT_FOUND).equals(e.getFaultCode())) {
+                throw new KeyNotFoundException(e);
+            } else {
+                throw e;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Update key friendly name failed", e);
+        }
+
+        return keyInfo;
     }
 
     /**
@@ -117,6 +139,14 @@ public class KeyService {
 
         public KeyNotFoundException(String s) {
             super(s, new ErrorDeviation(ERROR_KEY_NOT_FOUND));
+        }
+
+        public KeyNotFoundException(Throwable t) {
+            super(t, createError());
+        }
+
+        private static ErrorDeviation createError() {
+            return new ErrorDeviation(ERROR_KEY_NOT_FOUND);
         }
     }
 }
