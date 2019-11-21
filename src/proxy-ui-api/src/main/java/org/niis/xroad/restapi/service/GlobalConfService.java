@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
@@ -100,6 +101,14 @@ public class GlobalConfService {
      */
     @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
     public Set<String> getMemberClassesForThisInstance() {
-        return GlobalConf.getMemberClasses(globalConfFacade.getInstanceIdentifier());
+        return globalConfFacade.getMemberClasses(globalConfFacade.getInstanceIdentifier());
+    }
+
+    /**
+     * @return approved CAs for current instance
+     */
+    @PreAuthorize("hasAuthority('GENERATE_AUTH_CERT_REQ') or hasAuthority('GENERATE_SIGN_CERT_REQ')")
+    public Collection<ApprovedCAInfo> getApprovedCAsForThisInstance() {
+        return globalConfFacade.getApprovedCAs(globalConfFacade.getInstanceIdentifier());
     }
 }

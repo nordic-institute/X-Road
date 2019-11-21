@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.facade;
 
+import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
@@ -33,6 +34,7 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -99,5 +101,12 @@ public class GlobalConfFacade {
      */
     public List<GlobalGroupInfo> getGlobalGroups(String... instanceIdentifiers) {
         return GlobalConf.getGlobalGroups(instanceIdentifiers);
+    }
+
+    /**
+     * {@link GlobalConf#getApprovedCAs(String)}
+     */
+    public Collection<ApprovedCAInfo> getApprovedCAs(String instanceIdentifier) {
+        return GlobalConf.getApprovedCAs(instanceIdentifier);
     }
 }

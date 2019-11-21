@@ -24,9 +24,17 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
+
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.CertificateAuthorityConverter;
 import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
+import org.niis.xroad.restapi.converter.KeyUsageTypeMapping;
+import org.niis.xroad.restapi.openapi.model.CertificateAuthority;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
+import org.niis.xroad.restapi.openapi.model.KeyUsageType;
+import org.niis.xroad.restapi.service.CertificateAuthorityService;
 import org.niis.xroad.restapi.service.InternalTlsCertificateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
@@ -38,10 +46,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.context.request.NativeWebRequest;
 
 import java.security.cert.X509Certificate;
-import java.util.Optional;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * system api controller
@@ -52,22 +60,27 @@ import java.util.Optional;
 @PreAuthorize("denyAll")
 public class SystemApiController implements SystemApi {
 
-    private final NativeWebRequest request;
+    private final InternalTlsCertificateService internalTlsCertificateService;
+    private final CertificateDetailsConverter certificateDetailsConverter;
+    private final CertificateAuthorityConverter certificateAuthorityConverter;
+    private final CertificateAuthorityService certificateAuthorityService;
 
+    /**
+     * Constructor
+     * @param internalTlsCertificateService
+     * @param certificateDetailsConverter
+     * @param certificateAuthorityService
+     * @param certificateAuthorityConverter
+     */
     @Autowired
-    private InternalTlsCertificateService internalTlsCertificateService;
-
-    @Autowired
-    private CertificateDetailsConverter certificateDetailsConverter;
-
-    @Autowired
-    public SystemApiController(NativeWebRequest request) {
-        this.request = request;
-    }
-
-    @Override
-    public Optional<NativeWebRequest> getRequest() {
-        return Optional.ofNullable(request);
+    public SystemApiController(InternalTlsCertificateService internalTlsCertificateService,
+            CertificateDetailsConverter certificateDetailsConverter,
+            CertificateAuthorityService certificateAuthorityService,
+            CertificateAuthorityConverter certificateAuthorityConverter) {
+        this.internalTlsCertificateService = internalTlsCertificateService;
+        this.certificateDetailsConverter = certificateDetailsConverter;
+        this.certificateAuthorityService = certificateAuthorityService;
+        this.certificateAuthorityConverter = certificateAuthorityConverter;
     }
 
     @Override
@@ -91,4 +104,19 @@ public class SystemApiController implements SystemApi {
         CertificateDetails certificate = certificateDetailsConverter.convert(x509Certificate);
         return new ResponseEntity<>(certificate, HttpStatus.OK);
     }
+
+    /**
+     * Currently returns partial CertificateAuthority objects that have only
+     * name property set. Other properties will be added in another ticket (system parameters).
+     * @return
+     */
+    @Override
+    @PreAuthorize("hasAuthority('GENERATE_AUTH_CERT_REQ') or hasAuthority('GENERATE_SIGN_CERT_REQ')")
+    public ResponseEntity<List<CertificateAuthority>> getApprovedCertificateAuthorities(KeyUsageType keyUsageType) {
+        KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(keyUsageType).orElse(null);
+        Collection<ApprovedCAInfo> caInfos = certificateAuthorityService.getCertificateAuthorities(keyUsageInfo);
+        List<CertificateAuthority> cas = certificateAuthorityConverter.convert(caInfos);
+        return new ResponseEntity<>(cas, HttpStatus.OK);
+    }
+
 }
