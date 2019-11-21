@@ -2787,6 +2787,41 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
+  /system/certificate-authorities:
+    get: # ok
+      tags:
+        - security server
+      summary: view the approved certificate authorities
+      operationId: getApprovedCertificateAuthorities
+      description: Administrator views the approved certificate authorities.
+      parameters:
+        - in: query
+          name: key_usage_type
+          description: return only CAs suitable for this type of key usage
+          required: false
+          schema:
+            $ref: '#/components/schemas/KeyUsageType'
+      responses:
+        '200':
+          description: list of approved certificate authorities
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of timestamping service objects
+                items:
+                  $ref: '#/components/schemas/CertificateAuthority'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /system/timestamping-services:
     get: # ok
       tags:
@@ -3459,13 +3494,22 @@ components:
             $ref: '#/components/schemas/KeyUsage'
     CertificateAuthority: # ok
       type: object
-      description: certificate authority
+      description: approved certificate authority information
       required:
         - name
+        - distinguished_name
         - response
         - expires_at
+        - authentication_only
       properties:
         name:
+          type: string
+          format: text
+          description: common name of the CA, used also as an identifier
+          example: X-Road Test CA CN
+          minLength: 1
+          maxLength: 255
+        distinguished_name:
           type: string
           format: text
           description: distinguished name
@@ -3486,6 +3530,9 @@ components:
           example: '2099-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
+        authentication_only:
+          type: boolean
+          description: if certificate authority is limited for authentication use only
     CertificateStatus: # ok
       type: string
       format: enum
