@@ -41,8 +41,9 @@ class DbConfParser
         "username" => ini_conf.getString("username"),
         "password" => ini_conf.getString("password"),
         "database" => ini_conf.getString("database"),
+        "reconnect" => ini_conf.getBoolean("reconnect", true),
         "host" => ini_conf.getString("host", "localhost"),
-        "reconnect" => ini_conf.getBoolean("reconnect", true)
+        "port" => ini_conf.getInt("port", 5432)
     }
 
     if ini_conf.getString("url")
