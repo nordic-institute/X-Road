@@ -107,7 +107,8 @@ public class SystemApiController implements SystemApi {
 
     /**
      * Currently returns partial CertificateAuthority objects that have only
-     * name property set. Other properties will be added in another ticket (system parameters).
+     * name and authentication_onle properties set.
+     * Other properties will be added in another ticket (system parameters).
      * @return
      */
     @Override

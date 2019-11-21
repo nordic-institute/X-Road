@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @Transactional
-@PreAuthorize("denyAll")
+@PreAuthorize("isAuthenticated()")
 public class CertificateAuthorityService {
 
     private final GlobalConfService globalConfService;
@@ -61,7 +61,6 @@ public class CertificateAuthorityService {
      * @param keyUsageInfo list CAs for this type of key usage. If null, list all.
      * @return
      */
-    @PreAuthorize("hasAuthority('GENERATE_AUTH_CERT_REQ') or hasAuthority('GENERATE_SIGN_CERT_REQ')")
     public Collection<ApprovedCAInfo> getCertificateAuthorities(KeyUsageInfo keyUsageInfo) {
         Collection<ApprovedCAInfo> matchingCas = globalConfService.getApprovedCAsForThisInstance();
         if (keyUsageInfo == KeyUsageInfo.SIGNING) {
