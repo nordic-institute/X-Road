@@ -35,7 +35,7 @@ import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import akka.actor.ActorRef;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -53,7 +53,7 @@ import static ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse.STA
  * OpMonitoringBuffer class for periodically forwarding operational data gathered in the buffer.
  */
 @Slf4j
-public class OpMonitoringDaemonSender extends UntypedActor {
+public class OpMonitoringDaemonSender extends UntypedAbstractActor {
 
     private static final Gson GSON = JsonUtils.getSerializer();
 
