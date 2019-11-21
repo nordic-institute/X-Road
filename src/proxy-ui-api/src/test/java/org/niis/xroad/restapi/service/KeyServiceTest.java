@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
@@ -39,11 +40,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 
+import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
 /**
@@ -72,6 +78,17 @@ public class KeyServiceTest {
         KeyInfo keyInfo = TokenTestUtils.createTestKeyInfo(GOOD_KEY_ID);
         tokenInfo.getKeyInfo().add(keyInfo);
         when(signerProxyFacade.getTokens()).thenReturn(Collections.singletonList(tokenInfo));
+
+        doAnswer(invocation -> {
+            Object[] arguments = invocation.getArguments();
+            String newKeyName = (String) arguments[1];
+            if ("new-friendly-name-update-fails".equals(newKeyName)) {
+                throw new CodedException(SIGNER_X + "." + X_KEY_NOT_FOUND);
+            }
+            ReflectionTestUtils.setField(keyInfo, "friendlyName", newKeyName);
+            return null;
+        }).when(signerProxyFacade).setKeyFriendlyName(any(), any());
+
     }
 
     @Test
@@ -84,4 +101,26 @@ public class KeyServiceTest {
         KeyInfo keyInfo = keyService.getKey(GOOD_KEY_ID);
         assertEquals(GOOD_KEY_ID, keyInfo.getId());
     }
+
+    @Test
+    @WithMockUser(authorities = {"VIEW_KEYS", "EDIT_KEYTABLE_FRIENDLY_NAMES"})
+    public void updateKeyFriendlyName() throws Exception {
+        KeyInfo keyInfo = keyService.getKey(GOOD_KEY_ID);
+        assertEquals("friendly-name", keyInfo.getFriendlyName());
+        keyInfo = keyService.updateKeyFriendlyName(GOOD_KEY_ID, "new-friendly-name");
+        assertEquals("new-friendly-name", keyInfo.getFriendlyName());
+    }
+
+    @Test(expected = KeyService.KeyNotFoundException.class)
+    @WithMockUser(authorities = { "EDIT_KEYTABLE_FRIENDLY_NAMES", "VIEW_KEYS" })
+    public void updateKeyFriendlyNameKeyNotExist() throws Exception {
+        keyService.updateKeyFriendlyName(KEY_NOT_FOUND_KEY_ID, "new-friendly-name");
+    }
+
+    @Test(expected = KeyService.KeyNotFoundException.class)
+    @WithMockUser(authorities = { "EDIT_KEYTABLE_FRIENDLY_NAMES", "VIEW_KEYS" })
+    public void updateFriendlyNameUpdatingKeyFails() throws Exception {
+        keyService.updateKeyFriendlyName(GOOD_KEY_ID, "new-friendly-name-update-fails");
+    }
+
 }
