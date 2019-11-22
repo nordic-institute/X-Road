@@ -29,6 +29,7 @@ import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.dao.CertificateDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
+import ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServiceDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServiceDescriptionDAOImpl;
@@ -36,10 +37,10 @@ import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
-import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
+import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.db.TransactionCallback;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
@@ -48,16 +49,24 @@ import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
+import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.util.UriUtils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Root;
+
 import java.net.URI;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
@@ -69,10 +78,18 @@ import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 /**
  * Server conf implementation.
  */
+@Slf4j
 public class ServerConfImpl implements ServerConfProvider {
 
     // default service connection timeout in seconds
-    private static final int DEFAULT_SERVICE_TIMEOUT = 30;
+    protected static final int DEFAULT_SERVICE_TIMEOUT = 30;
+
+    private final ServiceDAOImpl serviceDao = new ServiceDAOImpl();
+    private final IdentifierDAOImpl identifierDao = new IdentifierDAOImpl();
+    private final ClientDAOImpl clientDao = new ClientDAOImpl();
+    private final CertificateDAOImpl certificateDao = new CertificateDAOImpl();
+    private final ServerConfDAOImpl serverConfDao = new ServerConfDAOImpl();
+    private final ServiceDescriptionDAOImpl serviceDescriptionDao = new ServiceDescriptionDAOImpl();
 
     @Override
     public SecurityServerId getIdentifier() {
@@ -88,8 +105,7 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public boolean serviceExists(ServiceId service) {
-        return tx(session -> new ServiceDAOImpl().serviceExists(session,
-                service));
+        return tx(session -> serviceDao.serviceExists(session, service));
     }
 
     @Override
@@ -118,21 +134,19 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public List<ServiceId> getAllServices(ClientId serviceProvider) {
-        return tx(session -> new ServiceDAOImpl().getServices(session,
-                serviceProvider));
+        return tx(session -> serviceDao.getServices(session, serviceProvider));
     }
 
     @Override
     public List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
-        return tx(session -> new ServiceDAOImpl().getServicesByDescriptionType(session,
-                serviceProvider, descriptionType));
+        return tx(session -> serviceDao.getServicesByDescriptionType(session, serviceProvider, descriptionType));
     }
 
     @Override
     public List<ServiceId> getAllowedServices(ClientId serviceProvider, ClientId client) {
         return tx(session -> {
             List<ServiceId> allServices =
-                    new ServiceDAOImpl().getServices(session, serviceProvider);
+                    serviceDao.getServices(session, serviceProvider);
             return allServices.stream()
                     .filter(s -> internalIsQueryAllowed(session, client, s, null, null))
                     .collect(Collectors.toList());
@@ -141,10 +155,10 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
-                                                               DescriptionType descriptionType) {
+            DescriptionType descriptionType) {
         return tx(session -> {
             List<ServiceId> allServices =
-                    new ServiceDAOImpl().getServicesByDescriptionType(session, serviceProvider, descriptionType);
+                    serviceDao.getServicesByDescriptionType(session, serviceProvider, descriptionType);
             return allServices.stream()
                     .filter(s -> internalIsQueryAllowed(session, client, s, null, null))
                     .collect(Collectors.toList());
@@ -168,7 +182,7 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public List<ClientId> getMembers() {
         return tx(session -> getConf(session).getClient().stream()
-                .map(c -> c.getIdentifier())
+                .map(ClientType::getIdentifier)
                 .collect(Collectors.toList()));
     }
 
@@ -203,16 +217,14 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public List<X509Certificate> getIsCerts(ClientId client) throws Exception {
-        return tx(session -> new ClientDAOImpl().getIsCerts(session,
-                client).stream().map(c -> readCertificate(c.getData()))
+        return tx(session -> clientDao.getIsCerts(session, client).stream()
+                .map(c -> readCertificate(c.getData()))
                 .collect(Collectors.toList()));
     }
 
     @Override
     public List<X509Certificate> getAllIsCerts() {
-        return tx(session -> new CertificateDAOImpl()
-                .findAll(session)
-                .stream()
+        return tx(session -> certificateDao.findAll(session).stream()
                 .map(c -> readCertificate(c.getData()))
                 .collect(Collectors.toList()));
     }
@@ -250,15 +262,14 @@ public class ServerConfImpl implements ServerConfProvider {
             if (serviceType != null) {
                 return serviceType.getRequiredSecurityCategory();
             }
-
-            return new ArrayList<SecurityCategoryId>();
+            return Collections.emptyList();
         });
     }
 
     @Override
     public List<String> getTspUrl() {
         return tx(session -> getConf(session).getTsp().stream()
-                .map(tsp -> tsp.getUrl())
+                .map(TspType::getUrl)
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toList()));
     }
@@ -289,19 +300,19 @@ public class ServerConfImpl implements ServerConfProvider {
     // ------------------------------------------------------------------------
 
     protected ServerConfType getConf(Session session) {
-        return new ServerConfDAOImpl().getConf(session);
+        return serverConfDao.getConf(session);
     }
 
     protected ClientType getClient(Session session, ClientId c) {
-        return new ClientDAOImpl().getClient(session, c);
+        return clientDao.getClient(session, c);
     }
 
     protected ServiceType getService(Session session, ServiceId s) {
-        return new ServiceDAOImpl().getService(session, s);
+        return serviceDao.getService(session, s);
     }
 
     protected ServiceDescriptionType getServiceDescription(Session session, ServiceId service) {
-        return new ServiceDescriptionDAOImpl().getServiceDescription(session, service);
+        return serviceDescriptionDao.getServiceDescription(session, service);
     }
 
     private boolean internalIsQueryAllowed(Session session, ClientId client, ServiceId service, String method,
@@ -311,76 +322,76 @@ public class ServerConfImpl implements ServerConfProvider {
             return false;
         }
 
-        ClientType clientType = getClient(session, service.getClientId());
-        if (clientType == null) {
-            return false;
-        }
-
-        return checkAccessRights(clientType, session, client, service, method, path);
+        return checkAccessRights(session, client, service, method, path);
     }
 
     @SuppressWarnings("squid:S3776")
-    private boolean checkAccessRights(ClientType clientType, Session session, ClientId client, ServiceId service,
-            String method, String path) {
-
+    private boolean checkAccessRights(Session session, ClientId client, ServiceId service, String method, String path) {
         final String normalizedPath;
         if (path == null) {
             normalizedPath = null;
         } else {
             normalizedPath = UriUtils.uriPathPercentDecode(URI.create(path).normalize().getRawPath(), true);
         }
+        return getEndpoints(session, client, service).stream().anyMatch(ep -> ep.matches(method, normalizedPath));
+    }
 
-        for (AccessRightType accessRight : clientType.getAcl()) {
-            final EndpointType endpoint = accessRight.getEndpoint();
-            if (!StringUtils.equals(service.getServiceCode(), endpoint.getServiceCode())) {
-                continue;
-            }
+    protected List<EndpointType> getEndpoints(Session session, ClientId client, ServiceId service) {
+        log.debug("getAcl, session = {}", session);
 
-            XRoadId subjectId = accessRight.getSubjectId();
+        final ClientType serviceOwner = getClient(session, service.getClientId());
 
-            if (subjectId instanceof GlobalGroupId) {
-                if (!GlobalConf.isSubjectInGlobalGroup(client, (GlobalGroupId)subjectId)) continue;
-            } else if (subjectId instanceof LocalGroupId) {
-                if (!isMemberInLocalGroup(session, client, (LocalGroupId)subjectId, service)) continue;
-            } else if (!client.equals(subjectId)) {
-                continue;
-            }
-
-            if (!EndpointType.ANY_METHOD.equals(endpoint.getMethod())
-                    && !endpoint.getMethod().equalsIgnoreCase(method)) {
-                continue;
-            }
-
-            if (EndpointType.ANY_PATH.equals(endpoint.getPath())
-                    || PathGlob.matches(endpoint.getPath(), normalizedPath)) {
-                return true;
-            }
+        if (serviceOwner == null) {
+            // should not normally happen, but possible if service and acl caches are in inconsistent state
+            // (see CachingServerConfImpl))
+            throw new CodedException(X_UNKNOWN_SERVICE, "Service '%s' owner not found", service);
         }
 
-        return false;
+        final ClientId localClientId = identifierDao.findClientId(session, client);
+        // localClientId can be null if the permissions are defined by a global group
+
+        final CriteriaBuilder cb = session.getCriteriaBuilder();
+        final CriteriaQuery<AccessRightType> query = cb.createQuery(AccessRightType.class);
+        final Root<ClientType> root = query.from(ClientType.class);
+        final Join<ClientType, AccessRightType> acl = root.join("acl");
+        final Join<AccessRightType, EndpointType> endpoint = acl.join("endpoint");
+        final Join<AccessRightType, XRoadId> identifier = acl.join("subjectId");
+        acl.fetch("endpoint");
+
+        query.select(acl).where(cb.and(
+                cb.equal(root, serviceOwner),
+                cb.equal(endpoint.get("serviceCode"), service.getServiceCode())),
+                cb.or(cb.equal(identifier, localClientId),
+                        cb.equal(identifier.get("type"), XRoadObjectType.GLOBALGROUP),
+                        cb.equal(identifier.get("type"), XRoadObjectType.LOCALGROUP)));
+
+        return session.createQuery(query).setReadOnly(true).list().stream()
+                .filter(it -> subjectMatches(serviceOwner, it.getSubjectId(), client))
+                .map(AccessRightType::getEndpoint)
+                .collect(Collectors.toList());
     }
 
-    private boolean isMemberInLocalGroup(Session session, ClientId member,
-            LocalGroupId groupId, ServiceId serviceId) {
-        LocalGroupType group = findLocalGroup(session, groupId.getGroupCode(),
-                serviceId.getClientId());
-        if (group == null) {
-            return false;
+    private boolean subjectMatches(ClientType serviceOwner, XRoadId aclSubject, ClientId client) {
+        if (aclSubject instanceof GlobalGroupId) {
+            return GlobalConf.isSubjectInGlobalGroup(client, (GlobalGroupId)aclSubject);
+        } else if (aclSubject instanceof LocalGroupId) {
+            return isMemberInLocalGroup(client, (LocalGroupId)aclSubject, serviceOwner);
+        } else {
+            return client.equals(aclSubject);
         }
-
-        return group.getGroupMember().stream()
-                .filter(g -> g.getGroupMemberId().equals(member))
-                .findFirst().isPresent();
     }
 
-    private LocalGroupType findLocalGroup(Session session, String groupCode, ClientId groupOwnerId) {
-        // No need to check for null because we already know the service
-        // (and therefore the owner) exists.
-        return getClient(session, groupOwnerId).getLocalGroup().stream()
-                .filter(g -> StringUtils.equals(groupCode, g.getGroupCode()))
-                .findFirst().orElse(null);
+    private boolean isMemberInLocalGroup(ClientId member, LocalGroupId groupId, ClientType groupOwner) {
+        return groupOwner.getLocalGroup().stream()
+                .filter(g -> Objects.equals(groupId.getGroupCode(), g.getGroupCode()))
+                .flatMap(g -> g.getGroupMember().stream())
+                .anyMatch(m -> m.getGroupMemberId().equals(member));
     }
 
+    /**
+     * Runs the callback in transaction, creating a new transaction if necessary and otherwise joining the current one.
+     * In the case of join, the transaction is not committed.
+     */
     protected <T> T tx(TransactionCallback<T> t) {
         try {
             return doInTransaction(t);
@@ -388,4 +399,5 @@ public class ServerConfImpl implements ServerConfProvider {
             throw translateException(e);
         }
     }
+
 }

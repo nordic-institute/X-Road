@@ -48,6 +48,7 @@ import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
 import ee.ria.xroad.proxy.util.GlobalConfUpdater;
+import ee.ria.xroad.proxy.util.ServerConfStatsLogger;
 import ee.ria.xroad.signer.protocol.SignerClient;
 
 import akka.actor.ActorSelection;
@@ -107,6 +108,8 @@ public final class ProxyMain {
 
     private static final int GLOBAL_CONF_UPDATE_REPEAT_INTERVAL = 60;
 
+    private static final int STATS_LOG_REPEAT_INTERVAL = 60;
+
     private ProxyMain() {
     }
 
@@ -133,7 +136,7 @@ public final class ProxyMain {
 
         createServices();
 
-        for (StartStop service: SERVICES) {
+        for (StartStop service : SERVICES) {
             String name = service.getClass().getSimpleName();
             try {
                 service.start();
@@ -144,14 +147,14 @@ public final class ProxyMain {
             }
         }
 
-        for (StartStop service: SERVICES) {
+        for (StartStop service : SERVICES) {
             service.join();
         }
 
     }
 
     private static void stopServices() throws Exception {
-        for (StartStop s: SERVICES) {
+        for (StartStop s : SERVICES) {
             log.debug("Stopping " + s.getClass().getSimpleName());
             s.stop();
             s.join();
@@ -197,7 +200,9 @@ public final class ProxyMain {
         if (SystemProperties.isHealthCheckEnabled()) {
             SERVICES.add(new HealthCheckPort());
         }
+
         jobManager.registerRepeatingJob(GlobalConfUpdater.class, GLOBAL_CONF_UPDATE_REPEAT_INTERVAL);
+        jobManager.registerRepeatingJob(ServerConfStatsLogger.class, STATS_LOG_REPEAT_INTERVAL);
     }
 
     private static void loadConfigurations() {
@@ -263,7 +268,7 @@ public final class ProxyMain {
 
                 Timeout timeout = new Timeout(DIAGNOSTICS_CONNECTION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
                 try {
-                    Map<String, DiagnosticsStatus> statusFromLogManager = (Map<String, DiagnosticsStatus>) Await.result(
+                    Map<String, DiagnosticsStatus> statusFromLogManager = (Map<String, DiagnosticsStatus>)Await.result(
                             Patterns.ask(
                                     logManagerSelection, CommonMessages.TIMESTAMP_STATUS, timeout),
                             timeout.duration());
@@ -340,13 +345,13 @@ public final class ProxyMain {
     private static Map<String, DiagnosticsStatus> checkConnectionToTimestampUrl() {
         Map<String, DiagnosticsStatus> statuses = new HashMap<>();
 
-        for (String tspUrl: ServerConf.getTspUrl()) {
+        for (String tspUrl : ServerConf.getTspUrl()) {
             try {
                 URL url = new URL(tspUrl);
 
                 log.info("Checking timestamp server status for url {}", url);
 
-                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                HttpURLConnection con = (HttpURLConnection)url.openConnection();
                 con.setConnectTimeout(DIAGNOSTICS_CONNECTION_TIMEOUT_MS);
                 con.setReadTimeout(DIAGNOSTICS_READ_TIMEOUT_MS);
                 con.setDoOutput(true);
