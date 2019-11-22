@@ -43,7 +43,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * global configuration service
+ * Global configuration service.
+ * Contains methods that add some extra logic to the methods provided by {@link GlobalConfFacade}.
+ * To avoid method explosion, do not add pure delegate methods here, use GlobalConfFacade directly instead.
  */
 @Slf4j
 @Service
@@ -106,4 +108,5 @@ public class GlobalConfService {
     public Collection<ApprovedCAInfo> getApprovedCAsForThisInstance() {
         return globalConfFacade.getApprovedCAs(globalConfFacade.getInstanceIdentifier());
     }
+
 }

@@ -1742,6 +1742,72 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /keys/{id}/csr-dn-fields:
+    get: # ok
+      tags:
+        - security server
+      summary: get description of DN fields for CSR
+      operationId: getCsrDnFieldDescriptions
+      description: list DN field descriptions to collect CSR parameters
+      parameters:
+        - in: path
+          name: id
+          description: id of the key
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: key_usage_type
+          description: which usage type this CSR is for
+          required: true
+          schema:
+            $ref: '#/components/schemas/KeyUsageType'
+        - in: query
+          name: ca_name
+          description: common name of the CA
+          example: X-Road Test CA CN
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: member_id
+          description: member client id for signing CSRs. <instance_id>:<member_class>:<member_code>
+          example: FI:GOV:123
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 767
+      responses:
+        '200':
+          description: key object
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of timestamping service objects
+                items:
+                  $ref: '#/components/schemas/DistinguishedNameFieldDescription'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /member-classes:
     get: # ok
       tags:
@@ -3680,6 +3746,46 @@ components:
       enum:
         - PEM
         - DER
+    DistinguishedNameFieldDescription:
+      type: object
+      description: object describing input fields for CSR DN info
+      required:
+        - id
+        - label
+        - read_only
+        - required
+      properties:
+        id:
+          type: string
+          format: text
+          description: the identifier of the field (such as 'O', 'OU' etc)
+          example: O
+          minLength: 1
+          readOnly: true
+        label:
+          type: string
+          format: text
+          description: label of the field, used to display the field in the user interface
+          example: Organization name (O)
+          minLength: 1
+          readOnly: true
+        default_value:
+          type: string
+          format: text
+          description: the default value of the field. Can be empty.
+          example: 1234
+          minLength: 0
+          readOnly: true
+        read_only:
+          type: boolean
+          description: if this field is read-only
+          example: true
+          readOnly: true
+        required:
+          type: boolean
+          description: if this field is required to be filled
+          example: true
+          readOnly: true
     ErrorInfo:
       type: object
       description: object returned in error cases
