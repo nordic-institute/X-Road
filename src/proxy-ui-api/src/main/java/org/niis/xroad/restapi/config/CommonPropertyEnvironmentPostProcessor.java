@@ -50,7 +50,7 @@ public class CommonPropertyEnvironmentPostProcessor implements EnvironmentPostPr
             throw new IllegalArgumentException("Resource " + path + " does not exist");
         }
         try {
-            return this.loader.load("common-application-reosources", path).get(0);
+            return this.loader.load("common-application-resources", path).get(0);
         } catch (IOException ex) {
             throw new IllegalStateException("Failed to load yaml configuration from " + path, ex);
         }
