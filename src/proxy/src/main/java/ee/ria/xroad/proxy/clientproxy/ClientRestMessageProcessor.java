@@ -180,13 +180,12 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         try {
             final String contentType = MimeUtils.mpMixedContentType("xtop" + RandomStringUtils.randomAlphabetic(30));
             opMonitoringData.setRequestOutTs(getEpochMillisecond());
-            httpSender.doPost(addresses[0], new ProxyMessageEntity(contentType));
+            httpSender.doPost(getServiceAddress(addresses), new ProxyMessageEntity(contentType));
             opMonitoringData.setResponseInTs(getEpochMillisecond());
         } catch (Exception e) {
             MonitorAgent.serverProxyFailed(createRequestMessageInfo());
             throw e;
         }
-
     }
 
     private void parseResponse(HttpSender httpSender) throws Exception {

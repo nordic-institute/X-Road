@@ -3,6 +3,10 @@
   fail:
     msg: "This playbook only supports Ubuntu"
   when: ansible_os_family != "Debian"
+  
+- name: Update all packages to the latest version
+  apt:
+    update_cache: yes
 
 - name: install required packages
   package:

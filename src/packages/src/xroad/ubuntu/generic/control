@@ -64,7 +64,7 @@ Description: X-Road signer component
 Package: xroad-securityserver
 Conflicts: xroad-centralserver, uxp-addon-monitor (<=6.5)
 Architecture: all
-Depends: xroad-proxy (=${binary:Version}), xroad-addon-metaservices (=${binary:Version}), xroad-addon-messagelog (=${binary:Version}), xroad-addon-proxymonitor (=${binary:Version}), xroad-addon-wsdlvalidator (=${binary:Version})
+Depends: xroad-proxy (=${binary:Version}), xroad-addon-metaservices (=${binary:Version}), xroad-addon-messagelog (=${binary:Version}), xroad-addon-proxymonitor (=${binary:Version}), xroad-addon-wsdlvalidator (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version})
 Description: X-Road security server
  This is meta-package of X-Road security server.
 
@@ -162,3 +162,10 @@ Replaces: aux-xroad-autologin (<< 1.4-1)
 Conflicts: aux-xroad-autologin (<< 1.4-1)
 Description: Automatic token pin code entry
  Optional utility that automatically enters the software token pin code on xroad-signer start
+
+Package: xroad-proxy-ui-api
+Architecture: all
+Depends: ${misc:Depends}
+Pre-depends: xroad-base (=${binary:Version}), xroad-proxy (=${binary:Version})
+Description: X-Road proxy UI REST API
+ REST API for X-Road proxy UI and management operations

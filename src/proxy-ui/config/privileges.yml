@@ -8,6 +8,8 @@
 #   - xroad-system-administrator
 #   - xroad-securityserver-observer
 
+
+
 - init_config: [xroad-system-administrator]
 - view_clients: [xroad-security-officer, xroad-registration-officer, xroad-service-administrator, xroad-securityserver-observer]
 -   add_client: [xroad-registration-officer]

@@ -8,3 +8,4 @@ dependencies {
     testCompile 'org.hsqldb:hsqldb:2.5.0'
     testCompile project(':common-test')
 }
+    

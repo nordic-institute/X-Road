@@ -49,6 +49,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -72,6 +73,17 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
     protected final IsAuthenticationData clientCert;
     protected final OpMonitoringData opMonitoringData;
 
+    private static final URI DUMMY_SERVICE_ADDRESS;
+
+    static {
+        try {
+            DUMMY_SERVICE_ADDRESS = new URI("https", null, "localhost", getServerProxyPort(), "/", null, null);
+        } catch (URISyntaxException e) {
+            //can not happen
+            throw new IllegalStateException("Unexpected", e);
+        }
+    }
+
     protected AbstractClientMessageProcessor(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
             HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
             throws Exception {
@@ -79,6 +91,14 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
 
         this.clientCert = clientCert;
         this.opMonitoringData = opMonitoringData;
+    }
+
+    protected static URI getServiceAddress(URI[] addresses) {
+        if (addresses.length == 1 || !isSslEnabled()) {
+            return addresses[0];
+        }
+        //postpone actual name resolution to the fastest connection selector
+        return DUMMY_SERVICE_ADDRESS;
     }
 
     URI[] prepareRequest(HttpSender httpSender, ServiceId requestServiceId, SecurityServerId securityServerId)
@@ -118,7 +138,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         // service provider
         httpSender.addHeader(HEADER_ORIGINAL_CONTENT_TYPE, servletRequest.getContentType());
 
-        return  addresses;
+        return addresses;
     }
 
     private void updateOpMonitoringServiceSecurityServerAddress(URI addresses[], HttpSender httpSender) {
@@ -164,7 +184,16 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         List<URI> addresses = new ArrayList<>(hostNames.size());
 
         for (String host : hostNames) {
-            addresses.add(new URI(protocol, null, host, port, "/", null, null));
+            try {
+                addresses.add(new URI(protocol, null, host, port, "/", null, null));
+            } catch (URISyntaxException e) {
+                log.warn("Invalid service provider hostname " + host);
+            }
+        }
+
+        if (addresses.isEmpty()) {
+            throw new CodedException(X_UNKNOWN_MEMBER, "Could not find suitable address for service provider \"%s\"",
+                    serviceProvider);
         }
 
         return addresses;

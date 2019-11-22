@@ -228,7 +228,7 @@ public class DAOImplTest {
     }
 
     private ServerConfType getConf() throws Exception {
-        return new ServerConfDAOImpl().getConf();
+        return new ServerConfDAOImpl().getConf(session);
     }
 
     private boolean clientExists(ClientId id, boolean includeSubsystems)

@@ -71,6 +71,13 @@ public final class SystemProperties {
     private static final String MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION =
             PREFIX + "configuration-proxy.minimum-global-configuration-version";
 
+    // REST API ---------------------------------------------------------------
+
+    /** Property name of the Proxy UI API's ssl configuration file. */
+    public static final String PROXY_UI_API_SSL_PROPERTIES =
+            PREFIX + "proxy-ui-api.ssl-properties";
+
+
 
     // Proxy ------------------------------------------------------------------
 
@@ -658,6 +665,14 @@ public final class SystemProperties {
      */
     public static String getDatabasePropertiesFile() {
         return System.getProperty(DATABASE_PROPERTIES, getConfPath() + DefaultFilepaths.SERVER_DATABASE_PROPERTIES);
+    }
+
+    /**
+     * @return path to the proxy ssl configuration file, '/etc/xroad/ssl.properties' by default.
+     */
+    public static String getSslPropertiesFile() {
+        return System.getProperty(PROXY_UI_API_SSL_PROPERTIES,
+                getConfPath() + DefaultFilepaths.PROXY_UI_API_SSL_PROPERTIES);
     }
 
     /**

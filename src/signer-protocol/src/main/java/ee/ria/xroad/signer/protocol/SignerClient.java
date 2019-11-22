@@ -51,6 +51,7 @@ public final class SignerClient {
 
     private static final int TIMEOUT_MILLIS =
             SystemProperties.getSignerClientTimeout();
+    public static final String LOCALHOST_IP = "127.0.0.1";
 
     private static ActorSystem actorSystem;
     private static ActorSelection requestProcessor;
@@ -64,13 +65,25 @@ public final class SignerClient {
      * @throws Exception if an error occurs
      */
     public static void init(ActorSystem system) throws Exception {
+        init(system, LOCALHOST_IP);
+    }
+
+    /**
+     * Initializes the client with the provided actor system.
+     * @param system the actor system
+     * @param signerIpAddress IP address for remote signer
+     *                         or 127.0.0.1 for local signer
+     * @throws Exception if an error occurs
+     */
+    public static void init(ActorSystem system,
+                            String signerIpAddress) throws Exception {
         log.trace("init()");
 
         if (SignerClient.actorSystem == null) {
             SignerClient.actorSystem = system;
 
             requestProcessor = system.actorSelection(
-                    getSignerPath() + "/user/" + REQUEST_PROCESSOR);
+                    getSignerPath(signerIpAddress) + "/user/" + REQUEST_PROCESSOR);
 
         }
     }
@@ -122,7 +135,11 @@ public final class SignerClient {
     }
 
     private static String getSignerPath() {
-        return "akka.tcp://" + SIGNER + "@127.0.0.1:"
+        return getSignerPath("127.0.0.1");
+    }
+
+    private static String getSignerPath(String signerIpAddress) {
+        return "akka.tcp://" + SIGNER + "@" + signerIpAddress + ":"
                 + SystemProperties.getSignerPort();
     }
 

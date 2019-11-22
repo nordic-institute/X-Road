@@ -1,0 +1,6 @@
+../../../../src/xroad/common/proxy-ui-api/etc/*  etc/
+../../../../src/xroad/common/proxy-ui-api/usr/*  usr/
+
+../../../../src/xroad/default-configuration/proxy-ui-api.ini etc/xroad/conf.d/
+../../../../src/xroad/default-configuration/proxy-ui-api-logback.xml etc/xroad/conf.d
+../../../../../proxy-ui-api/build/libs/proxy-ui-api-1.0.jar usr/share/xroad/jlib/
