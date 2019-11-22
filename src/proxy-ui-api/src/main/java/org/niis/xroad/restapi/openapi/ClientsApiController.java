@@ -56,6 +56,7 @@ import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.service.AccessRightService;
+import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.ClientService;
@@ -81,6 +82,8 @@ import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.restapi.openapi.ApiUtil.createCreatedResponse;
+import static org.niis.xroad.restapi.openapi.CertificatesApiController.ERROR_INVALID_CERT;
+import static org.niis.xroad.restapi.openapi.CertificatesApiController.ERROR_INVALID_CERT_UPLOAD;
 
 /**
  * clients api
@@ -90,10 +93,6 @@ import static org.niis.xroad.restapi.openapi.ApiUtil.createCreatedResponse;
 @Slf4j
 @PreAuthorize("denyAll")
 public class ClientsApiController implements ClientsApi {
-
-    public static final String ERROR_INVALID_CERT_UPLOAD = "invalid_cert_upload";
-    public static final String ERROR_INVALID_CERT = "invalid_cert";
-
     private final ClientConverter clientConverter;
     private final ClientService clientService;
     private final LocalGroupConverter localGroupConverter;
@@ -240,11 +239,12 @@ public class ClientsApiController implements ClientsApi {
             throw new BadRequestException(c, new ErrorDeviation(ERROR_INVALID_CERT));
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (ClientService.CertificateAlreadyExistsException e) {
+        } catch (CertificateAlreadyExistsException e) {
             throw new ConflictException(e);
         }
         CertificateDetails certificateDetails = certificateDetailsConverter.convert(certificateType);
-        return createCreatedResponse("/api/certificates/{hash}", certificateDetails, certificateDetails.getHash());
+        return createCreatedResponse("/api/clients/{id}/tls-certificates/{hash}", certificateDetails, encodedId,
+                certificateDetails.getHash());
     }
 
     @Override

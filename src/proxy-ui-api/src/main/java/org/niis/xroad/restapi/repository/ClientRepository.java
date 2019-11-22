@@ -99,5 +99,15 @@ public class ClientRepository {
         Hibernate.initialize(clientTypes);
         return clientTypes;
     }
+
+    /**
+     * does client exist
+     * @param id
+     * @param includeSubsystems
+     */
+    public boolean clientExists(ClientId id, boolean includeSubsystems) {
+        ClientDAOImpl clientDAO = new ClientDAOImpl();
+        return clientDAO.clientExists(persistenceUtils.getCurrentSession(), id, includeSubsystems);
+    }
 }
 

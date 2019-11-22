@@ -316,7 +316,8 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals("O=Internet Widgits Pty Ltd, ST=Some-State, C=AU",
                 certificateDetails.getSubjectDistinguishedName());
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertLocationHeader("/api/certificates/" + certificateDetails.getHash(), response);
+        assertLocationHeader("/api/clients/" + TestUtils.CLIENT_ID_SS1 + "/certificates/"
+                + certificateDetails.getHash(), response);
 
         assertEquals(1, clientsApiController.getClientTlsCertificates(TestUtils.CLIENT_ID_SS1).getBody().size());
         // cert already exists
