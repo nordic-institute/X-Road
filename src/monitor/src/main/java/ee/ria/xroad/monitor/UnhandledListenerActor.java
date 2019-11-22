@@ -25,14 +25,14 @@
 package ee.ria.xroad.monitor;
 
 import akka.actor.UnhandledMessage;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by janne on 17.5.2017.
  */
 @Slf4j
-public class UnhandledListenerActor extends UntypedActor {
+public class UnhandledListenerActor extends UntypedAbstractActor {
     @Override
     public void onReceive(Object o) throws Exception {
         if (o instanceof UnhandledMessage) {

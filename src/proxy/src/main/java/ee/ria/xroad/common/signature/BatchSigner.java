@@ -34,7 +34,7 @@ import ee.ria.xroad.signer.protocol.message.SignResponse;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import akka.actor.UntypedActorWithStash;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
@@ -72,7 +72,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
  * per signing certificate.
  */
 @Slf4j
-public class BatchSigner extends UntypedActor {
+public class BatchSigner extends UntypedAbstractActor {
 
     private static final int TIMEOUT_MILLIS = SystemProperties.getSignerClientTimeout();
     private static final Timeout DEFAULT_TIMEOUT = new Timeout(TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);

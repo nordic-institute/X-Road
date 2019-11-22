@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.32  
+Version: 2.35
 Doc. ID: UG-SS
 
 ---
@@ -58,13 +58,16 @@ Doc. ID: UG-SS
  15.11.2018 | 2.23    | Minor updates for Ubuntu 18.04 | Jarkko Hyöty
  06.02.2019 | 2.24    | Minor updates on security server client registration in Chapters [4.3](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client) and [4.4](#44-registering-a-security-server-client-in-the-x-road-governing-authority). | Petteri Kivimäki
  15.03.2019 | 2.25    | Update documentation to cover REST service usage in chapter [6] | Jarkko Hyöty
- 16.04.2019 | 2.26    | Minor updates regarding REST services in chapter [6] | Petteri Kivimäki
- 30.06.2019 | 2.27    | Update the default connection type from HTTP to HTTPS in chapter [9] | Petteri Kivimäki
- 01.07.2019 | 2.28    | Changing the Security Server Owner chapter added (Chapter [3.4](#34-changing-the-security-server-owner)) | Petteri Kivimäki
- 14.08.2019 | 2.29    | Added automatic backups | Ilkka Seppälä
- 30.09.2019 | 2.30    | Added remote database migration guide | Ilkka Seppälä
- 15.10.2019 | 2.31    | Updated REST services in chapter [6] | Ilkka Seppälä
- 07.11.2019 | 2.32    | Add more information about service descriptions to chapter [6] | Ilkka Seppälä
+ 26.03.2019 | 2.26    | Added chapter on API keys [19](#19-management-rest-apis) | Janne Mattila
+ 16.04.2019 | 2.27    | Minor updates regarding REST services in chapter [6] | Petteri Kivimäki
+ 30.06.2019 | 2.28    | Update the default connection type from HTTP to HTTPS in chapter [9] | Petteri Kivimäki
+ 01.07.2019 | 2.29    | Changing the Security Server Owner chapter added (Chapter [3.4](#34-changing-the-security-server-owner)) | Petteri Kivimäki
+ 14.08.2019 | 2.30    | Added automatic backups | Ilkka Seppälä
+ 29.09.2019 | 2.31    | Added chapter [19.3](#193-correlation-id-http-header) on REST API correlation id | Janne Mattila
+ 30.09.2019 | 2.32    | Added remote database migration guide | Ilkka Seppälä
+ 15.10.2019 | 2.33    | Updated REST services in chapter [6] | Ilkka Seppälä
+ 04.11.2019 | 2.34    | Added information about REST API request rate and size limits | Janne Mattila
+ 07.11.2019 | 2.35    | Add more information about service descriptions to chapter [6] | Ilkka Seppälä
 
 ## Table of Contents <!-- omit in toc --> 
 
@@ -115,8 +118,8 @@ Doc. ID: UG-SS
   - [5.7 Deleting a Key](#57-deleting-a-key)
 - [6 X-Road Services](#6-x-road-services)
   - [6.1 Adding a service description](#61-adding-a-service-description)
-  - [6.1.1 SOAP](#611-soap)
-  - [6.1.2 REST](#612-rest)
+    - [6.1.1 SOAP](#611-soap)
+    - [6.1.2 REST](#612-rest)
   - [6.2 Refreshing a service description](#62-refreshing-a-service-description)
   - [6.3 Enabling and Disabling a service description](#63-enabling-and-disabling-a-service-description)
   - [6.4 Changing the Address of a service description](#64-changing-the-address-of-a-service-description)
@@ -173,7 +176,15 @@ Doc. ID: UG-SS
   - [17.2 Logging configuration](#172-logging-configuration)
   - [17.3 Fault Detail UUID](#173-fault-detail-uuid)
 - [18 Federation](#18-federation)
-- [19 Migrating to Remote Database Host](#19-migrating-to-remote-database-host)
+- [19 Management REST APIs](#19-management-rest-apis)
+  - [19.1 API key management operations](#191-api-key-management-operations)
+    - [19.1.1 Creating new API keys](#1911-creating-new-api-keys)
+    - [19.1.2 Listing API keys](#1912-listing-api-keys)
+    - [19.1.3 Revoking API keys](#1913-revoking-api-keys)
+    - [19.1.4 API key caching](#1914-api-key-caching)
+  - [19.2 Executing REST calls](#192-executing-rest-calls)
+  - [19.3 Correlation ID HTTP header](#193-correlation-id-http-header)
+- [20 Migrating to Remote Database Host](#20-migrating-to-remote-database-host)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -508,25 +519,21 @@ After the X-Road governing authority has accepted the registration, the registra
 
 To change the security server owner the following actions must be completed.
 
-- The new Owner member must be added to the security server (see [4.2](#42-adding-a-security-server-client)).
+- A new member must be added to the security server (see [4.2](#42-adding-a-security-server-client)). If needed, specify the token on which the member is configured
 
-- A Signing Key and Certificate must be configured for the new Owner member (see [4.3](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client)).
+- If not yet available, a Signing Key and Certificate must be configured for the new member (see [4.3](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client)).
  
-- The new Owner must be registered in the X-Road Governing Authority (see [4.3](#44-registering-a-security-server-client-in-the-x-road-governing-authority)).
+- The new member must be registered in the X-Road Governing Authority (see [4.3](#44-registering-a-security-server-client-in-the-x-road-governing-authority)).
 
 - The security server owner change request must be submitted from the security server. To submit an owner change request follow these steps.
 
-  1. On the **Configuration** menu, select **Security Server Clients**.
+  1. In the **Member Detail view** click **Make Owner**.
+  
+  2. Click **Make Owner** to submit a change request.
 
-  2. Select the new Owner member from the list of security server clients.
+- The change request is sent to the X-Road governing authority according to the organizational procedures of the X-Road instance.
 
-  3. Click the **Details** icon and in the window that opens, click **Make Owner**.
-
-  4. Click **Confirm** to submit the request.
-
-- A request for changing the security server owner must be submitted to the X-Road governing authority according to the organizational procedures of the X-Road instance.
-
-- The owner change request must be approved by the X-Road governing authority.
+- Once the change request is approved by the X-Road governing authority, the member will automatically become the Owner Member.
 
 - New Authentication Key and Certificate should be configured for the new security server owner (see [3.2](#32-configuring-the-authentication-key-and-certificate-for-the-security-server)).
 
@@ -870,7 +877,7 @@ X-Road supports both SOAP and REST services. The services are managed on two lev
 
 **Access rights:** [Service Administrator](#xroad-service-administrator)
 
-### 6.1.1 SOAP
+#### 6.1.1 SOAP
 
 When a new WSDL file is added, the security server reads service information from it and displays the information in the table of services. The service code, title and address are read from the WSDL.
 
@@ -884,7 +891,7 @@ When a new WSDL file is added, the security server reads service information fro
 
 -   click the “**+**” symbol in front of the WSDL row to expand the list.
 
-### 6.1.2 REST
+#### 6.1.2 REST
 
 When a new REST service is added, the security server displays url and service code provided.
 
@@ -1892,7 +1899,162 @@ And the following will allow none:
 allowed-federations=xe-test, all, none, ee-test
 ```
 
-## 19 Migrating to Remote Database Host
+## 19 Management REST APIs
+
+Security server has REST APIs that can be used to do all the same server configuration operations that can be done
+using the web UI.
+
+Management REST APIs are protected with an API key based authentication. To execute REST calls, API keys need to be created.
+
+All REST APIs are protected by TLS. Since server uses self signed certificate, the caller needs to accept this (for example
+with `curl` you need to use `--insecure` or `-k` option.
+
+Request sent to REST APIs have a *limit for maximum size*. If a too large request is sent
+to REST API, it will not be processed, and http status 413 Payload too large will be returned.
+There is a different limit for binary file uploads, and for other requests.
+
+Limits are
+- 10MB for file uploads
+- 50KB for other requests
+
+REST APIs are also *rate limited*. Rate limits apply per each calling IP. If the number of calls
+from one IP address exceeds the limit, REST APIs return http status 429 Too Many Requests.
+
+Limits are
+- 600 requests per minute
+- 20 requests per second
+
+If the default limits are too restricting (or too loose), they can be overridden with command line arguments. Limits are set with
+application properties
+- `request.sizelimit.regular`
+- `request.sizelimit.binary.upload`
+- `ratelimit.requests.per.second`
+- `ratelimit.requests.per.minute`
+
+Size limit parameters support formats from Formats from [DataSize](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/unit/DataSize.html),
+for example `5MB`.
+
+Command line arguments can be modified using configuration file `local.conf`.
+Example from `/etc/xroad/services/local.conf` with modifications:
+
+```
+PROXY_UI_API_PARAMS=" $PROXY_UI_API_PARAMS -Dratelimit.requests.per.second=100"
+PROXY_UI_API_PARAMS=" $PROXY_UI_API_PARAMS -Drequest.sizelimit.binary.upload=1MB"
+```
+
+### 19.1 API key management operations
+
+**Access rights:** [System Administrator](#xroad-system-administrator)
+
+An API key is linked to a role or roles, and grants access to the operations that are allowed for that role/roles.
+A separate REST api exists for API key management.
+Access to API key management is limited to localhost (`127.0.0.1`).
+API key management API is authenticated to with [HTTP basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication) (username and password).
+
+#### 19.1.1 Creating new API keys
+
+A new API key is created with a `POST` request to `/api/api-key`. Message body must contain the roles to be
+associated with the key. Server responds with data that contains the actual API key. After this point the key
+cannot be retrieved, as it is not stored in plaintext.
+
+```
+curl -X POST -u <user>:<password> https://localhost:4000/api/api-key --data '["XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
+{
+  "roles": [
+    "XROAD_REGISTRATION_OFFICER",
+    "XROAD_SECURITYSERVER_OBSERVER"
+  ],
+  "id": 61,
+  "key": "23bc57cd-b1ba-4702-9657-8d53e335c843"
+}
+
+```
+
+In this example the created key was `23bc57cd-b1ba-4702-9657-8d53e335c843`.
+
+#### 19.1.2 Listing API keys
+
+Existing API keys can be listed with a `GET` request to `/api/api-key`. This lists all keys, regardless of who has created them.
+
+```
+curl -X GET -u <user>:<password> https://localhost:4000/api/api-key -k
+[
+  {
+    "id": 59,
+    "roles": [
+      "XROAD_REGISTRATION_OFFICER",
+      "XROAD_SECURITYSERVER_OBSERVER",
+      "XROAD_SERVICE_ADMINISTRATOR"
+    ]
+  },
+  {
+    "id": 60,
+...
+
+```
+
+#### 19.1.3 Revoking API keys
+
+An API key can be revoked with a `DELETE` request to `/api/api-key/{id}`. Server responds with `HTTP 200` if
+revocation was successful and `HTTP 404` if key did not exist.
+
+```
+curl -X DELETE -u <user>:<password> https://localhost:4000/api/api-key/60  -k
+
+```
+
+#### 19.1.4 API key caching
+
+API keys are cached in memory. In typical security server configurations this does not create problems.
+However, if you have configured a setup where multiple security servers share the same `serverconf` database,
+and use multiple nodes to access REST APIs and execute API key management operations, the caches of different nodes
+can become out of sync.
+
+For example, you may revoke an API key from node 1 but node 2 is not aware of this, and still grants access to
+REST APIs with this API key.
+
+If you operate such a configuration, you need to target all REST API operations to the same security server node,
+or otherwise ensure that caching will not create problems (for example, always restart REST API modules when API key
+operations are executed).
+
+### 19.2 Executing REST calls
+
+**Access rights:** Depends on the API.
+
+Once a valid API key has been created, it is used by providing an `Authorization: X-Road-ApiKey token=<api key>` HTTP
+header in the REST calls. For example
+
+```
+curl --header "Authorization: X-Road-apikey token=ff6f55a8-cc63-4e83-aa4c-55f99dc77bbf" "https://localhost:4000/api/clients" -k
+[
+  {
+    "id": "XRD2:GOV:999:foobar",
+    "member_name": Foo Name,
+    "member_class": "GOV",
+    "member_code": "999",
+    "subsystem_code": "SUBS_1",
+    "status": "saved
+...
+```
+
+The available APIs are documented in OpenAPI specification (TBD). Access rights for different APIs follow the same rules
+as the corresponding UI operations.
+
+### 19.3 Correlation ID HTTP header
+
+The REST APIs return an **X-Road-UI-Correlation-ID** HTTP header. This header is also logged in `proxy_ui_api.log`, so it
+can be used to find the log messages related to a specific API call.
+
+The correlation ID header is returned for all requests, both successful and failed ones.
+
+For example, these log messages are related to an API call with correlation ID `3d5f193102435242`:
+```
+2019-08-26 13:16:23,611 [https-jsse-nio-4000-exec-10] correlation-id:[3d5f193102435242] DEBUG o.s.s.w.c.HttpSessionSecurityContextRepository - The HttpSession is currently null, and the HttpSessionSecurityContextRepository is prohibited from creating an HttpSession (because the allowSessionCreation property is false) - SecurityContext thus not stored for next request
+2019-08-26 13:16:23,611 [https-jsse-nio-4000-exec-10] correlation-id:[3d5f193102435242] WARN  o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [org.niis.xroad.restapi.exceptions.ConflictException: local group with code koodi6 already added]
+2019-08-26 13:16:23,611 [https-jsse-nio-4000-exec-10] correlation-id:[3d5f193102435242] DEBUG o.s.s.w.a.ExceptionTranslationFilter - Chain processed normally
+```
+
+## 20 Migrating to Remote Database Host
 
 Since version `6.22.0` Security Server supports using remote databases. In case you have an already running Security Server with local database, it is possible to migrate it to use remote database host instead. The instructions for this process are listed below.
 

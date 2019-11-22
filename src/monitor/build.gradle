@@ -30,7 +30,7 @@ dependencies {
     compile 'org.slf4j:slf4j-api:1.7.12'
     compile "io.dropwizard.metrics:metrics-core:$metricsVersion"
     testCompile 'junit:junit:4.12'
-    testCompile "com.typesafe.akka:akka-testkit_2.11:$akkaVersion"
+    testCompile "com.typesafe.akka:akka-testkit_$akkaVersion"
     testCompile 'com.github.stefanbirkner:system-rules:1.16.0'
     testCompile project(':common-test')
 }

@@ -28,14 +28,14 @@ import ee.ria.xroad.monitor.common.SystemMetricsRequest;
 import ee.ria.xroad.monitor.common.SystemMetricsResponse;
 
 import akka.actor.ActorSelection;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 
 /**
  * Test caller for monitoring service
  */
-public class ClientActor extends UntypedActor {
+public class ClientActor extends UntypedAbstractActor {
 
     private LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 

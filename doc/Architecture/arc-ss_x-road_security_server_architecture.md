@@ -432,7 +432,7 @@ Xroad-confclient is responsible for fetching global configuration from a configu
 
 #### 3.4.2 Encapsulated data
 
-Xroad-confclient downloads the global configuration and stores it to local disk. Other processes xroad-proxy and xroad-signer access the files on the disk directly.
+Xroad-confclient downloads the global configuration and stores it to local disk. Other processes xroad-proxy, xroad-jetty and xroad-signer access the files on the disk directly.
 
 #### 3.4.3 Messaging
 

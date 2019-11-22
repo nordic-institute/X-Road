@@ -36,6 +36,8 @@ import java.util.Map;
 @Value
 public final class TokenInfo implements Serializable {
 
+    public static final String SOFTWARE_MODULE_TYPE = "softToken";
+
     private final String type;
 
     private final String friendlyName;
