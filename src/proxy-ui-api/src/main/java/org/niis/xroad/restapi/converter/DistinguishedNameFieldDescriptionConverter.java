@@ -24,41 +24,53 @@
  */
 package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
+import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 
 import com.google.common.collect.Streams;
-import org.niis.xroad.restapi.openapi.model.CertificateAuthority;
+import org.niis.xroad.restapi.openapi.model.DistinguishedNameFieldDescription;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Converter for CertificateAuthority related data between openapi and service domain classes
+ * Converter for DistinguishedNameFieldDescription related data between openapi and service domain classes
  */
 @Component
-public class CertificateAuthorityConverter {
+public class DistinguishedNameFieldDescriptionConverter {
 
     /**
-     * convert ApprovedCAInfo into openapi CertificateAuthority class
-     * @param approvedCAInfo
+     * convert DnFieldDescription into openapi DistinguishedNameFieldDescription class
+     * @param dnFieldDescription
      * @return
      */
-    public CertificateAuthority convert(ApprovedCAInfo approvedCAInfo) {
-        CertificateAuthority ca = new CertificateAuthority();
-        ca.setName(approvedCAInfo.getName());
-        ca.setAuthenticationOnly(approvedCAInfo.getAuthenticationOnly());
-        return ca;
+    public DistinguishedNameFieldDescription convert(DnFieldDescription dnFieldDescription) {
+        DistinguishedNameFieldDescription description = new DistinguishedNameFieldDescription();
+        description.setId(dnFieldDescription.getId());
+        description.setLabel(dnFieldDescription.getLabel());
+        description.setDefaultValue(dnFieldDescription.getDefaultValue());
+        description.setReadOnly(dnFieldDescription.isReadOnly());
+        description.setRequired(dnFieldDescription.isRequired());
+        return description;
     }
 
     /**
-     * convert a group of ApprovedCAInfos into a list of CertificateAuthorities
-     * @param approvedCAInfos
+     * convert a group of DnFieldDescriptions into a list of DistinguishedNameFieldDescriptions
+     * @param dnFieldDescriptions
      * @return
      */
-    public List<CertificateAuthority> convert(Iterable<ApprovedCAInfo> approvedCAInfos) {
-        return Streams.stream(approvedCAInfos)
+    public List<DistinguishedNameFieldDescription> convert(Iterable<DnFieldDescription> dnFieldDescriptions) {
+        return Streams.stream(dnFieldDescriptions)
                 .map(this::convert)
                 .collect(Collectors.toList());
+    }
+    /**
+     * convert an array of DnFieldDescriptions into a list of DistinguishedNameFieldDescriptions
+     * @param dnFieldDescriptions
+     * @return
+     */
+    public List<DistinguishedNameFieldDescription> convert(DnFieldDescription[] dnFieldDescriptions) {
+        return convert(Arrays.asList(dnFieldDescriptions));
     }
 }

@@ -107,17 +107,20 @@ public class SystemApiController implements SystemApi {
 
     /**
      * Currently returns partial CertificateAuthority objects that have only
-     * name and authentication_onle properties set.
+     * name and authentication_only properties set.
      * Other properties will be added in another ticket (system parameters).
      * @return
      */
     @Override
     @PreAuthorize("hasAuthority('GENERATE_AUTH_CERT_REQ') or hasAuthority('GENERATE_SIGN_CERT_REQ')")
-    public ResponseEntity<List<CertificateAuthority>> getApprovedCertificateAuthorities(KeyUsageType keyUsageType) {
+    public ResponseEntity<List<CertificateAuthority>> getApprovedCertificateAuthorities(KeyUsageType keyUsageType)  {
+        // TO DO: authorization should take into account key type. At least when creating the actual CSR
         KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(keyUsageType).orElse(null);
         Collection<ApprovedCAInfo> caInfos = certificateAuthorityService.getCertificateAuthorities(keyUsageInfo);
         List<CertificateAuthority> cas = certificateAuthorityConverter.convert(caInfos);
         return new ResponseEntity<>(cas, HttpStatus.OK);
     }
+
+
 
 }

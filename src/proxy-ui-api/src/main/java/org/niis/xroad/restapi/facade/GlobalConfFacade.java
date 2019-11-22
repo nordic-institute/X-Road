@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -41,6 +42,7 @@ import java.util.Set;
 /**
  * GlobalConf facade.
  * Pure facade / wrapper, just delegates to GlobalConf. Zero business logic.
+ * Use {@link org.niis.xroad.restapi.service.GlobalConfService} for methods are more than pure delegates.
  * Exists to make testing easier by offering non-static methods.
  */
 @Slf4j
@@ -108,5 +110,12 @@ public class GlobalConfFacade {
      */
     public Collection<ApprovedCAInfo> getApprovedCAs(String instanceIdentifier) {
         return GlobalConf.getApprovedCAs(instanceIdentifier);
+    }
+
+    /**
+     * {@link GlobalConf#getServerOwner(SecurityServerId)}
+     */
+    public static ClientId getServerOwner(SecurityServerId serverId) {
+        return GlobalConf.getServerOwner(serverId);
     }
 }
