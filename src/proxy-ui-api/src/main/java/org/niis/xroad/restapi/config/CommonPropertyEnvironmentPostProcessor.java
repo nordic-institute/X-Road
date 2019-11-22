@@ -22,25 +22,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi;
+package org.niis.xroad.restapi.config;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.servlet.ServletComponentScan;
-import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.boot.env.EnvironmentPostProcessor;
+import org.springframework.boot.env.YamlPropertySourceLoader;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.PropertySource;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 
-/**
- * main spring boot application.
- */
-@ServletComponentScan
-@SpringBootApplication
-@EnableCaching
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public class RestApiApplication {
-    /**
-     * start application
-     */
-    public static void main(String[] args) {
-        SpringApplication.run(RestApiApplication.class, args);
+import java.io.IOException;
+
+public class CommonPropertyEnvironmentPostProcessor implements EnvironmentPostProcessor {
+
+    private final YamlPropertySourceLoader loader = new YamlPropertySourceLoader();
+
+    @Override
+    public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
+        Resource path = new ClassPathResource("common-application.yml");
+        PropertySource<?> propertySource = loadYaml(path);
+        environment.getPropertySources().addLast(propertySource);
+    }
+
+    private PropertySource<?> loadYaml(Resource path) {
+        if (!path.exists()) {
+            throw new IllegalArgumentException("Resource " + path + " does not exist");
+        }
+        try {
+            return this.loader.load("common-application-reosources", path).get(0);
+        } catch (IOException ex) {
+            throw new IllegalStateException("Failed to load yaml configuration from " + path, ex);
+        }
     }
 }
