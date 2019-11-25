@@ -144,6 +144,8 @@ public class KeysApiController implements KeysApi {
             throw new ResourceNotFoundException(e);
         } catch (CertificateAuthorityService.CertificateAuthorityNotFoundException e) {
             throw new ResourceNotFoundException(e);
+        } catch (CertificateAuthorityService.CertificateProfileInstantiationException e) {
+            throw new InternalServerErrorException(e);
         }
     }
 }

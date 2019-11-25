@@ -102,15 +102,16 @@ public class CertificateAuthorityService {
      * @param memberId member when key usage = signing, ignored otherwise
      * @return
      * @throws CertificateAuthorityNotFoundException if matching CA was not found
+     * @throws CertificateProfileInstantiationException if instantiation of certificate profile failed
      */
     public CertificateProfileInfo getCertificateProfile(String caName, KeyUsageInfo keyUsageInfo, ClientId memberId)
-            throws CertificateAuthorityNotFoundException {
+            throws CertificateAuthorityNotFoundException, CertificateProfileInstantiationException {
         ApprovedCAInfo caInfo = getCertificateAuthority(caName);
         CertificateProfileInfoProvider provider = null;
         try {
             provider = new GetCertificateProfile(caInfo.getCertificateProfileInfo()).instance();
         } catch (Exception e) {
-            throw new RuntimeException("TO DO proper exception handling");
+            throw new CertificateProfileInstantiationException(e);
         }
         SecurityServerId serverId = serverConfService.getSecurityServerId();
 
@@ -128,6 +129,14 @@ public class CertificateAuthorityService {
             throw new IllegalArgumentException();
         }
     }
+
+    public static class CertificateProfileInstantiationException extends ServiceException {
+        public static final String ERROR_INSTANTIATION_FAILED = "certificate_profile_instantiation_failure";
+        public CertificateProfileInstantiationException(Throwable t) {
+            super(t, new ErrorDeviation(ERROR_INSTANTIATION_FAILED));
+        }
+    }
+
 
     /**
      * Return ApprovedCAInfo for CA with given CN name
