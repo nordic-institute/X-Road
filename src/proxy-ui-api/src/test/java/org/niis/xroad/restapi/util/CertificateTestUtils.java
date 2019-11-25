@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.util;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
@@ -34,10 +35,12 @@ import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -263,4 +266,11 @@ public final class CertificateTestUtils {
         return TestCertUtil.getCertChainCert("root_ca.p12");
     }
 
+    /**
+     * Set given cert as an auth cert. See method {@link CertUtils#isAuthCert(X509Certificate cert)}
+     * @param cert
+     */
+    public static void setAsAuthCert(X509Certificate cert) {
+        ReflectionTestUtils.setField(cert, "extKeyUsage", Collections.singletonList("1.3.6.1.5.5.7.3.2"));
+    }
 }

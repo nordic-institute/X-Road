@@ -131,8 +131,8 @@ public class TokenCertificateService {
      * @return certificate owner's client ID
      * @throws InvalidCertificateException if any errors occur
      */
-    private ClientId getClientIdForSigningCert(String instanceIdentifier, X509Certificate cert) throws
-            InvalidCertificateException {
+    private ClientId getClientIdForSigningCert(String instanceIdentifier, X509Certificate cert)
+            throws InvalidCertificateException {
         ClientId dummyClientId = ClientId.create(instanceIdentifier, DUMMY_MEMBER, DUMMY_MEMBER);
         SignCertificateProfileInfoParameters signCertificateProfileInfoParameters =
                 new SignCertificateProfileInfoParameters(dummyClientId, DUMMY_MEMBER);
