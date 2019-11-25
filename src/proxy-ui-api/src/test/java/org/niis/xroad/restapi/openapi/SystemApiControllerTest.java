@@ -30,11 +30,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
+import org.niis.xroad.restapi.openapi.model.KeyUsageType;
 import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +45,7 @@ import java.io.InputStream;
 import java.security.cert.X509Certificate;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.BDDMockito.given;
 
 /**
@@ -74,4 +77,35 @@ public class SystemApiControllerTest {
                 systemApiController.getSystemCertificate().getBody();
         assertEquals("xroad2-lxd-ss1", certificate.getIssuerCommonName());
     }
+
+    @Test
+    @WithMockUser(authorities = { "GENERATE_AUTH_CERT_REQ" })
+    public void getApprovedCertificateAuthoritiesAuthWithAuthPermission() throws Exception {
+        systemApiController.getApprovedCertificateAuthorities(KeyUsageType.AUTHENTICATION);
+        systemApiController.getApprovedCertificateAuthorities(null);
+
+        try {
+            systemApiController.getApprovedCertificateAuthorities(KeyUsageType.SIGNING);
+            fail("should have thrown exception");
+        } catch (AccessDeniedException expected) {
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "GENERATE_SIGN_CERT_REQ" })
+    public void getApprovedCertificateAuthoritiesAuthWithSignPermission() throws Exception {
+        systemApiController.getApprovedCertificateAuthorities(KeyUsageType.SIGNING);
+
+        try {
+            systemApiController.getApprovedCertificateAuthorities(KeyUsageType.AUTHENTICATION);
+            fail("should have thrown exception");
+        } catch (AccessDeniedException expected) {
+        }
+        try {
+            systemApiController.getApprovedCertificateAuthorities(null);
+            fail("should have thrown exception");
+        } catch (AccessDeniedException expected) {
+        }
+    }
+
 }

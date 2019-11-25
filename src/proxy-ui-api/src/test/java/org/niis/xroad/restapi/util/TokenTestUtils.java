@@ -96,20 +96,30 @@ public final class TokenTestUtils {
 
     /**
      * Creates KeyInfo object with some default values:
-     * - available = true
      * - usage = SIGNING
+     * - other defaults from {@link TokenTestUtils#createTestKeyInfo(String, KeyUsageInfo)}
+     * @param id id
+     */
+    public static KeyInfo createTestKeyInfo(String id) {
+        return createTestKeyInfo(id, KeyUsageInfo.SIGNING);
+    }
+    /**
+     * Creates KeyInfo object with some default values:
+     * - available = true
+     * - usage = param keyUsageInfo
      * - friendlyName = "friendly-name"
-     * - id = "id"
+     * - id = param id
      * - label = "label"
      * - publicKey = "public-key"
      * - certs = empty
      * - certRequests = empty
      * - signMechanismName = "sign-mechanism-name"
      * @param id id
+     * @param keyUsageInfo
      */
-    public static KeyInfo createTestKeyInfo(String id) {
+    public static KeyInfo createTestKeyInfo(String id, KeyUsageInfo keyUsageInfo) {
         KeyInfo keyInfo = new KeyInfo(true,
-                KeyUsageInfo.SIGNING,
+                keyUsageInfo,
                 "friendly-name",
                 id,
                 "label",
