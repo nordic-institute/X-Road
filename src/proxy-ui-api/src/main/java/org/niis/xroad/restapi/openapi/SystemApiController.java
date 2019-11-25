@@ -112,9 +112,13 @@ public class SystemApiController implements SystemApi {
      * @return
      */
     @Override
-    @PreAuthorize("hasAuthority('GENERATE_AUTH_CERT_REQ') or hasAuthority('GENERATE_SIGN_CERT_REQ')")
+    // TO DO: create test for this auth logic
+    @PreAuthorize("(hasAuthority('GENERATE_AUTH_CERT_REQ') and "
+            + " (#keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).AUTHENTICATION"
+            + " or #keyUsageType == null))"
+            + "or (hasAuthority('GENERATE_SIGN_CERT_REQ') and "
+            + "#keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).SIGNING)")
     public ResponseEntity<List<CertificateAuthority>> getApprovedCertificateAuthorities(KeyUsageType keyUsageType)  {
-        // TO DO: authorization should take into account key type. At least when creating the actual CSR
         KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(keyUsageType).orElse(null);
         Collection<ApprovedCAInfo> caInfos = certificateAuthorityService.getCertificateAuthorities(keyUsageInfo);
         List<CertificateAuthority> cas = certificateAuthorityConverter.convert(caInfos);

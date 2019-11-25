@@ -116,7 +116,12 @@ public class KeysApiController implements KeysApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('GENERATE_AUTH_CERT_REQ') or hasAuthority('GENERATE_SIGN_CERT_REQ')")
+    // TO DO: create test for this auth logic
+    @PreAuthorize("(hasAuthority('GENERATE_AUTH_CERT_REQ') and "
+            + " (#keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).AUTHENTICATION"
+            + " or #keyUsageType == null))"
+            + "or (hasAuthority('GENERATE_SIGN_CERT_REQ') and "
+            + "#keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).SIGNING)")
     public ResponseEntity<List<DistinguishedNameFieldDescription>> getCsrDnFieldDescriptions(
             String keyId,
             KeyUsageType keyUsageType,
