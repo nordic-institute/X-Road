@@ -51,6 +51,7 @@
               <large-button
                 outlined
                 class="button-spacing"
+                @click="addKey(token, index)"
                 :disabled="!token.logged_in"
               >{{$t('keys.addKey')}}</large-button>
               <large-button outlined :disabled="!token.logged_in">{{$t('keys.importCert')}}</large-button>
@@ -61,7 +62,9 @@
               v-if="getAuthKeys(token.keys).length > 0"
               :keys="getAuthKeys(token.keys)"
               title="keys.authKeyCert"
+              :disableGenerateCsr="!token.logged_in"
               @keyClick="keyClick"
+              @generateCsr="generateCsr"
               @certificateClick="certificateClick"
             />
 
@@ -70,7 +73,9 @@
               v-if="getSignKeys(token.keys).length > 0"
               :keys="getSignKeys(token.keys)"
               title="keys.signKeyCert"
+              :disableGenerateCsr="!token.logged_in"
               @keyClick="keyClick"
+              @generateCsr="generateCsr"
               @certificateClick="certificateClick"
             />
             <!-- Keys with unknown type -->
@@ -78,7 +83,9 @@
               v-if="getOtherKeys(token.keys).length > 0"
               :keys="getOtherKeys(token.keys)"
               title="keys.unknown"
+              :disableGenerateCsr="!token.logged_in"
               @keyClick="keyClick"
+              @generateCsr="generateCsr"
               @certificateClick="certificateClick"
             />
           </div>
@@ -94,6 +101,8 @@
       @cancel="logoutDialog = false"
       @accept="acceptLogout()"
     />
+
+    <KeyLabelDialog :dialog="keyLabelDialog" @save="doAddKey" @cancel="keyLabelDialog = false" />
 
     <token-login-dialog
       v-if="selected && selected.token"
@@ -117,7 +126,9 @@ import CertificateStatus from './CertificateStatus.vue';
 import TokenLoginDialog from './TokenLoginDialog.vue';
 import KeysTable from './KeysTable.vue';
 import UnknownKeysTable from './UnknownKeysTable.vue';
+import KeyLabelDialog from './KeyLabelDialog.vue';
 import { mapGetters } from 'vuex';
+import { Key } from '@/types';
 import * as api from '@/util/api';
 
 import _ from 'lodash';
@@ -153,6 +164,7 @@ export default Vue.extend({
     ConfirmDialog,
     KeysTable,
     UnknownKeysTable,
+    KeyLabelDialog,
   },
   data() {
     return {
@@ -161,6 +173,7 @@ export default Vue.extend({
       loginDialog: false,
       tokens: [],
       selected: undefined as SelectedObject,
+      keyLabelDialog: false,
     };
   },
   computed: {
@@ -328,6 +341,35 @@ export default Vue.extend({
       return this.$store.getters.tokenExpanded(tokenId);
     },
 
+    addKey(token: Token, index: number) {
+      // Open dialog for new key
+      this.selected = { token, index };
+      this.keyLabelDialog = true;
+    },
+
+    doAddKey(label: string) {
+      // Send add new key request to backend
+      this.keyLabelDialog = false;
+
+      if (!this.selected) {
+        return;
+      }
+      const request = label.length > 0 ? { label } : {};
+
+      api
+        .post(`/tokens/${this.selected.token.id}/keys`, request)
+        .then((res) => {
+          this.fetchData();
+          this.$bus.$emit('show-success', 'keys.keyAdded');
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
+    },
+
+    generateCsr(key: Key) {
+      // TODO: will be implemented later
+    },
     fetchData(): void {
       // Fetch tokens from backend
       api
