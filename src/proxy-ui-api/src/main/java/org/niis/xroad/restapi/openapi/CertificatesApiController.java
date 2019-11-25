@@ -68,6 +68,7 @@ public class CertificatesApiController implements CertificatesApi {
     }
 
     @Override
+    @PreAuthorize("hasAnyAuthority('IMPORT_AUTH_CERT', 'IMPORT_SIGN_CERT')")
     public ResponseEntity<CertificateDetails> addCertificate(Resource certificateResource) {
         byte[] certificateBytes;
         try (InputStream is = certificateResource.getInputStream()) {
@@ -80,12 +81,10 @@ public class CertificatesApiController implements CertificatesApi {
         try {
             certificate = tokenCertificateService.addCertificate(certificateBytes);
         } catch (GlobalConfService.GlobalConfOutdatedException | ClientNotFoundException | KeyNotFoundException
-                | TokenCertificateService.IncorrectCertificateException
                 | TokenCertificateService.WrongCertificateUsageException
-                | TokenCertificateService.CsrNotFoundException e) {
+                | TokenCertificateService.CsrNotFoundException
+                | TokenCertificateService.InvalidCertificateException e) {
             throw new BadRequestException(e);
-        } catch (TokenCertificateService.CertificateImportException e) {
-            throw new InternalServerErrorException(e);
         } catch (CertificateAlreadyExistsException e) {
             throw new ConflictException(e);
         }

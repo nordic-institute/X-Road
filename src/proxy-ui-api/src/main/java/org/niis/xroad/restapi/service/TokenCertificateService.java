@@ -81,21 +81,19 @@ public class TokenCertificateService {
      * @throws GlobalConfService.GlobalConfOutdatedException
      * @throws ClientNotFoundException
      * @throws KeyNotFoundException
-     * @throws CertificateImportException other general import failure
+     * @throws InvalidCertificateException other general import failure
      * @throws CertificateAlreadyExistsException
-     * @throws IncorrectCertificateException
      * @throws WrongCertificateUsageException
      */
     public CertificateType addCertificate(byte[] certificateBytes) throws GlobalConfService.GlobalConfOutdatedException,
-            ClientNotFoundException, KeyNotFoundException, CertificateImportException,
-            CertificateAlreadyExistsException, IncorrectCertificateException, WrongCertificateUsageException,
-            CsrNotFoundException {
+            ClientNotFoundException, KeyNotFoundException, InvalidCertificateException,
+            CertificateAlreadyExistsException, WrongCertificateUsageException, CsrNotFoundException {
         globalConfService.verifyGlobalConfValidity();
         X509Certificate x509Certificate;
         try {
             x509Certificate = CryptoUtils.readCertificate(certificateBytes);
         } catch (Exception e) {
-            throw new CertificateImportException("cannot convert bytes to certificate", e);
+            throw new InvalidCertificateException("cannot convert bytes to certificate", e);
         }
         CertificateType certificateType = new CertificateType();
         try {
@@ -120,7 +118,7 @@ public class TokenCertificateService {
         } catch (CodedException e) {
             translateCodedExceptions(e);
         } catch (Exception e) {
-            // other exceptions such as IOExceptions from reading bytestreams
+            // something went really wrong
             throw new RuntimeException("error adding certificate", e);
         }
         return certificateType;
@@ -131,10 +129,10 @@ public class TokenCertificateService {
      * @param instanceIdentifier instance identifier of the owner
      * @param cert the certificate
      * @return certificate owner's client ID
-     * @throws CertificateImportException if any errors occur
+     * @throws InvalidCertificateException if any errors occur
      */
     private ClientId getClientIdForSigningCert(String instanceIdentifier, X509Certificate cert) throws
-            CertificateImportException {
+            InvalidCertificateException {
         ClientId dummyClientId = ClientId.create(instanceIdentifier, DUMMY_MEMBER, DUMMY_MEMBER);
         SignCertificateProfileInfoParameters signCertificateProfileInfoParameters =
                 new SignCertificateProfileInfoParameters(dummyClientId, DUMMY_MEMBER);
@@ -142,7 +140,7 @@ public class TokenCertificateService {
         try {
             certificateSubject = globalConfFacade.getSubjectName(signCertificateProfileInfoParameters, cert);
         } catch (Exception e) {
-            throw new CertificateImportException("Cannot read member identifier from signing certificate", e);
+            throw new InvalidCertificateException("Cannot read member identifier from signing certificate", e);
         }
         return certificateSubject;
     }
@@ -151,17 +149,17 @@ public class TokenCertificateService {
      * Helper to translate caught {@link CodedException CodedExceptions}
      * @param e
      * @throws CertificateAlreadyExistsException
-     * @throws IncorrectCertificateException
+     * @throws InvalidCertificateException
      * @throws WrongCertificateUsageException
      * @throws CsrNotFoundException
      * @throws KeyNotFoundException
      */
     private void translateCodedExceptions(CodedException e) throws CertificateAlreadyExistsException,
-            IncorrectCertificateException, WrongCertificateUsageException, CsrNotFoundException, KeyNotFoundException {
+            InvalidCertificateException, WrongCertificateUsageException, CsrNotFoundException, KeyNotFoundException {
         if (isCausedByDuplicateCertificate(e)) {
             throw new CertificateAlreadyExistsException(e);
         } else if (isCausedByIncorrectCertificate(e)) {
-            throw new IncorrectCertificateException(e);
+            throw new InvalidCertificateException(e);
         } else if (isCausedByCertificateWrongUsage(e)) {
             throw new WrongCertificateUsageException(e);
         } else if (isCausedByCsrNotFound(e)) {
@@ -195,24 +193,17 @@ public class TokenCertificateService {
     static final String CSR_NOT_FOUND = SIGNER_X + "." + X_CSR_NOT_FOUND;
 
     /**
-     * General errors that happen when importing a cert
+     * General error that happens when importing a cert. Usually a wrong file type
      */
-    public static class CertificateImportException extends ServiceException {
-        public static final String ERROR_CERTIFICATE_IMPORT = "certificate_import_failed";
+    public static class InvalidCertificateException extends ServiceException {
+        public static final String INVALID_CERT = "invalid_cert";
 
-        public CertificateImportException(String msg, Throwable t) {
-            super(msg, t, new ErrorDeviation(ERROR_CERTIFICATE_IMPORT));
+        public InvalidCertificateException(Throwable t) {
+            super(t, new ErrorDeviation(INVALID_CERT));
         }
-    }
 
-    /**
-     * Error parsing cert
-     */
-    public static class IncorrectCertificateException extends ServiceException {
-        public static final String ERROR_INCORRECT_CERTIFICATE = "certificate_incorrect";
-
-        public IncorrectCertificateException(Throwable t) {
-            super(t, new ErrorDeviation(ERROR_INCORRECT_CERTIFICATE));
+        public InvalidCertificateException(String msg, Throwable t) {
+            super(msg, t, new ErrorDeviation(INVALID_CERT));
         }
     }
 
@@ -220,7 +211,7 @@ public class TokenCertificateService {
      * Cert usage info is wrong (e.g. cert is both auth and sign or neither)
      */
     public static class WrongCertificateUsageException extends ServiceException {
-        public static final String ERROR_CERTIFICATE_WRONG_USAGE = "certificate_wrong_usage";
+        public static final String ERROR_CERTIFICATE_WRONG_USAGE = "cert_wrong_usage";
 
         public WrongCertificateUsageException(Throwable t) {
             super(t, new ErrorDeviation(ERROR_CERTIFICATE_WRONG_USAGE));
