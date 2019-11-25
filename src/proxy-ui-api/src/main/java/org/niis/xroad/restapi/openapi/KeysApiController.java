@@ -116,7 +116,6 @@ public class KeysApiController implements KeysApi {
     }
 
     @Override
-    // TO DO: create test for this auth logic
     @PreAuthorize("(hasAuthority('GENERATE_AUTH_CERT_REQ') and "
             + " (#keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).AUTHENTICATION"
             + " or #keyUsageType == null))"
@@ -128,7 +127,7 @@ public class KeysApiController implements KeysApi {
             String caName,
             String encodedMemberId) {
 
-        KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(keyUsageType).orElse(null);
+        KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(keyUsageType).get();
         try {
             KeyInfo keyInfo = keyService.getKey(keyId);
             if (keyInfo.getUsage() != null) {

@@ -112,7 +112,6 @@ public class SystemApiController implements SystemApi {
      * @return
      */
     @Override
-    // TO DO: create test for this auth logic
     @PreAuthorize("(hasAuthority('GENERATE_AUTH_CERT_REQ') and "
             + " (#keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).AUTHENTICATION"
             + " or #keyUsageType == null))"
