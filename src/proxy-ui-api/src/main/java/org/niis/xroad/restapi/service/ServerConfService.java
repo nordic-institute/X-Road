@@ -69,7 +69,6 @@ public class ServerConfService {
      * Returns owner's ClientId of this security server
      */
     public ClientId getSecurityServerOwnerId() {
-        // TO DO: debug queries. consider caching if a problem
         ServerConfType serverConfType = serverConfRepository.getServerConf();
         return serverConfType.getOwner().getIdentifier();
     }
