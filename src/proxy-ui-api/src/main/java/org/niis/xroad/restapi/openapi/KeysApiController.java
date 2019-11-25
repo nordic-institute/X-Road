@@ -145,6 +145,8 @@ public class KeysApiController implements KeysApi {
                     profileInfo.getSubjectFields());
             return new ResponseEntity<>(converted, HttpStatus.OK);
 
+        } catch (CertificateAuthorityService.CannotBeUsedForSigningException e) {
+            throw new ResourceNotFoundException(e);
         } catch (KeyService.KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (CertificateAuthorityService.CertificateAuthorityNotFoundException e) {

@@ -103,10 +103,15 @@ public class CertificateAuthorityService {
      * @return
      * @throws CertificateAuthorityNotFoundException if matching CA was not found
      * @throws CertificateProfileInstantiationException if instantiation of certificate profile failed
+     * @throws CannotBeUsedForSigningException if attempted to read signing profile from authenticationOnly ca
      */
     public CertificateProfileInfo getCertificateProfile(String caName, KeyUsageInfo keyUsageInfo, ClientId memberId)
-            throws CertificateAuthorityNotFoundException, CertificateProfileInstantiationException {
+            throws CertificateAuthorityNotFoundException, CertificateProfileInstantiationException,
+            CannotBeUsedForSigningException {
         ApprovedCAInfo caInfo = getCertificateAuthority(caName);
+        if (Boolean.TRUE == caInfo.getAuthenticationOnly() && KeyUsageInfo.SIGNING == keyUsageInfo) {
+            throw new CannotBeUsedForSigningException();
+        }
         CertificateProfileInfoProvider provider = null;
         try {
             provider = new GetCertificateProfile(caInfo.getCertificateProfileInfo()).instance();
@@ -137,6 +142,15 @@ public class CertificateAuthorityService {
         }
     }
 
+    /**
+     * Thrown if attempted to use "authenticationOnly" ca for signing purposes
+     */
+    public static class CannotBeUsedForSigningException extends ServiceException {
+        public static final String ERROR_CA_CANNOT_BE_USED_FOR_SIGNING = "ca_cannot_be_used_for_signing";
+        public CannotBeUsedForSigningException() {
+            super(new ErrorDeviation(ERROR_CA_CANNOT_BE_USED_FOR_SIGNING));
+        }
+    }
 
     /**
      * Return ApprovedCAInfo for CA with given CN name
