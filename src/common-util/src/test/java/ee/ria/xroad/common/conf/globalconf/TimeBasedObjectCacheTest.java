@@ -34,30 +34,30 @@ import static org.junit.Assert.assertTrue;
  */
 public class TimeBasedObjectCacheTest {
 
-  @Test
-  public void testCache() throws InterruptedException {
-    final int expireSeconds = 3;
-    TimeBasedObjectCache cache = new TimeBasedObjectCache(expireSeconds);
-    assertFalse(cache.isValid("foo"));
-    cache.setValue("foo", 13);
-    assertTrue(cache.isValid("foo"));
-    idle(expireSeconds * 1000 / 2);
-    assertTrue(cache.isValid("foo"));
-    idle(expireSeconds * 1000);
-    assertFalse(cache.isValid("foo"));
-    cache.setValue("foo", 21);
-    assertTrue(cache.isValid("foo"));
-    cache.setValue("foo", null);
-    assertTrue(cache.isValid("foo"));
-  }
+    @Test
+    public void testCache() throws InterruptedException {
+        final int expireSeconds = 3;
+        TimeBasedObjectCache cache = new TimeBasedObjectCache(expireSeconds);
+        assertFalse(cache.isValid("foo"));
+        cache.setValue("foo", 13);
+        assertTrue(cache.isValid("foo"));
+        idle(expireSeconds * 1000 / 2);
+        assertTrue(cache.isValid("foo"));
+        idle(expireSeconds * 1000);
+        assertFalse(cache.isValid("foo"));
+        cache.setValue("foo", 21);
+        assertTrue(cache.isValid("foo"));
+        cache.setValue("foo", null);
+        assertTrue(cache.isValid("foo"));
+    }
 
-  /**
-   * Idles for given time period
-   */
-  private static void idle(long periodMs) {
-    final long target = System.currentTimeMillis() + periodMs;
-    do {
-      Thread.yield();
-    } while (System.currentTimeMillis() < target);
-  }
+    /**
+     * Idles for given time period
+     */
+    private static void idle(long periodMs) {
+        final long target = System.currentTimeMillis() + periodMs;
+        do {
+            Thread.yield();
+        } while (System.currentTimeMillis() < target);
+    }
 }
