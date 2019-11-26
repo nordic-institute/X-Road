@@ -1,8 +1,8 @@
 <template>
   <div class="xrd-tab-max-width xrd-view-common">
     <div>
-      <subViewTitle v-if="key.type == 'SIGN'" :title="$t('keys.signDetailsTitle')" @close="close" />
-      <subViewTitle v-if="key.type == 'AUTH'" :title="$t('keys.authDetailsTitle')" @close="close" />
+      <subViewTitle v-if="key.usage == 'SIGNING'" :title="$t('keys.signDetailsTitle')" @close="close" />
+      <subViewTitle v-if="key.usage == 'AUTHENTICATION'" :title="$t('keys.authDetailsTitle')" @close="close" />
       <div class="delete-wrap">
         <large-button @click="confirmDelete = true" outlined>{{$t('action.delete')}}</large-button>
       </div>
@@ -116,13 +116,13 @@ export default Vue.extend({
       this.saveBusy = true;
 
       api
-        .put(`/keys/${this.id}`, this.key)
-        .then((res) => {
+        .patch(`/keys/${this.id}`, this.key)
+        .then((res: any) => {
           this.saveBusy = false;
           this.$bus.$emit('show-success', 'key saved');
           this.close();
         })
-        .catch((error) => {
+        .catch((error: any) => {
           this.saveBusy = false;
           this.$bus.$emit('show-error', error.message);
         });
@@ -131,10 +131,10 @@ export default Vue.extend({
     fetchData(id: string): void {
       api
         .get(`/keys/${id}`)
-        .then((res) => {
+        .then((res: any) => {
           this.key = res.data;
         })
-        .catch((error) => {
+        .catch((error: any) => {
           this.$bus.$emit('show-error', error.message);
         });
     },
