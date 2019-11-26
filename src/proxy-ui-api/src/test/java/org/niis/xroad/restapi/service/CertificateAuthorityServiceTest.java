@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -71,6 +72,9 @@ public class CertificateAuthorityServiceTest {
 
     @MockBean
     GlobalConfService globalConfService;
+
+    @MockBean
+    GlobalConfFacade globalConfFacade;
 
     @Before
     public void setup() {

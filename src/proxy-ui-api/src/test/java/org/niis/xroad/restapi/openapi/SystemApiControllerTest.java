@@ -31,7 +31,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.KeyUsageType;
-import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
+import org.niis.xroad.restapi.service.CertificateAuthorityService;
+import org.niis.xroad.restapi.service.InternalTlsCertificateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -59,7 +60,10 @@ import static org.mockito.BDDMockito.given;
 public class SystemApiControllerTest {
 
     @MockBean
-    private InternalTlsCertificateRepository mockRepository;
+    private InternalTlsCertificateService internalTlsCertificateService;
+
+    @MockBean
+    private CertificateAuthorityService certificateAuthorityService;
 
     @Autowired
     private SystemApiController systemApiController;
@@ -71,7 +75,7 @@ public class SystemApiControllerTest {
         try (InputStream stream = getClass().getClassLoader().getResourceAsStream("internal.crt")) {
             x509Certificate = CryptoUtils.readCertificate(stream);
         }
-        given(mockRepository.getInternalTlsCertificate()).willReturn(x509Certificate);
+        given(internalTlsCertificateService.getInternalTlsCertificate()).willReturn(x509Certificate);
 
         CertificateDetails certificate =
                 systemApiController.getSystemCertificate().getBody();
