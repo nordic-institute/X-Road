@@ -55,8 +55,8 @@ public class SkKlass3CertificateProfileInfoProviderTest {
     @Test
     public void returnsCorrectSubjectFields() {
         DnFieldDescription[] expected = {
-            new DnFieldDescriptionImpl("SN", "Serial Number (SN)", "bar").setReadOnly(true),
-            new DnFieldDescriptionImpl("CN", "Common Name (CN)", "foobar").setReadOnly(true)
+            new EnumLocalizedFieldDescriptionImpl("SN", DnFieldLabelLocalizationKey.SERIAL_NUMBER_SN, "bar").setReadOnly(true),
+            new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.COMMON_NAME, "foobar").setReadOnly(true)
         };
 
         assertTrue(areEqual(expected, getSignProfile().getSubjectFields()));

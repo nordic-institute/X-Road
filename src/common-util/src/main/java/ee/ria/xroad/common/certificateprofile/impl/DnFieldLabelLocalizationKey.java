@@ -24,36 +24,34 @@
  */
 package ee.ria.xroad.common.certificateprofile.impl;
 
-import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
-import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
-
 /**
- * Default implementation (EJBCA) of AuthCertificateProfileInfo.
+ * Known DnFieldDescription labelKeys
  */
-public class IsAuthCertificateProfileInfo extends AbstractCertificateProfileInfo implements AuthCertificateProfileInfo {
+public enum DnFieldLabelLocalizationKey {
+    COMMON_NAME("Common Name (CN)"),
+    COUNTRY_CODE("Country Code (C)"),
+    INSTANCE_IDENTIFIER("Instance Identifier (C)"),
+    MEMBER_CLASS("Member Class (O)"),
+    MEMBER_CODE("Member Code (CN)"),
+    ORGANIZATION_NAME("Organization Name (O)"),
+    SERIAL_NUMBER("Serial Number"),
+    SERIAL_NUMBER_SN("Serial Number (SN)"),
+    SERVER_CODE("Server Code (CN)"),
+    SERVER_DNS_NAME("Server DNS name (CN)");
 
+    private final String compatibilityLabel;
+
+    DnFieldLabelLocalizationKey(String compatibilityLabel) {
+        this.compatibilityLabel = compatibilityLabel;
+
+    }
     /**
-     * Constructor.
-     * 
-     * @param params the parameters
+     * For backwards compatibility while we still support old UI.
+     * Remove when old UI support can be removed
+     * @return
      */
-    public IsAuthCertificateProfileInfo(Parameters params) {
-        super(new DnFieldDescription[] {
-                // Country Code
-                new EnumLocalizedFieldDescriptionImpl(
-                        "C", DnFieldLabelLocalizationKey.COUNTRY_CODE, "IS").setReadOnly(true),
-
-                // Organization name
-                new EnumLocalizedFieldDescriptionImpl(
-                        "O", DnFieldLabelLocalizationKey.ORGANIZATION_NAME, "").setReadOnly(false),
-
-                // Serialnumber
-                new EnumLocalizedFieldDescriptionImpl("serialNumber", DnFieldLabelLocalizationKey.SERIAL_NUMBER,
-                        params.getServerId().getXRoadInstance() + "/" + params.getServerId().getServerCode()
-                                + "/" + params.getServerId().getMemberClass()).setReadOnly(true),
-
-                // Server code
-                new EnumLocalizedFieldDescriptionImpl(
-                        "CN", DnFieldLabelLocalizationKey.SERVER_DNS_NAME, "").setReadOnly(false) });
+    @Deprecated
+    public String getLabel() {
+        return compatibilityLabel;
     }
 }

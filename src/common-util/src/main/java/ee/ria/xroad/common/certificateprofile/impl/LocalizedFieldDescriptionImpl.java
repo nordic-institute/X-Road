@@ -24,36 +24,55 @@
  */
 package ee.ria.xroad.common.certificateprofile.impl;
 
-import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
+
 /**
- * Default implementation (EJBCA) of AuthCertificateProfileInfo.
+ * Implementation of DnFieldDescription that uses localizable labelKeys
  */
-public class IsAuthCertificateProfileInfo extends AbstractCertificateProfileInfo implements AuthCertificateProfileInfo {
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode
+@Accessors(chain = true)
+public class LocalizedFieldDescriptionImpl implements DnFieldDescription {
 
-    /**
-     * Constructor.
-     * 
-     * @param params the parameters
-     */
-    public IsAuthCertificateProfileInfo(Parameters params) {
-        super(new DnFieldDescription[] {
-                // Country Code
-                new EnumLocalizedFieldDescriptionImpl(
-                        "C", DnFieldLabelLocalizationKey.COUNTRY_CODE, "IS").setReadOnly(true),
+    private final String id;
+    private final String label = null;
+    private final String labelKey;
+    private boolean localized = true;
+    private final String defaultValue;
+    private boolean readOnly;
+    private boolean required = true;
 
-                // Organization name
-                new EnumLocalizedFieldDescriptionImpl(
-                        "O", DnFieldLabelLocalizationKey.ORGANIZATION_NAME, "").setReadOnly(false),
-
-                // Serialnumber
-                new EnumLocalizedFieldDescriptionImpl("serialNumber", DnFieldLabelLocalizationKey.SERIAL_NUMBER,
-                        params.getServerId().getXRoadInstance() + "/" + params.getServerId().getServerCode()
-                                + "/" + params.getServerId().getMemberClass()).setReadOnly(true),
-
-                // Server code
-                new EnumLocalizedFieldDescriptionImpl(
-                        "CN", DnFieldLabelLocalizationKey.SERVER_DNS_NAME, "").setReadOnly(false) });
+    @Override
+    public boolean isLocalized() {
+        return true;
     }
+
+    public LocalizedFieldDescriptionImpl(String id,
+            String labelKey,
+            String defaultValue) {
+        this.id = id;
+        this.labelKey = labelKey;
+        this.defaultValue = defaultValue;
+    }
+
+    public LocalizedFieldDescriptionImpl(String id,
+            String labelKey,
+            String defaultValue,
+            boolean readOnly,
+            boolean required) {
+        this.id = id;
+        this.labelKey = labelKey;
+        this.defaultValue = defaultValue;
+        this.readOnly = readOnly;
+        this.required = required;
+    }
+
 }

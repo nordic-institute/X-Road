@@ -3751,7 +3751,7 @@ components:
       description: object describing input fields for CSR DN info
       required:
         - id
-        - label
+        - localized
         - read_only
         - required
       properties:
@@ -3766,6 +3766,13 @@ components:
           type: string
           format: text
           description: label of the field, used to display the field in the user interface
+          example: ORGANIZATION_NAME
+          minLength: 1
+          readOnly: true
+        label_key:
+          type: string
+          format: text
+          description: localization key for label of the field, used to display the field in the user interface
           example: Organization name (O)
           minLength: 1
           readOnly: true
@@ -3784,6 +3791,11 @@ components:
         required:
           type: boolean
           description: if this field is required to be filled
+          example: true
+          readOnly: true
+        localized:
+          type: boolean
+          description: if true, label key is in property "label_key". If false, actual label is in property "label"
           example: true
           readOnly: true
     ErrorInfo:
