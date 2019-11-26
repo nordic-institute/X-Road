@@ -128,24 +128,10 @@ import KeysTable from './KeysTable.vue';
 import UnknownKeysTable from './UnknownKeysTable.vue';
 import KeyLabelDialog from './KeyLabelDialog.vue';
 import { mapGetters } from 'vuex';
-import { Key } from '@/types';
+import { Key, Token } from '@/types';
 import * as api from '@/util/api';
 
 import _ from 'lodash';
-
-interface Token {
-  active: boolean;
-  available: boolean;
-  id: string;
-  keys: any[];
-  name: string;
-  read_only: boolean;
-  saved_to_configuration: boolean;
-  status: string;
-  token_infos: any[];
-  type: string;
-  logged_in?: boolean; // keeps track of the Token logged in status
-}
 
 interface ISelectedObject {
   token: Token;
@@ -368,7 +354,10 @@ export default Vue.extend({
     },
 
     generateCsr(key: Key) {
-      // TODO: will be implemented later
+      this.$router.push({
+        name: RouteName.GenerateCertificateSignRequest,
+        params: { keyId: key.id },
+      });
     },
     fetchData(): void {
       // Fetch tokens from backend
