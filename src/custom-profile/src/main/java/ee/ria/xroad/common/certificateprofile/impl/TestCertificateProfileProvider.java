@@ -73,7 +73,7 @@ public class TestCertificateProfileProvider implements CertificateProfileInfoPro
                 ).setReadOnly(true),
 
                 // Dummy input field
-                new DnFieldDescriptionImpl("dummy-input", "Just a dummy input field",
+                new DnFieldDescriptionImpl("CN", "Just a dummy CN input field",
                         "foobar"
                 ).setReadOnly(false) };
     }
