@@ -34,6 +34,9 @@ include "signer-console"
 // Tests
 include "common-test"
 
+// custom certificate profile provider
+include "custom-profile"
+
 // Addons
 include "addons:hwtoken"
 include "addons:messagelog"
