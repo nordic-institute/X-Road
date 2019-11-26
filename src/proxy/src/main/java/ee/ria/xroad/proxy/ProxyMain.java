@@ -33,6 +33,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.serverconf.CachingServerConfImpl;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.signature.BatchSigner;
@@ -209,9 +210,12 @@ public final class ProxyMain {
         log.trace("loadConfigurations()");
 
         try {
+            if (SystemProperties.getServerConfCachePeriod() > 0) {
+                ServerConf.reload(new CachingServerConfImpl());
+            }
             GlobalConf.reload();
         } catch (Exception e) {
-            log.error("Failed to load GlobalConf", e);
+            log.error("Failed to initialize configurations", e);
         }
     }
 

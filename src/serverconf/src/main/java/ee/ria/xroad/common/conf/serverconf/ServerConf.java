@@ -24,7 +24,6 @@
  */
 package ee.ria.xroad.common.conf.serverconf;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -44,15 +43,7 @@ import java.util.List;
 @Slf4j
 public class ServerConf {
 
-    private static volatile ServerConfProvider instance;
-
-    static {
-        if (SystemProperties.getServerConfCachePeriod() > 0) {
-            instance = new CachingServerConfImpl();
-        } else {
-            instance = new ServerConfImpl();
-        }
-    }
+    private static volatile ServerConfProvider instance = new ServerConfImpl();
 
     protected ServerConf() {
     }

@@ -1505,7 +1505,7 @@ public final class SystemProperties {
      */
     @SuppressWarnings("checkstyle:MagicNumber")
     public static long getServerConfServiceCacheSize() {
-        return Long.getLong(SERVER_CONF_SERVICE_CACHE_SIZE, getServerConfClientCacheSize() * 10);
+        return Long.getLong(SERVER_CONF_SERVICE_CACHE_SIZE, 1000);
     }
 
     /**
@@ -1513,7 +1513,7 @@ public final class SystemProperties {
      */
     @SuppressWarnings("checkstyle:MagicNumber")
     public static long getServerConfAclCacheSize() {
-        return Long.getLong(SERVER_CONF_ACL_CACHE_SIZE, getServerConfServiceCacheSize() * 100);
+        return Long.getLong(SERVER_CONF_ACL_CACHE_SIZE, 100_000);
     }
 
 

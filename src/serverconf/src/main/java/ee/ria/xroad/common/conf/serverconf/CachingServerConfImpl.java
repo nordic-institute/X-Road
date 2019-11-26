@@ -92,7 +92,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
                 .build();
 
         aclCache = CacheBuilder.newBuilder()
-                .weigher((AclCacheKey k, List<EndpointType> v) -> v.size())
+                .weigher((AclCacheKey k, List<EndpointType> v) -> v.size() + 1)
                 .maximumWeight(SystemProperties.getServerConfAclCacheSize())
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
                 .recordStats()
