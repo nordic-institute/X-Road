@@ -1,0 +1,51 @@
+## properties that are not specific to a runtime (test or prod)
+
+spring:
+  thymeleaf:
+    cache: false
+  mvc:
+    throw-exception-if-no-handler-found: true
+  resources:
+    add-mappings: false
+  jpa:
+    ## *.hbm.xml files are loaded from classpath
+    mapping-resources: identifiers.hbm.xml,serverconf.hbm.xml,apikey.hbm.xml
+    hibernate:
+      ddl-auto: none
+      show-sql: true
+  jackson:
+    default-property-inclusion: NON_NULL
+
+# default is 30m
+# server.servlet.session.timeout=1m
+server:
+  port: 4000
+  servlet:
+    session:
+      cookie:
+        secure: true
+    multipart:
+      max-file-size: 1KB
+      max-request-size: 1KB
+  tomcat:
+    # max-http-post-size applies only to multipart/form-data requests (although name is misleading)
+    # https://github.com/spring-projects/spring-boot/issues/18521
+    # we do not use multipart/form-data, so we can se the limit to a strict value
+    # if container is changed to undertow, these settings will apply to ALL requests
+    # due to https://github.com/spring-projects/spring-boot/issues/18555
+    max-http-post-size: 1KB
+#  error:
+#    include-stacktrace: always
+#    include-exception: true
+
+request:
+  sizelimit:
+    regular: 50KB
+    binary:
+      upload: 10MB
+
+ratelimit:
+  requests:
+    per:
+      second: 20
+      minute: 60
