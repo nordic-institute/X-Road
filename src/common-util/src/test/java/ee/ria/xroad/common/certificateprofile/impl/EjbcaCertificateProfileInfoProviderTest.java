@@ -77,11 +77,11 @@ public class EjbcaCertificateProfileInfoProviderTest {
     @Test
     public void signProfileSubjectFields() {
         DnFieldDescription[] expectedFields = {
-            new DnFieldDescriptionImpl("C", "Instance Identifier (C)", "XX")
+            new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.INSTANCE_IDENTIFIER, "XX")
                 .setReadOnly(true),
-            new DnFieldDescriptionImpl("O", "Member Class (O)", "foo")
+            new EnumLocalizedFieldDescriptionImpl("O", DnFieldLabelLocalizationKey.MEMBER_CLASS, "foo")
                 .setReadOnly(true),
-            new DnFieldDescriptionImpl("CN", "Member Code (CN)", "bar")
+            new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.MEMBER_CODE, "bar")
                 .setReadOnly(true)
         };
 
@@ -166,9 +166,9 @@ public class EjbcaCertificateProfileInfoProviderTest {
     @Test
     public void authProfileSubjectFields() {
         DnFieldDescription[] expectedFields = {
-            new DnFieldDescriptionImpl("C", "Instance Identifier (C)", "XX")
+            new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.INSTANCE_IDENTIFIER, "XX")
                 .setReadOnly(true),
-            new DnFieldDescriptionImpl("CN", "Server Code (CN)", "server")
+            new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.SERVER_CODE, "server")
                 .setReadOnly(true),
         };
 

@@ -48,7 +48,12 @@ public class DistinguishedNameFieldDescriptionConverter {
     public DistinguishedNameFieldDescription convert(DnFieldDescription dnFieldDescription) {
         DistinguishedNameFieldDescription description = new DistinguishedNameFieldDescription();
         description.setId(dnFieldDescription.getId());
-        description.setLabel(dnFieldDescription.getLabel());
+        if (dnFieldDescription.isLocalized()) {
+            description.setLabelKey(dnFieldDescription.getLabelKey());
+        } else {
+            description.setLabel(dnFieldDescription.getLabel());
+        }
+        description.setLocalized(dnFieldDescription.isLocalized());
         description.setDefaultValue(dnFieldDescription.getDefaultValue());
         description.setReadOnly(dnFieldDescription.isReadOnly());
         description.setRequired(dnFieldDescription.isRequired());
