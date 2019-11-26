@@ -63,10 +63,15 @@ case "$1" in
     then
       echo "User exists, skipping postgres schema creation."
     else
-      $($psql_cmd <<< "CREATE ROLE centerui LOGIN PASSWORD 'centerui';")
-      $($psql_cmd <<< "GRANT centerui to postgres;")
-      createdb -h $db_addr -p $db_port -O centerui -U postgres -E UTF-8 centerui_production
-      $($psql_cmd -d centerui_production <<< "CREATE EXTENSION hstore;")
+      if  [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]
+      then
+          $($psql_cmd <<< "CREATE ROLE centerui LOGIN PASSWORD 'centerui';")
+          $($psql_cmd <<< "GRANT centerui to postgres;")
+          createdb -h $db_addr -p $db_port -O centerui -U postgres -E UTF-8 centerui_production
+          $($psql_cmd -d centerui_production <<< "CREATE EXTENSION hstore;")
+      else
+          su - postgres -c /usr/share/xroad/db/create_schema.sh
+      fi
     fi
 
     echo "Running db migrations."
