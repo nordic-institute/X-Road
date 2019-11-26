@@ -217,7 +217,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /certificates:
+  /token-certificates:
     post: # ok
       tags:
         - security server
@@ -253,7 +253,7 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /certificates/{hash}:
+  /token-certificates/{hash}:
     get: # ok
       tags:
         - security server
@@ -318,7 +318,7 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
-  /certificates/{hash}/activate:
+  /token-certificates/{hash}/activate:
     put: # ok
       tags:
         - security server
@@ -350,7 +350,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /certificates/{hash}/deactivate:
+  /token-certificates/{hash}/deactivate:
     put: # ok
       tags:
         - security server
@@ -382,7 +382,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /certificates/{hash}/register:
+  /token-certificates/{hash}/register:
     put: # ok
       tags:
         - security server
@@ -414,7 +414,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /certificates/{hash}/unregister:
+  /token-certificates/{hash}/unregister:
     put: # ok
       tags:
         - security server

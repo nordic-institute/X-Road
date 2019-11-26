@@ -82,8 +82,8 @@ import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.restapi.openapi.ApiUtil.createCreatedResponse;
-import static org.niis.xroad.restapi.openapi.CertificatesApiController.ERROR_INVALID_CERT;
-import static org.niis.xroad.restapi.openapi.CertificatesApiController.ERROR_INVALID_CERT_UPLOAD;
+import static org.niis.xroad.restapi.openapi.TokenCertificatesApiController.ERROR_INVALID_CERT;
+import static org.niis.xroad.restapi.openapi.TokenCertificatesApiController.ERROR_INVALID_CERT_UPLOAD;
 
 /**
  * clients api

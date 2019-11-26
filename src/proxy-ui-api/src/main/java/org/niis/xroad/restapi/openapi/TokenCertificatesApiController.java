@@ -53,7 +53,7 @@ import java.io.InputStream;
 @RequestMapping("/api")
 @Slf4j
 @PreAuthorize("denyAll")
-public class CertificatesApiController implements CertificatesApi {
+public class TokenCertificatesApiController implements TokenCertificatesApi {
     public static final String ERROR_INVALID_CERT_UPLOAD = "invalid_cert_upload";
     public static final String ERROR_INVALID_CERT = "invalid_cert";
 
@@ -61,7 +61,7 @@ public class CertificatesApiController implements CertificatesApi {
     private final CertificateDetailsConverter certificateDetailsConverter;
 
     @Autowired
-    public CertificatesApiController(TokenCertificateService tokenCertificateService,
+    public TokenCertificatesApiController(TokenCertificateService tokenCertificateService,
             CertificateDetailsConverter certificateDetailsConverter) {
         this.tokenCertificateService = tokenCertificateService;
         this.certificateDetailsConverter = certificateDetailsConverter;

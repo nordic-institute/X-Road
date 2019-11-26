@@ -77,7 +77,7 @@ import static org.mockito.Mockito.doThrow;
 @AutoConfigureTestDatabase
 @Transactional
 @Slf4j
-public class CertificatesApiControllerTest {
+public class TokenCertificatesApiControllerTest {
 
     @MockBean
     private SignerProxyFacade signerProxyFacade;
@@ -86,7 +86,7 @@ public class CertificatesApiControllerTest {
     private GlobalConfFacade globalConfFacade;
 
     @Autowired
-    private CertificatesApiController certificatesApiController;
+    private TokenCertificatesApiController tokenCertificatesApiController;
 
     @Before
     public void setup() throws Exception {
@@ -100,7 +100,7 @@ public class CertificatesApiControllerTest {
     @WithMockUser(authorities = "IMPORT_SIGN_CERT")
     public void addSignCertificate() {
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
-        ResponseEntity<CertificateDetails> response = certificatesApiController.addCertificate(body);
+        ResponseEntity<CertificateDetails> response = tokenCertificatesApiController.addCertificate(body);
         CertificateDetails addedCert = response.getBody();
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertCertificateDetails(addedCert);
@@ -112,7 +112,7 @@ public class CertificatesApiControllerTest {
         X509Certificate mockAuthCert = CertificateTestUtils.getMockCertificate();
         CertificateTestUtils.setAsAuthCert(mockAuthCert);
         Resource body = CertificateTestUtils.getResource(mockAuthCert.getEncoded());
-        ResponseEntity<CertificateDetails> response = certificatesApiController.addCertificate(body);
+        ResponseEntity<CertificateDetails> response = tokenCertificatesApiController.addCertificate(body);
         CertificateDetails addedCert = response.getBody();
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertCertificateDetails(addedCert);
@@ -127,7 +127,7 @@ public class CertificatesApiControllerTest {
         X509Certificate mockCert = CertificateTestUtils.getMockCertificate();
         Resource body = CertificateTestUtils.getResource(mockCert.getEncoded());
         try {
-            certificatesApiController.addCertificate(body);
+            tokenCertificatesApiController.addCertificate(body);
         } catch (BadRequestException e) {
             ErrorDeviation error = e.getErrorDeviation();
             assertEquals(ClientNotFoundException.ERROR_CLIENT_NOT_FOUND, error.getCode());
@@ -142,7 +142,7 @@ public class CertificatesApiControllerTest {
                 .when(signerProxyFacade).importCert(any(), any(), any());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
         try {
-            certificatesApiController.addCertificate(body);
+            tokenCertificatesApiController.addCertificate(body);
         } catch (ConflictException e) {
             ErrorDeviation error = e.getErrorDeviation();
             assertEquals(CertificateAlreadyExistsException.ERROR_CERTIFICATE_ALREADY_EXISTS, error.getCode());
@@ -157,7 +157,7 @@ public class CertificatesApiControllerTest {
                 .when(signerProxyFacade).importCert(any(), any(), any());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
         try {
-            certificatesApiController.addCertificate(body);
+            tokenCertificatesApiController.addCertificate(body);
         } catch (BadRequestException e) {
             ErrorDeviation error = e.getErrorDeviation();
             assertEquals(TokenCertificateService.InvalidCertificateException.INVALID_CERT, error.getCode());
@@ -172,7 +172,7 @@ public class CertificatesApiControllerTest {
                 .when(signerProxyFacade).importCert(any(), any(), any());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
         try {
-            certificatesApiController.addCertificate(body);
+            tokenCertificatesApiController.addCertificate(body);
         } catch (BadRequestException e) {
             ErrorDeviation error = e.getErrorDeviation();
             assertEquals(TokenCertificateService.WrongCertificateUsageException.ERROR_CERTIFICATE_WRONG_USAGE,
@@ -188,7 +188,7 @@ public class CertificatesApiControllerTest {
                 .when(signerProxyFacade).importCert(any(), any(), any());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
         try {
-            certificatesApiController.addCertificate(body);
+            tokenCertificatesApiController.addCertificate(body);
         } catch (BadRequestException e) {
             ErrorDeviation error = e.getErrorDeviation();
             assertEquals(TokenCertificateService.CsrNotFoundException.ERROR_CSR_NOT_FOUND, error.getCode());
@@ -203,7 +203,7 @@ public class CertificatesApiControllerTest {
                 .when(signerProxyFacade).importCert(any(), any(), any());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
         try {
-            certificatesApiController.addCertificate(body);
+            tokenCertificatesApiController.addCertificate(body);
         } catch (BadRequestException e) {
             ErrorDeviation error = e.getErrorDeviation();
             assertEquals(KeyNotFoundException.ERROR_KEY_NOT_FOUND, error.getCode());
@@ -215,7 +215,7 @@ public class CertificatesApiControllerTest {
     public void addInvalidSignCertificate() throws Exception {
         Resource body = CertificateTestUtils.getResource(new byte[] {0, 0, 0, 0});
         try {
-            certificatesApiController.addCertificate(body);
+            tokenCertificatesApiController.addCertificate(body);
         } catch (BadRequestException e) {
             ErrorDeviation error = e.getErrorDeviation();
             assertEquals(TokenCertificateService.InvalidCertificateException.INVALID_CERT, error.getCode());
