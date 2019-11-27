@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.16"
+  version: "1.0.17"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -1638,7 +1638,7 @@ paths:
       tags:
         - security server
       summary: generate csr for the selected key
-      operationId: genrerateCsr
+      operationId: generateCsr
       description: Administrator generates csr for the key.
       parameters:
         - in: path
@@ -1650,41 +1650,17 @@ paths:
             format: text
             minLength: 1
             maxLength: 255
-        - in: query
-          name: key_usage
-          description: inteded usage for the key (signing or authentication)
-          required: false
-          schema:
-            $ref: '#/components/schemas/KeyUsageType'
-        - in: query
-          name: approved_ca
-          description: approved certification service
-          required: false
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-        - in: query
-          name: csr_format
-          description: format of the certificate signing request (PEM or DER)
-          required: false
-          schema:
-            $ref: '#/components/schemas/CsrFormat'
-        - in: query
-          name: member_id
-          description: security server client the certificate will be issued for (only for signing certificates)
-          required: false
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
+      requestBody:
+        description: request to generate csr
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CsrGenerate'
       responses:
         '201':
-          description: CSR created
+          description: created CSR
           content:
-            application/pkcs10:
+            application/octet-stream:
               schema:
                 type: string
                 format: binary
@@ -1793,7 +1769,7 @@ paths:
               schema:
                 type: array
                 uniqueItems: true
-                description: array of timestamping service objects
+                description: array of DistinguishedNameFieldDescription objects
                 items:
                   $ref: '#/components/schemas/DistinguishedNameFieldDescription'
         '400':
@@ -3746,6 +3722,40 @@ components:
       enum:
         - PEM
         - DER
+    CsrGenerate:
+      type: object
+      description: request to generate a CSR
+      required:
+        - key_usage
+        - ca_name
+        - csr_format
+        - dn_field_values
+      properties:
+        key_usage_type:
+          description: which usage type this CSR is for (signing or authentication)
+          $ref: '#/components/schemas/KeyUsageType'
+        ca_name:
+          type: string
+          format: text
+          description: common name of the CA
+          example: X-Road Test CA CN
+          minLength: 1
+          maxLength: 255
+        csr_format:
+          description: format of the certificate signing request (PEM or DER)
+          $ref: '#/components/schemas/CsrFormat'
+        member_id:
+          type: string
+          format: text
+          description: member client id for signing CSRs. <instance_id>:<member_class>:<member_code>
+          example: FI:GOV:123
+          minLength: 1
+          maxLength: 767
+        dn_field_values:
+          type: object
+          description: user-provided parameters for distinguished name input fields
+          additionalProperties:
+            type: string
     DistinguishedNameFieldDescription:
       type: object
       description: object describing input fields for CSR DN info
