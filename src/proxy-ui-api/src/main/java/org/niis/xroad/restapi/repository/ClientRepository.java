@@ -83,6 +83,7 @@ public class ClientRepository {
     /**
      * return one client
      * @param id
+     * @return the client, or null if matching client was not found
      */
     public ClientType getClient(ClientId id) {
         ClientDAOImpl clientDAO = new ClientDAOImpl();

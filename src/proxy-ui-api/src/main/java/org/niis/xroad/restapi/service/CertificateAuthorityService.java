@@ -60,6 +60,7 @@ public class CertificateAuthorityService {
     private final ServerConfService serverConfService;
     private final GlobalConfFacade globalConfFacade;
     private final ServerConfRepository serverConfRepository;
+    private final ClientService clientService;
 
     /**
      * constructor
@@ -67,16 +68,19 @@ public class CertificateAuthorityService {
      * @param globalConfFacade
      * @param serverConfRepository
      * @param serverConfService
+     * @param clientService
      */
     @Autowired
     public CertificateAuthorityService(GlobalConfService globalConfService,
             GlobalConfFacade globalConfFacade,
             ServerConfRepository serverConfRepository,
-            ServerConfService serverConfService) {
+            ServerConfService serverConfService,
+            ClientService clientService) {
         this.globalConfService = globalConfService;
         this.globalConfFacade = globalConfFacade;
         this.serverConfRepository = serverConfRepository;
         this.serverConfService = serverConfService;
+        this.clientService = clientService;
     }
 
     /**
@@ -104,13 +108,20 @@ public class CertificateAuthorityService {
      * @throws CertificateAuthorityNotFoundException if matching CA was not found
      * @throws CertificateProfileInstantiationException if instantiation of certificate profile failed
      * @throws CannotBeUsedForSigningException if attempted to read signing profile from authenticationOnly ca
+     * @throws ClientNotFoundException if client with memberId was not found
      */
     public CertificateProfileInfo getCertificateProfile(String caName, KeyUsageInfo keyUsageInfo, ClientId memberId)
             throws CertificateAuthorityNotFoundException, CertificateProfileInstantiationException,
-            CannotBeUsedForSigningException {
+            CannotBeUsedForSigningException, ClientNotFoundException {
         ApprovedCAInfo caInfo = getCertificateAuthority(caName);
         if (Boolean.TRUE == caInfo.getAuthenticationOnly() && KeyUsageInfo.SIGNING == keyUsageInfo) {
             throw new CannotBeUsedForSigningException();
+        }
+        if (memberId != null) {
+            // validate that the member exists
+            if (clientService.getClient(memberId) == null) {
+                throw new ClientNotFoundException("client with id " + memberId + " not found");
+            }
         }
         CertificateProfileInfoProvider provider = null;
         try {

@@ -39,6 +39,7 @@ import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.KeyName;
 import org.niis.xroad.restapi.openapi.model.KeyUsageType;
 import org.niis.xroad.restapi.service.CertificateAuthorityService;
+import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.KeyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -149,6 +150,8 @@ public class KeysApiController implements KeysApi {
         } catch (KeyService.KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (CertificateAuthorityService.CertificateAuthorityNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (CertificateAuthorityService.CertificateProfileInstantiationException e) {
             throw new InternalServerErrorException(e);

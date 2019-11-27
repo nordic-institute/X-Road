@@ -98,8 +98,9 @@ public class ClientService {
     }
 
     /**
-     * return one client
+     * Return one client, or null if not found
      * @param id
+     * @return the client, or null if matching client was not found
      */
     public ClientType getClient(ClientId id) {
         return clientRepository.getClient(id);
@@ -123,7 +124,7 @@ public class ClientService {
     }
 
     /**
-     * Get a ClientType
+     * Get a client, throw exception if not found
      * @throws ClientNotFoundException if not found
      */
     private ClientType getClientType(ClientId id) throws ClientNotFoundException {
