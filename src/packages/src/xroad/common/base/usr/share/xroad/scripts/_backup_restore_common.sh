@@ -39,25 +39,8 @@ check_instance_id () {
 }
 
 check_central_ha_node_name () {
-  if [ -z ${FORCE_RESTORE} ] ; then
-    # Look for BDR-patched Postgres 9.4 in order to detect HA support.
-    dpkg -l | cut -d ' ' -f 3 | grep postgresql-bdr-9.4 2>&1 >/dev/null
-    if [ $? -eq 0 ] ; then
-      if [ -z "$CENTRAL_SERVER_HA_NODE_NAME" ] ; then
-        echo "Missing value of HA node name but postgresql-bdr-9.4 is installed"
-        usage
-        exit 2
-      fi
-    else
-      if [ -n "$CENTRAL_SERVER_HA_NODE_NAME" ] ; then
-        echo "Not expecting HA node name if postgresql-bdr-9.4 is not installed"
-        usage
-        exit 2
-      fi
-    fi
-    if [[ $USE_BASE_64 = true ]] ; then
-      CENTRAL_SERVER_HA_NODE_NAME=$(echo $CENTRAL_SERVER_HA_NODE_NAME | base64 --decode)
-    fi
+  if [[ $USE_BASE_64 = true ]] ; then
+    CENTRAL_SERVER_HA_NODE_NAME=$(echo $CENTRAL_SERVER_HA_NODE_NAME | base64 --decode)
   fi
 }
 

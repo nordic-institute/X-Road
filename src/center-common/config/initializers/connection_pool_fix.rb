@@ -22,33 +22,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
+require 'java'
 
-# Parses configuration files (in .ini format) in production environment.
-class DbConfParser
-  def initialize(environment, conf_file)
-    @environment = environment
-    @conf_file = conf_file
+class ActiveRecord::ConnectionAdapters::ConnectionPool
+
+  def checkout_and_verify_with_rescue(c)
+    checkout_and_verify_without_rescue(c)
+  rescue
+    c.disconnect!
+    @connections.delete(c)
+    raise
   end
-
-  def parse
-    ini_conf = Java::org.apache.commons.configuration.HierarchicalINIConfiguration.new
-    ini_conf.setDelimiterParsingDisabled(true)
-    ini_conf.load(@conf_file)
-
-    db_conf = {
-        "adapter" => ini_conf.getString("adapter"),
-        "encoding" => ini_conf.getString("encoding"),
-        "username" => ini_conf.getString("username"),
-        "password" => ini_conf.getString("password"),
-        "database" => ini_conf.getString("database"),
-        "host" => ini_conf.getString("host", "localhost"),
-        "reconnect" => ini_conf.getBoolean("reconnect", true)
-    }
-
-    if ini_conf.getString("url")
-      db_conf["url"] = ini_conf.getString("url")
-    end
-
-    return { @environment => db_conf }
-  end
+  alias_method_chain :checkout_and_verify, :rescue
 end

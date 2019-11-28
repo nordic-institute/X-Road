@@ -22,33 +22,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
+require 'java'
 
-# Parses configuration files (in .ini format) in production environment.
-class DbConfParser
-  def initialize(environment, conf_file)
-    @environment = environment
-    @conf_file = conf_file
-  end
-
-  def parse
-    ini_conf = Java::org.apache.commons.configuration.HierarchicalINIConfiguration.new
-    ini_conf.setDelimiterParsingDisabled(true)
-    ini_conf.load(@conf_file)
-
-    db_conf = {
-        "adapter" => ini_conf.getString("adapter"),
-        "encoding" => ini_conf.getString("encoding"),
-        "username" => ini_conf.getString("username"),
-        "password" => ini_conf.getString("password"),
-        "database" => ini_conf.getString("database"),
-        "host" => ini_conf.getString("host", "localhost"),
-        "reconnect" => ini_conf.getBoolean("reconnect", true)
-    }
-
-    if ini_conf.getString("url")
-      db_conf["url"] = ini_conf.getString("url")
-    end
-
-    return { @environment => db_conf }
+ActiveRecord::ConnectionAdapters::JdbcAdapter.set_callback :checkout, :after do |connection|
+  if CommonSql.ha_configured?
+    connection.execute("SET SESSION xroad.current_ha_node_name='#{CommonSql.ha_node_name}'")
   end
 end
