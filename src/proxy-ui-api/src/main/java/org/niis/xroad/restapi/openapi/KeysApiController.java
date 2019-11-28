@@ -31,6 +31,7 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.CsrFormatMapping;
 import org.niis.xroad.restapi.converter.DistinguishedNameFieldDescriptionConverter;
@@ -172,10 +173,15 @@ public class KeysApiController implements KeysApi {
     }
 
     @Override
-    @PreAuthorize("permitAll")
+    @PreAuthorize("(hasAuthority('GENERATE_AUTH_CERT_REQ') and "
+            + "#csrGenerate.keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).AUTHENTICATION)"
+            + " or (hasAuthority('GENERATE_SIGN_CERT_REQ') and "
+            + "#csrGenerate.keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).SIGNING)")
     public ResponseEntity<Resource> generateCsr(String keyId, CsrGenerate csrGenerate) {
-        // TO DO: authorization
-        ClientId memberId = clientConverter.convertId(csrGenerate.getMemberId());
+        ClientId memberId = null;
+        if (!StringUtils.isBlank(csrGenerate.getMemberId())) {
+            memberId = clientConverter.convertId(csrGenerate.getMemberId());
+        }
         KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(csrGenerate.getKeyUsageType()).get();
         GenerateCertRequest.RequestFormat csrFormat = CsrFormatMapping.map(csrGenerate.getCsrFormat()).get();
 
@@ -189,6 +195,7 @@ public class KeysApiController implements KeysApi {
                     csrFormat);
         } catch (Exception e) {
             e.printStackTrace();
+            // TO DO: proper exception handling
             throw new RuntimeException("not handled yet", e);
         }
 

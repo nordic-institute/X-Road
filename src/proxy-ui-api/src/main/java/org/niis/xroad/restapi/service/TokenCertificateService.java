@@ -112,9 +112,13 @@ public class TokenCertificateService {
 
         // validate key and memberId existence
         KeyInfo key = keyService.getKey(keyId);
-        ClientType clientType = clientRepository.getClient(memberId);
-        if (clientType == null) {
-            throw new ClientNotFoundException("client not found: " + memberId);
+        ClientType clientType = null;
+
+        if (keyUsage == KeyUsageInfo.SIGNING) {
+            clientType = clientRepository.getClient(memberId);
+            if (clientType == null) {
+                throw new ClientNotFoundException("client not found: " + memberId);
+            }
         }
 
         // check that keyUsage is allowed

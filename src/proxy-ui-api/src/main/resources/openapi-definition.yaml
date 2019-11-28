@@ -3726,7 +3726,7 @@ components:
       type: object
       description: request to generate a CSR
       required:
-        - key_usage
+        - key_usage_type
         - ca_name
         - csr_format
         - dn_field_values
