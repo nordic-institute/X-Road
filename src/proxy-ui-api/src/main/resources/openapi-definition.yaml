@@ -1718,11 +1718,11 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /keys/{id}/csr-dn-fields:
+  /keys/{id}/csr-subject-fields:
     get: # ok
       tags:
         - security server
-      summary: get description of DN fields for CSR
+      summary: get description of subject DN fields for CSR
       operationId: getCsrDnFieldDescriptions
       description: list DN field descriptions to collect CSR parameters
       parameters:
@@ -1769,9 +1769,9 @@ paths:
               schema:
                 type: array
                 uniqueItems: true
-                description: array of DistinguishedNameFieldDescription objects
+                description: array of CsrSubjectFieldDescription objects
                 items:
-                  $ref: '#/components/schemas/DistinguishedNameFieldDescription'
+                  $ref: '#/components/schemas/CsrSubjectFieldDescription'
         '400':
           description: request was invalid
         '401':
@@ -3729,7 +3729,7 @@ components:
         - key_usage_type
         - ca_name
         - csr_format
-        - dn_field_values
+        - subject_field_values
       properties:
         key_usage_type:
           description: which usage type this CSR is for (signing or authentication)
@@ -3751,14 +3751,14 @@ components:
           example: FI:GOV:123
           minLength: 1
           maxLength: 767
-        dn_field_values:
+        subject_field_values:
           type: object
-          description: user-provided parameters for distinguished name input fields
+          description: user-provided values for subject DN parameters
           additionalProperties:
             type: string
-    DistinguishedNameFieldDescription:
+    CsrSubjectFieldDescription:
       type: object
-      description: object describing input fields for CSR DN info
+      description: object describing input fields for CSR subject DN info
       required:
         - id
         - localized

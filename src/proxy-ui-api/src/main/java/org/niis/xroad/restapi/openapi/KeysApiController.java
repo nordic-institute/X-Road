@@ -33,11 +33,11 @@ import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.CsrFormatMapping;
-import org.niis.xroad.restapi.converter.DistinguishedNameFieldDescriptionConverter;
+import org.niis.xroad.restapi.converter.CsrSubjectFieldDescriptionConverter;
 import org.niis.xroad.restapi.converter.KeyConverter;
 import org.niis.xroad.restapi.converter.KeyUsageTypeMapping;
 import org.niis.xroad.restapi.openapi.model.CsrGenerate;
-import org.niis.xroad.restapi.openapi.model.DistinguishedNameFieldDescription;
+import org.niis.xroad.restapi.openapi.model.CsrSubjectFieldDescription;
 import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.KeyName;
 import org.niis.xroad.restapi.openapi.model.KeyUsageType;
@@ -72,7 +72,7 @@ public class KeysApiController implements KeysApi {
     private final KeyConverter keyConverter;
     private final CertificateAuthorityService certificateAuthorityService;
     private final ClientConverter clientConverter;
-    private final DistinguishedNameFieldDescriptionConverter dnConverter;
+    private final CsrSubjectFieldDescriptionConverter subjectConverter;
     private final TokenCertificateService tokenCertificateService;
     private final ServerConfService serverConfService;
     private final CsrFilenameCreator csrFilenameCreator;
@@ -83,7 +83,7 @@ public class KeysApiController implements KeysApi {
      * @param keyConverter
      * @param keyService
      * @param certificateAuthorityService
-     * @param dnConverter
+     * @param subjectConverter
      * @param clientConverter
      * @param tokenCertificateService
      * @param csrFilenameCreator
@@ -94,7 +94,7 @@ public class KeysApiController implements KeysApi {
             KeyConverter keyConverter,
             CertificateAuthorityService certificateAuthorityService,
             ClientConverter clientConverter,
-            DistinguishedNameFieldDescriptionConverter dnConverter,
+            CsrSubjectFieldDescriptionConverter subjectConverter,
             TokenCertificateService tokenCertificateService,
             ServerConfService serverConfService,
             CsrFilenameCreator csrFilenameCreator) {
@@ -102,7 +102,7 @@ public class KeysApiController implements KeysApi {
         this.keyConverter = keyConverter;
         this.certificateAuthorityService = certificateAuthorityService;
         this.clientConverter = clientConverter;
-        this.dnConverter = dnConverter;
+        this.subjectConverter = subjectConverter;
         this.tokenCertificateService = tokenCertificateService;
         this.serverConfService = serverConfService;
         this.csrFilenameCreator = csrFilenameCreator;
@@ -143,7 +143,7 @@ public class KeysApiController implements KeysApi {
             + " or #keyUsageType == null))"
             + "or (hasAuthority('GENERATE_SIGN_CERT_REQ') and "
             + "#keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).SIGNING)")
-    public ResponseEntity<List<DistinguishedNameFieldDescription>> getCsrDnFieldDescriptions(
+    public ResponseEntity<List<CsrSubjectFieldDescription>> getCsrDnFieldDescriptions(
             String keyId,
             KeyUsageType keyUsageType,
             String caName,
@@ -162,7 +162,7 @@ public class KeysApiController implements KeysApi {
             CertificateProfileInfo profileInfo;
             profileInfo = certificateAuthorityService.getCertificateProfile(
                     caName, keyUsageInfo, memberId);
-            List<DistinguishedNameFieldDescription> converted = dnConverter.convert(
+            List<CsrSubjectFieldDescription> converted = subjectConverter.convert(
                     profileInfo.getSubjectFields());
             return new ResponseEntity<>(converted, HttpStatus.OK);
 
@@ -199,7 +199,7 @@ public class KeysApiController implements KeysApi {
                     memberId,
                     keyUsageInfo,
                     csrGenerate.getCaName(),
-                    csrGenerate.getDnFieldValues(),
+                    csrGenerate.getSubjectFieldValues(),
                     csrFormat);
         } catch (WrongKeyUsageException | TokenCertificateService.InvalidDnParameterException
                 | ClientNotFoundException | CertificateAuthorityNotFoundException e) {

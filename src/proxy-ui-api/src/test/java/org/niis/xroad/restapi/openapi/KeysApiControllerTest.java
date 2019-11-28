@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.openapi.model.DistinguishedNameFieldDescription;
+import org.niis.xroad.restapi.openapi.model.CsrSubjectFieldDescription;
 import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.KeyUsageType;
 import org.niis.xroad.restapi.service.CertificateAuthorityService;
@@ -160,7 +160,7 @@ public class KeysApiControllerTest {
     @Test
     @WithMockUser(authorities = { "GENERATE_SIGN_CERT_REQ" })
     public void getCsrDnFieldDescriptions() throws Exception {
-        ResponseEntity<List<DistinguishedNameFieldDescription>> response = keysApiController
+        ResponseEntity<List<CsrSubjectFieldDescription>> response = keysApiController
                 .getCsrDnFieldDescriptions(GOOD_SIGN_KEY_ID, KeyUsageType.SIGNING,
                         "fi-not-auth-only", "FI:GOV:M1");
         assertEquals(HttpStatus.OK, response.getStatusCode());

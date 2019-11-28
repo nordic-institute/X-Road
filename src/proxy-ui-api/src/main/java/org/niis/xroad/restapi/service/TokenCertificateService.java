@@ -95,7 +95,7 @@ public class TokenCertificateService {
      * @param memberId
      * @param keyUsage
      * @param caName
-     * @param distinguishedNameParameters
+     * @param subjectFieldValues user-submitted parameters for subject DN
      * @param format
      * @return csr bytes
      * @throws CertificateAuthorityNotFoundException
@@ -108,17 +108,10 @@ public class TokenCertificateService {
      * @throws CsrCreationFailureException when signer could not create CSR for some reason.
      * Subclass {@link KeyNotOperationalException} when the reason is key not being operational.
      */
-    public byte[] generateCertRequest(String keyId,
-            ClientId memberId,
-            KeyUsageInfo keyUsage,
-            String caName,
-            Map<String, String> distinguishedNameParameters,
-            GenerateCertRequest.RequestFormat format)
-            throws
-            CertificateAuthorityNotFoundException,
-            ClientNotFoundException,
-            CertificateProfileInstantiationException,
-            WrongKeyUsageException, InvalidDnParameterException,
+    public byte[] generateCertRequest(String keyId, ClientId memberId, KeyUsageInfo keyUsage,
+            String caName, Map<String, String> subjectFieldValues, GenerateCertRequest.RequestFormat format)
+            throws CertificateAuthorityNotFoundException, ClientNotFoundException,
+            CertificateProfileInstantiationException, WrongKeyUsageException, InvalidDnParameterException,
             KeyService.KeyNotFoundException, CsrCreationFailureException {
 
         // validate key and memberId existence
@@ -139,11 +132,9 @@ public class TokenCertificateService {
             }
         }
 
-        // TO DO: is "subject field" better term for distinguishedNameParameters?
-
         CertificateProfileInfo profile = certificateAuthorityService.getCertificateProfile(caName, keyUsage, memberId);
 
-        List<DnFieldValue> dnFieldValues = processDnParameters(profile, distinguishedNameParameters);
+        List<DnFieldValue> dnFieldValues = processDnParameters(profile, subjectFieldValues);
 
         String subjectName = createSubjectName(dnFieldValues);
 
