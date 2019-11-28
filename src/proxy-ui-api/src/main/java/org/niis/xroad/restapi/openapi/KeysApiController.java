@@ -50,10 +50,7 @@ import org.niis.xroad.restapi.service.ServerConfService;
 import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.service.WrongKeyUsageException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.ContentDisposition;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -220,15 +217,6 @@ public class KeysApiController implements KeysApi {
         String filename = csrFilenameCreator.createCsrFilename(keyUsageInfo, csrFormat, memberId,
                 serverConfService.getSecurityServerId());
 
-        // TO DO: use helper like 201 responses
-        ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
-                .filename(filename)
-                .build();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentDisposition(contentDisposition);
-
-        Resource resource = new ByteArrayResource(csr);
-        return new ResponseEntity<>(resource, headers, HttpStatus.OK);
+        return ApiUtil.createAttachmentResourceResponse(csr, filename);
     }
-
 }

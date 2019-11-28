@@ -37,10 +37,7 @@ import org.niis.xroad.restapi.openapi.model.KeyUsageType;
 import org.niis.xroad.restapi.service.CertificateAuthorityService;
 import org.niis.xroad.restapi.service.InternalTlsCertificateService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.ContentDisposition;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -86,15 +83,9 @@ public class SystemApiController implements SystemApi {
     @Override
     @PreAuthorize("hasAuthority('EXPORT_PROXY_INTERNAL_CERT')")
     public ResponseEntity<Resource> downloadSystemCertificate() {
-        ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
-                .filename("certs.tar.gz")
-                .build();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentDisposition(contentDisposition);
-
+        String filename = "certs.tar.gz";
         byte[] certificateTar = internalTlsCertificateService.exportInternalTlsCertificate();
-        Resource resource = new ByteArrayResource(certificateTar);
-        return new ResponseEntity<>(resource, headers, HttpStatus.OK);
+        return ApiUtil.createAttachmentResourceResponse(certificateTar, filename);
     }
 
     @Override

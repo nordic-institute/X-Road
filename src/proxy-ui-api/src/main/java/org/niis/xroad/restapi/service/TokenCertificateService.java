@@ -90,20 +90,20 @@ public class TokenCertificateService {
     }
 
     /**
-     * Service method to create a CSR
-     * TO DO: document
+     * Create a CSR
      * @param keyId
      * @param memberId
      * @param keyUsage
      * @param caName
      * @param distinguishedNameParameters
      * @param format
-     * @return
+     * @return csr bytes
      * @throws CertificateAuthorityNotFoundException
      * @throws ClientNotFoundException
      * @throws CertificateProfileInstantiationException
-     * @throws WrongKeyUsageException
-     * @throws InvalidDnParameterException
+     * @throws WrongKeyUsageException if keyUsage param did not match the key's usage type
+     * @throws InvalidDnParameterException if required dn parameters were missing, or if there were some extra
+     * parameters
      * @throws KeyService.KeyNotFoundException
      * @throws CsrCreationFailureException when signer could not create CSR for some reason.
      * Subclass {@link KeyNotOperationalException} when the reason is key not being operational.
@@ -141,7 +141,6 @@ public class TokenCertificateService {
 
         // TO DO: is "subject field" better term for distinguishedNameParameters?
 
-        // TO DO: make CertificateAuthorityService.exceptions public
         CertificateProfileInfo profile = certificateAuthorityService.getCertificateProfile(caName, keyUsage, memberId);
 
         List<DnFieldValue> dnFieldValues = processDnParameters(profile, distinguishedNameParameters);
@@ -162,14 +161,23 @@ public class TokenCertificateService {
         }
     }
 
+    /**
+     * Transform dn fields into a subject name
+     */
     private String createSubjectName(List<DnFieldValue> dnFieldValues) {
         return dnFieldValues.stream()
                 .filter(dnFieldValue -> !StringUtils.isBlank(dnFieldValue.getValue()))
                 .map(dnFieldValue -> dnFieldValue.getId() + "=" + dnFieldValue.getValue())
                 .collect(Collectors.joining(", "));
-
     }
 
+    /**
+     * Read dn parameters from dnParameters map, match them to DnFieldDescription
+     * definitions (consider readOnly, required, etc) and validate that all parameters
+     * are fine.
+     * @return valid DnFieldValue objects
+     * @throws InvalidDnParameterException if there were invalid parameters
+     */
     private List<DnFieldValue> processDnParameters(CertificateProfileInfo profile, Map<String, String> dnParameters)
             throws InvalidDnParameterException {
         Set<String> unprocessedParameters = new HashSet<>(dnParameters.keySet());
