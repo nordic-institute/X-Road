@@ -204,10 +204,17 @@ public class KeysApiController implements KeysApi {
                     csrGenerate.getCaName(),
                     csrGenerate.getDnFieldValues(),
                     csrFormat);
-        } catch (Exception e) {
-            e.printStackTrace();
-            // TO DO: proper exception handling
-            throw new RuntimeException("not handled yet", e);
+        } catch (WrongKeyUsageException | TokenCertificateService.InvalidDnParameterException
+                | ClientNotFoundException | CertificateAuthorityNotFoundException e) {
+            throw new BadRequestException(e);
+        } catch (KeyService.KeyNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (TokenCertificateService.KeyNotOperationalException e) {
+            throw new ConflictException(e);
+        } catch (TokenCertificateService.CsrCreationFailureException e) {
+            throw new InternalServerErrorException(e);
+        } catch (CertificateProfileInstantiationException e) {
+            throw new InternalServerErrorException(e);
         }
 
         String filename = csrFilenameCreator.createCsrFilename(keyUsageInfo, csrFormat, memberId,

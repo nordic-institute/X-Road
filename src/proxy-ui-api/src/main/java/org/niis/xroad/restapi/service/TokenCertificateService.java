@@ -54,10 +54,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_EXISTS;
-import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
-import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
+import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_AVAILABLE;
+import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_ACTIVE;
+import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_AVAILABLE;
+import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_INITIALIZED;
+import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_READONLY;
 
 /**
  * token certificate service
@@ -103,8 +105,8 @@ public class TokenCertificateService {
      * @throws WrongKeyUsageException
      * @throws InvalidDnParameterException
      * @throws KeyService.KeyNotFoundException
-     * @throws CsrCreationFailureException when signer could not create CSR. Could be down
-     * to signer not being available, token or key not being usable, etc
+     * @throws CsrCreationFailureException when signer could not create CSR for some reason.
+     * Subclass {@link KeyNotOperationalException} when the reason is key not being operational.
      */
     public byte[] generateCertRequest(String keyId,
             ClientId memberId,
@@ -149,8 +151,13 @@ public class TokenCertificateService {
         try {
             return signerProxyFacade.generateCertRequest(keyId, memberId,
                     keyUsage, subjectName, format);
+        } catch (CodedException e) {
+            if (isCausedByKeyNotOperational(e)) {
+                throw new KeyNotOperationalException(e);
+            } else {
+                throw new CsrCreationFailureException(e);
+            }
         } catch (Exception e) {
-            // catch key not available codedException(?)
             throw new CsrCreationFailureException(e);
         }
     }
@@ -206,30 +213,35 @@ public class TokenCertificateService {
         }
     }
 
-    static final String DUPLICATE_CERT_FAULT_CODE = SIGNER_X + "." + X_CERT_EXISTS;
-    static final String INCORRECT_CERT_FAULT_CODE = SIGNER_X + "." + X_INCORRECT_CERTIFICATE;
-    static final String CERT_WRONG_USAGE_FAULT_CODE = SIGNER_X + "." + X_WRONG_CERT_USAGE;
-    static final String CSR_NOT_FOUND = SIGNER_X + "." + X_CSR_NOT_FOUND;
-
-    // TO DO: remove unused
-    static boolean isCausedByDuplicateCertificate(CodedException e) {
-        return DUPLICATE_CERT_FAULT_CODE.equals(e.getFaultCode());
+    private static String signerFaultCode(String detail) {
+        return SIGNER_X + "." + detail;
+    }
+    static final Set<String> KEY_NOT_OPERATIONAL_FOR_CSR_FAULT_CODES;
+    static {
+        KEY_NOT_OPERATIONAL_FOR_CSR_FAULT_CODES = new HashSet<>();
+        KEY_NOT_OPERATIONAL_FOR_CSR_FAULT_CODES.add(signerFaultCode(X_KEY_NOT_AVAILABLE));
+        // unfortunately signer sends X_KEY_NOT_AVAILABLE as X_KEY_NOT_FOUND
+        // we know that key exists, so X_KEY_NOT_FOUND belongs to the set in csr creation context
+        KEY_NOT_OPERATIONAL_FOR_CSR_FAULT_CODES.add(signerFaultCode(X_KEY_NOT_FOUND));
+        KEY_NOT_OPERATIONAL_FOR_CSR_FAULT_CODES.add(signerFaultCode(X_TOKEN_NOT_ACTIVE));
+        KEY_NOT_OPERATIONAL_FOR_CSR_FAULT_CODES.add(signerFaultCode(X_TOKEN_NOT_INITIALIZED));
+        KEY_NOT_OPERATIONAL_FOR_CSR_FAULT_CODES.add(signerFaultCode(X_TOKEN_NOT_AVAILABLE));
+        KEY_NOT_OPERATIONAL_FOR_CSR_FAULT_CODES.add(signerFaultCode(X_TOKEN_READONLY));
     }
 
-    static boolean isCausedByIncorrectCertificate(CodedException e) {
-        return INCORRECT_CERT_FAULT_CODE.equals(e.getFaultCode());
-    }
-
-    static boolean isCausedByCertificateWrongUsage(CodedException e) {
-        return CERT_WRONG_USAGE_FAULT_CODE.equals(e.getFaultCode());
+    static boolean isCausedByKeyNotOperational(CodedException e) {
+        return KEY_NOT_OPERATIONAL_FOR_CSR_FAULT_CODES.contains(e.getFaultCode());
     }
 
     /**
-     * Thrown if a CSR creation failed
+     * Thrown if signer failed to create CSR
      */
     public static class CsrCreationFailureException extends ServiceException {
         public static final String ERROR_INVALID_DN_PARAMETER = "csr_creation_failure";
 
+        public CsrCreationFailureException(Throwable t, ErrorDeviation errorDeviation) {
+            super(t, errorDeviation);
+        }
         public CsrCreationFailureException(Throwable t) {
             super(t, new ErrorDeviation(ERROR_INVALID_DN_PARAMETER));
         }
@@ -237,6 +249,19 @@ public class TokenCertificateService {
             super(s, new ErrorDeviation(ERROR_INVALID_DN_PARAMETER));
         }
     }
+
+    /**
+     * Thrown if signer failed to create CSR due to key (or token) not being in a state to do so.
+     * For example, when key or token is not active.
+     */
+    public static class KeyNotOperationalException extends CsrCreationFailureException {
+        public static final String ERROR_KEY_NOT_OPERATIONAL = "key_not_operational";
+
+        public KeyNotOperationalException(Throwable t) {
+            super(t, new ErrorDeviation(ERROR_KEY_NOT_OPERATIONAL));
+        }
+    }
+
 
     /**
      * Cert usage info is wrong (e.g. cert is both auth and sign or neither)
