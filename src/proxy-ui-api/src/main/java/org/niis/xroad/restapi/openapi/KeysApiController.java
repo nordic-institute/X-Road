@@ -136,7 +136,10 @@ public class KeysApiController implements KeysApi {
                     throw new ResourceNotFoundException("key is for different usage");
                 }
             }
-            ClientId memberId = clientConverter.convertId(encodedMemberId);
+            ClientId memberId = null;
+            if (keyUsageInfo == KeyUsageInfo.SIGNING) {
+                memberId = clientConverter.convertId(encodedMemberId);
+            }
 
             CertificateProfileInfo profileInfo;
             profileInfo = certificateAuthorityService.getCertificateProfile(
