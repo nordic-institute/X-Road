@@ -40,7 +40,6 @@ import org.apache.commons.lang.StringUtils;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
-import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -72,19 +71,19 @@ public class TokenCertificateService {
     private final GlobalConfService globalConfService;
     private final GlobalConfFacade globalConfFacade;
     private final SignerProxyFacade signerProxyFacade;
-    private final ClientRepository clientRepository;
+    private final ClientService clientService;
     private final CertificateAuthorityService certificateAuthorityService;
     private final KeyService keyService;
 
     @Autowired
     public TokenCertificateService(GlobalConfService globalConfService, GlobalConfFacade globalConfFacade,
-            SignerProxyFacade signerProxyFacade, ClientRepository clientRepository,
+            SignerProxyFacade signerProxyFacade, ClientService clientService,
             CertificateAuthorityService certificateAuthorityService,
             KeyService keyService) {
         this.globalConfService = globalConfService;
         this.globalConfFacade = globalConfFacade;
         this.signerProxyFacade = signerProxyFacade;
-        this.clientRepository = clientRepository;
+        this.clientService = clientService;
         this.certificateAuthorityService = certificateAuthorityService;
         this.keyService = keyService;
     }
@@ -119,9 +118,9 @@ public class TokenCertificateService {
         ClientType clientType = null;
 
         if (keyUsage == KeyUsageInfo.SIGNING) {
-            clientType = clientRepository.getClient(memberId);
-            if (clientType == null) {
-                throw new ClientNotFoundException("client not found: " + memberId);
+            // validate that the member exists or has a subsystem on this server
+            if (!clientService.getLocalClientMemberIds().contains(memberId)) {
+                throw new ClientNotFoundException("client with id " + memberId + ", or subsystem for it, not found");
             }
         }
 

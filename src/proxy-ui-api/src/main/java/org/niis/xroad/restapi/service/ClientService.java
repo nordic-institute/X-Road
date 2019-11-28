@@ -45,9 +45,11 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -75,12 +77,35 @@ public class ClientService {
     }
 
     /**
-     * return all clients that are registered on the instance
+     * return all clients that exist on this security server
      * @return
      */
     public List<ClientType> getAllLocalClients() {
         return clientRepository.getAllLocalClients();
     }
+
+    /**
+     * Return ClientId for all members who have clients on this instance.
+     * For example if following clients exist:
+     * - XRD:GOV:123 (owner member)
+     * - XRD:GOV:123:SS1 (subsystem)
+     * - XRD:COM:FOO:SS1 (subsystem)
+     * method will return
+     * - XRD:GOV:123 (owner member)
+     * - XRD:COM:FOO (client subsystem's member)
+     * @return
+     */
+    public Set<ClientId> getLocalClientMemberIds() {
+        // TO DO: add test
+        List<ClientType> allClients = getAllGlobalClients();
+        Set<ClientId> members = new HashSet<>();
+        for (ClientType client: allClients) {
+            ClientId id = client.getIdentifier();
+            members.add(ClientId.create(id.getXRoadInstance(), id.getMemberClass(), id.getMemberCode()));
+        }
+        return members;
+    }
+
 
     /**
      * return all global clients as ClientTypes

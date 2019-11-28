@@ -117,9 +117,9 @@ public class CertificateAuthorityService {
             throw new WrongKeyUsageException();
         }
         if (memberId != null) {
-            // validate that the member exists
-            if (clientService.getClient(memberId) == null) {
-                throw new ClientNotFoundException("client with id " + memberId + " not found");
+            // validate that the member exists or has a subsystem on this server
+            if (!clientService.getLocalClientMemberIds().contains(memberId)) {
+                throw new ClientNotFoundException("client with id " + memberId + ", or subsystem for it, not found");
             }
         }
         CertificateProfileInfoProvider provider = null;
