@@ -82,7 +82,6 @@ import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.restapi.openapi.ApiUtil.createCreatedResponse;
-import static org.niis.xroad.restapi.openapi.TokenCertificatesApiController.ERROR_INVALID_CERT;
 import static org.niis.xroad.restapi.openapi.TokenCertificatesApiController.ERROR_INVALID_CERT_UPLOAD;
 
 /**
@@ -93,6 +92,8 @@ import static org.niis.xroad.restapi.openapi.TokenCertificatesApiController.ERRO
 @Slf4j
 @PreAuthorize("denyAll")
 public class ClientsApiController implements ClientsApi {
+    public static final String ERROR_INVALID_CERT = "invalid_cert";
+
     private final ClientConverter clientConverter;
     private final ClientService clientService;
     private final LocalGroupConverter localGroupConverter;

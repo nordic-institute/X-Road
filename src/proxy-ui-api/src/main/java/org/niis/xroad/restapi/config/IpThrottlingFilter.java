@@ -70,12 +70,11 @@ public class IpThrottlingFilter extends GenericFilterBean {
     LoadingCache<String, Bucket> bucketCache = CacheBuilder.newBuilder()
             .expireAfterAccess(EXPIRE_BUCKETS_FROM_CACHE_MINUTES, TimeUnit.MINUTES)
             .build(new CacheLoader<String, Bucket>() {
-                       public Bucket load(String key) {
-                           Bucket bucket = createStandardBucket();
-                           return bucket;
-                       }
-                   }
-            );
+                public Bucket load(String key) {
+                    Bucket bucket = createStandardBucket();
+                    return bucket;
+                }
+            });
 
     /**
      * create a new bucket

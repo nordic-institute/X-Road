@@ -55,7 +55,6 @@ import java.io.InputStream;
 @PreAuthorize("denyAll")
 public class TokenCertificatesApiController implements TokenCertificatesApi {
     public static final String ERROR_INVALID_CERT_UPLOAD = "invalid_cert_upload";
-    public static final String ERROR_INVALID_CERT = "invalid_cert";
 
     private final TokenCertificateService tokenCertificateService;
     private final CertificateDetailsConverter certificateDetailsConverter;
@@ -69,7 +68,7 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
 
     @Override
     @PreAuthorize("hasAnyAuthority('IMPORT_AUTH_CERT', 'IMPORT_SIGN_CERT')")
-    public ResponseEntity<CertificateDetails> addCertificate(Resource certificateResource) {
+    public ResponseEntity<CertificateDetails> importCertificate(Resource certificateResource) {
         byte[] certificateBytes;
         try (InputStream is = certificateResource.getInputStream()) {
             certificateBytes = IOUtils.toByteArray(is);
@@ -79,17 +78,16 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
         }
         CertificateType certificate = null;
         try {
-            certificate = tokenCertificateService.addCertificate(certificateBytes);
+            certificate = tokenCertificateService.importCertificate(certificateBytes);
         } catch (GlobalConfService.GlobalConfOutdatedException | ClientNotFoundException | KeyNotFoundException
                 | TokenCertificateService.WrongCertificateUsageException
-                | TokenCertificateService.CsrNotFoundException
                 | TokenCertificateService.InvalidCertificateException e) {
             throw new BadRequestException(e);
-        } catch (CertificateAlreadyExistsException e) {
+        } catch (CertificateAlreadyExistsException | TokenCertificateService.CsrNotFoundException e) {
             throw new ConflictException(e);
         }
         CertificateDetails certificateDetails = certificateDetailsConverter.convert(certificate);
-        return ApiUtil.createCreatedResponse("/api/certificates/{hash}", certificateDetails,
+        return ApiUtil.createCreatedResponse("/api/token-certificates/{hash}", certificateDetails,
                 certificateDetails.getHash());
     }
 }

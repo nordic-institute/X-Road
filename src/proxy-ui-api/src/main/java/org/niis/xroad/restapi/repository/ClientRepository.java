@@ -101,9 +101,11 @@ public class ClientRepository {
     }
 
     /**
-     * does client exist
-     * @param id
-     * @param includeSubsystems
+     * Returns true, if client with specified identifier exists.
+     * @param id the identifier
+     * @param includeSubsystems if true and identifier is not subsystem,
+     * also looks for clients whose identifier is a subsystem
+     * @return true, if client with specified identifier exists
      */
     public boolean clientExists(ClientId id, boolean includeSubsystems) {
         ClientDAOImpl clientDAO = new ClientDAOImpl();

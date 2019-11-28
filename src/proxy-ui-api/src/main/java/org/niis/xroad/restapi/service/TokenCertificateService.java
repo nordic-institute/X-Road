@@ -38,7 +38,10 @@ import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -85,9 +88,10 @@ public class TokenCertificateService {
      * @throws CertificateAlreadyExistsException
      * @throws WrongCertificateUsageException
      */
-    public CertificateType addCertificate(byte[] certificateBytes) throws GlobalConfService.GlobalConfOutdatedException,
-            ClientNotFoundException, KeyNotFoundException, InvalidCertificateException,
-            CertificateAlreadyExistsException, WrongCertificateUsageException, CsrNotFoundException {
+    public CertificateType importCertificate(byte[] certificateBytes)
+            throws GlobalConfService.GlobalConfOutdatedException, ClientNotFoundException, KeyNotFoundException,
+            InvalidCertificateException, CertificateAlreadyExistsException, WrongCertificateUsageException,
+            CsrNotFoundException {
         globalConfService.verifyGlobalConfValidity();
         X509Certificate x509Certificate;
         try {
@@ -100,8 +104,14 @@ public class TokenCertificateService {
             String certificateState;
             ClientId clientId = null;
             if (CertUtils.isAuthCert(x509Certificate)) {
+                if (!hasPermissionOrRole("IMPORT_AUTH_CERT")) {
+                    throw new AccessDeniedException("Missing permission: IMPORT_AUTH_CERT");
+                }
                 certificateState = CertificateInfo.STATUS_SAVED;
             } else {
+                if (!hasPermissionOrRole("IMPORT_SIGN_CERT")) {
+                    throw new AccessDeniedException("Missing permission: IMPORT_SIGN_CERT");
+                }
                 String xroadInstance = globalConfFacade.getInstanceIdentifier();
                 clientId = getClientIdForSigningCert(xroadInstance, x509Certificate);
                 boolean clientExists = clientRepository.clientExists(clientId, true);
@@ -113,13 +123,13 @@ public class TokenCertificateService {
             byte[] certBytes = x509Certificate.getEncoded();
             signerProxyFacade.importCert(certBytes, certificateState, clientId);
             certificateType.setData(certBytes);
-        } catch (ClientNotFoundException e) {
+        } catch (ClientNotFoundException | AccessDeniedException e) {
             throw e;
         } catch (CodedException e) {
             translateCodedExceptions(e);
         } catch (Exception e) {
             // something went really wrong
-            throw new RuntimeException("error adding certificate", e);
+            throw new RuntimeException("error importing certificate", e);
         }
         return certificateType;
     }
@@ -169,6 +179,12 @@ public class TokenCertificateService {
         } else {
             throw e;
         }
+    }
+
+    private boolean hasPermissionOrRole(String permission) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals(permission));
     }
 
     static boolean isCausedByDuplicateCertificate(CodedException e) {

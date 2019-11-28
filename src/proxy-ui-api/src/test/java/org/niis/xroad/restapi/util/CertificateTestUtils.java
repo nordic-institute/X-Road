@@ -27,7 +27,6 @@ package org.niis.xroad.restapi.util;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
@@ -35,12 +34,10 @@ import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -122,13 +119,61 @@ public final class CertificateTestUtils {
                             + "IDI0IDE2OjIxIG5vbi1jZXJ0CmRyd3hyd3hyLXggMiBqYW5uZSBqYW5uZSA0MDk2IGh1aHRpID"
                             + "I0IDE2OjIxIHRpbnkK");
 
+    /**
+     * This is an authentication certification created in a development setup
+     *
+     * Certificate Details:
+     * Serial Number: 8 (0x8)
+     * Validity
+     * Not Before: Nov 28 09:20:27 2019 GMT
+     * Not After : Nov 23 09:20:27 2039 GMT
+     * Subject:
+     * countryName               = FI
+     * organizationName          = SS5
+     * commonName                = ss1
+     * serialNumber              = CS/SS1/ORG
+     * X509v3 extensions:
+     * X509v3 Basic Constraints:
+     * CA:FALSE
+     * X509v3 Key Usage: critical
+     * Digital Signature, Key Encipherment, Data Encipherment, Key Agreement
+     * X509v3 Extended Key Usage:
+     * TLS Web Client Authentication, TLS Web Server Authentication
+     * Certificate is to be certified until Nov 23 09:20:27 2039 GMT (7300 days)
+     */
+    private static final byte[] MOCK_AUTH_CERT_BYTES =
+            CryptoUtils.decodeBase64(
+                    "MIIEXDCCAkSgAwIBAgIBCDANBgkqhkiG9w0BAQsFADBnMQswCQYDVQQGEwJGSTEY"
+                            + "MBYGA1UECgwPQ3VzdG9taXplZCBUZXN0MR4wHAYDVQQLDBVDdXN0b21pemVkIFRl"
+                            + "c3QgQ0EgT1UxHjAcBgNVBAMMFUN1c3RvbWl6ZWQgVGVzdCBDQSBDTjAeFw0xOTEx"
+                            + "MjgwOTIwMjdaFw0zOTExMjMwOTIwMjdaMD4xCzAJBgNVBAYTAkZJMQwwCgYDVQQK"
+                            + "DANTUzUxDDAKBgNVBAMMA3NzMTETMBEGA1UEBRMKQ1MvU1MxL09SRzCCASIwDQYJ"
+                            + "KoZIhvcNAQEBBQADggEPADCCAQoCggEBAJLpUt/B2EZIwoc7YjJfc9RO26NERzC0"
+                            + "YCJtJyCcspqqcTmIl7is6m7e9Dfovsy33ALNxRPGrX1c01MnNL+WaOVv2YDlJWsE"
+                            + "KPZTqry94hX/xG4Tn9Nspfd87gANozClsN+CHQbUdAxR+me8HR3DoRmeJjUM757E"
+                            + "GoXJl4zrV2OMskcMspIA1zXwkZUKKjvFsBcTUo9HLKUeqh1EJLpHBMMok6Jl6PrI"
+                            + "DnToGSDBQScv+K4PLFTtrZv0UiAsZlzaSyWR8JWuUUxZGYXxQZxJeEtFIVcYZN69"
+                            + "Hz89vH107QmvW3hqDEj0oGkCFfEhNGGENhjWGz1qtiLBB+niopbNruECAwEAAaM8"
+                            + "MDowCQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCA7gwHQYDVR0lBBYwFAYIKwYBBQUH"
+                            + "AwIGCCsGAQUFBwMBMA0GCSqGSIb3DQEBCwUAA4ICAQChHEZ1z04voWZEZCQxcH83"
+                            + "n8dG+89hzhmY5Sa/2wS9hhTeEavePkBEbjpQptoM6oeL1gn48/SXMGR9ZXpMOrRc"
+                            + "bU0s90VDOsTnesIaXMD8kJTCkHpYCSIIqyynV+TdQQtMz694ioV9OyG7gWLYIMUf"
+                            + "slU9oMWrq0qkOtuQ857MqBykXIaZwQnULRm0ATPbug+5KCFN8n5EaMD24CYug8gy"
+                            + "HM7sZ2Xu2S1UElW6k7LDbI24d5+/HZHhy/tGuE5hJfq9x1+KlrmvjB37dkfeoW//"
+                            + "ep8kKOaUagBVc3GaEFg7bzV4XPwvV2aHtoXwK2J146JoRlqnJMqzVJfoOMa0QAFN"
+                            + "Zw1Bau9bpmBEsePhsakPG7WdH3TyQ8GLPSDd98jcwqt4hzJbUEDhC85hLEYomRCb"
+                            + "2WSPbE8WqoOQLFKORYrsMw/RseAQSSyfjenxR+cBwFxPej5bzsZYFU8xKzPCO4/8"
+                            + "BuDCvzi58mD3/nTca7qwIBhcFqIhoI6Xepkw3TvAKEyOvjeDl3ZteWlrDiBIZiPZ"
+                            + "RO2U15y7Ym+4FkGR7Y/HqaXIFbLjXM0dsG5yJ/kT0yY2JRlNPY4QIHPE9I22MkzR"
+                            + "Squ5wMaxbtMHoBTVKisuqbRa4HSjxAFGA0EfZkLxLsDIcOfQXmY6p2Q3Hxi8vrT7"
+                            + "TeEqXuL/b9PoaiQWFcPZcg==");
+
     private CertificateTestUtils() {
         // noop
     }
 
     /**
      * Subject = CN=N/A, expires = 2038
-     *
      * @return
      */
     public static byte[] getMockCertificateBytes() {
@@ -136,8 +181,15 @@ public final class CertificateTestUtils {
     }
 
     /**
+     * Subject = CN=N/A, expires = 2039
+     * @return
+     */
+    public static byte[] getMockAuthCertificateBytes() {
+        return MOCK_AUTH_CERT_BYTES;
+    }
+
+    /**
      * return given certificate bytes as an X509Certificate
-     *
      * @return
      */
     public static X509Certificate getCertificate(byte[] certificateBytes) {
@@ -146,11 +198,18 @@ public final class CertificateTestUtils {
 
     /**
      * Subject = CN=N/A, expires = 2038
-     *
      * @return
      */
     public static X509Certificate getMockCertificate() {
         return getCertificate(getMockCertificateBytes());
+    }
+
+    /**
+     * Subject = CN=N/A, expires = 2039
+     * @return
+     */
+    public static X509Certificate getMockAuthCertificate() {
+        return getCertificate(getMockAuthCertificateBytes());
     }
 
     /**
@@ -160,11 +219,9 @@ public final class CertificateTestUtils {
         return new ByteArrayResource(bytes);
     }
 
-
     /**
      * Subject = O=Internet Widgits Pty Ltd, ST=Some-State, C=AU
      * expires = Thu Apr 23 09:59:02 EEST 2020
-     *
      * @return
      */
     public static byte[] getWidgitsCertificateBytes() {
@@ -174,7 +231,6 @@ public final class CertificateTestUtils {
     /**
      * Subject = O=Internet Widgits Pty Ltd, ST=Some-State, C=AU
      * expires = Thu Apr 23 09:59:02 EEST 2020
-     *
      * @return
      */
     public static X509Certificate getWidgitsCertificate() {
@@ -191,7 +247,6 @@ public final class CertificateTestUtils {
 
     /**
      * Base64 encoded junk, not a certificate
-     *
      * @return
      */
     public static byte[] getInvalidCertBytes() {
@@ -264,13 +319,5 @@ public final class CertificateTestUtils {
         }
 
         return TestCertUtil.getCertChainCert("root_ca.p12");
-    }
-
-    /**
-     * Set given cert as an auth cert. See method {@link CertUtils#isAuthCert(X509Certificate cert)}
-     * @param cert
-     */
-    public static void setAsAuthCert(X509Certificate cert) {
-        ReflectionTestUtils.setField(cert, "extKeyUsage", Collections.singletonList("1.3.6.1.5.5.7.3.2"));
     }
 }
