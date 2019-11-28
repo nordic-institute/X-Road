@@ -503,9 +503,11 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: add new client for the security server
+      summary: Add new client for the security server.
       operationId: addClient
-      description: Adds new client to the system. Note that with this endpoint it is possible to add a client with an unregistered member which may be undesired.
+      description: >
+        Adds new client to the system. Note that with this endpoint it is possible to add a client with an unregistered member which may be undesired.
+        If the client is not registered addClient will succeed if ClientAdd.ignore_warnings equals true and fail if ignore_warnings is false or not set.
       requestBody:
         description: client to add
         content:
