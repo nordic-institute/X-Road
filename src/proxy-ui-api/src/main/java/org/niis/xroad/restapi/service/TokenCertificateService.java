@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.DnFieldValue;
@@ -51,6 +52,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.ErrorCodes.X_CERT_EXISTS;
+import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
+import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
 
 /**
  * token certificate service
@@ -90,13 +97,14 @@ public class TokenCertificateService {
      * @param distinguishedNameParameters
      * @param format
      * @return
-     * @throws CertificateAuthorityService.CertificateAuthorityNotFoundException
+     * @throws CertificateAuthorityNotFoundException
      * @throws ClientNotFoundException
-     * @throws CertificateAuthorityService.CertificateProfileInstantiationException
+     * @throws CertificateProfileInstantiationException
      * @throws WrongKeyUsageException
      * @throws InvalidDnParameterException
      * @throws KeyService.KeyNotFoundException
-     * @throws CsrCreationFailureException
+     * @throws CsrCreationFailureException when signer could not create CSR. Could be down
+     * to signer not being available, token or key not being usable, etc
      */
     public byte[] generateCertRequest(String keyId,
             ClientId memberId,
@@ -104,9 +112,10 @@ public class TokenCertificateService {
             String caName,
             Map<String, String> distinguishedNameParameters,
             GenerateCertRequest.RequestFormat format)
-            throws CertificateAuthorityService.CertificateAuthorityNotFoundException,
+            throws
+            CertificateAuthorityNotFoundException,
             ClientNotFoundException,
-            CertificateAuthorityService.CertificateProfileInstantiationException,
+            CertificateProfileInstantiationException,
             WrongKeyUsageException, InvalidDnParameterException,
             KeyService.KeyNotFoundException, CsrCreationFailureException {
 
@@ -195,6 +204,24 @@ public class TokenCertificateService {
         public InvalidDnParameterException(String s) {
             super(s, new ErrorDeviation(ERROR_INVALID_DN_PARAMETER));
         }
+    }
+
+    static final String DUPLICATE_CERT_FAULT_CODE = SIGNER_X + "." + X_CERT_EXISTS;
+    static final String INCORRECT_CERT_FAULT_CODE = SIGNER_X + "." + X_INCORRECT_CERTIFICATE;
+    static final String CERT_WRONG_USAGE_FAULT_CODE = SIGNER_X + "." + X_WRONG_CERT_USAGE;
+    static final String CSR_NOT_FOUND = SIGNER_X + "." + X_CSR_NOT_FOUND;
+
+    // TO DO: remove unused
+    static boolean isCausedByDuplicateCertificate(CodedException e) {
+        return DUPLICATE_CERT_FAULT_CODE.equals(e.getFaultCode());
+    }
+
+    static boolean isCausedByIncorrectCertificate(CodedException e) {
+        return INCORRECT_CERT_FAULT_CODE.equals(e.getFaultCode());
+    }
+
+    static boolean isCausedByCertificateWrongUsage(CodedException e) {
+        return CERT_WRONG_USAGE_FAULT_CODE.equals(e.getFaultCode());
     }
 
     /**

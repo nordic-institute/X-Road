@@ -41,7 +41,9 @@ import org.niis.xroad.restapi.openapi.model.DistinguishedNameFieldDescription;
 import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.KeyName;
 import org.niis.xroad.restapi.openapi.model.KeyUsageType;
+import org.niis.xroad.restapi.service.CertificateAuthorityNotFoundException;
 import org.niis.xroad.restapi.service.CertificateAuthorityService;
+import org.niis.xroad.restapi.service.CertificateProfileInstantiationException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.KeyService;
 import org.niis.xroad.restapi.service.ServerConfService;
@@ -171,11 +173,11 @@ public class KeysApiController implements KeysApi {
             throw new ResourceNotFoundException(e);
         } catch (KeyService.KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (CertificateAuthorityService.CertificateAuthorityNotFoundException e) {
+        } catch (CertificateAuthorityNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (CertificateAuthorityService.CertificateProfileInstantiationException e) {
+        } catch (CertificateProfileInstantiationException e) {
             throw new InternalServerErrorException(e);
         }
     }
@@ -210,6 +212,8 @@ public class KeysApiController implements KeysApi {
 
         String filename = csrFilenameCreator.createCsrFilename(keyUsageInfo, csrFormat, memberId,
                 serverConfService.getSecurityServerId());
+
+        // TO DO: use helper like 201 responses
         ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
                 .filename(filename)
                 .build();

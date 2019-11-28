@@ -35,7 +35,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ServerConfRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -146,13 +145,6 @@ public class CertificateAuthorityService {
         }
     }
 
-    public static class CertificateProfileInstantiationException extends ServiceException {
-        public static final String ERROR_INSTANTIATION_FAILED = "certificate_profile_instantiation_failure";
-        public CertificateProfileInstantiationException(Throwable t) {
-            super(t, new ErrorDeviation(ERROR_INSTANTIATION_FAILED));
-        }
-    }
-
     /**
      * Return ApprovedCAInfo for CA with given CN name
      * @param caName CN name
@@ -168,14 +160,5 @@ public class CertificateAuthorityService {
                     + caName + " not_found");
         }
         return ca.get();
-    }
-
-    public static class CertificateAuthorityNotFoundException extends NotFoundException {
-
-        public static final String ERROR_CA_NOT_FOUND = "certificate_authority_not_found";
-
-        public CertificateAuthorityNotFoundException(String s) {
-            super(s, new ErrorDeviation(ERROR_CA_NOT_FOUND));
-        }
     }
 }

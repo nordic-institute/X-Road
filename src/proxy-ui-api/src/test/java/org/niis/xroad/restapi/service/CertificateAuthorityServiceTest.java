@@ -95,7 +95,7 @@ public class CertificateAuthorityServiceTest {
         try {
             certificateAuthorityService.getCertificateAuthority("does-not-exist");
             fail("should have thrown exception");
-        } catch (CertificateAuthorityService.CertificateAuthorityNotFoundException expected) {
+        } catch (CertificateAuthorityNotFoundException expected) {
         }
     }
 
@@ -157,7 +157,7 @@ public class CertificateAuthorityServiceTest {
             certificateAuthorityService.getCertificateProfile("this-does-not-exist",
                     KeyUsageInfo.SIGNING, clientId);
             fail("should have thrown exception");
-        } catch (CertificateAuthorityService.CertificateAuthorityNotFoundException expected) {
+        } catch (CertificateAuthorityNotFoundException expected) {
         }
 
         // cant instantiate
@@ -170,7 +170,7 @@ public class CertificateAuthorityServiceTest {
             certificateAuthorityService.getCertificateProfile("provider-class-does-not-exist",
                     KeyUsageInfo.SIGNING, clientId);
             fail("should have thrown exception");
-        } catch (CertificateAuthorityService.CertificateProfileInstantiationException expected) {
+        } catch (CertificateProfileInstantiationException expected) {
         }
     }
 
