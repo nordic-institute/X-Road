@@ -150,7 +150,7 @@ public class CertificateAuthorityServiceTest {
             certificateAuthorityService.getCertificateProfile("est-auth-only",
                     KeyUsageInfo.SIGNING, clientId);
             fail("should have thrown exception");
-        } catch (CertificateAuthorityService.CannotBeUsedForSigningException expected) {
+        } catch (WrongKeyUsageException expected) {
         }
 
         try {

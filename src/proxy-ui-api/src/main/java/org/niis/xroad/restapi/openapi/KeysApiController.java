@@ -28,12 +28,15 @@ import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
+import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.ClientConverter;
+import org.niis.xroad.restapi.converter.CsrFormatMapping;
 import org.niis.xroad.restapi.converter.DistinguishedNameFieldDescriptionConverter;
 import org.niis.xroad.restapi.converter.KeyConverter;
 import org.niis.xroad.restapi.converter.KeyUsageTypeMapping;
+import org.niis.xroad.restapi.openapi.model.CsrGenerate;
 import org.niis.xroad.restapi.openapi.model.DistinguishedNameFieldDescription;
 import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.KeyName;
@@ -41,7 +44,13 @@ import org.niis.xroad.restapi.openapi.model.KeyUsageType;
 import org.niis.xroad.restapi.service.CertificateAuthorityService;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.KeyService;
+import org.niis.xroad.restapi.service.TokenCertificateService;
+import org.niis.xroad.restapi.service.WrongKeyUsageException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -64,6 +73,7 @@ public class KeysApiController implements KeysApi {
     private final CertificateAuthorityService certificateAuthorityService;
     private final ClientConverter clientConverter;
     private final DistinguishedNameFieldDescriptionConverter dnConverter;
+    private final TokenCertificateService tokenCertificateService;
 
     /**
      * KeysApiController constructor
@@ -72,6 +82,7 @@ public class KeysApiController implements KeysApi {
      * @param certificateAuthorityService
      * @param dnConverter
      * @param clientConverter
+     * @param tokenCertificateService
      */
 
     @Autowired
@@ -79,12 +90,14 @@ public class KeysApiController implements KeysApi {
             KeyConverter keyConverter,
             CertificateAuthorityService certificateAuthorityService,
             ClientConverter clientConverter,
-            DistinguishedNameFieldDescriptionConverter dnConverter) {
+            DistinguishedNameFieldDescriptionConverter dnConverter,
+            TokenCertificateService tokenCertificateService) {
         this.keyService = keyService;
         this.keyConverter = keyConverter;
         this.certificateAuthorityService = certificateAuthorityService;
         this.clientConverter = clientConverter;
         this.dnConverter = dnConverter;
+        this.tokenCertificateService = tokenCertificateService;
     }
 
     @Override
@@ -145,7 +158,7 @@ public class KeysApiController implements KeysApi {
                     profileInfo.getSubjectFields());
             return new ResponseEntity<>(converted, HttpStatus.OK);
 
-        } catch (CertificateAuthorityService.CannotBeUsedForSigningException e) {
+        } catch (WrongKeyUsageException e) {
             throw new ResourceNotFoundException(e);
         } catch (KeyService.KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
@@ -156,5 +169,36 @@ public class KeysApiController implements KeysApi {
         } catch (CertificateAuthorityService.CertificateProfileInstantiationException e) {
             throw new InternalServerErrorException(e);
         }
+    }
+
+    @Override
+    @PreAuthorize("permitAll")
+    public ResponseEntity<Resource> generateCsr(String keyId, CsrGenerate csrGenerate) {
+        // TO DO: authorization
+        ClientId memberId = clientConverter.convertId(csrGenerate.getMemberId());
+        KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(csrGenerate.getKeyUsageType()).get();
+        GenerateCertRequest.RequestFormat csrFormat = CsrFormatMapping.map(csrGenerate.getCsrFormat()).get();
+
+        byte[] csr = null;
+        try {
+            csr = tokenCertificateService.generateCertRequest(keyId,
+                    memberId,
+                    keyUsageInfo,
+                    csrGenerate.getCaName(),
+                    csrGenerate.getDnFieldValues(),
+                    csrFormat);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("not handled yet", e);
+        }
+
+        ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
+                .filename("dummy-name.bin")
+                .build();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentDisposition(contentDisposition);
+
+        Resource resource = new ByteArrayResource(csr);
+        return new ResponseEntity<>(resource, headers, HttpStatus.OK);
     }
 }

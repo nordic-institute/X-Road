@@ -107,15 +107,15 @@ public class CertificateAuthorityService {
      * @return
      * @throws CertificateAuthorityNotFoundException if matching CA was not found
      * @throws CertificateProfileInstantiationException if instantiation of certificate profile failed
-     * @throws CannotBeUsedForSigningException if attempted to read signing profile from authenticationOnly ca
+     * @throws WrongKeyUsageException if attempted to read signing profile from authenticationOnly ca
      * @throws ClientNotFoundException if client with memberId was not found
      */
     public CertificateProfileInfo getCertificateProfile(String caName, KeyUsageInfo keyUsageInfo, ClientId memberId)
             throws CertificateAuthorityNotFoundException, CertificateProfileInstantiationException,
-            CannotBeUsedForSigningException, ClientNotFoundException {
+            WrongKeyUsageException, ClientNotFoundException {
         ApprovedCAInfo caInfo = getCertificateAuthority(caName);
         if (Boolean.TRUE == caInfo.getAuthenticationOnly() && KeyUsageInfo.SIGNING == keyUsageInfo) {
-            throw new CannotBeUsedForSigningException();
+            throw new WrongKeyUsageException();
         }
         if (memberId != null) {
             // validate that the member exists
@@ -150,16 +150,6 @@ public class CertificateAuthorityService {
         public static final String ERROR_INSTANTIATION_FAILED = "certificate_profile_instantiation_failure";
         public CertificateProfileInstantiationException(Throwable t) {
             super(t, new ErrorDeviation(ERROR_INSTANTIATION_FAILED));
-        }
-    }
-
-    /**
-     * Thrown if attempted to use "authenticationOnly" ca for signing purposes
-     */
-    public static class CannotBeUsedForSigningException extends ServiceException {
-        public static final String ERROR_CA_CANNOT_BE_USED_FOR_SIGNING = "ca_cannot_be_used_for_signing";
-        public CannotBeUsedForSigningException() {
-            super(new ErrorDeviation(ERROR_CA_CANNOT_BE_USED_FOR_SIGNING));
         }
     }
 

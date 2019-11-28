@@ -133,7 +133,7 @@ public class KeysApiControllerTest {
     @WithMockUser(authorities = { "GENERATE_AUTH_CERT_REQ" })
     public void getCsrDnFieldDescriptionsAuthWithAuthPermission() throws Exception {
         keysApiController.getCsrDnFieldDescriptions(GOOD_AUTH_KEY_ID, KeyUsageType.AUTHENTICATION,
-        "fi-not-auth-only", "FI:GOV:M1");
+                "fi-not-auth-only", "FI:GOV:M1");
 
         try {
             keysApiController.getCsrDnFieldDescriptions(GOOD_SIGN_KEY_ID, KeyUsageType.SIGNING,
