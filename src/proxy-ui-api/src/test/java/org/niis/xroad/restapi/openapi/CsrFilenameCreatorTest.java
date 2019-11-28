@@ -1,0 +1,67 @@
+/**
+ * The MIT License
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.niis.xroad.restapi.openapi;
+
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
+import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+
+/**
+ * test CsrFilenameCreatorTest
+ */
+public class CsrFilenameCreatorTest {
+
+    private CsrFilenameCreator csrFilenameCreator;
+
+    @Before
+    public void setup() throws Exception {
+        csrFilenameCreator = new CsrFilenameCreator() {
+            @Override
+            String createDateString() {
+                return "20190228";
+            }
+        };
+    }
+
+    @Test
+    public void createCsrFilename() {
+        SecurityServerId securityServerId = SecurityServerId.create("I", "MEMCLASS",  "MEMCODE", "SERVERCODE");
+        ClientId memberId = ClientId.create("I", "MEMCLASS",  "MEMCODE", null);
+        String authFilename = csrFilenameCreator.createCsrFilename(KeyUsageInfo.AUTHENTICATION,
+                GenerateCertRequest.RequestFormat.PEM,
+                memberId, securityServerId);
+        assertEquals("auth_csr_20190228_securityserver_I_MEMCLASS_MEMCODE_SERVERCODE.pem", authFilename);
+        String signFilename = csrFilenameCreator.createCsrFilename(KeyUsageInfo.SIGNING,
+                GenerateCertRequest.RequestFormat.DER,
+                memberId, securityServerId);
+        assertEquals("sign_csr_20190228_member_I_MEMCLASS_MEMCODE.der", signFilename);
+    }
+}

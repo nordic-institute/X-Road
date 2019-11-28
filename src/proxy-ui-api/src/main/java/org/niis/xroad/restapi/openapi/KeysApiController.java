@@ -26,7 +26,6 @@ package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
@@ -59,8 +58,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -79,6 +76,8 @@ public class KeysApiController implements KeysApi {
     private final DistinguishedNameFieldDescriptionConverter dnConverter;
     private final TokenCertificateService tokenCertificateService;
     private final ServerConfService serverConfService;
+    private final CsrFilenameCreator csrFilenameCreator;
+
 
     /**
      * KeysApiController constructor
@@ -88,9 +87,9 @@ public class KeysApiController implements KeysApi {
      * @param dnConverter
      * @param clientConverter
      * @param tokenCertificateService
+     * @param csrFilenameCreator
      * @param serverConfService
      */
-
     @Autowired
     public KeysApiController(KeyService keyService,
             KeyConverter keyConverter,
@@ -98,7 +97,8 @@ public class KeysApiController implements KeysApi {
             ClientConverter clientConverter,
             DistinguishedNameFieldDescriptionConverter dnConverter,
             TokenCertificateService tokenCertificateService,
-            ServerConfService serverConfService) {
+            ServerConfService serverConfService,
+            CsrFilenameCreator csrFilenameCreator) {
         this.keyService = keyService;
         this.keyConverter = keyConverter;
         this.certificateAuthorityService = certificateAuthorityService;
@@ -106,6 +106,7 @@ public class KeysApiController implements KeysApi {
         this.dnConverter = dnConverter;
         this.tokenCertificateService = tokenCertificateService;
         this.serverConfService = serverConfService;
+        this.csrFilenameCreator = csrFilenameCreator;
     }
 
     @Override
@@ -207,8 +208,7 @@ public class KeysApiController implements KeysApi {
             throw new RuntimeException("not handled yet", e);
         }
 
-        // TO DO: move to helper
-        String filename = createCsrFilename(keyUsageInfo, csrFormat, memberId,
+        String filename = csrFilenameCreator.createCsrFilename(keyUsageInfo, csrFormat, memberId,
                 serverConfService.getSecurityServerId());
         ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
                 .filename(filename)
@@ -218,51 +218,6 @@ public class KeysApiController implements KeysApi {
 
         Resource resource = new ByteArrayResource(csr);
         return new ResponseEntity<>(resource, headers, HttpStatus.OK);
-    }
-
-    private String createCsrFilename(KeyUsageInfo keyUsageInfo, GenerateCertRequest.RequestFormat csrFormat,
-            ClientId memberId, SecurityServerId securityServerId) {
-        StringBuilder builder = new StringBuilder();
-        if (KeyUsageInfo.AUTHENTICATION == keyUsageInfo) {
-            builder.append("auth");
-        } else {
-            builder.append("sign");
-        }
-        builder.append("_csr_");
-        builder.append(createDateString());
-        builder.append("_");
-        builder.append(createIdentifier(keyUsageInfo, memberId, securityServerId));
-        builder.append(".");
-        builder.append(csrFormat.name().toLowerCase());
-        return builder.toString();
-    }
-
-    private String createDateString() {
-        return LocalDateTime.now()
-                .format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-    }
-
-    private String createIdentifier(KeyUsageInfo keyUsageInfo,
-            ClientId memberId, SecurityServerId securityServerId) {
-        StringBuilder builder = new StringBuilder();
-        if (KeyUsageInfo.AUTHENTICATION == keyUsageInfo) {
-            builder.append("securityserver_");
-            builder.append(securityServerId.getXRoadInstance());
-            builder.append("_");
-            builder.append(securityServerId.getMemberClass());
-            builder.append("_");
-            builder.append(securityServerId.getMemberCode());
-            builder.append("_");
-            builder.append(securityServerId.getServerCode());
-        } else {
-            builder.append("member_");
-            builder.append(memberId.getXRoadInstance());
-            builder.append("_");
-            builder.append(memberId.getMemberClass());
-            builder.append("_");
-            builder.append(memberId.getMemberCode());
-        }
-        return builder.toString();
     }
 
 }
