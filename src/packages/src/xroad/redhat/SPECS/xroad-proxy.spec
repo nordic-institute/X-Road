@@ -243,5 +243,6 @@ migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy si
 %systemd_postun_with_restart xroad-proxy.service
 %systemd_postun_with_restart xroad-confclient.service
 %systemd_postun_with_restart xroad-jetty9.service
+%systemd_postun_with_restart nginx.service
 
 %changelog
