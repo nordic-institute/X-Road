@@ -27,24 +27,20 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.TokenCertificateService;
+import org.niis.xroad.restapi.util.ResourceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * certificates api
@@ -54,7 +50,6 @@ import java.io.InputStream;
 @Slf4j
 @PreAuthorize("denyAll")
 public class TokenCertificatesApiController implements TokenCertificatesApi {
-    public static final String ERROR_INVALID_CERT_UPLOAD = "invalid_cert_upload";
 
     private final TokenCertificateService tokenCertificateService;
     private final CertificateDetailsConverter certificateDetailsConverter;
@@ -69,13 +64,7 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
     @Override
     @PreAuthorize("hasAnyAuthority('IMPORT_AUTH_CERT', 'IMPORT_SIGN_CERT')")
     public ResponseEntity<CertificateDetails> importCertificate(Resource certificateResource) {
-        byte[] certificateBytes;
-        try (InputStream is = certificateResource.getInputStream()) {
-            certificateBytes = IOUtils.toByteArray(is);
-        } catch (IOException ex) {
-            throw new BadRequestException("cannot read certificate data", ex,
-                    new ErrorDeviation(ERROR_INVALID_CERT_UPLOAD));
-        }
+        byte[] certificateBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(certificateResource);
         CertificateType certificate = null;
         try {
             certificate = tokenCertificateService.importCertificate(certificateBytes);
