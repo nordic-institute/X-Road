@@ -78,6 +78,7 @@ public class IpThrottlingFilter extends GenericFilterBean {
 
     /**
      * create a new bucket
+     *
      * @return
      */
     private Bucket createStandardBucket() {

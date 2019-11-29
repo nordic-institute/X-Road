@@ -12,10 +12,23 @@
       </thead>
 
       <tbody v-for="key in keys" v-bind:key="key.id">
-        <div class="name-wrap-top">
-          <v-icon class="icon" @click="keyClick(key)">mdi-key-outline</v-icon>
-          <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
-        </div>
+        <tr>
+          <div class="name-wrap-top">
+            <v-icon class="icon" @click="keyClick(key)">mdi-key-outline</v-icon>
+            <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
+          </div>
+          <td class="no-border"></td>
+          <td class="no-border"></td>
+          <td class="no-border"></td>
+          <td class="no-border">
+            <SmallButton
+              class="gen-csr"
+              :disabled="disableGenerateCsr"
+              @click="generateCsr(key)"
+            >{{$t('keys.generateCsr')}}</SmallButton>
+          </td>
+        </tr>
+
         <tr v-for="cert in key.certificates" v-bind:key="cert.id">
           <td class="td-name">
             <div class="name-wrap">
@@ -41,7 +54,7 @@
             <td class="td-name">
               <div class="name-wrap">
                 <i class="icon-xrd_certificate icon" @click="certificateClick(req)"></i>
-                <div class="clickable-link" @click="certificateClick(cert)">Request</div>
+                <div class="clickable-link" @click="certificateClick(cert)">{{$t('keys.request')}}</div>
               </div>
             </td>
             <td>{{req.id}}</td>
@@ -61,10 +74,13 @@
  */
 import Vue from 'vue';
 import CertificateStatus from './CertificateStatus.vue';
+import SmallButton from '@/components/ui/SmallButton.vue';
+import { Key, Certificate } from '@/types';
 
 export default Vue.extend({
   components: {
     CertificateStatus,
+    SmallButton,
   },
   props: {
     keys: {
@@ -75,17 +91,23 @@ export default Vue.extend({
       type: String,
       required: true,
     },
+    disableGenerateCsr: {
+      type: Boolean,
+    },
   },
   data() {
     return {};
   },
   computed: {},
   methods: {
-    keyClick(key: any): void {
+    keyClick(key: Key): void {
       this.$emit('keyClick', key);
     },
-    certificateClick(cert: any): void {
+    certificateClick(cert: Certificate): void {
       this.$emit('certificateClick', cert);
+    },
+    generateCsr(key: Key): void {
+      this.$emit('generateCsr', key);
     },
   },
 });
@@ -98,6 +120,16 @@ export default Vue.extend({
   margin-left: 18px;
   margin-right: 20px;
   cursor: pointer;
+}
+
+.no-border {
+  border-bottom-width: 0 !important;
+}
+
+.gen-csr {
+  margin-left: auto;
+  margin-right: 0;
+  margin-top: 10px;
 }
 
 .td-name {
@@ -121,6 +153,7 @@ export default Vue.extend({
   @extend .name-wrap;
   margin-top: 18px;
   margin-bottom: 5px;
+  min-width: 100%;
 }
 
 .status-cell {
