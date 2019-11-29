@@ -125,7 +125,7 @@ rm -rf %{buildroot}
 /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh
 /usr/share/xroad/scripts/autobackup_xroad_proxy_configuration.sh
 /usr/share/xroad/scripts/get_security_server_id.sh
-/etc/nginx/conf.d/xroad-proxy
+/etc/nginx/conf.d/xroad-proxy.conf
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/securityserver-LICENSE.info
 %doc /usr/share/doc/%{name}/CHANGELOG.md
