@@ -74,7 +74,7 @@ cp -p %{srcdir}/common/proxy/etc/xroad/nginx/xroad-proxy.conf %{buildroot}/etc/x
 ln -s /usr/share/xroad/jlib/proxy-1.0.jar %{buildroot}/usr/share/xroad/jlib/proxy.jar
 ln -s /etc/xroad/conf.d/proxy-ui-jetty-logback-context-name.xml %{buildroot}/etc/xroad/conf.d/jetty-logback-context-name.xml
 ln -s /usr/share/xroad/bin/xroad-add-admin-user.sh %{buildroot}/usr/bin/xroad-add-admin-user
-ln -s /etc/xroad/nginx/xroad-proxy.conf %{buildroot}/etc/nginx/conf.d/xroad-proxy
+ln -s /etc/xroad/nginx/xroad-proxy.conf %{buildroot}/etc/nginx/conf.d/xroad-proxy.conf
 
 %clean
 rm -rf %{buildroot}
