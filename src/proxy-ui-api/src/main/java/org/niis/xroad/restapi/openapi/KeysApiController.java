@@ -45,6 +45,7 @@ import org.niis.xroad.restapi.service.CertificateAuthorityNotFoundException;
 import org.niis.xroad.restapi.service.CertificateAuthorityService;
 import org.niis.xroad.restapi.service.CertificateProfileInstantiationException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
+import org.niis.xroad.restapi.service.DnFieldHelper;
 import org.niis.xroad.restapi.service.KeyService;
 import org.niis.xroad.restapi.service.ServerConfService;
 import org.niis.xroad.restapi.service.TokenCertificateService;
@@ -201,7 +202,7 @@ public class KeysApiController implements KeysApi {
                     csrGenerate.getCaName(),
                     csrGenerate.getSubjectFieldValues(),
                     csrFormat);
-        } catch (WrongKeyUsageException | TokenCertificateService.InvalidSubjectParameterException
+        } catch (WrongKeyUsageException | DnFieldHelper.InvalidDnParameterException
                 | ClientNotFoundException | CertificateAuthorityNotFoundException e) {
             throw new BadRequestException(e);
         } catch (KeyService.KeyNotFoundException e) {
