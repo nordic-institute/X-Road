@@ -201,7 +201,7 @@ public class KeysApiController implements KeysApi {
                     csrGenerate.getCaName(),
                     csrGenerate.getSubjectFieldValues(),
                     csrFormat);
-        } catch (WrongKeyUsageException | TokenCertificateService.InvalidDnParameterException
+        } catch (WrongKeyUsageException | TokenCertificateService.InvalidSubjectParameterException
                 | ClientNotFoundException | CertificateAuthorityNotFoundException e) {
             throw new BadRequestException(e);
         } catch (KeyService.KeyNotFoundException e) {

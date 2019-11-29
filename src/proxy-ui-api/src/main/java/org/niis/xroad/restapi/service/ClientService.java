@@ -96,8 +96,7 @@ public class ClientService {
      * @return
      */
     public Set<ClientId> getLocalClientMemberIds() {
-        // TO DO: add test
-        List<ClientType> allClients = getAllGlobalClients();
+        List<ClientType> allClients = getAllLocalClients();
         Set<ClientId> members = new HashSet<>();
         for (ClientType client: allClients) {
             ClientId id = client.getIdentifier();

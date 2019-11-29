@@ -30,6 +30,7 @@ import ee.ria.xroad.common.certificateprofile.impl.FiVRKAuthCertificateProfileIn
 import ee.ria.xroad.common.certificateprofile.impl.FiVRKSignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.repository.ServerConfRepository;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -48,6 +50,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -75,6 +79,15 @@ public class CertificateAuthorityServiceTest {
 
     @MockBean
     GlobalConfFacade globalConfFacade;
+
+    @MockBean
+    ServerConfService serverConfService;
+
+    @MockBean
+    ServerConfRepository serverConfRepository;
+
+    @MockBean
+    ClientService clientService;
 
     @Before
     public void setup() {
@@ -120,6 +133,9 @@ public class CertificateAuthorityServiceTest {
     @Test
     public void getCertificateProfile() throws Exception {
         ClientId clientId = TestUtils.getClientId("FI", "GOV", "M1", null);
+        when(clientService.getLocalClientMemberIds()).thenReturn(new HashSet<>(Collections.singletonList(clientId)));
+        when(serverConfService.getSecurityServerId()).thenReturn(SecurityServerId.create(
+                clientId.getXRoadInstance(), clientId.getMemberClass(), clientId.getMemberCode(), "ss"));
 
         // test handling of profile info parameters:
         //        private final SecurityServerId serverId;
@@ -129,14 +145,14 @@ public class CertificateAuthorityServiceTest {
         CertificateProfileInfo profile = certificateAuthorityService.getCertificateProfile("fi-not-auth-only",
                 KeyUsageInfo.SIGNING, clientId);
         assertTrue(profile instanceof FiVRKSignCertificateProfileInfo);
-        assertEquals("FI/TEST-INMEM-SS/GOV", profile.getSubjectFields()[2].getDefaultValue());
+        assertEquals("FI/ss/GOV", profile.getSubjectFields()[2].getDefaultValue());
         assertEquals("M1", profile.getSubjectFields()[3].getDefaultValue());
         assertTrue(profile.getSubjectFields()[3].isReadOnly());
 
         profile = certificateAuthorityService.getCertificateProfile("fi-not-auth-only",
                 KeyUsageInfo.AUTHENTICATION, clientId);
         assertTrue(profile instanceof FiVRKAuthCertificateProfileInfo);
-        assertEquals("FI/TEST-INMEM-SS/GOV", profile.getSubjectFields()[2].getDefaultValue());
+        assertEquals("FI/ss/GOV", profile.getSubjectFields()[2].getDefaultValue());
         assertEquals("", profile.getSubjectFields()[3].getDefaultValue());
         assertFalse(profile.getSubjectFields()[3].isReadOnly());
 

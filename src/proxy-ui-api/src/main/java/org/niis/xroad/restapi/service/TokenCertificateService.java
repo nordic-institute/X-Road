@@ -101,7 +101,7 @@ public class TokenCertificateService {
      * @throws ClientNotFoundException
      * @throws CertificateProfileInstantiationException
      * @throws WrongKeyUsageException if keyUsage param did not match the key's usage type
-     * @throws InvalidDnParameterException if required dn parameters were missing, or if there were some extra
+     * @throws InvalidSubjectParameterException if required dn parameters were missing, or if there were some extra
      * parameters
      * @throws KeyService.KeyNotFoundException
      * @throws CsrCreationFailureException when signer could not create CSR for some reason.
@@ -110,7 +110,7 @@ public class TokenCertificateService {
     public byte[] generateCertRequest(String keyId, ClientId memberId, KeyUsageInfo keyUsage,
             String caName, Map<String, String> subjectFieldValues, GenerateCertRequest.RequestFormat format)
             throws CertificateAuthorityNotFoundException, ClientNotFoundException,
-            CertificateProfileInstantiationException, WrongKeyUsageException, InvalidDnParameterException,
+            CertificateProfileInstantiationException, WrongKeyUsageException, InvalidSubjectParameterException,
             KeyService.KeyNotFoundException, CsrCreationFailureException {
 
         // validate key and memberId existence
@@ -166,10 +166,10 @@ public class TokenCertificateService {
      * definitions (consider readOnly, required, etc) and validate that all parameters
      * are fine.
      * @return valid DnFieldValue objects
-     * @throws InvalidDnParameterException if there were invalid parameters
+     * @throws InvalidSubjectParameterException if there were invalid parameters
      */
     private List<DnFieldValue> processDnParameters(CertificateProfileInfo profile, Map<String, String> dnParameters)
-            throws InvalidDnParameterException {
+            throws InvalidSubjectParameterException {
         Set<String> unprocessedParameters = new HashSet<>(dnParameters.keySet());
         List<DnFieldValue> dnValues = new ArrayList<>();
         // match all dn fields with either default values or actual parameters
@@ -184,30 +184,30 @@ public class TokenCertificateService {
             unprocessedParameters.remove(description.getId());
         }
         if (!unprocessedParameters.isEmpty()) {
-            throw new InvalidDnParameterException("extraneous parameters: " + unprocessedParameters);
+            throw new InvalidSubjectParameterException("extraneous parameters: " + unprocessedParameters);
         }
         // validate
         for (DnFieldValue dnValue: dnValues) {
             try {
                 profile.validateSubjectField(dnValue);
             } catch (Exception e) {
-                throw new InvalidDnParameterException(e);
+                throw new InvalidSubjectParameterException(e);
             }
         }
         return dnValues;
     }
 
     /**
-     * Thrown if a dn parameter was invalid
+     * Thrown if a subject dn parameter was invalid
      */
-    public static class InvalidDnParameterException extends ServiceException {
-        public static final String ERROR_INVALID_DN_PARAMETER = "invalid_dn_parameter";
+    public static class InvalidSubjectParameterException extends ServiceException {
+        public static final String ERROR_INVALID_SUBJECT_PARAMETER = "invalid_subject_parameter";
 
-        public InvalidDnParameterException(Throwable t) {
-            super(t, new ErrorDeviation(ERROR_INVALID_DN_PARAMETER));
+        public InvalidSubjectParameterException(Throwable t) {
+            super(t, new ErrorDeviation(ERROR_INVALID_SUBJECT_PARAMETER));
         }
-        public InvalidDnParameterException(String s) {
-            super(s, new ErrorDeviation(ERROR_INVALID_DN_PARAMETER));
+        public InvalidSubjectParameterException(String s) {
+            super(s, new ErrorDeviation(ERROR_INVALID_SUBJECT_PARAMETER));
         }
     }
 
