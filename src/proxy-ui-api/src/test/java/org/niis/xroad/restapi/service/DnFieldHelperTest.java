@@ -24,7 +24,6 @@
  */
 package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.DnFieldValue;
 import ee.ria.xroad.common.certificateprofile.impl.DnFieldDescriptionImpl;
@@ -32,8 +31,6 @@ import ee.ria.xroad.common.certificateprofile.impl.DnFieldValueImpl;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
-
-import javax.security.auth.x500.X500Principal;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -72,21 +69,21 @@ public class DnFieldHelperTest {
         // read only
         // no param
         List<DnFieldValue> values = helper.processDnParameters(
-                new HelperTestCertificateProfileInfo(field1ReadOnly, true),
+                new DnFieldTestCertificateProfileInfo(field1ReadOnly, true),
                 new HashMap<>());
         assertTrue(values.size() == 1);
         assertEquals(new DnFieldValueImpl(FIELD_1, FIELD_1_DEFAULT), values.iterator().next());
 
         // attempt to set param is ignored
         values = helper.processDnParameters(
-                new HelperTestCertificateProfileInfo(field1ReadOnly, true),
+                new DnFieldTestCertificateProfileInfo(field1ReadOnly, true),
                 ImmutableMap.of(FIELD_1, "bar"));
         assertTrue(values.size() == 1);
         assertEquals(new DnFieldValueImpl(FIELD_1, FIELD_1_DEFAULT), values.iterator().next());
 
         // extra param
         try {
-            helper.processDnParameters(new HelperTestCertificateProfileInfo(field1ReadOnly, true),
+            helper.processDnParameters(new DnFieldTestCertificateProfileInfo(field1ReadOnly, true),
                     ImmutableMap.of("foo", "bar"));
             fail("should throw exception");
         } catch (DnFieldHelper.InvalidDnParameterException expected) {
@@ -96,7 +93,7 @@ public class DnFieldHelperTest {
         // no param
         try {
             helper.processDnParameters(
-                    new HelperTestCertificateProfileInfo(field2Editable, true),
+                    new DnFieldTestCertificateProfileInfo(field2Editable, true),
                     new HashMap<>());
             fail("should throw exception");
         } catch (DnFieldHelper.InvalidDnParameterException expected) {
@@ -104,14 +101,14 @@ public class DnFieldHelperTest {
 
         // set param
         values = helper.processDnParameters(
-                new HelperTestCertificateProfileInfo(field2Editable, true),
+                new DnFieldTestCertificateProfileInfo(field2Editable, true),
                 ImmutableMap.of(FIELD_2, "bar"));
         assertTrue(values.size() == 1);
         assertEquals(new DnFieldValueImpl(FIELD_2, "bar"), values.iterator().next());
 
         // extra param 1
         try {
-            helper.processDnParameters(new HelperTestCertificateProfileInfo(field2Editable, true),
+            helper.processDnParameters(new DnFieldTestCertificateProfileInfo(field2Editable, true),
                     ImmutableMap.of("foo", "bar"));
             fail("should throw exception");
         } catch (DnFieldHelper.InvalidDnParameterException expected) {
@@ -119,7 +116,7 @@ public class DnFieldHelperTest {
 
         // extra param 2
         try {
-            helper.processDnParameters(new HelperTestCertificateProfileInfo(field2Editable, true),
+            helper.processDnParameters(new DnFieldTestCertificateProfileInfo(field2Editable, true),
                     ImmutableMap.of(FIELD_2, "bar", "foo", "bar2"));
             fail("should throw exception");
         } catch (DnFieldHelper.InvalidDnParameterException expected) {
@@ -128,44 +125,10 @@ public class DnFieldHelperTest {
         // invalid param
         try {
             values = helper.processDnParameters(
-                    new HelperTestCertificateProfileInfo(field2Editable, false),
+                    new DnFieldTestCertificateProfileInfo(field2Editable, false),
                     ImmutableMap.of(FIELD_2, "bar"));
             fail("should throw exception");
         } catch (DnFieldHelper.InvalidDnParameterException expected) {
         }
     }
-
-    private class HelperTestCertificateProfileInfo implements CertificateProfileInfo {
-
-        private DnFieldDescription[] descriptions;
-        private boolean valid;
-
-        HelperTestCertificateProfileInfo(DnFieldDescription[] descriptions, boolean valid) {
-            this.descriptions = descriptions;
-            this.valid = valid;
-        }
-        HelperTestCertificateProfileInfo(DnFieldDescription description, boolean valid) {
-            this.descriptions = new DnFieldDescription[] {description};
-            this.valid = valid;
-        }
-
-        @Override
-        public DnFieldDescription[] getSubjectFields() {
-            return descriptions;
-        }
-
-        @Override
-        public X500Principal createSubjectDn(DnFieldValue[] values) {
-            return null;
-        }
-
-        @Override
-        public void validateSubjectField(DnFieldValue field) throws Exception {
-            if (!valid) {
-                throw new RuntimeException("not valid");
-            }
-
-        }
-    }
-
 }

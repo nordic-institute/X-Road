@@ -27,7 +27,6 @@ package org.niis.xroad.restapi.service;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.DnFieldValue;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -108,7 +107,6 @@ public class TokenCertificateService {
 
         // validate key and memberId existence
         KeyInfo key = keyService.getKey(keyId);
-        ClientType clientType = null;
 
         if (keyUsage == KeyUsageInfo.SIGNING) {
             // validate that the member exists or has a subsystem on this server
