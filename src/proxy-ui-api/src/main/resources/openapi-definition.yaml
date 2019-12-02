@@ -1486,7 +1486,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '200':
           description: key object
@@ -1521,7 +1520,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         content:
           application/json:
@@ -1573,7 +1571,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '204':
           description: key deletion was successful
@@ -1603,7 +1600,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         description: certificate to add
         content:
@@ -1649,7 +1645,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         description: request to generate csr
         content:
@@ -1693,7 +1688,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
         - in: query
           name: csr_id
           description: id of the csr
@@ -1734,7 +1728,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
         - in: query
           name: key_usage_type
           description: which usage type this CSR is for
@@ -1763,7 +1756,7 @@ paths:
             maxLength: 767
       responses:
         '200':
-          description: key object
+          description: csr subject field objects
           content:
             application/json:
               schema:
@@ -1802,7 +1795,7 @@ paths:
             type: boolean
       responses:
         '200':
-          description: key object
+          description: array of member classes
           content:
             application/json:
               schema:
@@ -1845,7 +1838,7 @@ paths:
             maxLength: 255
       responses:
         '200':
-          description: key object
+          description: array of member classes
           content:
             application/json:
               schema:
@@ -3944,7 +3937,6 @@ components:
           description: key id
           example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
           minLength: 1
-          maxLength: 40
           readOnly: true
         name:
           type: string
