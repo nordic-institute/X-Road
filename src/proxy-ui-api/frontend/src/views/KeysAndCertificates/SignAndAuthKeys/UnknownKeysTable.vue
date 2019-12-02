@@ -35,7 +35,8 @@
  */
 import Vue from 'vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
-import { Key } from '@/types';
+
+import Key = Components.Schemas.Key;
 
 export default Vue.extend({
   components: {

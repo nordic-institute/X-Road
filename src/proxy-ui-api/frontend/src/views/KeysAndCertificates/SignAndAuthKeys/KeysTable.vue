@@ -75,7 +75,8 @@
 import Vue from 'vue';
 import CertificateStatus from './CertificateStatus.vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
-import { Key, Certificate } from '@/types';
+import Key = Components.Schemas.Key;
+import TokenCertificate = Components.Schemas.TokenCertificate;
 
 export default Vue.extend({
   components: {
@@ -103,7 +104,7 @@ export default Vue.extend({
     keyClick(key: Key): void {
       this.$emit('keyClick', key);
     },
-    certificateClick(cert: Certificate): void {
+    certificateClick(cert: TokenCertificate): void {
       this.$emit('certificateClick', cert);
     },
     generateCsr(key: Key): void {

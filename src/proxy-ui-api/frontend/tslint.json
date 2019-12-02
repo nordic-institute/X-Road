@@ -6,7 +6,8 @@
   "linterOptions": {
     "exclude": [
       "node_modules/**",
-      "**/*.json"
+      "**/*.json",
+      "src/types.ts"
     ]
   },
   "rules": {
