@@ -36,7 +36,6 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
-import org.niis.xroad.restapi.repository.ServerConfRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -58,26 +57,18 @@ public class CertificateAuthorityService {
     private final GlobalConfService globalConfService;
     private final ServerConfService serverConfService;
     private final GlobalConfFacade globalConfFacade;
-    private final ServerConfRepository serverConfRepository;
     private final ClientService clientService;
 
     /**
      * constructor
-     * @param globalConfService
-     * @param globalConfFacade
-     * @param serverConfRepository
-     * @param serverConfService
-     * @param clientService
      */
     @Autowired
     public CertificateAuthorityService(GlobalConfService globalConfService,
             GlobalConfFacade globalConfFacade,
-            ServerConfRepository serverConfRepository,
             ServerConfService serverConfService,
             ClientService clientService) {
         this.globalConfService = globalConfService;
         this.globalConfFacade = globalConfFacade;
-        this.serverConfRepository = serverConfRepository;
         this.serverConfService = serverConfService;
         this.clientService = clientService;
     }

@@ -29,6 +29,7 @@ import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.FiVRKAuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.FiVRKSignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -58,6 +59,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -81,13 +83,16 @@ public class CertificateAuthorityServiceTest {
     GlobalConfFacade globalConfFacade;
 
     @MockBean
+    ClientService clientService;
+
+    @MockBean
     ServerConfService serverConfService;
 
     @MockBean
     ServerConfRepository serverConfRepository;
 
-    @MockBean
-    ClientService clientService;
+    private ClientId ownerId;
+
 
     @Before
     public void setup() {
@@ -97,6 +102,15 @@ public class CertificateAuthorityServiceTest {
         approvedCAInfos.add(new ApprovedCAInfo("est-auth-only", true,
                 "ee.ria.xroad.common.certificateprofile.impl.SkEsteIdCertificateProfileInfoProvider"));
         when(globalConfService.getApprovedCAsForThisInstance()).thenReturn(approvedCAInfos);
+        SecurityServerId securityServerId = SecurityServerId.create("test-i",
+                "test-mclass", "test-mcode", "test-scode");
+        ownerId = ClientId.create(securityServerId.getXRoadInstance(),
+                securityServerId.getMemberClass(),
+                securityServerId.getMemberCode());
+        when(serverConfService.getSecurityServerOwnerId()).thenReturn(ownerId);
+        when(serverConfService.getSecurityServerId()).thenReturn(securityServerId);
+        when(clientService.getClient(any())).thenReturn(new ClientType());
+        when(globalConfFacade.getMemberName(any())).thenReturn("mock-member-name");
     }
 
     @Test
@@ -132,7 +146,7 @@ public class CertificateAuthorityServiceTest {
 
     @Test
     public void getCertificateProfile() throws Exception {
-        ClientId clientId = TestUtils.getClientId("FI", "GOV", "M1", null);
+        ClientId clientId = TestUtils.getClientId("test-i", "test-mclass", "test-mcode", null);
         when(clientService.getLocalClientMemberIds()).thenReturn(new HashSet<>(Collections.singletonList(clientId)));
         when(serverConfService.getSecurityServerId()).thenReturn(SecurityServerId.create(
                 clientId.getXRoadInstance(), clientId.getMemberClass(), clientId.getMemberCode(), "ss"));
@@ -143,35 +157,35 @@ public class CertificateAuthorityServiceTest {
         //        private final String memberName;
 
         CertificateProfileInfo profile = certificateAuthorityService.getCertificateProfile("fi-not-auth-only",
-                KeyUsageInfo.SIGNING, clientId);
+                KeyUsageInfo.SIGNING, ownerId);
         assertTrue(profile instanceof FiVRKSignCertificateProfileInfo);
-        assertEquals("FI/ss/GOV", profile.getSubjectFields()[2].getDefaultValue());
-        assertEquals("M1", profile.getSubjectFields()[3].getDefaultValue());
+        assertEquals("test-i/ss/test-mclass", profile.getSubjectFields()[2].getDefaultValue());
+        assertEquals("test-mcode", profile.getSubjectFields()[3].getDefaultValue());
         assertTrue(profile.getSubjectFields()[3].isReadOnly());
 
         profile = certificateAuthorityService.getCertificateProfile("fi-not-auth-only",
-                KeyUsageInfo.AUTHENTICATION, clientId);
+                KeyUsageInfo.AUTHENTICATION, ownerId);
         assertTrue(profile instanceof FiVRKAuthCertificateProfileInfo);
-        assertEquals("FI/ss/GOV", profile.getSubjectFields()[2].getDefaultValue());
+        assertEquals("test-i/ss/test-mclass", profile.getSubjectFields()[2].getDefaultValue());
         assertEquals("", profile.getSubjectFields()[3].getDefaultValue());
         assertFalse(profile.getSubjectFields()[3].isReadOnly());
 
         profile = certificateAuthorityService.getCertificateProfile("est-auth-only",
-                KeyUsageInfo.AUTHENTICATION, clientId);
+                KeyUsageInfo.AUTHENTICATION, ownerId);
         assertTrue(profile instanceof AuthCertificateProfileInfo);
         assertEquals(0, profile.getSubjectFields().length);
 
         // exceptions
         try {
             certificateAuthorityService.getCertificateProfile("est-auth-only",
-                    KeyUsageInfo.SIGNING, clientId);
+                    KeyUsageInfo.SIGNING, ownerId);
             fail("should have thrown exception");
         } catch (WrongKeyUsageException expected) {
         }
 
         try {
             certificateAuthorityService.getCertificateProfile("this-does-not-exist",
-                    KeyUsageInfo.SIGNING, clientId);
+                    KeyUsageInfo.SIGNING, ownerId);
             fail("should have thrown exception");
         } catch (CertificateAuthorityNotFoundException expected) {
         }
@@ -184,7 +198,7 @@ public class CertificateAuthorityServiceTest {
 
         try {
             certificateAuthorityService.getCertificateProfile("provider-class-does-not-exist",
-                    KeyUsageInfo.SIGNING, clientId);
+                    KeyUsageInfo.SIGNING, ownerId);
             fail("should have thrown exception");
         } catch (CertificateProfileInstantiationException expected) {
         }
