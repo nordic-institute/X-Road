@@ -36,7 +36,7 @@ import java.io.InputStream;
  * Resource utils
  */
 public final class ResourceUtils {
-    public static final String ERROR_INVALID_CERT_UPLOAD = "invalid_cert_upload";
+    public static final String ERROR_RESOURCE_READ = "resource_read_failed";
 
     private ResourceUtils() {
         // noop
@@ -53,8 +53,8 @@ public final class ResourceUtils {
         try (InputStream is = resource.getInputStream()) {
             certificateBytes = IOUtils.toByteArray(is);
         } catch (IOException ex) {
-            throw new BadRequestException("cannot read certificate data", ex,
-                    new ErrorDeviation(ERROR_INVALID_CERT_UPLOAD));
+            throw new BadRequestException("cannot read resource", ex,
+                    new ErrorDeviation(ERROR_RESOURCE_READ));
         }
         return certificateBytes;
     }
