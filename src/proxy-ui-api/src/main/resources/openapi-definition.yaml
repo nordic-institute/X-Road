@@ -506,8 +506,10 @@ paths:
       summary: Add new client for the security server.
       operationId: addClient
       description: >
-        Adds new client to the system. Note that with this endpoint it is possible to add a client with an unregistered member which may be undesired.
-        If the client is not registered addClient will succeed if ClientAdd.ignore_warnings equals true and fail if ignore_warnings is false or not set.
+        Adds new client to the system.
+        Note that with this endpoint it is possible to add an unregistered member as a client.
+        Attempt to add an unregistered member with ClientAdd.ignore_warnings = false causes the operation to fail with a warning in response's ErrorInfo object.
+        Attempt to add an unregistered member with ClientAdd.ignore_warnings = true succeeds.
       requestBody:
         description: client to add
         content:
