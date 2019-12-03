@@ -38,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -75,6 +76,9 @@ public class CertificateAuthorityServiceTest {
     GlobalConfService globalConfService;
 
     @MockBean
+    GlobalConfFacade globalConfFacade;
+
+    @MockBean
     ServerConfService serverConfService;
 
     @MockBean
@@ -98,6 +102,7 @@ public class CertificateAuthorityServiceTest {
         when(serverConfService.getSecurityServerOwnerId()).thenReturn(ownerId);
         when(serverConfService.getSecurityServerId()).thenReturn(securityServerId);
         when(clientService.getClient(any())).thenReturn(new ClientType());
+        when(globalConfFacade.getMemberName(any())).thenReturn("mock-member-name");
     }
 
     @Test
