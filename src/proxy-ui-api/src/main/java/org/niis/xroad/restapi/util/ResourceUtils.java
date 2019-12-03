@@ -49,13 +49,13 @@ public final class ResourceUtils {
      * @throws BadRequestException
      */
     public static byte[] springResourceToBytesOrThrowBadRequest(Resource resource) {
-        byte[] certificateBytes;
+        byte[] resourceBytes;
         try (InputStream is = resource.getInputStream()) {
-            certificateBytes = IOUtils.toByteArray(is);
+            resourceBytes = IOUtils.toByteArray(is);
         } catch (IOException ex) {
             throw new BadRequestException("cannot read resource", ex,
                     new ErrorDeviation(ERROR_RESOURCE_READ));
         }
-        return certificateBytes;
+        return resourceBytes;
     }
 }
