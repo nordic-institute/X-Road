@@ -109,6 +109,16 @@ task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
     }
 }
 
+// run e2e tests vs remote url
+task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
+    inputs.dir("frontend")
+    outputs.dir("frontend")
+    args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl]
+    execOverrides {
+        it.workingDir = 'frontend'
+    }
+}
+
 npmInstall.onlyIf { !project.hasProperty('skip-frontend-build') }
 
 // checkFrontAudit -> buildFront -> processResources
