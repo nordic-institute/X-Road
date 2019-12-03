@@ -83,10 +83,10 @@ public class CertificateAuthorityServiceTest {
     GlobalConfFacade globalConfFacade;
 
     @MockBean
-    ClientService clientService;
+    ServerConfService serverConfService;
 
     @MockBean
-    ServerConfService serverConfService;
+    ClientService clientService;
 
     @MockBean
     ServerConfRepository serverConfRepository;
