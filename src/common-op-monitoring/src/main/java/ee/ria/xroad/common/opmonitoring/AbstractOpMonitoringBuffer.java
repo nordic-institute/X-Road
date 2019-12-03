@@ -24,14 +24,14 @@
  */
 package ee.ria.xroad.common.opmonitoring;
 
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Abstract operational monitoring buffer.
  */
 @Slf4j
-public abstract class AbstractOpMonitoringBuffer extends UntypedActor {
+public abstract class AbstractOpMonitoringBuffer extends UntypedAbstractActor {
 
     public static final String SEND_MONITORING_DATA = "sendMonitoringData";
     public static final String SENDING_SUCCESS = "sendingSuccess";

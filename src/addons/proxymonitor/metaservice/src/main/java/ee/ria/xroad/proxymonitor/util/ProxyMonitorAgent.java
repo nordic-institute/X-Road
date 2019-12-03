@@ -28,7 +28,7 @@ import ee.ria.xroad.common.util.SystemMetrics;
 import ee.ria.xroad.monitor.common.StatsRequest;
 import ee.ria.xroad.monitor.common.StatsResponse;
 
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import com.sun.management.UnixOperatingSystemMXBean;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
  * Proxy monitoring agent
  */
 @Slf4j
-public class ProxyMonitorAgent extends UntypedActor {
+public class ProxyMonitorAgent extends UntypedAbstractActor {
 
     private boolean failureState = false;
 

@@ -66,11 +66,19 @@ public class DatabaseCtx {
             throws Exception {
         Session session = null;
         try {
-            session = beginTransaction();
+            boolean newTransaction = false;
+
+            session = getSession();
+            if (session.getTransaction().getStatus() == TransactionStatus.NOT_ACTIVE) {
+                session.beginTransaction();
+                newTransaction = true;
+            }
 
             T result = callback.apply(session);
 
-            commitTransaction();
+            if (newTransaction) {
+                commitTransaction();
+            }
             return result;
         } catch (Exception e) {
             if (e instanceof HibernateException) {

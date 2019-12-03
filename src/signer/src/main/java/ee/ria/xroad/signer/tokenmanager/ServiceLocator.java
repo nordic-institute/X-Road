@@ -24,8 +24,8 @@
  */
 package ee.ria.xroad.signer.tokenmanager;
 
+import akka.actor.ActorContext;
 import akka.actor.ActorSelection;
-import akka.actor.UntypedActorContext;
 
 import static ee.ria.xroad.signer.protocol.ComponentNames.MODULE_MANAGER;
 import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_RESPONSE_MANAGER;
@@ -47,7 +47,7 @@ public final class ServiceLocator {
      * @return the request processor actor
      */
     public static ActorSelection getRequestProcessor(
-            UntypedActorContext context) {
+            ActorContext context) {
         return context.actorSelection("/user/" + REQUEST_PROCESSOR);
     }
 
@@ -56,7 +56,7 @@ public final class ServiceLocator {
      * @return the OCSP response manager actor
      */
     public static ActorSelection getOcspResponseManager(
-            UntypedActorContext context) {
+            ActorContext context) {
         return context.actorSelection("/user/" + OCSP_RESPONSE_MANAGER);
     }
 
@@ -65,7 +65,7 @@ public final class ServiceLocator {
      * @param tokenId the token id
      * @return the token actor
      */
-    public static ActorSelection getToken(UntypedActorContext context,
+    public static ActorSelection getToken(ActorContext context,
             String tokenId) {
         String path = String.format("/user/%s/%s/%s", MODULE_MANAGER,
                 getModuleId(tokenId), tokenId);
@@ -77,7 +77,7 @@ public final class ServiceLocator {
      * @param tokenId the token id
      * @return the token worker actor
      */
-    public static ActorSelection getTokenWorker(UntypedActorContext context,
+    public static ActorSelection getTokenWorker(ActorContext context,
             String tokenId) {
         String path = String.format("/user/%s/%s/%s/%s", MODULE_MANAGER,
                 getModuleId(tokenId), tokenId, TOKEN_WORKER);
@@ -89,7 +89,7 @@ public final class ServiceLocator {
      * @param tokenId the token id
      * @return the token signer actor
      */
-    public static ActorSelection getTokenSigner(UntypedActorContext context,
+    public static ActorSelection getTokenSigner(ActorContext context,
             String tokenId) {
         String path = String.format("/user/%s/%s/%s/%s", MODULE_MANAGER,
                 getModuleId(tokenId), tokenId, TOKEN_SIGNER);

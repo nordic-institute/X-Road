@@ -69,6 +69,7 @@ import static org.mockito.Mockito.when;
 @AutoConfigureTestDatabase
 @Slf4j
 @Transactional
+@WithMockUser
 public class ServiceDescriptionServiceIntegrationTest {
 
     public static final String BIG_ATTACHMENT_V1_SERVICECODE = "xroadBigAttachment.v1";
@@ -107,8 +108,6 @@ public class ServiceDescriptionServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_WSDL", "REFRESH_WSDL",
-            "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
     public void refreshServiceDetectsAddedService() throws Exception {
         File testServiceWsdl = tempFolder.newFile("test.wsdl");
         File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
@@ -141,8 +140,6 @@ public class ServiceDescriptionServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_WSDL", "REFRESH_WSDL",
-            "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
     public void refreshServiceDetectsRemovedService() throws Exception {
         File testServiceWsdl = tempFolder.newFile("test.wsdl");
         File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
@@ -177,8 +174,6 @@ public class ServiceDescriptionServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_WSDL", "REFRESH_WSDL",
-            "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
     public void refreshServiceDetectsAllWarnings() throws Exception {
         // show warningDeviations about
         // - add service
@@ -229,8 +224,6 @@ public class ServiceDescriptionServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_WSDL", "REFRESH_WSDL",
-            "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
     public void addWsdlServiceDescription() throws Exception {
         // check that validation warningDeviations work for adding, too
         File testServiceWsdl = tempFolder.newFile("test.wsdl");
@@ -264,8 +257,6 @@ public class ServiceDescriptionServiceIntegrationTest {
      * Same tests as {@link #refreshServiceDetectsAllWarnings()}, but triggered by update wsdl url
      */
     @Test
-    @WithMockUser(authorities = { "ADD_WSDL", "EDIT_WSDL",
-            "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
     public void updateWsdlUrlWithWarnings() throws Exception {
         // start with wsdl containing getrandom
         // then switch to one with smallattachment
@@ -311,8 +302,6 @@ public class ServiceDescriptionServiceIntegrationTest {
      * next update (running inside same transaction, no rollback)
      */
     @Test
-    @WithMockUser(authorities = { "ADD_WSDL", "EDIT_WSDL",
-            "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
     public void updateWsdlUrlAndIgnoreWarnings() throws Exception {
         // start with wsdl containing getrandom
         // then switch to one with smallattachment
@@ -342,7 +331,6 @@ public class ServiceDescriptionServiceIntegrationTest {
         assertServiceCodes(serviceDescriptionType,
                 SMALL_ATTACHMENT_SERVICECODE);
 
-
     }
 
     /**
@@ -370,7 +358,6 @@ public class ServiceDescriptionServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS" })
     public void addWsdlServiceDescriptionAndCheckEndpoints() throws Exception {
         ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
 
@@ -399,7 +386,6 @@ public class ServiceDescriptionServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "EDIT_WSDL", "VIEW_CLIENT_DETAILS" })
     public void updateWsdlServiceDescriptionAndCheckEndpoints() throws Exception {
         ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
 
@@ -426,7 +412,6 @@ public class ServiceDescriptionServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "DELETE_WSDL", "VIEW_CLIENT_DETAILS" })
     public void removeWsdlServiceDescriptionAndCheckEndpoints() throws Exception {
         ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
 
@@ -447,7 +432,6 @@ public class ServiceDescriptionServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_WSDL", "REFRESH_WSDL", "VIEW_CLIENT_DETAILS" })
     public void refreshWsdlServiceDescriptionAndCheckEndpoints() throws Exception {
         ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
 

@@ -24,11 +24,13 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -38,33 +40,40 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static org.niis.xroad.restapi.service.TokenService.isCausedByTokenNotActive;
+import static org.niis.xroad.restapi.service.TokenService.isCausedByTokenNotFound;
+
 /**
  * Service that handles keys
  */
 @Slf4j
 @Service
 @Transactional
-@PreAuthorize("denyAll")
+@PreAuthorize("isAuthenticated()")
 public class KeyService {
 
+    private final SignerProxyFacade signerProxyFacade;
     private final TokenService tokenService;
 
     /**
      * KeyService constructor
      * @param tokenService
+     * @param signerProxyFacade
      */
     @Autowired
-    public KeyService(TokenService tokenService) {
+    public KeyService(TokenService tokenService, SignerProxyFacade signerProxyFacade) {
         this.tokenService = tokenService;
+        this.signerProxyFacade = signerProxyFacade;
     }
 
     /**
      * Return one key
      * @param keyId
-     * @throws KeyNotFoundException if key was not found
      * @return
+     * @throws KeyNotFoundException if key was not found
      */
-    @PreAuthorize("hasAuthority('VIEW_KEYS')")
     public KeyInfo getKey(String keyId) throws KeyNotFoundException {
         Collection<TokenInfo> tokens = tokenService.getAllTokens();
         Optional<KeyInfo> keyInfo = tokens.stream()
@@ -79,11 +88,65 @@ public class KeyService {
         return keyInfo.get();
     }
 
+    public KeyInfo updateKeyFriendlyName(String id, String friendlyName) throws KeyNotFoundException {
+        KeyInfo keyInfo = null;
+        try {
+            signerProxyFacade.setKeyFriendlyName(id, friendlyName);
+            keyInfo = getKey(id);
+        } catch (KeyNotFoundException e) {
+            throw e;
+        } catch (CodedException e) {
+            if ((SIGNER_X + "." + X_KEY_NOT_FOUND).equals(e.getFaultCode())) {
+                throw new KeyNotFoundException(e);
+            } else {
+                throw e;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Update key friendly name failed", e);
+        }
+
+        return keyInfo;
+    }
+
+    /**
+     * Generate a new key for selected token
+     * @param tokenId
+     * @param keyLabel
+     * @return {@link KeyInfo}
+     * @throws TokenNotFoundException
+     */
+    public KeyInfo addKey(String tokenId, String keyLabel) throws TokenNotFoundException,
+            TokenService.TokenNotActiveException {
+        KeyInfo keyInfo = null;
+        try {
+            keyInfo = signerProxyFacade.generateKey(tokenId, keyLabel);
+        } catch (CodedException e) {
+            if (isCausedByTokenNotFound(e)) {
+                throw new TokenNotFoundException(e);
+            } else if (isCausedByTokenNotActive(e)) {
+                throw new TokenService.TokenNotActiveException(e);
+            } else {
+                throw e;
+            }
+        } catch (Exception other) {
+            throw new RuntimeException("adding a new key failed", other);
+        }
+        return keyInfo;
+    }
+
     public static class KeyNotFoundException extends NotFoundException {
         public static final String ERROR_KEY_NOT_FOUND = "key_not_found";
 
         public KeyNotFoundException(String s) {
             super(s, new ErrorDeviation(ERROR_KEY_NOT_FOUND));
+        }
+
+        public KeyNotFoundException(Throwable t) {
+            super(t, createError());
+        }
+
+        private static ErrorDeviation createError() {
+            return new ErrorDeviation(ERROR_KEY_NOT_FOUND);
         }
     }
 }

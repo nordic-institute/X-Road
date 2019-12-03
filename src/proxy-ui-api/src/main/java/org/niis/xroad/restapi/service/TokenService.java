@@ -44,6 +44,7 @@ import java.util.function.Predicate;
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_LOGIN_FAILED;
 import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
+import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_ACTIVE;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_FOUND;
 import static java.util.stream.Collectors.toList;
 
@@ -53,7 +54,7 @@ import static java.util.stream.Collectors.toList;
 @Slf4j
 @Service
 @Transactional
-@PreAuthorize("denyAll")
+@PreAuthorize("isAuthenticated()")
 public class TokenService {
 
     private final SignerProxyFacade signerProxyFacade;
@@ -69,10 +70,8 @@ public class TokenService {
 
     /**
      * get all tokens
-     *
      * @return
      */
-    @PreAuthorize("hasAuthority('VIEW_KEYS')")
     public List<TokenInfo> getAllTokens() {
         try {
             return signerProxyFacade.getTokens();
@@ -83,26 +82,22 @@ public class TokenService {
 
     /**
      * get all sign certificates for a given client.
-     *
      * @param clientType client who's member certificates need to be
-     *                   linked to
+     * linked to
      * @return
      * @throws Exception
      */
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
     public List<CertificateInfo> getSignCertificates(ClientType clientType) {
         return getCertificates(clientType, true);
     }
 
     /**
      * get all certificates for a given client.
-     *
      * @param clientType client who's member certificates need to be
-     *                   linked to
+     * linked to
      * @return
      * @throws Exception
      */
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
     public List<CertificateInfo> getAllCertificates(ClientType clientType) {
         return getCertificates(clientType, false);
     }
@@ -127,7 +122,6 @@ public class TokenService {
                 .collect(toList());
     }
 
-
     /**
      * Activate a token
      * @param id id of token
@@ -135,7 +129,6 @@ public class TokenService {
      * @throws TokenNotFoundException if token was not found
      * @throws PinIncorrectException if token login failed due to wrong ping
      */
-    @PreAuthorize("hasAuthority('ACTIVATE_TOKEN')")
     public void activateToken(String id, char[] password) throws
             TokenNotFoundException, PinIncorrectException {
         try {
@@ -158,7 +151,6 @@ public class TokenService {
      * @param id id of token
      * @throws TokenNotFoundException if token was not found
      */
-    @PreAuthorize("hasAuthority('DEACTIVATE_TOKEN')")
     public void deactivateToken(String id) throws TokenNotFoundException {
         try {
             signerProxyFacade.deactivateToken(id);
@@ -178,7 +170,6 @@ public class TokenService {
      * @param id
      * @throws TokenNotFoundException if token was not found
      */
-    @PreAuthorize("hasAuthority('VIEW_KEYS')")
     public TokenInfo getToken(String id) throws TokenNotFoundException {
         try {
             return signerProxyFacade.getToken(id);
@@ -199,7 +190,6 @@ public class TokenService {
      * @param friendlyName
      * @throws TokenNotFoundException if token was not found
      */
-    @PreAuthorize("hasAuthority('EDIT_KEYTABLE_FRIENDLY_NAMES')")
     public TokenInfo updateTokenFriendlyName(String tokenId, String friendlyName) throws TokenNotFoundException {
         TokenInfo tokenInfo = null;
         try {
@@ -230,35 +220,20 @@ public class TokenService {
         return false;
     }
 
-    private boolean isCausedByTokenNotFound(CodedException e) {
+    static boolean isCausedByTokenNotFound(CodedException e) {
         return TOKEN_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
+    }
+
+    static boolean isCausedByTokenNotActive(CodedException e) {
+        return TOKEN_NOT_ACTIVE_FAULT_CODE.equals(e.getFaultCode());
     }
 
     // detect a couple of CodedException error codes from core
     static final String PIN_INCORRECT_FAULT_CODE = SIGNER_X + "." + X_PIN_INCORRECT;
     static final String TOKEN_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_TOKEN_NOT_FOUND;
     static final String LOGIN_FAILED_FAULT_CODE = SIGNER_X + "." + X_LOGIN_FAILED;
+    static final String TOKEN_NOT_ACTIVE_FAULT_CODE = SIGNER_X + "." + X_TOKEN_NOT_ACTIVE;
     static final String CKR_PIN_INCORRECT_MESSAGE = "Login failed: CKR_PIN_INCORRECT";
-
-    /**
-     * If token was not found
-     */
-    public static class TokenNotFoundException extends NotFoundException {
-
-        public static final String ERROR_TOKEN_NOT_FOUND = "token_not_found";
-
-        public TokenNotFoundException(String s) {
-            super(s, createError());
-        }
-
-        public TokenNotFoundException(Throwable t) {
-            super(t, createError());
-        }
-
-        private static ErrorDeviation createError() {
-            return new ErrorDeviation(ERROR_TOKEN_NOT_FOUND);
-        }
-    }
 
     public static class PinIncorrectException extends ServiceException {
 
@@ -270,6 +245,20 @@ public class TokenService {
 
         private static ErrorDeviation createError() {
             return new ErrorDeviation(ERROR_PIN_INCORRECT);
+        }
+
+    }
+
+    public static class TokenNotActiveException extends ServiceException {
+
+        public static final String ERROR_TOKEN_NOT_ACTIVE = "token_not_active";
+
+        public TokenNotActiveException(Throwable t) {
+            super(t, createError());
+        }
+
+        private static ErrorDeviation createError() {
+            return new ErrorDeviation(ERROR_TOKEN_NOT_ACTIVE);
         }
 
     }

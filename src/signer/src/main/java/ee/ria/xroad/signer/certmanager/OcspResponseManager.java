@@ -33,7 +33,6 @@ import ee.ria.xroad.signer.util.AbstractSignerActor;
 import ee.ria.xroad.signer.util.SignerUtil;
 
 import akka.actor.Props;
-import akka.actor.UntypedActorContext;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -89,7 +88,7 @@ public class OcspResponseManager extends AbstractSignerActor {
      * @return OCSP response as byte array
      * @throws Exception if an error occurs
      */
-    public static byte[] getOcspResponse(UntypedActorContext ctx,
+    public static byte[] getOcspResponse(ActorContext ctx,
             X509Certificate cert) throws Exception {
         return getOcspResponse(ctx, calculateCertHexHash(cert));
     }
@@ -101,7 +100,7 @@ public class OcspResponseManager extends AbstractSignerActor {
      * @return OCSP response as byte array
      * @throws Exception if an error occurs
      */
-    public static byte[] getOcspResponse(UntypedActorContext ctx,
+    public static byte[] getOcspResponse(ActorContext ctx,
             String certHash) throws Exception {
         GetOcspResponses message =
                 new GetOcspResponses(new String[] {certHash});

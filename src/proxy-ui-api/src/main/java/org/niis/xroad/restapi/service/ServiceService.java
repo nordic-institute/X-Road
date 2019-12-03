@@ -48,7 +48,7 @@ import java.util.Optional;
 @Slf4j
 @Service
 @Transactional
-@PreAuthorize("denyAll")
+@PreAuthorize("isAuthenticated()")
 public class ServiceService {
 
     private static final String HTTPS = "https";
@@ -74,7 +74,6 @@ public class ServiceService {
      * @throws ClientNotFoundException if client with given id was not found
      * @throws ServiceNotFoundException if service with given fullServicecode was not found
      */
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
     public ServiceType getService(ClientId clientId, String fullServiceCode) throws ClientNotFoundException,
             ServiceNotFoundException {
         ClientType client = clientRepository.getClient(clientId);
@@ -91,7 +90,6 @@ public class ServiceService {
      * @return ServiceType
      * @throws ServiceNotFoundException if service with fullServiceCode was not found
      */
-    @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
     public ServiceType getServiceFromClient(ClientType client, String fullServiceCode) throws ServiceNotFoundException {
         Optional<ServiceType> foundService = client.getServiceDescription()
                 .stream()
@@ -119,7 +117,6 @@ public class ServiceService {
      * @throws ServiceNotFoundException if service with given fullServicecode was not found
      * @throws ClientNotFoundException if client with given id was not found
      */
-    @PreAuthorize("hasAuthority('EDIT_SERVICE_PARAMS')")
     public ServiceType updateService(ClientId clientId, String fullServiceCode,
             String url, boolean urlAll, Integer timeout, boolean timeoutAll,
             boolean sslAuth, boolean sslAuthAll) throws InvalidUrlException, ServiceNotFoundException,

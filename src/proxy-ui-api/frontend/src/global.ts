@@ -30,7 +30,7 @@ export enum RouteName {
   BackupAndRestore = 'backup-and-restore',
 }
 
-// A "single source of thuth" for permission strings
+// A "single source of truth" for permission strings
 export enum Permissions {
   ACTIVATE_DISABLE_AUTH_CERT = 'ACTIVATE_DISABLE_AUTH_CERT',
   ACTIVATE_DISABLE_SIGN_CERT = 'ACTIVATE_DISABLE_SIGN_CERT',

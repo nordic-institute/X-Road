@@ -67,6 +67,7 @@ import static org.mockito.Mockito.when;
 @AutoConfigureTestDatabase
 @Slf4j
 @Transactional
+@WithMockUser
 public class AccessRightServiceTest {
 
     private List<MemberInfo> memberInfos = new ArrayList<>(Arrays.asList(
@@ -112,7 +113,6 @@ public class AccessRightServiceTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
     public void findAllAccessRightHolders() throws Throwable {
         List<AccessRightHolderDto> dtos = accessRightService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
                 null, null, null, null, null);
@@ -120,7 +120,6 @@ public class AccessRightServiceTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
     public void findAccessRightHoldersByMemberOrGroupCode() throws Throwable {
         List<AccessRightHolderDto> dtos = accessRightService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
                 null, null, null, "1", null);
@@ -128,7 +127,6 @@ public class AccessRightServiceTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
     public void findAccessRightHoldersByMemberOrGroupCodeNoResults() throws Throwable {
         List<AccessRightHolderDto> dtos = accessRightService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
                 null, null, null, "öäöäöäöäöäöä", null);
@@ -136,7 +134,6 @@ public class AccessRightServiceTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
     public void findAccessRightHoldersByInstance() throws Throwable {
         List<AccessRightHolderDto> dtos = accessRightService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
                 null, TestUtils.INSTANCE_EE, null, null, null);
@@ -144,7 +141,6 @@ public class AccessRightServiceTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
     public void findAccessRightHoldersByInstanceAndSubSystem() throws Throwable {
         List<AccessRightHolderDto> dtos = accessRightService.findAccessRightHolders(TestUtils.getM1Ss1ClientId(), null,
                 null, TestUtils.INSTANCE_FI, null, null, TestUtils.SUBSYSTEM1);
@@ -152,8 +148,6 @@ public class AccessRightServiceTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
-            "VIEW_CLIENT_SERVICES" })
     public void addAccessRights() throws Throwable {
         when(globalConfService.clientIdentifiersExist(any())).thenReturn(true);
         when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(true);
@@ -170,8 +164,6 @@ public class AccessRightServiceTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
-            "VIEW_CLIENT_SERVICES" })
     public void addAccessRightsForNonLocalSubsystem() throws Throwable {
         when(globalConfService.clientIdentifiersExist(any())).thenReturn(true);
         when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(true);
@@ -197,8 +189,6 @@ public class AccessRightServiceTest {
     }
 
     @Test(expected = IdentifierNotFoundException.class)
-    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
-            "VIEW_CLIENT_SERVICES" })
     public void addAccessRightsForNonExistingClient() throws Throwable {
         when(globalConfService.clientIdentifiersExist(any())).thenReturn(false);
         when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(false);
@@ -213,8 +203,6 @@ public class AccessRightServiceTest {
     }
 
     @Test(expected = IdentifierNotFoundException.class)
-    @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL", "VIEW_CLIENT_DETAILS",
-            "VIEW_CLIENT_SERVICES" })
     public void addDuplicateAccessRights() throws Throwable {
         when(globalConfService.clientIdentifiersExist(any())).thenReturn(false);
         when(globalConfService.globalGroupIdentifiersExist(any())).thenReturn(false);

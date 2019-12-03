@@ -24,13 +24,13 @@
  */
 package ee.ria.xroad.monitor;
 
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import scala.concurrent.duration.FiniteDuration;
 
 /**
  * Base class for sensors
  */
-public abstract class AbstractSensor extends UntypedActor {
+public abstract class AbstractSensor extends UntypedAbstractActor {
 
     protected void scheduleSingleMeasurement(FiniteDuration duration, Object msg) {
         context().system().scheduler().scheduleOnce(duration,
