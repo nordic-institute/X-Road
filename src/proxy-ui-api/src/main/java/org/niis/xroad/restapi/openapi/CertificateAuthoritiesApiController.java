@@ -129,7 +129,10 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
                 }
             }
 
-            ClientId memberId = clientConverter.convertId(encodedMemberId);
+            ClientId memberId = null;
+            if (!StringUtils.isBlank(encodedMemberId)) {
+                memberId = clientConverter.convertId(encodedMemberId);
+            }
 
             CertificateProfileInfo profileInfo;
             profileInfo = certificateAuthorityService.getCertificateProfile(
