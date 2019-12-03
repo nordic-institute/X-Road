@@ -24,17 +24,9 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.converter.CertificateAuthorityConverter;
 import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
-import org.niis.xroad.restapi.converter.KeyUsageTypeMapping;
-import org.niis.xroad.restapi.openapi.model.CertificateAuthority;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
-import org.niis.xroad.restapi.openapi.model.KeyUsageType;
-import org.niis.xroad.restapi.service.CertificateAuthorityService;
 import org.niis.xroad.restapi.service.InternalTlsCertificateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
@@ -48,8 +40,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.cert.X509Certificate;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * system api controller
@@ -62,25 +52,15 @@ public class SystemApiController implements SystemApi {
 
     private final InternalTlsCertificateService internalTlsCertificateService;
     private final CertificateDetailsConverter certificateDetailsConverter;
-    private final CertificateAuthorityConverter certificateAuthorityConverter;
-    private final CertificateAuthorityService certificateAuthorityService;
 
     /**
      * Constructor
-     * @param internalTlsCertificateService
-     * @param certificateDetailsConverter
-     * @param certificateAuthorityService
-     * @param certificateAuthorityConverter
      */
     @Autowired
     public SystemApiController(InternalTlsCertificateService internalTlsCertificateService,
-            CertificateDetailsConverter certificateDetailsConverter,
-            CertificateAuthorityService certificateAuthorityService,
-            CertificateAuthorityConverter certificateAuthorityConverter) {
+            CertificateDetailsConverter certificateDetailsConverter) {
         this.internalTlsCertificateService = internalTlsCertificateService;
         this.certificateDetailsConverter = certificateDetailsConverter;
-        this.certificateAuthorityService = certificateAuthorityService;
-        this.certificateAuthorityConverter = certificateAuthorityConverter;
     }
 
     @Override
@@ -104,26 +84,5 @@ public class SystemApiController implements SystemApi {
         CertificateDetails certificate = certificateDetailsConverter.convert(x509Certificate);
         return new ResponseEntity<>(certificate, HttpStatus.OK);
     }
-
-    /**
-     * Currently returns partial CertificateAuthority objects that have only
-     * name and authentication_only properties set.
-     * Other properties will be added in another ticket (system parameters).
-     * @return
-     */
-    @Override
-    @PreAuthorize("(hasAuthority('GENERATE_AUTH_CERT_REQ') and "
-            + " (#keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).AUTHENTICATION"
-            + " or #keyUsageType == null))"
-            + "or (hasAuthority('GENERATE_SIGN_CERT_REQ') and "
-            + "#keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).SIGNING)")
-    public ResponseEntity<List<CertificateAuthority>> getApprovedCertificateAuthorities(KeyUsageType keyUsageType)  {
-        KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(keyUsageType).orElse(null);
-        Collection<ApprovedCAInfo> caInfos = certificateAuthorityService.getCertificateAuthorities(keyUsageInfo);
-        List<CertificateAuthority> cas = certificateAuthorityConverter.convert(caInfos);
-        return new ResponseEntity<>(cas, HttpStatus.OK);
-    }
-
-
 
 }

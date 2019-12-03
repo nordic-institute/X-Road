@@ -24,22 +24,12 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.converter.ClientConverter;
-import org.niis.xroad.restapi.converter.DistinguishedNameFieldDescriptionConverter;
 import org.niis.xroad.restapi.converter.KeyConverter;
-import org.niis.xroad.restapi.converter.KeyUsageTypeMapping;
-import org.niis.xroad.restapi.openapi.model.DistinguishedNameFieldDescription;
 import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.KeyName;
-import org.niis.xroad.restapi.openapi.model.KeyUsageType;
-import org.niis.xroad.restapi.service.CertificateAuthorityService;
-import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.KeyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -47,8 +37,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import java.util.List;
 
 /**
  * keys controller
@@ -61,30 +49,15 @@ public class KeysApiController implements KeysApi {
 
     private final KeyService keyService;
     private final KeyConverter keyConverter;
-    private final CertificateAuthorityService certificateAuthorityService;
-    private final ClientConverter clientConverter;
-    private final DistinguishedNameFieldDescriptionConverter dnConverter;
 
     /**
      * KeysApiController constructor
-     * @param keyConverter
-     * @param keyService
-     * @param certificateAuthorityService
-     * @param dnConverter
-     * @param clientConverter
      */
-
     @Autowired
     public KeysApiController(KeyService keyService,
-            KeyConverter keyConverter,
-            CertificateAuthorityService certificateAuthorityService,
-            ClientConverter clientConverter,
-            DistinguishedNameFieldDescriptionConverter dnConverter) {
+            KeyConverter keyConverter) {
         this.keyService = keyService;
         this.keyConverter = keyConverter;
-        this.certificateAuthorityService = certificateAuthorityService;
-        this.clientConverter = clientConverter;
-        this.dnConverter = dnConverter;
     }
 
     @Override
@@ -114,50 +87,5 @@ public class KeysApiController implements KeysApi {
         }
         Key key = keyConverter.convert(keyInfo);
         return new ResponseEntity<>(key, HttpStatus.OK);
-    }
-
-    @Override
-    @PreAuthorize("(hasAuthority('GENERATE_AUTH_CERT_REQ') and "
-            + " (#keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).AUTHENTICATION"
-            + " or #keyUsageType == null))"
-            + "or (hasAuthority('GENERATE_SIGN_CERT_REQ') and "
-            + "#keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).SIGNING)")
-    public ResponseEntity<List<DistinguishedNameFieldDescription>> getCsrDnFieldDescriptions(
-            String keyId,
-            KeyUsageType keyUsageType,
-            String caName,
-            String encodedMemberId) {
-
-        KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(keyUsageType).get();
-        try {
-            KeyInfo keyInfo = keyService.getKey(keyId);
-            if (keyInfo.getUsage() != null) {
-                if (keyInfo.getUsage() != keyUsageInfo) {
-                    throw new ResourceNotFoundException("key is for different usage");
-                }
-            }
-            ClientId memberId = null;
-            if (keyUsageInfo == KeyUsageInfo.SIGNING) {
-                memberId = clientConverter.convertId(encodedMemberId);
-            }
-
-            CertificateProfileInfo profileInfo;
-            profileInfo = certificateAuthorityService.getCertificateProfile(
-                    caName, keyUsageInfo, memberId);
-            List<DistinguishedNameFieldDescription> converted = dnConverter.convert(
-                    profileInfo.getSubjectFields());
-            return new ResponseEntity<>(converted, HttpStatus.OK);
-
-        } catch (CertificateAuthorityService.CannotBeUsedForSigningException e) {
-            throw new ResourceNotFoundException(e);
-        } catch (KeyService.KeyNotFoundException e) {
-            throw new ResourceNotFoundException(e);
-        } catch (CertificateAuthorityService.CertificateAuthorityNotFoundException e) {
-            throw new ResourceNotFoundException(e);
-        } catch (ClientNotFoundException e) {
-            throw new ResourceNotFoundException(e);
-        } catch (CertificateAuthorityService.CertificateProfileInstantiationException e) {
-            throw new InternalServerErrorException(e);
-        }
     }
 }

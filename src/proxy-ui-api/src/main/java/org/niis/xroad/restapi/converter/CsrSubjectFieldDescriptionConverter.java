@@ -27,7 +27,7 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 
 import com.google.common.collect.Streams;
-import org.niis.xroad.restapi.openapi.model.DistinguishedNameFieldDescription;
+import org.niis.xroad.restapi.openapi.model.CsrSubjectFieldDescription;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -35,18 +35,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Converter for DistinguishedNameFieldDescription related data between openapi and service domain classes
+ * Converter for CsrSubjectFieldDescription related data between openapi and service domain classes
  */
 @Component
-public class DistinguishedNameFieldDescriptionConverter {
+public class CsrSubjectFieldDescriptionConverter {
 
     /**
-     * convert DnFieldDescription into openapi DistinguishedNameFieldDescription class
+     * convert DnFieldDescription into openapi CsrSubjectFieldDescription class
      * @param dnFieldDescription
      * @return
      */
-    public DistinguishedNameFieldDescription convert(DnFieldDescription dnFieldDescription) {
-        DistinguishedNameFieldDescription description = new DistinguishedNameFieldDescription();
+    public CsrSubjectFieldDescription convert(DnFieldDescription dnFieldDescription) {
+        CsrSubjectFieldDescription description = new CsrSubjectFieldDescription();
         description.setId(dnFieldDescription.getId());
         if (dnFieldDescription.isLocalized()) {
             description.setLabelKey(dnFieldDescription.getLabelKey());
@@ -61,21 +61,21 @@ public class DistinguishedNameFieldDescriptionConverter {
     }
 
     /**
-     * convert a group of DnFieldDescriptions into a list of DistinguishedNameFieldDescriptions
+     * convert a group of DnFieldDescriptions into a list of CsrSubjectFieldDescriptions
      * @param dnFieldDescriptions
      * @return
      */
-    public List<DistinguishedNameFieldDescription> convert(Iterable<DnFieldDescription> dnFieldDescriptions) {
+    public List<CsrSubjectFieldDescription> convert(Iterable<DnFieldDescription> dnFieldDescriptions) {
         return Streams.stream(dnFieldDescriptions)
                 .map(this::convert)
                 .collect(Collectors.toList());
     }
     /**
-     * convert an array of DnFieldDescriptions into a list of DistinguishedNameFieldDescriptions
+     * convert an array of DnFieldDescriptions into a list of CsrSubjectFieldDescriptions
      * @param dnFieldDescriptions
      * @return
      */
-    public List<DistinguishedNameFieldDescription> convert(DnFieldDescription[] dnFieldDescriptions) {
+    public List<CsrSubjectFieldDescription> convert(DnFieldDescription[] dnFieldDescriptions) {
         return convert(Arrays.asList(dnFieldDescriptions));
     }
 }
