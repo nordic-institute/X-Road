@@ -47,7 +47,7 @@ public class CertificateAuthorityConverter {
     public CertificateAuthority convert(ApprovedCAInfo approvedCAInfo) {
         CertificateAuthority ca = new CertificateAuthority();
         ca.setName(approvedCAInfo.getName());
-        ca.setAuthenticationOnly(approvedCAInfo.getAuthenticationOnly());
+        ca.setAuthenticationOnly(Boolean.TRUE.equals(approvedCAInfo.getAuthenticationOnly()));
         return ca;
     }
 
