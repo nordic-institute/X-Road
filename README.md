@@ -5,7 +5,6 @@
 
 ![X-Road logo](xroad_logo_small.png) ![European Regional Development Fund](eu_logo.png "European Regional Development Fund - DO NOT REMOVE THIS IMAGE BEFORE 01.11.2022")
 
-
 ## About the repository 
 
 This repository contains information about the X-Road, source codes, its development, installation and documentation.
