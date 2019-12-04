@@ -96,4 +96,24 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
         CertificateDetails certificateDetails = certificateDetailsConverter.convert(certificateInfo);
         return new ResponseEntity<>(certificateDetails, HttpStatus.OK);
     }
+
+    @Override
+    @PreAuthorize("hasAnyAuthority('IMPORT_AUTH_CERT', 'IMPORT_SIGN_CERT')")
+    public ResponseEntity<CertificateDetails> importExistingCertificate(String hash) {
+        CertificateType certificate = null;
+        try {
+            certificate = tokenCertificateService.importExistingCertificate(hash);
+        } catch (GlobalConfService.GlobalConfOutdatedException | ClientNotFoundException | KeyNotFoundException
+                | TokenCertificateService.WrongCertificateUsageException
+                | TokenCertificateService.InvalidCertificateException e) {
+            throw new BadRequestException(e);
+        } catch (CertificateAlreadyExistsException | TokenCertificateService.CsrNotFoundException e) {
+            throw new ConflictException(e);
+        } catch (CertificateNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+        CertificateDetails certificateDetails = certificateDetailsConverter.convert(certificate);
+        return ApiUtil.createCreatedResponse("/api/token-certificates/{hash}", certificateDetails,
+                certificateDetails.getHash());
+    }
 }

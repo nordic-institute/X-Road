@@ -102,6 +102,27 @@ public class TokenCertificateService {
     }
 
     /**
+     * Find an existing cert by it's hash and import
+     * @param hash cert hash of an existing cert
+     * @return CertificateType
+     * @throws CertificateNotFoundException
+     * @throws InvalidCertificateException other general import failure
+     * @throws GlobalConfService.GlobalConfOutdatedException
+     * @throws KeyNotFoundException
+     * @throws CertificateAlreadyExistsException
+     * @throws WrongCertificateUsageException
+     * @throws ClientNotFoundException
+     * @throws CsrNotFoundException
+     */
+    public CertificateType importExistingCertificate(String hash) throws CertificateNotFoundException,
+            InvalidCertificateException, GlobalConfService.GlobalConfOutdatedException, KeyNotFoundException,
+            CertificateAlreadyExistsException, WrongCertificateUsageException, ClientNotFoundException,
+            CsrNotFoundException {
+        CertificateInfo certificateInfo = getCertificateInfo(hash);
+        return importCertificate(certificateInfo.getCertificateBytes());
+    }
+
+    /**
      * Import a cert from given bytes
      * @param certificateBytes
      * @return CertificateType

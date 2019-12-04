@@ -273,6 +273,37 @@ public class TokenCertificatesApiControllerIntegrationTest {
         }
     }
 
+    @Test
+    @WithMockUser(authorities = "IMPORT_SIGN_CERT")
+    public void importExistingCertificate() throws Exception {
+        ResponseEntity<CertificateDetails> response =
+                tokenCertificatesApiController.importExistingCertificate(MOCK_CERTIFICATE_HASH);
+        CertificateDetails addedCert = response.getBody();
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertSignCertificateDetails(addedCert);
+        assertLocationHeader("/api/token-certificates/" + addedCert.getHash(), response);
+    }
+
+    @Test
+    @WithMockUser(authorities = "IMPORT_SIGN_CERT")
+    public void importExistingCertificateHashNotFound() throws Exception {
+        doThrow(CodedException
+                .tr(SIGNER_X + "." + X_CERT_NOT_FOUND, "mock code", "mock msg"))
+                .when(signerProxyFacade).getCertForHash(any());
+        try {
+            tokenCertificatesApiController.importExistingCertificate(MOCK_CERTIFICATE_HASH);
+        } catch (ResourceNotFoundException e) {
+            ErrorDeviation error = e.getErrorDeviation();
+            assertEquals(CertificateNotFoundException.ERROR_CERTIFICATE_NOT_FOUND, error.getCode());
+        }
+    }
+
+    @Test(expected = AccessDeniedException.class)
+    @WithMockUser(authorities = "IMPORT_AUTH_CERT")
+    public void importExistingSignCertificateWithWrongPermission() {
+        tokenCertificatesApiController.importExistingCertificate(MOCK_CERTIFICATE_HASH);
+    }
+
     private static void assertSignCertificateDetails(CertificateDetails certificateDetails) {
         assertEquals("N/A", certificateDetails.getIssuerCommonName());
         assertEquals(OffsetDateTime.parse("1970-01-01T00:00:00Z"),

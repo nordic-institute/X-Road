@@ -382,6 +382,44 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /token-certificates/{hash}/import:
+    post: # ok
+      tags:
+        - security server
+      summary: import an existing certificate by cert hash
+      operationId: importExistingCertificate
+      description: Imports certificate from a token to the system
+      parameters:
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '201':
+          description: certificate imported
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
   /token-certificates/{hash}/register:
     put: # ok
       tags:
