@@ -25,8 +25,10 @@
 package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,6 +38,7 @@ import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.KeyUsage;
 import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
+import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.TokenCertificateService;
@@ -61,6 +64,7 @@ import java.util.Collections;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_EXISTS;
+import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
@@ -70,6 +74,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.niis.xroad.restapi.util.CertificateTestUtils.MOCK_CERTIFICATE_HASH;
 import static org.niis.xroad.restapi.util.TestUtils.assertLocationHeader;
 
 /**
@@ -97,6 +102,9 @@ public class TokenCertificatesApiControllerIntegrationTest {
         doAnswer(answer -> null).when(globalConfFacade).verifyValidity();
         doAnswer(answer -> TestUtils.INSTANCE_FI).when(globalConfFacade).getInstanceIdentifier();
         doAnswer(answer -> TestUtils.getM1Ss1ClientId()).when(globalConfFacade).getSubjectName(any(), any());
+        CertificateInfo certificateInfo = CertificateTestUtils.createTestCertificateInfo(
+                CertificateTestUtils.getMockCertificate(), CertificateStatus.GOOD, "SAVED");
+        doAnswer(answer -> certificateInfo).when(signerProxyFacade).getCertForHash(any());
     }
 
     @Test
@@ -232,12 +240,36 @@ public class TokenCertificatesApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = "IMPORT_SIGN_CERT")
     public void importInvalidSignCertificate() throws Exception {
-        Resource body = CertificateTestUtils.getResource(new byte[] {0, 0, 0, 0 });
+        Resource body = CertificateTestUtils.getResource(new byte[] { 0, 0, 0, 0 });
         try {
             tokenCertificatesApiController.importCertificate(body);
         } catch (BadRequestException e) {
             ErrorDeviation error = e.getErrorDeviation();
             assertEquals(TokenCertificateService.InvalidCertificateException.INVALID_CERT, error.getCode());
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = "VIEW_CERT")
+    public void getCertificateForHash() throws Exception {
+        ResponseEntity<CertificateDetails> response =
+                tokenCertificatesApiController.getCertificate(MOCK_CERTIFICATE_HASH);
+        CertificateDetails addedCert = response.getBody();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertSignCertificateDetails(addedCert);
+    }
+
+    @Test
+    @WithMockUser(authorities = "VIEW_CERT")
+    public void getCertificateForHashNotFound() throws Exception {
+        doThrow(CodedException
+                .tr(SIGNER_X + "." + X_CERT_NOT_FOUND, "mock code", "mock msg"))
+                .when(signerProxyFacade).getCertForHash(any());
+        try {
+            tokenCertificatesApiController.getCertificate("knock knock");
+        } catch (ResourceNotFoundException e) {
+            ErrorDeviation error = e.getErrorDeviation();
+            assertEquals(CertificateNotFoundException.ERROR_CERTIFICATE_NOT_FOUND, error.getCode());
         }
     }
 
