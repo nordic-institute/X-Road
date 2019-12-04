@@ -36,9 +36,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
  * and actuator endpoint
  */
 @Configuration
-@Profile("devtools")
-@Order(DevToolsWebSecurityConfig.AFTER_STATIC_ASSETS)
-public class DevToolsWebSecurityConfig extends WebSecurityConfigurerAdapter {
+@Profile({"devtools-hotdeploy"})
+@Order(DevtoolsWebSecurityConfig.AFTER_STATIC_ASSETS)
+public class DevtoolsWebSecurityConfig extends WebSecurityConfigurerAdapter {
     public static final int AFTER_STATIC_ASSETS = 10;
 
     @Override

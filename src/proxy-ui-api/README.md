@@ -16,19 +16,6 @@ that is being served from webpack development server.
 ../gradlew clean build -Pskip-frontend-build
 ```
 
-Parameter `activate-devtools-do-not-use-in-production` can be used to build a jar that contains spring
-devtools, which enable remote hot deployment of code. In this case, jar needs to be started with spring
-profile `devtools`. 
-
-```
-../gradlew clean build -Pactivate-devtools-do-not-use-in-production
-```
-```
-java -jar proxy-ui-api-1.0.jar --spring.profiles.active=devtools
-```
-`activate-devtools-do-not-use-in-production` also makes it possible to use development login
-with hard coded users. This is activated with profile `devtools-test-auth`.
-
 # Running
 
 For example
@@ -58,15 +45,10 @@ server {
 
 # Development profiles
 
-Different development aspects are activated using several Spring profiles:
+- `development` profile toggles some "safe" development aspects. It enables more logging and supports
+accessing signer from a remote IP.
+- other development profiles exist in a separate module, which is not included in a regular build. See [proxy-ui-api-devtools](../proxy-ui-api-devtools/README.md)
 
-- `development` profile toggles some "safe" development aspects. Mostly enables more logging.
-This profile is always available.
-- `devtools` activates Spring devtools support and enables for example remote code deployment.
-This profile can be used only if jar was built using `activate-devtools-do-not-use-in-production` parameter.
-This profile currently disables SSL and runs application in port 8080, since devtools does not work with SSL.
-- `devtools-test-auth` activates development authentication, see "Development authentication".
-This profile can be used only if jar was built using `activate-devtools-do-not-use-in-production` parameter.
 
 # Api key database tables
 
@@ -110,15 +92,15 @@ For details and example commands, see
 
 # Authentication
 
-There is two possible authentication mechanims
+There are two possible authentication mechanims
 - PAM authentication
-- Development authentication with static users
+- Development authentication with static users. See [proxy-ui-api-devtools](../proxy-ui-api-devtools/README.md)
 
-## PAM login
+## PAM authentication
 
-PAM login is active by default.
+PAM authentication is active by default.
 
-PAM login is done using unix user and password. There's some requirements
+PAM authentication is done using unix user and password. There's some requirements
 - application has to be run as user who can read `/etc/shadow`
 - roles are granted using linux groups `xroad-security-officer`,
 `xroad-registration-officer`,
@@ -148,24 +130,6 @@ sudo usermod -a -G xroad-registration-officer,xroad-service-administrator,xroad-
 sudo passwd xrd-full-user
 sudo passwd xrd-system-admin
 ```
-
-## Development authentication
-
-You can use dummy in-memory authentication by building a development tools -enabled version
-with `activate-devtools-do-not-use-in-production` parameter and then activating
-profile `devtools-test-auth`.
-
-Logins for development authentication:
-- u: security-officer p: password
-- u: registration-officer p: password
-- u: service-admin p: password
-- u: system-admin p: password
-- u: observer p: password
-- u: full-admin p: password
-- u: roleless p: password
-
-All these have a single role matching the username, except `full-admin` has all roles
-and `roleless` has none.
 
 # CSRF protection
 
