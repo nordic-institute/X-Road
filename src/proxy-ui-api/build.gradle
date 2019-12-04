@@ -110,10 +110,23 @@ task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
 }
 
 // run e2e tests vs remote url
+if (!project.hasProperty("testTargetUrl")) {
+    ext.testTargetUrl = ""
+}
+
 task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
+
+    doFirst {
+        if (testTargetUrl.isEmpty()) {
+            throw new GradleException('testTargetUrl property was empty, it is mandatory for e2eTests')
+        }
+    }
+    
     inputs.dir("frontend")
     outputs.dir("frontend")
+
     args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl]
+
     execOverrides {
         it.workingDir = 'frontend'
     }
