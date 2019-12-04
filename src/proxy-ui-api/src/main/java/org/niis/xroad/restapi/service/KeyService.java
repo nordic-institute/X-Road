@@ -29,7 +29,6 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -96,7 +95,7 @@ public class KeyService {
         } catch (KeyNotFoundException e) {
             throw e;
         } catch (CodedException e) {
-            if ((SIGNER_X + "." + X_KEY_NOT_FOUND).equals(e.getFaultCode())) {
+            if (isCausedByKeyNotFound(e)) {
                 throw new KeyNotFoundException(e);
             } else {
                 throw e;
@@ -134,19 +133,9 @@ public class KeyService {
         return keyInfo;
     }
 
-    public static class KeyNotFoundException extends NotFoundException {
-        public static final String ERROR_KEY_NOT_FOUND = "key_not_found";
-
-        public KeyNotFoundException(String s) {
-            super(s, new ErrorDeviation(ERROR_KEY_NOT_FOUND));
-        }
-
-        public KeyNotFoundException(Throwable t) {
-            super(t, createError());
-        }
-
-        private static ErrorDeviation createError() {
-            return new ErrorDeviation(ERROR_KEY_NOT_FOUND);
-        }
+    static boolean isCausedByKeyNotFound(CodedException e) {
+        return KEY_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
     }
+
+    static final String KEY_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_KEY_NOT_FOUND;
 }

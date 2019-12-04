@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.KeyConverter;
 import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.KeyName;
+import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.KeyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -74,7 +75,7 @@ public class KeysApiController implements KeysApi {
         try {
             KeyInfo keyInfo = keyService.getKey(keyId);
             return keyConverter.convert(keyInfo);
-        } catch (KeyService.KeyNotFoundException e) {
+        } catch (KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
     }
@@ -85,7 +86,7 @@ public class KeysApiController implements KeysApi {
         KeyInfo keyInfo = null;
         try {
             keyInfo = keyService.updateKeyFriendlyName(id, keyName.getName());
-        } catch (KeyService.KeyNotFoundException e) {
+        } catch (KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
         Key key = keyConverter.convert(keyInfo);

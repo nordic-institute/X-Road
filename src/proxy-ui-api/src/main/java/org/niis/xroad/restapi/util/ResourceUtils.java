@@ -22,52 +22,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.serverconf.model;
+package org.niis.xroad.restapi.util;
 
-import ee.ria.xroad.common.conf.serverconf.PathGlob;
+import org.apache.commons.io.IOUtils;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.springframework.core.io.Resource;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
- * Endpoint
+ * Resource utils
  */
-@Getter
-@Setter
-public class EndpointType {
-    public static final String ANY_METHOD = "*";
-    public static final String ANY_PATH = "**";
+public final class ResourceUtils {
+    public static final String ERROR_RESOURCE_READ = "resource_read_failed";
 
-    @Setter(AccessLevel.NONE)
-    private Long id;
-    private String serviceCode;
-    private String method;
-    private String path;
-    private boolean generated;
-
-    protected EndpointType() {
-        //JPA
+    private ResourceUtils() {
+        // noop
     }
 
     /**
-     * Create an endpoint
-     * @param serviceCode
-     * @param method
-     * @param path
+     * Read bytes from {@link Resource}. Also handles closing the stream.
+     * @param resource
+     * @return byte array
+     * @throws BadRequestException
      */
-    public EndpointType(String serviceCode, String method, String path, boolean generated) {
-        if (serviceCode == null || method == null || path == null) {
-            throw new IllegalArgumentException("Endpoint parts can not be null");
+    public static byte[] springResourceToBytesOrThrowBadRequest(Resource resource) {
+        byte[] resourceBytes;
+        try (InputStream is = resource.getInputStream()) {
+            resourceBytes = IOUtils.toByteArray(is);
+        } catch (IOException ex) {
+            throw new BadRequestException("cannot read resource", ex,
+                    new ErrorDeviation(ERROR_RESOURCE_READ));
         }
-        this.serviceCode = serviceCode;
-        this.method = method;
-        this.path = path;
-        this.generated = generated;
-    }
-
-    public final boolean matches(String anotherMethod, String anotherPath) {
-        return (ANY_METHOD.equals(method) || method.equalsIgnoreCase(anotherMethod))
-                && (ANY_PATH.equals(path) || PathGlob.matches(path, anotherPath));
+        return resourceBytes;
     }
 }
