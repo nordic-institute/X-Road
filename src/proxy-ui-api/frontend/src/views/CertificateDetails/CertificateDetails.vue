@@ -3,7 +3,7 @@
         <div class="new-content">
       <subViewTitle :title="$t('cert.certificate')" @close="close" />
       <div class="details-view-tools">
-        <large-button v-if="!isActive" outlined @click="activateCertificate()">{{$t('action.activate')}}</large-button>
+        <large-button v-if="!isActive" outlined @click="activateCertificate(certificate.hash)">{{$t('action.activate')}}</large-button>
         <large-button v-if="isActive" outlined>{{$t('action.disable')}}</large-button>
       </div>
       <template v-if="certificate">
