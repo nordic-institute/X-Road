@@ -24,13 +24,14 @@
  */
 package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -41,6 +42,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
+
 /**
  * global configuration service
  */
@@ -48,7 +51,6 @@ import java.util.stream.Collectors;
 @Service
 @PreAuthorize("isAuthenticated()")
 public class GlobalConfService {
-
     private final GlobalConfFacade globalConfFacade;
 
     @Autowired
@@ -67,7 +69,7 @@ public class GlobalConfService {
             // which is hard to turn correctly into http 404 instead of 500
             return false;
         }
-        return GlobalConf.existsSecurityServer(securityServerId);
+        return globalConfFacade.existsSecurityServer(securityServerId);
     }
 
     /**
@@ -96,6 +98,36 @@ public class GlobalConfService {
      * @return member classes for current instance
      */
     public Set<String> getMemberClassesForThisInstance() {
-        return GlobalConf.getMemberClasses(globalConfFacade.getInstanceIdentifier());
+        return globalConfFacade.getMemberClasses(globalConfFacade.getInstanceIdentifier());
+    }
+
+    /**
+     * Check the validity of the GlobalConf
+     * @throws GlobalConfOutdatedException if conf is outdated
+     */
+    public void verifyGlobalConfValidity() throws GlobalConfOutdatedException {
+        try {
+            globalConfFacade.verifyValidity();
+        } catch (CodedException e) {
+            if (isCausedByOutdatedGlobalconf(e)) {
+                throw new GlobalConfOutdatedException(e);
+            } else {
+                throw e;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("global conf validity check failed", e);
+        }
+    }
+
+    public static class GlobalConfOutdatedException extends ServiceException {
+        public static final String ERROR_OUTDATED_GLOBALCONF = "global_conf_outdated";
+
+        public GlobalConfOutdatedException(Throwable t) {
+            super(t, new ErrorDeviation(ERROR_OUTDATED_GLOBALCONF));
+        }
+    }
+
+    static boolean isCausedByOutdatedGlobalconf(CodedException e) {
+        return X_OUTDATED_GLOBALCONF.equals(e.getFaultCode());
     }
 }
