@@ -3,7 +3,7 @@
         <div class="new-content">
       <subViewTitle :title="$t('cert.certificate')" @close="close" />
       <div class="details-view-tools">
-        <large-button v-if="!isActive" outlined @click="activateCertificate()">{{$t('action.activate')}}</large-button>
+        <large-button v-if="!isActive" outlined @click="activateCertificate(certificate.hash)">{{$t('action.activate')}}</large-button>
         <large-button v-if="isActive" outlined @click="disableCertificate(certificate.hash)">{{$t('action.disable')}}</large-button>
       </div>
       <template v-if="certificate">
@@ -113,9 +113,9 @@ export default Vue.extend({
         .put(`/certificates/${hash}/activate`, hash)
         .then((res) => {
           this.isActive = true;
-          this.$bus.$emit('show-success', 'cert.activateSuccess')
+          this.$bus.$emit('show-success', 'cert.activateSuccess');
         })
-        .catch((error) => this.$bus.$emit('show-error', error.message))
+        .catch((error) => this.$bus.$emit('show-error', error.message));
     },
     disableCertificate(hash: string): void {
       api
@@ -125,7 +125,7 @@ export default Vue.extend({
             this.$bus.$emit('show-success', 'cert.disableSuccess');
         })
         .catch((error) => this.$bus.$emit('show-error', error.message));
-    }
+    },
   },
   created() {
     this.fetchData(this.hash);
