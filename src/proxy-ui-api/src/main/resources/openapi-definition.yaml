@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.16"
+  version: "1.0.17"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -539,9 +539,13 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: add new client for the security server
+      summary: Add new client for the security server.
       operationId: addClient
-      description: Adds new client to the system
+      description: >
+        Adds new client to the system.
+        Note that with this endpoint it is possible to add an unregistered member as a client.
+        Attempt to add an unregistered member with ClientAdd.ignore_warnings = false causes the operation to fail with a warning in response's ErrorInfo object.
+        Attempt to add an unregistered member with ClientAdd.ignore_warnings = true succeeds.
       requestBody:
         description: client to add
         content:
