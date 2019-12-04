@@ -4,7 +4,7 @@
       <subViewTitle :title="$t('cert.certificate')" @close="close" />
       <div class="details-view-tools">
         <large-button v-if="!isActive" outlined @click="activateCertificate()">{{$t('action.activate')}}</large-button>
-        <large-button v-if="isActive" outlined>{{$t('action.disable')}}</large-button>
+        <large-button v-if="isActive" outlined @click="disableCertificate(certificate.hash)">{{$t('action.disable')}}</large-button>
       </div>
       <template v-if="certificate">
         <div class="cert-hash-wrapper">
@@ -116,6 +116,15 @@ export default Vue.extend({
           this.$bus.$emit('show-success', 'cert.activateSuccess')
         })
         .catch((error) => this.$bus.$emit('show-error', error.message))
+    },
+    disableCertificate(hash: string): void {
+      api
+        .put(`certificates/${hash}/disable`, hash)
+        .then((res) => {
+            this.isActive = false;
+            this.$bus.$emit('show-success', 'cert.disableSuccess');
+        })
+        .catch((error) => this.$bus.$emit('show-error', error.message));
     }
   },
   created() {
