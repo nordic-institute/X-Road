@@ -113,10 +113,10 @@ export default Vue.extend({
         .put(`/certificates/${hash}/activate`, hash)
         .then((res) => {
           this.isActive = true;
-          this.$bus.$emit('show-success', 'cert.activateSuccess')
+          this.$bus.$emit('show-success', 'cert.activateSuccess');
         })
-        .catch((error) => this.$bus.$emit('show-error', error.message))
-    }
+        .catch((error) => this.$bus.$emit('show-error', error.message));
+    },
   },
   created() {
     this.fetchData(this.hash);
