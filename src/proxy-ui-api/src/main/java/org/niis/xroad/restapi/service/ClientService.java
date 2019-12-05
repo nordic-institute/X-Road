@@ -31,7 +31,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,7 +110,7 @@ public class ClientService {
      * @param id
      * @param connectionType
      * @return
-     * @throws IllegalArgumentException                            if connectionType was not supported value
+     * @throws IllegalArgumentException if connectionType was not supported value
      * @throws ClientNotFoundException if client was not found
      */
     public ClientType updateConnectionType(ClientId id, String connectionType) throws ClientNotFoundException {
@@ -173,16 +172,6 @@ public class ClientService {
     }
 
     /**
-     * If trying to add certificate which already exists
-     */
-    public static class CertificateAlreadyExistsException extends ServiceException {
-        public static final String ERROR_CERTIFICATE_ALREADY_EXISTS = "certificate_already_exists";
-        public CertificateAlreadyExistsException(String s) {
-            super(s, new ErrorDeviation(ERROR_CERTIFICATE_ALREADY_EXISTS));
-        }
-    }
-
-    /**
      * Convenience / cleanness wrapper
      */
     private String calculateCertHexHash(X509Certificate cert) {
@@ -232,8 +221,8 @@ public class ClientService {
      * Returns a single client tls certificate that has matching hash
      * @param id
      * @param certificateHash
-     * @throws ClientNotFoundException if client was not found
      * @return
+     * @throws ClientNotFoundException if client was not found
      */
     public Optional<CertificateType> getTlsCertificate(ClientId id, String certificateHash)
             throws ClientNotFoundException {

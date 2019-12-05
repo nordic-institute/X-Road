@@ -42,6 +42,7 @@ import org.niis.xroad.restapi.openapi.model.CsrSubjectFieldDescription;
 import org.niis.xroad.restapi.openapi.model.KeyUsageType;
 import org.niis.xroad.restapi.service.CertificateAuthorityService;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
+import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.KeyService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -137,7 +138,7 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
 
         } catch (CertificateAuthorityService.CannotBeUsedForSigningException e) {
             throw new BadRequestException(e);
-        } catch (KeyService.KeyNotFoundException | ClientNotFoundException e) {
+        } catch (KeyNotFoundException | ClientNotFoundException e) {
             throw new BadRequestException(e);
         } catch (CertificateAuthorityService.CertificateAuthorityNotFoundException e) {
             throw new ResourceNotFoundException(e);

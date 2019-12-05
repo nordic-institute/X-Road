@@ -22,57 +22,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.config;
+package org.niis.xroad.restapi.devtools;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.niis.xroad.restapi.config.UsernameSettingTransactionManager;
 import org.springframework.context.annotation.Profile;
-import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.TransactionDefinition;
 
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Query;
 
 /**
  * Sets xroad_user_name configuration setting for each transaction.
  * Needed for history table stored procedures.
  *
  * Not used in tests (since HSQLDB does not understand set_config).
- * Not user with devtools test auth (username is fetched differently)
+ * Real application uses {@link UsernameSettingTransactionManager}
  */
 @Component
-@Profile({"nontest & !devtools-test-auth"})
-public class UsernameSettingTransactionManager extends JpaTransactionManager {
+@Profile({"nontest & devtools-test-auth"})
+public class DevtoolsUsernameSettingTransactionManager extends UsernameSettingTransactionManager {
 
-    @Autowired
-    private EntityManager entityManager;
-
-    public UsernameSettingTransactionManager(EntityManagerFactory emf) {
+    DevtoolsUsernameSettingTransactionManager(EntityManagerFactory emf) {
         super(emf);
     }
 
     @Override
-    protected void doBegin(Object transaction, TransactionDefinition definition) {
-        super.doBegin(transaction, definition);
-        Query query = entityManager.createNativeQuery(
-                "SELECT set_config('xroad.user_name', ?, true);");
-        query.setParameter(1, getCurrentUsername());
-        query.getResultList();
-    }
-
     public String getCurrentUsername() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        // Authentication is null if transaction was not due to authenticated user doing something -
-        // e.g. authentication itself created transaction to load api keys from db
-        String username = "unknown_user";
+        // authentication should be UsernamePasswordAuthenticationToken
+        String username = "devtools-unknown_user";
         if (authentication != null) {
-            // for PreAuthenticatedAuthenticationToken (session cookie auth) and
-            // UsernamePasswordAuthenticationToken (api key auth), principal
-            // is simply a String that contains what we want
-            username = String.valueOf(authentication.getPrincipal());
+            if (authentication.getPrincipal() instanceof User) {
+                User user = (User) authentication.getPrincipal();
+                username = "devtools-" + user.getUsername();
+            }
         }
         return username;
     }

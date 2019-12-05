@@ -8,7 +8,10 @@
         </encoder>
     </appender>
 
-    <root level="TRACE">
+    <logger name="ee.ria.xroad" level="TRACE"/>
+    <logger name="org.hibernate.SQL" level="DEBUG"/>
+
+    <root level="INFO">
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>
