@@ -187,7 +187,7 @@ public class ClientServiceIntegrationTest {
         try {
             clientService.addTlsCertificate(id, pemBytes);
             fail("should have thrown CertificateAlreadyExistsException");
-        } catch (ClientService.CertificateAlreadyExistsException expected) {
+        } catch (CertificateAlreadyExistsException expected) {
         }
     }
 

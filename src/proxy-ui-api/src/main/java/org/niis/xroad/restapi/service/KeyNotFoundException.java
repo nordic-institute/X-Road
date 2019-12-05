@@ -3,17 +3,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,52 +22,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.serverconf.model;
+package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.PathGlob;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
+public class KeyNotFoundException extends NotFoundException {
+    public static final String ERROR_KEY_NOT_FOUND = "key_not_found";
 
-/**
- * Endpoint
- */
-@Getter
-@Setter
-public class EndpointType {
-    public static final String ANY_METHOD = "*";
-    public static final String ANY_PATH = "**";
-
-    @Setter(AccessLevel.NONE)
-    private Long id;
-    private String serviceCode;
-    private String method;
-    private String path;
-    private boolean generated;
-
-    protected EndpointType() {
-        //JPA
+    public KeyNotFoundException(String s) {
+        super(s, new ErrorDeviation(ERROR_KEY_NOT_FOUND));
     }
 
-    /**
-     * Create an endpoint
-     * @param serviceCode
-     * @param method
-     * @param path
-     */
-    public EndpointType(String serviceCode, String method, String path, boolean generated) {
-        if (serviceCode == null || method == null || path == null) {
-            throw new IllegalArgumentException("Endpoint parts can not be null");
-        }
-        this.serviceCode = serviceCode;
-        this.method = method;
-        this.path = path;
-        this.generated = generated;
+    public KeyNotFoundException(Throwable t) {
+        super(t, createError());
     }
 
-    public final boolean matches(String anotherMethod, String anotherPath) {
-        return (ANY_METHOD.equals(method) || method.equalsIgnoreCase(anotherMethod))
-                && (ANY_PATH.equals(path) || PathGlob.matches(path, anotherPath));
+    private static ErrorDeviation createError() {
+        return new ErrorDeviation(ERROR_KEY_NOT_FOUND);
     }
 }

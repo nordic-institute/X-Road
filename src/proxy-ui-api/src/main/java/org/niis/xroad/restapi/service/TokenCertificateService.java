@@ -27,31 +27,47 @@ package org.niis.xroad.restapi.service;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.DnFieldValue;
+import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
+import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.CertUtils;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.cert.X509Certificate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.ErrorCodes.X_CERT_EXISTS;
+import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_AVAILABLE;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_ACTIVE;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_AVAILABLE;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_INITIALIZED;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_READONLY;
+import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
+import static org.niis.xroad.restapi.service.KeyService.isCausedByKeyNotFound;
 
 /**
  * token certificate service
@@ -62,7 +78,12 @@ import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_READONLY;
 @PreAuthorize("isAuthenticated()")
 public class TokenCertificateService {
 
+    private static final String DUMMY_MEMBER = "dummy";
+
+    private final GlobalConfService globalConfService;
+    private final GlobalConfFacade globalConfFacade;
     private final SignerProxyFacade signerProxyFacade;
+    private final ClientRepository clientRepository;
     private final ClientService clientService;
     private final CertificateAuthorityService certificateAuthorityService;
     private final KeyService keyService;
@@ -71,12 +92,18 @@ public class TokenCertificateService {
     @Autowired
     public TokenCertificateService(SignerProxyFacade signerProxyFacade, ClientService clientService,
             CertificateAuthorityService certificateAuthorityService,
-            KeyService keyService, DnFieldHelper dnFieldHelper) {
+            KeyService keyService, DnFieldHelper dnFieldHelper,
+            GlobalConfService globalConfService,
+            GlobalConfFacade globalConfFacade,
+            ClientRepository clientRepository) {
         this.signerProxyFacade = signerProxyFacade;
         this.clientService = clientService;
         this.certificateAuthorityService = certificateAuthorityService;
         this.keyService = keyService;
         this.dnFieldHelper = dnFieldHelper;
+        this.globalConfService = globalConfService;
+        this.globalConfFacade = globalConfFacade;
+        this.clientRepository = clientRepository;
     }
 
     /**
@@ -94,7 +121,7 @@ public class TokenCertificateService {
      * @throws WrongKeyUsageException if keyUsage param did not match the key's usage type
      * @throws DnFieldHelper.InvalidDnParameterException if required dn parameters were missing, or if there
      * were some extra parameters
-     * @throws KeyService.KeyNotFoundException
+     * @throws KeyNotFoundException
      * @throws CsrCreationFailureException when signer could not create CSR for some reason.
      * Subclass {@link KeyNotOperationalException} when the reason is key not being operational.
      */
@@ -102,7 +129,7 @@ public class TokenCertificateService {
             String caName, Map<String, String> subjectFieldValues, GenerateCertRequest.RequestFormat format)
             throws CertificateAuthorityNotFoundException, ClientNotFoundException,
             CertificateProfileInstantiationException, WrongKeyUsageException,
-            KeyService.KeyNotFoundException, CsrCreationFailureException,
+            KeyNotFoundException, CsrCreationFailureException,
             DnFieldHelper.InvalidDnParameterException {
 
         // validate key and memberId existence
@@ -191,6 +218,150 @@ public class TokenCertificateService {
         }
     }
 
+    /**
+     * @param certificateBytes
+     * @return
+     * @throws GlobalConfService.GlobalConfOutdatedException
+     * @throws ClientNotFoundException
+     * @throws KeyNotFoundException
+     * @throws InvalidCertificateException other general import failure
+     * @throws CertificateAlreadyExistsException
+     * @throws WrongCertificateUsageException
+     */
+    public CertificateType importCertificate(byte[] certificateBytes)
+            throws GlobalConfService.GlobalConfOutdatedException, ClientNotFoundException, KeyNotFoundException,
+            InvalidCertificateException, CertificateAlreadyExistsException, WrongCertificateUsageException,
+            CsrNotFoundException {
+        globalConfService.verifyGlobalConfValidity();
+        X509Certificate x509Certificate;
+        try {
+            x509Certificate = CryptoUtils.readCertificate(certificateBytes);
+        } catch (Exception e) {
+            throw new InvalidCertificateException("cannot convert bytes to certificate", e);
+        }
+        CertificateType certificateType = new CertificateType();
+        try {
+            String certificateState;
+            ClientId clientId = null;
+            if (CertUtils.isAuthCert(x509Certificate)) {
+                if (!hasPermissionOrRole("IMPORT_AUTH_CERT")) {
+                    throw new AccessDeniedException("Missing permission: IMPORT_AUTH_CERT");
+                }
+                certificateState = CertificateInfo.STATUS_SAVED;
+            } else {
+                if (!hasPermissionOrRole("IMPORT_SIGN_CERT")) {
+                    throw new AccessDeniedException("Missing permission: IMPORT_SIGN_CERT");
+                }
+                String xroadInstance = globalConfFacade.getInstanceIdentifier();
+                clientId = getClientIdForSigningCert(xroadInstance, x509Certificate);
+                boolean clientExists = clientRepository.clientExists(clientId, true);
+                if (!clientExists) {
+                    throw new ClientNotFoundException("client " + clientId.toShortString() + " not found");
+                }
+                certificateState = CertificateInfo.STATUS_REGISTERED;
+            }
+            byte[] certBytes = x509Certificate.getEncoded();
+            signerProxyFacade.importCert(certBytes, certificateState, clientId);
+            certificateType.setData(certBytes);
+        } catch (ClientNotFoundException | AccessDeniedException e) {
+            throw e;
+        } catch (CodedException e) {
+            translateCodedExceptions(e);
+        } catch (Exception e) {
+            // something went really wrong
+            throw new RuntimeException("error importing certificate", e);
+        }
+        return certificateType;
+    }
+
+    /**
+     * Returns the given certificate owner's client ID.
+     * @param instanceIdentifier instance identifier of the owner
+     * @param cert the certificate
+     * @return certificate owner's client ID
+     * @throws InvalidCertificateException if any errors occur
+     */
+    private ClientId getClientIdForSigningCert(String instanceIdentifier, X509Certificate cert)
+            throws InvalidCertificateException {
+        ClientId dummyClientId = ClientId.create(instanceIdentifier, DUMMY_MEMBER, DUMMY_MEMBER);
+        SignCertificateProfileInfoParameters signCertificateProfileInfoParameters =
+                new SignCertificateProfileInfoParameters(dummyClientId, DUMMY_MEMBER);
+        ClientId certificateSubject;
+        try {
+            certificateSubject = globalConfFacade.getSubjectName(signCertificateProfileInfoParameters, cert);
+        } catch (Exception e) {
+            throw new InvalidCertificateException("Cannot read member identifier from signing certificate", e);
+        }
+        return certificateSubject;
+    }
+
+    /**
+     * Helper to translate caught {@link CodedException CodedExceptions}
+     * @param e
+     * @throws CertificateAlreadyExistsException
+     * @throws InvalidCertificateException
+     * @throws WrongCertificateUsageException
+     * @throws CsrNotFoundException
+     * @throws KeyNotFoundException
+     */
+    private void translateCodedExceptions(CodedException e) throws CertificateAlreadyExistsException,
+            InvalidCertificateException, WrongCertificateUsageException, CsrNotFoundException, KeyNotFoundException {
+        if (isCausedByDuplicateCertificate(e)) {
+            throw new CertificateAlreadyExistsException(e);
+        } else if (isCausedByIncorrectCertificate(e)) {
+            throw new InvalidCertificateException(e);
+        } else if (isCausedByCertificateWrongUsage(e)) {
+            throw new WrongCertificateUsageException(e);
+        } else if (isCausedByCsrNotFound(e)) {
+            throw new CsrNotFoundException(e);
+        } else if (isCausedByKeyNotFound(e)) {
+            throw new KeyNotFoundException(e);
+        } else {
+            throw e;
+        }
+    }
+
+    private boolean hasPermissionOrRole(String permission) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals(permission));
+    }
+
+    static boolean isCausedByDuplicateCertificate(CodedException e) {
+        return DUPLICATE_CERT_FAULT_CODE.equals(e.getFaultCode());
+    }
+
+    static boolean isCausedByIncorrectCertificate(CodedException e) {
+        return INCORRECT_CERT_FAULT_CODE.equals(e.getFaultCode());
+    }
+
+    static boolean isCausedByCertificateWrongUsage(CodedException e) {
+        return CERT_WRONG_USAGE_FAULT_CODE.equals(e.getFaultCode());
+    }
+
+    static boolean isCausedByCsrNotFound(CodedException e) {
+        return CSR_NOT_FOUND.equals(e.getFaultCode());
+    }
+
+    static final String DUPLICATE_CERT_FAULT_CODE = SIGNER_X + "." + X_CERT_EXISTS;
+    static final String INCORRECT_CERT_FAULT_CODE = SIGNER_X + "." + X_INCORRECT_CERTIFICATE;
+    static final String CERT_WRONG_USAGE_FAULT_CODE = SIGNER_X + "." + X_WRONG_CERT_USAGE;
+    static final String CSR_NOT_FOUND = SIGNER_X + "." + X_CSR_NOT_FOUND;
+
+    /**
+     * General error that happens when importing a cert. Usually a wrong file type
+     */
+    public static class InvalidCertificateException extends ServiceException {
+        public static final String INVALID_CERT = "invalid_cert";
+
+        public InvalidCertificateException(Throwable t) {
+            super(t, new ErrorDeviation(INVALID_CERT));
+        }
+
+        public InvalidCertificateException(String msg, Throwable t) {
+            super(msg, t, new ErrorDeviation(INVALID_CERT));
+        }
+    }
 
     /**
      * Cert usage info is wrong (e.g. cert is both auth and sign or neither)
@@ -203,4 +374,14 @@ public class TokenCertificateService {
         }
     }
 
+    /**
+     * Certificate sign request not found
+     */
+    public static class CsrNotFoundException extends ServiceException {
+        public static final String ERROR_CSR_NOT_FOUND = "csr_not_found";
+
+        public CsrNotFoundException(Throwable t) {
+            super(t, new ErrorDeviation(ERROR_CSR_NOT_FOUND));
+        }
+    }
 }

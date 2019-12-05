@@ -41,6 +41,7 @@ import org.niis.xroad.restapi.service.CertificateAuthorityNotFoundException;
 import org.niis.xroad.restapi.service.CertificateProfileInstantiationException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.DnFieldHelper;
+import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.KeyService;
 import org.niis.xroad.restapi.service.ServerConfService;
 import org.niis.xroad.restapi.service.TokenCertificateService;
@@ -99,7 +100,7 @@ public class KeysApiController implements KeysApi {
         try {
             KeyInfo keyInfo = keyService.getKey(keyId);
             return keyConverter.convert(keyInfo);
-        } catch (KeyService.KeyNotFoundException e) {
+        } catch (KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
     }
@@ -110,7 +111,7 @@ public class KeysApiController implements KeysApi {
         KeyInfo keyInfo = null;
         try {
             keyInfo = keyService.updateKeyFriendlyName(id, keyName.getName());
-        } catch (KeyService.KeyNotFoundException e) {
+        } catch (KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
         Key key = keyConverter.convert(keyInfo);
@@ -142,7 +143,7 @@ public class KeysApiController implements KeysApi {
         } catch (WrongKeyUsageException | DnFieldHelper.InvalidDnParameterException
                 | ClientNotFoundException | CertificateAuthorityNotFoundException e) {
             throw new BadRequestException(e);
-        } catch (KeyService.KeyNotFoundException e) {
+        } catch (KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (TokenCertificateService.KeyNotOperationalException e) {
             throw new ConflictException(e);

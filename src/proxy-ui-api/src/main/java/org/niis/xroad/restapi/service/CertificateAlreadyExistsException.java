@@ -22,52 +22,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.serverconf.model;
+package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.PathGlob;
-
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
 /**
- * Endpoint
+ * If trying to add certificate which already exists
  */
-@Getter
-@Setter
-public class EndpointType {
-    public static final String ANY_METHOD = "*";
-    public static final String ANY_PATH = "**";
-
-    @Setter(AccessLevel.NONE)
-    private Long id;
-    private String serviceCode;
-    private String method;
-    private String path;
-    private boolean generated;
-
-    protected EndpointType() {
-        //JPA
+public class CertificateAlreadyExistsException extends ServiceException {
+    public static final String ERROR_CERTIFICATE_ALREADY_EXISTS = "certificate_already_exists";
+    public CertificateAlreadyExistsException(String s) {
+        super(s, new ErrorDeviation(ERROR_CERTIFICATE_ALREADY_EXISTS));
     }
 
-    /**
-     * Create an endpoint
-     * @param serviceCode
-     * @param method
-     * @param path
-     */
-    public EndpointType(String serviceCode, String method, String path, boolean generated) {
-        if (serviceCode == null || method == null || path == null) {
-            throw new IllegalArgumentException("Endpoint parts can not be null");
-        }
-        this.serviceCode = serviceCode;
-        this.method = method;
-        this.path = path;
-        this.generated = generated;
-    }
-
-    public final boolean matches(String anotherMethod, String anotherPath) {
-        return (ANY_METHOD.equals(method) || method.equalsIgnoreCase(anotherMethod))
-                && (ANY_PATH.equals(path) || PathGlob.matches(path, anotherPath));
+    public CertificateAlreadyExistsException(Throwable t) {
+        super(t, new ErrorDeviation(ERROR_CERTIFICATE_ALREADY_EXISTS));
     }
 }
