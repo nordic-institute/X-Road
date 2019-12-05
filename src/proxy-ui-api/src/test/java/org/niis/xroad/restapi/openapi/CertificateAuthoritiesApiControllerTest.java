@@ -37,6 +37,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.KeyUsageType;
 import org.niis.xroad.restapi.service.CertificateAuthorityService;
+import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.KeyService;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,7 +94,7 @@ public class CertificateAuthoritiesApiControllerTest {
             } else if (keyId.equals(GOOD_SIGN_KEY_ID)) {
                 return signKeyInfo;
             } else {
-                throw new KeyService.KeyNotFoundException("foo");
+                throw new KeyNotFoundException("foo");
             }
         }).when(keyService).getKey(any());
 
