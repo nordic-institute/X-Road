@@ -87,6 +87,8 @@ final class TimestamperUtil {
         if (con.getResponseCode() != HttpURLConnection.HTTP_OK) {
             throw new RuntimeException("Received HTTP error: " + con.getResponseCode() + " - "
                     + con.getResponseMessage());
+        } else if (con.getInputStream() == null) {
+            throw new RuntimeException("Could not get response from TSP");
         }
 
         return con.getInputStream();
