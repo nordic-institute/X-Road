@@ -40,6 +40,7 @@
     - install
   vars_files:
     - vars_files/local_repo.yml
+    - vars_files/cs_database.yml
 
 - hosts: cp_servers
   become: yes
