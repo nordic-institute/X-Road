@@ -40,16 +40,17 @@ import javax.persistence.Query;
  * Sets xroad_user_name configuration setting for each transaction.
  * Needed for history table stored procedures.
  *
- * Not used in tests (since HSQLDB does not understand set_config)
+ * Not used in tests (since HSQLDB does not understand set_config).
+ * Not user with devtools test auth (username is fetched differently)
  */
 @Component
-@Profile("nontest")
+@Profile({"nontest & !devtools-test-auth"})
 public class UsernameSettingTransactionManager extends JpaTransactionManager {
 
     @Autowired
     private EntityManager entityManager;
 
-    UsernameSettingTransactionManager(EntityManagerFactory emf) {
+    public UsernameSettingTransactionManager(EntityManagerFactory emf) {
         super(emf);
     }
 
@@ -62,7 +63,7 @@ public class UsernameSettingTransactionManager extends JpaTransactionManager {
         query.getResultList();
     }
 
-    private String getCurrentUsername() {
+    public String getCurrentUsername() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         // Authentication is null if transaction was not due to authenticated user doing something -
         // e.g. authentication itself created transaction to load api keys from db

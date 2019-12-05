@@ -24,6 +24,9 @@
  */
 package org.niis.xroad.restapi.devtools;
 
+import org.niis.xroad.restapi.auth.GrantedAuthorityMapper;
+import org.niis.xroad.restapi.domain.Role;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -35,7 +38,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Development time authentication provider, which uses hard coded users
@@ -43,6 +48,9 @@ import java.util.Collection;
 @Configuration
 @Profile("devtools-test-auth")
 public class DevelopmentUserDetailsAuthenticationConfiguration {
+
+    @Autowired
+    private GrantedAuthorityMapper grantedAuthorityMapper;
 
     /**
      * Create a development-time in-memory authentication provider
@@ -60,41 +68,42 @@ public class DevelopmentUserDetailsAuthenticationConfiguration {
         users.add(User.withDefaultPasswordEncoder()
                 .username("security-officer")
                 .password("password")
-                .roles("XROAD_SECURITY_OFFICER")
+                .authorities(grantedAuthorityMapper.getAuthorities(
+                        Collections.singletonList(Role.XROAD_SECURITY_OFFICER)))
                 .build());
 
         users.add(User.withDefaultPasswordEncoder()
                 .username("registration-officer")
                 .password("password")
-                .roles("XROAD_REGISTRATION_OFFICER")
+                .authorities(grantedAuthorityMapper.getAuthorities(
+                        Collections.singletonList(Role.XROAD_REGISTRATION_OFFICER)))
                 .build());
 
         users.add(User.withDefaultPasswordEncoder()
                 .username("service-admin")
                 .password("password")
-                .roles("XROAD_SERVICE_ADMINISTRATOR")
+                .authorities(grantedAuthorityMapper.getAuthorities(
+                        Collections.singletonList(Role.XROAD_SERVICE_ADMINISTRATOR)))
                 .build());
 
         users.add(User.withDefaultPasswordEncoder()
                 .username("system-admin")
                 .password("password")
-                .roles("XROAD_SYSTEM_ADMINISTRATOR")
+                .authorities(grantedAuthorityMapper.getAuthorities(
+                        Collections.singletonList(Role.XROAD_SYSTEM_ADMINISTRATOR)))
                 .build());
 
         users.add(User.withDefaultPasswordEncoder()
                 .username("observer")
                 .password("password")
-                .roles("XROAD_SECURITYSERVER_OBSERVER")
+                .authorities(grantedAuthorityMapper.getAuthorities(
+                        Collections.singletonList(Role.XROAD_SECURITYSERVER_OBSERVER)))
                 .build());
 
         users.add(User.withDefaultPasswordEncoder()
                 .username("full-admin")
                 .password("password")
-                .roles("XROAD_SECURITY_OFFICER",
-                        "XROAD_REGISTRATION_OFFICER",
-                        "XROAD_SERVICE_ADMINISTRATOR",
-                        "XROAD_SYSTEM_ADMINISTRATOR",
-                        "XROAD-XROAD_SECURITYSERVER_OBSERVER-ADMINISTRATOR")
+                .authorities(grantedAuthorityMapper.getAuthorities(Arrays.asList(Role.values())))
                 .build());
 
         users.add(User.withDefaultPasswordEncoder()

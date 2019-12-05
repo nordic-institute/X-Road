@@ -1,11 +1,11 @@
-# X-Road: Central Server Installation Guide
+# X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.12
+Version: 2.13  
 Doc. ID: IG-CS
 
 ---
 
-## Version history
+## Version history <!-- omit in toc -->
 | Date       | Version | Description                      | Author                |
 |------------|---------|----------------------------------|-----------------------|
 | 01.12.2014 | 1.0     | Initial version                                         ||
@@ -30,37 +30,39 @@ Doc. ID: IG-CS
 | 05.02.2019 | 2.10    | Update ports | Jarkko Hyöty |
 | 04.09.2019 | 2.11    | Update ports | Petteri Kivimäki |
 | 11.09.2019 | 2.12    | Remove Ubuntu 14.04 from supported platforms | Jarkko Hyöty
+| 26.11.2019 | 2.13    | Add instructions for using remote database | Ilkka Seppälä
 
-## Table of Contents
+## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
 <!-- vim-markdown-toc GFM -->
 
-* [License](#license)
-* [1. Introduction](#1-introduction)
-  * [1.1 Target Audience](#11-target-audience)
-  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
-  * [1.3 References](#13-references)
-* [2. Installation](#2-installation)
-  * [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
-  * [2.2 Reference Data](#22-reference-data)
-  * [2.3 Requirements to the Central Server](#23-requirements-to-the-central-server)
-  * [2.4 Preparing OS](#24-preparing-os)
-  * [2.5 Installation](#25-installation)
-  * [2.6 Installing the Support for Hardware Tokens](#26-installing-the-support-for-hardware-tokens)
-  * [2.7 Installing the Support for Monitoring](#27-installing-the-support-for-monitoring)
-  * [2.8 Post-Installation Checks](#28-post-installation-checks)
-* [3 Initial Configuration](#3-initial-configuration)
-  * [3.1 Reference Data](#31-reference-data)
-  * [3.2 Initializing the Central Server](#32-initializing-the-central-server)
-  * [3.3 Configuring the Central Server and the Management Services' Security Server](#33-configuring-the-central-server-and-the-management-services-security-server)
-* [4 Additional configuration](#4-additional-configuration)
-  * [4.1 Global configuration V1 support](#41-global-configuration-v1-support)
-* [5 Installation Error Handling](#5-installation-error-handling)
-  * [5.1 Cannot Set LC_ALL to Default Locale](#51-cannot-set-lc_all-to-default-locale)
-  * [5.2 PostgreSQL Is Not UTF8 Compatible](#52-postgresql-is-not-utf8-compatible)
-  * [5.3 Could Not Create Default Cluster](#53-could-not-create-default-cluster)
-  * [5.4 Is Postgres Running on Port 5432?](#54-is-postgres-running-on-port-5432)
+- [License](#license)
+- [1. Introduction](#1-introduction)
+  - [1.1 Target Audience](#11-target-audience)
+  - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+  - [1.3 References](#13-references)
+- [2. Installation](#2-installation)
+  - [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
+  - [2.2 Reference Data](#22-reference-data)
+  - [2.3 Requirements to the Central Server](#23-requirements-to-the-central-server)
+  - [2.4 Preparing OS](#24-preparing-os)
+  - [2.5 Installation](#25-installation)
+  - [2.6 Installing the Support for Hardware Tokens](#26-installing-the-support-for-hardware-tokens)
+  - [2.7 Installing the Support for Monitoring](#27-installing-the-support-for-monitoring)
+  - [2.8 Remote Database Post-Installation Tasks](#28-remote-database-post-installation-tasks)
+  - [2.9 Post-Installation Checks](#29-post-installation-checks)
+- [3 Initial Configuration](#3-initial-configuration)
+  - [3.1 Reference Data](#31-reference-data)
+  - [3.2 Initializing the Central Server](#32-initializing-the-central-server)
+  - [3.3 Configuring the Central Server and the Management Services' Security Server](#33-configuring-the-central-server-and-the-management-services-security-server)
+- [4 Additional configuration](#4-additional-configuration)
+  - [4.1 Global configuration V1 support](#41-global-configuration-v1-support)
+- [5 Installation Error Handling](#5-installation-error-handling)
+  - [5.1 Cannot Set LC_ALL to Default Locale](#51-cannot-set-lcall-to-default-locale)
+  - [5.2 PostgreSQL Is Not UTF8 Compatible](#52-postgresql-is-not-utf8-compatible)
+  - [5.3 Could Not Create Default Cluster](#53-could-not-create-default-cluster)
+  - [5.4 Is Postgres Running on Port 5432?](#54-is-postgres-running-on-port-5432)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -157,6 +159,18 @@ Add X-Road package repository (**reference data: 1.1**)
   sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
   ```
 
+(Optional step) If you want to use remote database server instead of the default locally installed one, you need to pre-create a configuration file containing the database administrator master password. This can be done by performing the following steps:
+
+      ```
+      sudo touch /etc/xroad.properties
+      sudo chown root:root /etc/xroad.properties
+      sudo chmod 600 /etc/xroad.properties
+      ```
+
+  Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
+
+      postgres.connection.password = 54F46A19E50C11DA8631468CF09BE5DB
+
 Issue the following commands to install the central server packages:
 
   ```
@@ -167,6 +181,9 @@ Issue the following commands to install the central server packages:
 Upon the first installation of the central server software, the system asks for the following information.
 
 - Account name for the user who will be granted the rights to perform all activities in the user interface (reference data: 1.3).
+
+- Database server URL. Locally installed database is suggested as default but remote databases can be used as well. In case remote database is used, one should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
+
 - The Distinguished Name of the owner of the user interface self-signed TLS certificate (subjectDN) and its alternative names (subjectAltName). The certificate is used for securing connections to the user interface (reference data: 1.7; 1.9). The name and IP addresses detected from the operating system are suggested as default values. 
 
   The certificate owner’s Distinguished Name must be entered in the format: `/CN=server.domain.tld`. 
@@ -227,7 +244,19 @@ The optional configuration for monitoring parameters is installed by package xr
 
 The central monitoring client may be configured as specified in the [UG-CS](#Ref_UG-CS).
 
-### 2.8 Post-Installation Checks
+### 2.8 Remote Database Post-Installation Tasks
+
+Local PostgreSQL is always installed with Central Server. When remote database host is used, the local PostgreSQL can be stopped and disabled after the installation.
+
+To stop the local PostgreSQL server
+
+`systemctl stop postgresql`
+
+To disable the local PostgreSQL server so that it does not start automatically when the server is rebooted.
+
+`systemctl mask postgresql`
+
+### 2.9 Post-Installation Checks
 
 The installation is successful if the system services are started and the user interface is responding.
 
