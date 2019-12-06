@@ -61,22 +61,7 @@ abstract class AbstractTimestampRequest {
     Timestamper.TimestampResult execute(List<String> tspUrls) throws Exception {
         TimeStampRequest tsRequest = createTimestampRequest(getRequestData());
 
-        TsRequest req = makeTsRequest(tsRequest, tspUrls);
-
-        TimeStampResponse tsResponse = getTimestampResponse(req.getInputStream());
-        log.info("tsresponse {}", tsResponse);
-
-        try {
-            verify(tsRequest, tsResponse);
-
-        } catch (Exception ex) {
-            // Exceptions caused by invalid TSA responses are catched here.
-            log.error("Failed to verify time stamp from " + req.getUrl(), ex);
-            log.debug("Remove {} from tspUrls and try again", req.getUrl());
-            tspUrls.remove(req.getUrl());
-            execute(tspUrls);
-        }
-        return result(tsResponse, req.getUrl());
+        return makeTsRequest(tsRequest, tspUrls);
     }
 
     @Getter
@@ -90,13 +75,21 @@ abstract class AbstractTimestampRequest {
         }
     }
 
-    protected TsRequest makeTsRequest(TimeStampRequest request,
+    protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest,
                                       List<String> tspUrls) throws Exception {
         for (String url: tspUrls) {
             try {
                 log.debug("Sending time-stamp request to {}", url);
 
-                return new TsRequest(TimestamperUtil.makeTsRequest(request, url), url);
+                TsRequest req = new TsRequest(TimestamperUtil.makeTsRequest(tsRequest, url), url);
+
+                TimeStampResponse tsResponse = getTimestampResponse(req.getInputStream());
+                log.info("tsresponse {}", tsResponse);
+
+                verify(tsRequest, tsResponse);
+
+                return result(tsResponse, url);
+
             } catch (Exception ex) {
                 // Exceptions caused by connection issues are catched here.
                 log.error("Failed to get time stamp from " + url, ex);
