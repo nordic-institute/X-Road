@@ -91,7 +91,6 @@ abstract class AbstractTimestampRequest {
                 return result(tsResponse, url);
 
             } catch (Exception ex) {
-                // Exceptions caused by connection issues are catched here.
                 log.error("Failed to get time stamp from " + url, ex);
             }
         }
