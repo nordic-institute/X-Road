@@ -61,6 +61,7 @@ public class KeysApiControllerTest {
 
     private static final String KEY_NOT_FOUND_KEY_ID = "key-404";
     private static final String GOOD_KEY_ID = "key-which-exists";
+    private static final String GOOD_CSR_ID = "csr-which-exists";
 
     @MockBean
     private KeyService keyService;
@@ -70,16 +71,27 @@ public class KeysApiControllerTest {
 
     @Before
     public void setUp() throws Exception {
-        KeyInfo keyInfo = TokenTestUtils.createTestKeyInfo(GOOD_KEY_ID);
+        KeyInfo keyInfo = new TokenTestUtils.KeyInfoBuilder().id(GOOD_KEY_ID).build();
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
             String keyId = (String) args[0];
-            if (!GOOD_KEY_ID.equals(keyId)) {
-                throw new KeyNotFoundException("foo");
-            } else {
-                return keyInfo;
-            }
+            return returnKeyIfGoodId(keyInfo, keyId);
         }).when(keyService).getKey(any());
+
+        doAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
+            String keyId = (String) args[0];
+            return returnKeyIfGoodId(keyInfo, keyId);
+        }).when(keyService).deleteCsr(any(), any());
+
+    }
+
+    private Object returnKeyIfGoodId(KeyInfo keyInfo, String keyId) throws KeyNotFoundException {
+        if (!GOOD_KEY_ID.equals(keyId)) {
+            throw new KeyNotFoundException("foo");
+        } else {
+            return keyInfo;
+        }
     }
 
     @Test
@@ -94,5 +106,18 @@ public class KeysApiControllerTest {
         ResponseEntity<Key> response = keysApiController.getKey(GOOD_KEY_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(GOOD_KEY_ID, response.getBody().getId());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DELETE_AUTH_CERT" })
+    public void deleteCsr() {
+        try {
+            keysApiController.deleteCsr(KEY_NOT_FOUND_KEY_ID, GOOD_CSR_ID);
+            fail("should have thrown exception");
+        } catch (ResourceNotFoundException expected) {
+        }
+
+        ResponseEntity<Void> response = keysApiController.deleteCsr(GOOD_KEY_ID, GOOD_CSR_ID);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 }

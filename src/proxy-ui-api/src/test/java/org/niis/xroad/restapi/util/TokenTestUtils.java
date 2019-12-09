@@ -85,17 +85,8 @@ public final class TokenTestUtils {
     }
 
     /**
-     * Creates KeyInfo object with some default values:
-     * - id = "id"
-     * - other defaults from {@link TokenTestUtils#createTestKeyInfo(String)}
-     */
-    public static KeyInfo createTestKeyInfo() {
-        KeyInfo keyInfo = createTestKeyInfo("id");
-        return keyInfo;
-    }
-
-    /**
-     * Creates KeyInfo object with some default values:
+     * Builder for KeyInfo objects.
+     * Default values:
      * - available = true
      * - usage = SIGNING
      * - friendlyName = "friendly-name"
@@ -105,18 +96,37 @@ public final class TokenTestUtils {
      * - certs = empty
      * - certRequests = empty
      * - signMechanismName = "sign-mechanism-name"
-     * @param id id
      */
-    public static KeyInfo createTestKeyInfo(String id) {
-        KeyInfo keyInfo = new KeyInfo(true,
-                KeyUsageInfo.SIGNING,
-                "friendly-name",
-                id,
-                "label",
-                "public-key",
-                new ArrayList<>(),
-                new ArrayList<>(),
-                "sign-mechanism-name");
-        return keyInfo;
+    public static class KeyInfoBuilder {
+        private String id = "id";
+        private String friendlyName = "friendly-name";
+        private KeyUsageInfo keyUsageInfo = KeyUsageInfo.SIGNING;
+
+        public KeyInfo build() {
+            return new KeyInfo(true,
+                    keyUsageInfo,
+                    friendlyName,
+                    id,
+                    "label",
+                    "public-key",
+                    new ArrayList<>(),
+                    new ArrayList<>(),
+                    "sign-mechanism-name");
+        }
+
+        public KeyInfoBuilder id(String idParam) {
+            this.id = idParam;
+            return this;
+        }
+
+        public KeyInfoBuilder friendlyName(String friendlyNameParam) {
+            this.friendlyName = friendlyNameParam;
+            return this;
+        }
+
+        public KeyInfoBuilder keyUsageInfo(KeyUsageInfo keyUsageInfoParam) {
+            this.keyUsageInfo = keyUsageInfoParam;
+            return this;
+        }
     }
 }

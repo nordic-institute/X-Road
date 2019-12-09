@@ -29,6 +29,7 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -138,4 +139,29 @@ public class KeyService {
     }
 
     static final String KEY_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_KEY_NOT_FOUND;
+
+    public void deleteCsr(String keyId, String csrId) throws KeyNotFoundException {
+        try {
+            signerProxyFacade.deleteCert(csrId);
+        } catch (Exception e) {
+            // TO DO exception handling
+            throw new RuntimeException("foo");
+        }
+    }
+
+    public static class CsrNotFoundException extends NotFoundException {
+        public static final String ERROR_CSR_NOT_FOUND = "csr_not_found";
+
+        public CsrNotFoundException(String s) {
+            super(s, createError());        }
+
+        public CsrNotFoundException(Throwable t) {
+            super(t, createError());
+        }
+
+        private static ErrorDeviation createError() {
+            return new ErrorDeviation(ERROR_CSR_NOT_FOUND);
+        }
+    }
+
 }
