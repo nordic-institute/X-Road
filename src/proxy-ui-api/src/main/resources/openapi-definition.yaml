@@ -1695,7 +1695,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /keys/{id}/csrs/csr_id:
+  /keys/{id}/csrs/{csr_id}:
     delete: # ok
       tags:
         - security server
@@ -1711,7 +1711,7 @@ paths:
             type: string
             format: text
             minLength: 1
-        - in: query
+        - in: path
           name: csr_id
           description: id of the csr
           required: true
