@@ -60,7 +60,7 @@ The used repository can be configured in `vars_files/remote_repo.yml`. The file 
 
 #### Remote database
 
-Since X-Road 6.22.0 it is possible to configure Security Server to use remote database. To do this with Ansible one needs to edit `vars_files/ss_database` property values.
+It is possible to configure Central Server or Security Server to use remote database. To do this with Ansible one needs to edit `vars_files/cs_database` and/or `vars_files/ss_database` property values.
 
 - `database_host` - URL or the database server including the port e.g. `127.0.0.1:5432`. When using remote database also set `database_admin_password`. When using local database leave it empty.
 - `database_admin_password` - Password of the `postgres` user. When using remote database, this value needs to be set. Otherwise leave it empty.
