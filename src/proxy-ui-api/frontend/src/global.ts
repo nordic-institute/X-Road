@@ -28,6 +28,8 @@ export enum RouteName {
   Key = 'key',
   SystemParameters = 'system-parameters',
   BackupAndRestore = 'backup-and-restore',
+  AddKey = 'add-key',
+  GenerateCertificateSignRequest = 'generate-csr',
 }
 
 // A "single source of truth" for permission strings
