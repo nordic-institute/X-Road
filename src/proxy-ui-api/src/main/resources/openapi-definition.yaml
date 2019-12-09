@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.15"
+  version: "1.0.17"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -217,7 +217,43 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /certificates/{hash}:
+  /token-certificates:
+    post: # ok
+      tags:
+        - security server
+      summary: import new certificate
+      operationId: importCertificate
+      description: Imports certificate to the system
+      requestBody:
+        description: certificate to import
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+              description: certificate file
+      responses:
+        '201':
+          description: certificate created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
+  /token-certificates/{hash}:
     get: # ok
       tags:
         - security server
@@ -282,7 +318,7 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
-  /certificates/{hash}/activate:
+  /token-certificates/{hash}/activate:
     put: # ok
       tags:
         - security server
@@ -314,7 +350,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /certificates/{hash}/deactivate:
+  /token-certificates/{hash}/deactivate:
     put: # ok
       tags:
         - security server
@@ -346,7 +382,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /certificates/{hash}/register:
+  /token-certificates/{hash}/register:
     put: # ok
       tags:
         - security server
@@ -378,7 +414,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /certificates/{hash}/unregister:
+  /token-certificates/{hash}/unregister:
     put: # ok
       tags:
         - security server
@@ -503,9 +539,13 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: add new client for the security server
+      summary: Add new client for the security server.
       operationId: addClient
-      description: Adds new client to the system
+      description: >
+        Adds new client to the system.
+        Note that with this endpoint it is possible to add an unregistered member as a client.
+        Attempt to add an unregistered member with ClientAdd.ignore_warnings = false causes the operation to fail with a warning in response's ErrorInfo object.
+        Attempt to add an unregistered member with ClientAdd.ignore_warnings = true succeeds.
       requestBody:
         description: client to add
         content:
@@ -1585,52 +1625,6 @@ paths:
           description: request has been refused
         '404':
           description: resource requested does not exists
-        '500':
-          description: internal server error
-  /keys/{id}/certificates:
-    post: # ok
-      tags:
-        - security server
-      summary: add new certificate for selected key
-      operationId: addCertificate
-      description: Adds certificate to the system
-      parameters:
-        - in: path
-          name: id
-          description: id of the key
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-      requestBody:
-        description: certificate to add
-        content:
-          application/octet-stream:
-            schema:
-              type: string
-              format: binary
-              description: certificate file
-      responses:
-        '201':
-          description: certificate created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CertificateDetails'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '409':
-          description: an existing item already exists
         '500':
           description: internal server error
   /keys/{id}/generate-csr:

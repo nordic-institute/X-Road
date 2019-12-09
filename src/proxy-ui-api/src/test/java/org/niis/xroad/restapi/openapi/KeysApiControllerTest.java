@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.Key;
+import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.KeyService;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +75,7 @@ public class KeysApiControllerTest {
             Object[] args = invocation.getArguments();
             String keyId = (String) args[0];
             if (!GOOD_KEY_ID.equals(keyId)) {
-                throw new KeyService.KeyNotFoundException("foo");
+                throw new KeyNotFoundException("foo");
             } else {
                 return keyInfo;
             }

@@ -17,31 +17,9 @@ buildscript {
     }
 }
 
-configurations {
-    compile {
-        exclude group: 'org.hibernate', module: 'hibernate-hikaricp'
-    }
-    developmentOnly
-    runtimeClasspath {
-        extendsFrom developmentOnly
-    }
-}
-
 sourceSets {
     main {
         java.srcDirs = ['src/main/java', 'build/generated-sources']
-    }
-}
-
-ext.excludeDevToolsSetting = project.hasProperty('activate-devtools-do-not-use-in-production') ? false : true
-
-if (!excludeDevToolsSetting) {
-    ant.input(message: 'Are you sure you want to include development tool dependencies in built jar?\n'
-        + 'Development tools must not be included in non-development environments', validargs: 'y,n', addproperty: 'confirmation')
-
-    if(ant.confirmation != 'y') {
-        throw new GradleException('Stopped build since not building development version\n'
-        + 'environments')
     }
 }
 
@@ -59,11 +37,7 @@ bootRun {
 }
 
 bootJar {
-    excludeDevtools = excludeDevToolsSetting
-    if (!excludeDevToolsSetting) {
-        appendix = "devtools"
-    }
-    println 'excludeDevTools in bootJar=' + excludeDevToolsSetting
+    excludeDevtools = true
 }
 
 processResources {
@@ -104,6 +78,29 @@ task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
     inputs.dir("frontend")
     outputs.dir("frontend/dist")
     args = ['run', 'check-audit']
+    execOverrides {
+        it.workingDir = 'frontend'
+    }
+}
+
+// run e2e tests vs remote url
+if (!project.hasProperty("testTargetUrl")) {
+    ext.testTargetUrl = ""
+}
+
+task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
+
+    doFirst {
+        if (testTargetUrl.isEmpty()) {
+            throw new GradleException('testTargetUrl property was empty, it is mandatory for e2eTests')
+        }
+    }
+    
+    inputs.dir("frontend")
+    outputs.dir("frontend")
+
+    args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl]
+
     execOverrides {
         it.workingDir = 'frontend'
     }
@@ -179,6 +176,18 @@ dependencyManagement {
     }
 }
 
+jar {
+    enabled = true
+    classifier = 'plainDependency'
+}
+
+configurations {
+    compile {
+        exclude group: 'org.hibernate', module: 'hibernate-hikaricp'
+    }
+}
+
+
 dependencies {
     implementation project(':serverconf')
     implementation project(':common-ui')
@@ -201,11 +210,6 @@ dependencies {
     testImplementation('org.springframework.security:spring-security-test')
     testImplementation('org.hsqldb:hsqldb')
 
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
-    if (!excludeDevToolsSetting) {
-        developmentOnly project(':proxy-ui-api-devtools')
-    }
-    // openapi-generator related
     implementation('io.springfox:springfox-swagger2:2.8.0')
     implementation('io.springfox:springfox-swagger-ui:2.8.0')
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')

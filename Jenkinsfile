@@ -1,10 +1,28 @@
 pipeline {
     agent any
     stages {
-        stage("SCM") {
-          steps {
-            checkout scm
-          }
+        stage('Output build parameters') {
+            steps {
+                sh 'env'
+            }
+        }        
+        stage('Clean and clone repository') {
+            steps {
+                checkout([
+                        $class                           : 'GitSCM',
+                        branches                         : [[name: ghprbSourceBranch]],
+                        doGenerateSubmoduleConfigurations: false,
+                        extensions                       : [[$class: 'CleanBeforeCheckout']],
+                        gitTool                          : 'Default',
+                        submoduleCfg                     : [],
+                        userRemoteConfigs                : [
+                            [
+                                url: 'https://github.com/nordic-institute/X-Road.git',
+                                refspec: '+refs/heads/*:refs/remotes/origin/* +refs/pull/*/head:refs/remotes/origin/pull/*'
+                            ]
+                        ]
+                ])
+            }
         }
         stage('Compile Code') {
             agent {
@@ -14,9 +32,15 @@ pipeline {
                     reuseNode true
                 }
             }
+            environment {
+                GRADLE_OPTS = '-Dorg.gradle.daemon=false -Dsonar.host.url=https://sonarqube.niis.org'
+                JAVA_HOME = '/usr/lib/jvm/java-8-openjdk-amd64/'
+            }
             steps {
                 sh 'cd src && ./update_ruby_dependencies.sh'
-                sh 'cd src && ./compile_code.sh -nodaemon'
+                withCredentials([string(credentialsId: 'sonarqube-user-token-2', variable: 'SONAR_TOKEN')]) {
+                    sh 'cd src && ~/.rvm/bin/rvm jruby-$(cat .jruby-version) do ./gradlew -Dsonar.login=${SONAR_TOKEN} -Dsonar.pullrequest.key=${ghprbPullId} -Dsonar.pullrequest.branch=${ghprbSourceBranch} -Dsonar.pullrequest.base=${ghprbTargetBranch} --stacktrace --no-daemon buildAll runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport dependencyCheckAggregate sonarqube'
+                }
             }
         }
         stage('Bionic build') {

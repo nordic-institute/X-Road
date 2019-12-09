@@ -96,7 +96,7 @@ public class KeyServiceTest {
     public void getKey() throws Exception {
         try {
             keyService.getKey(KEY_NOT_FOUND_KEY_ID);
-        } catch (KeyService.KeyNotFoundException expected) {
+        } catch (KeyNotFoundException expected) {
         }
         KeyInfo keyInfo = keyService.getKey(GOOD_KEY_ID);
         assertEquals(GOOD_KEY_ID, keyInfo.getId());
@@ -110,12 +110,12 @@ public class KeyServiceTest {
         assertEquals("new-friendly-name", keyInfo.getFriendlyName());
     }
 
-    @Test(expected = KeyService.KeyNotFoundException.class)
+    @Test(expected = KeyNotFoundException.class)
     public void updateKeyFriendlyNameKeyNotExist() throws Exception {
         keyService.updateKeyFriendlyName(KEY_NOT_FOUND_KEY_ID, "new-friendly-name");
     }
 
-    @Test(expected = KeyService.KeyNotFoundException.class)
+    @Test(expected = KeyNotFoundException.class)
     public void updateFriendlyNameUpdatingKeyFails() throws Exception {
         keyService.updateKeyFriendlyName(GOOD_KEY_ID, "new-friendly-name-update-fails");
     }

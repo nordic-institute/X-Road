@@ -1,4 +1,10 @@
 
+Template: xroad-common/database-host
+Type: string
+Default: 127.0.0.1:5432
+Description: Insert database server connection string
+ This will be used by the Central Server to connect to the database host.
+
 Template: xroad-common/admin-subject
 Type: string
 Description: Insert admin interface TLS certificate subject name

@@ -174,6 +174,13 @@ public final class SystemProperties {
     public static final String SERVER_CONF_CACHE_PERIOD =
             PREFIX + "proxy.server-conf-cache-period";
 
+    public static final String SERVER_CONF_CLIENT_CACHE_SIZE = PREFIX + "proxy.server-conf-client-cache-size";
+
+    public static final String SERVER_CONF_SERVICE_CACHE_SIZE = PREFIX + "proxy.server-conf-service-cache-size";
+
+    public static final String SERVER_CONF_ACL_CACHE_SIZE = PREFIX + "proxy.server-conf-acl-cache-size";
+
+
     /** Property name of the idle time that connections to the ServerProxy Connector are allowed, in milliseconds */
     private static final String SERVERPROXY_CONNECTOR_MAX_IDLE_TIME =
             PREFIX + "proxy.server-connector-max-idle-time";
@@ -1485,6 +1492,30 @@ public final class SystemProperties {
         }
         return version;
     }
+
+    /**
+     * @return Serverconf client cache size
+     */
+    public static long getServerConfClientCacheSize() {
+        return Long.getLong(SERVER_CONF_CLIENT_CACHE_SIZE, 100);
+    }
+
+    /**
+     * @return Serverconf service cache size
+     */
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public static long getServerConfServiceCacheSize() {
+        return Long.getLong(SERVER_CONF_SERVICE_CACHE_SIZE, 1000);
+    }
+
+    /**
+     * @return Serverconf access right cache size
+     */
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public static long getServerConfAclCacheSize() {
+        return Long.getLong(SERVER_CONF_ACL_CACHE_SIZE, 100_000);
+    }
+
 
     /**
      * @return whether GET request can be used for getWsdl metaservice, 'false' by default.
