@@ -94,7 +94,7 @@ public class TokensApiController implements TokensApi {
         return new ResponseEntity<>(token, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasAuthority('ACTIVATE_TOKEN')")
+    @PreAuthorize("hasAuthority('ACTIVATE_DEACTIVATE_TOKEN')")
     @Override
     public ResponseEntity<Token> loginToken(String id, TokenPassword tokenPassword) {
         if (tokenPassword == null
@@ -114,7 +114,7 @@ public class TokensApiController implements TokensApi {
         return new ResponseEntity<>(token, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasAuthority('DEACTIVATE_TOKEN')")
+    @PreAuthorize("hasAuthority('ACTIVATE_DEACTIVATE_TOKEN')")
     @Override
     public ResponseEntity<Token> logoutToken(String id) {
         try {
@@ -136,7 +136,7 @@ public class TokensApiController implements TokensApi {
         return tokenConverter.convert(tokenInfo);
     }
 
-    @PreAuthorize("hasAuthority('EDIT_KEYTABLE_FRIENDLY_NAMES')")
+    @PreAuthorize("hasAuthority('EDIT_TOKEN_FRIENDLY_NAME')")
     @Override
     public ResponseEntity<Token> updateToken(String id, TokenName tokenName) {
         try {
