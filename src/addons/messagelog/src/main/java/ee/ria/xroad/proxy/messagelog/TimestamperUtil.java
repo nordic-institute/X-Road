@@ -38,6 +38,7 @@ import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
@@ -85,8 +86,12 @@ final class TimestamperUtil {
         out.flush();
 
         if (con.getResponseCode() != HttpURLConnection.HTTP_OK) {
+            con.disconnect();
             throw new RuntimeException("Received HTTP error: " + con.getResponseCode() + " - "
                     + con.getResponseMessage());
+        } else if (con.getInputStream() == null) {
+            con.disconnect();
+            throw new IOException("Could not get response from TSP");
         }
 
         return con.getInputStream();
