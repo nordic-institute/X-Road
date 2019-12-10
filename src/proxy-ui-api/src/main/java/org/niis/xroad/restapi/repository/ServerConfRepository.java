@@ -22,27 +22,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package org.niis.xroad.restapi.repository;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
+import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 
-public class CertificateNotFoundException extends NotFoundException {
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-    public static final String ERROR_CERTIFICATE_NOT_FOUND = "certificate_not_found";
+/**
+ * Repository to handle ServerConf
+ */
+@Slf4j
+@Repository
+@Transactional
+public class ServerConfRepository {
 
-    public CertificateNotFoundException(String s) {
-        super(s, createError());
+    private final PersistenceUtils persistenceUtils;
+
+    @Autowired
+    public ServerConfRepository(PersistenceUtils persistenceUtils) {
+        this.persistenceUtils = persistenceUtils;
     }
 
-    public CertificateNotFoundException() {
-        super(createError());
-    }
-
-    public CertificateNotFoundException(Throwable t) {
-        super(t, createError());
-    }
-
-    private static ErrorDeviation createError() {
-        return new ErrorDeviation(ERROR_CERTIFICATE_NOT_FOUND);
+    public ServerConfType getServerConf() throws CodedException {
+        ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
+        return serverConfDAO.getConf(persistenceUtils.getCurrentSession());
     }
 }

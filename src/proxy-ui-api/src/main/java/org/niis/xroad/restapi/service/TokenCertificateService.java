@@ -28,6 +28,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -69,14 +70,19 @@ public class TokenCertificateService {
     private final GlobalConfFacade globalConfFacade;
     private final SignerProxyFacade signerProxyFacade;
     private final ClientRepository clientRepository;
+    private final ManagementRequestService managementRequestService;
+    private final ServerConfService serverConfService;
 
     @Autowired
     public TokenCertificateService(GlobalConfService globalConfService, GlobalConfFacade globalConfFacade,
-            SignerProxyFacade signerProxyFacade, ClientRepository clientRepository) {
+            SignerProxyFacade signerProxyFacade, ClientRepository clientRepository,
+            ManagementRequestService managementRequestService, ServerConfService serverConfService) {
         this.globalConfService = globalConfService;
         this.globalConfFacade = globalConfFacade;
         this.signerProxyFacade = signerProxyFacade;
         this.clientRepository = clientRepository;
+        this.managementRequestService = managementRequestService;
+        this.serverConfService = serverConfService;
     }
 
     /**
@@ -198,6 +204,35 @@ public class TokenCertificateService {
             throw new InvalidCertificateException("Cannot read member identifier from signing certificate", e);
         }
         return certificateSubject;
+    }
+
+    /**
+     * Send the authentication certificate registration request to central server
+     * @param hash certificate hash
+     * @param securityServerAddress IP address or DNS name of the security server
+     * @throws CertificateNotFoundException
+     * @throws ServerConfService.MalformedServerConfException
+     * @throws ManagementRequestService.ManagementRequestException
+     * @throws GlobalConfService.GlobalConfOutdatedException
+     */
+    public void registerAuthCert(String hash, String securityServerAddress) throws CertificateNotFoundException,
+            ServerConfService.MalformedServerConfException, ManagementRequestService.ManagementRequestException,
+            GlobalConfService.GlobalConfOutdatedException {
+        CertificateInfo certificateInfo = getCertificateInfo(hash);
+        SecurityServerId securityServerId = serverConfService.getSecurityServerId();
+        managementRequestService.sendAuthCertRegRequest(securityServerId, securityServerAddress,
+                certificateInfo.getCertificateBytes());
+        try {
+            signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_REGINPROG);
+        } catch (Exception e) {
+            if (e instanceof CodedException) {
+                CodedException ce = (CodedException) e;
+                if (isCausedByCertNotFound(ce)) {
+                    throw new CertificateNotFoundException(ce);
+                }
+            }
+            throw new RuntimeException("Could not set certificate status", e);
+        }
     }
 
     /**

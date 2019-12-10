@@ -130,4 +130,11 @@ public class GlobalConfFacade {
             X509Certificate cert) throws Exception {
         return GlobalConf.getSubjectName(signCertificateProfileInfoParameters, cert);
     }
+
+    /**
+     * {@link GlobalConf#getManagementRequestService()}
+     */
+    public ClientId getManagementRequestService() {
+        return GlobalConf.getManagementRequestService();
+    }
 }

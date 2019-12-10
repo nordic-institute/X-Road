@@ -30,11 +30,14 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
+import org.niis.xroad.restapi.openapi.model.SecurityServerAddress;
 import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
+import org.niis.xroad.restapi.service.ManagementRequestService;
+import org.niis.xroad.restapi.service.ServerConfService;
 import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.util.ResourceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,5 +118,25 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
         CertificateDetails certificateDetails = certificateDetailsConverter.convert(certificate);
         return ApiUtil.createCreatedResponse("/api/token-certificates/{hash}", certificateDetails,
                 certificateDetails.getHash());
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('SEND_AUTH_CERT_REG_REQ')")
+    public ResponseEntity<Void> registerCertificate(String hash, SecurityServerAddress securityServerAddress) {
+        try {
+            tokenCertificateService.registerAuthCert(hash, securityServerAddress.getAddress());
+        } catch (CertificateNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (ServerConfService.MalformedServerConfException | ManagementRequestService.ManagementRequestException
+                | GlobalConfService.GlobalConfOutdatedException e) {
+            throw new BadRequestException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('SEND_AUTH_CERT_DEL_REQ')")
+    public ResponseEntity<Void> unregisterCertificate(String hash) {
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

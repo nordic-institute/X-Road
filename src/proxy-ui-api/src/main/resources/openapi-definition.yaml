@@ -437,6 +437,23 @@ paths:
             format: text
             minLength: 1
             maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: SecurityServerAddress
+              type: object
+              required:
+                - address
+              properties:
+                address:
+                  type: string
+                  description: Security server's IP address or DNS name
+                  format: text
+                  minLength: 1
+                  maxLength: 255
+              example:
+                address: 127.0.0.1
       responses:
         '204':
           description: request was successful
