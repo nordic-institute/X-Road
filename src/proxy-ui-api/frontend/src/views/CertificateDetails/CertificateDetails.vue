@@ -1,7 +1,11 @@
 <template>
   <div class="wrapper xrd-view-common">
-    <div class="new-content">
+        <div class="new-content">
       <subViewTitle :title="$t('cert.certificate')" @close="close" />
+      <div class="details-view-tools">
+        <large-button v-if="!isActive" outlined @click="activateCertificate(certificate.hash)">{{$t('action.activate')}}</large-button>
+        <large-button v-if="isActive" outlined>{{$t('action.disable')}}</large-button>
+      </div>
       <template v-if="certificate">
         <div class="cert-hash-wrapper">
           <certificateHash :hash="certificate.hash" />
@@ -54,6 +58,7 @@ export default Vue.extend({
   data() {
     return {
       confirm: false,
+      isActive: false,
       // TODO: mock data will be removed later
       certificate: {
         issuer_distinguished_name: 'CN=256be4e26302',
@@ -103,6 +108,15 @@ export default Vue.extend({
       this.confirm = false;
       // TODO will be implemented on later task
     },
+    activateCertificate(hash: string): void {
+      api
+        .put(`/certificates/${hash}/activate`, hash)
+        .then((res) => {
+          this.isActive = true;
+          this.$bus.$emit('show-success', 'cert.activateSuccess');
+        })
+        .catch((error) => this.$bus.$emit('show-error', error.message));
+    },
   },
   created() {
     this.fetchData(this.hash);
@@ -111,6 +125,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
+@import '../../assets/detail-views';
+
 .wrapper {
   display: flex;
   justify-content: center;
