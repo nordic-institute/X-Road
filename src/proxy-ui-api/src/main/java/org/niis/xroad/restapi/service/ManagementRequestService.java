@@ -39,16 +39,36 @@ public class ManagementRequestService {
      * registered
      * @param address the IP address of the security server
      * @param authCert the authentication certificate bytes
-     * @return request ID in the central server database
-     * @throws ServerConfService.MalformedServerConfException
-     * @throws ManagementRequestException if general error occurs
+     * @return request ID in the central server database (e.g. for audit logs if wanted)
+     * @throws ServerConfService.MalformedServerConfException e.g. security server not initialized
+     * @throws ManagementRequestException if an error occurs
      */
-    public Integer sendAuthCertRegRequest(SecurityServerId securityServer, String address, byte[] authCert)
+    public Integer sendAuthCertRegisterRequest(SecurityServerId securityServer, String address, byte[] authCert)
             throws ServerConfService.MalformedServerConfException, ManagementRequestException,
             GlobalConfService.GlobalConfOutdatedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
             return sender.sendAuthCertRegRequest(securityServer, address, authCert);
+        } catch (Exception e) {
+            throw new ManagementRequestException(e);
+        }
+    }
+
+    /**
+     * Sends the authentication certificate deletion request as a normal
+     * X-Road message.
+     * @param securityServer the security server id whose certificate is to be
+     * deleted
+     * @param authCert the authentication certificate bytes
+     * @return request ID in the central server database (e.g. for audit logs if wanted)
+     * @throws ManagementRequestException if an error occurs
+     */
+    public Integer sendAuthCertDeletionRequest(SecurityServerId securityServer, byte[] authCert)
+            throws ServerConfService.MalformedServerConfException, ManagementRequestException,
+            GlobalConfService.GlobalConfOutdatedException {
+        ManagementRequestSender sender = createManagementRequestSender();
+        try {
+            return sender.sendAuthCertDeletionRequest(securityServer, authCert);
         } catch (Exception e) {
             throw new ManagementRequestException(e);
         }

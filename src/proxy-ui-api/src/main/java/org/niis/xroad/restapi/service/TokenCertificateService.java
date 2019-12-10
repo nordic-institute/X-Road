@@ -220,10 +220,37 @@ public class TokenCertificateService {
             GlobalConfService.GlobalConfOutdatedException {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         SecurityServerId securityServerId = serverConfService.getSecurityServerId();
-        managementRequestService.sendAuthCertRegRequest(securityServerId, securityServerAddress,
+        managementRequestService.sendAuthCertRegisterRequest(securityServerId, securityServerAddress,
                 certificateInfo.getCertificateBytes());
         try {
             signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_REGINPROG);
+        } catch (Exception e) {
+            if (e instanceof CodedException) {
+                CodedException ce = (CodedException) e;
+                if (isCausedByCertNotFound(ce)) {
+                    throw new CertificateNotFoundException(ce);
+                }
+            }
+            throw new RuntimeException("Could not set certificate status", e);
+        }
+    }
+
+    /**
+     * Send the authentication certificate deletion request to central server
+     * @param hash certificate hash
+     * @throws CertificateNotFoundException
+     * @throws ServerConfService.MalformedServerConfException
+     * @throws ManagementRequestService.ManagementRequestException
+     * @throws GlobalConfService.GlobalConfOutdatedException
+     */
+    public void unregisterAuthCert(String hash) throws CertificateNotFoundException,
+            ServerConfService.MalformedServerConfException, ManagementRequestService.ManagementRequestException,
+            GlobalConfService.GlobalConfOutdatedException {
+        CertificateInfo certificateInfo = getCertificateInfo(hash);
+        SecurityServerId securityServerId = serverConfService.getSecurityServerId();
+        managementRequestService.sendAuthCertDeletionRequest(securityServerId, certificateInfo.getCertificateBytes());
+        try {
+            signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
         } catch (Exception e) {
             if (e instanceof CodedException) {
                 CodedException ce = (CodedException) e;

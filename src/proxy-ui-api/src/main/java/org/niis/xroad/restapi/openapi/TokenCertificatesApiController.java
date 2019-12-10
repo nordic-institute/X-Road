@@ -137,6 +137,14 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
     @Override
     @PreAuthorize("hasAuthority('SEND_AUTH_CERT_DEL_REQ')")
     public ResponseEntity<Void> unregisterCertificate(String hash) {
+        try {
+            tokenCertificateService.unregisterAuthCert(hash);
+        } catch (CertificateNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (ServerConfService.MalformedServerConfException | ManagementRequestService.ManagementRequestException
+                | GlobalConfService.GlobalConfOutdatedException e) {
+            throw new BadRequestException(e);
+        }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
