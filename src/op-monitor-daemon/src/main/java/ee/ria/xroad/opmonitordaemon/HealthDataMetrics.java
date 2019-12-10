@@ -44,8 +44,8 @@ import java.util.function.Supplier;
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getLastRequestTimestampGaugeName;
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestCounterName;
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestDurationName;
-import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestSoapSizeName;
-import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getResponseSoapSizeName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestSizeName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getResponseSizeName;
 
 /**
  * Health data metrics forwarded over JMX. Also, these metrics are used when
@@ -162,8 +162,8 @@ final class HealthDataMetrics {
             ServiceId serviceId, OperationalDataRecord rec) {
         registerOrUpdateHistogram(registry, getRequestDurationName(serviceId), getRequestDuration(rec));
 
-        registerOrUpdateHistogram(registry, getRequestSoapSizeName(serviceId), rec.getRequestSoapSize());
-        registerOrUpdateHistogram(registry, getResponseSoapSizeName(serviceId), rec.getResponseSoapSize());
+        registerOrUpdateHistogram(registry, getRequestSizeName(serviceId), rec.getRequestSize());
+        registerOrUpdateHistogram(registry, getResponseSizeName(serviceId), rec.getResponseSize());
     }
 
     private static void registerOrUpdateHistogram(MetricRegistry registry, String histogramName, Long newValue) {

@@ -31,7 +31,7 @@ import org.junit.Test;
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getLastRequestTimestampGaugeName;
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestCounterName;
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestDurationName;
-import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestSoapSizeName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestSizeName;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -107,8 +107,8 @@ public class HealthDataMetricsUtilTest {
         assertEquals(expectedServiceId, escapedId);
         System.out.println(escapedId);
 
-        String requestSoapSizeKey = getRequestSoapSizeName(serviceId);
-        assertEquals("requestSoapSize(" + escapedId + ")", requestSoapSizeKey);
+        String requestSizeKey = getRequestSizeName(serviceId);
+        assertEquals("requestSize(" + escapedId + ")", requestSizeKey);
     }
 
     @Test

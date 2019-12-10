@@ -110,20 +110,12 @@ properties:
           description: External address of service provider's security server (IP or name) defined in global configuration
           type: string
           maxLength: 255
-        requestSoapSize:
-          description: Size of the request (bytes)
-          type: integer
-          minimum: 0
         requestMimeSize:
           description: Size of the MIME-container of the request (bytes)
           type: integer
           minimum: 0
         requestAttachmentCount:
           description: Number of attachments of the request
-          type: integer
-          minimum: 0
-        responseSoapSize:
-          description: Size of the response (bytes)
           type: integer
           minimum: 0
         responseMimeSize:
@@ -145,11 +137,11 @@ properties:
           description: SOAP fault code in case SOAPFault received
           type: string
           maxLength: 255
-        requestRestSize:
+        requestSize:
           description: Size of the request (bytes)
           type: integer
           minimum: 0
-        responseRestSize:
+        responseSize:
           description: Size of the response (bytes)
           type: integer
           minimum: 0
@@ -157,5 +149,9 @@ properties:
           description: HTTP status code for the rest response
           type: integer
           minimum: 0
+        serviceType:
+            description: Type of the service WSDL, REST or OPENAPI3
+            type: string
+            minimum: 0
 required:
 - records

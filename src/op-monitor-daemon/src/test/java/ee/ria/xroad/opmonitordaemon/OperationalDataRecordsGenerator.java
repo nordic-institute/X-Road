@@ -216,12 +216,10 @@ public final class OperationalDataRecordsGenerator {
             record.setClientSecurityServerAddress(longString);
             record.setServiceSecurityServerAddress(longString);
 
-            record.setRequestSoapSize(DUMMY_LONG_10);
-            record.setRequestRestSize(DUMMY_LONG_10);
+            record.setRequestSize(DUMMY_LONG_10);
+            record.setResponseSize(DUMMY_LONG_10);
             record.setRequestMimeSize(DUMMY_LONG_10);
             record.setRequestAttachmentCount(DUMMY_INT_2);
-            record.setResponseSoapSize(DUMMY_LONG_10);
-            record.setResponseRestSize(DUMMY_LONG_10);
             record.setResponseMimeSize(DUMMY_LONG_10);
             record.setResponseAttachmentCount(DUMMY_INT_2);
             record.setXRequestId(DUMMY_UUID);

@@ -259,8 +259,8 @@ public class QueryRequestHandlerTest {
                     OpMonitoringData.SecurityServerType.PRODUCER
                     .getTypeString());
             record.setSucceeded(success);
-            record.setRequestSoapSize(999L);
-            record.setResponseSoapSize(888L);
+            record.setRequestSize(999L);
+            record.setResponseSize(888L);
 
             return record;
         }

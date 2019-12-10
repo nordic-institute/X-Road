@@ -128,7 +128,7 @@ public abstract class MessageProcessorBase {
             opMonitoringData.setMessageProtocolVersion(
                     soapMessage.getProtocolVersion());
 
-            opMonitoringData.setRequestSoapSize(soapMessage.getBytes().length);
+            opMonitoringData.setRequestSize(soapMessage.getBytes().length);
         }
     }
 
