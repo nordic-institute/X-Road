@@ -159,6 +159,46 @@ public class TokenCertificateService {
     }
 
     /**
+     * Activates certificate by given certificateId
+     *
+     * @param certificateId
+     * @throws CertificateNotFoundException
+     */
+    public void activateCertificate(String certificateId) throws CertificateNotFoundException {
+        try {
+            signerProxyFacade.activateCert(certificateId);
+        } catch (CodedException e) {
+            if (isCausedByCertNotFound(e)) {
+                throw new CertificateNotFoundException("Certificate with id " + certificateId + " not found");
+            } else {
+                throw e;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("certificate activation failed", e);
+        }
+    }
+
+    /**
+     * Deactivates certificate by given certificateId
+     *
+     * @param certificateId
+     * @throws CertificateNotFoundException
+     */
+    public void deactivateCertificate(String certificateId) throws CertificateNotFoundException {
+        try {
+            signerProxyFacade.deactivateCert(certificateId);
+        } catch (CodedException e) {
+            if (isCausedByCertNotFound(e)) {
+                throw new CertificateNotFoundException("Certificate with id " + certificateId + " not found");
+            } else {
+                throw e;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("certificate deactivation failed", e);
+        }
+    }
+
+    /**
      * Returns the given certificate owner's client ID.
      * @param instanceIdentifier instance identifier of the owner
      * @param cert the certificate
