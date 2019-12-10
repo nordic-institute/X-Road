@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.util;
 
+import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -31,6 +32,9 @@ import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Test utils for working with tokens
@@ -101,6 +105,7 @@ public final class TokenTestUtils {
         private String id = "id";
         private String friendlyName = "friendly-name";
         private KeyUsageInfo keyUsageInfo = KeyUsageInfo.SIGNING;
+        private List<CertRequestInfo> certRequests = new ArrayList<>();
 
         public KeyInfo build() {
             return new KeyInfo(true,
@@ -110,7 +115,7 @@ public final class TokenTestUtils {
                     "label",
                     "public-key",
                     new ArrayList<>(),
-                    new ArrayList<>(),
+                    certRequests,
                     "sign-mechanism-name");
         }
 
@@ -128,5 +133,16 @@ public final class TokenTestUtils {
             this.keyUsageInfo = keyUsageInfoParam;
             return this;
         }
+
+        /**
+         * Adds this item to csrs, ensuring there are no duplicates
+         */
+        public KeyInfoBuilder csr(CertRequestInfo certRequestInfo) {
+            Set<CertRequestInfo> csrs = new HashSet<>(this.certRequests);
+            csrs.add(certRequestInfo);
+            this.certRequests = new ArrayList<>(csrs);
+            return this;
+        }
+
     }
 }

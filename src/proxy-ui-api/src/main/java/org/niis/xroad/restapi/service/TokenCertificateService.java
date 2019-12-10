@@ -40,8 +40,6 @@ import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,6 +51,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
 import static org.niis.xroad.restapi.service.KeyService.isCausedByKeyNotFound;
+import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
 
 /**
  * token certificate service
@@ -104,14 +103,10 @@ public class TokenCertificateService {
             String certificateState;
             ClientId clientId = null;
             if (CertUtils.isAuthCert(x509Certificate)) {
-                if (!hasPermissionOrRole("IMPORT_AUTH_CERT")) {
-                    throw new AccessDeniedException("Missing permission: IMPORT_AUTH_CERT");
-                }
+                verifyAuthority("IMPORT_AUTH_CERT");
                 certificateState = CertificateInfo.STATUS_SAVED;
             } else {
-                if (!hasPermissionOrRole("IMPORT_SIGN_CERT")) {
-                    throw new AccessDeniedException("Missing permission: IMPORT_SIGN_CERT");
-                }
+                verifyAuthority("IMPORT_SIGN_CERT");
                 String xroadInstance = globalConfFacade.getInstanceIdentifier();
                 clientId = getClientIdForSigningCert(xroadInstance, x509Certificate);
                 boolean clientExists = clientRepository.clientExists(clientId, true);
@@ -179,12 +174,6 @@ public class TokenCertificateService {
         } else {
             throw e;
         }
-    }
-
-    private boolean hasPermissionOrRole(String permission) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals(permission));
     }
 
     static boolean isCausedByDuplicateCertificate(CodedException e) {

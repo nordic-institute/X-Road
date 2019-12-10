@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -39,12 +40,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.file.AccessDeniedException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -91,12 +92,22 @@ public class KeyServiceTest {
     public void setup() throws Exception {
         keyNamesToKeys = new HashMap<>();
         TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo("good-token");
-        keyNamesToKeys.put(GOOD_KEY_ID, new TokenTestUtils.KeyInfoBuilder().id(GOOD_KEY_ID).build());
+        CertRequestInfo goodCsr = new CertRequestInfo(GOOD_CSR_ID, null, null);
+        CertRequestInfo signerExceptionCsr = new CertRequestInfo(
+                SIGNER_EXCEPTION_CSR_ID, null, null);
+
+        keyNamesToKeys.put(GOOD_KEY_ID, new TokenTestUtils.KeyInfoBuilder()
+                .id(GOOD_KEY_ID)
+                .csr(goodCsr)
+                .csr(signerExceptionCsr)
+                .build());
         keyNamesToKeys.put(AUTH_KEY_ID, new TokenTestUtils.KeyInfoBuilder().id(AUTH_KEY_ID)
                 .keyUsageInfo(KeyUsageInfo.AUTHENTICATION)
+                .csr(goodCsr)
                 .build());
         keyNamesToKeys.put(SIGN_KEY_ID, new TokenTestUtils.KeyInfoBuilder().id(SIGN_KEY_ID)
                 .keyUsageInfo(KeyUsageInfo.SIGNING)
+                .csr(goodCsr)
                 .build());
         tokenInfo.getKeyInfo().addAll(keyNamesToKeys.values());
         when(signerProxyFacade.getTokens()).thenReturn(Collections.singletonList(tokenInfo));
@@ -112,7 +123,7 @@ public class KeyServiceTest {
         }).when(signerProxyFacade).setKeyFriendlyName(any(), any());
 
         doAnswer(invocation -> {
-            String csrId = (String) invocation.getArguments()[1];
+            String csrId = (String) invocation.getArguments()[0];
             if (GOOD_CSR_ID.equals(csrId)) {
                 return null;
             } else if (SIGNER_EXCEPTION_CSR_ID.equals(csrId)) {
@@ -155,28 +166,32 @@ public class KeyServiceTest {
     }
 
     @Test(expected = KeyNotFoundException.class)
+    @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
     public void deleteCsrKeyNotFound() throws Exception {
         keyService.deleteCsr(KEY_NOT_FOUND_KEY_ID, GOOD_CSR_ID);
     }
     @Test(expected = KeyService.CsrNotFoundException.class)
+    @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
     public void deleteCsrCsrNotFound() throws Exception {
         keyService.deleteCsr(GOOD_KEY_ID, CSR_NOT_FOUND_CSR_ID);
     }
     @Test(expected = KeyService.CsrNotFoundException.class)
+    @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
     public void deleteCsrSignerExceptions() throws Exception {
         keyService.deleteCsr(GOOD_KEY_ID, SIGNER_EXCEPTION_CSR_ID);
     }
     @Test(expected = AccessDeniedException.class)
     @WithMockUser(authorities = { "DELETE_SIGN_CERT" })
     public void deleteAuthCsrWithoutPermission() throws Exception {
-        keyService.deleteCsr(AUTH_KEY_ID, CSR_NOT_FOUND_CSR_ID);
+        keyService.deleteCsr(AUTH_KEY_ID, GOOD_CSR_ID);
     }
     @Test(expected = AccessDeniedException.class)
     @WithMockUser(authorities = { "DELETE_AUTH_CERT" })
     public void deleteSignCsrWithoutPermission() throws Exception {
-        keyService.deleteCsr(SIGN_KEY_ID, CSR_NOT_FOUND_CSR_ID);
+        keyService.deleteCsr(SIGN_KEY_ID, GOOD_CSR_ID);
     }
     @Test
+    @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
     public void deleteCsr() throws Exception {
         // success
         keyService.deleteCsr(GOOD_KEY_ID, GOOD_CSR_ID);

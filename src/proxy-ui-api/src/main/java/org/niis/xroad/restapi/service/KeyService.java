@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
@@ -42,6 +43,7 @@ import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
 import static org.niis.xroad.restapi.service.TokenService.isCausedByTokenNotActive;
 import static org.niis.xroad.restapi.service.TokenService.isCausedByTokenNotFound;
 
@@ -86,6 +88,20 @@ public class KeyService {
         }
 
         return keyInfo.get();
+    }
+
+    /**
+     * Finds csr with matching id from KeyInfo, or throws {@link CsrNotFoundException}
+     * @throws CsrNotFoundException
+     */
+    private CertRequestInfo getCsr(KeyInfo keyInfo, String csrId) throws CsrNotFoundException {
+        Optional<CertRequestInfo> csr = keyInfo.getCertRequests().stream()
+                .filter(csrInfo -> csrInfo.getId().equals(csrId))
+                .findFirst();
+        if (!csr.isPresent()) {
+            throw new CsrNotFoundException("csr with id " + csrId + " not found");
+        }
+        return csr.get();
     }
 
     public KeyInfo updateKeyFriendlyName(String id, String friendlyName) throws KeyNotFoundException {
@@ -140,12 +156,20 @@ public class KeyService {
 
     static final String KEY_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_KEY_NOT_FOUND;
 
-    public void deleteCsr(String keyId, String csrId) throws KeyNotFoundException {
+    public void deleteCsr(String keyId, String csrId) throws KeyNotFoundException, CsrNotFoundException {
+        KeyInfo keyInfo = getKey(keyId);
+        CertRequestInfo csrInfo = getCsr(keyInfo, csrId);
+
+        if (keyInfo.isForSigning()) {
+            verifyAuthority("DELETE_SIGN_CERT");
+        } else {
+            verifyAuthority("DELETE_AUTH_CERT");
+        }
         try {
-            signerProxyFacade.deleteCert(csrId);
+            signerProxyFacade.deleteCertRequest(csrId);
         } catch (Exception e) {
             // TO DO exception handling
-            throw new RuntimeException("foo");
+            throw new RuntimeException(e);
         }
     }
 

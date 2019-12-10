@@ -98,7 +98,7 @@ public class KeysApiController implements KeysApi {
     public ResponseEntity<Void> deleteCsr(String keyId, String csrId) {
         try {
             keyService.deleteCsr(keyId, csrId);
-        } catch (KeyNotFoundException e) {
+        } catch (KeyNotFoundException | KeyService.CsrNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
