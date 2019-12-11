@@ -1627,8 +1627,8 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
-  /keys/{id}/generate-csr:
-    put: # ok
+  /keys/{id}/csrs:
+    post: # ok
       tags:
         - security server
       summary: generate csr for the selected key
@@ -2700,8 +2700,8 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /system/certificate/generate-tls-key:
-    put: # ok
+  /system/certificate/tls-key:
+    post: # ok
       tags:
         - security server
       summary: generate new TLS key
@@ -2722,8 +2722,8 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /system/certificate/generate-csr:
-    put: # ok
+  /system/certificate/csr:
+    post: # ok
       tags:
         - security server
       summary: generate new certificate request
