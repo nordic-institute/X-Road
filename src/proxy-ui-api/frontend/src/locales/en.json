@@ -175,7 +175,7 @@
     "save": "Save",
     "continue": "Continue",
     "activate": "Activate",
-    "disable": "Disable"
+    "deactivate": "Disable"
   },
   "keys": {
     "token": "Token:",
