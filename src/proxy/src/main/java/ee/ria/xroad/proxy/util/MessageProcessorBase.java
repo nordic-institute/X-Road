@@ -43,6 +43,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAPACTION;
 
@@ -145,6 +146,8 @@ public abstract class MessageProcessorBase {
             opMonitoringData.setMessageUserId(request.findHeaderValueByName(MimeUtils.HEADER_USER_ID));
             opMonitoringData.setMessageIssue(request.findHeaderValueByName(MimeUtils.HEADER_ISSUE));
             opMonitoringData.setMessageProtocolVersion(String.valueOf(request.getVersion()));
+            opMonitoringData.setServiceType(Optional.ofNullable(
+                    ServerConf.getDescriptionType(request.getServiceId())).orElse(DescriptionType.REST).name());
         }
     }
 

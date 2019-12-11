@@ -591,9 +591,6 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                 EntityUtils.consume(response.getEntity());
             }
 
-            monitoringData.setServiceType(Optional.ofNullable(
-                    ServerConf.getDescriptionType(
-                            requestProxyMessage.getRest().getServiceId())).orElse(DescriptionType.REST).name());
             monitoringData.setResponseAttachmentCount(0);
             monitoringData.setResponseSize(restResponse.getMessageBytes().length
                     + messageEncoder.getAttachmentsByteCount());
