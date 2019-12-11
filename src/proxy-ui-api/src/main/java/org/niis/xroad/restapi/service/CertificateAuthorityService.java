@@ -105,7 +105,7 @@ public class CertificateAuthorityService {
             throws CertificateAuthorityNotFoundException, CertificateProfileInstantiationException,
             CannotBeUsedForSigningException, ClientNotFoundException {
         ApprovedCAInfo caInfo = getCertificateAuthority(caName);
-        if (Boolean.TRUE == caInfo.getAuthenticationOnly() && KeyUsageInfo.SIGNING == keyUsageInfo) {
+        if (Boolean.TRUE.equals(caInfo.getAuthenticationOnly()) && KeyUsageInfo.SIGNING == keyUsageInfo) {
             throw new CannotBeUsedForSigningException();
         }
         if (memberId != null) {
