@@ -3,19 +3,19 @@
         <div class="new-content">
       <subViewTitle :title="$t('cert.certificate')" @close="close" />
       <div class="details-view-tools" v-if="certificate">
-        <large-button v-if="certificate.ocsp_status === 'DISABLED'" outlined @click="activateCertificate(certificate.hash)">{{$t('action.activate')}}</large-button>
-        <large-button v-if="certificate.ocsp_status === 'OCSP_RESPONSE_GOOD'" outlined @click="deactivateCertificate(certificate.hash)">{{$t('action.deactivate')}}</large-button>
+        <large-button v-if="!certificate.active" outlined @click="activateCertificate(certificate.certificate_details.hash)">{{$t('action.activate')}}</large-button>
+        <large-button v-if="certificate.active" outlined @click="deactivateCertificate(certificate.certificate_details.hash)">{{$t('action.deactivate')}}</large-button>
       </div>
-      <template v-if="certificate">
+      <template v-if="certificate && certificate.certificate_details">
         <div class="cert-hash-wrapper">
-          <certificateHash :hash="certificate.hash" />
+          <certificateHash :hash="certificate.certificate_details.hash" />
           <large-button
-            v-if="certificate.hash"
+            v-if="certificate.certificate_details.hash"
             outlined
             @click="deleteCertificate()"
           >{{$t('action.delete')}}</large-button>
         </div>
-        <certificateInfo :certificate="certificate" />
+        <certificateInfo :certificate="certificate.certificate_details" />
       </template>
     </div>
 
@@ -33,8 +33,6 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
-import { mapGetters } from 'vuex';
-import { Permissions } from '@/global';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
@@ -88,8 +86,8 @@ export default Vue.extend({
       api
         .put(`/token-certificates/${hash}/activate`, hash)
         .then((res: any) => {
-          this.certificate.ocsp_status = 'OCSP_RESPONSE_GOOD';
           this.$bus.$emit('show-success', 'cert.activateSuccess');
+          this.fetchData(this.hash);
         })
         .catch((error) => this.$bus.$emit('show-error', error.message));
     },
@@ -97,8 +95,8 @@ export default Vue.extend({
       api
         .put(`token-certificates/${hash}/deactivate`, hash)
         .then((res) => {
-            this.certificate.ocsp_status = 'DISABLED';
             this.$bus.$emit('show-success', 'cert.disableSuccess');
+            this.fetchData(this.hash);
         })
         .catch((error) => this.$bus.$emit('show-error', error.message));
     },
