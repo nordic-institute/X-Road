@@ -182,4 +182,12 @@ public class SignerProxyFacade {
     public CertificateInfo getCertForHash(String hash) throws Exception {
         return SignerProxy.getCertForHash(hash);
     }
+
+    /**
+     * {@link SignerProxy#getKeyIdForCerthash(String)}
+     */
+    public String getKeyIdForCerthash(String hash) throws Exception {
+        return SignerProxy.getKeyIdForCerthash(hash);
+    }
+
 }

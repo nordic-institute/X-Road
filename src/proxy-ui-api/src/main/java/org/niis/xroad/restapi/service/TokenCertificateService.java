@@ -44,12 +44,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.cert.X509Certificate;
+import java.util.HashSet;
+import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_EXISTS;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
+import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_AVAILABLE;
+import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_ACTIVE;
+import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_AVAILABLE;
+import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_INITIALIZED;
+import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_READONLY;
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
 import static org.niis.xroad.restapi.service.KeyService.isCausedByKeyNotFound;
 import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
@@ -76,6 +84,55 @@ public class TokenCertificateService {
         this.globalConfFacade = globalConfFacade;
         this.signerProxyFacade = signerProxyFacade;
         this.clientRepository = clientRepository;
+    }
+
+    private static String signerFaultCode(String detail) {
+        return SIGNER_X + "." + detail;
+    }
+
+    static final Set<String> KEY_NOT_OPERATIONAL_FOR_CSR_FAULT_CODES;
+    static {
+        KEY_NOT_OPERATIONAL_FOR_CSR_FAULT_CODES = new HashSet<>();
+        KEY_NOT_OPERATIONAL_FOR_CSR_FAULT_CODES.add(signerFaultCode(X_KEY_NOT_AVAILABLE));
+        // unfortunately signer sends X_KEY_NOT_AVAILABLE as X_KEY_NOT_FOUND
+        KEY_NOT_OPERATIONAL_FOR_CSR_FAULT_CODES.add(signerFaultCode(X_KEY_NOT_FOUND));
+        KEY_NOT_OPERATIONAL_FOR_CSR_FAULT_CODES.add(signerFaultCode(X_TOKEN_NOT_ACTIVE));
+        KEY_NOT_OPERATIONAL_FOR_CSR_FAULT_CODES.add(signerFaultCode(X_TOKEN_NOT_INITIALIZED));
+        KEY_NOT_OPERATIONAL_FOR_CSR_FAULT_CODES.add(signerFaultCode(X_TOKEN_NOT_AVAILABLE));
+        KEY_NOT_OPERATIONAL_FOR_CSR_FAULT_CODES.add(signerFaultCode(X_TOKEN_READONLY));
+    }
+
+    static boolean isCausedByKeyNotOperational(CodedException e) {
+        return KEY_NOT_OPERATIONAL_FOR_CSR_FAULT_CODES.contains(e.getFaultCode());
+    }
+
+    /**
+     * Thrown if signer operation failed for unknown reason
+     */
+    public static class SignerOperationFailedException extends ServiceException {
+        public static final String ERROR_SIGNER_OPERATION_FAILED = "signer_operation_failed";
+
+        public SignerOperationFailedException(Throwable t, ErrorDeviation errorDeviation) {
+            super(t, errorDeviation);
+        }
+        public SignerOperationFailedException(Throwable t) {
+            super(t, new ErrorDeviation(ERROR_SIGNER_OPERATION_FAILED));
+        }
+        public SignerOperationFailedException(String s) {
+            super(s, new ErrorDeviation(ERROR_SIGNER_OPERATION_FAILED));
+        }
+    }
+
+    /**
+     * Thrown if signer operation failed due to key (or token that contains the key) not being in a state to do so.
+     * For example, when key or token is not active.
+     */
+    public static class KeyNotOperationalException extends ServiceException {
+        public static final String ERROR_KEY_NOT_OPERATIONAL = "key_not_operational";
+
+        public KeyNotOperationalException(Throwable t) {
+            super(t, new ErrorDeviation(ERROR_KEY_NOT_OPERATIONAL));
+        }
     }
 
     /**
@@ -225,6 +282,9 @@ public class TokenCertificateService {
     static final String CERT_WRONG_USAGE_FAULT_CODE = SIGNER_X + "." + X_WRONG_CERT_USAGE;
     static final String CSR_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_CSR_NOT_FOUND;
     static final String CERT_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_CERT_NOT_FOUND;
+
+    public void deleteCertificate(String hash) throws CertificateNotFoundException {
+    }
 
     /**
      * General error that happens when importing a cert. Usually a wrong file type

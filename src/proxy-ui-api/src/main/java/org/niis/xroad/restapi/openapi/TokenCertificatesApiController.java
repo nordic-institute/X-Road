@@ -96,4 +96,15 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
         CertificateDetails certificateDetails = certificateDetailsConverter.convert(certificateInfo);
         return new ResponseEntity<>(certificateDetails, HttpStatus.OK);
     }
+
+    @Override
+    @PreAuthorize("hasAuthority('DELETE_AUTH_CERT') or hasAuthority('DELETE_SIGN_CERT')")
+    public ResponseEntity<Void> deleteCertificate(String hash) {
+        try {
+            tokenCertificateService.deleteCertificate(hash);
+        } catch (CertificateNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

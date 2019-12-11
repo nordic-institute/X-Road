@@ -43,6 +43,8 @@ import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCert;
 import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCertResponse;
 import ee.ria.xroad.signer.protocol.message.GetCertificateInfoForHash;
 import ee.ria.xroad.signer.protocol.message.GetCertificateInfoResponse;
+import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHash;
+import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHashResponse;
 import ee.ria.xroad.signer.protocol.message.GetTokenInfo;
 import ee.ria.xroad.signer.protocol.message.ImportCert;
 import ee.ria.xroad.signer.protocol.message.ImportCertResponse;
@@ -319,6 +321,7 @@ public final class SignerProxy {
      */
     public static CertificateInfo getCertForHash(String hash) throws Exception {
         log.trace("Getting cert by hash '{}'", hash);
+        checkLowerCase(hash);
 
         GetCertificateInfoResponse response = execute(new GetCertificateInfoForHash(hash));
         CertificateInfo certificateInfo = response.getCertificateInfo();
@@ -326,6 +329,33 @@ public final class SignerProxy {
         log.trace("Cert with hash '{}' found", hash);
 
         return certificateInfo;
+    }
+
+    /**
+     * Get key for a given cert hash
+     * @param hash cert hash. Must be lowerCase!
+     * @return CertificateInfo
+     * @throws Exception
+     */
+    public static String getKeyIdForCerthash(String hash) throws Exception {
+        log.trace("Getting cert by hash '{}'", hash);
+        checkLowerCase(hash);
+
+        GetKeyIdForCertHashResponse response = execute(new GetKeyIdForCertHash(hash));
+        String keyId = response.getKeyId();
+
+        log.trace("Cert with hash '{}' found", hash);
+
+        return keyId;
+    }
+
+    /**
+     * @throws IllegalArgumentException if parameter was not a lowercase string
+     */
+    private static void checkLowerCase(String s) {
+        if (s == null || s.toLowerCase().equals(s)) {
+            throw new IllegalArgumentException(s + " should be a lowerCase string");
+        }
     }
 
     private static <T> T execute(Object message) throws Exception {
