@@ -25,11 +25,13 @@
 package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
+import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
@@ -37,6 +39,7 @@ import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.util.ResourceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -78,5 +81,19 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
         CertificateDetails certificateDetails = certificateDetailsConverter.convert(certificate);
         return ApiUtil.createCreatedResponse("/api/token-certificates/{hash}", certificateDetails,
                 certificateDetails.getHash());
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_CERT')")
+    public ResponseEntity<CertificateDetails> getCertificate(String hash) {
+        CertificateInfo certificateInfo;
+        try {
+            certificateInfo = tokenCertificateService.getCertificateInfo(hash);
+        } catch (CertificateNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+
+        CertificateDetails certificateDetails = certificateDetailsConverter.convert(certificateInfo);
+        return new ResponseEntity<>(certificateDetails, HttpStatus.OK);
     }
 }
