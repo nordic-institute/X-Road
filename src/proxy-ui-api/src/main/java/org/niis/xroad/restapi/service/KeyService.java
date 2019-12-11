@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
 import static org.niis.xroad.restapi.service.TokenService.isCausedByTokenNotActive;
@@ -154,7 +155,16 @@ public class KeyService {
         return KEY_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
     }
 
-    static final String KEY_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_KEY_NOT_FOUND;
+    static boolean isCausedByCsrNotFound(CodedException e) {
+        return CSR_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
+    }
+
+    private static String signerFaultCode(String detail) {
+        return SIGNER_X + "." + detail;
+    }
+
+    static final String KEY_NOT_FOUND_FAULT_CODE = signerFaultCode(X_KEY_NOT_FOUND);
+    static final String CSR_NOT_FOUND_FAULT_CODE = signerFaultCode(X_CSR_NOT_FOUND);
 
     public void deleteCsr(String keyId, String csrId) throws KeyNotFoundException, CsrNotFoundException {
         KeyInfo keyInfo = getKey(keyId);
@@ -167,9 +177,14 @@ public class KeyService {
         }
         try {
             signerProxyFacade.deleteCertRequest(csrId);
-        } catch (Exception e) {
-            // TO DO exception handling
-            throw new RuntimeException(e);
+        } catch (CodedException e) {
+            if (isCausedByCsrNotFound(e)) {
+                throw new CsrNotFoundException(e);
+            } else {
+                throw e;
+            }
+        } catch (Exception other) {
+            throw new RuntimeException("deleting a csr failed", other);
         }
     }
 

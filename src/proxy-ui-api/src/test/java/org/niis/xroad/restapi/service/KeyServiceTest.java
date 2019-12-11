@@ -128,7 +128,8 @@ public class KeyServiceTest {
                 return null;
             } else if (SIGNER_EXCEPTION_CSR_ID.equals(csrId)) {
                 throw CodedException.tr(X_CSR_NOT_FOUND,
-                "csr_not_found", "Certificate request '%s' not found", csrId);
+                "csr_not_found", "Certificate request '%s' not found", csrId)
+                        .withPrefix(SIGNER_X);
             } else if (CSR_NOT_FOUND_CSR_ID.equals(csrId)) {
                 throw new KeyService.CsrNotFoundException("not found");
             } else {
