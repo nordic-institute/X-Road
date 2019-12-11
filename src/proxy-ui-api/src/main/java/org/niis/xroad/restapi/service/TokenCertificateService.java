@@ -47,6 +47,7 @@ import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_EXISTS;
+import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
@@ -78,8 +79,31 @@ public class TokenCertificateService {
     }
 
     /**
-     * @param certificateBytes
+     * Find an existing cert by it's hash
+     * @param hash cert hash of an existing cert. Will be transformed to lowercase
      * @return
+     * @throws CertificateNotFoundException
+     */
+    public CertificateInfo getCertificateInfo(String hash) throws CertificateNotFoundException {
+        CertificateInfo certificateInfo = null;
+        try {
+            certificateInfo = signerProxyFacade.getCertForHash(hash.toLowerCase()); // lowercase needed in Signer
+        } catch (CodedException e) {
+            if (isCausedByCertNotFound(e)) {
+                throw new CertificateNotFoundException("Certificate with hash " + hash + " not found");
+            } else {
+                throw e;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("error getting certificate", e);
+        }
+        return certificateInfo;
+    }
+
+    /**
+     * Import a cert from given bytes
+     * @param certificateBytes
+     * @return CertificateType
      * @throws GlobalConfService.GlobalConfOutdatedException
      * @throws ClientNotFoundException
      * @throws KeyNotFoundException
@@ -189,13 +213,18 @@ public class TokenCertificateService {
     }
 
     static boolean isCausedByCsrNotFound(CodedException e) {
-        return CSR_NOT_FOUND.equals(e.getFaultCode());
+        return CSR_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
+    }
+
+    static boolean isCausedByCertNotFound(CodedException e) {
+        return CERT_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
     }
 
     static final String DUPLICATE_CERT_FAULT_CODE = SIGNER_X + "." + X_CERT_EXISTS;
     static final String INCORRECT_CERT_FAULT_CODE = SIGNER_X + "." + X_INCORRECT_CERTIFICATE;
     static final String CERT_WRONG_USAGE_FAULT_CODE = SIGNER_X + "." + X_WRONG_CERT_USAGE;
-    static final String CSR_NOT_FOUND = SIGNER_X + "." + X_CSR_NOT_FOUND;
+    static final String CSR_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_CSR_NOT_FOUND;
+    static final String CERT_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_CERT_NOT_FOUND;
 
     /**
      * General error that happens when importing a cert. Usually a wrong file type
