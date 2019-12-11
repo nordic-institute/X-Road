@@ -1,3 +1,9 @@
+xroad-jetty9 (6.23.0-0) stable; urgency=medium
+
+  * Version bump
+
+ -- NIIS <info@niis.org>  Wed, 11 Dec 2019 13:17:24 +0200
+
 xroad-jetty9 (6.22.1-1) stable; urgency=medium
 
   * Version bump

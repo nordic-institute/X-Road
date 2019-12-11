@@ -1,5 +1,7 @@
 # Change Log
 
+## 6.23.0 - UNRELEASED
+
 ## 6.22.1 - 2019-11-07
 - XRDDEV-730: Validate security server addresses.
 - XRDDEV-734: Fix missing operationaldata.
