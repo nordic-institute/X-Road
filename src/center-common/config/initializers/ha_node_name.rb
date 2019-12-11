@@ -22,8 +22,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-
 require 'java'
 
-class ApplicationController < ActionController::Base
+ActiveRecord::ConnectionAdapters::JdbcAdapter.set_callback :checkout, :after do |connection|
+  if CommonSql.ha_configured?
+    connection.execute("SET SESSION xroad.current_ha_node_name='#{CommonSql.ha_node_name}'")
+  end
 end
