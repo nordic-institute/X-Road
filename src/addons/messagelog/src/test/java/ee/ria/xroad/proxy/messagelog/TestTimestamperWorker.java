@@ -33,6 +33,8 @@ import org.bouncycastle.tsp.TimeStampToken;
 
 import java.util.List;
 
+import static ee.ria.xroad.proxy.messagelog.TimestamperUtil.getTimestampResponse;
+
 class TestTimestamperWorker extends TimestamperWorker {
 
     private static volatile Boolean shouldFail;
@@ -49,7 +51,7 @@ class TestTimestamperWorker extends TimestamperWorker {
     protected AbstractTimestampRequest createSingleTimestampRequest(Long logRecord) {
         return new SingleTimestampRequest(logRecord) {
             @Override
-            protected AbstractTimestampRequest.TsRequest makeTsRequest(TimeStampRequest req, List<String> tspUrls)
+            protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls)
                     throws Exception {
                 synchronized (shouldFail) {
                     if (shouldFail) {
@@ -58,8 +60,12 @@ class TestTimestamperWorker extends TimestamperWorker {
                         throw new RuntimeException("time-stamping failed");
                     }
                 }
+                TsRequest req = DummyTSP.makeRequest(tsRequest);
 
-                return DummyTSP.makeRequest(req);
+                TimeStampResponse tsResponse = getTimestampResponse(req.getInputStream());
+                verify(tsRequest, tsResponse);
+
+                return result(tsResponse, req.getUrl());
             }
 
             @Override
@@ -76,7 +82,7 @@ class TestTimestamperWorker extends TimestamperWorker {
     protected AbstractTimestampRequest createBatchTimestampRequest(Long[] logRecords, String[] signatureHashes) {
         return new BatchTimestampRequest(logRecords, signatureHashes) {
             @Override
-            protected AbstractTimestampRequest.TsRequest makeTsRequest(TimeStampRequest req, List<String> tspUrls)
+            protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls)
                     throws Exception {
                 synchronized (shouldFail) {
                     if (shouldFail) {
@@ -85,8 +91,12 @@ class TestTimestamperWorker extends TimestamperWorker {
                         throw new RuntimeException("time-stamping failed");
                     }
                 }
+                TsRequest req = DummyTSP.makeRequest(tsRequest);
 
-                return DummyTSP.makeRequest(req);
+                TimeStampResponse tsResponse = getTimestampResponse(req.getInputStream());
+                verify(tsRequest, tsResponse);
+
+                return result(tsResponse, req.getUrl());
             }
 
             @Override

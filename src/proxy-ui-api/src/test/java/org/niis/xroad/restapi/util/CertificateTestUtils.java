@@ -46,6 +46,9 @@ import java.util.List;
 public final class CertificateTestUtils {
 
     // this is base64 encoded DER certificate from common-util/test/configuration-anchor.xml
+
+    public static final String MOCK_CERTIFICATE_HASH = "A2293825AA82A5429EC32803847E2152A303969C";
+
     /**
      * Version: V3
      * Subject: CN=N/A
@@ -120,7 +123,7 @@ public final class CertificateTestUtils {
                             + "I0IDE2OjIxIHRpbnkK");
 
     /**
-     * This is an authentication certification created in a development setup
+     * This is an authentication certificate created in a development setup
      *
      * Certificate Details:
      * Serial Number: 8 (0x8)
