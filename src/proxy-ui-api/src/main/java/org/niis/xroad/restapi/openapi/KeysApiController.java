@@ -118,18 +118,25 @@ public class KeysApiController implements KeysApi {
         return new ResponseEntity<>(key, HttpStatus.OK);
     }
 
+    @SuppressWarnings("squid:S3655") // see reason below
     @Override
     @PreAuthorize("(hasAuthority('GENERATE_AUTH_CERT_REQ') and "
             + "#csrGenerate.keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).AUTHENTICATION)"
             + " or (hasAuthority('GENERATE_SIGN_CERT_REQ') and "
             + "#csrGenerate.keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).SIGNING)")
     public ResponseEntity<Resource> generateCsr(String keyId, CsrGenerate csrGenerate) {
+
+        // squid:S3655 throwing NoSuchElementException if there is no value present is
+        // fine since keyUsageInfo is mandatory parameter
         KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(csrGenerate.getKeyUsageType()).get();
         ClientId memberId = null;
         if (KeyUsageInfo.SIGNING == keyUsageInfo) {
             // memberId not used for authentication csrs
             memberId = clientConverter.convertId(csrGenerate.getMemberId());
         }
+
+        // squid:S3655 throwing NoSuchElementException if there is no value present is
+        // fine since csr format is mandatory parameter
         GenerateCertRequest.RequestFormat csrFormat = CsrFormatMapping.map(csrGenerate.getCsrFormat()).get();
 
         byte[] csr = null;
