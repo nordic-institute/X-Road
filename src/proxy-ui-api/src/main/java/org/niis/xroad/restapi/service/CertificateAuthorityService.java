@@ -104,7 +104,7 @@ public class CertificateAuthorityService {
             throws CertificateAuthorityNotFoundException, CertificateProfileInstantiationException,
             WrongKeyUsageException, ClientNotFoundException {
         ApprovedCAInfo caInfo = getCertificateAuthority(caName);
-        if (Boolean.TRUE == caInfo.getAuthenticationOnly() && KeyUsageInfo.SIGNING == keyUsageInfo) {
+        if (Boolean.TRUE.equals(caInfo.getAuthenticationOnly()) && KeyUsageInfo.SIGNING == keyUsageInfo) {
             throw new WrongKeyUsageException();
         }
         if (memberId != null) {

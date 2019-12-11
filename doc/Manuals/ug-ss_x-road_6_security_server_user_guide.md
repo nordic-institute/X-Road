@@ -2,17 +2,17 @@
 | ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
 | -------------------------: |
 
-# SECURITY SERVER USER GUIDE <!-- omit in toc --> 
+# SECURITY SERVER USER GUIDE <!-- omit in toc -->
 
 **X-ROAD 6**
 
-Version: 2.35
+Version: 2.36
 Doc. ID: UG-SS
 
 ---
 
 
-## Version history <!-- omit in toc --> 
+## Version history <!-- omit in toc -->
 
  Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
@@ -68,8 +68,9 @@ Doc. ID: UG-SS
  15.10.2019 | 2.33    | Updated REST services in chapter [6] | Ilkka Seppälä
  04.11.2019 | 2.34    | Added information about REST API request rate and size limits | Janne Mattila
  07.11.2019 | 2.35    | Add more information about service descriptions to chapter [6] | Ilkka Seppälä
+ 05.12.2019 | 2.36    | Add information about timestamping failover capabilities in chapter [10.2](#102-managing-the-timestamping-services) | Petteri Kivimäki
 
-## Table of Contents <!-- omit in toc --> 
+## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
 <!-- vim-markdown-toc GFM -->
@@ -522,13 +523,13 @@ To change the security server owner the following actions must be completed.
 - A new member must be added to the security server (see [4.2](#42-adding-a-security-server-client)). If needed, specify the token on which the member is configured
 
 - If not yet available, a Signing Key and Certificate must be configured for the new member (see [4.3](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client)).
- 
+
 - The new member must be registered in the X-Road Governing Authority (see [4.3](#44-registering-a-security-server-client-in-the-x-road-governing-authority)).
 
 - The security server owner change request must be submitted from the security server. To submit an owner change request follow these steps.
 
   1. In the **Member Detail view** click **Make Owner**.
-  
+
   2. Click **Make Owner** to submit a change request.
 
 - The change request is sent to the X-Road governing authority according to the organizational procedures of the X-Road instance.
@@ -1291,7 +1292,7 @@ To delete a timestamping service, follow these steps.
 
 2.  In the **Timestamping Services** section, select the service to be deleted and click **Delete**.
 
-*Note*: If more than one time stamping service is configured, the security server will try to get a timestamp from the topmost service in the table, moving down to the next service if the try was unsuccessful.
+*Note*: If more than one timestamping service is configured, the security server will try to get a timestamp from the topmost service in the table, moving down to the next service if the try was unsuccessful. The failover covers both connection and timestamp response verification issues. For example, security server is not able to establish a connection to a timestamping service because of a misconfigured firewall, or verification of a timestamp response fails because of the sign certificate of the timestamping service is changed.
 
 
 ### 10.3 Changing the Internal TLS Key and Certificate
@@ -1610,7 +1611,7 @@ On this page you can examine the statuses of the following services:
  Global configuration | Green/yellow/red | Status message | The time of the global configuration client’s last run | The estimated time of the global configuration client’s next run
  Timestamping         | Green/yellow/red | Status message | The time of the last timestamping operation            | Not used                                   
  OCSP-responders      | Green/yellow/red | Status message | The time of the last contact with the OCSP-responder   | The latest possible time for the next OCSP-refresh
- 
+
 To refresh the service statuses click the **Diagnostics** item on the **Management** menu.
 
 The status colors indicate the following:
@@ -1794,16 +1795,16 @@ Environmental monitoring provides details of the security servers such as operat
 
 ### 16.1 Usage via SOAP API
 
-Environmental monitoring provides SOAP API via X-Road message protocol extension. SOAP messages are described in \[[PR-ENVMONMES](#Ref_PR-ENVMONMES)\]. 
+Environmental monitoring provides SOAP API via X-Road message protocol extension. SOAP messages are described in \[[PR-ENVMONMES](#Ref_PR-ENVMONMES)\].
 
 Monitoring extension schema is defined in \[[MONITORING_XSD](#Ref_MONITORING_XSD)\].
 
 
 ### 16.2 Usage via JMX API
 
-Environmental monitoring provides also a standard JMX endpoint which can be accessed with any JMX client (for example Java's jconsole application). See \[[ARC-ENVMON](#Ref_ARC-ENVMON)\] for details. 
+Environmental monitoring provides also a standard JMX endpoint which can be accessed with any JMX client (for example Java's jconsole application). See \[[ARC-ENVMON](#Ref_ARC-ENVMON)\] for details.
 
-JMX is disabled on default. JMX is enabled by adding standard JMX-related options to the executable java process as in example by \[[ZABBIX-JMX](#Ref_ZABBIX-JMX)\]. Monitor process options are defined in security server's path `/etc/xroad/services/monitor.conf`. 
+JMX is disabled on default. JMX is enabled by adding standard JMX-related options to the executable java process as in example by \[[ZABBIX-JMX](#Ref_ZABBIX-JMX)\]. Monitor process options are defined in security server's path `/etc/xroad/services/monitor.conf`.
 
 ### 16.3 Limiting environmental monitoring remote data set
 

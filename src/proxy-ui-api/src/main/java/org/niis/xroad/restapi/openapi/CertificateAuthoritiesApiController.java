@@ -105,6 +105,7 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
         return new ResponseEntity<>(cas, HttpStatus.OK);
     }
 
+    @SuppressWarnings("squid:S3655") // see reason below
     @Override
     @PreAuthorize("(hasAuthority('GENERATE_AUTH_CERT_REQ') and "
             + " (#keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).AUTHENTICATION"
@@ -117,6 +118,8 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
             String keyId,
             String encodedMemberId) {
 
+        // squid:S3655 throwing NoSuchElementException if there is no value present is
+        // fine since keyUsageInfo is mandatory parameter
         KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(keyUsageType).get();
         try {
             if (!StringUtils.isBlank(keyId)) {
