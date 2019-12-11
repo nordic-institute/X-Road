@@ -86,6 +86,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
@@ -590,6 +591,9 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                 EntityUtils.consume(response.getEntity());
             }
 
+            monitoringData.setServiceType(Optional.ofNullable(
+                    ServerConf.getDescriptionType(
+                            requestProxyMessage.getRest().getServiceId())).orElse(DescriptionType.REST).name());
             monitoringData.setResponseAttachmentCount(0);
             monitoringData.setResponseSize(restResponse.getMessageBytes().length
                     + messageEncoder.getAttachmentsByteCount());

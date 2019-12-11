@@ -59,6 +59,8 @@ public final class OperationalDataRecordsGenerator {
 
     private static final Options OPTIONS = getOptions();
 
+    private static final String SERVICE_TYPE_WSDL = "WSDL";
+
     private OperationalDataRecordsGenerator() {
     }
 
@@ -223,11 +225,9 @@ public final class OperationalDataRecordsGenerator {
             record.setResponseMimeSize(DUMMY_LONG_10);
             record.setResponseAttachmentCount(DUMMY_INT_2);
             record.setXRequestId(DUMMY_UUID);
+            record.setServiceType(SERVICE_TYPE_WSDL);
 
             record.setSucceeded(true);
-
-            //record.setSoapFaultCode(longString);
-            //record.setSoapFaultString(longString);
 
             records.add(record);
         }
