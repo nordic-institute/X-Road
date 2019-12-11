@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.18"
+  version: "1.0.19"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -238,7 +238,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CertificateDetails'
+                $ref: '#/components/schemas/TokenCertificate'
         '400':
           description: request was invalid
         '401':
@@ -269,14 +269,14 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '200':
-          description: certificate details
+          description: token certificate
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CertificateDetails'
+                $ref: '#/components/schemas/TokenCertificate'
         '400':
           description: request was invalid
         '401':
@@ -304,7 +304,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '204':
           description: deletion was successful
@@ -334,7 +334,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '204':
           description: request was successful
@@ -366,7 +366,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '204':
           description: certificate was deactivated
@@ -386,8 +386,8 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: import an existing certificate by cert hash
-      operationId: importExistingCertificate
+      summary: import an existing certificate from a token by cert hash
+      operationId: importCertificateFromToken
       description: Imports certificate from a token to the system
       parameters:
         - in: path
@@ -398,14 +398,14 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '201':
-          description: certificate imported
+          description: the imported certificate
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CertificateDetails'
+                $ref: '#/components/schemas/TokenCertificate'
         '400':
           description: request was invalid
         '401':
@@ -436,7 +436,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '204':
           description: request was successful
@@ -468,7 +468,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '204':
           description: request was successful
@@ -1083,7 +1083,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '200':
           description: certificate details
@@ -1127,7 +1127,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '204':
           description: certificate deletion was successful
@@ -3482,7 +3482,7 @@ components:
           description: certificate SHA-1 hash
           example: 1234567890ABCDEF
           minLength: 1
-          maxLength: 255
+          maxLength: 40
         key_usages:
           type: array
           description: certificate key usage array

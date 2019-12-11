@@ -24,12 +24,11 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
-import org.niis.xroad.restapi.openapi.model.CertificateDetails;
+import org.niis.xroad.restapi.converter.TokenCertificateConverter;
+import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
@@ -55,20 +54,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class TokenCertificatesApiController implements TokenCertificatesApi {
 
     private final TokenCertificateService tokenCertificateService;
-    private final CertificateDetailsConverter certificateDetailsConverter;
+    private final TokenCertificateConverter tokenCertificateConverter;
 
     @Autowired
     public TokenCertificatesApiController(TokenCertificateService tokenCertificateService,
-            CertificateDetailsConverter certificateDetailsConverter) {
+            TokenCertificateConverter tokenCertificateConverter) {
         this.tokenCertificateService = tokenCertificateService;
-        this.certificateDetailsConverter = certificateDetailsConverter;
+        this.tokenCertificateConverter = tokenCertificateConverter;
     }
 
     @Override
     @PreAuthorize("hasAnyAuthority('IMPORT_AUTH_CERT', 'IMPORT_SIGN_CERT')")
-    public ResponseEntity<CertificateDetails> importCertificate(Resource certificateResource) {
+    public ResponseEntity<TokenCertificate> importCertificate(Resource certificateResource) {
         byte[] certificateBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(certificateResource);
-        CertificateType certificate = null;
+        CertificateInfo certificate = null;
         try {
             certificate = tokenCertificateService.importCertificate(certificateBytes);
         } catch (GlobalConfService.GlobalConfOutdatedException | ClientNotFoundException | KeyNotFoundException
@@ -78,14 +77,14 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
         } catch (CertificateAlreadyExistsException | TokenCertificateService.CsrNotFoundException e) {
             throw new ConflictException(e);
         }
-        CertificateDetails certificateDetails = certificateDetailsConverter.convert(certificate);
-        return ApiUtil.createCreatedResponse("/api/token-certificates/{hash}", certificateDetails,
-                certificateDetails.getHash());
+        TokenCertificate tokenCertificate = tokenCertificateConverter.convert(certificate);
+        return ApiUtil.createCreatedResponse("/api/token-certificates/{hash}", tokenCertificate,
+                tokenCertificate.getCertificateDetails().getHash());
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CERT')")
-    public ResponseEntity<CertificateDetails> getCertificate(String hash) {
+    public ResponseEntity<TokenCertificate> getCertificate(String hash) {
         CertificateInfo certificateInfo;
         try {
             certificateInfo = tokenCertificateService.getCertificateInfo(hash);
@@ -93,16 +92,16 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
             throw new ResourceNotFoundException(e);
         }
 
-        CertificateDetails certificateDetails = certificateDetailsConverter.convert(certificateInfo);
-        return new ResponseEntity<>(certificateDetails, HttpStatus.OK);
+        TokenCertificate tokenCertificate = tokenCertificateConverter.convert(certificateInfo);
+        return new ResponseEntity<>(tokenCertificate, HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAnyAuthority('IMPORT_AUTH_CERT', 'IMPORT_SIGN_CERT')")
-    public ResponseEntity<CertificateDetails> importExistingCertificate(String hash) {
-        CertificateType certificate = null;
+    public ResponseEntity<TokenCertificate> importCertificateFromToken(String hash) {
+        CertificateInfo certificate = null;
         try {
-            certificate = tokenCertificateService.importExistingCertificate(hash);
+            certificate = tokenCertificateService.importCertificateFromToken(hash);
         } catch (GlobalConfService.GlobalConfOutdatedException | ClientNotFoundException | KeyNotFoundException
                 | TokenCertificateService.WrongCertificateUsageException
                 | TokenCertificateService.InvalidCertificateException e) {
@@ -112,8 +111,8 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
-        CertificateDetails certificateDetails = certificateDetailsConverter.convert(certificate);
-        return ApiUtil.createCreatedResponse("/api/token-certificates/{hash}", certificateDetails,
-                certificateDetails.getHash());
+        TokenCertificate tokenCertificate = tokenCertificateConverter.convert(certificate);
+        return ApiUtil.createCreatedResponse("/api/token-certificates/{hash}", tokenCertificate,
+                tokenCertificate.getCertificateDetails().getHash());
     }
 }
