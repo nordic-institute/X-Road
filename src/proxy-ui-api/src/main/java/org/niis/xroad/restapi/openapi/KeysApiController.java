@@ -32,6 +32,8 @@ import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.KeyName;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.KeyService;
+import org.niis.xroad.restapi.service.TokenCertificateService;
+import org.niis.xroad.restapi.service.TokenCertificateService.CsrNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,18 +52,18 @@ public class KeysApiController implements KeysApi {
 
     private final KeyService keyService;
     private final KeyConverter keyConverter;
+    private final TokenCertificateService tokenCertificateService;
 
     /**
      * KeysApiController constructor
-     * @param keyConverter
-     * @param keyService
      */
-
     @Autowired
     public KeysApiController(KeyService keyService,
-            KeyConverter keyConverter) {
+            KeyConverter keyConverter,
+            TokenCertificateService tokenCertificateService) {
         this.keyService = keyService;
         this.keyConverter = keyConverter;
+        this.tokenCertificateService = tokenCertificateService;
     }
 
     @Override
@@ -97,12 +99,11 @@ public class KeysApiController implements KeysApi {
     @PreAuthorize("hasAuthority('DELETE_AUTH_CERT') or hasAuthority('DELETE_SIGN_CERT')")
     public ResponseEntity<Void> deleteCsr(String keyId, String csrId) {
         try {
-            keyService.deleteCsr(keyId, csrId);
-        } catch (KeyNotFoundException | KeyService.CsrNotFoundException e) {
+            tokenCertificateService.deleteCsr(keyId, csrId);
+        } catch (KeyNotFoundException | CsrNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
-
 
 }

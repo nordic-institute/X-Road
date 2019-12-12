@@ -33,6 +33,7 @@ import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.KeyService;
+import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -66,6 +67,9 @@ public class KeysApiControllerTest {
     @MockBean
     private KeyService keyService;
 
+    @MockBean
+    private TokenCertificateService tokenCertificateService;
+
     @Autowired
     private KeysApiController keysApiController;
 
@@ -82,7 +86,7 @@ public class KeysApiControllerTest {
             Object[] args = invocation.getArguments();
             String keyId = (String) args[0];
             return returnKeyIfGoodId(keyInfo, keyId);
-        }).when(keyService).deleteCsr(any(), any());
+        }).when(tokenCertificateService).deleteCsr(any(), any());
 
     }
 

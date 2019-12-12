@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 
@@ -46,6 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.cert.X509Certificate;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
@@ -340,6 +342,50 @@ public class TokenCertificateService {
     }
 
     /**
+     * Deletes one csr
+     * @param keyId
+     * @param csrId
+     * @throws KeyNotFoundException if key with keyId was not found
+     * @throws CsrNotFoundException if csr with csrId was not found
+     */
+    public void deleteCsr(String keyId, String csrId) throws KeyNotFoundException, CsrNotFoundException {
+        KeyInfo keyInfo = keyService.getKey(keyId);
+        getCsr(keyInfo, csrId);
+
+        if (keyInfo.isForSigning()) {
+            verifyAuthority("DELETE_SIGN_CERT");
+        } else {
+            verifyAuthority("DELETE_AUTH_CERT");
+        }
+        try {
+            signerProxyFacade.deleteCertRequest(csrId);
+        } catch (CodedException e) {
+            if (isCausedByCsrNotFound(e)) {
+                throw new CsrNotFoundException(e);
+            } else {
+                throw e;
+            }
+        } catch (Exception other) {
+            throw new RuntimeException("deleting a csr failed", other);
+        }
+    }
+
+    /**
+     * Finds csr with matching id from KeyInfo, or throws {@link CsrNotFoundException}
+     * @throws CsrNotFoundException
+     */
+    private CertRequestInfo getCsr(KeyInfo keyInfo, String csrId) throws CsrNotFoundException {
+        Optional<CertRequestInfo> csr = keyInfo.getCertRequests().stream()
+                .filter(csrInfo -> csrInfo.getId().equals(csrId))
+                .findFirst();
+        if (!csr.isPresent()) {
+            throw new CsrNotFoundException("csr with id " + csrId + " not found");
+        }
+        return csr.get();
+    }
+
+
+    /**
      * General error that happens when importing a cert. Usually a wrong file type
      */
     public static class InvalidCertificateException extends ServiceException {
@@ -366,13 +412,24 @@ public class TokenCertificateService {
     }
 
     /**
-     * Certificate sign request not found
+     * Thrown if Certificate sign request was not found
      */
-    public static class CsrNotFoundException extends ServiceException {
+    public static class CsrNotFoundException extends NotFoundException {
         public static final String ERROR_CSR_NOT_FOUND = "csr_not_found";
 
+        public CsrNotFoundException(String s) {
+            super(s, createError());        }
+
         public CsrNotFoundException(Throwable t) {
-            super(t, new ErrorDeviation(ERROR_CSR_NOT_FOUND));
+            super(t, createError());
+        }
+
+        private static ErrorDeviation createError() {
+            return new ErrorDeviation(ERROR_CSR_NOT_FOUND);
         }
     }
+
+
+
+
 }

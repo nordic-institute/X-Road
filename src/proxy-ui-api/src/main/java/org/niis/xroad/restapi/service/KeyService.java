@@ -25,12 +25,10 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,9 +40,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
-import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
-import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
 import static org.niis.xroad.restapi.service.TokenService.isCausedByTokenNotActive;
 import static org.niis.xroad.restapi.service.TokenService.isCausedByTokenNotFound;
 
@@ -89,20 +85,6 @@ public class KeyService {
         }
 
         return keyInfo.get();
-    }
-
-    /**
-     * Finds csr with matching id from KeyInfo, or throws {@link CsrNotFoundException}
-     * @throws CsrNotFoundException
-     */
-    private CertRequestInfo getCsr(KeyInfo keyInfo, String csrId) throws CsrNotFoundException {
-        Optional<CertRequestInfo> csr = keyInfo.getCertRequests().stream()
-                .filter(csrInfo -> csrInfo.getId().equals(csrId))
-                .findFirst();
-        if (!csr.isPresent()) {
-            throw new CsrNotFoundException("csr with id " + csrId + " not found");
-        }
-        return csr.get();
     }
 
     public KeyInfo updateKeyFriendlyName(String id, String friendlyName) throws KeyNotFoundException {
@@ -155,63 +137,9 @@ public class KeyService {
         return KEY_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
     }
 
-    static boolean isCausedByCsrNotFound(CodedException e) {
-        return CSR_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
-    }
-
     private static String signerFaultCode(String detail) {
         return SIGNER_X + "." + detail;
     }
 
     static final String KEY_NOT_FOUND_FAULT_CODE = signerFaultCode(X_KEY_NOT_FOUND);
-    static final String CSR_NOT_FOUND_FAULT_CODE = signerFaultCode(X_CSR_NOT_FOUND);
-
-    /**
-     * Deletes one csr
-     * TO DO: move to TokenCertificateService. It also creates CSR (and deletes cert)
-     * @param keyId
-     * @param csrId
-     * @throws KeyNotFoundException if key with keyId was not found
-     * @throws CsrNotFoundException if csr with csrId was not found
-     */
-    public void deleteCsr(String keyId, String csrId) throws KeyNotFoundException, CsrNotFoundException {
-        KeyInfo keyInfo = getKey(keyId);
-        getCsr(keyInfo, csrId);
-
-        if (keyInfo.isForSigning()) {
-            verifyAuthority("DELETE_SIGN_CERT");
-        } else {
-            verifyAuthority("DELETE_AUTH_CERT");
-        }
-        try {
-            signerProxyFacade.deleteCertRequest(csrId);
-        } catch (CodedException e) {
-            if (isCausedByCsrNotFound(e)) {
-                throw new CsrNotFoundException(e);
-            } else {
-                throw e;
-            }
-        } catch (Exception other) {
-            throw new RuntimeException("deleting a csr failed", other);
-        }
-    }
-
-    /**
-     * Thrown if CSR was not found
-     */
-    public static class CsrNotFoundException extends NotFoundException {
-        public static final String ERROR_CSR_NOT_FOUND = "csr_not_found";
-
-        public CsrNotFoundException(String s) {
-            super(s, createError());        }
-
-        public CsrNotFoundException(Throwable t) {
-            super(t, createError());
-        }
-
-        private static ErrorDeviation createError() {
-            return new ErrorDeviation(ERROR_CSR_NOT_FOUND);
-        }
-    }
-
 }
