@@ -73,7 +73,7 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @Override
@@ -86,7 +86,7 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @Override
