@@ -168,7 +168,8 @@ public class KeyService {
 
     public void deleteCsr(String keyId, String csrId) throws KeyNotFoundException, CsrNotFoundException {
         KeyInfo keyInfo = getKey(keyId);
-        CertRequestInfo csrInfo = getCsr(keyInfo, csrId);
+        // getCsr to get CsrNotFoundException
+        getCsr(keyInfo, csrId);
 
         if (keyInfo.isForSigning()) {
             verifyAuthority("DELETE_SIGN_CERT");
