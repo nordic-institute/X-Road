@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -76,14 +77,17 @@ public class TokenCertificateService {
     private final GlobalConfFacade globalConfFacade;
     private final SignerProxyFacade signerProxyFacade;
     private final ClientRepository clientRepository;
+    private final KeyService keyService;
 
     @Autowired
     public TokenCertificateService(GlobalConfService globalConfService, GlobalConfFacade globalConfFacade,
-            SignerProxyFacade signerProxyFacade, ClientRepository clientRepository) {
+            SignerProxyFacade signerProxyFacade, ClientRepository clientRepository,
+            KeyService keyService) {
         this.globalConfService = globalConfService;
         this.globalConfFacade = globalConfFacade;
         this.signerProxyFacade = signerProxyFacade;
         this.clientRepository = clientRepository;
+        this.keyService = keyService;
     }
 
     private static String signerFaultCode(String detail) {
@@ -283,7 +287,56 @@ public class TokenCertificateService {
     static final String CSR_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_CSR_NOT_FOUND;
     static final String CERT_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_CERT_NOT_FOUND;
 
-    public void deleteCertificate(String hash) throws CertificateNotFoundException {
+    /**
+     * Delete certificate with given hash
+     * @param hash
+     * @throws CertificateNotFoundException if certificate with given hash was not found
+     * @throws KeyNotFoundException if for some reason the key linked to the cert could not
+     * be loaded (should not be possible)
+     */
+    public void deleteCertificate(String hash) throws CertificateNotFoundException, KeyNotFoundException,
+            KeyNotOperationalException, SignerOperationFailedException {
+        CertificateInfo certificateInfo = getCertificateInfo(hash);
+        String keyId = getKeyIdForCertificateHash(hash);
+        KeyInfo keyInfo = keyService.getKey(keyId);
+        if (keyInfo.isForSigning()) {
+            verifyAuthority("DELETE_SIGN_CERT");
+        } else {
+            verifyAuthority("DELETE_AUTH_CERT");
+        }
+        try {
+            signerProxyFacade.deleteCert(certificateInfo.getId());
+        } catch (CodedException e) {
+            if (isCausedByKeyNotOperational(e)) {
+                throw new KeyNotOperationalException(e);
+            } else if (isCausedByCertNotFound(e)) {
+                throw new CertificateNotFoundException(e, new ErrorDeviation(
+                        CertificateNotFoundException.ERROR_CERTIFICATE_NOT_FOUND_WITH_ID,
+                        certificateInfo.getId()));
+            } else {
+                throw new SignerOperationFailedException(e);
+            }
+        } catch (Exception other) {
+            throw new RuntimeException("deleting a csr failed", other);
+        }
+    }
+
+    /**
+     * Return key id for a key containing a cert with given hash
+     * @throws CertificateNotFoundException if no match found
+     */
+    public String getKeyIdForCertificateHash(String hash) throws CertificateNotFoundException {
+        try {
+            return signerProxyFacade.getKeyIdForCerthash(hash);
+        } catch (CodedException e) {
+            if (isCausedByCertNotFound(e)) {
+                throw new CertificateNotFoundException("Certificate with hash " + hash + " not found");
+            } else {
+                throw e;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("error getting certificate", e);
+        }
     }
 
     /**

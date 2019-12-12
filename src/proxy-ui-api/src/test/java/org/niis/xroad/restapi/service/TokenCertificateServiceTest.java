@@ -50,8 +50,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -61,7 +59,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * test TokenCertificateService.
@@ -96,6 +95,9 @@ public class TokenCertificateServiceTest {
     private SignerProxyFacade signerProxyFacade;
 
     @MockBean
+    private KeyService keyService;
+
+    @MockBean
     private GlobalConfService globalConfService;
 
     @MockBean
@@ -125,6 +127,7 @@ public class TokenCertificateServiceTest {
             }
         }).when(signerProxyFacade).deleteCert(any());
 
+        // signerProxyFacade.getCertForHash(hash)
         doAnswer(invocation -> {
             String certHash = (String) invocation.getArguments()[0];
             switch (certHash) {
@@ -144,8 +147,8 @@ public class TokenCertificateServiceTest {
             }
         }).when(signerProxyFacade).getCertForHash(any());
 
-        // construct a test token with auth key, sign key, and corresponding certs
-        // auth checks will use this to check from key whether auth or sign permissions are needed
+        // construct a test auth key, sign key, and corresponding certs
+        // auth checks will use these keys to check from key whether auth or sign permissions are needed
         TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo("fubar");
         CertificateInfo authCert = new CertificateInfoBuilder().id(EXISTING_CERT_IN_AUTH_KEY_HASH).build();
         CertificateInfo signCert = new CertificateInfoBuilder().id(EXISTING_CERT_IN_SIGN_KEY_HASH).build();
@@ -161,8 +164,20 @@ public class TokenCertificateServiceTest {
                 .build();
         tokenInfo.getKeyInfo().add(authKey);
         tokenInfo.getKeyInfo().add(signKey);
-        when(signerProxyFacade.getTokens()).thenReturn(Collections.singletonList(tokenInfo));
 
+        // keyService.getKey(keyId)
+        doAnswer(invocation -> {
+            String keyId = (String) invocation.getArguments()[0];
+            switch (keyId) {
+                case AUTH_KEY_ID:
+                    return authKey;
+                case SIGN_KEY_ID:
+                    return signKey;
+                default:
+                    throw new RuntimeException("unknown keyId: " + keyId);
+            }
+        }).when(keyService).getKey(any());
+        // signerProxyFacade.getKeyIdForCerthash(hash)
         doAnswer(invocation -> {
             String certHash = (String) invocation.getArguments()[0];
             if (certHash.equals(EXISTING_CERT_IN_AUTH_KEY_HASH)) {
@@ -183,6 +198,8 @@ public class TokenCertificateServiceTest {
     @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
     public void deleteCertificateSuccessfully() throws Exception {
         tokenCertificateService.deleteCertificate(EXISTING_CERT_HASH);
+        verify(signerProxyFacade, times(1)).deleteCert(EXISTING_CERT_HASH);
+
     }
 
     @Test(expected = CertificateNotFoundException.class)

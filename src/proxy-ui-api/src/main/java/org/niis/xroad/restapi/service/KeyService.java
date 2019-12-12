@@ -166,9 +166,17 @@ public class KeyService {
     static final String KEY_NOT_FOUND_FAULT_CODE = signerFaultCode(X_KEY_NOT_FOUND);
     static final String CSR_NOT_FOUND_FAULT_CODE = signerFaultCode(X_CSR_NOT_FOUND);
 
+    /**
+     * Deletes one csr
+     * TO DO: move to TokenCertificateService. It also creates CSR (and deletes cert)
+     * @param keyId
+     * @param csrId
+     * @throws KeyNotFoundException if key with keyId was not found
+     * @throws CsrNotFoundException if csr with csrId was not found
+     */
     public void deleteCsr(String keyId, String csrId) throws KeyNotFoundException, CsrNotFoundException {
         KeyInfo keyInfo = getKey(keyId);
-        CertRequestInfo csrInfo = getCsr(keyInfo, csrId);
+        getCsr(keyInfo, csrId);
 
         if (keyInfo.isForSigning()) {
             verifyAuthority("DELETE_SIGN_CERT");
@@ -188,6 +196,9 @@ public class KeyService {
         }
     }
 
+    /**
+     * Thrown if CSR was not found
+     */
     public static class CsrNotFoundException extends NotFoundException {
         public static final String ERROR_CSR_NOT_FOUND = "csr_not_found";
 

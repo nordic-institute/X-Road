@@ -42,11 +42,13 @@ public class CertificateNotFoundException extends NotFoundException {
     public CertificateNotFoundException(ErrorDeviation errorDeviation) {
         super(errorDeviation);
     }
+    public CertificateNotFoundException(Throwable t, ErrorDeviation errorDeviation) {
+        super(t, errorDeviation);
+    }
     public CertificateNotFoundException(String s) {
         super(s, createDefaultError());
     }
     public CertificateNotFoundException() {
         super(createDefaultError());
     }
-
 }

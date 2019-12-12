@@ -26,6 +26,8 @@ package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
@@ -44,6 +46,8 @@ import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
 import org.niis.xroad.restapi.util.TestUtils;
+import org.niis.xroad.restapi.util.TokenTestUtils;
+import org.niis.xroad.restapi.util.TokenTestUtils.KeyInfoBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -105,6 +109,11 @@ public class TokenCertificatesApiControllerIntegrationTest {
         CertificateInfo certificateInfo = new CertificateInfoBuilder()
                 .certificateStatus("SAVED").build();
         doAnswer(answer -> certificateInfo).when(signerProxyFacade).getCertForHash(any());
+        doAnswer(answer -> "key-id").when(signerProxyFacade).getKeyIdForCerthash(any());
+        TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo("fubar");
+        KeyInfo keyInfo = new KeyInfoBuilder().id("key-id").build();
+        tokenInfo.getKeyInfo().add(keyInfo);
+        doAnswer(answer -> Collections.singletonList(tokenInfo)).when(signerProxyFacade).getTokens();
     }
 
     @Test

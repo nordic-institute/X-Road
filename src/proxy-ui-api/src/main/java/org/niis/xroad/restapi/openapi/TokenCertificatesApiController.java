@@ -102,9 +102,12 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
     public ResponseEntity<Void> deleteCertificate(String hash) {
         try {
             tokenCertificateService.deleteCertificate(hash);
-        } catch (CertificateNotFoundException e) {
-            e.printStackTrace();
+        } catch (CertificateNotFoundException | KeyNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (TokenCertificateService.KeyNotOperationalException
+                | TokenCertificateService.SignerOperationFailedException e) {
+            throw new InternalServerErrorException(e);
         }
-        return null;
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
