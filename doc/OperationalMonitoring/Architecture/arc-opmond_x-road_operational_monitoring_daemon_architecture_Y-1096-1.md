@@ -2,9 +2,9 @@
 | ![European Union / European Regional Development Fund / Investing in your future](../img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
 | -------------------------: |
 
-# X-Road: Operational Monitoring Daemon Architecture
+# X-Road: Operational Monitoring Daemon Architecture <!-- omit in toc -->
 
-Version: 0.8  
+Version: 1.0  
 Document ID: ARC-OPMOND
 
 | Date       | Version     | Description                                                                  | Author             |
@@ -14,32 +14,33 @@ Document ID: ARC-OPMOND
 | 02.02.2018 | 0.7       | Technology matrix moved to the ARC-TEC-file               | Antti Luoma |
 | 05.03.2018 | 0.8       | Added terms and abbreviations reference and moved terms to term doc | Tatu Repo   |
 | 18.02.2019 | 0.9       | New optional field: xRequestId (string) | Caro Hautamäki   |
+| 12.12.2019 | 1.0       | Update appendix A.2 with the updated fields | Ilkka Seppälä   |
 
-## Table of Contents
+## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
 
 - [License](#license)
 - [1 Introduction](#1-introduction)
-  * [1.1 Overview](#11-overview)
-  * [1.2 Terms and Abbrevations](#12-terms-and-abbrevations)
-  * [1.3 References](#13-references)
+  - [1.1 Overview](#11-overview)
+  - [1.2 Terms and Abbrevations](#12-terms-and-abbrevations)
+  - [1.3 References](#13-references)
 - [2 Component View](#2-component-view)
-  * [2.1 Operational Monitoring Daemon Main](#21-operational-monitoring-daemon-main)
-    + [2.1.1 Operational Monitoring Database](#211-operational-monitoring-database)
-    + [2.1.2 Operational Monitoring Service](#212-operational-monitoring-service)
-  * [2.2 Configuration Client](#22-configuration-client)
+  - [2.1 Operational Monitoring Daemon Main](#21-operational-monitoring-daemon-main)
+    - [2.1.1 Operational Monitoring Database](#211-operational-monitoring-database)
+    - [2.1.2 Operational Monitoring Service](#212-operational-monitoring-service)
+  - [2.2 Configuration Client](#22-configuration-client)
 - [3 Protocols and Interfaces](#3-protocols-and-interfaces)
-  * [3.1 Store Operational Monitoring Data](#31-store-operational-monitoring-data)
-  * [3.2 Operational Monitoring Query](#32-operational-monitoring-query)
-  * [3.3 Operational Monitoring JMX](#33-operational-monitoring-jmx)
-  * [3.4 Download Configuration](#34-download-configuration)
+  - [3.1 Store Operational Monitoring Data](#31-store-operational-monitoring-data)
+  - [3.2 Operational Monitoring Query](#32-operational-monitoring-query)
+  - [3.3 Operational Monitoring JMX](#33-operational-monitoring-jmx)
+  - [3.4 Download Configuration](#34-download-configuration)
 - [4 Deployment View](#4-deployment-view)
 - [Appendix A Store Operational Monitoring Data Messages](#appendix-a-store-operational-monitoring-data-messages)
-  * [A.1 JSON-Schema for Store Operational Monitoring Data Request](#a1-json-schema-for-store-operational-monitoring-data-request)
-  * [A.2 Example Store Operational Monitoring Data Request](#a2-example-store-operational-monitoring-data-request)
-  * [A.3 JSON-Schema for Store Operational Monitoring Data Response](#a3-json-schema-for-store-operational-monitoring-data-response)
-  * [A.4 Example Store Operational Monitoring Data Responses](#a4-example-store-operational-monitoring-data-responses)
+  - [A.1 JSON-Schema for Store Operational Monitoring Data Request](#a1-json-schema-for-store-operational-monitoring-data-request)
+  - [A.2 Example Store Operational Monitoring Data Request](#a2-example-store-operational-monitoring-data-request)
+  - [A.3 JSON-Schema for Store Operational Monitoring Data Response](#a3-json-schema-for-store-operational-monitoring-data-response)
+  - [A.4 Example Store Operational Monitoring Data Responses](#a4-example-store-operational-monitoring-data-responses)
 
 <!-- tocstop -->
 
@@ -181,11 +182,11 @@ The first record of the store request reflects successfully mediated request, th
       "requestAttachmentCount": 0,
       "requestInTs": 1477633844973,
       "requestOutTs": 1477633844986,
-      "requestSoapSize": 1629,
+      "requestSize": 1629,
       "responseAttachmentCount": 0,
       "responseInTs": 1477633845222,
       "responseOutTs": 1477633845243,
-      "responseSoapSize": 1518,
+      "responseSize": 1518,
       "securityServerInternalIp": "192.168.1.251",
       "securityServerType": "Client",
       "serviceCode": "xroadGetRandom",
@@ -193,6 +194,7 @@ The first record of the store request reflects successfully mediated request, th
       "serviceMemberCode": "00000000",
       "serviceSecurityServerAddress": "ss0.ci.kit",
       "serviceSubsystemCode": "subsystem1",
+      "serviceType": "WSDL",
       "serviceVersion": "v1",
       "serviceXRoadInstance": "EE",
       "succeeded": true,
@@ -210,7 +212,7 @@ The first record of the store request reflects successfully mediated request, th
       "requestAttachmentCount": 0,
       "requestInTs": 1477633846174,
       "requestOutTs": 1477633846203,
-      "requestSoapSize": 1202,
+      "requestSize": 1202,
       "responseInTs": 1477633846299,
       "responseOutTs": 1477633846301,
       "securityServerInternalIp": "192.168.1.251",
@@ -220,6 +222,7 @@ The first record of the store request reflects successfully mediated request, th
       "serviceMemberCode": "00000000",
       "serviceSecurityServerAddress": "ss0.ci.kit",
       "serviceSubsystemCode": "subsystem2",
+      "serviceType": "WSDL",
       "serviceVersion": "v1",
       "serviceXRoadInstance": "EE",
       "soapFaultCode": "Server.ServerProxy.UnknownService",
