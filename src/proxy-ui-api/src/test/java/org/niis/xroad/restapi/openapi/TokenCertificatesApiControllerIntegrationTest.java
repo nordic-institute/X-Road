@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,7 @@ import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -75,6 +77,8 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.niis.xroad.restapi.service.TokenCertificateService.AuthCertificateNotSupportedException.AUTH_CERT_NOT_SUPPORTED;
+import static org.niis.xroad.restapi.util.CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH;
 import static org.niis.xroad.restapi.util.CertificateTestUtils.MOCK_CERTIFICATE_HASH;
 import static org.niis.xroad.restapi.util.TestUtils.assertLocationHeader;
 
@@ -154,9 +158,9 @@ public class TokenCertificatesApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = "IMPORT_SIGN_CERT")
     public void importSignCertificateMissingClient() throws Exception {
-        doAnswer(answer -> TestUtils.getClientId(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO,
-                TestUtils.MEMBER_CODE_M2, TestUtils.SUBSYSTEM3))
-                .when(globalConfFacade).getSubjectName(any(), any());
+        ClientId notFoundId = TestUtils.getClientId(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO,
+                TestUtils.MEMBER_CODE_M2, TestUtils.SUBSYSTEM3);
+        doAnswer(answer -> notFoundId).when(globalConfFacade).getSubjectName(any(), any());
         X509Certificate mockCert = CertificateTestUtils.getMockCertificate();
         Resource body = CertificateTestUtils.getResource(mockCert.getEncoded());
         try {
@@ -164,6 +168,7 @@ public class TokenCertificatesApiControllerIntegrationTest {
         } catch (BadRequestException e) {
             ErrorDeviation error = e.getErrorDeviation();
             assertEquals(ClientNotFoundException.ERROR_CLIENT_NOT_FOUND, error.getCode());
+            assertEquals(FormatUtils.xRoadIdToEncodedId(notFoundId), error.getMetadata().get(0));
         }
     }
 
@@ -281,7 +286,7 @@ public class TokenCertificatesApiControllerIntegrationTest {
 
     @Test
     @WithMockUser(authorities = "IMPORT_SIGN_CERT")
-    public void importExistingCertificate() throws Exception {
+    public void importCertificateFromToken() throws Exception {
         ResponseEntity<TokenCertificate> response =
                 tokenCertificatesApiController.importCertificateFromToken(MOCK_CERTIFICATE_HASH);
         TokenCertificate addedCert = response.getBody();
@@ -293,7 +298,7 @@ public class TokenCertificatesApiControllerIntegrationTest {
 
     @Test
     @WithMockUser(authorities = "IMPORT_SIGN_CERT")
-    public void importExistingCertificateHashNotFound() throws Exception {
+    public void importCertificateFromTokenHashNotFound() throws Exception {
         doThrow(CodedException
                 .tr(SIGNER_X + "." + X_CERT_NOT_FOUND, "mock code", "mock msg"))
                 .when(signerProxyFacade).getCertForHash(any());
@@ -305,9 +310,24 @@ public class TokenCertificatesApiControllerIntegrationTest {
         }
     }
 
+    @Test
+    @WithMockUser(authorities = "IMPORT_AUTH_CERT")
+    public void importAuthCertificateFromToken() throws Exception {
+        X509Certificate mockAuthCert = CertificateTestUtils.getMockAuthCertificate();
+        CertificateInfo certificateInfo = CertificateTestUtils.createTestCertificateInfo(mockAuthCert,
+                CertificateStatus.GOOD, "SAVED");
+        doAnswer(answer -> certificateInfo).when(signerProxyFacade).getCertForHash(any());
+        try {
+            tokenCertificatesApiController.importCertificateFromToken(MOCK_AUTH_CERTIFICATE_HASH);
+        } catch (BadRequestException e) {
+            ErrorDeviation error = e.getErrorDeviation();
+            assertEquals(AUTH_CERT_NOT_SUPPORTED, error.getCode());
+        }
+    }
+
     @Test(expected = AccessDeniedException.class)
     @WithMockUser(authorities = "IMPORT_AUTH_CERT")
-    public void importExistingSignCertificateWithWrongPermission() {
+    public void importSignCertificateFromTokenWithWrongPermission() {
         tokenCertificatesApiController.importCertificateFromToken(MOCK_CERTIFICATE_HASH);
     }
 

@@ -72,7 +72,8 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
             certificate = tokenCertificateService.importCertificate(certificateBytes);
         } catch (GlobalConfService.GlobalConfOutdatedException | ClientNotFoundException | KeyNotFoundException
                 | TokenCertificateService.WrongCertificateUsageException
-                | TokenCertificateService.InvalidCertificateException e) {
+                | TokenCertificateService.InvalidCertificateException
+                | TokenCertificateService.AuthCertificateNotSupportedException e) {
             throw new BadRequestException(e);
         } catch (CertificateAlreadyExistsException | TokenCertificateService.CsrNotFoundException e) {
             throw new ConflictException(e);
@@ -104,7 +105,8 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
             certificate = tokenCertificateService.importCertificateFromToken(hash);
         } catch (GlobalConfService.GlobalConfOutdatedException | ClientNotFoundException | KeyNotFoundException
                 | TokenCertificateService.WrongCertificateUsageException
-                | TokenCertificateService.InvalidCertificateException e) {
+                | TokenCertificateService.InvalidCertificateException
+                | TokenCertificateService.AuthCertificateNotSupportedException e) {
             throw new BadRequestException(e);
         } catch (CertificateAlreadyExistsException | TokenCertificateService.CsrNotFoundException e) {
             throw new ConflictException(e);
