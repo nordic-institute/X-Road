@@ -89,7 +89,7 @@ public class TokensApiControllerTest {
     @Before
     public void setUp() throws Exception {
         TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo("friendly-name", GOOD_TOKEN_ID);
-        KeyInfo keyInfo = TokenTestUtils.createTestKeyInfo();
+        KeyInfo keyInfo = new TokenTestUtils.KeyInfoBuilder().build();
         when(tokenService.getAllTokens()).thenReturn(Collections.singletonList(tokenInfo));
 
         doAnswer(invocation -> {

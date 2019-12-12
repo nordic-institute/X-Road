@@ -3,17 +3,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,20 +24,39 @@
  */
 package org.niis.xroad.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
-public class KeyNotFoundException extends NotFoundException {
-    public static final String ERROR_KEY_NOT_FOUND = "key_not_found";
+/**
+ * Helper for working with security and authorization
+ */
+public final class SecurityHelper {
 
-    public KeyNotFoundException(String s) {
-        super(s, createError());
+    private SecurityHelper() {
+        // noop
     }
 
-    public KeyNotFoundException(Throwable t) {
-        super(t, createError());
+    /**
+     * Tells if current user / authentication has been granted given authority
+     * @param authority
+     * @return
+     */
+    public static boolean hasAuthority(String authority) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication.getAuthorities().stream()
+                .anyMatch(grantedAuthority -> authority.equals(grantedAuthority.getAuthority()));
     }
 
-    private static ErrorDeviation createError() {
-        return new ErrorDeviation(ERROR_KEY_NOT_FOUND);
+    /**
+     * Verifies that current user / authentication has been granted given authority.
+     * If not, throws {@link AccessDeniedException}
+     * @param authority
+     * @throws AccessDeniedException if given authority has not been granted
+     */
+    public static void verifyAuthority(String authority) throws AccessDeniedException {
+        if (!hasAuthority(authority)) {
+            throw new AccessDeniedException("Missing authority: " + authority);
+        }
     }
 }
