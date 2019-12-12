@@ -1,9 +1,6 @@
 #!/bin/bash
 
-# Set globalconf expiration date to one year from now
-#DATE=`date -Iseconds -u -d "+1 year"`
-#sed -i "s#expirationDate\":\".*\",#expirationDate\":\"${DATE}\",#g" /etc/xroad/globalconf/CS/*-params.xml.metadata
-
+# Set autologin token PIN code
 if [  -n "$XROAD_TOKEN_PIN" ]
 then
     echo "XROAD_TOKEN_PIN variable set, writing to /etc/xroad/autologin"
