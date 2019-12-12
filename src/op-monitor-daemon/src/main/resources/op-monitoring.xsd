@@ -150,6 +150,11 @@
                     <xs:documentation>The timestamp of the last unsuccessful request (Unix timestamp in milliseconds)</xs:documentation>
                 </xs:annotation>
             </xs:element>
+            <xs:element name="serviceType" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Type of the service</xs:documentation>
+                </xs:annotation>
+            </xs:element>
             <xs:element name="lastPeriodStatistics" type="LastPeriodStatisticsType">
                 <xs:annotation>
                     <xs:documentation>The statistics of the requests occurred during the last period</xs:documentation>

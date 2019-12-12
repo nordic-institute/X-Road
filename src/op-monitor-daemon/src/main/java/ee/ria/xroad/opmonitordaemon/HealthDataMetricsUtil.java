@@ -70,6 +70,11 @@ final class HealthDataMetricsUtil {
     // requests only), for storing the duration of requests.
     private static final String REQUEST_DURATION_TEMPLATE = "requestDuration(%s)";
 
+    // The template for the names of the sliding window histograms that are
+    // registered each time a new service ID is encountered (successful
+    // requests only), for storing the service type of the services.
+    private static final String SERVICE_TYPE_TEMPLATE = "serviceType(%s)";
+
     private HealthDataMetricsUtil() { }
 
     /**
@@ -198,6 +203,10 @@ final class HealthDataMetricsUtil {
 
     static String getResponseSizeName(ServiceId serviceId) {
         return formatParameterKey(serviceId, RESPONSE_SIZE_TEMPLATE);
+    }
+
+    static String getServiceTypeName(ServiceId serviceId) {
+        return formatParameterKey(serviceId, SERVICE_TYPE_TEMPLATE);
     }
 
     /**

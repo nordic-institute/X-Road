@@ -63,6 +63,7 @@ import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestCount
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestDurationName;
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestSizeName;
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getResponseSizeName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getServiceTypeName;
 
 /**
  * Query handler for health data requests.
@@ -181,6 +182,10 @@ public class HealthDataRequestHandler extends QueryRequestHandler {
         lastUnsuccessfulRequestTimestamp.ifPresent(
                 g -> serviceEvents.setLastUnsuccessfulRequestTimestamp(
                         g.getValue()));
+
+        Optional<Gauge<String>> serviceType =
+                Optional.ofNullable(findGauge(healthMetricRegistry, getServiceTypeName(service)));
+        serviceType.ifPresent(g -> serviceEvents.setServiceType(g.getValue()));
 
         serviceEvents.setLastPeriodStatistics(buildLastPeriodStats(service));
 

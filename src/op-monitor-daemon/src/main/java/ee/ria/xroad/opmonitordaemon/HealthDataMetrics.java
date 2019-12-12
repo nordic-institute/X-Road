@@ -46,6 +46,7 @@ import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestCount
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestDurationName;
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestSizeName;
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getResponseSizeName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getServiceTypeName;
 
 /**
  * Health data metrics forwarded over JMX. Also, these metrics are used when
@@ -68,6 +69,9 @@ final class HealthDataMetrics {
     // for each service that is handled for, and are provided when the
     // respective gauge is queried.
     private static Map<String, Long> requestTimestamps = new HashMap<>();
+
+    // Stores the service types of the services
+    private static Map<String, String> serviceTypes = new HashMap<>();
 
     private HealthDataMetrics() {
     }
@@ -122,23 +126,27 @@ final class HealthDataMetrics {
 
     private static void registerOrUpdateGauges(MetricRegistry registry,
             ServiceId serviceId, OperationalDataRecord rec) {
-
+        // last request timestamp
         String expectedGaugeName = getLastRequestTimestampGaugeName(serviceId,
                 rec.getSucceeded());
         requestTimestamps.put(expectedGaugeName, rec.getResponseOutTs());
-
-        // Try and find a gauge corresponding strictly to the given gauge name.
         Gauge gauge = HealthDataMetricsUtil.findGauge(registry,
                 expectedGaugeName);
-
         if (gauge == null) {
-            // Add a new gauge corresponding to the expected gauge name.
             registry.register(expectedGaugeName,
                     (Gauge<Long>) () -> requestTimestamps.get(
                             expectedGaugeName));
         }
 
-        // No need to update the gauge -- it will be queried on demand.
+        // service type
+        String serviceTypeGaugeName = getServiceTypeName(serviceId);
+        serviceTypes.put(serviceTypeGaugeName, rec.getServiceType());
+        Gauge serviceTypeGauge = HealthDataMetricsUtil.findGauge(registry,
+                serviceTypeGaugeName);
+        if (serviceTypeGauge == null) {
+            registry.register(serviceTypeGaugeName,
+                    (Gauge<String>) () -> serviceTypes.get(serviceTypeGaugeName));
+        }
     }
 
     private static void registerOrUpdateCounters(MetricRegistry registry,

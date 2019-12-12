@@ -32,6 +32,7 @@ import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getLastRequestT
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestCounterName;
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestDurationName;
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestSizeName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getServiceTypeName;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -49,6 +50,7 @@ public class HealthDataMetricsUtilTest {
         rec.setServiceSubsystemCode("testsub");
         rec.setServiceCode("testservice");
         rec.setServiceVersion("v1");
+        rec.setServiceType("OPENAPI3");
 
         // This simple service ID is not escaped in any way in the parameter
         // keys.
@@ -81,6 +83,11 @@ public class HealthDataMetricsUtilTest {
         assertEquals(jmxKey, "unsuccessfulRequestCount("
                         + serviceId.toShortString() + ")");
 
+        regex = HealthDataMetricsUtil.formatMetricMatchRegexp(jmxKey);
+        assertTrue(jmxKey.matches(regex));
+
+        jmxKey = getServiceTypeName(serviceId);
+        assertEquals(jmxKey, "serviceType(" + serviceId.toShortString() + ")");
         regex = HealthDataMetricsUtil.formatMetricMatchRegexp(jmxKey);
         assertTrue(jmxKey.matches(regex));
     }
