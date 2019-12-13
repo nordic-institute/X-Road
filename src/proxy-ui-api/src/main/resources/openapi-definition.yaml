@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.18"
+  version: "1.0.19"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -238,7 +238,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CertificateDetails'
+                $ref: '#/components/schemas/TokenCertificate'
         '400':
           description: request was invalid
         '401':
@@ -269,14 +269,14 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '200':
-          description: certificate details
+          description: token certificate
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CertificateDetails'
+                $ref: '#/components/schemas/TokenCertificate'
         '400':
           description: request was invalid
         '401':
@@ -304,7 +304,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '204':
           description: deletion was successful
@@ -334,7 +334,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '204':
           description: request was successful
@@ -366,7 +366,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '204':
           description: certificate was deactivated
@@ -386,8 +386,8 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: import an existing certificate by cert hash
-      operationId: importExistingCertificate
+      summary: import an existing certificate from a token by cert hash
+      operationId: importCertificateFromToken
       description: Imports certificate from a token to the system
       parameters:
         - in: path
@@ -398,14 +398,14 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '201':
-          description: certificate imported
+          description: the imported certificate
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CertificateDetails'
+                $ref: '#/components/schemas/TokenCertificate'
         '400':
           description: request was invalid
         '401':
@@ -436,7 +436,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       requestBody:
         content:
           application/json:
@@ -485,7 +485,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '204':
           description: request was successful
@@ -1100,7 +1100,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '200':
           description: certificate details
@@ -1144,7 +1144,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '204':
           description: certificate deletion was successful
@@ -1682,8 +1682,8 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
-  /keys/{id}/generate-csr:
-    put: # ok
+  /keys/{id}/csrs:
+    post: # ok
       tags:
         - security server
       summary: generate csr for the selected key
@@ -1750,8 +1750,8 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /keys/{id}/delete-csr:
-    put: # ok
+  /keys/{id}/csrs/{csr_id}:
+    delete: # ok
       tags:
         - security server
       summary: delete csr from the selected key
@@ -1766,8 +1766,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
-        - in: query
+        - in: path
           name: csr_id
           description: id of the csr
           required: true
@@ -1775,7 +1774,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '204':
           description: csr deletion was successful
@@ -2756,8 +2755,8 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /system/certificate/generate-tls-key:
-    put: # ok
+  /system/certificate/tls-key:
+    post: # ok
       tags:
         - security server
       summary: generate new TLS key
@@ -2778,8 +2777,8 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /system/certificate/generate-csr:
-    put: # ok
+  /system/certificate/csr:
+    post: # ok
       tags:
         - security server
       summary: generate new certificate request
@@ -3499,7 +3498,7 @@ components:
           description: certificate SHA-1 hash
           example: 1234567890ABCDEF
           minLength: 1
-          maxLength: 255
+          maxLength: 40
         key_usages:
           type: array
           description: certificate key usage array
