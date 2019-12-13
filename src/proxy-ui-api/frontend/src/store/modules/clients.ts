@@ -2,6 +2,7 @@ import axios from 'axios';
 import _ from 'lodash';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
+import { saveAsFile } from '@/util/helpers';
 import i18n from './../../i18n';
 
 export interface Client {
@@ -21,11 +22,13 @@ export interface Client {
 export interface ClientsState {
   clients: Client[];
   loading: boolean;
+  localMembers: Client[];
 }
 
 export const clientsState: ClientsState = {
   clients: [],
   loading: false,
+  localMembers: [],
 };
 
 function createSortName(client: Client, sortName: string): any {
@@ -124,6 +127,15 @@ export const getters: GetterTree<ClientsState, RootState> = {
     // Combine the arrays
     return [...new Set([...subsystems, ...members])];
   },
+
+  localMembers(state): Client[] {
+    return state.localMembers;
+  },
+
+  localMembersIds(state): Client[] {
+    return state.localMembers;
+  },
+
   loading(state): boolean {
     return state.loading;
   },
@@ -132,6 +144,9 @@ export const getters: GetterTree<ClientsState, RootState> = {
 export const mutations: MutationTree<ClientsState> = {
   storeClients(state, clients: []) {
     state.clients = clients;
+  },
+  storeLocalMembers(state, clients: []) {
+    state.localMembers = clients;
   },
   setLoading(state, loading: boolean) {
     state.loading = loading;
@@ -156,6 +171,21 @@ export const actions: ActionTree<ClientsState, RootState> = {
         commit('setLoading', false);
       });
   },
+
+  fetchLocalMembers({ commit, rootGetters }) {
+    return axios.get('/clients?show_members=true&internal_search=true')
+      .then((res) => {
+        const filtered = res.data.filter((client: Client) => {
+          return !client.subsystem_code;
+        });
+
+        commit('storeLocalMembers', filtered);
+      })
+      .catch((error) => {
+        throw error;
+      });
+  },
+
   clearData({ commit, rootGetters }) {
     commit('storeClients', []);
   },
