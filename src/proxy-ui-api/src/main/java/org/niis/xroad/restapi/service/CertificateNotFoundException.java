@@ -51,4 +51,7 @@ public class CertificateNotFoundException extends NotFoundException {
     public CertificateNotFoundException() {
         super(createDefaultError());
     }
+    public CertificateNotFoundException(Throwable t) {
+        super(t, createDefaultError());
+    }
 }
