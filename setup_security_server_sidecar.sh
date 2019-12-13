@@ -29,9 +29,6 @@ docker build -f sidecar/Dockerfile.local -t xroad-sidecar-security-server-image 
 printf "=====> Run container"
 docker run --detach -p $2:4000 -p $httpport:80 -p $postgresqlport:5432 -p $ideadebuggerport:9999 --network xroad-network --name $1 xroad-sidecar-security-server-image
 
-# Allow connecting postgresql from host
-docker exec -it $1 sed -i "s/#listen_addresses = 'localhost'		# what IP address(es) to listen on;/listen_addresses = '*'		# what IP address(es) to listen on;/g" /etc/postgresql/10/main/postgresql.conf
-docker exec -it $1 sed -i 's/host    all             all             127.0.0.1\/32/host    all             all             0.0.0.0\/0/g' /etc/postgresql/10/main/pg_hba.conf
 
 printf "\n
 Sidecar security server admin UI should be accessible shortly in https://localhost:$2
