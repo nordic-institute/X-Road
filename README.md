@@ -28,7 +28,7 @@ Minimum recommended docker engine configuration to run sidecar security server c
 Run the following script:
 
   ```bash
-  ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port>
+  ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <token PIN code>
   ```
 
 The script setup_security_server_sidecar.sh will:

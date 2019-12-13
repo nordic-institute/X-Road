@@ -1,13 +1,14 @@
 #!/bin/bash
 
 usage="\n
-To create a sidecar security server instance you need to provide the first two arguments described here below.
+To create a sidecar security server instance you need to provide the three arguments described here below.
 
 #1 Name for the container
 #2 Local port number to bind the UI
+#3 Token PIN code for autologin
 "
 
-if [ -z "$1" ] || [ -z "$2" ]; then
+if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
     printf "$usage";
     exit;
 fi
@@ -27,7 +28,7 @@ docker network create -d bridge xroad-network
 echo "=====> Build sidecar image"
 docker build -f sidecar/Dockerfile.local -t xroad-sidecar-security-server-image sidecar/
 printf "=====> Run container"
-docker run --detach -p $2:4000 -p $httpport:80 -p $postgresqlport:5432 -p $ideadebuggerport:9999 --network xroad-network --name $1 xroad-sidecar-security-server-image
+docker run --detach -p $2:4000 -p $httpport:80 -p $postgresqlport:5432 -p $ideadebuggerport:9999 --network xroad-network -e XROAD_TOKEN_PIN=$3 --name $1 xroad-sidecar-security-server-image
 
 
 printf "\n
