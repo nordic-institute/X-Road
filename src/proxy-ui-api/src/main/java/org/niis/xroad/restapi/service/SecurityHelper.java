@@ -24,17 +24,39 @@
  */
 package org.niis.xroad.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
-public class ClientNotFoundException extends NotFoundException {
+/**
+ * Helper for working with security and authorization
+ */
+public final class SecurityHelper {
 
-    public static final String ERROR_CLIENT_NOT_FOUND = "client_not_found";
-
-    public ClientNotFoundException(String msg) {
-        super(msg, new ErrorDeviation(ERROR_CLIENT_NOT_FOUND));
+    private SecurityHelper() {
+        // noop
     }
 
-    public ClientNotFoundException(String msg, String encodedMissingClientId) {
-        super(msg, new ErrorDeviation(ERROR_CLIENT_NOT_FOUND, encodedMissingClientId));
+    /**
+     * Tells if current user / authentication has been granted given authority
+     * @param authority
+     * @return
+     */
+    public static boolean hasAuthority(String authority) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication.getAuthorities().stream()
+                .anyMatch(grantedAuthority -> authority.equals(grantedAuthority.getAuthority()));
+    }
+
+    /**
+     * Verifies that current user / authentication has been granted given authority.
+     * If not, throws {@link AccessDeniedException}
+     * @param authority
+     * @throws AccessDeniedException if given authority has not been granted
+     */
+    public static void verifyAuthority(String authority) throws AccessDeniedException {
+        if (!hasAuthority(authority)) {
+            throw new AccessDeniedException("Missing authority: " + authority);
+        }
     }
 }

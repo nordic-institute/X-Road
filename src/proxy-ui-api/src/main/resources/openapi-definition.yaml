@@ -1665,8 +1665,8 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
-  /keys/{id}/generate-csr:
-    put: # ok
+  /keys/{id}/csrs:
+    post: # ok
       tags:
         - security server
       summary: generate csr for the selected key
@@ -1733,8 +1733,8 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /keys/{id}/delete-csr:
-    put: # ok
+  /keys/{id}/csrs/{csr_id}:
+    delete: # ok
       tags:
         - security server
       summary: delete csr from the selected key
@@ -1749,8 +1749,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
-        - in: query
+        - in: path
           name: csr_id
           description: id of the csr
           required: true
@@ -1758,7 +1757,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '204':
           description: csr deletion was successful
@@ -2739,8 +2738,8 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /system/certificate/generate-tls-key:
-    put: # ok
+  /system/certificate/tls-key:
+    post: # ok
       tags:
         - security server
       summary: generate new TLS key
@@ -2761,8 +2760,8 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /system/certificate/generate-csr:
-    put: # ok
+  /system/certificate/csr:
+    post: # ok
       tags:
         - security server
       summary: generate new certificate request
