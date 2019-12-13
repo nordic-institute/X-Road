@@ -348,6 +348,7 @@ public class TokenCertificateService {
      */
     public void deleteCertificate(String hash) throws CertificateNotFoundException, KeyNotFoundException,
             KeyNotOperationalException, SignerOperationFailedException {
+        hash = hash.toLowerCase();
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         String keyId = getKeyIdForCertificateHash(hash);
         KeyInfo keyInfo = keyService.getKey(keyId);
@@ -379,7 +380,7 @@ public class TokenCertificateService {
      */
     public String getKeyIdForCertificateHash(String hash) throws CertificateNotFoundException {
         try {
-            return signerProxyFacade.getKeyIdForCerthash(hash);
+            return signerProxyFacade.getKeyIdForCerthash(hash.toLowerCase());
         } catch (CodedException e) {
             if (isCausedByCertNotFound(e)) {
                 throw new CertificateNotFoundException("Certificate with hash " + hash + " not found");

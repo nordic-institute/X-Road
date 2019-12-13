@@ -353,7 +353,7 @@ public final class SignerProxy {
      * @throws IllegalArgumentException if parameter was not a lowercase string
      */
     private static void checkLowerCase(String s) {
-        if (s == null || s.toLowerCase().equals(s)) {
+        if (s == null || !s.toLowerCase().equals(s)) {
             throw new IllegalArgumentException(s + " should be a lowerCase string");
         }
     }
