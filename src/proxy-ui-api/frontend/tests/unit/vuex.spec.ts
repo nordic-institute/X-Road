@@ -17,6 +17,7 @@ describe('clients actions', () => {
     const state: ClientsState = {
       clients: mockJson,
       loading: false,
+      localMembers: [],
     };
 
     const clientsModule: Module<ClientsState, RootState> = {
