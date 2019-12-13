@@ -9,7 +9,7 @@ X-Road Security Server sidecar docker image contains a custom set of modules ins
 - xroad-addon-wsdlvalidator
 - xroad-autologin
 
-The image is built from sources of version bionic-6.21.0 or later.
+The image is built from sources of version bionic-6.22.0 or later.
 
 ## Prerequisites to installation
 
@@ -25,31 +25,13 @@ Minimum recommended docker engine configuration to run sidecar security server c
 
 ## Installation
 
-Clone the X-Road repository:
+Run the following script:
 
   ```bash
-  git clone https://github.com/nordic-institute/X-Road.git
-  ```
-
-Set the environment variable XROAD_HOME with the root folder for the cloned X-Road repository:
-
-  ```bash
-  export XROAD_HOME=<X-Road source root>
-  ```
-
-Run the following scripts:
-
-  ```bash
-  ./dockerize_security_server_sidecar.sh
   ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port>
   ```
 
-The script dockerize_security_server_sidecar.sh will:
-
-- Create a builder image and container to compile and deploy the source code in an Ubuntu operating system
-- Setup initial builder image and container and compile and deploy the sources
-- Create a bridge-type network called xroad-network to provide container to container communication in a local development environment
-
 The script setup_security_server_sidecar.sh will:
 
+- Create a bridge-type network called xroad-network to provide container to container communication in a local development environment
 - Create a new security server sidecar image and start a new security server sidecar container with the given arguments.

@@ -21,6 +21,9 @@ httpport=$(($2 + 1))
 postgresqlport=$(($2 + 2))
 ideadebuggerport=$(($2 + 3))
 
+# Create xroad-network to provide container-to-container communication
+docker network create -d bridge xroad-network
+
 echo "=====> Build sidecar image"
 docker build -f sidecar/Dockerfile.local -t xroad-sidecar-security-server-image sidecar/
 printf "=====> Run container"
