@@ -54,7 +54,7 @@
             <td class="td-name">
               <div class="name-wrap">
                 <i class="icon-xrd_certificate icon" @click="certificateClick(req)"></i>
-                <div class="clickable-link" @click="certificateClick(cert)">{{$t('keys.request')}}</div>
+                <div>{{$t('keys.request')}}</div>
               </div>
             </td>
             <td>{{req.id}}</td>
