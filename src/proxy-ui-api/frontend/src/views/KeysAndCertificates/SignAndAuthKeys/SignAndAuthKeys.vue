@@ -354,7 +354,10 @@ export default Vue.extend({
     },
 
     generateCsr(key: Key) {
-      // TODO will be implemented later
+      this.$router.push({
+        name: RouteName.GenerateCertificateSignRequest,
+        params: { keyId: key.id },
+      });
     },
     fetchData(): void {
       // Fetch tokens from backend

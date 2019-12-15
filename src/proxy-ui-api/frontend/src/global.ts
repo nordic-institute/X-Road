@@ -102,6 +102,17 @@ export enum Permissions {
   VIEW_TSPS = 'VIEW_TSPS',
 }
 
+export enum UsageTypes {
+  SIGNING = 'SIGNING',
+  AUTHENTICATION = 'AUTHENTICATION',
+}
+
+export enum CsrFormatTypes {
+  PEM = 'PEM',
+  DER = 'DER',
+}
+
+
 export const mainTabs = [
   {
     to: { name: RouteName.Clients },
