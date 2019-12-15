@@ -128,7 +128,7 @@ import KeysTable from './KeysTable.vue';
 import UnknownKeysTable from './UnknownKeysTable.vue';
 import KeyLabelDialog from './KeyLabelDialog.vue';
 import { mapGetters } from 'vuex';
-import { Key, Token, Certificate } from '@/types';
+import { Key, Token, TokenCertificate } from '@/types';
 import * as api from '@/util/api';
 
 import _ from 'lodash';
@@ -196,7 +196,7 @@ export default Vue.extend({
 
       arr.forEach((token: Token) => {
         token.keys.forEach((key: Key) => {
-          const certs = key.certificates.filter((cert: Certificate) => {
+          const certs = key.certificates.filter((cert: TokenCertificate) => {
             if (cert.owner_id) {
               return cert.owner_id.toLowerCase().includes(mysearch);
             }
@@ -246,7 +246,7 @@ export default Vue.extend({
       });
     },
 
-    certificateClick(cert: Certificate): void {
+    certificateClick(cert: TokenCertificate): void {
       this.$router.push({
         name: RouteName.Certificate,
         params: { hash: cert.certificate_details.hash },
