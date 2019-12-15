@@ -114,7 +114,7 @@ public class TokenServiceTest {
         }).when(signerProxyFacade).deactivateToken(any());
 
         TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo(GOOD_TOKEN_NAME);
-        KeyInfo keyInfo = TokenTestUtils.createTestKeyInfo(GOOD_KEY_ID);
+        KeyInfo keyInfo = new TokenTestUtils.KeyInfoBuilder().id(GOOD_KEY_ID).build();
         tokenInfo.getKeyInfo().add(keyInfo);
 
         doAnswer(invocation -> {

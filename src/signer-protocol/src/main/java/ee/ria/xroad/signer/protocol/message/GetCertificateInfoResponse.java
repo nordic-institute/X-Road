@@ -22,27 +22,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package ee.ria.xroad.signer.protocol.message;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
-public class CertificateNotFoundException extends NotFoundException {
+import lombok.Value;
 
-    public static final String ERROR_CERTIFICATE_NOT_FOUND = "certificate_not_found";
+import java.io.Serializable;
 
-    public CertificateNotFoundException(String s) {
-        super(s, createError());
-    }
+/**
+ * Signer API message.
+ */
+@Value
+public class GetCertificateInfoResponse implements Serializable {
 
-    public CertificateNotFoundException(Throwable t) {
-        super(t, createError());
-    }
+    private final CertificateInfo certificateInfo;
 
-    public CertificateNotFoundException() {
-        super(createError());
-    }
-
-    private static ErrorDeviation createError() {
-        return new ErrorDeviation(ERROR_CERTIFICATE_NOT_FOUND);
-    }
 }

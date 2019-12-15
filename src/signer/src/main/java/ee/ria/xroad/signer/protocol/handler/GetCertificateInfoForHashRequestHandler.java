@@ -22,27 +22,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package ee.ria.xroad.signer.protocol.handler;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.message.GetCertificateInfoForHash;
+import ee.ria.xroad.signer.protocol.message.GetCertificateInfoResponse;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
-public class CertificateNotFoundException extends NotFoundException {
+import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
 
-    public static final String ERROR_CERTIFICATE_NOT_FOUND = "certificate_not_found";
+/**
+ * Handles requests for certificates based on certificate hashes.
+ */
+public class GetCertificateInfoForHashRequestHandler extends AbstractRequestHandler<GetCertificateInfoForHash> {
 
-    public CertificateNotFoundException(String s) {
-        super(s, createError());
+    @Override
+    protected Object handle(GetCertificateInfoForHash message) throws Exception {
+        CertificateInfo certificateInfo = TokenManager.getCertificateInfoForCertHash(message.getCertHash());
+
+        if (certificateInfo == null) {
+            throw CodedException.tr(X_CERT_NOT_FOUND, "certificate_with_hash_not_found",
+                    "Certificate with hash '%s' not found", message.getCertHash());
+        }
+
+        return new GetCertificateInfoResponse(certificateInfo);
     }
 
-    public CertificateNotFoundException(Throwable t) {
-        super(t, createError());
-    }
-
-    public CertificateNotFoundException() {
-        super(createError());
-    }
-
-    private static ErrorDeviation createError() {
-        return new ErrorDeviation(ERROR_CERTIFICATE_NOT_FOUND);
-    }
 }
