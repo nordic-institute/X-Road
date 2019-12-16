@@ -132,7 +132,7 @@ public class TokenCertificateService {
     /**
      * Import a cert that is found from a token by it's bytes
      * @param certificateBytes
-     * @param isFromToken whether the token was read from a token or not
+     * @param isFromToken whether the cert was read from a token or not
      * @return CertificateType
      * @throws GlobalConfService.GlobalConfOutdatedException
      * @throws KeyNotFoundException

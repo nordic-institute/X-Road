@@ -28,8 +28,8 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.TokenCertificateConverter;
-import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.openapi.model.SecurityServerAddress;
+import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
