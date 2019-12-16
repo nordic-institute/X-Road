@@ -9,7 +9,7 @@ X-Road Security Server sidecar docker image contains a custom set of modules ins
 - xroad-addon-wsdlvalidator
 - xroad-autologin
 
-The image is built from sources of version bionic-6.22.0 or later.
+The X-Road Security Server sidecar software is built from pre-built packages downloaded from the official X-Road repository at [https://artifactory.niis.org/xroad-release-deb](https://artifactory.niis.org/xroad-release-deb).
 
 ## Prerequisites to installation
 
