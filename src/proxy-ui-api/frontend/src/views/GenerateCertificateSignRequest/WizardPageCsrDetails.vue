@@ -82,7 +82,6 @@ import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import WizardPageFinish from './WizardPageFinish.vue';
 import { Key, Token } from '@/types';
 import { UsageTypes, CsrFormatTypes } from '@/global';
 import * as api from '@/util/api';
@@ -94,7 +93,6 @@ export default Vue.extend({
     SubViewTitle,
     ValidationObserver,
     ValidationProvider,
-    WizardPageFinish,
   },
   props: {},
   data() {
