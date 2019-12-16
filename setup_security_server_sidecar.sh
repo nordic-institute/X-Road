@@ -19,20 +19,17 @@ if [[ ! ( $2 =~ ^-?[0-9]+$ ) || ($2 -lt 1024) ]] ; then
 fi
 
 httpport=$(($2 + 1))
-postgresqlport=$(($2 + 2))
-ideadebuggerport=$(($2 + 3))
 
 # Create xroad-network to provide container-to-container communication
 docker network create -d bridge xroad-network
 
 echo "=====> Build sidecar image"
-docker build -f sidecar/Dockerfile.local -t xroad-sidecar-security-server-image sidecar/
+docker build -f sidecar/Dockerfile -t xroad-sidecar-security-server-image sidecar/
 printf "=====> Run container"
-docker run --detach -p $2:4000 -p $httpport:80 -p $postgresqlport:5432 -p $ideadebuggerport:9999 --network xroad-network -e XROAD_TOKEN_PIN=$3 --name $1 xroad-sidecar-security-server-image
+docker run --detach -p $2:4000 -p $httpport:80 --network xroad-network -e XROAD_TOKEN_PIN=$3 --name $1 xroad-sidecar-security-server-image
 
 
 printf "\n
 Sidecar security server admin UI should be accessible shortly in https://localhost:$2
 $1-container port 80 is mapped to $httpport
-Postgresql (port 5432) in $1 is mapped to localhost:$postgresqlport
 "

@@ -37,4 +37,4 @@ COPY files/ss-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
 CMD ["/root/entrypoint.sh"]
 
-EXPOSE 80 443 4000 5500 5577 5432 9999
+EXPOSE 80 443 4000 5500 5577
