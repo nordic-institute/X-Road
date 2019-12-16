@@ -32,6 +32,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -46,6 +47,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.cert.X509Certificate;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -80,16 +82,23 @@ public class TokenCertificateService {
     private final SignerProxyFacade signerProxyFacade;
     private final ClientRepository clientRepository;
     private final KeyService keyService;
+    private final StateChangeActionHelper stateChangeActionHelper;
+    private final TokenService tokenService;
+
 
     @Autowired
     public TokenCertificateService(GlobalConfService globalConfService, GlobalConfFacade globalConfFacade,
             SignerProxyFacade signerProxyFacade, ClientRepository clientRepository,
-            KeyService keyService) {
+            KeyService keyService,
+            StateChangeActionHelper stateChangeActionHelper,
+            TokenService tokenService) {
         this.globalConfService = globalConfService;
         this.globalConfFacade = globalConfFacade;
         this.signerProxyFacade = signerProxyFacade;
         this.clientRepository = clientRepository;
         this.keyService = keyService;
+        this.tokenService = tokenService;
+        this.stateChangeActionHelper = stateChangeActionHelper;
     }
 
     private static String signerFaultCode(String detail) {
@@ -339,6 +348,15 @@ public class TokenCertificateService {
     static final String CSR_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_CSR_NOT_FOUND;
     static final String CERT_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_CERT_NOT_FOUND;
 
+    public static class ActionNotPossibleException extends ServiceException {
+        public static final String ACTION_NOT_POSSIBLE = "action_not_possible";
+
+        public ActionNotPossibleException(String msg) {
+            super(msg, new ErrorDeviation(ACTION_NOT_POSSIBLE));
+        }
+    }
+
+
     /**
      * Delete certificate with given hash
      * @param hash
@@ -347,11 +365,19 @@ public class TokenCertificateService {
      * be loaded (should not be possible)
      */
     public void deleteCertificate(String hash) throws CertificateNotFoundException, KeyNotFoundException,
-            KeyNotOperationalException, SignerOperationFailedException {
+            KeyNotOperationalException, SignerOperationFailedException, TokenNotFoundException,
+            ActionNotPossibleException {
         hash = hash.toLowerCase();
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         String keyId = getKeyIdForCertificateHash(hash);
         KeyInfo keyInfo = keyService.getKey(keyId);
+        TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
+        EnumSet<StateChangeActionHelper.StateChangeActionEnum> possibleActions = stateChangeActionHelper.
+                getPossibleCertificateActions(tokenInfo, keyInfo, certificateInfo);
+        if (!possibleActions.contains(StateChangeActionHelper.StateChangeActionEnum.DELETE)) {
+            throw new ActionNotPossibleException("delete not possible");
+        }
+
         if (keyInfo.isForSigning()) {
             verifyAuthority("DELETE_SIGN_CERT");
         } else {

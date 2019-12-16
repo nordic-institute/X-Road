@@ -35,6 +35,7 @@ import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.TokenCertificateService;
+import org.niis.xroad.restapi.service.TokenNotFoundException;
 import org.niis.xroad.restapi.util.ResourceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -126,8 +127,11 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
         } catch (CertificateNotFoundException | KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (TokenCertificateService.KeyNotOperationalException
-                | TokenCertificateService.SignerOperationFailedException e) {
+                | TokenCertificateService.SignerOperationFailedException
+                | TokenNotFoundException e) {
             throw new InternalServerErrorException(e);
+        } catch (TokenCertificateService.ActionNotPossibleException e) {
+            throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

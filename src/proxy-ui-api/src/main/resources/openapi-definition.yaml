@@ -3320,6 +3320,7 @@ components:
       required:
         - id
         - owner_id
+        - possible_actions
       properties:
         id:
           type: string
@@ -3335,6 +3336,8 @@ components:
           minLength: 1
           maxLength: 767
           readOnly: true
+        possible_actions:
+          $ref: '#/components/schemas/PossibleActions'
     TokenCertificate: # ok
       type: object
       description: certificate that is stored in a Token (auth or sign cert)
@@ -3345,6 +3348,7 @@ components:
         - saved_to_configuration
         - certificate_details
         - status
+        - possible_actions
       properties:
         ocsp_status:
           $ref: '#/components/schemas/CertificateOcspStatus'
@@ -3368,6 +3372,8 @@ components:
           $ref: '#/components/schemas/CertificateDetails'
         status:
           $ref: '#/components/schemas/CertificateStatus'
+        possible_actions:
+          $ref: '#/components/schemas/PossibleActions'
     CertificateDetails: # ok
       type: object
       description: certificate details for any kind of certificate (TLS, auth, sign)
@@ -3540,6 +3546,27 @@ components:
         - OCSP_RESPONSE_GOOD
         - OCSP_RESPONSE_SUSPENDED
         - OCSP_RESPONSE_REVOKED
+    PossibleActions: # ok
+      type: object
+      description: object containing the possible state change actions for this item
+      properties:
+        items:
+          type: array
+          uniqueItems: true
+          description: array of possible state change actions
+          items:
+              $ref: '#/components/schemas/StateChangeAction'
+    StateChangeAction: # ok
+      type: string
+      format: enum
+      description: action to change state of token, key, cert or csr
+      example: IN_USE
+      enum:
+        - DELETE
+        - ACTIVATE
+        - DISABLE
+        - REGISTER
+        - UNREGISTER
     Client: # ok
       type: object
       description: x-road client

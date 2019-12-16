@@ -69,7 +69,7 @@ public class TokenConverter {
             token.setType(TokenType.HARDWARE);
         }
 
-        token.setKeys(keyConverter.convert(tokenInfo.getKeyInfo()));
+        token.setKeys(keyConverter.convert(tokenInfo.getKeyInfo(), tokenInfo));
 
         Optional<TokenStatus> status = TokenStatusMapping.map(tokenInfo.getStatus());
         token.setStatus(status.orElse(null));
