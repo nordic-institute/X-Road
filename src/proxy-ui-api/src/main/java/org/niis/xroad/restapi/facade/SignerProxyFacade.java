@@ -190,4 +190,7 @@ public class SignerProxyFacade {
         return SignerProxy.getKeyIdForCerthash(hash);
     }
 
+    /**
+     * TO DO add get token + key (cert hash) or similar shortcut for possible actions checking
+     */
 }

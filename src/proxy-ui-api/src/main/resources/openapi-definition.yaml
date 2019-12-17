@@ -3338,6 +3338,9 @@ components:
           readOnly: true
         possible_actions:
           $ref: '#/components/schemas/PossibleActions'
+          description: possible actions that can be done to this object, e.g DELETE.
+            Has value only for operationIds getToken and getTokens.
+            Does not consider user authorization.
     TokenCertificate: # ok
       type: object
       description: certificate that is stored in a Token (auth or sign cert)
@@ -3348,7 +3351,6 @@ components:
         - saved_to_configuration
         - certificate_details
         - status
-        - possible_actions
       properties:
         ocsp_status:
           $ref: '#/components/schemas/CertificateOcspStatus'
@@ -3374,6 +3376,9 @@ components:
           $ref: '#/components/schemas/CertificateStatus'
         possible_actions:
           $ref: '#/components/schemas/PossibleActions'
+          description: possible actions that can be done to this object, e.g DELETE.
+            Has value only for operationIds getToken and getTokens.
+            Does not consider user authorization.
     CertificateDetails: # ok
       type: object
       description: certificate details for any kind of certificate (TLS, auth, sign)
@@ -3863,6 +3868,11 @@ components:
           type: boolean
           description: if the key is saved to configuration
           example: true
+        possible_actions:
+          $ref: '#/components/schemas/PossibleActions'
+          description: possible actions that can be done to this object, e.g DELETE.
+            Has value only for operationIds getToken and getTokens.
+            Does not consider user authorization.
     KeyUsage: # ok
       type: string
       format: enum
@@ -4420,6 +4430,11 @@ components:
           description: Contains label-value pairs of information
           items:
             $ref: '#/components/schemas/KeyValuePair'
+        possible_actions:
+          $ref: '#/components/schemas/PossibleActions'
+          description: possible actions that can be done to this object, e.g DELETE.
+            Has value only for operationIds getToken and getTokens.
+            Does not consider user authorization.
     TokenStatus: # ok
       type: string
       format: text

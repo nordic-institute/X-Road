@@ -170,7 +170,7 @@ public class TokenCertificateConverter {
      */
     public List<TokenCertificate> convert(Iterable<CertificateInfo> certificateInfos) {
         return Streams.stream(certificateInfos)
-                .map(this::convert)
+                .map(c -> convert(c))
                 .collect(Collectors.toList());
     }
 

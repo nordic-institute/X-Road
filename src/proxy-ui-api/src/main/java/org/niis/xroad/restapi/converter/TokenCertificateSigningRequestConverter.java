@@ -96,7 +96,7 @@ public class TokenCertificateSigningRequestConverter {
      */
     public List<TokenCertificateSigningRequest> convert(Iterable<CertRequestInfo> csrInfos) {
         return Streams.stream(csrInfos)
-                .map(this::convert)
+                .map(c -> convert(c))
                 .collect(Collectors.toList());
     }
 

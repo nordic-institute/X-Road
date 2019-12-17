@@ -47,6 +47,19 @@ public class StateChangeActionHelper {
         UNREGISTER
     }
 
+    public EnumSet<StateChangeActionEnum> getPossibleTokenActions(TokenInfo tokenInfo) {
+        EnumSet<StateChangeActionEnum> actions = EnumSet.noneOf(StateChangeActionEnum.class);
+        // not implemented yet
+        return actions;
+    }
+
+    public EnumSet<StateChangeActionEnum> getPossibleKeyActions(TokenInfo tokenInfo,
+            KeyInfo keyInfo) {
+        EnumSet<StateChangeActionEnum> actions = EnumSet.noneOf(StateChangeActionEnum.class);
+        // not implemented yet
+        return actions;
+    }
+
     public EnumSet<StateChangeActionEnum> getPossibleCertificateActions(TokenInfo tokenInfo,
             KeyInfo keyInfo,
             CertificateInfo certificateInfo) {

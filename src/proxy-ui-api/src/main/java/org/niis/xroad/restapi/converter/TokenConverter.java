@@ -28,9 +28,11 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.openapi.model.KeyValuePair;
+import org.niis.xroad.restapi.openapi.model.PossibleActions;
 import org.niis.xroad.restapi.openapi.model.Token;
 import org.niis.xroad.restapi.openapi.model.TokenStatus;
 import org.niis.xroad.restapi.openapi.model.TokenType;
+import org.niis.xroad.restapi.service.StateChangeActionHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -46,10 +48,16 @@ import java.util.stream.Collectors;
 public class TokenConverter {
 
     private final KeyConverter keyConverter;
+    private final StateChangeActionHelper stateChangeActionHelper;
+    private final StateChangeActionConverter stateChangeActionConverter;
 
     @Autowired
-    public TokenConverter(KeyConverter keyConverter) {
+    public TokenConverter(KeyConverter keyConverter,
+            StateChangeActionHelper stateChangeActionHelper,
+            StateChangeActionConverter stateChangeActionConverter) {
         this.keyConverter = keyConverter;
+        this.stateChangeActionHelper = stateChangeActionHelper;
+        this.stateChangeActionConverter = stateChangeActionConverter;
     }
 
     /**
@@ -87,6 +95,12 @@ public class TokenConverter {
             keyValuePair.setValue(tokenInfo.getTokenInfo().get(key));
             token.getTokenInfos().add(keyValuePair);
         }
+
+        PossibleActions possibleActions = new PossibleActions();
+        possibleActions.setItems(stateChangeActionConverter.convert(
+                stateChangeActionHelper.getPossibleTokenActions(
+                        tokenInfo)));
+        token.setPossibleActions(possibleActions);
 
         return token;
     }

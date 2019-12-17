@@ -30,6 +30,8 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.KeyUsageType;
+import org.niis.xroad.restapi.openapi.model.PossibleActions;
+import org.niis.xroad.restapi.service.StateChangeActionHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,12 +46,18 @@ public class KeyConverter {
 
     private final TokenCertificateConverter tokenCertificateConverter;
     private final TokenCertificateSigningRequestConverter tokenCsrConverter;
+    private final StateChangeActionHelper stateChangeActionHelper;
+    private final StateChangeActionConverter stateChangeActionConverter;
 
     @Autowired
     public KeyConverter(TokenCertificateConverter tokenCertificateConverter,
-            TokenCertificateSigningRequestConverter tokenCsrConverter) {
+            TokenCertificateSigningRequestConverter tokenCsrConverter,
+            StateChangeActionHelper stateChangeActionHelper,
+            StateChangeActionConverter stateChangeActionConverter) {
         this.tokenCertificateConverter = tokenCertificateConverter;
         this.tokenCsrConverter = tokenCsrConverter;
+        this.stateChangeActionHelper = stateChangeActionHelper;
+        this.stateChangeActionConverter = stateChangeActionConverter;
     }
 
     /**
@@ -57,7 +65,19 @@ public class KeyConverter {
      * @param keyInfo
      */
     public Key convert(KeyInfo keyInfo) {
-        return convert(keyInfo, null);
+        return convertInternal(keyInfo, null);
+    }
+
+    /**
+     * Convert {@link KeyInfo} to openapi {@link Key} object
+     * and populate possibleActions
+     * @param keyInfo
+     */
+    public Key convert(KeyInfo keyInfo, TokenInfo tokenInfo) {
+        if (tokenInfo == null) {
+            throw new NullPointerException("tokenInfo is mandatory to populate possibleActions");
+        }
+        return convertInternal(keyInfo, tokenInfo);
     }
 
     /**
@@ -65,7 +85,7 @@ public class KeyConverter {
      * and populate possibleActions if TokenInfo param was given
      * @param keyInfo
      */
-    public Key convert(KeyInfo keyInfo, TokenInfo tokenInfo) {
+    private Key convertInternal(KeyInfo keyInfo, TokenInfo tokenInfo) {
         Key key = new Key();
         key.setId(keyInfo.getId());
         key.setName(keyInfo.getFriendlyName());
@@ -89,6 +109,12 @@ public class KeyConverter {
             // with possibleactions
             key.setCertificates(tokenCertificateConverter.convert(keyInfo.getCerts(), keyInfo, tokenInfo));
             key.setCertificateSigningRequests(tokenCsrConverter.convert(keyInfo.getCertRequests(), keyInfo, tokenInfo));
+
+            PossibleActions possibleActions = new PossibleActions();
+            possibleActions.setItems(stateChangeActionConverter.convert(
+                    stateChangeActionHelper.getPossibleKeyActions(
+                            tokenInfo, keyInfo)));
+            key.setPossibleActions(possibleActions);
         }
 
         return key;
