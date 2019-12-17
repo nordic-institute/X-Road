@@ -18,7 +18,20 @@ var navigateCommands = {
   }
 };
 
-var clientTabCommands = {};
+var clientTabCommands = {
+  clickNameHeader: function() {
+    this.click('@listNameHeader');
+    return this;
+  },
+  clickIDHeader: function() {
+    this.click('@listIDHeader');
+    return this;
+  },
+  clickStatusHeader: function() {
+    this.click('@listStatusHeader');
+    return this;
+  }
+};
 
 module.exports = {
   url: process.env.VUE_DEV_SERVER_URL,
@@ -40,10 +53,22 @@ module.exports = {
   
   sections: {
     clientsTab: {
-      selector: '//div[contains(@class, "main-content") and .//a[contains(@class, "v-tabs__item--active") and text()="clients"]]//div[contains(@class, "mt-5")]',
+      selector: '//div[contains(@class, "data-table-wrapper") and .//button[.//*[contains(text(), "add client")]]]',
+      locateStrategy: 'xpath',
       commands: [clientTabCommands],
       elements: {
-        addClientButton: { selector: '//div[contains(@class, "v-btn__content") and text()="Add client"]', locateStrategy: 'xpath' },
+        addClientButton: { 
+          selector: '//div[contains(@class, "v-btn__content") and text()="Add client"]',
+          locateStrategy: 'xpath' },
+        listNameHeader: { 
+          selector: '//th[span[contains(text(),"Name")]]', 
+          locateStrategy: 'xpath' },
+        listIDHeader: { 
+          selector: '//th[span[contains(text(),"ID")]]', 
+          locateStrategy: 'xpath' },
+        listStatusHeader: { 
+          selector: '//th[span[contains(text(),"Status")]]', 
+          locateStrategy: 'xpath' }
       }
     }
   }
