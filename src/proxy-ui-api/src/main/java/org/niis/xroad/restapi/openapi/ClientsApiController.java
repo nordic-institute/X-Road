@@ -249,7 +249,7 @@ public class ClientsApiController implements ClientsApi {
         } catch (ClientNotFoundException | CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @Override

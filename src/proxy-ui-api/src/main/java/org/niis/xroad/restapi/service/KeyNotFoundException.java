@@ -30,7 +30,7 @@ public class KeyNotFoundException extends NotFoundException {
     public static final String ERROR_KEY_NOT_FOUND = "key_not_found";
 
     public KeyNotFoundException(String s) {
-        super(s, new ErrorDeviation(ERROR_KEY_NOT_FOUND));
+        super(s, createError());
     }
 
     public KeyNotFoundException(Throwable t) {

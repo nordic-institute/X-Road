@@ -92,7 +92,7 @@ public class KeyConverterTest {
     @Test
     public void isSavedToConfiguration() throws Exception {
         // test different combinations of keys and certs and the logic for isSavedToConfiguration
-        KeyInfo info = TokenTestUtils.createTestKeyInfo();
+        KeyInfo info = new TokenTestUtils.KeyInfoBuilder().build();
 
         info.getCerts().clear();
         info.getCertRequests().clear();
