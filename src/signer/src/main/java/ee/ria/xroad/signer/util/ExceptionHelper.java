@@ -109,6 +109,16 @@ public final class ExceptionHelper {
     }
 
     /**
+     * @param certHash the certificate hash
+     * @return exception indicating a certificate is not found
+     */
+    public static CodedException certWithHashNotFound(String certHash) {
+        return CodedException.tr(X_CERT_NOT_FOUND,
+                "certificate_with_hash_not_found",
+                "Certificate with hash '%s' not found", certHash);
+    }
+
+    /**
      * @param message the message
      * @return exception indicating login to token failed
      */

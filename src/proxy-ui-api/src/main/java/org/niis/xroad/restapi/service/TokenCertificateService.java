@@ -33,6 +33,7 @@ import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -369,10 +370,13 @@ public class TokenCertificateService {
     }
 
     /**
-     * Helper method which find possible actions for certificate with given hash.
+     * TO DO: add test?
+     * Helper method which finds possible actions for certificate with given hash.
      * Either uses given CertificateInfo, KeyInfo and TokenInfo objects, or looks
-     * them up if null.
-     * Key not found and token not found exceptions are wrapped as RuntimeExceptions
+     * them up based on cert hash if not given.
+     * If TokenInfo needs to be loaded, ignores KeyInfo parameter and uses loaded TokenInfo
+     * instead to determine correct KeyInfo.
+     * Key not found exceptions are wrapped as RuntimeExceptions
      * since them happening is considered to be internal error.
      * @throws CertificateNotFoundException
      */
@@ -381,27 +385,25 @@ public class TokenCertificateService {
             CertificateInfo certificateInfo,
             KeyInfo keyInfo,
             TokenInfo tokenInfo) throws CertificateNotFoundException {
+
         if (certificateInfo == null) {
             certificateInfo = getCertificateInfo(hash);
         }
-        String keyId = null;
-        if (keyInfo == null) {
-            keyId = getKeyIdForCertificateHash(hash);
-            try {
+
+        try {
+            if (tokenInfo == null) {
+                TokenInfoAndKeyId tokenInfoAndKeyId = tokenService.getTokenAndKeyIdForCertificateHash(hash);
+                tokenInfo = tokenInfoAndKeyId.getTokenInfo();
+                keyInfo = tokenInfoAndKeyId.getKeyInfo();
+            }
+            if (keyInfo == null) {
+                String keyId = getKeyIdForCertificateHash(hash);
                 keyInfo = keyService.getKey(keyId);
-            } catch (KeyNotFoundException e) {
-                throw new RuntimeException("internal error", e);
             }
-        } else {
-            keyId = keyInfo.getId();
+        } catch (KeyNotFoundException e) {
+            throw new RuntimeException("internal error", e);
         }
-        if (tokenInfo == null) {
-            try {
-                tokenInfo = tokenService.getTokenForKeyId(keyId);
-            } catch (TokenNotFoundException e) {
-                throw new RuntimeException("internal error", e);
-            }
-        }
+
         EnumSet<StateChangeActionHelper.StateChangeActionEnum> possibleActions = stateChangeActionHelper.
                 getPossibleCertificateActions(tokenInfo, keyInfo, certificateInfo);
         return possibleActions;
@@ -454,7 +456,7 @@ public class TokenCertificateService {
      */
     public String getKeyIdForCertificateHash(String hash) throws CertificateNotFoundException {
         try {
-            return signerProxyFacade.getKeyIdForCerthash(hash.toLowerCase());
+            return signerProxyFacade.getKeyIdForCertHash(hash.toLowerCase());
         } catch (CodedException e) {
             if (isCausedByCertNotFound(e)) {
                 throw new CertificateNotFoundException("Certificate with hash " + hash + " not found");
@@ -472,8 +474,10 @@ public class TokenCertificateService {
      * @param csrId
      * @throws KeyNotFoundException if key with keyId was not found
      * @throws CsrNotFoundException if csr with csrId was not found
+     * @throws ActionNotPossibleException if delete was not possible due to csr/key/token states
      */
-    public void deleteCsr(String keyId, String csrId) throws KeyNotFoundException, CsrNotFoundException, ActionNotPossibleException {
+    public void deleteCsr(String keyId, String csrId) throws KeyNotFoundException, CsrNotFoundException,
+            ActionNotPossibleException {
         KeyInfo keyInfo = keyService.getKey(keyId);
         // getCsr to get CsrNotFoundException
         CertRequestInfo certRequestInfo = getCsr(keyInfo, csrId);

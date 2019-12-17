@@ -114,7 +114,7 @@ public class TokenCertificatesApiControllerIntegrationTest {
         CertificateInfo certificateInfo = new CertificateInfoBuilder()
                 .certificateStatus("SAVED").build();
         doAnswer(answer -> certificateInfo).when(signerProxyFacade).getCertForHash(any());
-        doAnswer(answer -> "key-id").when(signerProxyFacade).getKeyIdForCerthash(any());
+        doAnswer(answer -> "key-id").when(signerProxyFacade).getKeyIdForCertHash(any());
         TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo("fubar");
         KeyInfo keyInfo = new KeyInfoBuilder().id("key-id").build();
         tokenInfo.getKeyInfo().add(keyInfo);

@@ -35,6 +35,7 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 import ee.ria.xroad.signer.tokenmanager.merge.MergeOntoFileTokensStrategy;
 import ee.ria.xroad.signer.tokenmanager.merge.TokenMergeAddedCertificatesListener;
@@ -58,6 +59,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
+import static ee.ria.xroad.signer.util.ExceptionHelper.certWithHashNotFound;
 import static ee.ria.xroad.signer.util.ExceptionHelper.certWithIdNotFound;
 import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotFound;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotFound;
@@ -223,6 +225,23 @@ public final class TokenManager {
 
         return forKey((t, k) -> k.getId().equals(keyId),
                 (t, k) -> new TokenAndKey(t.getId(), k.toDTO()))
+                .orElseThrow(() -> keyNotFound(keyId));
+    }
+
+    /**
+     * TO DO: add test?
+     * @param certHash the certificate hash
+     * @return the tokenInfo and key id, or throws exception if not found
+     */
+    public static synchronized TokenInfoAndKeyId findTokenAndKeyIdForCertHash(String certHash) {
+        log.trace("findTokenAndKeyIdForCertHash({})", certHash);
+
+        String keyId = forCert((k, c) -> certHash.equals(c.getHash()),
+                (k, c) -> k.getId())
+                .orElseThrow(() -> certWithHashNotFound(certHash));
+
+        return forKey((t, k) -> k.getId().equals(keyId),
+                (t, k) -> new TokenInfoAndKeyId(t.toDTO(), keyId))
                 .orElseThrow(() -> keyNotFound(keyId));
     }
 

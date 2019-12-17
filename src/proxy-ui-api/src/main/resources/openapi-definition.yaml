@@ -3603,6 +3603,7 @@ components:
         - DISABLE
         - REGISTER
         - UNREGISTER
+        - IMPORT_FROM_TOKEN
     Client: # ok
       type: object
       description: x-road client

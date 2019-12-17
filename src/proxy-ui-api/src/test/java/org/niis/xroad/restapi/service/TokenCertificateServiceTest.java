@@ -117,7 +117,7 @@ public class TokenCertificateServiceTest {
         // need lots of mocking
         // construct some test keys, with csrs and certs
         // make used finders return data from these items:
-        // keyService.getKey, signerProxyFacade.getKeyIdForCerthash,
+        // keyService.getKey, signerProxyFacade.getKeyIdForCertHash,
         // signerProxyFacade.getCertForHash
         // mock delete-operations (deleteCertificate, deleteCsr)
         CertRequestInfo goodCsr = new CertRequestInfo(GOOD_CSR_ID, null, null);
@@ -157,7 +157,7 @@ public class TokenCertificateServiceTest {
             }
         }).when(keyService).getKey(any());
 
-        // signerProxyFacade.getKeyIdForCerthash(hash)
+        // signerProxyFacade.getKeyIdForCertHash(hash)
         doAnswer(invocation -> {
             String certHash = (String) invocation.getArguments()[0];
             if (certHash.equals(EXISTING_CERT_IN_AUTH_KEY_HASH)) {
@@ -165,7 +165,7 @@ public class TokenCertificateServiceTest {
             } else {
                 return SIGN_KEY_ID;
             }
-        }).when(signerProxyFacade).getKeyIdForCerthash(any());
+        }).when(signerProxyFacade).getKeyIdForCertHash(any());
 
         // signerProxyFacade.getCertForHash(hash)
         doAnswer(invocation -> {

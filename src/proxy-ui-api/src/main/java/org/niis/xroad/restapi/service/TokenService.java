@@ -29,6 +29,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -42,6 +43,8 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_LOGIN_FAILED;
 import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_ACTIVE;
@@ -237,6 +240,14 @@ public class TokenService {
         return TOKEN_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
     }
 
+    static boolean isCausedByKeyNotFound(CodedException e) {
+        return KEY_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
+    }
+
+    static boolean isCausedByCertNotFound(CodedException e) {
+        return CERT_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
+    }
+
     static boolean isCausedByTokenNotActive(CodedException e) {
         return TOKEN_NOT_ACTIVE_FAULT_CODE.equals(e.getFaultCode());
     }
@@ -244,9 +255,31 @@ public class TokenService {
     // detect a couple of CodedException error codes from core
     static final String PIN_INCORRECT_FAULT_CODE = SIGNER_X + "." + X_PIN_INCORRECT;
     static final String TOKEN_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_TOKEN_NOT_FOUND;
+    static final String KEY_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_KEY_NOT_FOUND;
+    static final String CERT_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_CERT_NOT_FOUND;
     static final String LOGIN_FAILED_FAULT_CODE = SIGNER_X + "." + X_LOGIN_FAILED;
     static final String TOKEN_NOT_ACTIVE_FAULT_CODE = SIGNER_X + "." + X_TOKEN_NOT_ACTIVE;
     static final String CKR_PIN_INCORRECT_MESSAGE = "Login failed: CKR_PIN_INCORRECT";
+
+    /**
+     * Get TokenInfoAndKeyId for certificate hash
+     */
+    public TokenInfoAndKeyId getTokenAndKeyIdForCertificateHash(String hash) throws KeyNotFoundException,
+            CertificateNotFoundException {
+        try {
+            return signerProxyFacade.getTokenAndKeyIdForCertHash(hash.toLowerCase());
+        } catch (CodedException e) {
+            if (isCausedByKeyNotFound(e)) {
+                throw new KeyNotFoundException(e);
+            } else if (isCausedByCertNotFound(e)) {
+                throw new CertificateNotFoundException(e);
+            } else {
+                throw e;
+            }
+        } catch (Exception other) {
+            throw new RuntimeException("getTokenAndKeyIdForCertHash failed", other);
+        }
+    }
 
     public static class PinIncorrectException extends ServiceException {
 
