@@ -29,7 +29,6 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import com.google.common.collect.Streams;
-import org.niis.xroad.restapi.openapi.model.PossibleActions;
 import org.niis.xroad.restapi.openapi.model.TokenCertificateSigningRequest;
 import org.niis.xroad.restapi.service.StateChangeActionHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,11 +66,9 @@ public class TokenCertificateSigningRequestConverter {
             KeyInfo keyInfo,
             TokenInfo tokenInfo) {
         TokenCertificateSigningRequest request = convert(csrInfo);
-        PossibleActions possibleActions = new PossibleActions();
-        possibleActions.setItems(stateChangeActionConverter.convert(
+        request.setPossibleActions(stateChangeActionConverter.convert(
                 stateChangeActionHelper.getPossibleCsrActions(
                         tokenInfo, keyInfo, csrInfo)));
-        request.setPossibleActions(possibleActions);
         return request;
     }
     /**

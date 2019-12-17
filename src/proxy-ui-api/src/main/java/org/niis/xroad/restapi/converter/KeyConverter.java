@@ -30,7 +30,6 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.KeyUsageType;
-import org.niis.xroad.restapi.openapi.model.PossibleActions;
 import org.niis.xroad.restapi.service.StateChangeActionHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -110,11 +109,9 @@ public class KeyConverter {
             key.setCertificates(tokenCertificateConverter.convert(keyInfo.getCerts(), keyInfo, tokenInfo));
             key.setCertificateSigningRequests(tokenCsrConverter.convert(keyInfo.getCertRequests(), keyInfo, tokenInfo));
 
-            PossibleActions possibleActions = new PossibleActions();
-            possibleActions.setItems(stateChangeActionConverter.convert(
+            key.setPossibleActions(stateChangeActionConverter.convert(
                     stateChangeActionHelper.getPossibleKeyActions(
                             tokenInfo, keyInfo)));
-            key.setPossibleActions(possibleActions);
         }
 
         return key;

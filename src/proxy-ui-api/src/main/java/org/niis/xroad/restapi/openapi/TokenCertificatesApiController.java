@@ -27,15 +27,17 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.StateChangeActionConverter;
 import org.niis.xroad.restapi.converter.TokenCertificateConverter;
+import org.niis.xroad.restapi.openapi.model.StateChangeAction;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
+import org.niis.xroad.restapi.service.StateChangeActionHelper;
 import org.niis.xroad.restapi.service.TokenCertificateService;
-import org.niis.xroad.restapi.service.TokenNotFoundException;
 import org.niis.xroad.restapi.util.ResourceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -44,6 +46,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.util.EnumSet;
+import java.util.List;
 
 /**
  * certificates api
@@ -56,12 +61,15 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
 
     private final TokenCertificateService tokenCertificateService;
     private final TokenCertificateConverter tokenCertificateConverter;
+    private final StateChangeActionConverter stateChangeActionConverter;
 
     @Autowired
     public TokenCertificatesApiController(TokenCertificateService tokenCertificateService,
-            TokenCertificateConverter tokenCertificateConverter) {
+            TokenCertificateConverter tokenCertificateConverter,
+            StateChangeActionConverter stateChangeActionConverter) {
         this.tokenCertificateService = tokenCertificateService;
         this.tokenCertificateConverter = tokenCertificateConverter;
+        this.stateChangeActionConverter = stateChangeActionConverter;
     }
 
     @Override
@@ -127,12 +135,24 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
         } catch (CertificateNotFoundException | KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (TokenCertificateService.KeyNotOperationalException
-                | TokenCertificateService.SignerOperationFailedException
-                | TokenNotFoundException e) {
+                | TokenCertificateService.SignerOperationFailedException e) {
             throw new InternalServerErrorException(e);
         } catch (TokenCertificateService.ActionNotPossibleException e) {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_KEYS')")
+    public ResponseEntity<List<StateChangeAction>> getPossibleActionsForCertificate(String hash) {
+        try {
+            // TO DO: test
+            EnumSet<StateChangeActionHelper.StateChangeActionEnum> actions = tokenCertificateService
+                    .getPossibleActionsForCertificate(hash);
+            return new ResponseEntity<>(stateChangeActionConverter.convert(actions), HttpStatus.OK);
+        } catch (CertificateNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
     }
 }

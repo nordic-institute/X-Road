@@ -39,6 +39,8 @@ import java.util.EnumSet;
  */
 @Component
 public class StateChangeActionHelper {
+
+    // TO DO: main-level
     public enum StateChangeActionEnum {
         DELETE,
         ACTIVATE,
@@ -131,5 +133,10 @@ public class StateChangeActionHelper {
         return canDelete;
     }
 
-
+    public void requirePossibleAction(StateChangeActionEnum action, EnumSet<StateChangeActionEnum> possibleActions)
+            throws TokenCertificateService.ActionNotPossibleException {
+        if (!possibleActions.contains(action)) {
+            throw new TokenCertificateService.ActionNotPossibleException(action + " is not possible");
+        }
+    }
 }

@@ -28,7 +28,6 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.openapi.model.KeyValuePair;
-import org.niis.xroad.restapi.openapi.model.PossibleActions;
 import org.niis.xroad.restapi.openapi.model.Token;
 import org.niis.xroad.restapi.openapi.model.TokenStatus;
 import org.niis.xroad.restapi.openapi.model.TokenType;
@@ -96,11 +95,9 @@ public class TokenConverter {
             token.getTokenInfos().add(keyValuePair);
         }
 
-        PossibleActions possibleActions = new PossibleActions();
-        possibleActions.setItems(stateChangeActionConverter.convert(
+        token.setPossibleActions(stateChangeActionConverter.convert(
                 stateChangeActionHelper.getPossibleTokenActions(
                         tokenInfo)));
-        token.setPossibleActions(possibleActions);
 
         return token;
     }

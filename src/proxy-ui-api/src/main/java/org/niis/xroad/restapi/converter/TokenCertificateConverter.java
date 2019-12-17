@@ -38,7 +38,6 @@ import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.bouncycastle.cert.ocsp.SingleResp;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.CertificateOcspStatus;
-import org.niis.xroad.restapi.openapi.model.PossibleActions;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.service.StateChangeActionHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,11 +78,9 @@ public class TokenCertificateConverter {
             KeyInfo keyInfo,
             TokenInfo tokenInfo) {
         TokenCertificate tokenCertificate = convert(certificateInfo);
-        PossibleActions possibleActions = new PossibleActions();
-        possibleActions.setItems(stateChangeActionConverter.convert(
+        tokenCertificate.setPossibleActions(stateChangeActionConverter.convert(
                 stateChangeActionHelper.getPossibleCertificateActions(
                         tokenInfo, keyInfo, certificateInfo)));
-        tokenCertificate.setPossibleActions(possibleActions);
         return tokenCertificate;
     }
 

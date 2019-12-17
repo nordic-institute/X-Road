@@ -348,6 +348,9 @@ public class TokenCertificateService {
     static final String CSR_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_CSR_NOT_FOUND;
     static final String CERT_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_CERT_NOT_FOUND;
 
+    /**
+     * TO DO: main level
+     */
     public static class ActionNotPossibleException extends ServiceException {
         public static final String ACTION_NOT_POSSIBLE = "action_not_possible";
 
@@ -356,6 +359,49 @@ public class TokenCertificateService {
         }
     }
 
+    public EnumSet<StateChangeActionHelper.StateChangeActionEnum> getPossibleActionsForCertificate(String hash)
+            throws CertificateNotFoundException {
+        return getPossibleActionsForCertificateInternal(hash, null, null, null);
+    }
+
+    /**
+     * Helper method which find possible actions for certificate with given hash.
+     * Either uses given CertificateInfo, KeyInfo and TokenInfo objects, or looks
+     * them up if null.
+     * Key not found and token not found exceptions are wrapped as RuntimeExceptions
+     * since them happening is considered to be internal error.
+     * @throws CertificateNotFoundException
+     */
+    private EnumSet<StateChangeActionHelper.StateChangeActionEnum> getPossibleActionsForCertificateInternal(
+            String hash,
+            CertificateInfo certificateInfo,
+            KeyInfo keyInfo,
+            TokenInfo tokenInfo) throws CertificateNotFoundException {
+        if (certificateInfo == null) {
+            certificateInfo = getCertificateInfo(hash);
+        }
+        String keyId = null;
+        if (keyInfo == null) {
+            keyId = getKeyIdForCertificateHash(hash);
+            try {
+                keyInfo = keyService.getKey(keyId);
+            } catch (KeyNotFoundException e) {
+                throw new RuntimeException("internal error", e);
+            }
+        } else {
+            keyId = keyInfo.getId();
+        }
+        if (tokenInfo == null) {
+            try {
+                tokenInfo = tokenService.getTokenForKeyId(keyId);
+            } catch (TokenNotFoundException e) {
+                throw new RuntimeException("internal error", e);
+            }
+        }
+        EnumSet<StateChangeActionHelper.StateChangeActionEnum> possibleActions = stateChangeActionHelper.
+                getPossibleCertificateActions(tokenInfo, keyInfo, certificateInfo);
+        return possibleActions;
+    }
 
     /**
      * Delete certificate with given hash
@@ -365,18 +411,16 @@ public class TokenCertificateService {
      * be loaded (should not be possible)
      */
     public void deleteCertificate(String hash) throws CertificateNotFoundException, KeyNotFoundException,
-            KeyNotOperationalException, SignerOperationFailedException, TokenNotFoundException,
+            KeyNotOperationalException, SignerOperationFailedException,
             ActionNotPossibleException {
         hash = hash.toLowerCase();
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         String keyId = getKeyIdForCertificateHash(hash);
         KeyInfo keyInfo = keyService.getKey(keyId);
-        TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
-        EnumSet<StateChangeActionHelper.StateChangeActionEnum> possibleActions = stateChangeActionHelper.
-                getPossibleCertificateActions(tokenInfo, keyInfo, certificateInfo);
-        if (!possibleActions.contains(StateChangeActionHelper.StateChangeActionEnum.DELETE)) {
-            throw new ActionNotPossibleException("delete not possible");
-        }
+        EnumSet<StateChangeActionHelper.StateChangeActionEnum> possibleActions =
+                getPossibleActionsForCertificateInternal(hash, certificateInfo, keyInfo, null);
+        stateChangeActionHelper.requirePossibleAction(
+                StateChangeActionHelper.StateChangeActionEnum.DELETE, possibleActions);
 
         if (keyInfo.isForSigning()) {
             verifyAuthority("DELETE_SIGN_CERT");
