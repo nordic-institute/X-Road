@@ -121,6 +121,8 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
             throw new ConflictException(e);
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
+        } catch (TokenCertificateService.ActionNotPossibleException e) {
+            throw new ConflictException(e);
         }
         TokenCertificate tokenCertificate = tokenCertificateConverter.convert(certificate);
         return ApiUtil.createCreatedResponse("/api/token-certificates/{hash}", tokenCertificate,

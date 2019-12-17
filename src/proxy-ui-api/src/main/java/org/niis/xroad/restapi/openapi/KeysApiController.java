@@ -102,6 +102,8 @@ public class KeysApiController implements KeysApi {
             tokenCertificateService.deleteCsr(keyId, csrId);
         } catch (KeyNotFoundException | CsrNotFoundException e) {
             throw new ResourceNotFoundException(e);
+        } catch (TokenCertificateService.ActionNotPossibleException e) {
+            throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

@@ -46,7 +46,8 @@ public class StateChangeActionHelper {
         ACTIVATE,
         DISABLE,
         REGISTER,
-        UNREGISTER
+        UNREGISTER,
+        IMPORT_FROM_TOKEN
     }
 
     public EnumSet<StateChangeActionEnum> getPossibleTokenActions(TokenInfo tokenInfo) {
@@ -78,7 +79,8 @@ public class StateChangeActionHelper {
             actions.add(StateChangeActionEnum.DELETE);
         }
         if (keyInfo.getUsage() == KeyUsageInfo.AUTHENTICATION
-                && CertificateInfo.STATUS_SAVED.equals(certificateInfo.getStatus())) {
+                && CertificateInfo.STATUS_SAVED.equals(certificateInfo.getStatus())
+                && (!canUnregister)) {
             actions.add(StateChangeActionEnum.REGISTER);
         }
         if (keyInfo.getUsage() != null && certificateInfo.isSavedToConfiguration()) {
@@ -88,6 +90,9 @@ public class StateChangeActionHelper {
                 actions.add(StateChangeActionEnum.ACTIVATE);
             }
         }
+        if (!certificateInfo.isSavedToConfiguration()) {
+            actions.add(StateChangeActionEnum.IMPORT_FROM_TOKEN);
+        }
 
         return actions;
     }
@@ -96,18 +101,30 @@ public class StateChangeActionHelper {
             KeyInfo keyInfo,
             CertRequestInfo certRequestInfo) {
         EnumSet<StateChangeActionEnum> actions = EnumSet.noneOf(StateChangeActionEnum.class);
-        boolean savedToConfiguration = true;
-        boolean canUnregister = false;
-        if (canDelete(tokenInfo, keyInfo, savedToConfiguration, canUnregister,
-                certOrCsrDeletable(tokenInfo, keyInfo, savedToConfiguration))) {
-            actions.add(StateChangeActionEnum.DELETE);
-        }
-        if (certOrCsrDeletable(tokenInfo, keyInfo, true)) {
+        // for csr, savedToConfiguration = always true since
+        // token_renderer.rb:
+        // :cert_deletable => can_delete_cert?(token, key, true))
+        //
+        // canUnregister = always false, since
+        // token_renderer.rb:
+        //         :unregister_enabled => key.usage == KeyUsageInfo::AUTHENTICATION &&
+        //          [CertificateInfo::STATUS_REGINPROG,
+        //           CertificateInfo::STATUS_REGISTERED].include?(cert.status)
+        // (CSR is never in status REGINPROG or REGISTERED)
+        if (canDelete(tokenInfo, keyInfo, true, false,
+                certOrCsrDeletable(tokenInfo, keyInfo, true))) {
             actions.add(StateChangeActionEnum.DELETE);
         }
         return actions;
     }
 
+    /**
+     * from keys.js:
+     *             if (cert.cert_deletable &&
+     *                 (cert.cert_saved_to_conf || cert.token_active)) {
+     *                 $("#delete").enable();
+     *             }
+     */
     private boolean canDelete(TokenInfo tokenInfo, KeyInfo keyInfo,
             boolean savedToConfiguration,
             boolean canUnregister,

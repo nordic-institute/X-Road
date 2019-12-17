@@ -185,7 +185,7 @@ public class TokenService {
     }
 
     public TokenInfo getTokenForKeyId(String keyId) throws TokenNotFoundException {
-        // optimize...?
+        // TO DO: optimize...?
         for (TokenInfo tokenInfo: getAllTokens()) {
             for (KeyInfo keyInfo: tokenInfo.getKeyInfo()) {
                 if (keyId.equals(keyInfo.getId())) {
