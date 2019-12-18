@@ -164,5 +164,16 @@ public class KeysApiController implements KeysApi {
 
         return ApiUtil.createAttachmentResourceResponse(csr, filename);
     }
+
+    @Override
+    @PreAuthorize("hasAuthority('DELETE_AUTH_CERT') or hasAuthority('DELETE_SIGN_CERT')")
+    public ResponseEntity<Void> deleteCsr(String keyId, String csrId) {
+        try {
+            keyService.deleteCsr(keyId, csrId);
+        } catch (KeyNotFoundException | KeyService.CsrNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }
 

@@ -48,6 +48,7 @@ public final class CertificateTestUtils {
     // this is base64 encoded DER certificate from common-util/test/configuration-anchor.xml
 
     public static final String MOCK_CERTIFICATE_HASH = "A2293825AA82A5429EC32803847E2152A303969C";
+    public static final String MOCK_AUTH_CERTIFICATE_HASH = "BA6CCC3B13E23BB1D40FD17631B7D93CF8334C0E";
 
     /**
      * Version: V3

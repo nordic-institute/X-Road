@@ -39,7 +39,7 @@ import org.niis.xroad.restapi.openapi.model.KeyUsageType;
 import org.niis.xroad.restapi.service.CertificateAuthorityService;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.KeyService;
-import org.niis.xroad.restapi.util.TokenTestUtils;
+import org.niis.xroad.restapi.util.TokenTestUtils.KeyInfoBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -85,8 +85,10 @@ public class CertificateAuthoritiesApiControllerTest {
 
     @Before
     public void setUp() throws Exception {
-        KeyInfo signKeyInfo = TokenTestUtils.createTestKeyInfo(GOOD_SIGN_KEY_ID, KeyUsageInfo.SIGNING);
-        KeyInfo authKeyInfo = TokenTestUtils.createTestKeyInfo(GOOD_AUTH_KEY_ID, KeyUsageInfo.AUTHENTICATION);
+        KeyInfo signKeyInfo = new KeyInfoBuilder().id(GOOD_SIGN_KEY_ID)
+                .keyUsageInfo(KeyUsageInfo.SIGNING).build();
+        KeyInfo authKeyInfo = new KeyInfoBuilder().id(GOOD_AUTH_KEY_ID)
+                .keyUsageInfo(KeyUsageInfo.AUTHENTICATION).build();
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
             String keyId = (String) args[0];

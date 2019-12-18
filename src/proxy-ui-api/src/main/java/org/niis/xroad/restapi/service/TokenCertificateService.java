@@ -28,7 +28,6 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.DnFieldValue;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
-import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -42,11 +41,10 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,6 +67,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_INITIALIZED;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_READONLY;
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
 import static org.niis.xroad.restapi.service.KeyService.isCausedByKeyNotFound;
+import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
 
 /**
  * token certificate service
@@ -219,7 +218,7 @@ public class TokenCertificateService {
         }
 
         /**
-         * Carries original erroCode as metadata
+         * Carries original CodedError errorCode as metadata
          * @param e
          */
         public KeyNotOperationalException(CodedException e) {
@@ -228,7 +227,7 @@ public class TokenCertificateService {
     }
 
     /**
-     * Find an existing cert by it's hash
+     * Find an existing cert from a token by it's hash
      * @param hash cert hash of an existing cert. Will be transformed to lowercase
      * @return
      * @throws CertificateNotFoundException
@@ -250,7 +249,91 @@ public class TokenCertificateService {
     }
 
     /**
-     * Import a cert from given bytes
+     * Find an existing cert from a token (e.g. HSM) by cert hash and import it to keyconf.xml. This enables the cert
+     * to be used for signing messages.
+     * @param hash cert hash of an existing cert
+     * @return CertificateType
+     * @throws CertificateNotFoundException
+     * @throws InvalidCertificateException other general import failure
+     * @throws GlobalConfService.GlobalConfOutdatedException
+     * @throws KeyNotFoundException
+     * @throws CertificateAlreadyExistsException
+     * @throws WrongCertificateUsageException
+     * @throws ClientNotFoundException
+     * @throws CsrNotFoundException
+     * @throws AuthCertificateNotSupportedException if trying to import an auth cert from a token
+     */
+    public CertificateInfo importCertificateFromToken(String hash) throws CertificateNotFoundException,
+            InvalidCertificateException, GlobalConfService.GlobalConfOutdatedException, KeyNotFoundException,
+            CertificateAlreadyExistsException, WrongCertificateUsageException, ClientNotFoundException,
+            CsrNotFoundException, AuthCertificateNotSupportedException {
+        CertificateInfo certificateInfo = getCertificateInfo(hash);
+        return importCertificate(certificateInfo.getCertificateBytes(), true);
+    }
+
+    /**
+     * Import a cert that is found from a token by it's bytes
+     * @param certificateBytes
+     * @param isFromToken whether the token was read from a token or not
+     * @return CertificateType
+     * @throws GlobalConfService.GlobalConfOutdatedException
+     * @throws KeyNotFoundException
+     * @throws InvalidCertificateException other general import failure
+     * @throws CertificateAlreadyExistsException
+     * @throws WrongCertificateUsageException
+     * @throws AuthCertificateNotSupportedException if trying to import an auth cert from a token
+     */
+    private CertificateInfo importCertificate(byte[] certificateBytes, boolean isFromToken)
+            throws GlobalConfService.GlobalConfOutdatedException, KeyNotFoundException, InvalidCertificateException,
+            CertificateAlreadyExistsException, WrongCertificateUsageException, CsrNotFoundException,
+            AuthCertificateNotSupportedException, ClientNotFoundException {
+        globalConfService.verifyGlobalConfValidity();
+        X509Certificate x509Certificate = null;
+        CertificateInfo certificateInfo = null;
+        try {
+            x509Certificate = CryptoUtils.readCertificate(certificateBytes);
+        } catch (Exception e) {
+            throw new InvalidCertificateException("cannot convert bytes to certificate", e);
+        }
+        try {
+            String certificateState;
+            ClientId clientId = null;
+            boolean isAuthCert = CertUtils.isAuthCert(x509Certificate);
+            if (isAuthCert) {
+                verifyAuthority("IMPORT_AUTH_CERT");
+                if (isFromToken) {
+                    throw new AuthCertificateNotSupportedException("auth cert cannot be imported from a token");
+                }
+                certificateState = CertificateInfo.STATUS_SAVED;
+            } else {
+                verifyAuthority("IMPORT_SIGN_CERT");
+                String xroadInstance = globalConfFacade.getInstanceIdentifier();
+                clientId = getClientIdForSigningCert(xroadInstance, x509Certificate);
+                boolean clientExists = clientRepository.clientExists(clientId, true);
+                if (!clientExists) {
+                    throw new ClientNotFoundException("client " + clientId.toShortString() + " not found",
+                            FormatUtils.xRoadIdToEncodedId(clientId));
+                }
+                certificateState = CertificateInfo.STATUS_REGISTERED;
+            }
+            byte[] certBytes = x509Certificate.getEncoded();
+            signerProxyFacade.importCert(certBytes, certificateState, clientId);
+            String hash = CryptoUtils.calculateCertHexHash(certBytes);
+            certificateInfo = getCertificateInfo(hash);
+        } catch (ClientNotFoundException | AccessDeniedException | AuthCertificateNotSupportedException e) {
+            throw e;
+        } catch (CodedException e) {
+            translateCodedExceptions(e);
+        } catch (Exception e) {
+            // something went really wrong
+            throw new RuntimeException("error importing certificate", e);
+        }
+        return certificateInfo;
+    }
+
+    /**
+     * Import a cert from given bytes. If importing an existing cert from a token use
+     * {@link #importCertificateFromToken(String hash)}
      * @param certificateBytes
      * @return CertificateType
      * @throws GlobalConfService.GlobalConfOutdatedException
@@ -259,51 +342,13 @@ public class TokenCertificateService {
      * @throws InvalidCertificateException other general import failure
      * @throws CertificateAlreadyExistsException
      * @throws WrongCertificateUsageException
+     * @throws AuthCertificateNotSupportedException if trying to import an auth cert from a token
      */
-    public CertificateType importCertificate(byte[] certificateBytes)
-            throws GlobalConfService.GlobalConfOutdatedException, ClientNotFoundException, KeyNotFoundException,
-            InvalidCertificateException, CertificateAlreadyExistsException, WrongCertificateUsageException,
-            CsrNotFoundException {
-        globalConfService.verifyGlobalConfValidity();
-        X509Certificate x509Certificate;
-        try {
-            x509Certificate = CryptoUtils.readCertificate(certificateBytes);
-        } catch (Exception e) {
-            throw new InvalidCertificateException("cannot convert bytes to certificate", e);
-        }
-        CertificateType certificateType = new CertificateType();
-        try {
-            String certificateState;
-            ClientId clientId = null;
-            if (CertUtils.isAuthCert(x509Certificate)) {
-                if (!hasPermissionOrRole("IMPORT_AUTH_CERT")) {
-                    throw new AccessDeniedException("Missing permission: IMPORT_AUTH_CERT");
-                }
-                certificateState = CertificateInfo.STATUS_SAVED;
-            } else {
-                if (!hasPermissionOrRole("IMPORT_SIGN_CERT")) {
-                    throw new AccessDeniedException("Missing permission: IMPORT_SIGN_CERT");
-                }
-                String xroadInstance = globalConfFacade.getInstanceIdentifier();
-                clientId = getClientIdForSigningCert(xroadInstance, x509Certificate);
-                boolean clientExists = clientRepository.clientExists(clientId, true);
-                if (!clientExists) {
-                    throw new ClientNotFoundException("client " + clientId.toShortString() + " not found");
-                }
-                certificateState = CertificateInfo.STATUS_REGISTERED;
-            }
-            byte[] certBytes = x509Certificate.getEncoded();
-            signerProxyFacade.importCert(certBytes, certificateState, clientId);
-            certificateType.setData(certBytes);
-        } catch (ClientNotFoundException | AccessDeniedException e) {
-            throw e;
-        } catch (CodedException e) {
-            translateCodedExceptions(e);
-        } catch (Exception e) {
-            // something went really wrong
-            throw new RuntimeException("error importing certificate", e);
-        }
-        return certificateType;
+    public CertificateInfo importCertificate(byte[] certificateBytes) throws InvalidCertificateException,
+            GlobalConfService.GlobalConfOutdatedException, KeyNotFoundException, CertificateAlreadyExistsException,
+            WrongCertificateUsageException, ClientNotFoundException, CsrNotFoundException,
+            AuthCertificateNotSupportedException {
+        return importCertificate(certificateBytes, false);
     }
 
     /**
@@ -351,12 +396,6 @@ public class TokenCertificateService {
         } else {
             throw e;
         }
-    }
-
-    private boolean hasPermissionOrRole(String permission) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals(permission));
     }
 
     static boolean isCausedByDuplicateCertificate(CodedException e) {
@@ -419,6 +458,17 @@ public class TokenCertificateService {
 
         public CsrNotFoundException(Throwable t) {
             super(t, new ErrorDeviation(ERROR_CSR_NOT_FOUND));
+        }
+    }
+
+    /**
+     * Probably a rare case of when importing an auth cert from an HSM
+     */
+    public static class AuthCertificateNotSupportedException extends ServiceException {
+        public static final String AUTH_CERT_NOT_SUPPORTED = "auth_cert_not_supported";
+
+        public AuthCertificateNotSupportedException(String msg) {
+            super(msg, new ErrorDeviation(AUTH_CERT_NOT_SUPPORTED));
         }
     }
 }

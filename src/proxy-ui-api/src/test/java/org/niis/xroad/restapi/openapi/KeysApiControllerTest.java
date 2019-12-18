@@ -63,6 +63,7 @@ public class KeysApiControllerTest {
     private static final String KEY_NOT_FOUND_KEY_ID = "key-404";
     private static final String GOOD_SIGN_KEY_ID = "sign-key-which-exists";
     private static final String GOOD_AUTH_KEY_ID = "auth-key-which-exists";
+    private static final String GOOD_CSR_ID = "csr-which-exists";
 
     @MockBean
     private KeyService keyService;
@@ -70,22 +71,38 @@ public class KeysApiControllerTest {
     @Autowired
     private KeysApiController keysApiController;
 
+    private KeyInfo signKeyInfo;
+    private KeyInfo authKeyInfo;
+
     @Before
     public void setUp() throws Exception {
-        KeyInfo signKeyInfo = TokenTestUtils.createTestKeyInfo(GOOD_SIGN_KEY_ID, KeyUsageInfo.SIGNING);
-        KeyInfo authKeyInfo = TokenTestUtils.createTestKeyInfo(GOOD_AUTH_KEY_ID, KeyUsageInfo.AUTHENTICATION);
+        signKeyInfo = new TokenTestUtils.KeyInfoBuilder().id(GOOD_SIGN_KEY_ID)
+                .keyUsageInfo(KeyUsageInfo.SIGNING).build();
+        authKeyInfo = new TokenTestUtils.KeyInfoBuilder().id(GOOD_AUTH_KEY_ID)
+                .keyUsageInfo(KeyUsageInfo.AUTHENTICATION).build();
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
             String keyId = (String) args[0];
-            if (keyId.equals(GOOD_AUTH_KEY_ID)) {
-                return authKeyInfo;
-            } else if (keyId.equals(GOOD_SIGN_KEY_ID)) {
-                return signKeyInfo;
-            } else {
-                throw new KeyNotFoundException("foo");
-            }
+            return returnKeyInfoOrThrow(keyId);
         }).when(keyService).getKey(any());
+
+        doAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
+            String keyId = (String) args[0];
+            return returnKeyInfoOrThrow(keyId);
+        }).when(keyService).deleteCsr(any(), any());
     }
+
+    private Object returnKeyInfoOrThrow(String keyId) throws KeyNotFoundException {
+        if (keyId.equals(GOOD_AUTH_KEY_ID)) {
+            return authKeyInfo;
+        } else if (keyId.equals(GOOD_SIGN_KEY_ID)) {
+            return signKeyInfo;
+        } else {
+            throw new KeyNotFoundException("foo");
+        }
+    }
+
 
     @Test
     @WithMockUser(authorities = { "VIEW_KEYS" })
@@ -101,4 +118,16 @@ public class KeysApiControllerTest {
         assertEquals(GOOD_SIGN_KEY_ID, response.getBody().getId());
     }
 
+    @Test
+    @WithMockUser(authorities = { "DELETE_AUTH_CERT" })
+    public void deleteCsr() {
+        try {
+            keysApiController.deleteCsr(KEY_NOT_FOUND_KEY_ID, GOOD_CSR_ID);
+            fail("should have thrown exception");
+        } catch (ResourceNotFoundException expected) {
+        }
+
+        ResponseEntity<Void> response = keysApiController.deleteCsr(GOOD_SIGN_KEY_ID, GOOD_CSR_ID);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
 }

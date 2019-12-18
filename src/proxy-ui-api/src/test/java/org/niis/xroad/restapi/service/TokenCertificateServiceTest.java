@@ -39,7 +39,7 @@ import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.util.TestUtils;
-import org.niis.xroad.restapi.util.TokenTestUtils;
+import org.niis.xroad.restapi.util.TokenTestUtils.KeyInfoBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -96,11 +96,11 @@ public class TokenCertificateServiceTest {
             Object[] args = invocation.getArguments();
             String keyId = (String) args[0];
             if (AUTH_KEY.equals(keyId)) {
-                return TokenTestUtils.createTestKeyInfo(keyId, KeyUsageInfo.AUTHENTICATION);
+                return new KeyInfoBuilder().id(keyId).keyUsageInfo(KeyUsageInfo.AUTHENTICATION).build();
             } else if (SIGN_KEY.equals(keyId)) {
-                return TokenTestUtils.createTestKeyInfo(keyId, KeyUsageInfo.SIGNING);
+                return new KeyInfoBuilder().id(keyId).keyUsageInfo(KeyUsageInfo.SIGNING).build();
             } else if (AMBIGUOUS_KEY.equals(keyId)) {
-                return TokenTestUtils.createTestKeyInfo(keyId, null);
+                return new KeyInfoBuilder().id(keyId).build();
             } else {
                 throw new RuntimeException("unknown key id " + keyId);
             }
