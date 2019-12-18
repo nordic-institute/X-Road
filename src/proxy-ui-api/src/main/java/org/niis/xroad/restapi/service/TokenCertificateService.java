@@ -217,6 +217,14 @@ public class TokenCertificateService {
         public KeyNotOperationalException(Throwable t) {
             super(t, new ErrorDeviation(ERROR_KEY_NOT_OPERATIONAL));
         }
+
+        /**
+         * Carries original erroCode as metadata
+         * @param e
+         */
+        public KeyNotOperationalException(CodedException e) {
+            super(e, new ErrorDeviation(ERROR_KEY_NOT_OPERATIONAL, e.getFaultCode()));
+        }
     }
 
     /**

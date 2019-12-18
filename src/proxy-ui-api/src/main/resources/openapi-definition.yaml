@@ -2774,7 +2774,7 @@ paths:
               schema:
                 type: array
                 uniqueItems: true
-                description: array of timestamping service objects
+                description: array of certificate authority objects
                 items:
                   $ref: '#/components/schemas/CertificateAuthority'
         '400':

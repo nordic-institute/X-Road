@@ -145,9 +145,7 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
                     profileInfo.getSubjectFields());
             return new ResponseEntity<>(converted, HttpStatus.OK);
 
-        } catch (WrongKeyUsageException e) {
-            throw new BadRequestException(e);
-        } catch (KeyNotFoundException | ClientNotFoundException e) {
+        } catch (WrongKeyUsageException | KeyNotFoundException | ClientNotFoundException e) {
             throw new BadRequestException(e);
         } catch (CertificateAuthorityNotFoundException e) {
             throw new ResourceNotFoundException(e);
