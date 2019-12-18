@@ -123,8 +123,8 @@ The body of the request MUST contain an XML element *getSecurityServerOperationa
  * *responseAttachmentCount*
  * *succeeded*
  * *serviceType*
- * *soapFaultCode*
- * *soapFaultString*
+ * *faultCode*
+ * *faultString*
  * *statusCode*
  
 
@@ -1118,14 +1118,14 @@ properties:
         succeeded:
           description: True, if request mediation succeeded, false otherwise.
           type: boolean
-        soapFaultCode:
-          description: SOAP fault code in case SOAPFault received
+        faultCode:
+          description: fault code in case error received
           type: string
           maxLength: 255
-        soapFaultString:
-          description: SOAP fault code in case SOAPFault received
+        faultString:
+          description: fault reason in case error received
           type: string
-          maxLength: 255
+          maxLength: 2048
         requestSize:
           description: Size of the request (bytes)
           type: integer
