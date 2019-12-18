@@ -24,6 +24,11 @@
         </sql>
     </changeSet>
 
+    <changeSet author="is" id="5-rename-columns">
+        <renameColumn newColumnName="fault_code" oldColumnName="soap_fault_code" tableName="operational_data"/>
+        <renameColumn newColumnName="fault_string" oldColumnName="soap_fault_string" tableName="operational_data"/>
+    </changeSet>
+
     <changeSet author="is" id="5-drop-columns">
         <dropColumn tableName="operational_data">
             <column name="request_soap_size" type="bigint"/>

@@ -106,11 +106,11 @@ properties:
         succeeded:
           description: True, if request mediation succeeded, false otherwise.
           type: boolean
-        soapFaultCode:
-          description: SOAP fault code in case SoapFault received
+        faultCode:
+          description: fault code in case error received
           type: string
-        soapFaultString:
-          description: SOAP fault reason in case SoapFault received
+        faultString:
+          description: fault reason in case error received
           type: string
         requestSize:
           description: Size of the request (bytes)

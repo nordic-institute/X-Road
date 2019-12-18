@@ -192,7 +192,6 @@ public class HealthDataMetricsUtilTest {
 
         String regex = HealthDataMetricsUtil.formatMetricMatchRegexp(
                 requestDurationKey);
-         assertTrue(requestDurationKey.matches(regex));
+        assertTrue(requestDurationKey.matches(regex));
     }
-
 }

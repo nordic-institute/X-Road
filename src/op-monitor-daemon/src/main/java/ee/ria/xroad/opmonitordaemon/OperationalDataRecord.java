@@ -211,11 +211,11 @@ public class OperationalDataRecord {
 
     @Getter
     @Setter
-    private String soapFaultCode;
+    private String faultCode;
 
     @Getter
     @Setter
-    private String soapFaultString;
+    private String faultString;
 
     @Getter
     @Setter

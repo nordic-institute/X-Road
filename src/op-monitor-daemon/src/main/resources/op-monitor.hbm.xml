@@ -105,9 +105,9 @@
         <property name="succeeded"
                   column="succeeded" type="boolean" not-null="true" />
 
-        <property name="soapFaultCode" column="soap_fault_code" type="string" />
+        <property name="faultCode" column="fault_code" type="string" />
 
-        <property name="soapFaultString" column="soap_fault_string"
+        <property name="faultString" column="fault_string"
                   type="string" length="2048" />
 
         <property name="xRequestId" column="x_request_id" type="string" />
