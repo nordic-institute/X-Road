@@ -24,25 +24,50 @@
  */
 package ee.ria.xroad.common.certificateprofile.impl;
 
-import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
-
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 /**
- * Old implementation of DnFieldDescription, that uses inline labels instead
- * of localizable labelKeys.
- *
- * New implementations should prefer {@link LocalizedFieldDescriptionImpl} if
- * needed {@link DnFieldLabelLocalizationKey} exists.
+ * Implementation of DnFieldDescription that uses localizable labelKeys
+ * and uses {@link DnFieldLabelLocalizationKey} enum to define labelKey.
+ * Provides backwards compatibility-implementation of {@link #getLabel()}
  */
-@Data
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class DnFieldDescriptionImpl implements DnFieldDescription {
+public class EnumLocalizedFieldDescriptionImpl extends LocalizedFieldDescriptionImpl {
 
-    private final String id;
-    private final String label;
-    private final String defaultValue;
-    private boolean readOnly;
-    private boolean required = true;
+    /**
+     * For backwards compatibility while we still support old UI.
+     * Remove when old UI support can be removed
+     */
+    @Override
+    @Deprecated
+    public String getLabel() {
+        return labelLocalizationKey.getLabel();
+    }
+
+    private final DnFieldLabelLocalizationKey labelLocalizationKey;
+
+    public EnumLocalizedFieldDescriptionImpl(String id,
+            DnFieldLabelLocalizationKey labelLocalizationKey,
+            String defaultValue) {
+        super(id, labelLocalizationKey.name(), defaultValue);
+        this.labelLocalizationKey = labelLocalizationKey;
+    }
+
+    public EnumLocalizedFieldDescriptionImpl(String id,
+            DnFieldLabelLocalizationKey labelLocalizationKey,
+            String defaultValue,
+            boolean readOnly,
+            boolean required) {
+        super(id, labelLocalizationKey.name(), defaultValue, readOnly, required);
+        this.labelLocalizationKey = labelLocalizationKey;
+    }
+
 }

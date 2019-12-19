@@ -22,42 +22,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.globalconf;
+package org.niis.xroad.restapi.service;
 
-import org.junit.Test;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
 /**
- * Tests for {@link TimeBasedObjectCache}
+ * If approved CA was not found
  */
-public class TimeBasedObjectCacheTest {
+public class CertificateAuthorityNotFoundException extends NotFoundException {
+    public static final String ERROR_CA_NOT_FOUND = "certificate_authority_not_found";
 
-    @Test
-    public void testCache() throws InterruptedException {
-        final int expireSeconds = 3;
-        TimeBasedObjectCache cache = new TimeBasedObjectCache(expireSeconds);
-        assertFalse(cache.isValid("foo"));
-        cache.setValue("foo", 13);
-        assertTrue(cache.isValid("foo"));
-        idle(expireSeconds * 1000 / 2);
-        assertTrue(cache.isValid("foo"));
-        idle(expireSeconds * 1000);
-        assertFalse(cache.isValid("foo"));
-        cache.setValue("foo", 21);
-        assertTrue(cache.isValid("foo"));
-        cache.setValue("foo", null);
-        assertTrue(cache.isValid("foo"));
-    }
-
-    /**
-     * Idles for given time period
-     */
-    private static void idle(long periodMs) {
-        final long target = System.currentTimeMillis() + periodMs;
-        do {
-            Thread.yield();
-        } while (System.currentTimeMillis() < target);
+    public CertificateAuthorityNotFoundException(String s) {
+        super(s, new ErrorDeviation(ERROR_CA_NOT_FOUND));
     }
 }

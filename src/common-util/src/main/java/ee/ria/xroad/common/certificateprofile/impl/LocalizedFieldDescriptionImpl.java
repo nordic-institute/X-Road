@@ -22,42 +22,57 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.globalconf;
+package ee.ria.xroad.common.certificateprofile.impl;
 
-import org.junit.Test;
+import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
 
 /**
- * Tests for {@link TimeBasedObjectCache}
+ * Implementation of DnFieldDescription that uses localizable labelKeys
  */
-public class TimeBasedObjectCacheTest {
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode
+@Accessors(chain = true)
+public class LocalizedFieldDescriptionImpl implements DnFieldDescription {
 
-    @Test
-    public void testCache() throws InterruptedException {
-        final int expireSeconds = 3;
-        TimeBasedObjectCache cache = new TimeBasedObjectCache(expireSeconds);
-        assertFalse(cache.isValid("foo"));
-        cache.setValue("foo", 13);
-        assertTrue(cache.isValid("foo"));
-        idle(expireSeconds * 1000 / 2);
-        assertTrue(cache.isValid("foo"));
-        idle(expireSeconds * 1000);
-        assertFalse(cache.isValid("foo"));
-        cache.setValue("foo", 21);
-        assertTrue(cache.isValid("foo"));
-        cache.setValue("foo", null);
-        assertTrue(cache.isValid("foo"));
+    private final String id;
+    private final String label = null;
+    private final String labelKey;
+    private boolean localized = true;
+    private final String defaultValue;
+    private boolean readOnly;
+    private boolean required = true;
+
+    @Override
+    public boolean isLocalized() {
+        return true;
     }
 
-    /**
-     * Idles for given time period
-     */
-    private static void idle(long periodMs) {
-        final long target = System.currentTimeMillis() + periodMs;
-        do {
-            Thread.yield();
-        } while (System.currentTimeMillis() < target);
+    public LocalizedFieldDescriptionImpl(String id,
+            String labelKey,
+            String defaultValue) {
+        this.id = id;
+        this.labelKey = labelKey;
+        this.defaultValue = defaultValue;
     }
+
+    public LocalizedFieldDescriptionImpl(String id,
+            String labelKey,
+            String defaultValue,
+            boolean readOnly,
+            boolean required) {
+        this.id = id;
+        this.labelKey = labelKey;
+        this.defaultValue = defaultValue;
+        this.readOnly = readOnly;
+        this.required = required;
+    }
+
 }
