@@ -41,12 +41,12 @@ public class EjbcaAuthCertificateProfileInfo
     public EjbcaAuthCertificateProfileInfo(Parameters params) {
         super(new DnFieldDescription[] {
                 // Instance identifier
-                new DnFieldDescriptionImpl("C", "Instance Identifier (C)",
+                new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.INSTANCE_IDENTIFIER,
                     params.getServerId().getXRoadInstance()
                 ).setReadOnly(true),
 
                 // Server code
-                new DnFieldDescriptionImpl("CN", "Server Code (CN)",
+                new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.SERVER_CODE,
                     params.getServerId().getServerCode()
                 ).setReadOnly(true) }
         );

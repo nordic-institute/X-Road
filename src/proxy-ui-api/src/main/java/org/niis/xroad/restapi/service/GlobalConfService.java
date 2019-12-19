@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -45,12 +46,15 @@ import java.util.stream.Collectors;
 import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 
 /**
- * global configuration service
+ * Global configuration service.
+ * Contains methods that add some extra logic to the methods provided by {@link GlobalConfFacade}.
+ * To avoid method explosion, do not add pure delegate methods here, use GlobalConfFacade directly instead.
  */
 @Slf4j
 @Service
 @PreAuthorize("isAuthenticated()")
 public class GlobalConfService {
+
     private final GlobalConfFacade globalConfFacade;
 
     @Autowired
@@ -130,4 +134,12 @@ public class GlobalConfService {
     static boolean isCausedByOutdatedGlobalconf(CodedException e) {
         return X_OUTDATED_GLOBALCONF.equals(e.getFaultCode());
     }
+
+    /**
+     * @return approved CAs for current instance
+     */
+    public Collection<ApprovedCAInfo> getApprovedCAsForThisInstance() {
+        return globalConfFacade.getApprovedCAs(globalConfFacade.getInstanceIdentifier());
+    }
+
 }

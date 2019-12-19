@@ -22,42 +22,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.globalconf;
+package org.niis.xroad.restapi.converter;
 
-import org.junit.Test;
+import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Streams;
+import org.niis.xroad.restapi.openapi.model.CertificateAuthority;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * Tests for {@link TimeBasedObjectCache}
+ * Converter for CertificateAuthority related data between openapi and service domain classes
  */
-public class TimeBasedObjectCacheTest {
+@Component
+public class CertificateAuthorityConverter {
 
-    @Test
-    public void testCache() throws InterruptedException {
-        final int expireSeconds = 3;
-        TimeBasedObjectCache cache = new TimeBasedObjectCache(expireSeconds);
-        assertFalse(cache.isValid("foo"));
-        cache.setValue("foo", 13);
-        assertTrue(cache.isValid("foo"));
-        idle(expireSeconds * 1000 / 2);
-        assertTrue(cache.isValid("foo"));
-        idle(expireSeconds * 1000);
-        assertFalse(cache.isValid("foo"));
-        cache.setValue("foo", 21);
-        assertTrue(cache.isValid("foo"));
-        cache.setValue("foo", null);
-        assertTrue(cache.isValid("foo"));
+    /**
+     * convert ApprovedCAInfo into openapi CertificateAuthority class
+     * @param approvedCAInfo
+     * @return
+     */
+    public CertificateAuthority convert(ApprovedCAInfo approvedCAInfo) {
+        CertificateAuthority ca = new CertificateAuthority();
+        ca.setName(approvedCAInfo.getName());
+        ca.setAuthenticationOnly(Boolean.TRUE.equals(approvedCAInfo.getAuthenticationOnly()));
+        return ca;
     }
 
     /**
-     * Idles for given time period
+     * convert a group of ApprovedCAInfos into a list of CertificateAuthorities
+     * @param approvedCAInfos
+     * @return
      */
-    private static void idle(long periodMs) {
-        final long target = System.currentTimeMillis() + periodMs;
-        do {
-            Thread.yield();
-        } while (System.currentTimeMillis() < target);
+    public List<CertificateAuthority> convert(Iterable<ApprovedCAInfo> approvedCAInfos) {
+        return Streams.stream(approvedCAInfos)
+                .map(this::convert)
+                .collect(Collectors.toList());
     }
 }
