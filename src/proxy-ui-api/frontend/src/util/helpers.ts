@@ -42,7 +42,7 @@ export function isValidRestURL(str: string) {
 }
 
 // Save response data as a file
-export function saveAsFile(response: any) {
+export function saveResponseAsFile(response: any) {
   let suggestedFileName;
   const disposition = response.headers['content-disposition'];
 

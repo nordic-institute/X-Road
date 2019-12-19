@@ -1,7 +1,7 @@
 
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { saveAsFile } from '@/util/helpers';
+import { saveResponseAsFile } from '@/util/helpers';
 import { Key, CertificateAuthority, CsrSubjectFieldDescription } from '@/types';
 import * as api from '@/util/api';
 import { UsageTypes, CsrFormatTypes } from '@/global';
@@ -186,7 +186,7 @@ export const actions: ActionTree<CsrState, RootState> = {
         member_id: state.csrClient,
       })
       .then((response) => {
-        saveAsFile(response);
+        saveResponseAsFile(response);
       }).catch((error: any) => {
         throw error;
       });
