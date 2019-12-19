@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.12  
+Version: 2.14  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -38,6 +38,8 @@ Doc. ID: UG-CS
 | 02.07.2019 | 2.10    | Security Server owner change added (Chapter 7.10) | Petteri Kivimäki |
 | 14.08.2019 | 2.11    | Added automatic backups | Ilkka Seppälä |
 | 11.09.2019 | 2.12    | Remove Ubuntu 14.04 support | Jarkko Hyöty |
+| 26.11.2019 | 2.13    | Update Chapter 3 with remote database support possiblity | Ilkka Seppälä |
+| 03.12.2019 | 2.14    | Remove HA setup dependency on BDR | Jarkko Hyöty | 
 
 ## Table of Contents <!-- omit in toc --> 
 <!-- toc -->
@@ -202,11 +204,14 @@ To remove a user, enter:
 
 # 3. Standalone and High-Availability Systems
 
-The central server can be installed and configured in two ways:
-- A standalone server
-- A cluster of independent central servers (nodes) providing high availability (HA). In an HA setup, the system continues to function if one or more of the nodes are experiencing problems or are down for maintenance.
+The central server can be installed and configured in several ways:
+- A standalone server with local database
+- A standalone server with remote database
+- A cluster of central servers (nodes) using a remote database. The system continues to function if one or more of the central server nodes are experiencing problems or are down for maintenance. If the database is highly available (e.g using hot-standby with automatic fail-over or multi-master replication), the system can also recover from database problems with minimal downtime.
 
-In the case of an HA setup, the changes to the databases of each central server are replicated to the other nodes. While most of the system settings described in this document apply to the whole cluster, some have a meaning that is local to each node, although the database records are replicated. In addition, all the configuration signing keys are local to each node and must be generated separately. This distinction will be stated explicitly throughout this document, where necessary.
+When the system is configured with the most basic option standalone server with local database, there is no high-availability support. If either the web server or the database server break, the system goes down.
+
+In the case of an HA setup, the central servers share configuration via an optionally highly-available database. While most of the system settings described in this document apply to the whole cluster, some have a meaning that is local to each node. In addition, all the configuration signing keys are local to each node and must be generated separately. This distinction will be stated explicitly throughout this document, where necessary.
 
 In an HA setup, if the system is configured using different nodes in parallel, the effect will be similar to several people updating the configuration of a standalone server at the same time.
 

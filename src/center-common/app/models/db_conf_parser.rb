@@ -31,17 +31,43 @@ class DbConfParser
   end
 
   def parse
-    ini_conf = Java::org.apache.commons.configuration.\
-        HierarchicalINIConfiguration.new(@conf_file)
+    ini_conf = Java::org.apache.commons.configuration.HierarchicalINIConfiguration.new
+    ini_conf.setDelimiterParsingDisabled(true)
+    ini_conf.load(@conf_file)
 
     db_conf = {
-        "adapter" => ini_conf.getString("adapter"),
-        "encoding" => ini_conf.getString("encoding"),
-        "username" => ini_conf.getString("username"),
-        "password" => ini_conf.getString("password"),
-        "database" => ini_conf.getString("database"),
-        "reconnect" => ini_conf.getBoolean("reconnect")
+      "adapter" => ini_conf.getString("adapter"),
+      "encoding" => ini_conf.getString("encoding"),
+      "username" => ini_conf.getString("username"),
+      "password" => ini_conf.getString("password"),
+      "database" => ini_conf.getString("database"),
+      "host" => ini_conf.getString("host", "localhost"),
+      "port" => ini_conf.getInt("port", 5432),
+      "reconnect" => ini_conf.getBoolean("reconnect", true),
+      "properties" => {}
     }
+
+    if ini_conf.get_string("url")
+      db_conf["url"] = ini_conf.getString("url")
+    end
+
+    if db_conf["adapter"] == "postgresql" && ini_conf.get_string("secondary_hosts")
+      secondary_hosts = ini_conf.get_string("secondary_hosts").split("\s*,\s*")
+                          .map { |x| x.include?(":") ? x : "#{x}:#{db_conf["port"]}" }
+                          .join(",")
+      db_conf["url"] =
+        "jdbc:postgresql://#{db_conf["host"]}:#{db_conf["port"]},#{secondary_hosts}/#{db_conf["database"]}"
+
+      db_conf["properties"] = {
+        targetServerType: "master",
+      }
+    end
+
+    it = ini_conf.get_section("properties").get_keys()
+    while it.has_next?
+      key = it.next
+      db_conf["properties"][key.to_sym] = ini_conf.get_string("properties." + key)
+    end
 
     return { @environment => db_conf }
   end
