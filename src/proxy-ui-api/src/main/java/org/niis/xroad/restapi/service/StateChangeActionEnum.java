@@ -22,30 +22,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.converter;
-
-import com.google.common.collect.Streams;
-import org.niis.xroad.restapi.openapi.model.StateChangeAction;
-import org.niis.xroad.restapi.service.StateChangeActionEnum;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.stream.Collectors;
+package org.niis.xroad.restapi.service;
 
 /**
- * x
+ * different state change actions
  */
-@Component
-public class StateChangeActionConverter {
-
-    public List<StateChangeAction> convert(
-            Iterable<StateChangeActionEnum> serviceDescriptionTypes) {
-        return Streams.stream(serviceDescriptionTypes)
-                       .map(this::convert)
-                       .collect(Collectors.toList());
-    }
-
-    public StateChangeAction convert(StateChangeActionEnum stateChangeActionEnum) {
-        return StateChangeAction.fromValue(stateChangeActionEnum.toString());
-    }
+public enum StateChangeActionEnum {
+    DELETE,
+    ACTIVATE,
+    DISABLE,
+    REGISTER,
+    UNREGISTER,
+    IMPORT_FROM_TOKEN
 }

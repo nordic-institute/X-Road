@@ -79,7 +79,7 @@ public class KeyServiceTest {
 
     @Before
     public void setup() throws Exception {
-        TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo("good-token");
+        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder().friendlyName("good-token").build();
 
         KeyInfo mockKey = new KeyInfoBuilder().id(GOOD_KEY_ID).build();
         tokenInfo.getKeyInfo().add(mockKey);

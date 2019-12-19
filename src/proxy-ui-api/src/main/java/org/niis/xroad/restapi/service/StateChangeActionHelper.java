@@ -40,16 +40,6 @@ import java.util.EnumSet;
 @Component
 public class StateChangeActionHelper {
 
-    // TO DO: main-level
-    public enum StateChangeActionEnum {
-        DELETE,
-        ACTIVATE,
-        DISABLE,
-        REGISTER,
-        UNREGISTER,
-        IMPORT_FROM_TOKEN
-    }
-
     public EnumSet<StateChangeActionEnum> getPossibleTokenActions(TokenInfo tokenInfo) {
         EnumSet<StateChangeActionEnum> actions = EnumSet.noneOf(StateChangeActionEnum.class);
         // not implemented yet
@@ -63,6 +53,13 @@ public class StateChangeActionHelper {
         return actions;
     }
 
+    /**
+     * get possible actions for certificate
+     * @param tokenInfo
+     * @param keyInfo
+     * @param certificateInfo
+     * @return
+     */
     public EnumSet<StateChangeActionEnum> getPossibleCertificateActions(TokenInfo tokenInfo,
             KeyInfo keyInfo,
             CertificateInfo certificateInfo) {
@@ -97,6 +94,13 @@ public class StateChangeActionHelper {
         return actions;
     }
 
+    /**
+     * get possible actions for csr
+     * @param tokenInfo
+     * @param keyInfo
+     * @param certRequestInfo
+     * @return
+     */
     public EnumSet<StateChangeActionEnum> getPossibleCsrActions(TokenInfo tokenInfo,
             KeyInfo keyInfo,
             CertRequestInfo certRequestInfo) {

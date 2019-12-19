@@ -151,7 +151,7 @@ public class TokenCertificateServiceTest {
                 .csr(signCsr)
                 .cert(signCert)
                 .build();
-        TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo("fubar");
+        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder().friendlyName("fubar").build();
         tokenInfo.getKeyInfo().add(authKey);
         tokenInfo.getKeyInfo().add(signKey);
         tokenInfo.getKeyInfo().add(goodKey);

@@ -230,7 +230,6 @@ public final class TokenManager {
     }
 
     /**
-     * TO DO: add test?
      * @param certHash the certificate hash
      * @return the tokenInfo and key id, or throws exception if not found
      */
@@ -247,7 +246,6 @@ public final class TokenManager {
     }
 
     /**
-     * TO DO: add test?
      * @param certRequestId the certificate request id
      * @return the tokenInfo and key id, or throws exception if not found
      */

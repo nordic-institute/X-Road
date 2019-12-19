@@ -47,19 +47,11 @@ public final class TokenTestUtils {
     }
 
     /**
-     * Creates TokenInfo object with some default values:
+     * Builder for TokenInfo objects.
+     * Default values:
+     * - type = SOFTWARE_MODULE_TYPE
+     * - friendlyName = "friendly-name"
      * - id = "id"
-     * - other defaults from {@link TokenTestUtils#createTestTokenInfo(String, String)}
-     * @param friendlyName
-     * @return
-     */
-    public static TokenInfo createTestTokenInfo(String friendlyName) {
-        TokenInfo tokenInfo = createTestTokenInfo(friendlyName, "id");
-        return tokenInfo;
-    }
-
-    /**
-     * Creates TokenInfo object with some default values:
      * - readOnly = false
      * - available = true
      * - active = true
@@ -69,24 +61,63 @@ public final class TokenTestUtils {
      * - tokenStatus = OK
      * - keyInfos = empty
      * - tokenInfo map = empty
-     * @param friendlyName
-     * @param id
-     * @return
      */
-    public static TokenInfo createTestTokenInfo(String friendlyName, String id) {
-        TokenInfo tokenInfo = new TokenInfo(TokenInfo.SOFTWARE_MODULE_TYPE,
-                friendlyName,
-                id,
-                false,
-                true,
-                true,
-                "serial-number",
-                "label",
-                123,
-                TokenStatusInfo.OK,
-                new ArrayList<>(),
-                new HashMap<>());
-        return tokenInfo;
+    public static class TokenInfoBuilder {
+        private String id = "id";
+        private String friendlyName = "friendly-name";
+        private List<KeyInfo> keyInfos = new ArrayList<>();
+        private boolean readOnly = false;
+        private boolean available = true;
+        private boolean active = true;
+
+        public TokenInfo build() {
+            return new TokenInfo(TokenInfo.SOFTWARE_MODULE_TYPE,
+                    friendlyName,
+                    id,
+                    readOnly,
+                    available,
+                    active,
+                    "serial-number",
+                    "label",
+                    123,
+                    TokenStatusInfo.OK,
+                    keyInfos,
+                    new HashMap<>());
+        }
+
+        public TokenInfoBuilder active(boolean activeParam) {
+            this.active = activeParam;
+            return this;
+        }
+
+        public TokenInfoBuilder available(boolean availableParam) {
+            this.available = availableParam;
+            return this;
+        }
+
+        public TokenInfoBuilder readOnly(boolean readOnlyParam) {
+            this.readOnly = readOnlyParam;
+            return this;
+        }
+
+        public TokenInfoBuilder id(String idParam) {
+            this.id = idParam;
+            return this;
+        }
+
+        public TokenInfoBuilder friendlyName(String friendlyNameParam) {
+            this.friendlyName = friendlyNameParam;
+            return this;
+        }
+        /**
+         * Adds this item to keys, ensuring there are no duplicates
+         */
+        public TokenInfoBuilder key(KeyInfo keyInfo) {
+            Set<KeyInfo> keys = new HashSet<>(this.keyInfos);
+            keys.add(keyInfo);
+            this.keyInfos = new ArrayList<>(keys);
+            return this;
+        }
     }
 
     /**

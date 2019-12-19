@@ -36,7 +36,7 @@ import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
-import org.niis.xroad.restapi.service.StateChangeActionHelper;
+import org.niis.xroad.restapi.service.StateChangeActionEnum;
 import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.util.ResourceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -150,7 +150,7 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
     public ResponseEntity<List<StateChangeAction>> getPossibleActionsForCertificate(String hash) {
         try {
             // TO DO: test
-            EnumSet<StateChangeActionHelper.StateChangeActionEnum> actions = tokenCertificateService
+            EnumSet<StateChangeActionEnum> actions = tokenCertificateService
                     .getPossibleActionsForCertificate(hash);
             return new ResponseEntity<>(stateChangeActionConverter.convert(actions), HttpStatus.OK);
         } catch (CertificateNotFoundException e) {

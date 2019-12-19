@@ -28,6 +28,7 @@ import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import org.bouncycastle.cert.ocsp.CertificateStatus;
@@ -258,6 +259,27 @@ public final class CertificateTestUtils {
     }
 
     /**
+     * Builder for CertRequestInfo objects.
+     * Default values:
+     * - id = 1
+     * - clientId = a:b:c
+     * - subjectName = "subject-name"
+     */
+    public static class CertRequestInfoBuilder {
+
+        public CertRequestInfoBuilder() {
+        }
+
+        public CertRequestInfo build() {
+            return new CertRequestInfo(
+                    "id",
+                    ClientId.create("a", "b", "c"),
+                    "subject-name");
+        }
+    }
+
+
+    /**
      * Builder for CertificateInfo objects.
      * Default values:
      * - clientId = a:b:c
@@ -272,10 +294,16 @@ public final class CertificateTestUtils {
         private X509Certificate certificate = CertificateTestUtils.getMockCertificate();
         private CertificateStatus ocspStatus = CertificateStatus.GOOD;
         private String certificateStatus = CertificateInfo.STATUS_REGISTERED;
-        private boolean isSavedToConfiguration = true;
+        private boolean savedToConfiguration = true;
+        private boolean active = true;
         private String id = "1";
 
         public CertificateInfoBuilder() {
+        }
+
+        public CertificateInfoBuilder active(boolean activeParam) {
+            this.active = activeParam;
+            return this;
         }
 
         public CertificateInfoBuilder id(String idParam) {
@@ -299,7 +327,7 @@ public final class CertificateTestUtils {
         }
 
         public CertificateInfoBuilder savedToConfiguration(boolean savedToConfigurationParam) {
-            isSavedToConfiguration = savedToConfigurationParam;
+            savedToConfiguration = savedToConfigurationParam;
             return this;
         }
 
@@ -310,8 +338,8 @@ public final class CertificateTestUtils {
                         ocspStatus);
                 CertificateInfo certificateInfo = new CertificateInfo(
                         ClientId.create("a", "b", "c"),
-                        true,
-                        isSavedToConfiguration,
+                        active,
+                        savedToConfiguration,
                         certificateStatus,
                         id,
                         certificate.getEncoded(),
