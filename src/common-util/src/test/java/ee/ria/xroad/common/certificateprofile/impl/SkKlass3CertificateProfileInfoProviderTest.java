@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
- package ee.ria.xroad.common.certificateprofile.impl;
+package ee.ria.xroad.common.certificateprofile.impl;
 
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
@@ -55,8 +55,10 @@ public class SkKlass3CertificateProfileInfoProviderTest {
     @Test
     public void returnsCorrectSubjectFields() {
         DnFieldDescription[] expected = {
-            new DnFieldDescriptionImpl("SN", "Serial Number (SN)", "bar").setReadOnly(true),
-            new DnFieldDescriptionImpl("CN", "Common Name (CN)", "foobar").setReadOnly(true)
+                new EnumLocalizedFieldDescriptionImpl(
+                        "SN", DnFieldLabelLocalizationKey.SERIAL_NUMBER_SN, "bar").setReadOnly(true),
+                new EnumLocalizedFieldDescriptionImpl(
+                        "CN", DnFieldLabelLocalizationKey.COMMON_NAME, "foobar").setReadOnly(true)
         };
 
         assertTrue(areEqual(expected, getSignProfile().getSubjectFields()));
@@ -65,6 +67,7 @@ public class SkKlass3CertificateProfileInfoProviderTest {
 
     /**
      * Tests whether subject name parts are read correctly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -139,6 +142,7 @@ public class SkKlass3CertificateProfileInfoProviderTest {
 
     /**
      * Tests whether a invalid serial number length is detected.
+     *
      * @throws Exception in case of an expected error
      */
     @Test(expected = Exception.class)
@@ -149,6 +153,7 @@ public class SkKlass3CertificateProfileInfoProviderTest {
 
     /**
      * Tests whether a missing serial number is detected.
+     *
      * @throws Exception in case of an expected error
      */
     @Test(expected = Exception.class)
@@ -159,6 +164,7 @@ public class SkKlass3CertificateProfileInfoProviderTest {
 
     /**
      * Tests whether an unknown serial number is detected.
+     *
      * @throws Exception in case of an expected error
      */
     @Test(expected = Exception.class)

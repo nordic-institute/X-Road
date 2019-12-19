@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 import static org.niis.xroad.restapi.converter.Converters.ENCODED_ID_SEPARATOR;
 
 /**
- * Converter Client related data between openapi and service domain classes
+ * Converter for Client related data between openapi and service domain classes
  */
 @Component
 public class ClientConverter {

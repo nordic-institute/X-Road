@@ -59,9 +59,10 @@ public class SkKlass3CertificateProfileInfoProvider implements CertificateProfil
             implements AuthCertificateProfileInfo {
         SkAuthCertificateProfileInfo(AuthCertificateProfileInfo.Parameters params) {
             super(new DnFieldDescription[] {
-                    new DnFieldDescriptionImpl("SN", "Serial Number (SN)", params.getServerId().getMemberCode())
+                    new EnumLocalizedFieldDescriptionImpl("SN", DnFieldLabelLocalizationKey.SERIAL_NUMBER_SN,
+                            params.getServerId().getMemberCode())
                             .setReadOnly(true),
-                    new DnFieldDescriptionImpl("CN", "Common Name (CN)",
+                    new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.COMMON_NAME,
                             params.getMemberName()).setReadOnly(true) }
             );
         }
@@ -96,10 +97,10 @@ public class SkKlass3CertificateProfileInfoProvider implements CertificateProfil
 
         SkSignCertificateProfileInfo(SignCertificateProfileInfo.Parameters params) {
             super(new DnFieldDescription[] {
-                    new DnFieldDescriptionImpl("SN", "Serial Number (SN)",
+                    new EnumLocalizedFieldDescriptionImpl("SN", DnFieldLabelLocalizationKey.SERIAL_NUMBER_SN,
                         params.getClientId().getMemberCode()
                     ).setReadOnly(true),
-                    new DnFieldDescriptionImpl("CN", "Common Name (CN)",
+                    new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.COMMON_NAME,
                         params.getMemberName()
                     ).setReadOnly(true) }
             );
