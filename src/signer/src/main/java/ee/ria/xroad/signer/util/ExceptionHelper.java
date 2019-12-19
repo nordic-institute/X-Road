@@ -27,6 +27,7 @@ package ee.ria.xroad.signer.util;
 import ee.ria.xroad.common.CodedException;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_LOGIN_FAILED;
 import static ee.ria.xroad.common.ErrorCodes.X_LOGOUT_FAILED;
@@ -116,6 +117,16 @@ public final class ExceptionHelper {
         return CodedException.tr(X_CERT_NOT_FOUND,
                 "certificate_with_hash_not_found",
                 "Certificate with hash '%s' not found", certHash);
+    }
+
+    /**
+     * @param certRequestId the certificate request id
+     * @return exception indicating a csr is not found
+     */
+    public static CodedException csrWithIdNotFound(String certRequestId) {
+        return CodedException.tr(X_CSR_NOT_FOUND,
+                "csr_not_found",
+                "Certificate request '%s' not found", certRequestId);
     }
 
     /**

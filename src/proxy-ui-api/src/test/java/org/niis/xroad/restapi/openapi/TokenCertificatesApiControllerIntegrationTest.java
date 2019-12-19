@@ -29,6 +29,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
@@ -44,6 +45,7 @@ import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
+import org.niis.xroad.restapi.service.StateChangeActionHelper;
 import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
@@ -105,6 +107,9 @@ public class TokenCertificatesApiControllerIntegrationTest {
     @Autowired
     private TokenCertificatesApiController tokenCertificatesApiController;
 
+    @MockBean
+    private StateChangeActionHelper stateChangeActionHelper;
+
     @Before
     public void setup() throws Exception {
         doAnswer(answer -> "key-id").when(signerProxyFacade).importCert(any(), any(), any());
@@ -119,6 +124,9 @@ public class TokenCertificatesApiControllerIntegrationTest {
         KeyInfo keyInfo = new KeyInfoBuilder().id("key-id").build();
         tokenInfo.getKeyInfo().add(keyInfo);
         doAnswer(answer -> Collections.singletonList(tokenInfo)).when(signerProxyFacade).getTokens();
+        TokenInfoAndKeyId tokenInfoAndKeyId = new TokenInfoAndKeyId(tokenInfo, keyInfo.getId());
+        doAnswer(answer -> tokenInfoAndKeyId).when(signerProxyFacade).getTokenAndKeyIdForCertRequestId(any());
+        doAnswer(answer -> tokenInfoAndKeyId).when(signerProxyFacade).getTokenAndKeyIdForCertHash(any());
     }
 
     @Test

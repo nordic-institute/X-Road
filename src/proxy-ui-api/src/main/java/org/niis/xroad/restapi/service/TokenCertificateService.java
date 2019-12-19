@@ -187,6 +187,7 @@ public class TokenCertificateService {
      * @throws ClientNotFoundException
      * @throws CsrNotFoundException
      * @throws AuthCertificateNotSupportedException if trying to import an auth cert from a token
+     * @throws ActionNotPossibleException if import was not possible due to cert/key/token states
      */
     public CertificateInfo importCertificateFromToken(String hash) throws CertificateNotFoundException,
             InvalidCertificateException, GlobalConfService.GlobalConfOutdatedException, KeyNotFoundException,
@@ -415,6 +416,7 @@ public class TokenCertificateService {
      * @throws CertificateNotFoundException if certificate with given hash was not found
      * @throws KeyNotFoundException if for some reason the key linked to the cert could not
      * be loaded (should not be possible)
+     * @throws ActionNotPossibleException if delete was not possible due to cert/key/token states
      */
     public void deleteCertificate(String hash) throws CertificateNotFoundException, KeyNotFoundException,
             KeyNotOperationalException, SignerOperationFailedException,
@@ -470,16 +472,18 @@ public class TokenCertificateService {
 
     /**
      * Deletes one csr
-     * @param keyId
      * @param csrId
-     * @throws KeyNotFoundException if key with keyId was not found
+     * @throws KeyNotFoundException if for some reason the key linked to the csr could not
+     * be loaded (should not be possible)
      * @throws CsrNotFoundException if csr with csrId was not found
      * @throws ActionNotPossibleException if delete was not possible due to csr/key/token states
      */
-    public void deleteCsr(String keyId, String csrId) throws KeyNotFoundException, CsrNotFoundException,
+    public void deleteCsr(String csrId) throws KeyNotFoundException, CsrNotFoundException,
             ActionNotPossibleException {
-        KeyInfo keyInfo = keyService.getKey(keyId);
-        // getCsr to get CsrNotFoundException
+
+        TokenInfoAndKeyId tokenInfoAndKeyId = tokenService.getTokenAndKeyIdForCertificateRequestId(csrId);
+        TokenInfo tokenInfo = tokenInfoAndKeyId.getTokenInfo();
+        KeyInfo keyInfo = tokenInfoAndKeyId.getKeyInfo();
         CertRequestInfo certRequestInfo = getCsr(keyInfo, csrId);
 
         if (keyInfo.isForSigning()) {
@@ -488,12 +492,6 @@ public class TokenCertificateService {
             verifyAuthority("DELETE_AUTH_CERT");
         }
 
-        TokenInfo tokenInfo = null;
-        try {
-            tokenInfo = tokenService.getTokenForKeyId(keyId);
-        } catch (TokenNotFoundException e) {
-            throw new RuntimeException("internal error", e);
-        }
         EnumSet<StateChangeActionHelper.StateChangeActionEnum> possibleActions = stateChangeActionHelper.
                 getPossibleCsrActions(tokenInfo, keyInfo, certRequestInfo);
         stateChangeActionHelper.requirePossibleAction(
@@ -554,6 +552,7 @@ public class TokenCertificateService {
     }
 
     /**
+     * TO DO: lift to main level
      * Thrown if Certificate sign request was not found
      */
     public static class CsrNotFoundException extends NotFoundException {

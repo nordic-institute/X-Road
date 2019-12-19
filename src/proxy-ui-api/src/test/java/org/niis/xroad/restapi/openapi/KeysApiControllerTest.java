@@ -63,6 +63,7 @@ public class KeysApiControllerTest {
     private static final String KEY_NOT_FOUND_KEY_ID = "key-404";
     private static final String GOOD_KEY_ID = "key-which-exists";
     private static final String GOOD_CSR_ID = "csr-which-exists";
+    private static final String KEY_NOT_FOUND_CSR_ID = "csr-with-key-404";
 
     @MockBean
     private KeyService keyService;
@@ -84,9 +85,12 @@ public class KeysApiControllerTest {
 
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
-            String keyId = (String) args[0];
-            return returnKeyIfGoodId(keyInfo, keyId);
-        }).when(tokenCertificateService).deleteCsr(any(), any());
+            String csrId = (String) args[0];
+            if (!GOOD_CSR_ID.equals(csrId)) {
+                throw new TokenCertificateService.CsrNotFoundException("bar");
+            }
+            return null;
+        }).when(tokenCertificateService).deleteCsr(any());
 
     }
 
@@ -116,7 +120,8 @@ public class KeysApiControllerTest {
     @WithMockUser(authorities = { "DELETE_AUTH_CERT" })
     public void deleteCsr() {
         try {
-            keysApiController.deleteCsr(KEY_NOT_FOUND_KEY_ID, GOOD_CSR_ID);
+            // key id is not used
+            keysApiController.deleteCsr(GOOD_KEY_ID, KEY_NOT_FOUND_CSR_ID);
             fail("should have thrown exception");
         } catch (ResourceNotFoundException expected) {
         }

@@ -61,6 +61,7 @@ import java.util.stream.Collectors;
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
 import static ee.ria.xroad.signer.util.ExceptionHelper.certWithHashNotFound;
 import static ee.ria.xroad.signer.util.ExceptionHelper.certWithIdNotFound;
+import static ee.ria.xroad.signer.util.ExceptionHelper.csrWithIdNotFound;
 import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotFound;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotFound;
 import static java.util.Collections.unmodifiableList;
@@ -239,6 +240,23 @@ public final class TokenManager {
         String keyId = forCert((k, c) -> certHash.equals(c.getHash()),
                 (k, c) -> k.getId())
                 .orElseThrow(() -> certWithHashNotFound(certHash));
+
+        return forKey((t, k) -> k.getId().equals(keyId),
+                (t, k) -> new TokenInfoAndKeyId(t.toDTO(), keyId))
+                .orElseThrow(() -> keyNotFound(keyId));
+    }
+
+    /**
+     * TO DO: add test?
+     * @param certRequestId the certificate request id
+     * @return the tokenInfo and key id, or throws exception if not found
+     */
+    public static synchronized TokenInfoAndKeyId findTokenAndKeyIdForCertRequestId(String certRequestId) {
+        log.trace("findTokenAndKeyIdForCertRequestId({})", certRequestId);
+
+        String keyId = forCertRequest((k, c) -> certRequestId.equals(c.getId()),
+                (k, c) -> k.getId())
+                .orElseThrow(() -> csrWithIdNotFound(certRequestId));
 
         return forKey((t, k) -> k.getId().equals(keyId),
                 (t, k) -> new TokenInfoAndKeyId(t.toDTO(), keyId))

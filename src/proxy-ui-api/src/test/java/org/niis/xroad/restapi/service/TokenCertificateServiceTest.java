@@ -29,6 +29,8 @@ import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
@@ -79,10 +81,11 @@ public class TokenCertificateServiceTest {
     private static final String EXISTING_CERT_IN_AUTH_KEY_HASH = "ok-cert-auth";
     private static final String EXISTING_CERT_IN_SIGN_KEY_HASH = "ok-cert-sign";
     private static final String GOOD_KEY_ID = "key-which-exists";
-    private static final String KEY_NOT_FOUND_KEY_ID = "key-404";
     private static final String AUTH_KEY_ID = "auth-key";
     private static final String SIGN_KEY_ID = "sign-key";
     private static final String GOOD_CSR_ID = "csr-which-exists";
+    private static final String GOOD_AUTH_CSR_ID = "auth-csr-which-exists";
+    private static final String GOOD_SIGN_CSR_ID = "sign-csr-which-exists";
     private static final String CSR_NOT_FOUND_CSR_ID = "csr-404";
     private static final String SIGNER_EXCEPTION_CSR_ID = "signer-ex-csr";
 
@@ -112,6 +115,11 @@ public class TokenCertificateServiceTest {
     @MockBean
     private ClientRepository clientRepository;
 
+    @MockBean
+    private StateChangeActionHelper stateChangeActionHelper;
+
+    @MockBean TokenService tokenService;
+
     @Before
     public void setUp() throws Exception {
         // need lots of mocking
@@ -121,13 +129,15 @@ public class TokenCertificateServiceTest {
         // signerProxyFacade.getCertForHash
         // mock delete-operations (deleteCertificate, deleteCsr)
         CertRequestInfo goodCsr = new CertRequestInfo(GOOD_CSR_ID, null, null);
+        CertRequestInfo authCsr = new CertRequestInfo(GOOD_AUTH_CSR_ID, null, null);
+        CertRequestInfo signCsr = new CertRequestInfo(GOOD_SIGN_CSR_ID, null, null);
         CertRequestInfo signerExceptionCsr = new CertRequestInfo(
                 SIGNER_EXCEPTION_CSR_ID, null, null);
         CertificateInfo authCert = new CertificateInfoBuilder().id(EXISTING_CERT_IN_AUTH_KEY_HASH).build();
         CertificateInfo signCert = new CertificateInfoBuilder().id(EXISTING_CERT_IN_SIGN_KEY_HASH).build();
         KeyInfo authKey = new TokenTestUtils.KeyInfoBuilder().id(AUTH_KEY_ID)
                 .keyUsageInfo(KeyUsageInfo.AUTHENTICATION)
-                .csr(goodCsr)
+                .csr(authCsr)
                 .cert(authCert)
                 .build();
         KeyInfo goodKey = new TokenTestUtils.KeyInfoBuilder()
@@ -138,35 +148,63 @@ public class TokenCertificateServiceTest {
         KeyInfo signKey = new TokenTestUtils.KeyInfoBuilder()
                 .id(SIGN_KEY_ID)
                 .keyUsageInfo(KeyUsageInfo.SIGNING)
-                .csr(goodCsr)
+                .csr(signCsr)
                 .cert(signCert)
                 .build();
+        TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo("fubar");
+        tokenInfo.getKeyInfo().add(authKey);
+        tokenInfo.getKeyInfo().add(signKey);
+        tokenInfo.getKeyInfo().add(goodKey);
 
-        // keyService.getKey(keyId)
+        mockGetTokenAndKeyIdForCertificateHash(authKey, goodKey, signKey, tokenInfo);
+        mockGetTokenAndKeyIdForCertificateRequestId(authKey, goodKey, signKey, tokenInfo);
+        mockGetKey(authKey, goodKey, signKey);
+        mockGetKeyIdForCertHash();
+        mockGetCertForHash();
+        mockDeleteCert();
+        mockDeleteCertRequest();
+    }
+
+    private void mockDeleteCertRequest() throws Exception {
+        // signerProxyFacade.deleteCertRequest(id)
         doAnswer(invocation -> {
-            String keyId = (String) invocation.getArguments()[0];
-            switch (keyId) {
-                case AUTH_KEY_ID:
-                    return authKey;
-                case SIGN_KEY_ID:
-                    return signKey;
-                case GOOD_KEY_ID:
-                    return goodKey;
-                default:
-                    throw new KeyNotFoundException("unknown keyId: " + keyId);
+            String csrId = (String) invocation.getArguments()[0];
+            if (GOOD_CSR_ID.equals(csrId)) {
+                return null;
+            } else if (SIGNER_EXCEPTION_CSR_ID.equals(csrId)) {
+                throw CodedException.tr(X_CSR_NOT_FOUND,
+                        "csr_not_found", "Certificate request '%s' not found", csrId)
+                        .withPrefix(SIGNER_X);
+            } else if (CSR_NOT_FOUND_CSR_ID.equals(csrId)) {
+                throw new CsrNotFoundException("not found");
+            } else {
+                throw new CsrNotFoundException("not found");
             }
-        }).when(keyService).getKey(any());
+        }).when(signerProxyFacade).deleteCertRequest(any());
+    }
 
-        // signerProxyFacade.getKeyIdForCertHash(hash)
+    private void mockDeleteCert() throws Exception {
+        // attempts to delete either succeed or throw specific exceptions
         doAnswer(invocation -> {
             String certHash = (String) invocation.getArguments()[0];
-            if (certHash.equals(EXISTING_CERT_IN_AUTH_KEY_HASH)) {
-                return AUTH_KEY_ID;
-            } else {
-                return SIGN_KEY_ID;
+            switch (certHash) {
+                case EXISTING_CERT_HASH:
+                    return null;
+                case SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH:
+                    throw signerException(X_CERT_NOT_FOUND);
+                case SIGNER_EX_INTERNAL_ERROR_HASH:
+                    throw signerException(X_INTERNAL_ERROR);
+                case SIGNER_EX_TOKEN_NOT_AVAILABLE_HASH:
+                    throw signerException(X_TOKEN_NOT_AVAILABLE);
+                case SIGNER_EX_TOKEN_READONLY_HASH:
+                    throw signerException(X_TOKEN_READONLY);
+                default:
+                    throw new RuntimeException("bad switch option: " + certHash);
             }
-        }).when(signerProxyFacade).getKeyIdForCertHash(any());
+        }).when(signerProxyFacade).deleteCert(any());
+    }
 
+    private void mockGetCertForHash() throws Exception {
         // signerProxyFacade.getCertForHash(hash)
         doAnswer(invocation -> {
             String certHash = (String) invocation.getArguments()[0];
@@ -186,41 +224,78 @@ public class TokenCertificateServiceTest {
                     throw new RuntimeException("bad switch option: " + certHash);
             }
         }).when(signerProxyFacade).getCertForHash(any());
+    }
 
-        // attempts to delete either succeed or throw specific exceptions
+    private void mockGetKeyIdForCertHash() throws Exception {
+        // signerProxyFacade.getKeyIdForCertHash(hash)
         doAnswer(invocation -> {
             String certHash = (String) invocation.getArguments()[0];
-            switch (certHash) {
-                case EXISTING_CERT_HASH:
-                    return null;
-                case SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH:
-                    throw signerException(X_CERT_NOT_FOUND);
-                case SIGNER_EX_INTERNAL_ERROR_HASH:
-                    throw signerException(X_INTERNAL_ERROR);
-                case SIGNER_EX_TOKEN_NOT_AVAILABLE_HASH:
-                    throw signerException(X_TOKEN_NOT_AVAILABLE);
-                case SIGNER_EX_TOKEN_READONLY_HASH:
-                    throw signerException(X_TOKEN_READONLY);
-                default:
-                    throw new RuntimeException("bad switch option: " + certHash);
+            if (certHash.equals(EXISTING_CERT_IN_AUTH_KEY_HASH)) {
+                return AUTH_KEY_ID;
+            } else {
+                return SIGN_KEY_ID;
             }
-        }).when(signerProxyFacade).deleteCert(any());
+        }).when(signerProxyFacade).getKeyIdForCertHash(any());
+    }
 
-        // signerProxyFacade.deleteCertRequest(id)
+    private void mockGetKey(KeyInfo authKey, KeyInfo goodKey, KeyInfo signKey) throws KeyNotFoundException {
+        // keyService.getKey(keyId)
+        doAnswer(invocation -> {
+            String keyId = (String) invocation.getArguments()[0];
+            switch (keyId) {
+                case AUTH_KEY_ID:
+                    return authKey;
+                case SIGN_KEY_ID:
+                    return signKey;
+                case GOOD_KEY_ID:
+                    return goodKey;
+                default:
+                    throw new KeyNotFoundException("unknown keyId: " + keyId);
+            }
+        }).when(keyService).getKey(any());
+    }
+
+    private void mockGetTokenAndKeyIdForCertificateRequestId(KeyInfo authKey, KeyInfo goodKey, KeyInfo signKey,
+            TokenInfo tokenInfo) throws KeyNotFoundException, CsrNotFoundException {
         doAnswer(invocation -> {
             String csrId = (String) invocation.getArguments()[0];
-            if (GOOD_CSR_ID.equals(csrId)) {
-                return null;
-            } else if (SIGNER_EXCEPTION_CSR_ID.equals(csrId)) {
-                throw CodedException.tr(X_CSR_NOT_FOUND,
-                        "csr_not_found", "Certificate request '%s' not found", csrId)
-                        .withPrefix(SIGNER_X);
-            } else if (CSR_NOT_FOUND_CSR_ID.equals(csrId)) {
-                throw new CsrNotFoundException("not found");
-            } else {
-                throw new CsrNotFoundException("not found");
+            switch (csrId) {
+                case GOOD_AUTH_CSR_ID:
+                    return new TokenInfoAndKeyId(tokenInfo, authKey.getId());
+                case GOOD_SIGN_CSR_ID:
+                    return new TokenInfoAndKeyId(tokenInfo, signKey.getId());
+                case GOOD_CSR_ID:
+                    return new TokenInfoAndKeyId(tokenInfo, goodKey.getId());
+                case CSR_NOT_FOUND_CSR_ID:
+                case SIGNER_EXCEPTION_CSR_ID:
+                    // getTokenAndKeyIdForCertificateRequestId should work, exception comes later
+                    return new TokenInfoAndKeyId(tokenInfo, goodKey.getId());
+                default:
+                    throw new CertificateNotFoundException("unknown csr: " + csrId);
             }
-        }).when(signerProxyFacade).deleteCertRequest(any());
+        }).when(tokenService).getTokenAndKeyIdForCertificateRequestId(any());
+    }
+
+    private void mockGetTokenAndKeyIdForCertificateHash(KeyInfo authKey, KeyInfo goodKey, KeyInfo signKey,
+            TokenInfo tokenInfo) throws KeyNotFoundException, CertificateNotFoundException {
+        doAnswer(invocation -> {
+            String hash = (String) invocation.getArguments()[0];
+            switch (hash) {
+                case EXISTING_CERT_IN_AUTH_KEY_HASH:
+                    return new TokenInfoAndKeyId(tokenInfo, authKey.getId());
+                case EXISTING_CERT_IN_SIGN_KEY_HASH:
+                    return new TokenInfoAndKeyId(tokenInfo, signKey.getId());
+                case NOT_FOUND_CERT_HASH:
+                case EXISTING_CERT_HASH:
+                case SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH:
+                case SIGNER_EX_INTERNAL_ERROR_HASH:
+                case SIGNER_EX_TOKEN_NOT_AVAILABLE_HASH:
+                case SIGNER_EX_TOKEN_READONLY_HASH:
+                    return new TokenInfoAndKeyId(tokenInfo, goodKey.getId());
+                default:
+                    throw new CertificateNotFoundException("unknown cert: " + hash);
+            }
+        }).when(tokenService).getTokenAndKeyIdForCertificateHash(any());
     }
 
     private CodedException signerException(String code) {
@@ -287,36 +362,31 @@ public class TokenCertificateServiceTest {
     }
 
 
-    @Test(expected = KeyNotFoundException.class)
-    @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
-    public void deleteCsrKeyNotFound() throws Exception {
-        tokenCertificateService.deleteCsr(KEY_NOT_FOUND_KEY_ID, GOOD_CSR_ID);
-    }
     @Test(expected = CsrNotFoundException.class)
     @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
     public void deleteCsrCsrNotFound() throws Exception {
-        tokenCertificateService.deleteCsr(GOOD_KEY_ID, CSR_NOT_FOUND_CSR_ID);
+        tokenCertificateService.deleteCsr(CSR_NOT_FOUND_CSR_ID);
     }
     @Test(expected = CsrNotFoundException.class)
     @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
     public void deleteCsrSignerExceptions() throws Exception {
-        tokenCertificateService.deleteCsr(GOOD_KEY_ID, SIGNER_EXCEPTION_CSR_ID);
+        tokenCertificateService.deleteCsr(SIGNER_EXCEPTION_CSR_ID);
     }
     @Test(expected = AccessDeniedException.class)
     @WithMockUser(authorities = { "DELETE_SIGN_CERT" })
     public void deleteAuthCsrWithoutPermission() throws Exception {
-        tokenCertificateService.deleteCsr(AUTH_KEY_ID, GOOD_CSR_ID);
+        tokenCertificateService.deleteCsr(GOOD_AUTH_CSR_ID);
     }
     @Test(expected = AccessDeniedException.class)
     @WithMockUser(authorities = { "DELETE_AUTH_CERT" })
     public void deleteSignCsrWithoutPermission() throws Exception {
-        tokenCertificateService.deleteCsr(SIGN_KEY_ID, GOOD_CSR_ID);
+        tokenCertificateService.deleteCsr(GOOD_SIGN_CSR_ID);
     }
     @Test
     @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
     public void deleteCsr() throws Exception {
         // success
-        tokenCertificateService.deleteCsr(GOOD_KEY_ID, GOOD_CSR_ID);
+        tokenCertificateService.deleteCsr(GOOD_CSR_ID);
         verify(signerProxyFacade, times(1)).deleteCertRequest(GOOD_CSR_ID);
     }
 

@@ -99,7 +99,7 @@ public class KeysApiController implements KeysApi {
     @PreAuthorize("hasAuthority('DELETE_AUTH_CERT') or hasAuthority('DELETE_SIGN_CERT')")
     public ResponseEntity<Void> deleteCsr(String keyId, String csrId) {
         try {
-            tokenCertificateService.deleteCsr(keyId, csrId);
+            tokenCertificateService.deleteCsr(csrId);
         } catch (KeyNotFoundException | CsrNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (TokenCertificateService.ActionNotPossibleException e) {

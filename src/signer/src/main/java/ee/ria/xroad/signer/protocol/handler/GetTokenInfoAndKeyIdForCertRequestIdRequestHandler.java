@@ -26,18 +26,19 @@ package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
-import ee.ria.xroad.signer.protocol.message.GetTokenInfoAndKeyIdForCertHash;
+import ee.ria.xroad.signer.protocol.message.GetTokenInfoAndKeyIdForCertRequestId;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
 /**
- * Handles requests for TokenInfo + key id based on certificate hashes.
+ * Handles requests for TokenInfo + key id based on certificate request ids.
  */
-public class GetTokenInfoAndKeyIdForCertHashRequestHandler
-        extends AbstractRequestHandler<GetTokenInfoAndKeyIdForCertHash> {
+public class GetTokenInfoAndKeyIdForCertRequestIdRequestHandler
+        extends AbstractRequestHandler<GetTokenInfoAndKeyIdForCertRequestId> {
 
     @Override
-    protected Object handle(GetTokenInfoAndKeyIdForCertHash message) throws Exception {
-        TokenInfoAndKeyId tokenInfoAndKeyId = TokenManager.findTokenAndKeyIdForCertHash(message.getCertHash());
+    protected Object handle(GetTokenInfoAndKeyIdForCertRequestId message) throws Exception {
+        TokenInfoAndKeyId tokenInfoAndKeyId = TokenManager.findTokenAndKeyIdForCertRequestId(
+                message.getCertRequestId());
         return tokenInfoAndKeyId;
     }
 

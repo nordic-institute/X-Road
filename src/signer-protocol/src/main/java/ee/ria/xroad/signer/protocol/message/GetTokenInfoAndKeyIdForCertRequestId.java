@@ -22,23 +22,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.protocol.handler;
+package ee.ria.xroad.signer.protocol.message;
 
-import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
-import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
-import ee.ria.xroad.signer.protocol.message.GetTokenInfoAndKeyIdForCertHash;
-import ee.ria.xroad.signer.tokenmanager.TokenManager;
+import lombok.Value;
+
+import java.io.Serializable;
 
 /**
- * Handles requests for TokenInfo + key id based on certificate hashes.
+ * Signer API message.
  */
-public class GetTokenInfoAndKeyIdForCertHashRequestHandler
-        extends AbstractRequestHandler<GetTokenInfoAndKeyIdForCertHash> {
+@Value
+public class GetTokenInfoAndKeyIdForCertRequestId implements Serializable {
 
-    @Override
-    protected Object handle(GetTokenInfoAndKeyIdForCertHash message) throws Exception {
-        TokenInfoAndKeyId tokenInfoAndKeyId = TokenManager.findTokenAndKeyIdForCertHash(message.getCertHash());
-        return tokenInfoAndKeyId;
-    }
+    private final String certRequestId;
 
 }

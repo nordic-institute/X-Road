@@ -44,6 +44,7 @@ import java.util.function.Predicate;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_LOGIN_FAILED;
 import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
@@ -248,6 +249,10 @@ public class TokenService {
         return CERT_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
     }
 
+    static boolean isCausedByCsrNotFound(CodedException e) {
+        return CSR_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
+    }
+
     static boolean isCausedByTokenNotActive(CodedException e) {
         return TOKEN_NOT_ACTIVE_FAULT_CODE.equals(e.getFaultCode());
     }
@@ -257,6 +262,7 @@ public class TokenService {
     static final String TOKEN_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_TOKEN_NOT_FOUND;
     static final String KEY_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_KEY_NOT_FOUND;
     static final String CERT_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_CERT_NOT_FOUND;
+    static final String CSR_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_CSR_NOT_FOUND;
     static final String LOGIN_FAILED_FAULT_CODE = SIGNER_X + "." + X_LOGIN_FAILED;
     static final String TOKEN_NOT_ACTIVE_FAULT_CODE = SIGNER_X + "." + X_TOKEN_NOT_ACTIVE;
     static final String CKR_PIN_INCORRECT_MESSAGE = "Login failed: CKR_PIN_INCORRECT";
@@ -273,6 +279,26 @@ public class TokenService {
                 throw new KeyNotFoundException(e);
             } else if (isCausedByCertNotFound(e)) {
                 throw new CertificateNotFoundException(e);
+            } else {
+                throw e;
+            }
+        } catch (Exception other) {
+            throw new RuntimeException("getTokenAndKeyIdForCertHash failed", other);
+        }
+    }
+
+    /**
+     * Get TokenInfoAndKeyId for csr id
+     */
+    public TokenInfoAndKeyId getTokenAndKeyIdForCertificateRequestId(String csrId) throws KeyNotFoundException,
+            TokenCertificateService.CsrNotFoundException {
+        try {
+            return signerProxyFacade.getTokenAndKeyIdForCertRequestId(csrId);
+        } catch (CodedException e) {
+            if (isCausedByKeyNotFound(e)) {
+                throw new KeyNotFoundException(e);
+            } else if (isCausedByCsrNotFound(e)) {
+                throw new TokenCertificateService.CsrNotFoundException(e);
             } else {
                 throw e;
             }

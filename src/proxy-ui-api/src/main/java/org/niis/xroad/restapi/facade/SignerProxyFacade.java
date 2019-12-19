@@ -198,4 +198,10 @@ public class SignerProxyFacade {
         return SignerProxy.getTokenAndKeyIdForCertHash(hash);
     }
 
+    /**
+     * {@link SignerProxy#getTokenAndKeyIdForCertRequestId(String)}
+     */
+    public TokenInfoAndKeyId getTokenAndKeyIdForCertRequestId(String certRequestId) throws Exception {
+        return SignerProxy.getTokenAndKeyIdForCertRequestId(certRequestId);
+    }
 }

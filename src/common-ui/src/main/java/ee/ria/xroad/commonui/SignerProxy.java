@@ -48,6 +48,7 @@ import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHash;
 import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHashResponse;
 import ee.ria.xroad.signer.protocol.message.GetTokenInfo;
 import ee.ria.xroad.signer.protocol.message.GetTokenInfoAndKeyIdForCertHash;
+import ee.ria.xroad.signer.protocol.message.GetTokenInfoAndKeyIdForCertRequestId;
 import ee.ria.xroad.signer.protocol.message.ImportCert;
 import ee.ria.xroad.signer.protocol.message.ImportCertResponse;
 import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
@@ -364,6 +365,22 @@ public final class SignerProxy {
         TokenInfoAndKeyId response = execute(new GetTokenInfoAndKeyIdForCertHash(hash));
 
         log.trace("Token and key id with hash '{}' found", hash);
+
+        return response;
+    }
+
+    /**
+     * Get TokenInfoAndKeyId for a given cert hash
+     * @param certRequestId
+     * @return TokenInfoAndKeyId
+     * @throws Exception
+     */
+    public static TokenInfoAndKeyId getTokenAndKeyIdForCertRequestId(String certRequestId) throws Exception {
+        log.trace("Getting token and key id by cert request id '{}'", certRequestId);
+
+        TokenInfoAndKeyId response = execute(new GetTokenInfoAndKeyIdForCertRequestId(certRequestId));
+
+        log.trace("Token and key id with cert request id '{}' found", certRequestId);
 
         return response;
     }
