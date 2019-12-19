@@ -22,42 +22,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.globalconf;
+package org.niis.xroad.restapi.service;
 
-import org.junit.Test;
+import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
+import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
+import ee.ria.xroad.common.certificateprofile.DnFieldValue;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import javax.security.auth.x500.X500Principal;
 
 /**
- * Tests for {@link TimeBasedObjectCache}
+ * simple {@link CertificateProfileInfo} for tests
  */
-public class TimeBasedObjectCacheTest {
+public class DnFieldTestCertificateProfileInfo implements CertificateProfileInfo {
 
-    @Test
-    public void testCache() throws InterruptedException {
-        final int expireSeconds = 3;
-        TimeBasedObjectCache cache = new TimeBasedObjectCache(expireSeconds);
-        assertFalse(cache.isValid("foo"));
-        cache.setValue("foo", 13);
-        assertTrue(cache.isValid("foo"));
-        idle(expireSeconds * 1000 / 2);
-        assertTrue(cache.isValid("foo"));
-        idle(expireSeconds * 1000);
-        assertFalse(cache.isValid("foo"));
-        cache.setValue("foo", 21);
-        assertTrue(cache.isValid("foo"));
-        cache.setValue("foo", null);
-        assertTrue(cache.isValid("foo"));
+    private DnFieldDescription[] descriptions;
+    private boolean valid;
+
+    DnFieldTestCertificateProfileInfo(DnFieldDescription[] descriptions, boolean valid) {
+        this.descriptions = descriptions;
+        this.valid = valid;
     }
 
-    /**
-     * Idles for given time period
-     */
-    private static void idle(long periodMs) {
-        final long target = System.currentTimeMillis() + periodMs;
-        do {
-            Thread.yield();
-        } while (System.currentTimeMillis() < target);
+    DnFieldTestCertificateProfileInfo(DnFieldDescription description, boolean valid) {
+        this.descriptions = new DnFieldDescription[] {description};
+        this.valid = valid;
+    }
+
+    @Override
+    public DnFieldDescription[] getSubjectFields() {
+        return descriptions;
+    }
+
+    @Override
+    public X500Principal createSubjectDn(DnFieldValue[] values) {
+        return null;
+    }
+
+    @Override
+    public void validateSubjectField(DnFieldValue field) throws Exception {
+        if (!valid) {
+            throw new RuntimeException("not valid");
+        }
+
     }
 }

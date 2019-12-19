@@ -276,5 +276,17 @@
     "keys": {
       "friendlyName": "Friendly name"
     }
+  },
+  "certificateProfile": {
+    "COMMON_NAME": "Common Name (CN)",
+    "COUNTRY_CODE": "Country Code (C)",
+    "INSTANCE_IDENTIFIER": "Instance Identifier (C)",
+    "MEMBER_CLASS": "Member Class (O)",
+    "MEMBER_CODE": "Member Code (CN)",
+    "ORGANIZATION_NAME": "Organization Name (O)",
+    "SERIAL_NUMBER": "Serial Number",
+    "SERIAL_NUMBER_SN": "Serial Number (SN)",
+    "SERVER_CODE": "Server Code (CN)",
+    "SERVER_DNS_NAME": "Server DNS name (CN)"
   }
 }

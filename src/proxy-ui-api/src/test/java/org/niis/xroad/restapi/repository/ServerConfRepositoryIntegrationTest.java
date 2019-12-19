@@ -22,42 +22,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.globalconf;
+package org.niis.xroad.restapi.repository;
 
+import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+import ee.ria.xroad.common.identifier.ClientId;
+
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.util.TestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
- * Tests for {@link TimeBasedObjectCache}
+ * test ServerConfRepository
  */
-public class TimeBasedObjectCacheTest {
+@RunWith(SpringRunner.class)
+@SpringBootTest
+@AutoConfigureTestDatabase
+@Slf4j
+@Transactional
+public class ServerConfRepositoryIntegrationTest {
+
+    @Autowired
+    private ServerConfRepository serverConfRepository;
 
     @Test
-    public void testCache() throws InterruptedException {
-        final int expireSeconds = 3;
-        TimeBasedObjectCache cache = new TimeBasedObjectCache(expireSeconds);
-        assertFalse(cache.isValid("foo"));
-        cache.setValue("foo", 13);
-        assertTrue(cache.isValid("foo"));
-        idle(expireSeconds * 1000 / 2);
-        assertTrue(cache.isValid("foo"));
-        idle(expireSeconds * 1000);
-        assertFalse(cache.isValid("foo"));
-        cache.setValue("foo", 21);
-        assertTrue(cache.isValid("foo"));
-        cache.setValue("foo", null);
-        assertTrue(cache.isValid("foo"));
+    public void getServerConf() {
+        ServerConfType serverConf = serverConfRepository.getServerConf();
+        assertNotNull(serverConf);
+        assertEquals("TEST-INMEM-SS", serverConf.getServerCode());
+        ClientId clientId = TestUtils.getClientId("FI", "GOV", "M1", null);
+        assertEquals(clientId, serverConf.getOwner().getIdentifier());
     }
 
-    /**
-     * Idles for given time period
-     */
-    private static void idle(long periodMs) {
-        final long target = System.currentTimeMillis() + periodMs;
-        do {
-            Thread.yield();
-        } while (System.currentTimeMillis() < target);
-    }
 }
+
+
