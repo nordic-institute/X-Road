@@ -8,6 +8,8 @@
           <th>{{$t('keys.ocsp')}}</th>
           <th>{{$t('keys.expires')}}</th>
           <th>{{$t('keys.status')}}</th>
+          <th></th>
+          <th v-if="'HARDWARE' === tokenType"></th>
         </tr>
       </thead>
 
@@ -20,13 +22,20 @@
           <td class="no-border"></td>
           <td class="no-border"></td>
           <td class="no-border"></td>
-          <td class="no-border">
+          <td class="no-border"></td>
+          <td class="no-border td-align-right">
             <SmallButton
-              class="gen-csr"
-              :disabled="disableGenerateCsr"
-              @click="generateCsr(key)"
+                    v-if="'SOFTWARE' === tokenType"
+                    class="table-button-fix"
+                    :disabled="disableGenerateCsr"
+                    @click="generateCsr(key)"
             >{{$t('keys.generateCsr')}}</SmallButton>
           </td>
+          <td class="no-border" v-if="'HARDWARE' === tokenType"><SmallButton
+                  class="table-button-fix"
+                  :disabled="disableGenerateCsr"
+                  @click="generateCsr(key)"
+          >{{$t('keys.generateCsr')}}</SmallButton></td>
         </tr>
 
         <tr v-for="cert in key.certificates" v-bind:key="cert.id">
@@ -39,11 +48,13 @@
               >{{cert.certificate_details.issuer_common_name}} {{cert.certificate_details.serial}}</div>
             </div>
           </td>
-          <td>{{cert.certificate_details.hash}}</td>
+          <td>{{cert.owner_id}}</td>
           <td>{{ cert.ocsp_status | ocspStatus }}</td>
           <td>{{cert.certificate_details.not_after | formatDate}}</td>
-          <td class="status-cell">
-            <certificate-status :certificate="cert" />
+          <td class="status-cell"><certificate-status :certificate="cert" /></td>
+          <td v-if="'HARDWARE' === tokenType"></td>
+          <td>
+            <SmallButton v-if="'HARDWARE' === tokenType && !cert.saved_to_configuration" @click="importCert()">{{$t('keys.importCert')}}</SmallButton>
           </td>
         </tr>
 
@@ -61,6 +72,7 @@
             <td></td>
             <td></td>
             <td class="status-cell"></td>
+            <td></td>
           </tr>
         </template>
       </tbody>
@@ -94,6 +106,10 @@ export default Vue.extend({
     disableGenerateCsr: {
       type: Boolean,
     },
+    tokenType: {
+      type: String,
+      required: true,
+    },
   },
   data() {
     return {};
@@ -108,6 +124,9 @@ export default Vue.extend({
     },
     generateCsr(key: Key): void {
       this.$emit('generateCsr', key);
+    },
+    importCert(hash: string): void {
+      this.$emit('importCertByHash', hash);
     },
   },
 });
@@ -126,10 +145,14 @@ export default Vue.extend({
   border-bottom-width: 0 !important;
 }
 
-.gen-csr {
+.table-button-fix {
   margin-left: auto;
   margin-right: 0;
   margin-top: 10px;
+}
+
+.td-align-right {
+  text-align: right;
 }
 
 .td-name {
@@ -147,6 +170,10 @@ export default Vue.extend({
   display: flex;
   flex-direction: row;
   align-items: center;
+
+  i.v-icon.mdi-file-document-outline {
+    margin-left: 42px;
+  }
 }
 
 .name-wrap-top {

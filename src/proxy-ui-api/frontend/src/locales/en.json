@@ -218,6 +218,7 @@
     "keyLabelInput": "Key label",
     "keyLabelTitle": "Generate a new key",
     "keyLabelInfo": "You can define a label for the newly created Key (not mandatory)",
+    "importCertSuccess": "Uploading certificate succeeded",
     "ocspStatus": {
       "disabled": "Disabled",
       "expired": "Expired",
