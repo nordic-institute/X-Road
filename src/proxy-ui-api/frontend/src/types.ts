@@ -64,15 +64,21 @@ export interface Backup {
   created_at: string; // date-time
 }
 /**
- * certificate authority
+ * approved certificate authority information
  */
 export interface CertificateAuthority {
+  /**
+   * common name of the CA, used also as an identifier
+   * example:
+   * X-Road Test CA CN
+   */
+  name: string; // text
   /**
    * distinguished name
    * example:
    * /C=FI/O=X-Road Test/OU=X-Road Test CA OU/CN=X-Road Test CA CN
    */
-  name: string; // text
+  distinguished_name: string; // text
   /**
    * certificate authority response
    * example:
@@ -85,6 +91,10 @@ export interface CertificateAuthority {
    * 2099-12-15T00:00:00.001Z
    */
   expires_at: string; // date-time
+  /**
+   * if certificate authority is limited for authentication use only
+   */
+  authentication_only: boolean;
 }
 /**
  * certificate details for any kind of certificate (TLS, auth, sign)
@@ -277,6 +287,84 @@ export type ConnectionType = 'HTTP' | 'HTTPS' | 'HTTPS_NO_AUTH'; // enum
  * PEM
  */
 export type CsrFormat = 'PEM' | 'DER'; // enum
+/**
+ * request to generate a CSR
+ */
+export interface CsrGenerate {
+  /**
+   * which usage type this CSR is for (signing or authentication)
+   */
+  key_usage_type: KeyUsageType; // enum
+  /**
+   * common name of the CA
+   * example:
+   * X-Road Test CA CN
+   */
+  ca_name: string; // text
+  /**
+   * format of the certificate signing request (PEM or DER)
+   */
+  csr_format: CsrFormat; // enum
+  /**
+   * member client id for signing CSRs. <instance_id>:<member_class>:<member_code>
+   * example:
+   * FI:GOV:123
+   */
+  member_id?: string; // text
+  /**
+   * user-provided values for subject DN parameters
+   */
+  subject_field_values: {
+    [name: string]: string;
+  };
+}
+/**
+ * object describing input fields for CSR subject DN info
+ */
+export interface CsrSubjectFieldDescription {
+  /**
+   * the identifier of the field (such as 'O', 'OU' etc)
+   * example:
+   * O
+   */
+  readonly id: string; // text
+  /**
+   * label of the field, used to display the field in the user interface
+   * example:
+   * ORGANIZATION_NAME
+   */
+  readonly label?: string; // text
+  /**
+   * localization key for label of the field, used to display the field in the user interface
+   * example:
+   * Organization name (O)
+   */
+  readonly label_key?: string; // text
+  /**
+   * the default value of the field. Can be empty.
+   * example:
+   * 1234
+   */
+  readonly default_value?: string; // text
+  /**
+   * if this field is read-only
+   * example:
+   * true
+   */
+  readonly read_only: boolean;
+  /**
+   * if this field is required to be filled
+   * example:
+   * true
+   */
+  readonly required: boolean;
+  /**
+   * if true, label key is in property "label_key". If false, actual label is in property "label"
+   * example:
+   * true
+   */
+  readonly localized: boolean;
+}
 /**
  * object returned in error cases
  */

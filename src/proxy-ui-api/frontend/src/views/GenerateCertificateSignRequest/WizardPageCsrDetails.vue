@@ -110,43 +110,43 @@ export default Vue.extend({
     ]),
 
     usage: {
-      get() {
+      get(): string {
         return this.$store.getters.usage;
       },
-      set(value) {
+      set(value: string) {
         this.$store.commit('storeUsage', value);
       },
     },
     csrFormat: {
-      get() {
+      get(): string {
         return this.$store.getters.csrFormat;
       },
-      set(value) {
+      set(value: string) {
         this.$store.commit('storeCsrFormat', value);
       },
     },
     client: {
-      get() {
+      get(): string {
         return this.$store.getters.csrClient;
       },
-      set(value) {
+      set(value: string) {
         this.$store.commit('storeCsrClient', value);
       },
     },
     certificationService: {
-      get() {
+      get(): string {
         return this.$store.getters.certificationService;
       },
-      set(value) {
+      set(value: string) {
         this.$store.commit('storeCertificationService', value);
       },
     },
   },
   methods: {
-    done() {
+    done(): void {
       this.$emit('done');
     },
-    cancel() {
+    cancel(): void {
       this.$emit('cancel');
     },
   },

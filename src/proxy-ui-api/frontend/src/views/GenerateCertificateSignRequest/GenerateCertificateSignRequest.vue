@@ -2,11 +2,11 @@
 <template>
   <div class="view-wrap">
     <subViewTitle class="view-title" :title="$t('csr.generateCsr')" :showClose="false" />
-    <v-stepper :alt-labels="true" v-model="e1" class="stepper noshadow">
+    <v-stepper :alt-labels="true" v-model="currentStep" class="stepper noshadow">
       <v-stepper-header class="noshadow">
-        <v-stepper-step :complete="e1 > 1" step="1">{{$t('csr.csrDetails')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 1" step="1">{{$t('csr.csrDetails')}}</v-stepper-step>
         <v-divider></v-divider>
-        <v-stepper-step :complete="e1 > 2" step="2">{{$t('csr.generateCsr')}}</v-stepper-step>
+        <v-stepper-step :complete="currentStep > 2" step="2">{{$t('csr.generateCsr')}}</v-stepper-step>
       </v-stepper-header>
 
       <v-stepper-items class="stepper-content">
@@ -34,7 +34,6 @@ import WizardPageGenerateCsr from './WizardPageGenerateCsr.vue';
 
 import { Key, Token } from '@/types';
 import { RouteName, UsageTypes } from '@/global';
-import { saveAsFile } from '@/util/helpers';
 import * as api from '@/util/api';
 
 export default Vue.extend({
@@ -53,7 +52,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      e1: 0,
+      currentStep: 0,
     };
   },
   computed: {
@@ -63,7 +62,7 @@ export default Vue.extend({
     save(): void {
       this.$store.dispatch('fetchCsrForm').then(
         (response) => {
-          this.e1 = 2;
+          this.currentStep = 2;
         },
         (error) => {
           this.$bus.$emit('show-error', error.message);
