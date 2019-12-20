@@ -390,13 +390,17 @@ public class TokenCertificateService {
      * @throws GlobalConfService.GlobalConfOutdatedException
      */
     public void registerAuthCert(String hash, String securityServerAddress) throws CertificateNotFoundException,
-            GlobalConfService.GlobalConfOutdatedException {
+            GlobalConfService.GlobalConfOutdatedException, InvalidCertificateException,
+            SignCertificateNotSupportedException {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
+        verifyAuthCert(certificateInfo);
         SecurityServerId securityServerId = serverConfService.getSecurityServerId();
-        managementRequestService.sendAuthCertRegisterRequest(securityServerId, securityServerAddress,
-                certificateInfo.getCertificateBytes());
         try {
+            managementRequestService.sendAuthCertRegisterRequest(securityServerId, securityServerAddress,
+                    certificateInfo.getCertificateBytes());
             signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_REGINPROG);
+        } catch (GlobalConfService.GlobalConfOutdatedException e) {
+            throw e;
         } catch (Exception e) {
             if (e instanceof CodedException) {
                 CodedException ce = (CodedException) e;
@@ -416,12 +420,17 @@ public class TokenCertificateService {
      * @throws GlobalConfService.GlobalConfOutdatedException
      */
     public void unregisterAuthCert(String hash) throws CertificateNotFoundException,
-            GlobalConfService.GlobalConfOutdatedException {
+            GlobalConfService.GlobalConfOutdatedException, InvalidCertificateException,
+            SignCertificateNotSupportedException {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
+        verifyAuthCert(certificateInfo);
         SecurityServerId securityServerId = serverConfService.getSecurityServerId();
-        managementRequestService.sendAuthCertDeletionRequest(securityServerId, certificateInfo.getCertificateBytes());
         try {
+            managementRequestService.sendAuthCertDeletionRequest(securityServerId,
+                    certificateInfo.getCertificateBytes());
             signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
+        } catch (GlobalConfService.GlobalConfOutdatedException e) {
+            throw e;
         } catch (Exception e) {
             if (e instanceof CodedException) {
                 CodedException ce = (CodedException) e;
@@ -430,6 +439,23 @@ public class TokenCertificateService {
                 }
             }
             throw new RuntimeException("Could not set certificate status", e);
+        }
+    }
+
+    private void verifyAuthCert(CertificateInfo certificateInfo)
+            throws SignCertificateNotSupportedException, InvalidCertificateException {
+        boolean isAuthCert;
+        X509Certificate certificate = null;
+        try {
+            certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
+            isAuthCert = CertUtils.isAuthCert(certificate);
+            if (!isAuthCert) {
+                throw new SignCertificateNotSupportedException("not an auth cert");
+            }
+        } catch (SignCertificateNotSupportedException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new InvalidCertificateException("invalid certificate", e);
         }
     }
 
@@ -530,6 +556,17 @@ public class TokenCertificateService {
 
         public AuthCertificateNotSupportedException(String msg) {
             super(msg, new ErrorDeviation(AUTH_CERT_NOT_SUPPORTED));
+        }
+    }
+
+    /**
+     * When trying to register a sign cert
+     */
+    public static class SignCertificateNotSupportedException extends ServiceException {
+        public static final String SIGN_CERT_NOT_SUPPORTED = "sign_cert_not_supported";
+
+        public SignCertificateNotSupportedException(String msg) {
+            super(msg, new ErrorDeviation(SIGN_CERT_NOT_SUPPORTED));
         }
     }
 }

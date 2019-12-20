@@ -31,7 +31,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.request.ManagementRequestSender;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -107,16 +106,5 @@ public class ManagementRequestService {
         ClientId sender = serverConf.getOwner().getIdentifier();
         ClientId receiver = globalConfFacade.getManagementRequestService();
         return new ManagementRequestSender(sender, receiver);
-    }
-
-    /**
-     * General exception for management requests
-     */
-    public static class ManagementRequestException extends ServiceException {
-        public static final String ERROR_MANAGEMENT_REQUEST = "management_request_failed";
-
-        public ManagementRequestException(Throwable t) {
-            super(t, new ErrorDeviation(ERROR_MANAGEMENT_REQUEST));
-        }
     }
 }

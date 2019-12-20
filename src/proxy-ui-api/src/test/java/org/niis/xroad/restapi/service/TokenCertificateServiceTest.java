@@ -24,20 +24,24 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.impl.DnFieldDescriptionImpl;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.niis.xroad.restapi.util.TokenTestUtils.KeyInfoBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,13 +52,17 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.util.CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH;
+import static org.niis.xroad.restapi.util.CertificateTestUtils.MOCK_CERTIFICATE_HASH;
 
 /**
  * Test TokenCertificateService
@@ -66,6 +74,8 @@ import static org.mockito.Mockito.when;
 @Transactional
 @WithMockUser
 public class TokenCertificateServiceTest {
+    public static final String GOOD_ADDRESS = "0.0.0.0";
+    public static final String BAD_ADDRESS = "1.1.1.1";
 
     @Autowired
     private TokenCertificateService tokenCertificateService;
@@ -75,6 +85,9 @@ public class TokenCertificateServiceTest {
 
     @MockBean
     private ClientService clientService;
+
+    @MockBean
+    private ManagementRequestService managementRequestService;
 
     @MockBean
     private CertificateAuthorityService certificateAuthorityService;
@@ -132,5 +145,53 @@ public class TokenCertificateServiceTest {
         tokenCertificateService.generateCertRequest(SIGN_KEY, client,
                 KeyUsageInfo.SIGNING, "ca", ImmutableMap.of("O", "baz"),
                 GenerateCertRequest.RequestFormat.DER);
+    }
+
+    @Test
+    public void registerAuthCertificate() throws Exception {
+        X509Certificate mockAuthCert = CertificateTestUtils.getMockAuthCertificate();
+        CertificateInfo certificateInfo = CertificateTestUtils.createTestCertificateInfo(mockAuthCert,
+                CertificateStatus.GOOD, "SAVED");
+        doAnswer(answer -> certificateInfo).when(signerProxyFacade).getCertForHash(any());
+        tokenCertificateService.registerAuthCert(MOCK_AUTH_CERTIFICATE_HASH, GOOD_ADDRESS);
+    }
+
+    @Test(expected = CodedException.class)
+    public void registerAuthCertificateFail() throws Exception {
+        X509Certificate mockAuthCert = CertificateTestUtils.getMockAuthCertificate();
+        CertificateInfo certificateInfo = CertificateTestUtils.createTestCertificateInfo(mockAuthCert,
+                CertificateStatus.GOOD, "SAVED");
+        doAnswer(answer -> certificateInfo).when(signerProxyFacade).getCertForHash(any());
+        when(managementRequestService.sendAuthCertRegisterRequest(any(), any(), any()))
+                .thenThrow(new CodedException("FAILED"));
+        tokenCertificateService.registerAuthCert(MOCK_AUTH_CERTIFICATE_HASH, BAD_ADDRESS);
+    }
+
+    @Test
+    public void unregisterAuthCertificate() throws Exception {
+        X509Certificate mockAuthCert = CertificateTestUtils.getMockAuthCertificate();
+        CertificateInfo certificateInfo = CertificateTestUtils.createTestCertificateInfo(mockAuthCert,
+                CertificateStatus.GOOD, "SAVED");
+        doAnswer(answer -> certificateInfo).when(signerProxyFacade).getCertForHash(any());
+        tokenCertificateService.unregisterAuthCert(MOCK_AUTH_CERTIFICATE_HASH);
+
+    }
+
+    @Test(expected = TokenCertificateService.SignCertificateNotSupportedException.class)
+    public void registerSignCertificate() throws Exception {
+        X509Certificate mockSignCert = CertificateTestUtils.getMockCertificate();
+        CertificateInfo certificateInfo = CertificateTestUtils.createTestCertificateInfo(mockSignCert,
+                CertificateStatus.GOOD, "SAVED");
+        doAnswer(answer -> certificateInfo).when(signerProxyFacade).getCertForHash(any());
+        tokenCertificateService.registerAuthCert(MOCK_CERTIFICATE_HASH, GOOD_ADDRESS);
+    }
+
+    @Test(expected = TokenCertificateService.SignCertificateNotSupportedException.class)
+    public void unregisterSignCertificate() throws Exception {
+        X509Certificate mockSignCert = CertificateTestUtils.getMockCertificate();
+        CertificateInfo certificateInfo = CertificateTestUtils.createTestCertificateInfo(mockSignCert,
+                CertificateStatus.GOOD, "SAVED");
+        doAnswer(answer -> certificateInfo).when(signerProxyFacade).getCertForHash(any());
+        tokenCertificateService.unregisterAuthCert(MOCK_CERTIFICATE_HASH);
     }
 }

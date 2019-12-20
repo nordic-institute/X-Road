@@ -126,7 +126,9 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
             tokenCertificateService.registerAuthCert(hash, securityServerAddress.getAddress());
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (GlobalConfService.GlobalConfOutdatedException e) {
+        } catch (GlobalConfService.GlobalConfOutdatedException
+                | TokenCertificateService.InvalidCertificateException
+                | TokenCertificateService.SignCertificateNotSupportedException e) {
             throw new BadRequestException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -139,7 +141,8 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
             tokenCertificateService.unregisterAuthCert(hash);
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (GlobalConfService.GlobalConfOutdatedException e) {
+        } catch (GlobalConfService.GlobalConfOutdatedException | TokenCertificateService.InvalidCertificateException
+                | TokenCertificateService.SignCertificateNotSupportedException e) {
             throw new BadRequestException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
