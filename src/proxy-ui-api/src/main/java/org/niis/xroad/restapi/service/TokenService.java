@@ -188,19 +188,6 @@ public class TokenService {
         }
     }
 
-    public TokenInfo getTokenForKeyId(String keyId) throws TokenNotFoundException {
-        // TO DO: optimize...?
-        for (TokenInfo tokenInfo: getAllTokens()) {
-            for (KeyInfo keyInfo: tokenInfo.getKeyInfo()) {
-                if (keyId.equals(keyInfo.getId())) {
-                    return tokenInfo;
-                }
-            }
-        }
-        return null;
-    }
-
-
     /**
      * update token friendly name
      * @param tokenId
@@ -291,14 +278,14 @@ public class TokenService {
      * Get TokenInfoAndKeyId for csr id
      */
     public TokenInfoAndKeyId getTokenAndKeyIdForCertificateRequestId(String csrId) throws KeyNotFoundException,
-            TokenCertificateService.CsrNotFoundException {
+            CsrNotFoundException {
         try {
             return signerProxyFacade.getTokenAndKeyIdForCertRequestId(csrId);
         } catch (CodedException e) {
             if (isCausedByKeyNotFound(e)) {
                 throw new KeyNotFoundException(e);
             } else if (isCausedByCsrNotFound(e)) {
-                throw new TokenCertificateService.CsrNotFoundException(e);
+                throw new CsrNotFoundException(e);
             } else {
                 throw e;
             }

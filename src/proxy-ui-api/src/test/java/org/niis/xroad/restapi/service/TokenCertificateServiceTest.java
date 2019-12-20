@@ -40,7 +40,6 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
-import org.niis.xroad.restapi.service.TokenCertificateService.CsrNotFoundException;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -318,7 +317,7 @@ public class TokenCertificateServiceTest {
         verify(signerProxyFacade, times(1)).deleteCert(EXISTING_CERT_HASH);
     }
 
-    @Test(expected = TokenCertificateService.ActionNotPossibleException.class)
+    @Test(expected = ActionNotPossibleException.class)
     @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
     public void deleteCertificateActionNotPossible() throws Exception {
         EnumSet empty = EnumSet.noneOf(StateChangeActionEnum.class);
@@ -403,7 +402,7 @@ public class TokenCertificateServiceTest {
         tokenCertificateService.deleteCsr(GOOD_CSR_ID);
         verify(signerProxyFacade, times(1)).deleteCertRequest(GOOD_CSR_ID);
     }
-    @Test(expected = TokenCertificateService.ActionNotPossibleException.class)
+    @Test(expected = ActionNotPossibleException.class)
     @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
     public void deleteCsrActionNotPossible() throws Exception {
         doReturn(EnumSet.noneOf(StateChangeActionEnum.class)).when(stateChangeActionHelper)

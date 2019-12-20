@@ -40,10 +40,12 @@ import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.KeyUsage;
+import org.niis.xroad.restapi.openapi.model.StateChangeAction;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
+import org.niis.xroad.restapi.service.CsrNotFoundException;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.StateChangeActionEnum;
 import org.niis.xroad.restapi.service.StateChangeActionHelper;
@@ -73,6 +75,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_EXISTS;
@@ -255,7 +260,7 @@ public class TokenCertificatesApiControllerIntegrationTest {
             tokenCertificatesApiController.importCertificate(body);
         } catch (ConflictException e) {
             ErrorDeviation error = e.getErrorDeviation();
-            assertEquals(TokenCertificateService.CsrNotFoundException.ERROR_CSR_NOT_FOUND, error.getCode());
+            assertEquals(CsrNotFoundException.ERROR_CSR_NOT_FOUND, error.getCode());
         }
     }
 
@@ -434,4 +439,15 @@ public class TokenCertificatesApiControllerIntegrationTest {
             assertEquals(CertificateNotFoundException.ERROR_CERTIFICATE_NOT_FOUND, error.getCode());
         }
     }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_KEYS" })
+    public void getPossibleActionsForCertificate() throws Exception {
+        ResponseEntity<List<StateChangeAction>> response = tokenCertificatesApiController
+                .getPossibleActionsForCertificate(MOCK_CERTIFICATE_HASH);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Set<StateChangeAction> allActions = new HashSet(Arrays.asList(StateChangeAction.values()));
+        assertEquals(allActions, new HashSet<>(response.getBody()));
+    }
+
 }

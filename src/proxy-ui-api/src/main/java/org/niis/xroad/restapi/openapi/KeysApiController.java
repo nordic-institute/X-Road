@@ -30,10 +30,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.KeyConverter;
 import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.KeyName;
+import org.niis.xroad.restapi.service.ActionNotPossibleException;
+import org.niis.xroad.restapi.service.CsrNotFoundException;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.KeyService;
 import org.niis.xroad.restapi.service.TokenCertificateService;
-import org.niis.xroad.restapi.service.TokenCertificateService.CsrNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -102,7 +103,7 @@ public class KeysApiController implements KeysApi {
             tokenCertificateService.deleteCsr(csrId);
         } catch (KeyNotFoundException | CsrNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (TokenCertificateService.ActionNotPossibleException e) {
+        } catch (ActionNotPossibleException e) {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

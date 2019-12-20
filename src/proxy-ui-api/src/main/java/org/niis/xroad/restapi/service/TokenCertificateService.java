@@ -354,24 +354,12 @@ public class TokenCertificateService {
     static final String CSR_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_CSR_NOT_FOUND;
     static final String CERT_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_CERT_NOT_FOUND;
 
-    /**
-     * TO DO: main level
-     */
-    public static class ActionNotPossibleException extends ServiceException {
-        public static final String ACTION_NOT_POSSIBLE = "action_not_possible";
-
-        public ActionNotPossibleException(String msg) {
-            super(msg, new ErrorDeviation(ACTION_NOT_POSSIBLE));
-        }
-    }
-
     public EnumSet<StateChangeActionEnum> getPossibleActionsForCertificate(String hash)
             throws CertificateNotFoundException {
         return getPossibleActionsForCertificateInternal(hash, null, null, null);
     }
 
     /**
-     * TO DO: add test?
      * Helper method which finds possible actions for certificate with given hash.
      * Either uses given CertificateInfo, KeyInfo and TokenInfo objects, or looks
      * them up based on cert hash if not given.
@@ -548,25 +536,6 @@ public class TokenCertificateService {
 
         public WrongCertificateUsageException(Throwable t) {
             super(t, new ErrorDeviation(ERROR_CERTIFICATE_WRONG_USAGE));
-        }
-    }
-
-    /**
-     * TO DO: lift to main level
-     * Thrown if Certificate sign request was not found
-     */
-    public static class CsrNotFoundException extends NotFoundException {
-        public static final String ERROR_CSR_NOT_FOUND = "csr_not_found";
-
-        public CsrNotFoundException(String s) {
-            super(s, createError());        }
-
-        public CsrNotFoundException(Throwable t) {
-            super(t, createError());
-        }
-
-        private static ErrorDeviation createError() {
-            return new ErrorDeviation(ERROR_CSR_NOT_FOUND);
         }
     }
 

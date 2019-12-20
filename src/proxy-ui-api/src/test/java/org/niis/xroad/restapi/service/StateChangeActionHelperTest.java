@@ -228,7 +228,7 @@ public class StateChangeActionHelperTest {
         try {
             helper.requirePossibleAction(StateChangeActionEnum.DELETE, actions);
             fail("should throw exception");
-        } catch (TokenCertificateService.ActionNotPossibleException expected) {
+        } catch (ActionNotPossibleException expected) {
         }
     }
 }

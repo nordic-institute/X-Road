@@ -155,12 +155,12 @@ public class StateChangeActionHelper {
     }
 
     /**
-     * @throws TokenCertificateService.ActionNotPossibleException if given action is not in possibleActions
+     * @throws ActionNotPossibleException if given action is not in possibleActions
      */
     public void requirePossibleAction(StateChangeActionEnum action, EnumSet<StateChangeActionEnum> possibleActions)
-            throws TokenCertificateService.ActionNotPossibleException {
+            throws ActionNotPossibleException {
         if (!possibleActions.contains(action)) {
-            throw new TokenCertificateService.ActionNotPossibleException(action + " is not possible");
+            throw new ActionNotPossibleException(action + " is not possible");
         }
     }
 }

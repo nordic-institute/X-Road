@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.Key;
+import org.niis.xroad.restapi.service.CsrNotFoundException;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.KeyService;
 import org.niis.xroad.restapi.service.TokenCertificateService;
@@ -87,7 +88,7 @@ public class KeysApiControllerTest {
             Object[] args = invocation.getArguments();
             String csrId = (String) args[0];
             if (!GOOD_CSR_ID.equals(csrId)) {
-                throw new TokenCertificateService.CsrNotFoundException("bar");
+                throw new CsrNotFoundException("bar");
             }
             return null;
         }).when(tokenCertificateService).deleteCsr(any());
