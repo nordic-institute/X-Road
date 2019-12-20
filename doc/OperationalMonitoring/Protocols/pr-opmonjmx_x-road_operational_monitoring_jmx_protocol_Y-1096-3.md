@@ -6,7 +6,7 @@
 
 **Technical Specification**
 
-Version: 0.5  
+Version: 1.0  
 Doc. ID: PR-OPMONJMX
 
 | Date       | Version     | Description                                                                  | Author             |
@@ -14,7 +14,7 @@ Doc. ID: PR-OPMONJMX
 |  | 0.2       | Initial version               |          |
 | 23.01.2017 | 0.3       | Added license text, table of contents and version history | Sami Kallio |
 | 05.03.2018 | 0.4       | Added terms and abbreviations reference and moved terms to term doc | Tatu Repo |
-| 12.12.2019 | 0.5       | Add description of serviceType gauges | Ilkka Seppälä |
+| 12.12.2019 | 1.0       | Add description of serviceType gauges | Ilkka Seppälä |
 
 ## Table of Contents <!-- omit in toc -->
 
