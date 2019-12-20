@@ -3,17 +3,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,42 +22,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.globalconf;
+package org.niis.xroad.restapi.service;
 
-import org.junit.Test;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
 /**
- * Tests for {@link TimeBasedObjectCache}
+ * Thrown if attempted to use KeyUsageInfo.SIGNING when only KeyUsageInfo.AUTHENTICATION
+ * was allowed, or vice versa.
  */
-public class TimeBasedObjectCacheTest {
-
-    @Test
-    public void testCache() throws InterruptedException {
-        final int expireSeconds = 3;
-        TimeBasedObjectCache cache = new TimeBasedObjectCache(expireSeconds);
-        assertFalse(cache.isValid("foo"));
-        cache.setValue("foo", 13);
-        assertTrue(cache.isValid("foo"));
-        idle(expireSeconds * 1000 / 2);
-        assertTrue(cache.isValid("foo"));
-        idle(expireSeconds * 1000);
-        assertFalse(cache.isValid("foo"));
-        cache.setValue("foo", 21);
-        assertTrue(cache.isValid("foo"));
-        cache.setValue("foo", null);
-        assertTrue(cache.isValid("foo"));
-    }
-
-    /**
-     * Idles for given time period
-     */
-    private static void idle(long periodMs) {
-        final long target = System.currentTimeMillis() + periodMs;
-        do {
-            Thread.yield();
-        } while (System.currentTimeMillis() < target);
+public class WrongKeyUsageException extends ServiceException {
+    public static final String ERROR_WRONG_KEY_USAGE = "wrong_key_usage";
+    public WrongKeyUsageException() {
+        super(new ErrorDeviation(ERROR_WRONG_KEY_USAGE));
     }
 }

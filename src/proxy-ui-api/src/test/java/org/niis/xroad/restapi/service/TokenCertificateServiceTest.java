@@ -25,13 +25,18 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
+import ee.ria.xroad.common.certificateprofile.impl.DnFieldDescriptionImpl;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
+import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
 
+import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,6 +46,7 @@ import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
+import org.niis.xroad.restapi.util.TestUtils;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -52,7 +58,10 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
@@ -67,10 +76,8 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-/**
- * test TokenCertificateService.
- */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase
@@ -107,6 +114,12 @@ public class TokenCertificateServiceTest {
     private SignerProxyFacade signerProxyFacade;
 
     @MockBean
+    private ClientService clientService;
+
+    @MockBean
+    private CertificateAuthorityService certificateAuthorityService;
+
+    @MockBean
     private KeyService keyService;
 
     @MockBean
@@ -121,10 +134,23 @@ public class TokenCertificateServiceTest {
     @SpyBean
     private StateChangeActionHelper stateChangeActionHelper;
 
-    @MockBean TokenService tokenService;
+    @MockBean
+    private TokenService tokenService;
+
+    private final ClientId client = ClientId.create(TestUtils.INSTANCE_FI,
+            TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1);
 
     @Before
-    public void setUp() throws Exception {
+    public void setup() throws Exception {
+        when(clientService.getLocalClientMemberIds())
+                .thenReturn(new HashSet<>(Collections.singletonList(client)));
+
+        DnFieldDescription editableField = new DnFieldDescriptionImpl("O", "x", "default")
+                .setReadOnly(false);
+        when(certificateAuthorityService.getCertificateProfile(any(), any(), any()))
+                .thenReturn(new DnFieldTestCertificateProfileInfo(
+                        editableField, true));
+
         // need lots of mocking
         // construct some test keys, with csrs and certs
         // make used finders return data from these items:
@@ -169,7 +195,6 @@ public class TokenCertificateServiceTest {
         // by default all actions are possible
         doReturn(EnumSet.allOf(StateChangeActionEnum.class)).when(stateChangeActionHelper)
                 .getPossibleCertificateActions(any(), any(), any());
-
     }
 
     private void mockDeleteCertRequest() throws Exception {
@@ -305,6 +330,28 @@ public class TokenCertificateServiceTest {
         }).when(tokenService).getTokenAndKeyIdForCertificateHash(any());
     }
 
+    @Test
+    public void generateCertRequest() throws Exception {
+        // wrong key usage
+        try {
+            tokenCertificateService.generateCertRequest(AUTH_KEY_ID, client,
+                    KeyUsageInfo.SIGNING, "ca", new HashMap<>(),
+                    null);
+            fail("should throw exception");
+        } catch (WrongKeyUsageException expected) {
+        }
+        try {
+            tokenCertificateService.generateCertRequest(SIGN_KEY_ID, client,
+                    KeyUsageInfo.AUTHENTICATION, "ca", new HashMap<>(),
+                    null);
+            fail("should throw exception");
+        } catch (WrongKeyUsageException expected) {
+        }
+        tokenCertificateService.generateCertRequest(SIGN_KEY_ID, client,
+                KeyUsageInfo.SIGNING, "ca", ImmutableMap.of("O", "baz"),
+                GenerateCertRequest.RequestFormat.DER);
+    }
+
     private CodedException signerException(String code) {
         return CodedException.tr(code, "mock-translation", "mock-message")
                 .withPrefix(SIGNER_X);
@@ -409,4 +456,5 @@ public class TokenCertificateServiceTest {
                 .getPossibleCsrActions(any(), any(), any());
         tokenCertificateService.deleteCsr(GOOD_CSR_ID);
     }
+
 }
