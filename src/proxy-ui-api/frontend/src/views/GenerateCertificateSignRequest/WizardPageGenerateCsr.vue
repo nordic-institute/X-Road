@@ -59,10 +59,10 @@ export default Vue.extend({
     };
   },
   methods: {
-    cancel() {
+    cancel(): void {
       this.$emit('cancel');
     },
-    done() {
+    done(): void {
       this.$emit('done');
     },
     generateCsr(): void {

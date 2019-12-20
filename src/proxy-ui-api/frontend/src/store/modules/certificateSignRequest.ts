@@ -1,9 +1,8 @@
 
-import _ from 'lodash';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { saveAsFile } from '@/util/helpers';
-import { Key, Token } from '@/types';
+import { saveResponseAsFile } from '@/util/helpers';
+import { Key, CertificateAuthority, CsrSubjectFieldDescription } from '@/types';
 import * as api from '@/util/api';
 import { UsageTypes, CsrFormatTypes } from '@/global';
 
@@ -14,9 +13,9 @@ export interface CsrState {
   usage: string | null;
   certificationService: string;
   csrFormat: string;
-  certificationServiceList: any[];
+  certificationServiceList: CertificateAuthority[];
   keyId: string;
-  form: any;
+  form: CsrSubjectFieldDescription[];
 }
 
 const getDefaultState = () => {
@@ -28,7 +27,7 @@ const getDefaultState = () => {
     csrFormat: CsrFormatTypes.DER,
     certificationServiceList: [],
     keyId: '',
-    form: null,
+    form: [],
   };
 };
 
@@ -52,10 +51,10 @@ export const getters: GetterTree<CsrState, RootState> = {
   csrFormat(state): string {
     return state.csrFormat;
   },
-  csrForm(state): string {
+  csrForm(state): CsrSubjectFieldDescription[] {
     return state.form;
   },
-  certificationServiceList(state): any[] {
+  certificationServiceList(state): CertificateAuthority[] {
     return state.certificationServiceList;
   },
   keyId(state): string {
@@ -68,11 +67,11 @@ export const getters: GetterTree<CsrState, RootState> = {
     }
     return false;
   },
-  filteredServiceList(state): any[] {
+  filteredServiceList(state): CertificateAuthority[] {
     // Return the list of available auth services based on the current usage type
     if (state.usage === UsageTypes.SIGNING) {
       const filtered = state.certificationServiceList.filter(
-        (service: any) => {
+        (service: CertificateAuthority) => {
           return !service.authentication_only;
         },
       );
@@ -101,10 +100,10 @@ export const mutations: MutationTree<CsrState> = {
   storeCsrFormat(state, csrFormat: string) {
     state.csrFormat = csrFormat;
   },
-  storeCertificationServiceList(state, csl: any[]) {
+  storeCertificationServiceList(state, csl: CertificateAuthority[]) {
     state.certificationServiceList = csl;
   },
-  storeForm(state, form: any) {
+  storeForm(state, form: CsrSubjectFieldDescription[]) {
     state.form = form;
   },
   storeKeyId(state, id: string) {
@@ -179,7 +178,7 @@ export const actions: ActionTree<CsrState, RootState> = {
     });
 
     return api
-      .put(`/keys/${state.keyId}/generate-csr`, {
+      .post(`/keys/${state.keyId}/csrs`, {
         key_usage_type: state.usage,
         ca_name: state.certificationService,
         csr_format: state.csrFormat,
@@ -187,7 +186,7 @@ export const actions: ActionTree<CsrState, RootState> = {
         member_id: state.csrClient,
       })
       .then((response) => {
-        saveAsFile(response);
+        saveResponseAsFile(response);
       }).catch((error: any) => {
         throw error;
       });

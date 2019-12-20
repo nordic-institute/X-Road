@@ -2,7 +2,7 @@ import axios from 'axios';
 import _ from 'lodash';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { saveAsFile } from '@/util/helpers';
+import { saveResponseAsFile } from '@/util/helpers';
 
 export interface Client {
   id: string;
@@ -175,7 +175,7 @@ export const actions: ActionTree<ClientState, RootState> = {
   downloadSSCertificate({ commit, state }, { hash }) {
 
     axios.get(`/system/certificate/export`, { responseType: 'arraybuffer' }).then((response) => {
-      saveAsFile(response);
+      saveResponseAsFile(response);
     });
   },
 

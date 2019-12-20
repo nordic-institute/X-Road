@@ -2,7 +2,6 @@ import axios from 'axios';
 import _ from 'lodash';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { saveAsFile } from '@/util/helpers';
 import i18n from './../../i18n';
 
 export interface Client {

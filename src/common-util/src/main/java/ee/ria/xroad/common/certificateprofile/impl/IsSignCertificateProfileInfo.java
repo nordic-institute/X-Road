@@ -46,18 +46,21 @@ public class IsSignCertificateProfileInfo extends AbstractCertificateProfileInfo
     public IsSignCertificateProfileInfo(Parameters params) {
         super(new DnFieldDescription[] {
                 // Country Code
-                new DnFieldDescriptionImpl("C", "Country code (C)", "IS").setReadOnly(true),
+                new EnumLocalizedFieldDescriptionImpl(
+                        "C", DnFieldLabelLocalizationKey.COUNTRY_CODE, "IS").setReadOnly(true),
 
                 // Organization name
-                new DnFieldDescriptionImpl("O", "Organization name (O)", "").setReadOnly(false),
+                new EnumLocalizedFieldDescriptionImpl(
+                        "O", DnFieldLabelLocalizationKey.ORGANIZATION_NAME, "").setReadOnly(false),
 
                 // Serialnumber
-                new DnFieldDescriptionImpl("serialNumber", "Serial number",
-                        params.getClientId().getXRoadInstance() + "/" + params.getServerId().getServerCode() + "/"
-                                + params.getClientId().getMemberClass()).setReadOnly(true),
+                new EnumLocalizedFieldDescriptionImpl("serialNumber", DnFieldLabelLocalizationKey.SERIAL_NUMBER,
+                        params.getClientId().getXRoadInstance() + "/" + params.getServerId().getServerCode()
+                                + "/" + params.getClientId().getMemberClass()).setReadOnly(true),
 
                 // Member code
-                new DnFieldDescriptionImpl("CN", "Member code", params.getClientId().getMemberCode())
+                new EnumLocalizedFieldDescriptionImpl(
+                        "CN", DnFieldLabelLocalizationKey.MEMBER_CODE, params.getClientId().getMemberCode())
                         .setReadOnly(true) });
         this.params = params;
     }

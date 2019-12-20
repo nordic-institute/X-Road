@@ -22,42 +22,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.openapi;
 
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
+import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
 
-import lombok.extern.slf4j.Slf4j;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
 /**
- * test ClientRepository
+ * test CsrFilenameCreatorTest
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Slf4j
-@Transactional
-public class ClientRepositoryIntegrationTest {
+public class CsrFilenameCreatorTest {
 
-    @Autowired
-    private ClientRepository clientRepository;
+    private CsrFilenameCreator csrFilenameCreator;
 
-    @Test
-    public void getAllLocalClients() {
-        List<ClientType> clients = clientRepository.getAllLocalClients();
-        assertEquals(4, clients.size());
+    @Before
+    public void setup() throws Exception {
+        csrFilenameCreator = new CsrFilenameCreator() {
+            @Override
+            String createDateString() {
+                return "20190228";
+            }
+        };
     }
 
+    @Test
+    public void createCsrFilename() {
+        SecurityServerId securityServerId = SecurityServerId.create("I", "MEMCLASS",  "MEMCODE", "SERVERCODE");
+        ClientId memberId = ClientId.create("I", "MEMCLASS",  "MEMCODE", null);
+        String authFilename = csrFilenameCreator.createCsrFilename(KeyUsageInfo.AUTHENTICATION,
+                GenerateCertRequest.RequestFormat.PEM,
+                memberId, securityServerId);
+        assertEquals("auth_csr_20190228_securityserver_I_MEMCLASS_MEMCODE_SERVERCODE.pem", authFilename);
+        String signFilename = csrFilenameCreator.createCsrFilename(KeyUsageInfo.SIGNING,
+                GenerateCertRequest.RequestFormat.DER,
+                memberId, securityServerId);
+        assertEquals("sign_csr_20190228_member_I_MEMCLASS_MEMCODE.der", signFilename);
+    }
 }
-
-
