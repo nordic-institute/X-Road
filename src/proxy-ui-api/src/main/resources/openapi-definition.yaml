@@ -1781,6 +1781,50 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /keys/{id}/csrs/{csr_id}/possible-actions:
+    get: # ok
+      tags:
+        - security server
+      summary: get possible actions for one csr
+      operationId: getPossibleActionsForCsr
+      description: UI needs to know which actions can be done on one csr
+      parameters:
+        - in: path
+          name: id
+          description: id of the key
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+        - in: path
+          name: csr_id
+          description: id of the csr
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '200':
+          description: possible actions that can be done on the certificate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PossibleActions'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /member-classes:
     get: # ok
       tags:

@@ -40,8 +40,8 @@ import java.util.stream.Collectors;
 public class StateChangeActionConverter {
 
     public List<StateChangeAction> convert(
-            Iterable<StateChangeActionEnum> serviceDescriptionTypes) {
-        return Streams.stream(serviceDescriptionTypes)
+            Iterable<StateChangeActionEnum> actionEnums) {
+        return Streams.stream(actionEnums)
                        .map(this::convert)
                        .collect(Collectors.toList());
     }

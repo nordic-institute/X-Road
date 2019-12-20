@@ -458,9 +458,39 @@ public class TokenCertificateService {
     static final String CSR_NOT_FOUND_FAULT_CODE = signerFaultCode(X_CSR_NOT_FOUND);
     static final String CERT_NOT_FOUND_FAULT_CODE = signerFaultCode(X_CERT_NOT_FOUND);
 
+    /**
+     * Return possible actions for one cert
+     * @param hash
+     * @return
+     * @throws CertificateNotFoundException
+     */
     public EnumSet<StateChangeActionEnum> getPossibleActionsForCertificate(String hash)
             throws CertificateNotFoundException {
         return getPossibleActionsForCertificateInternal(hash, null, null, null);
+    }
+
+    /**
+     * Return possible actions for one csr
+     * Key not found exceptions are wrapped as RuntimeExceptions
+     * since them happening is considered to be internal error.
+     * @throws CertificateNotFoundException
+     */
+    public EnumSet<StateChangeActionEnum> getPossibleActionsForCsr(
+            String csrId) throws CsrNotFoundException {
+
+        TokenInfoAndKeyId tokenInfoAndKeyId = null;
+        try {
+            tokenInfoAndKeyId = tokenService.getTokenAndKeyIdForCertificateRequestId(csrId);
+        } catch (KeyNotFoundException e) {
+            throw new RuntimeException("internal error", e);
+        }
+        TokenInfo tokenInfo = tokenInfoAndKeyId.getTokenInfo();
+        KeyInfo keyInfo = tokenInfoAndKeyId.getKeyInfo();
+        CertRequestInfo certRequestInfo = getCsr(keyInfo, csrId);
+
+        EnumSet<StateChangeActionEnum> possibleActions = stateChangeActionHelper.
+                getPossibleCsrActions(tokenInfo, keyInfo, certRequestInfo);
+        return possibleActions;
     }
 
     /**

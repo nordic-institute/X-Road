@@ -34,9 +34,11 @@ import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.CsrFormatMapping;
 import org.niis.xroad.restapi.converter.KeyConverter;
 import org.niis.xroad.restapi.converter.KeyUsageTypeMapping;
+import org.niis.xroad.restapi.converter.StateChangeActionConverter;
 import org.niis.xroad.restapi.openapi.model.CsrGenerate;
 import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.KeyName;
+import org.niis.xroad.restapi.openapi.model.StateChangeAction;
 import org.niis.xroad.restapi.service.ActionNotPossibleException;
 import org.niis.xroad.restapi.service.CertificateAuthorityNotFoundException;
 import org.niis.xroad.restapi.service.CertificateProfileInstantiationException;
@@ -46,6 +48,7 @@ import org.niis.xroad.restapi.service.DnFieldHelper;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.KeyService;
 import org.niis.xroad.restapi.service.ServerConfService;
+import org.niis.xroad.restapi.service.StateChangeActionEnum;
 import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.service.WrongKeyUsageException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +58,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.util.EnumSet;
+import java.util.List;
 
 /**
  * keys controller
@@ -71,7 +77,7 @@ public class KeysApiController implements KeysApi {
     private final TokenCertificateService tokenCertificateService;
     private final ServerConfService serverConfService;
     private final CsrFilenameCreator csrFilenameCreator;
-
+    private final StateChangeActionConverter stateChangeActionConverter;
 
     /**
      * KeysApiController constructor
@@ -82,13 +88,15 @@ public class KeysApiController implements KeysApi {
             ClientConverter clientConverter,
             TokenCertificateService tokenCertificateService,
             ServerConfService serverConfService,
-            CsrFilenameCreator csrFilenameCreator) {
+            CsrFilenameCreator csrFilenameCreator,
+            StateChangeActionConverter stateChangeActionConverter) {
         this.keyService = keyService;
         this.keyConverter = keyConverter;
         this.clientConverter = clientConverter;
         this.tokenCertificateService = tokenCertificateService;
         this.serverConfService = serverConfService;
         this.csrFilenameCreator = csrFilenameCreator;
+        this.stateChangeActionConverter = stateChangeActionConverter;
     }
 
     @Override
@@ -180,5 +188,16 @@ public class KeysApiController implements KeysApi {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_KEYS')")
+    public ResponseEntity<List<StateChangeAction>> getPossibleActionsForCsr(String id, String csrId) {
+        try {
+            EnumSet<StateChangeActionEnum> actions = tokenCertificateService
+                    .getPossibleActionsForCsr(csrId);
+            return new ResponseEntity<>(stateChangeActionConverter.convert(actions), HttpStatus.OK);
+        } catch (CsrNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+    }
 }
 

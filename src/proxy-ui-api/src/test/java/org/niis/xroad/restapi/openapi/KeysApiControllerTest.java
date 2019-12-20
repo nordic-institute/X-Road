@@ -32,9 +32,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.Key;
+import org.niis.xroad.restapi.openapi.model.StateChangeAction;
 import org.niis.xroad.restapi.service.CsrNotFoundException;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.KeyService;
+import org.niis.xroad.restapi.service.StateChangeActionEnum;
 import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,10 +49,17 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 
 /**
  * test keys api
@@ -100,6 +109,10 @@ public class KeysApiControllerTest {
             }
             return null;
         }).when(tokenCertificateService).deleteCsr(any());
+
+        // by default all actions are possible
+        doReturn(EnumSet.allOf(StateChangeActionEnum.class)).when(tokenCertificateService)
+                .getPossibleActionsForCsr(any());
     }
 
     private Object returnKeyInfoOrThrow(String keyId) throws KeyNotFoundException {
@@ -139,5 +152,15 @@ public class KeysApiControllerTest {
 
         ResponseEntity<Void> response = keysApiController.deleteCsr(GOOD_SIGN_KEY_ID, GOOD_CSR_ID);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_KEYS" })
+    public void getPossibleActionsForCsr() throws Exception {
+        ResponseEntity<List<StateChangeAction>> response = keysApiController
+                .getPossibleActionsForCsr(GOOD_SIGN_KEY_ID, GOOD_CSR_ID);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Set<StateChangeAction> allActions = new HashSet(Arrays.asList(StateChangeAction.values()));
+        assertEquals(allActions, new HashSet<>(response.getBody()));
     }
 }
