@@ -240,7 +240,7 @@ public class TokenCertificateService {
      * @throws GlobalConfService.GlobalConfOutdatedException
      */
     public void registerAuthCert(String hash, String securityServerAddress) throws CertificateNotFoundException,
-            ServerConfService.MalformedServerConfException, ManagementRequestService.ManagementRequestException,
+            ServerConfService.MalformedServerConfException,
             GlobalConfService.GlobalConfOutdatedException {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         SecurityServerId securityServerId = serverConfService.getSecurityServerId();
@@ -254,6 +254,7 @@ public class TokenCertificateService {
                 if (isCausedByCertNotFound(ce)) {
                     throw new CertificateNotFoundException(ce);
                 }
+                throw ce;
             }
             throw new RuntimeException("Could not set certificate status", e);
         }
@@ -264,11 +265,10 @@ public class TokenCertificateService {
      * @param hash certificate hash
      * @throws CertificateNotFoundException
      * @throws ServerConfService.MalformedServerConfException
-     * @throws ManagementRequestService.ManagementRequestException
      * @throws GlobalConfService.GlobalConfOutdatedException
      */
     public void unregisterAuthCert(String hash) throws CertificateNotFoundException,
-            ServerConfService.MalformedServerConfException, ManagementRequestService.ManagementRequestException,
+            ServerConfService.MalformedServerConfException,
             GlobalConfService.GlobalConfOutdatedException {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         SecurityServerId securityServerId = serverConfService.getSecurityServerId();

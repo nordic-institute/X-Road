@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -65,16 +66,17 @@ public class ManagementRequestService {
      * @param authCert the authentication certificate bytes
      * @return request ID in the central server database (e.g. for audit logs if wanted)
      * @throws ServerConfService.MalformedServerConfException e.g. security server not initialized
-     * @throws ManagementRequestException if an error occurs
      */
     public Integer sendAuthCertRegisterRequest(SecurityServerId securityServer, String address, byte[] authCert)
-            throws ServerConfService.MalformedServerConfException, ManagementRequestException,
-            GlobalConfService.GlobalConfOutdatedException {
+            throws ServerConfService.MalformedServerConfException, GlobalConfService.GlobalConfOutdatedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
             return sender.sendAuthCertRegRequest(securityServer, address, authCert);
         } catch (Exception e) {
-            throw new ManagementRequestException(e);
+            if (e instanceof CodedException) {
+                throw (CodedException) e;
+            }
+            throw new RuntimeException(e);
         }
     }
 
@@ -85,16 +87,17 @@ public class ManagementRequestService {
      * deleted
      * @param authCert the authentication certificate bytes
      * @return request ID in the central server database (e.g. for audit logs if wanted)
-     * @throws ManagementRequestException if an error occurs
      */
     public Integer sendAuthCertDeletionRequest(SecurityServerId securityServer, byte[] authCert)
-            throws ServerConfService.MalformedServerConfException, ManagementRequestException,
-            GlobalConfService.GlobalConfOutdatedException {
+            throws ServerConfService.MalformedServerConfException, GlobalConfService.GlobalConfOutdatedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
             return sender.sendAuthCertDeletionRequest(securityServer, authCert);
         } catch (Exception e) {
-            throw new ManagementRequestException(e);
+            if (e instanceof CodedException) {
+                throw (CodedException) e;
+            }
+            throw new RuntimeException(e);
         }
     }
 
