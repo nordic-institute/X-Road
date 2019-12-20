@@ -79,6 +79,7 @@ import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
 public class TokenCertificateService {
 
     private static final String DUMMY_MEMBER = "dummy";
+    private static final String NOT_FOUND = "not found";
 
     private final GlobalConfService globalConfService;
     private final GlobalConfFacade globalConfFacade;
@@ -138,7 +139,7 @@ public class TokenCertificateService {
         if (keyUsage == KeyUsageInfo.SIGNING) {
             // validate that the member exists or has a subsystem on this server
             if (!clientService.getLocalClientMemberIds().contains(memberId)) {
-                throw new ClientNotFoundException("client with id " + memberId + ", or subsystem for it, not found");
+                throw new ClientNotFoundException("client with id " + memberId + ", or subsystem for it, " + NOT_FOUND);
             }
         }
 
@@ -238,7 +239,7 @@ public class TokenCertificateService {
             certificateInfo = signerProxyFacade.getCertForHash(hash.toLowerCase()); // lowercase needed in Signer
         } catch (CodedException e) {
             if (isCausedByCertNotFound(e)) {
-                throw new CertificateNotFoundException("Certificate with hash " + hash + " not found");
+                throw new CertificateNotFoundException("Certificate with hash " + hash + " " + NOT_FOUND);
             } else {
                 throw e;
             }
@@ -311,7 +312,7 @@ public class TokenCertificateService {
                 clientId = getClientIdForSigningCert(xroadInstance, x509Certificate);
                 boolean clientExists = clientRepository.clientExists(clientId, true);
                 if (!clientExists) {
-                    throw new ClientNotFoundException("client " + clientId.toShortString() + " not found",
+                    throw new ClientNotFoundException("client " + clientId.toShortString() + " " + NOT_FOUND,
                             FormatUtils.xRoadIdToEncodedId(clientId));
                 }
                 certificateState = CertificateInfo.STATUS_REGISTERED;
@@ -342,7 +343,7 @@ public class TokenCertificateService {
             signerProxyFacade.activateCert(certificateId);
         } catch (CodedException e) {
             if (isCausedByCertNotFound(e)) {
-                throw new CertificateNotFoundException("Certificate with id " + certificateId + " not found");
+                throw new CertificateNotFoundException("Certificate with id " + certificateId + " " + NOT_FOUND);
             } else {
                 throw e;
             }
@@ -362,7 +363,7 @@ public class TokenCertificateService {
             signerProxyFacade.deactivateCert(certificateId);
         } catch (CodedException e) {
             if (isCausedByCertNotFound(e)) {
-                throw new CertificateNotFoundException("Certificate with id " + certificateId + " not found");
+                throw new CertificateNotFoundException("Certificate with id " + certificateId + " " + NOT_FOUND);
             } else {
                 throw e;
             }
