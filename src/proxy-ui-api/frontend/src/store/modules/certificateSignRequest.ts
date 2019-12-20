@@ -178,7 +178,7 @@ export const actions: ActionTree<CsrState, RootState> = {
     });
 
     return api
-      .put(`/keys/${state.keyId}/generate-csr`, {
+      .post(`/keys/${state.keyId}/csrs`, {
         key_usage_type: state.usage,
         ca_name: state.certificationService,
         csr_format: state.csrFormat,
