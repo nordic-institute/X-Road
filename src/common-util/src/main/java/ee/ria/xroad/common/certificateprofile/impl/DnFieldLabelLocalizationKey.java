@@ -22,42 +22,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.globalconf;
-
-import org.junit.Test;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+package ee.ria.xroad.common.certificateprofile.impl;
 
 /**
- * Tests for {@link TimeBasedObjectCache}
+ * Known DnFieldDescription labelKeys
  */
-public class TimeBasedObjectCacheTest {
+public enum DnFieldLabelLocalizationKey {
+    COMMON_NAME("Common Name (CN)"),
+    COUNTRY_CODE("Country Code (C)"),
+    INSTANCE_IDENTIFIER("Instance Identifier (C)"),
+    MEMBER_CLASS("Member Class (O)"),
+    MEMBER_CODE("Member Code (CN)"),
+    ORGANIZATION_NAME("Organization Name (O)"),
+    SERIAL_NUMBER("Serial Number"),
+    SERIAL_NUMBER_SN("Serial Number (SN)"),
+    SERVER_CODE("Server Code (CN)"),
+    SERVER_DNS_NAME("Server DNS name (CN)");
 
-    @Test
-    public void testCache() throws InterruptedException {
-        final int expireSeconds = 3;
-        TimeBasedObjectCache cache = new TimeBasedObjectCache(expireSeconds);
-        assertFalse(cache.isValid("foo"));
-        cache.setValue("foo", 13);
-        assertTrue(cache.isValid("foo"));
-        idle(expireSeconds * 1000 / 2);
-        assertTrue(cache.isValid("foo"));
-        idle(expireSeconds * 1000);
-        assertFalse(cache.isValid("foo"));
-        cache.setValue("foo", 21);
-        assertTrue(cache.isValid("foo"));
-        cache.setValue("foo", null);
-        assertTrue(cache.isValid("foo"));
+    private final String compatibilityLabel;
+
+    DnFieldLabelLocalizationKey(String compatibilityLabel) {
+        this.compatibilityLabel = compatibilityLabel;
+
     }
-
     /**
-     * Idles for given time period
+     * For backwards compatibility while we still support old UI.
+     * Remove when old UI support can be removed
+     * @return
      */
-    private static void idle(long periodMs) {
-        final long target = System.currentTimeMillis() + periodMs;
-        do {
-            Thread.yield();
-        } while (System.currentTimeMillis() < target);
+    @Deprecated
+    public String getLabel() {
+        return compatibilityLabel;
     }
 }

@@ -24,7 +24,6 @@
  */
 package org.niis.xroad.restapi.repository;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 
@@ -35,7 +34,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Repository to handle ServerConf
+ * repository for working with ServerConfType / serverconf table
  */
 @Slf4j
 @Repository
@@ -49,7 +48,11 @@ public class ServerConfRepository {
         this.persistenceUtils = persistenceUtils;
     }
 
-    public ServerConfType getServerConf() throws CodedException {
+    /**
+     * Return ServerConfType
+     * @return
+     */
+    public ServerConfType getServerConf() {
         ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
         return serverConfDAO.getConf(persistenceUtils.getCurrentSession());
     }

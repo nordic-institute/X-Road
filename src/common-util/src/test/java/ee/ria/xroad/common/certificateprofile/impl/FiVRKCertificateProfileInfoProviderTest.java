@@ -78,14 +78,14 @@ public class FiVRKCertificateProfileInfoProviderTest {
     @Test
     public void signProfileSubjectFields() {
         DnFieldDescription[] expectedFields = {
-            new DnFieldDescriptionImpl("C", "Country code (C)", "FI")
+            new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.COUNTRY_CODE, "FI")
                 .setReadOnly(true),
-            new DnFieldDescriptionImpl("O", "Organization name (O)", "")
+            new EnumLocalizedFieldDescriptionImpl("O", DnFieldLabelLocalizationKey.ORGANIZATION_NAME, "")
                 .setReadOnly(false),
-            new DnFieldDescriptionImpl("serialNumber", "Serial number",
+            new EnumLocalizedFieldDescriptionImpl("serialNumber", DnFieldLabelLocalizationKey.SERIAL_NUMBER,
                     "XX/server/Foo")
                 .setReadOnly(true),
-            new DnFieldDescriptionImpl("CN", "Member code", "Bar")
+            new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.MEMBER_CODE, "Bar")
                 .setReadOnly(true)
         };
 
@@ -170,14 +170,14 @@ public class FiVRKCertificateProfileInfoProviderTest {
     @Test
     public void authProfileSubjectFields() {
         DnFieldDescription[] expectedFields = {
-                new DnFieldDescriptionImpl("C", "Country code (C)", "FI")
+                new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.COUNTRY_CODE, "FI")
                         .setReadOnly(true),
-                new DnFieldDescriptionImpl("O", "Organization name (O)", "")
+                new EnumLocalizedFieldDescriptionImpl("O", DnFieldLabelLocalizationKey.ORGANIZATION_NAME, "")
                         .setReadOnly(false),
-                new DnFieldDescriptionImpl("serialNumber", "Serial number",
+                new EnumLocalizedFieldDescriptionImpl("serialNumber", DnFieldLabelLocalizationKey.SERIAL_NUMBER,
                         "XX/server/foo")
                         .setReadOnly(true),
-                new DnFieldDescriptionImpl("CN", "Server DNS name (CN)", "")
+                new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.SERVER_DNS_NAME, "")
                         .setReadOnly(false)
         };
 

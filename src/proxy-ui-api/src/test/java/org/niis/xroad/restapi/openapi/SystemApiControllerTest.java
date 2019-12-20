@@ -74,4 +74,5 @@ public class SystemApiControllerTest {
                 systemApiController.getSystemCertificate().getBody();
         assertEquals("xroad2-lxd-ss1", certificate.getIssuerCommonName());
     }
+
 }

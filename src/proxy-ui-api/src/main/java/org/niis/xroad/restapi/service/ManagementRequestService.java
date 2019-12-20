@@ -65,10 +65,9 @@ public class ManagementRequestService {
      * @param address the IP address of the security server
      * @param authCert the authentication certificate bytes
      * @return request ID in the central server database (e.g. for audit logs if wanted)
-     * @throws ServerConfService.MalformedServerConfException e.g. security server not initialized
      */
     public Integer sendAuthCertRegisterRequest(SecurityServerId securityServer, String address, byte[] authCert)
-            throws ServerConfService.MalformedServerConfException, GlobalConfService.GlobalConfOutdatedException {
+            throws GlobalConfService.GlobalConfOutdatedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
             return sender.sendAuthCertRegRequest(securityServer, address, authCert);
@@ -89,7 +88,7 @@ public class ManagementRequestService {
      * @return request ID in the central server database (e.g. for audit logs if wanted)
      */
     public Integer sendAuthCertDeletionRequest(SecurityServerId securityServer, byte[] authCert)
-            throws ServerConfService.MalformedServerConfException, GlobalConfService.GlobalConfOutdatedException {
+            throws GlobalConfService.GlobalConfOutdatedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
             return sender.sendAuthCertDeletionRequest(securityServer, authCert);
@@ -102,7 +101,7 @@ public class ManagementRequestService {
     }
 
     private ManagementRequestSender createManagementRequestSender()
-            throws ServerConfService.MalformedServerConfException, GlobalConfService.GlobalConfOutdatedException {
+            throws GlobalConfService.GlobalConfOutdatedException {
         globalConfService.verifyGlobalConfValidity();
         ServerConfType serverConf = serverConfService.getServerConf();
         ClientId sender = serverConf.getOwner().getIdentifier();

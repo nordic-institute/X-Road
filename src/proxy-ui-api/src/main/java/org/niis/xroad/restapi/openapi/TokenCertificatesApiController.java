@@ -35,8 +35,6 @@ import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
-import org.niis.xroad.restapi.service.ManagementRequestService;
-import org.niis.xroad.restapi.service.ServerConfService;
 import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.util.ResourceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -128,7 +126,7 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
             tokenCertificateService.registerAuthCert(hash, securityServerAddress.getAddress());
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (ServerConfService.MalformedServerConfException | GlobalConfService.GlobalConfOutdatedException e) {
+        } catch (GlobalConfService.GlobalConfOutdatedException e) {
             throw new BadRequestException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -141,7 +139,7 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
             tokenCertificateService.unregisterAuthCert(hash);
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (ServerConfService.MalformedServerConfException | GlobalConfService.GlobalConfOutdatedException e) {
+        } catch (GlobalConfService.GlobalConfOutdatedException e) {
             throw new BadRequestException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

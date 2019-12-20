@@ -24,6 +24,11 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -67,7 +72,7 @@ public class ApiUtil {
      * @param <T>
      * @return
      */
-    public static  <T> ResponseEntity<T> createCreatedResponse(String path,
+    public static <T> ResponseEntity<T> createCreatedResponse(String path,
             T body, Object... uriVariableValues) {
         URI location = ServletUriComponentsBuilder
                                .fromCurrentRequest()
@@ -78,5 +83,20 @@ public class ApiUtil {
                        .body(body);
     }
 
+    /**
+     * Creates a ResponseEntity that contains an attachment with given filename
+     * @param attachmentBytes
+     * @param filename
+     * @return
+     */
+    public static ResponseEntity<Resource> createAttachmentResourceResponse(byte[] attachmentBytes, String filename) {
+        ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
+                .filename(filename)
+                .build();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentDisposition(contentDisposition);
 
+        Resource resource = new ByteArrayResource(attachmentBytes);
+        return new ResponseEntity<>(resource, headers, HttpStatus.OK);
+    }
 }
