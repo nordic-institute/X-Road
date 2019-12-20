@@ -3,7 +3,7 @@
     <div class="cert-dialog-header">
       <span class="cert-headline">{{title}}</span>
       <v-spacer></v-spacer>
-      <i @click="close()" id="close-x"></i>
+      <i v-if="showClose" @click="close()" id="close-x"></i>
     </div>
   </div>
 </template>
@@ -15,6 +15,10 @@ export default Vue.extend({
   props: {
     title: {
       type: String,
+    },
+    showClose: {
+      type: Boolean,
+      default: true,
     },
   },
   data() {
