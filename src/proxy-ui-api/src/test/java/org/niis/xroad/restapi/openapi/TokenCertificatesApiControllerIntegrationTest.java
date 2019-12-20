@@ -45,6 +45,7 @@ import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
+import org.niis.xroad.restapi.service.StateChangeActionEnum;
 import org.niis.xroad.restapi.service.StateChangeActionHelper;
 import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
@@ -57,6 +58,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -70,6 +72,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_EXISTS;
@@ -82,6 +85,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.niis.xroad.restapi.service.TokenCertificateService.AuthCertificateNotSupportedException.AUTH_CERT_NOT_SUPPORTED;
 import static org.niis.xroad.restapi.util.CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH;
@@ -107,7 +111,7 @@ public class TokenCertificatesApiControllerIntegrationTest {
     @Autowired
     private TokenCertificatesApiController tokenCertificatesApiController;
 
-    @MockBean
+    @SpyBean
     private StateChangeActionHelper stateChangeActionHelper;
 
     @Before
@@ -127,6 +131,9 @@ public class TokenCertificatesApiControllerIntegrationTest {
         TokenInfoAndKeyId tokenInfoAndKeyId = new TokenInfoAndKeyId(tokenInfo, keyInfo.getId());
         doAnswer(answer -> tokenInfoAndKeyId).when(signerProxyFacade).getTokenAndKeyIdForCertRequestId(any());
         doAnswer(answer -> tokenInfoAndKeyId).when(signerProxyFacade).getTokenAndKeyIdForCertHash(any());
+        // by default all actions are possible
+        doReturn(EnumSet.allOf(StateChangeActionEnum.class)).when(stateChangeActionHelper)
+                .getPossibleCertificateActions(any(), any(), any());
     }
 
     @Test
@@ -314,6 +321,17 @@ public class TokenCertificatesApiControllerIntegrationTest {
         assertLocationHeader("/api/token-certificates/" + addedCert.getCertificateDetails().getHash(),
                 response);
     }
+
+    @Test(expected = ConflictException.class)
+    @WithMockUser(authorities = "IMPORT_SIGN_CERT")
+    public void importCertificateFromTokenActionNotPossible() throws Exception {
+        // by default all actions are possible
+        doReturn(EnumSet.noneOf(StateChangeActionEnum.class)).when(stateChangeActionHelper)
+                .getPossibleCertificateActions(any(), any(), any());
+
+        tokenCertificatesApiController.importCertificateFromToken(MOCK_CERTIFICATE_HASH);
+    }
+
 
     @Test
     @WithMockUser(authorities = "IMPORT_SIGN_CERT")

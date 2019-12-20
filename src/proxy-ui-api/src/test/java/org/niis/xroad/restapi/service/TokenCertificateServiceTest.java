@@ -47,10 +47,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.EnumSet;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
@@ -62,6 +65,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -115,7 +119,7 @@ public class TokenCertificateServiceTest {
     @MockBean
     private ClientRepository clientRepository;
 
-    @MockBean
+    @SpyBean
     private StateChangeActionHelper stateChangeActionHelper;
 
     @MockBean TokenService tokenService;
@@ -163,6 +167,10 @@ public class TokenCertificateServiceTest {
         mockGetCertForHash();
         mockDeleteCert();
         mockDeleteCertRequest();
+        // by default all actions are possible
+        doReturn(EnumSet.allOf(StateChangeActionEnum.class)).when(stateChangeActionHelper)
+                .getPossibleCertificateActions(any(), any(), any());
+
     }
 
     private void mockDeleteCertRequest() throws Exception {
@@ -308,7 +316,14 @@ public class TokenCertificateServiceTest {
     public void deleteCertificateSuccessfully() throws Exception {
         tokenCertificateService.deleteCertificate(EXISTING_CERT_HASH);
         verify(signerProxyFacade, times(1)).deleteCert(EXISTING_CERT_HASH);
+    }
 
+    @Test(expected = TokenCertificateService.ActionNotPossibleException.class)
+    @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
+    public void deleteCertificateActionNotPossible() throws Exception {
+        EnumSet empty = EnumSet.noneOf(StateChangeActionEnum.class);
+        doReturn(empty).when(stateChangeActionHelper).getPossibleCertificateActions(any(), any(), any());
+        tokenCertificateService.deleteCertificate(EXISTING_CERT_HASH);
     }
 
     @Test(expected = CertificateNotFoundException.class)
@@ -361,7 +376,6 @@ public class TokenCertificateServiceTest {
         tokenCertificateService.deleteCertificate(EXISTING_CERT_IN_SIGN_KEY_HASH);
     }
 
-
     @Test(expected = CsrNotFoundException.class)
     @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
     public void deleteCsrCsrNotFound() throws Exception {
@@ -389,6 +403,11 @@ public class TokenCertificateServiceTest {
         tokenCertificateService.deleteCsr(GOOD_CSR_ID);
         verify(signerProxyFacade, times(1)).deleteCertRequest(GOOD_CSR_ID);
     }
-
-
+    @Test(expected = TokenCertificateService.ActionNotPossibleException.class)
+    @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
+    public void deleteCsrActionNotPossible() throws Exception {
+        doReturn(EnumSet.noneOf(StateChangeActionEnum.class)).when(stateChangeActionHelper)
+                .getPossibleCsrActions(any(), any(), any());
+        tokenCertificateService.deleteCsr(GOOD_CSR_ID);
+    }
 }

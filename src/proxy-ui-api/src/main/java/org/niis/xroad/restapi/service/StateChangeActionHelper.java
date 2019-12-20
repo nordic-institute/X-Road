@@ -154,6 +154,9 @@ public class StateChangeActionHelper {
         return canDelete;
     }
 
+    /**
+     * @throws TokenCertificateService.ActionNotPossibleException if given action is not in possibleActions
+     */
     public void requirePossibleAction(StateChangeActionEnum action, EnumSet<StateChangeActionEnum> possibleActions)
             throws TokenCertificateService.ActionNotPossibleException {
         if (!possibleActions.contains(action)) {

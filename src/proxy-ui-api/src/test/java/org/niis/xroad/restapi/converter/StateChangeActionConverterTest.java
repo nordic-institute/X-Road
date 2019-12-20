@@ -24,29 +24,40 @@
  */
 package org.niis.xroad.restapi.converter;
 
-import com.google.common.collect.Streams;
+import org.junit.Test;
 import org.niis.xroad.restapi.openapi.model.StateChangeAction;
 import org.niis.xroad.restapi.service.StateChangeActionEnum;
-import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.Arrays;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 /**
- * Converts state change action items.
- * Converts purely based on enum names, since we manage both items
+ * test StateChangeActionConverter
  */
-@Component
-public class StateChangeActionConverter {
+public class StateChangeActionConverterTest {
 
-    public List<StateChangeAction> convert(
-            Iterable<StateChangeActionEnum> serviceDescriptionTypes) {
-        return Streams.stream(serviceDescriptionTypes)
-                       .map(this::convert)
-                       .collect(Collectors.toList());
+    @Test
+    public void enumsAreInSync() {
+        // test to verify openapi and service layer enums contain same items
+        Set<String> openApiEnumNames = Arrays.stream(StateChangeAction.values())
+                .map(Enum::name)
+                .collect(Collectors.toSet());
+        Set<String> serviceEnumNames = Arrays.stream(StateChangeActionEnum.values())
+                .map(Enum::name)
+                .collect(Collectors.toSet());
+        assertEquals(openApiEnumNames.size(), serviceEnumNames.size());
+        assertTrue(openApiEnumNames.containsAll(serviceEnumNames));
     }
 
-    public StateChangeAction convert(StateChangeActionEnum stateChangeActionEnum) {
-        return StateChangeAction.fromValue(stateChangeActionEnum.toString());
+    @Test
+    public void convert() {
+        StateChangeAction converted = new StateChangeActionConverter()
+                .convert(StateChangeActionEnum.IMPORT_FROM_TOKEN);
+        assertEquals(StateChangeAction.IMPORT_FROM_TOKEN, converted);
     }
+
 }
