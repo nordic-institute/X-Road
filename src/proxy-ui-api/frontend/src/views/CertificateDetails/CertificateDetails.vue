@@ -5,15 +5,17 @@
       <div class="details-view-tools" v-if="certificate">
         <large-button v-if="!certificate.active" outlined @click="activateCertificate(certificate.certificate_details.hash)">{{$t('action.activate')}}</large-button>
         <large-button v-if="certificate.active" outlined @click="deactivateCertificate(certificate.certificate_details.hash)">{{$t('action.deactivate')}}</large-button>
+          <large-button
+                  v-if="certificate.certificate_details.hash"
+                  class="button-spacing"
+                  outlined
+                  @click="deleteCertificate()"
+          >{{$t('action.delete')}}</large-button>
       </div>
       <template v-if="certificate && certificate.certificate_details">
         <div class="cert-hash-wrapper">
           <certificateHash :hash="certificate.certificate_details.hash" />
-          <large-button
-            v-if="certificate.certificate_details.hash"
-            outlined
-            @click="deleteCertificate()"
-          >{{$t('action.delete')}}</large-button>
+
         </div>
         <certificateInfo :certificate="certificate.certificate_details" />
       </template>
@@ -124,6 +126,10 @@ export default Vue.extend({
   display: flex;
   justify-content: space-between;
   margin-bottom: 20px;
+}
+
+.button-spacing {
+    margin-left: 20px;
 }
 </style>
 
