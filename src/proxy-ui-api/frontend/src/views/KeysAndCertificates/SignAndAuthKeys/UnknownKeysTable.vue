@@ -40,7 +40,7 @@
                 <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
               </div>
             </td>
-            <td>
+            <td class="td-align-right">
               <div class="id-wrap">
                 <div class="clickable-link" @click="keyClick(key)">{{key.id}}</div>
                 <SmallButton
@@ -84,7 +84,7 @@
 import Vue from 'vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import {Certificate, Key} from '@/types';
-import {TokenType} from "@/global";
+import {TokenType} from '@/global';
 
 export default Vue.extend({
   components: {
@@ -109,7 +109,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      TokenType: TokenType,
+      TokenType,
     };
   },
   computed: {},
@@ -169,6 +169,10 @@ export default Vue.extend({
   align-items: baseline;
   align-items: center;
   width: 100%;
+}
+
+.td-align-right {
+  text-align: right;
 }
 
 .borderless td {

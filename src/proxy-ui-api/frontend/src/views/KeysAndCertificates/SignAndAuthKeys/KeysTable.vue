@@ -143,7 +143,7 @@ import Vue from 'vue';
 import CertificateStatus from './CertificateStatus.vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import { Key, Certificate } from '@/types';
-import {TokenType} from "@/global";
+import {TokenType} from '@/global';
 
 export default Vue.extend({
   components: {
@@ -169,7 +169,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      TokenType: TokenType,
+      TokenType,
     };
   },
   computed: {},
