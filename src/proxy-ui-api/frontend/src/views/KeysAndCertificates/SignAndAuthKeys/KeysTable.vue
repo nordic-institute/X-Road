@@ -83,7 +83,7 @@
             <td class="no-border"></td>
             <td class="no-border"></td>
             <td class="no-border"></td>
-            <td class="no-border"><SmallButton
+            <td class="no-border td-align-right"><SmallButton
                     class="table-button-fix"
                     :disabled="disableGenerateCsr"
                     @click="generateCsr(key)"
@@ -105,8 +105,8 @@
             <td>{{cert.certificate_details.not_after | formatDate}}</td>
             <td class="status-cell"><certificate-status :certificate="cert" /></td>
             <td></td>
-            <td>
-              <SmallButton v-if="!cert.saved_to_configuration" @click="importCert()">{{$t('keys.importCert')}}</SmallButton>
+            <td class="td-align-right">
+              <SmallButton class="table-button-fix" v-if="!cert.saved_to_configuration" @click="importCert()">{{$t('keys.importCert')}}</SmallButton>
             </td>
           </tr>
         </template>
@@ -206,7 +206,6 @@ export default Vue.extend({
 .table-button-fix {
   margin-left: auto;
   margin-right: 0;
-  margin-top: 10px;
 }
 
 .td-align-right {
