@@ -53,21 +53,19 @@
                 @click="addKey(token, index)"
                 :disabled="!token.logged_in"
               >{{$t('keys.addKey')}}</large-button>
-              <div v-if="token.type === 'SOFTWARE'">
-                <large-button
-                    outlined
-                    class="button-spacing"
-                    :disabled="!token.logged_in"
-                    @click="$refs.certUpload[0].click()"
-                >{{$t('keys.importCert')}}</large-button>
-                <input
-                  v-show="false"
-                  ref="certUpload"
-                  type="file"
-                  accept=".pem, .cer, .der"
-                  @change="importCert"
+              <large-button
+                  outlined
+                  class="button-spacing"
+                  :disabled="!token.logged_in"
+                  @click="$refs.certUpload[0].click()"
+              >{{$t('keys.importCert')}}</large-button>
+              <input
+                v-show="false"
+                ref="certUpload"
+                type="file"
+                accept=".pem, .cer, .der"
+                @change="importCert"
               />
-              </div>
             </div>
 
             <!-- AUTH table -->
@@ -393,10 +391,11 @@ export default Vue.extend({
           })
           .then(() => {
             this.$bus.$emit('show-success', 'keys.importCertSuccess');
+            this.fetchData();
           }, (error) => {
             this.$bus.$emit('show-error', error.message);
           },
-          );
+        );
       };
       reader.readAsArrayBuffer(fileList[0]);
     },
@@ -405,6 +404,7 @@ export default Vue.extend({
         .post(`/token-certificates/${hash}/import`, {})
         .then(() => {
           this.$bus.$emit('show-success', 'keys.importCertSuccess');
+          this.fetchData();
         }, (error) => {
           this.$bus.$emit('show-error', error.message);
         });

@@ -125,3 +125,8 @@ export const mainTabs = [
     name: 'tab.main.settings',
   },
 ];
+
+export enum TokenType {
+  HARDWARE = 'HARDWARE',
+  SOFTWARE = 'SOFTWARE',
+}

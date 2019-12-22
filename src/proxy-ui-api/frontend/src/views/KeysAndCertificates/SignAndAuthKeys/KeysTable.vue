@@ -1,63 +1,117 @@
 <template>
   <div>
     <table class="xrd-table">
-      <thead>
-        <tr>
-          <th>{{$t(title)}}</th>
-          <th>{{$t('keys.id')}}</th>
-          <th>{{$t('keys.ocsp')}}</th>
-          <th>{{$t('keys.expires')}}</th>
-          <th>{{$t('keys.status')}}</th>
-          <th></th>
-          <th v-if="'HARDWARE' === tokenType"></th>
-        </tr>
-      </thead>
+
+      <!-- SOFTWARE token table header -->
+      <template v-if="tokenType === TokenType.SOFTWARE">
+        <thead>
+          <tr>
+            <th>{{$t(title)}}</th>
+            <th>{{$t('keys.id')}}</th>
+            <th>{{$t('keys.ocsp')}}</th>
+            <th>{{$t('keys.expires')}}</th>
+            <th>{{$t('keys.status')}}</th>
+            <th></th>
+          </tr>
+        </thead>
+      </template>
+
+      <!-- HARDWARE token table header -->
+      <template v-if="tokenType === TokenType.HARDWARE">
+        <thead>
+          <tr>
+            <th>{{$t(title)}}</th>
+            <th>{{$t('keys.id')}}</th>
+            <th>{{$t('keys.ocsp')}}</th>
+            <th>{{$t('keys.expires')}}</th>
+            <th>{{$t('keys.status')}}</th>
+            <th></th>
+            <th></th>
+          </tr>
+        </thead>
+      </template>
 
       <tbody v-for="key in keys" v-bind:key="key.id">
-        <tr>
-          <div class="name-wrap-top">
-            <v-icon class="icon" @click="keyClick(key)">mdi-key-outline</v-icon>
-            <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
-          </div>
-          <td class="no-border"></td>
-          <td class="no-border"></td>
-          <td class="no-border"></td>
-          <td class="no-border"></td>
-          <td class="no-border td-align-right">
-            <SmallButton
-                    v-if="'SOFTWARE' === tokenType"
+
+        <!-- SOFTWARE token table body -->
+        <template v-if="tokenType === TokenType.SOFTWARE">
+          <tr>
+            <div class="name-wrap-top">
+              <v-icon class="icon" @click="keyClick(key)">mdi-key-outline</v-icon>
+              <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
+            </div>
+            <td class="no-border"></td>
+            <td class="no-border"></td>
+            <td class="no-border"></td>
+            <td class="no-border"></td>
+            <td class="no-border td-align-right">
+              <SmallButton
+                      class="table-button-fix"
+                      :disabled="disableGenerateCsr"
+                      @click="generateCsr(key)"
+              >{{$t('keys.generateCsr')}}</SmallButton>
+            </td>
+          </tr>
+
+          <tr v-for="cert in key.certificates" v-bind:key="cert.id">
+            <td class="td-name">
+              <div class="name-wrap">
+                <v-icon class="icon" @click="certificateClick(cert)">mdi-file-document-outline</v-icon>
+                <div
+                  class="clickable-link"
+                  @click="certificateClick(cert)"
+                >{{cert.certificate_details.issuer_common_name}} {{cert.certificate_details.serial}}</div>
+              </div>
+            </td>
+            <td>{{cert.owner_id}}</td>
+            <td>{{ cert.ocsp_status | ocspStatus }}</td>
+            <td>{{cert.certificate_details.not_after | formatDate}}</td>
+            <td class="status-cell"><certificate-status :certificate="cert" /></td>
+            <td></td>
+          </tr>
+        </template>
+
+        <!-- HARDWARE token table body -->
+        <template v-if="tokenType === TokenType.HARDWARE">
+          <tr>
+            <div class="name-wrap-top">
+              <v-icon class="icon" @click="keyClick(key)">mdi-key-outline</v-icon>
+              <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
+            </div>
+            <td class="no-border"></td>
+            <td class="no-border"></td>
+            <td class="no-border"></td>
+            <td class="no-border"></td>
+            <td class="no-border"></td>
+            <td class="no-border"><SmallButton
                     class="table-button-fix"
                     :disabled="disableGenerateCsr"
                     @click="generateCsr(key)"
-            >{{$t('keys.generateCsr')}}</SmallButton>
-          </td>
-          <td class="no-border" v-if="'HARDWARE' === tokenType"><SmallButton
-                  class="table-button-fix"
-                  :disabled="disableGenerateCsr"
-                  @click="generateCsr(key)"
-          >{{$t('keys.generateCsr')}}</SmallButton></td>
-        </tr>
+            >{{$t('keys.generateCsr')}}</SmallButton></td>
+          </tr>
 
-        <tr v-for="cert in key.certificates" v-bind:key="cert.id">
-          <td class="td-name">
-            <div class="name-wrap">
-              <v-icon class="icon" @click="certificateClick(cert)">mdi-file-document-outline</v-icon>
-              <div
-                class="clickable-link"
-                @click="certificateClick(cert)"
-              >{{cert.certificate_details.issuer_common_name}} {{cert.certificate_details.serial}}</div>
-            </div>
-          </td>
-          <td>{{cert.owner_id}}</td>
-          <td>{{ cert.ocsp_status | ocspStatus }}</td>
-          <td>{{cert.certificate_details.not_after | formatDate}}</td>
-          <td class="status-cell"><certificate-status :certificate="cert" /></td>
-          <td v-if="'HARDWARE' === tokenType"></td>
-          <td>
-            <SmallButton v-if="'HARDWARE' === tokenType && !cert.saved_to_configuration" @click="importCert()">{{$t('keys.importCert')}}</SmallButton>
-          </td>
-        </tr>
+          <tr v-for="cert in key.certificates" v-bind:key="cert.id">
+            <td class="td-name">
+              <div class="name-wrap">
+                <v-icon class="icon" @click="certificateClick(cert)">mdi-file-document-outline</v-icon>
+                <div
+                        class="clickable-link"
+                        @click="certificateClick(cert)"
+                >{{cert.certificate_details.issuer_common_name}} {{cert.certificate_details.serial}}</div>
+              </div>
+            </td>
+            <td>{{cert.owner_id}}</td>
+            <td>{{ cert.ocsp_status | ocspStatus }}</td>
+            <td>{{cert.certificate_details.not_after | formatDate}}</td>
+            <td class="status-cell"><certificate-status :certificate="cert" /></td>
+            <td></td>
+            <td>
+              <SmallButton v-if="!cert.saved_to_configuration" @click="importCert()">{{$t('keys.importCert')}}</SmallButton>
+            </td>
+          </tr>
+        </template>
 
+        <!-- CSRs -->
         <template
           v-if="key.certificate_signing_requests && key.certificate_signing_requests.length > 0"
         >
@@ -75,6 +129,7 @@
             <td></td>
           </tr>
         </template>
+
       </tbody>
     </table>
   </div>
@@ -88,6 +143,7 @@ import Vue from 'vue';
 import CertificateStatus from './CertificateStatus.vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import { Key, Certificate } from '@/types';
+import {TokenType} from "@/global";
 
 export default Vue.extend({
   components: {
@@ -112,7 +168,9 @@ export default Vue.extend({
     },
   },
   data() {
-    return {};
+    return {
+      TokenType: TokenType,
+    };
   },
   computed: {},
   methods: {

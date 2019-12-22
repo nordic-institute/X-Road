@@ -10,7 +10,7 @@
       <tbody v-for="key in keys" v-bind:key="key.id">
 
         <!-- Key type SOFTWARE -->
-        <template v-if="tokenType === 'SOFTWARE'">
+        <template v-if="tokenType === TokenType.SOFTWARE">
           <tr>
             <td>
               <div class="name-wrap">
@@ -32,19 +32,17 @@
         </template>
 
         <!-- Key type HARDWARE -->
-        <template v-if="tokenType === 'HARDWARE'">
-          <tr v-bind:class="{hardwarekey: hasCertificates(key)}">
+        <template v-if="tokenType === TokenType.HARDWARE">
+          <tr v-bind:class="{borderless: hasCertificates(key)}">
             <td>
-              <div class="name-wrap">
-                <i class="icon-xrd_key icon" @click="keyClick(key)"></i>
-                <div class="clickable-link" @click="keyClick(key)">{{key.label}}</div>
+              <div class="name-wrap-top">
+                <v-icon class="icon" @click="keyClick(key)">mdi-key-outline</v-icon>
+                <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
               </div>
             </td>
             <td>
               <div class="id-wrap">
                 <div class="clickable-link" @click="keyClick(key)">{{key.id}}</div>
-
-
                 <SmallButton
                         class="table-button-fix"
                         :disabled="disableGenerateCsr"
@@ -53,11 +51,16 @@
               </div>
             </td>
           </tr>
+
           <tr v-if="hasCertificates(key)" v-for="certificate in key.certificates" v-bind:key="certificate.certificate_details.hash">
-            <td></td>
+            <td class="td-name">
+              <div class="name-wrap">
+                <v-icon v-bind:class="{hidden: showHardwareTokenImportCert(certificate)}"class="icon" >mdi-file-document-outline</v-icon>
+                <span>{{certificate.certificate_details.issuer_common_name}} {{certificate.certificate_details.serial}}</span>
+              </div>
+            </td>
             <td>
               <div class="id-wrap">
-                <span>{{certificate.certificate_details.issuer_common_name}} {{certificate.certificate_details.serial}}</span>
                 <SmallButton
                         v-if="showHardwareTokenImportCert(certificate)"
                         @click="importCert(certificate.certificate_details.hash)"
@@ -81,6 +84,7 @@
 import Vue from 'vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import {Certificate, Key} from '@/types';
+import {TokenType} from "@/global";
 
 export default Vue.extend({
   components: {
@@ -100,11 +104,13 @@ export default Vue.extend({
     },
     tokenType: {
       type: String,
-      required: true
-    }
+      required: true,
+    },
   },
   data() {
-    return {};
+    return {
+      TokenType: TokenType,
+    };
   },
   computed: {},
   methods: {
@@ -122,7 +128,7 @@ export default Vue.extend({
     },
     importCert(hash: string): void {
       this.$emit('importCertByHash', hash);
-    }
+    },
   },
 });
 </script>
@@ -151,6 +157,10 @@ export default Vue.extend({
   flex-direction: row;
   align-items: baseline;
   align-items: center;
+
+  i.v-icon.mdi-file-document-outline {
+    margin-left: 42px;
+  }
 }
 
 .id-wrap {
@@ -161,8 +171,12 @@ export default Vue.extend({
   width: 100%;
 }
 
-.hardwarekey td {
+.borderless td {
   border-bottom: none;
+}
+
+.hidden {
+  visibility: hidden;
 }
 
 </style>
