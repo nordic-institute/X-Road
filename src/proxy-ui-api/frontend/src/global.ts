@@ -28,6 +28,8 @@ export enum RouteName {
   Key = 'key',
   SystemParameters = 'system-parameters',
   BackupAndRestore = 'backup-and-restore',
+  AddKey = 'add-key',
+  GenerateCertificateSignRequest = 'generate-csr',
 }
 
 // A "single source of truth" for permission strings
@@ -99,6 +101,17 @@ export enum Permissions {
   VIEW_SYS_PARAMS = 'VIEW_SYS_PARAMS',
   VIEW_TSPS = 'VIEW_TSPS',
 }
+
+export enum UsageTypes {
+  SIGNING = 'SIGNING',
+  AUTHENTICATION = 'AUTHENTICATION',
+}
+
+export enum CsrFormatTypes {
+  PEM = 'PEM',
+  DER = 'DER',
+}
+
 
 export const mainTabs = [
   {
