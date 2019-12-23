@@ -3,7 +3,7 @@
     <table class="xrd-table">
 
       <!-- SOFTWARE token table header -->
-      <template v-if="tokenType === TokenType.SOFTWARE">
+      <template v-if="tokenType === 'SOFTWARE'">
         <thead>
           <tr>
             <th>{{$t(title)}}</th>
@@ -17,7 +17,7 @@
       </template>
 
       <!-- HARDWARE token table header -->
-      <template v-if="tokenType === TokenType.HARDWARE">
+      <template v-if="tokenType === 'HARDWARE'">
         <thead>
           <tr>
             <th>{{$t(title)}}</th>
@@ -34,7 +34,7 @@
       <tbody v-for="key in keys" v-bind:key="key.id">
 
         <!-- SOFTWARE token table body -->
-        <template v-if="tokenType === TokenType.SOFTWARE">
+        <template v-if="tokenType === 'SOFTWARE'">
           <tr>
             <div class="name-wrap-top">
               <v-icon class="icon" @click="keyClick(key)">mdi-key-outline</v-icon>
@@ -72,7 +72,7 @@
         </template>
 
         <!-- HARDWARE token table body -->
-        <template v-if="tokenType === TokenType.HARDWARE">
+        <template v-if="tokenType === 'HARDWARE'">
           <tr>
             <div class="name-wrap-top">
               <v-icon class="icon" @click="keyClick(key)">mdi-key-outline</v-icon>
@@ -119,7 +119,7 @@
             <td class="td-name">
               <div class="name-wrap">
                 <i class="icon-xrd_certificate icon" @click="certificateClick(req)"></i>
-                <div class="clickable-link" @click="certificateClick(cert)">{{$t('keys.request')}}</div>
+                <div>{{$t('keys.request')}}</div>
               </div>
             </td>
             <td>{{req.id}}</td>
@@ -142,8 +142,7 @@
 import Vue from 'vue';
 import CertificateStatus from './CertificateStatus.vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
-import { Key, Certificate } from '@/types';
-import {TokenType} from '@/global';
+import {Key, TokenCertificate} from '@/types';
 
 export default Vue.extend({
   components: {
@@ -167,17 +166,12 @@ export default Vue.extend({
       required: true,
     },
   },
-  data() {
-    return {
-      TokenType,
-    };
-  },
   computed: {},
   methods: {
     keyClick(key: Key): void {
       this.$emit('keyClick', key);
     },
-    certificateClick(cert: Certificate): void {
+    certificateClick(cert: TokenCertificate): void {
       this.$emit('certificateClick', cert);
     },
     generateCsr(key: Key): void {

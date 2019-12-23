@@ -171,7 +171,9 @@
     "remove": "Remove",
     "removeAll": "Remove All",
     "save": "Save",
-    "continue": "Continue"
+    "continue": "Continue",
+    "previous": "Previous",
+    "done": "Done"
   },
   "keys": {
     "token": "Token:",
@@ -234,6 +236,19 @@
       "deletion": "Deletion in progress",
       "globalError": "Global error"
     }
+  },
+  "csr": {
+    "usage": "Usage",
+    "client": "Client",
+    "certificationService": "Certification Service",
+    "csrFormat": "CSR Format",
+    "generateCsr": "Generate CSR",
+    "csrDetails": "CSR details",
+    "saveInfo": "Generate a new CSR and save it into a safe place",
+    "helpUsage": "Usage policy of the certificate: signing messages or authenticating Security Server.",
+    "helpClient": "X-Road member the certificate will be issued for.",
+    "helpCertificationService": "Certification Authority (CA) that will issue the certificate.",
+    "helpCsrFormat": "Format of the certificate signing request according to the CA’s requirements."
   },
   "login": {
     "logIn": "Log in",

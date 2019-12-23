@@ -10,7 +10,7 @@
       <tbody v-for="key in keys" v-bind:key="key.id">
 
         <!-- Key type SOFTWARE -->
-        <template v-if="tokenType === TokenType.SOFTWARE">
+        <template v-if="tokenType === 'SOFTWARE'">
           <tr>
             <td>
               <div class="name-wrap">
@@ -32,7 +32,7 @@
         </template>
 
         <!-- Key type HARDWARE -->
-        <template v-if="tokenType === TokenType.HARDWARE">
+        <template v-if="tokenType === 'HARDWARE'">
           <tr v-bind:class="{borderless: hasCertificates(key)}">
             <td>
               <div class="name-wrap-top">
@@ -83,8 +83,7 @@
  */
 import Vue from 'vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
-import {Certificate, Key} from '@/types';
-import {TokenType} from '@/global';
+import {Key, TokenCertificate} from '@/types';
 
 export default Vue.extend({
   components: {
@@ -107,11 +106,6 @@ export default Vue.extend({
       required: true,
     },
   },
-  data() {
-    return {
-      TokenType,
-    };
-  },
   computed: {},
   methods: {
     keyClick(key: Key): void {
@@ -120,7 +114,7 @@ export default Vue.extend({
     generateCsr(key: Key): void {
       this.$emit('generateCsr', key);
     },
-    showHardwareTokenImportCert(certificate: Certificate): boolean {
+    showHardwareTokenImportCert(certificate: TokenCertificate): boolean {
       return !certificate.saved_to_configuration;
     },
     hasCertificates(key: Key): boolean {
