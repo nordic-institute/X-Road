@@ -33,6 +33,7 @@
       :items="clients"
       :search="search"
       :must-sort="true"
+      :items-per-page="-1"
       :sort-by="['sortNameAsc']"
       :custom-sort="customSort"
       :custom-filter="customFilter"
@@ -118,7 +119,6 @@ export default Vue.extend({
     search: '',
     pagination: {
       sortBy: 'sortNameAsc',
-      rowsPerPage: -1,
     },
   }),
 
