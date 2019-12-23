@@ -223,6 +223,7 @@
     "keyLabelInfo": "You can define a label for the newly created Key (not mandatory)",
     "registrationRequest": "Registration request",
     "certRegistrationInfo": "Security server DNS name or IP address",
+    "importCertSuccess": "Uploading certificate succeeded",
     "ocspStatus": {
       "disabled": "Disabled",
       "expired": "Expired",

@@ -50,11 +50,22 @@
             <div class="button-wrap">
               <large-button
                 outlined
-                class="button-spacing"
                 @click="addKey(token, index)"
                 :disabled="!token.logged_in"
               >{{$t('keys.addKey')}}</large-button>
-              <large-button outlined :disabled="!token.logged_in">{{$t('keys.importCert')}}</large-button>
+              <large-button
+                  outlined
+                  class="button-spacing"
+                  :disabled="!token.logged_in"
+                  @click="$refs.certUpload[0].click()"
+              >{{$t('keys.importCert')}}</large-button>
+              <input
+                v-show="false"
+                ref="certUpload"
+                type="file"
+                accept=".pem, .cer, .der"
+                @change="importCert"
+              />
             </div>
 
             <!-- AUTH table -->
@@ -63,9 +74,11 @@
               :keys="getAuthKeys(token.keys)"
               title="keys.authKeyCert"
               :disableGenerateCsr="!token.logged_in"
+              :tokenType="token.type"
               @keyClick="keyClick"
               @generateCsr="generateCsr"
               @certificateClick="certificateClick"
+              @importCertByHash="importCertByHash"
             />
 
             <!-- SIGN table -->
@@ -74,19 +87,24 @@
               :keys="getSignKeys(token.keys)"
               title="keys.signKeyCert"
               :disableGenerateCsr="!token.logged_in"
+              :tokenType="token.type"
               @keyClick="keyClick"
               @generateCsr="generateCsr"
               @certificateClick="certificateClick"
+              @importCertByHash="importCertByHash"
             />
+
             <!-- Keys with unknown type -->
             <unknown-keys-table
               v-if="getOtherKeys(token.keys).length > 0"
               :keys="getOtherKeys(token.keys)"
               title="keys.unknown"
               :disableGenerateCsr="!token.logged_in"
+              :tokenType="token.type"
               @keyClick="keyClick"
               @generateCsr="generateCsr"
               @certificateClick="certificateClick"
+              @importCertByHash="importCertByHash"
             />
           </div>
         </template>
@@ -127,7 +145,6 @@ import TokenLoginDialog from './TokenLoginDialog.vue';
 import KeysTable from './KeysTable.vue';
 import UnknownKeysTable from './UnknownKeysTable.vue';
 import KeyLabelDialog from './KeyLabelDialog.vue';
-import { mapGetters } from 'vuex';
 import { Key, Token, TokenCertificate } from '@/types';
 import * as api from '@/util/api';
 
@@ -352,7 +369,45 @@ export default Vue.extend({
           this.$bus.$emit('show-error', error.message);
         });
     },
+    importCert(event: any) {
 
+      const fileList = (event && event.target && event.target.files) || (event && event.dataTransfer && event.dataTransfer.files);
+      if (!fileList.length) {
+        return;
+      }
+
+      const reader = new FileReader();
+
+      // Upload file when it's loaded in FileReader
+      reader.onload = (e: any) => {
+        if (!e || !e.target || !e.target.result) {
+          return;
+        }
+
+        this.$store
+          .dispatch('uploadCertificate', {
+            fileData: e.target.result,
+          })
+          .then(() => {
+            this.$bus.$emit('show-success', 'keys.importCertSuccess');
+            this.fetchData();
+          }, (error) => {
+            this.$bus.$emit('show-error', error.message);
+          },
+        );
+      };
+      reader.readAsArrayBuffer(fileList[0]);
+    },
+    importCertByHash(hash: string) {
+      api
+        .post(`/token-certificates/${hash}/import`, {})
+        .then(() => {
+          this.$bus.$emit('show-success', 'keys.importCertSuccess');
+          this.fetchData();
+        }, (error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
+    },
     generateCsr(key: Key) {
       this.$router.push({
         name: RouteName.GenerateCertificateSignRequest,
@@ -371,7 +426,6 @@ export default Vue.extend({
         });
     },
   },
-
   created() {
     this.fetchData();
   },
@@ -417,7 +471,7 @@ export default Vue.extend({
 }
 
 .button-spacing {
-  margin-right: 20px;
+  margin-left: 20px;
 }
 </style>
 
