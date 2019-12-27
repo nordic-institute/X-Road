@@ -30,7 +30,6 @@
 import Vue from 'vue';
 import * as api from '@/util/api';
 import { mapGetters } from 'vuex';
-import { Permissions } from '@/global';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
