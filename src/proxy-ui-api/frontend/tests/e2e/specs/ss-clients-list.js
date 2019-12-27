@@ -27,9 +27,9 @@ module.exports = {
     browser
       .useXpath()
       .waitForElementVisible('//th[span[contains(text(),"Name")] and contains(@class, "active") and contains(@aria-sort, "ascending")]')
-      .waitForElementVisible('(//tbody/tr)[1]//span[contains(text(),"Gofore")]')
+      .waitForElementVisible('(//tbody/tr)[1]//span[contains(text(),"TestCom")]')
       .waitForElementVisible('(//tbody/tr)[2]//span[contains(text(),"TestClient")]')
-      .waitForElementVisible('(//tbody/tr)[3]//span[contains(text(),"VRK (Owner)")]')
+      .waitForElementVisible('(//tbody/tr)[3]//span[contains(text(),"TestGov (Owner)")]')
       .waitForElementVisible('(//tbody/tr)[4]//span[contains(text(),"TestService")]')
       .useCss();
 
@@ -38,9 +38,9 @@ module.exports = {
     browser.useXpath()
       .waitForElementVisible('//th[span[contains(text(),"Name")] and contains(@class, "active") and contains(@aria-sort, "descending")]')
       .waitForElementVisible('//th[span[contains(text(),"ID")] and contains(@aria-sort, "none")]')
-      .waitForElementVisible('(//tbody/tr)[1]//span[contains(text(),"VRK (Owner)")]')
+      .waitForElementVisible('(//tbody/tr)[1]//span[contains(text(),"TestGov (Owner)")]')
       .waitForElementVisible('(//tbody/tr)[2]//span[contains(text(),"TestService")]')
-      .waitForElementVisible('(//tbody/tr)[3]//span[contains(text(),"Gofore")]')
+      .waitForElementVisible('(//tbody/tr)[3]//span[contains(text(),"TestCom")]')
       .waitForElementVisible('(//tbody/tr)[4]//span[contains(text(),"TestClient")]')
       .useCss();
 
@@ -49,9 +49,9 @@ module.exports = {
     browser.useXpath()
       .waitForElementVisible('//th[span[contains(text(),"ID")] and contains(@class, "active") and contains(@aria-sort, "ascending")]')
       .waitForElementVisible('//th[span[contains(text(),"Name")] and contains(@aria-sort, "none")]')
-      .waitForElementVisible('(//tbody/tr)[1]//span[contains(text(),"Gofore")]')
+      .waitForElementVisible('(//tbody/tr)[1]//span[contains(text(),"TestCom")]')
       .waitForElementVisible('(//tbody/tr)[2]//span[contains(text(),"TestClient")]')
-      .waitForElementVisible('(//tbody/tr)[3]//span[contains(text(),"VRK (Owner)")]')
+      .waitForElementVisible('(//tbody/tr)[3]//span[contains(text(),"TestGov (Owner)")]')
       .waitForElementVisible('(//tbody/tr)[4]//span[contains(text(),"TestService")]')
       .useCss();
     
@@ -60,9 +60,9 @@ module.exports = {
     browser.useXpath()
       .waitForElementVisible('//th[span[contains(text(),"ID")] and contains(@class, "active") and contains(@aria-sort, "descending")]')
       .waitForElementVisible('(//tbody/tr)[1]//span[contains(text(),"TestService")]')
-      .waitForElementVisible('(//tbody/tr)[2]//span[contains(text(),"VRK (Owner)")]')
+      .waitForElementVisible('(//tbody/tr)[2]//span[contains(text(),"TestGov (Owner)")]')
       .waitForElementVisible('(//tbody/tr)[3]//span[contains(text(),"TestClient")]')
-      .waitForElementVisible('(//tbody/tr)[4]//span[contains(text(),"Gofore")]')
+      .waitForElementVisible('(//tbody/tr)[4]//span[contains(text(),"TestCom")]')
       .useCss();
 
     // Sort by Status and verify items
@@ -70,10 +70,10 @@ module.exports = {
     browser.useXpath()
       .waitForElementVisible('//th[span[contains(text(),"Status")] and contains(@class, "active") and contains(@aria-sort, "ascending")]')
       .waitForElementVisible('(//tbody/tr)[1]//span[contains(text(),"TestService")]')
-      .waitForElementVisible('(//tbody/tr)[2]//span[contains(text(),"VRK (Owner)")]')
+      .waitForElementVisible('(//tbody/tr)[2]//span[contains(text(),"TestGov (Owner)")]')
       .waitForElementVisible('(//tbody/tr)[3]//div[contains(text(),"SAVED")]')
       .waitForElementVisible('(//tbody/tr)[3]//span[contains(text(),"TestClient")]')
-      .waitForElementVisible('(//tbody/tr)[4]//span[contains(text(),"Gofore")]')
+      .waitForElementVisible('(//tbody/tr)[4]//span[contains(text(),"TestCom")]')
       .useCss();
 
     // Re-sort by Status and verify list items
@@ -83,8 +83,8 @@ module.exports = {
       .waitForElementVisible('(//tbody/tr)[1]//div[contains(text(),"SAVED")]')
       .waitForElementVisible('(//tbody/tr)[1]//span[contains(text(),"TestClient")]')
       .waitForElementVisible('(//tbody/tr)[2]//span[contains(text(),"TestService")]')
-      .waitForElementVisible('(//tbody/tr)[3]//span[contains(text(),"VRK (Owner)")]')
-      .waitForElementVisible('(//tbody/tr)[4]//span[contains(text(),"Gofore")]')
+      .waitForElementVisible('(//tbody/tr)[3]//span[contains(text(),"TestGov (Owner)")]')
+      .waitForElementVisible('(//tbody/tr)[4]//span[contains(text(),"TestCom")]')
       .useCss();
 
     // Verify sorting by 
