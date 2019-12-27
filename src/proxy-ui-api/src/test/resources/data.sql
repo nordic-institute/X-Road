@@ -19,6 +19,8 @@ values (6,'LG','LOCALGROUP', 'group2');
 INSERT INTO IDENTIFIER(ID, DISCRIMINATOR, TYPE, X_ROAD_INSTANCE, MEMBER_CLASS, MEMBER_CODE, SUBSYSTEM_CODE)
 values (7, 'C', 'SUBSYSTEM', 'FI', 'GOV', 'M2', 'SS5');
 
+
+
 INSERT INTO CLIENT(ID, CONF_ID, IDENTIFIER, CLIENT_STATUS, IS_AUTHENTICATION)
 values (1,null,1,'registered', 'NOSSL');
 INSERT INTO CLIENT(ID, CONF_ID, IDENTIFIER, CLIENT_STATUS, IS_AUTHENTICATION)
@@ -28,6 +30,8 @@ values (3,null,3,'registered', 'SSLNOAUTH');
 INSERT INTO CLIENT(ID, CONF_ID, IDENTIFIER, CLIENT_STATUS, IS_AUTHENTICATION)
 values (4,null,7,'registered', 'SSLNOAUTH');
 
+
+
 INSERT INTO LOCALGROUP(ID, GROUP_CODE, DESCRIPTION, UPDATED, CLIENT_ID)
 values (1, 'group1', 'foo', now(), 2);
 INSERT INTO LOCALGROUP(ID, GROUP_CODE, DESCRIPTION, UPDATED, CLIENT_ID)
@@ -36,6 +40,8 @@ values (2, 'group2', 'foo', now(), 2);
 INSERT INTO SERVERCONF(ID, server_code, OWNER) values (1, 'TEST-INMEM-SS', 1);
 
 UPDATE CLIENT SET CONF_ID = 1;
+
+
 
 INSERT INTO SERVICEDESCRIPTION (ID, CLIENT_ID, URL, DISABLED, DISABLED_NOTICE, REFRESHED_DATE, TYPE)
 values (1, 2, 'https://soapservice.com/v1/Endpoint?wsdl', false, 'Out of order', now(), 'WSDL');
@@ -48,6 +54,10 @@ values (3, 3, 'file:src/test/resources/wsdl/testservice.wsdl', true, 'Do not use
 
 INSERT INTO SERVICEDESCRIPTION (ID, CLIENT_ID, URL, DISABLED, DISABLED_NOTICE, REFRESHED_DATE, TYPE)
 values (4, 2, 'https://soapservice.com/v1/no-services?wsdl', true, 'A WSDL without any services', now(), 'WSDL');
+
+INSERT INTO SERVICEDESCRIPTION (ID, CLIENT_ID, URL, DISABLED, DISABLED_NOTICE, REFRESHED_DATE, TYPE)
+values (5, 2, 'https://restservice.com/api/v1/nosuchservice', true, 'Single test url', now(), 'REST');
+
 
 
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
@@ -68,6 +78,10 @@ values (5, 3, 'bodyMassIndexOld', 'v1', null, 'http://xroad-lxd-web.lxd:8088/bod
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
 values (6, 1, 'getRandom', 'v2', 'getrandom-v2-title', 'https://soapservice.com/v1/Endpoint', true, 60);
 
+INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
+values (7, 5, 'testServiceCode', 'v1', null, 'https://restservice.com/api/v1/nosuchservice', false, 60);
+
+
 
 INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
 values (1, 2, 'getRandom', '*', '**', true);
@@ -77,6 +91,10 @@ values (2, 3, 'bodyMassIndexOld', '*', '**', true);
 
 INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
 values (3, 2, 'calculatePrime', '*', '**', true);
+
+INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
+values (4, 2, 'testServiceCode', '*', '**', true);
+
 
 
 INSERT INTO ACCESSRIGHT (ID, SUBJECT_ID, RIGHTS_GIVEN, CLIENT_ID, ENDPOINT_ID)
