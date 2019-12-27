@@ -38,16 +38,16 @@ module.exports = {
   commands: [navigateCommands],
   elements: {
     clientsTab: { 
-      selector: '//div[contains(@class, "v-tabs__bar")]//a[text()="clients"]', 
+      selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()="Clients"]', 
       locateStrategy: 'xpath'},
     keysTab: { 
-      selector: '//div[contains(@class, "v-tabs__bar")]//a[text()="keys and certificates"]', 
+      selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()="Keys and certificates"]', 
       locateStrategy: 'xpath'},
     diagnosticsTab: { 
-      selector: '//div[contains(@class, "v-tabs__bar")]//a[text()="diagnostics"]', 
+      selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()="Diagnostics"]', 
       locateStrategy: 'xpath'},
     settingsTab: { 
-      selector: '//div[contains(@class, "v-tabs__bar")]//a[text()="settings"]', 
+      selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()="Settings"]', 
       locateStrategy: 'xpath' }
   },
   
