@@ -1,7 +1,7 @@
 <template>
   <div class="status-wrapper">
     <div :class="getStatusIconClass(status)"></div>
-    <div class="status-text">{{ status | capitalize }}</div>
+    <div class="status-text">{{getStatusText(status)}}</div>
   </div>
 </template>
 
@@ -36,6 +36,25 @@ export default Vue.extend({
           return 'status-red-ring';
         case 'global_error':
           return 'status-red';
+        default:
+          return '';
+      }
+    },
+    getStatusText(status: string): string {
+      if (!status) {
+        return '';
+      }
+      switch (status.toLowerCase()) {
+        case 'registered':
+          return this.$t('client.statusText.registered') as string;
+        case 'registration_in_progress':
+          return this.$t('client.statusText.registrationInProgress') as string;
+        case 'saved':
+          return this.$t('client.statusText.saved') as string;
+        case 'deletion_in_progress':
+          return this.$t('client.statusText.deletionInProgress') as string;
+        case 'global_error':
+          return this.$t('client.statusText.globalError') as string;
         default:
           return '';
       }
