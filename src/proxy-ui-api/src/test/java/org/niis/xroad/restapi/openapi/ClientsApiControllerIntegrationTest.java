@@ -550,7 +550,8 @@ public class ClientsApiControllerIntegrationTest {
                 .get();
         assertEquals(3, wsdlServiceDescription.getServices().size());
 
-        ServiceDescription serviceDescriptionTypeRest = getDescription(descriptions.getBody(), "https://restservice.com/api/v1/nosuchservice").get();
+        ServiceDescription serviceDescriptionTypeRest = getDescription(descriptions.getBody(),
+                "https://restservice.com/api/v1/nosuchservice").get();
         assertEquals(ServiceType.REST, serviceDescriptionTypeRest.getType());
     }
 
