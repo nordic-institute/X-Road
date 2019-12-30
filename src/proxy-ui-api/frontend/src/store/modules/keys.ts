@@ -1,5 +1,6 @@
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
+import axios from 'axios';
 
 
 export interface KeysState {
@@ -47,6 +48,14 @@ export const actions: ActionTree<KeysState, RootState> = {
 
   hideToken({ commit, rootGetters }, id: string) {
     commit('setTokenHidden', id);
+  },
+
+  uploadCertificate({ commit, state }, data) {
+    return axios.post(`/token-certificates`, data.fileData, {
+      headers: {
+        'Content-Type': 'application/octet-stream',
+      },
+    });
   },
 };
 
