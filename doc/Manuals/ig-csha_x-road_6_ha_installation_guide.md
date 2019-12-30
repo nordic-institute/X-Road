@@ -6,7 +6,7 @@
 # Central Server High Availability Installation Guide
 **X-ROAD 6**
 
-Version: 1.10  
+Version: 1.11  
 Doc. ID: IG-CSHA
 
 ---
@@ -28,7 +28,7 @@ Doc. ID: IG-CSHA
  03.01.2019 | 1.8     | Removed forced NTP installation. | Jarkko Hyöty
  27.09.2019 | 1.9     | Minor fix | Petteri Kivimäki
  03.12.2019 | 1.10    | Removed dependency on BDR | Jarkko Hyöty
- 
+ 30.12.2019 | 1.11    | Add instructions for setting up a replicated PostgreSQL database | Jarkko Hyöty 
 ## Table of Contents
 
 <!-- toc -->
@@ -54,6 +54,14 @@ Doc. ID: IG-CSHA
   * [6.1 Configuration database (and possible replicas) is lost](#61-configuration-database-and-possible-replicas-is-lost)
   * [6.2 One or more cental server nodes lost, backup available](#62-one-or-more-cental-server-nodes-lost-backup-available)
   * [6.3 Some central server nodes lost, backup not available](#63-some-central-server-nodes-lost-backup-not-available)
+* [Appendix A. Setting up a replicated PostgreSQL database](#appendix-a-setting-up-a-replicated-postgresql-database)
+  * [Prerequisites](#prerequisites)
+  * [PostgreSQL configuration (all database servers)](#postgresql-configuration-all-database-servers)
+  * [Preparing the standby](#preparing-the-standby)
+  * [Verifying replication](#verifying-replication)
+  * [Configuring central servers](#configuring-central-servers)
+  * [Fail-over](#fail-over)
+    * [Automatic fail-over](#automatic-fail-over)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -247,4 +255,176 @@ Recovery procedure depends on the type of the failure and database used. If conf
 ### 6.3 Some central server nodes lost, backup not available
 
 See [3.4 Workflow for Adding New Nodes to an Existing HA Configuration](#34-workflow-for-adding-new-nodes-to-an-existing-ha-configuration)
+
+## Appendix A. Setting up a replicated PostgreSQL database
+
+In this configuration, the central server nodes share an external PostgreSQL database that uses a master - standby configuration with streaming replication. In case of master failure, the central server nodes can automatically start using the standby once it has been promoted to master. The promoting is manual by default, but can be automated by custom scripts or using third-party tools. Because the database standby is read-only and the central server nodes require write access, this setup does not provide horizontal scalability.
+
+It is assumed that a PostgreSQL database is installed on two or more similar hosts. It is recommended to use a recent PostgeSQL version (10 or later). One of these hosts will be configured as a master, and others will replicate the master database (standby). The master node can have an existing database, but the standby databases will be initialized during the installation.
+
+A thorough discussion about PostgreSQL replication and high-availability is out of the scope of this guide. For more details, see e.g. [PostgreSQL documentation about high-availability](https://www.postgresql.org/docs/current/high-availability.html).
+
+### Prerequisites
+
+* Same version (10 or later) of PostgreSQL installed on at least two similar hosts.
+* Network connections on PostgreSQL port (tcp/5432) are allowed between database servers (both directions).
+* Network connections to PostgreSQL port (tcp/5432) are allowed from the central servers to the database servers.
+
+### PostgreSQL configuration (all database servers)
+
+Edit `postgresql.conf` and verify the following settings:
+* Ubuntu: `/etc/postgresql/<version>/<cluster name>/postgresql.conf`
+* RHEL: In data directory, usually `/usr/lib/pgsql/data`
+
+```
+# more secure password encryption (optional but recommended)
+password_encryption = scram-sha-256
+
+# ssl should be enabled (optional but recommended)
+ssl on
+
+# network interfaces to listen on (default is localhost)
+listen_addresses = '*'
+
+# WAL replication settings
+# write ahead log level
+wal_level = replica
+
+# Enable replication connections
+# See: https://www.postgresql.org/docs/current/runtime-config-replication.html#GUC-MAX-WAL-SENDERS
+max_wal_senders = 10
+
+# See: https://www.postgresql.org/docs/current/runtime-config-replication.html#GUC-MAX-REPLICATION-SLOTS
+max_replication_slots = 10
+
+# Enables read-only queries on the standby, ignored by master
+hot_standby = on
+```
+
+Edit pg_hba.conf (on Ubuntu by default in `/etc/postgresql/<version>/main/`) and add configuration for the replication user. For example, the following allows the user "standby" from a host in the same network to connect to the master. The connection requires TLS and uses challenge-response password authentication. See https://www.postgresql.org/docs/current/auth-pg-hba-conf.html for more information.
+
+```
+# TYPE    DATABASE        USER            ADDRESS       METHOD
+hostssl   replication     standby         samenet       scram-sha-256
+```
+
+Restart the master PostgreSQL instance before continuing.
+
+On the master server, create the replication user:
+```bash
+sudo -iu postgres psql -c "CREATE USER standby REPLICATION PASSWORD '<password>'"
+```
+
+Also on master, create a replication slot for the standby. Replication slots provide an automated way to ensure that the master does not remove write-ahead-log segments until they have been received by a standby, even when standby is disconnected (see https://www.postgresql.org/docs/current/warm-standby.html#STREAMING-REPLICATION-SLOTS).
+
+```bash
+sudo -iu postgres psql -c "SELECT pg_create_physical_replication_slot('standby_node1');"
+```
+
+### Preparing the standby
+
+* Verify that the standby PostgreSQL instance is not running.
+* Clear the data directory (on Ubuntu, default location is `/var/lib/postgresql/<version>/main`)
+
+  ```bash
+   rm -rf /path/to/data/directory/*
+  ```
+
+* Do a base backup with `pg_basebackup`:
+  
+  ```bash
+  sudo -u postgres pg_basebackup -h <master> -U standby --slot=standby_node1 -R -D /path/to/data/directory/
+  ```
+
+* Edit `recovery.conf` (in the data directory) and verify the settings:
+  
+  ```
+  standby_mode = 'on'
+  primary_conninfo = 'host=<master> user=<standby> password=<password>'
+  primary_slot_name = 'standby_node1'
+  recovery_target_timeline = 'latest'
+  ```
+  
+  Where `<master>` is the DNS or IP address of the master node and `<standby>` and `<password>` are the credentials of the replication user (see https://www.postgresql.org/docs/current/runtime-config-replication.html#RUNTIME-CONFIG-REPLICATION-STANDBY).
+
+* Start the standby server.
+
+### Verifying replication
+
+On master, check pg_stat_replication view:
+```
+sudo -iu postgres psql -txc "SELECT * FROM pg_stat_replication"
+...
+username         | standby
+...
+state            | streaming
+sent_lsn         | 0/2A03F000
+write_lsn        | 0/2A03F000
+flush_lsn        | 0/2A03F000
+replay_lsn       | 0/2A03F000
+```
+
+On stanbys, check pg_stat_wal_receiver view:
+```
+sudo -iu postgres psql -txc "SELECT * FROM pg_stat_wal_receiver"
+...
+status                | streaming
+receive_start_lsn     | 0/29000000
+received_lsn          | 0/2A03F000
+last_msg_send_time    | 2019-12-30 07:32:03.902888+00
+last_msg_receipt_time | 2019-12-30 07:32:03.903118+00
+...
+slot_name             | standby_node1
+```
+
+The `status` should be _streaming_ and `sent_lsn` on master should be close to `received_lsn` on the stanbys. If replication slots are in use, one can also compare the `sent_lsn` and `replay_lsn` values on the master.
+
+### Configuring central servers
+
+See [X-Road knowledge base](https://confluence.niis.org/display/XRDKB/X-Road+Knowledge+Base) for instructions about migrating an existing central server database to an external database.
+
+Edit `/etc/xroad/db.properties` and change the connection properties:
+```
+adapter=postgresql
+encoding=utf8
+username=centerui
+password=<password>
+database=centerui_production
+reconnect=true
+host=<master host>
+secondary_hosts=<standby host>
+```
+
+Restart central servers and verify that the cluster is working (see [5 Monitoring HA State on a Node](#5-monitoring-ha-state-on-a-node)).
+
+### Fail-over
+
+In case the master server fails, one can manually promote the standby to a master by executing the following command on the standby server:
+```
+sudo pg_ctl promote
+```
+
+On Ubuntu pg_ctl is typically not in the path, use pg_ctlcluster instead:
+```
+sudo pg_ctlcluster <major version> <cluster name> promote
+# e.g. sudo pg_ctlcluster 10 main promote
+```
+
+If the standby is configured as a secondary database host on the central servers, the servers will automatically reconnect to it.
+To avoid a "split-brain" situation, the old master must not be started until it has been reconfigured as a standby.
+
+See also: https://www.postgresql.org/docs/current/warm-standby-failover.html
+
+#### Automatic fail-over
+
+Achieving and maintaining a system with automated fail-over is a complex task and out of the scope of this guide. Some actively maintained open-source solutions for automating PostgreSQL failover include:
+
+* Microsoft (Citus Data) pg_auto_failover: https://pg-auto-failover.readthedocs.io/en/latest/index.html
+  * A straightforward solution for a two-node (primary-standby) setup. In addition to the data nodes, it requires a monitoring server (also a PostgreSQL instance).
+* 2ndQuadrant Repmgr: https://repmgr.org/
+  * An established solution for managing PostgreSQL replication and fail-over. Can handle more complex setups (e.g. several slaves) than pg_auto_failover.
+* Patroni by Zalando: https://patroni.readthedocs.io/en/latest/
+  * "Patroni is a template for you to create your own customized, high-availability solution using Python and a distributed configuration store like ZooKeeper, etcd, Consul or Kubernetes"
+* ClusterLabs PostgreSQL Automatic Failover (PAF): http://clusterlabs.github.io/PAF/documentation.html
+  * PAF is a resource agent for Pacemaker cluster resource manager; probably the most versatile but also most difficult to configure and operate.
 
