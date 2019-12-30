@@ -362,7 +362,7 @@ public class ServiceDescriptionServiceIntegrationTest {
         ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
 
         // 2 as set in data.sql
-        assertEquals(2, clientType.getEndpoint().size());
+        assertEquals(3, clientType.getEndpoint().size());
         assertTrue(clientType.getEndpoint()
                 .stream()
                 .map(EndpointType::getServiceCode)
@@ -376,7 +376,7 @@ public class ServiceDescriptionServiceIntegrationTest {
         clientType = clientService.getClient(CLIENT_ID_SS1);
 
         // 3 new endpoints saved: xroadSmallAttachment and xroadBigAttachment and xroadGetRandom
-        assertEquals(5, clientType.getEndpoint().size());
+        assertEquals(6, clientType.getEndpoint().size());
         assertTrue(clientType.getEndpoint()
                 .stream()
                 .map(EndpointType::getServiceCode)
@@ -389,7 +389,7 @@ public class ServiceDescriptionServiceIntegrationTest {
     public void updateWsdlServiceDescriptionAndCheckEndpoints() throws Exception {
         ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
 
-        assertEquals(2, clientType.getEndpoint().size());
+        assertEquals(3, clientType.getEndpoint().size());
         assertTrue(clientType.getEndpoint()
                 .stream()
                 .map(EndpointType::getServiceCode)
@@ -403,7 +403,7 @@ public class ServiceDescriptionServiceIntegrationTest {
 
         clientType = clientService.getClient(CLIENT_ID_SS1);
 
-        assertEquals(2, clientType.getEndpoint().size());
+        assertEquals(3, clientType.getEndpoint().size());
         assertTrue(clientType.getEndpoint()
                 .stream()
                 .map(EndpointType::getServiceCode)
@@ -415,7 +415,7 @@ public class ServiceDescriptionServiceIntegrationTest {
     public void removeWsdlServiceDescriptionAndCheckEndpoints() throws Exception {
         ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
 
-        assertEquals(2, clientType.getEndpoint().size());
+        assertEquals(3, clientType.getEndpoint().size());
         assertTrue(clientType.getEndpoint()
                 .stream()
                 .map(EndpointType::getServiceCode)
@@ -428,14 +428,14 @@ public class ServiceDescriptionServiceIntegrationTest {
 
         clientType = clientService.getClient(CLIENT_ID_SS1);
 
-        assertEquals(0, clientType.getEndpoint().size());
+        assertEquals(1, clientType.getEndpoint().size());
     }
 
     @Test
     public void refreshWsdlServiceDescriptionAndCheckEndpoints() throws Exception {
         ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
 
-        assertEquals(2, clientType.getEndpoint().size());
+        assertEquals(3, clientType.getEndpoint().size());
         assertTrue(clientType.getEndpoint()
                 .stream()
                 .map(EndpointType::getServiceCode)
@@ -457,7 +457,7 @@ public class ServiceDescriptionServiceIntegrationTest {
 
         clientType = clientService.getClient(CLIENT_ID_SS1);
 
-        assertEquals(4, clientType.getEndpoint().size());
+        assertEquals(5, clientType.getEndpoint().size());
         assertTrue(clientType.getEndpoint()
                 .stream()
                 .map(EndpointType::getServiceCode)

@@ -337,7 +337,7 @@ public class ClientsApiController implements ClientsApi {
                 throw new ConflictException(e);
             }
 
-        } else if (serviceDescription.getType() == ServiceType.REST) {
+        } else if (serviceDescription.getType() == ServiceType.OPENAPI3) {
             return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
         }
         ServiceDescription addedServiceDescription = serviceDescriptionConverter.convert(

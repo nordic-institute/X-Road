@@ -27,6 +27,13 @@
     "name": "Name",
     "id": "ID",
     "status": "Status",
+    "statusText": {
+      "registered": "REGISTERED",
+      "globalError": "GLOBAL ERROR",
+      "deletionInProgress": "DELETION IN PROGRESS",
+      "saved": "SAVED",
+      "registrationInProgress": "REGISTRATION IN PROGRESS"
+    },
     "owner": "Owner",
     "memberName": "Member Name",
     "memberClass": "Member Class",
