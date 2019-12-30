@@ -401,7 +401,8 @@ public class TokenCertificateService {
      * @throws InvalidCertificateException
      * @throws AccessDeniedException
      */
-    public void checkCertificateAuthority(byte[] certificateBytes) throws InvalidCertificateException, AccessDeniedException {
+    public void checkCertificateAuthority(byte[] certificateBytes) throws InvalidCertificateException,
+            AccessDeniedException {
         X509Certificate x509Certificate = null;
         try {
             x509Certificate = CryptoUtils.readCertificate(certificateBytes);
