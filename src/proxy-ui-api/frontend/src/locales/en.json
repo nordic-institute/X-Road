@@ -80,7 +80,7 @@
     "deleteCertConfirm": "Are you sure that you want to delete this certificate?",
     "certDeleted": "Certificate deleted",
     "activateSuccess": "Certificate has been activated",
-    "disableSuccess": "Certificate has been disabled"
+    "deactivateSuccess": "Certificate has been disabled"
   },
   "localGroups": {
     "addGroup": "Add group",
