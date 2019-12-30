@@ -37,12 +37,24 @@ import ee.ria.xroad.proxy.util.MessageProcessorBase;
 import com.google.gson.stream.JsonWriter;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.http.HttpStatus;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 
@@ -54,6 +66,8 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
  */
 class ClientRestMessageHandler extends AbstractClientProxyHandler {
 
+    private String requestAcceptType;
+
     ClientRestMessageHandler(HttpClient client) {
         super(client, true);
     }
@@ -62,7 +76,7 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
     MessageProcessorBase createRequestProcessor(String target,
             HttpServletRequest request, HttpServletResponse response,
             OpMonitoringData opMonitoringData) throws Exception {
-
+        requestAcceptType = request.getHeader("Accept");
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
             verifyCanProcess();
             return new ClientRestMessageProcessor(request, response, client,
@@ -92,17 +106,57 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
         } else {
             response.setStatus(HttpStatus.BAD_REQUEST_400);
         }
-        response.setContentType("application/json");
-        response.setCharacterEncoding(MimeUtils.UTF8);
-        response.setHeader("X-Road-Error", ex.getFaultCode());
+        if (requestAcceptType.equalsIgnoreCase("text/xml")
+                || requestAcceptType.equalsIgnoreCase("application/xml")) {
+            response.setContentType(requestAcceptType);
+            response.setCharacterEncoding(MimeUtils.UTF8);
+            response.setHeader("X-Road-Error", ex.getFaultCode());
 
-        final JsonWriter writer = new JsonWriter(new PrintWriter(response.getOutputStream()));
-        writer.beginObject()
-                .name("type").value(ex.getFaultCode())
-                .name("message").value(ex.getFaultString())
-                .name("detail").value(ex.getFaultDetail())
-                .endObject()
-                .close();
+            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+            try {
+                DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+                Document doc = docBuilder.newDocument();
+
+                Element errorRootElement = doc.createElement("error");
+                doc.appendChild(errorRootElement);
+
+                Element typeElement = doc.createElement("type");
+                typeElement.appendChild(doc.createTextNode(ex.getFaultCode()));
+                errorRootElement.appendChild(typeElement);
+
+                Element messageElement = doc.createElement("message");
+                messageElement.appendChild(doc.createTextNode(ex.getFaultString()));
+                errorRootElement.appendChild(messageElement);
+
+                Element detailElement = doc.createElement("detail");
+                detailElement.appendChild(doc.createTextNode(ex.getFaultDetail()));
+                errorRootElement.appendChild(detailElement);
+
+                TransformerFactory tf = TransformerFactory.newInstance();
+                Transformer transformer = tf.newTransformer();
+                StringWriter writer = new StringWriter();
+                transformer.transform(new DOMSource(doc), new StreamResult(writer));
+                String xmlString = writer.getBuffer().toString();
+                response.getOutputStream().write(xmlString.getBytes());
+            } catch (ParserConfigurationException e) {
+                e.printStackTrace();
+            } catch (TransformerConfigurationException e) {
+                e.printStackTrace();
+            } catch (TransformerException e) {
+                e.printStackTrace();
+            }
+        } else {
+            response.setContentType("application/json");
+            response.setCharacterEncoding(MimeUtils.UTF8);
+            response.setHeader("X-Road-Error", ex.getFaultCode());
+
+            final JsonWriter writer = new JsonWriter(new PrintWriter(response.getOutputStream()));
+            writer.beginObject()
+                    .name("type").value(ex.getFaultCode())
+                    .name("message").value(ex.getFaultString())
+                    .name("detail").value(ex.getFaultDetail())
+                    .endObject()
+                    .close();
+        }
     }
-
 }
