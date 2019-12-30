@@ -80,6 +80,8 @@ public class TokenCertificateService {
 
     private static final String DUMMY_MEMBER = "dummy";
     private static final String NOT_FOUND = "not found";
+    private static final String IMPORT_AUTH_CERT = "IMPORT_AUTH_CERT";
+    private static final String IMPORT_SIGN_CERT = "IMPORT_SIGN_CERT";
 
     private final GlobalConfService globalConfService;
     private final GlobalConfFacade globalConfFacade;
@@ -301,13 +303,13 @@ public class TokenCertificateService {
             ClientId clientId = null;
             boolean isAuthCert = CertUtils.isAuthCert(x509Certificate);
             if (isAuthCert) {
-                verifyAuthority("IMPORT_AUTH_CERT");
+                verifyAuthority(IMPORT_AUTH_CERT);
                 if (isFromToken) {
                     throw new AuthCertificateNotSupportedException("auth cert cannot be imported from a token");
                 }
                 certificateState = CertificateInfo.STATUS_SAVED;
             } else {
-                verifyAuthority("IMPORT_SIGN_CERT");
+                verifyAuthority(IMPORT_SIGN_CERT);
                 String xroadInstance = globalConfFacade.getInstanceIdentifier();
                 clientId = getClientIdForSigningCert(xroadInstance, x509Certificate);
                 boolean clientExists = clientRepository.clientExists(clientId, true);
@@ -338,7 +340,7 @@ public class TokenCertificateService {
      * @param certificateId
      * @throws CertificateNotFoundException
      */
-    public void activateCertificate(String certificateId) throws CertificateNotFoundException {
+    public void activateCertificate(String certificateId) throws CertificateNotFoundException, AccessDeniedException {
         try {
             signerProxyFacade.activateCert(certificateId);
         } catch (CodedException e) {
@@ -390,6 +392,35 @@ public class TokenCertificateService {
             WrongCertificateUsageException, ClientNotFoundException, CsrNotFoundException,
             AuthCertificateNotSupportedException {
         return importCertificate(certificateBytes, false);
+    }
+
+    /**
+     * Check user authority to the given certificate
+     *
+     * @param certificateBytes
+     * @throws InvalidCertificateException
+     * @throws AccessDeniedException
+     */
+    public void checkCertificateAuthority(byte[] certificateBytes) throws InvalidCertificateException, AccessDeniedException {
+        X509Certificate x509Certificate = null;
+        try {
+            x509Certificate = CryptoUtils.readCertificate(certificateBytes);
+        } catch (Exception e) {
+            throw new InvalidCertificateException("cannot convert bytes to certificate", e);
+        }
+
+        try {
+            boolean isAuthCert = CertUtils.isAuthCert(x509Certificate);
+            if (isAuthCert) {
+                verifyAuthority(IMPORT_AUTH_CERT);
+            } else {
+                verifyAuthority(IMPORT_SIGN_CERT);
+            }
+        } catch (AccessDeniedException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("error in checking authority to the certificate", e);
+        }
     }
 
     /**

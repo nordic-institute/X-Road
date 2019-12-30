@@ -40,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -64,27 +65,33 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('ACTIVATE_TOKEN')")
+    @PreAuthorize("hasAnyAuthority('ACTIVATE_DISABLE_AUTH_CERT','ACTIVATE_DISABLE_SIGN_CERT')")
     public ResponseEntity<Void> activateCertificate(String hash) {
         CertificateInfo certificateInfo = null;
         try {
             certificateInfo = tokenCertificateService.getCertificateInfo(hash);
+            tokenCertificateService.checkCertificateAuthority(certificateInfo.getCertificateBytes());
             tokenCertificateService.activateCertificate(certificateInfo.getId());
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
+        } catch (TokenCertificateService.InvalidCertificateException e) {
+            throw new BadRequestException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @Override
-    @PreAuthorize("hasAuthority('DEACTIVATE_TOKEN')")
+    @PreAuthorize("hasAnyAuthority('ACTIVATE_DISABLE_AUTH_CERT','ACTIVATE_DISABLE_SIGN_CERT')")
     public ResponseEntity<Void> deactivateCertificate(String hash) {
         CertificateInfo certificateInfo = null;
         try {
             certificateInfo = tokenCertificateService.getCertificateInfo(hash);
+            tokenCertificateService.checkCertificateAuthority(certificateInfo.getCertificateBytes());
             tokenCertificateService.deactivateCertificate(certificateInfo.getId());
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
+        } catch (TokenCertificateService.InvalidCertificateException e) {
+            throw new BadRequestException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
