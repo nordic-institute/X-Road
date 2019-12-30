@@ -24,40 +24,38 @@
         :isOpen="isExpanded(token.id)"
       >
         <template v-slot:action>
-          <large-button
-            @click="login(token, index)"
-            v-if="!token.logged_in"
-            :disabled="!token.available"
-          >{{$t('keys.logIn')}}</large-button>
-          <large-button
-            @click="logout(token, index)"
-            v-if="token.logged_in"
-            outlined
-          >{{$t('keys.logOut')}}</large-button>
+          <template v-if="canActivateToken">
+            <large-button
+              @click="login(token, index)"
+              v-if="!token.logged_in"
+              :disabled="!token.available"
+            >{{$t('keys.logIn')}}</large-button>
+            <large-button
+              @click="logout(token, index)"
+              v-if="token.logged_in"
+              outlined
+            >{{$t('keys.logOut')}}</large-button>
+          </template>
+          <div v-else></div>
         </template>
 
         <template v-slot:link>
-          <div
-            class="clickable-link"
-            v-if="canEditServiceDesc"
-            @click="tokenClick(token)"
-          >{{$t('keys.token')}} {{token.name}}</div>
-          <div v-else>{{token.type}} ({{token.url}})</div>
+          <div class="clickable-link" @click="tokenClick(token)">{{$t('keys.token')}} {{token.name}}</div>
         </template>
 
         <template v-slot:content>
           <div>
-            <div class="button-wrap">
+            <div class="button-wrap" v-if="canActivateToken">
               <large-button
                 outlined
                 @click="addKey(token, index)"
                 :disabled="!token.logged_in"
               >{{$t('keys.addKey')}}</large-button>
               <large-button
-                  outlined
-                  class="button-spacing"
-                  :disabled="!token.logged_in"
-                  @click="$refs.certUpload[0].click()"
+                outlined
+                class="button-spacing"
+                :disabled="!token.logged_in"
+                @click="$refs.certUpload[0].click()"
               >{{$t('keys.importCert')}}</large-button>
               <input
                 v-show="false"
@@ -145,7 +143,8 @@ import TokenLoginDialog from './TokenLoginDialog.vue';
 import KeysTable from './KeysTable.vue';
 import UnknownKeysTable from './UnknownKeysTable.vue';
 import KeyLabelDialog from './KeyLabelDialog.vue';
-import { Key, Token, TokenCertificate } from '@/types';
+import { mapGetters } from 'vuex';
+import { Key, Token, TokenType, TokenCertificate } from '@/types';
 import * as api from '@/util/api';
 
 import _ from 'lodash';
@@ -174,14 +173,16 @@ export default Vue.extend({
       search: '',
       logoutDialog: false,
       loginDialog: false,
-      tokens: [],
+      tokens: [] as Token[],
       selected: undefined as SelectedObject,
       keyLabelDialog: false,
     };
   },
   computed: {
-    canEditServiceDesc(): boolean {
-      return this.$store.getters.hasPermission(Permissions.EDIT_WSDL);
+    canActivateToken(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.ACTIVATE_DEACTIVATE_TOKEN,
+      );
     },
     filtered(): Token[] {
       if (!this.tokens || this.tokens.length === 0) {
@@ -370,8 +371,9 @@ export default Vue.extend({
         });
     },
     importCert(event: any) {
-
-      const fileList = (event && event.target && event.target.files) || (event && event.dataTransfer && event.dataTransfer.files);
+      const fileList =
+        (event && event.target && event.target.files) ||
+        (event && event.dataTransfer && event.dataTransfer.files);
       if (!fileList.length) {
         return;
       }
@@ -388,25 +390,28 @@ export default Vue.extend({
           .dispatch('uploadCertificate', {
             fileData: e.target.result,
           })
-          .then(() => {
-            this.$bus.$emit('show-success', 'keys.importCertSuccess');
-            this.fetchData();
-          }, (error) => {
-            this.$bus.$emit('show-error', error.message);
-          },
-        );
+          .then(
+            () => {
+              this.$bus.$emit('show-success', 'keys.importCertSuccess');
+              this.fetchData();
+            },
+            (error) => {
+              this.$bus.$emit('show-error', error.message);
+            },
+          );
       };
       reader.readAsArrayBuffer(fileList[0]);
     },
     importCertByHash(hash: string) {
-      api
-        .post(`/token-certificates/${hash}/import`, {})
-        .then(() => {
+      api.post(`/token-certificates/${hash}/import`, {}).then(
+        () => {
           this.$bus.$emit('show-success', 'keys.importCertSuccess');
           this.fetchData();
-        }, (error) => {
+        },
+        (error) => {
           this.$bus.$emit('show-error', error.message);
-        });
+        },
+      );
     },
     generateCsr(key: Key) {
       this.$router.push({

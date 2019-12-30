@@ -22,6 +22,7 @@
               <div class="id-wrap">
                 <div class="clickable-link" @click="keyClick(key)">{{key.id}}</div>
                 <SmallButton
+                  v-if="hasPermission"
                   class="table-button-fix"
                   :disabled="disableGenerateCsr"
                   @click="generateCsr(key)"
@@ -44,9 +45,10 @@
               <div class="id-wrap">
                 <div class="clickable-link" @click="keyClick(key)">{{key.id}}</div>
                 <SmallButton
-                        class="table-button-fix"
-                        :disabled="disableGenerateCsr"
-                        @click="generateCsr(key)"
+                  v-if="hasPermission"
+                  class="table-button-fix"
+                  :disabled="disableGenerateCsr"
+                  @click="generateCsr(key)"
                 >{{$t('keys.generateCsr')}}</SmallButton>
               </div>
             </td>
@@ -90,7 +92,8 @@
  */
 import Vue from 'vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
-import {Key, TokenCertificate} from '@/types';
+import { Key, TokenCertificate } from '@/types';
+import { Permissions } from '@/global';
 
 export default Vue.extend({
   components: {
@@ -113,7 +116,14 @@ export default Vue.extend({
       required: true,
     },
   },
-  computed: {},
+  computed: {
+    hasPermission(): boolean {
+      // Can the user login to the token and see actions
+      return this.$store.getters.hasPermission(
+        Permissions.ACTIVATE_DEACTIVATE_TOKEN,
+      );
+    },
+  },
   methods: {
     keyClick(key: Key): void {
       this.$emit('keyClick', key);
