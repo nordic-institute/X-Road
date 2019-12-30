@@ -51,24 +51,31 @@
               </div>
             </td>
           </tr>
-
-          <tr v-if="hasCertificates(key)" v-for="certificate in key.certificates" v-bind:key="certificate.certificate_details.hash">
-            <td class="td-name">
-              <div class="name-wrap">
-                <v-icon v-bind:class="{hidden: showHardwareTokenImportCert(certificate)}"class="icon" >mdi-file-document-outline</v-icon>
-                <span>{{certificate.certificate_details.issuer_common_name}} {{certificate.certificate_details.serial}}</span>
-              </div>
-            </td>
-            <td>
-              <div class="id-wrap">
-                <SmallButton
-                        v-if="showHardwareTokenImportCert(certificate)"
-                        @click="importCert(certificate.certificate_details.hash)"
-                        class="table-button-fix"
-                >{{$t('keys.importCert')}}</SmallButton>
-              </div>
-            </td>
-          </tr>
+          <template v-if="hasCertificates(key)">
+            <tr
+              v-for="certificate in key.certificates"
+              v-bind:key="certificate.certificate_details.hash"
+            >
+              <td class="td-name">
+                <div class="name-wrap">
+                  <v-icon
+                    v-bind:class="{hidden: showHardwareTokenImportCert(certificate)}"
+                    class="icon"
+                  >mdi-file-document-outline</v-icon>
+                  <span>{{certificate.certificate_details.issuer_common_name}} {{certificate.certificate_details.serial}}</span>
+                </div>
+              </td>
+              <td>
+                <div class="id-wrap">
+                  <SmallButton
+                    v-if="showHardwareTokenImportCert(certificate) && hasPermission"
+                    @click="importCert(certificate.certificate_details.hash)"
+                    class="table-button-fix"
+                  >{{$t('keys.importCert')}}</SmallButton>
+                </div>
+              </td>
+            </tr>
+          </template>
         </template>
 
       </tbody>
