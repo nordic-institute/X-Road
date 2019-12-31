@@ -97,7 +97,34 @@ public class StateChangeActionHelper {
 
         /**
          *  (keys.js#21)
-         *  -- delete = !key.notSupported && key.deletable && (!key.unsaved || key.active)
+         * -- delete =
+         *      if (token.readonly && !key.saved_to_conf) => false
+         *      else true;
+         *
+         *     def can_delete_key?(token, key, saved_to_conf)
+         *       if token.readOnly && !saved_to_conf
+         *         return false
+         *       end
+         *
+         *       if key.usage == KeyUsageInfo::AUTHENTICATION
+         *         can?(:delete_auth_key)
+         *       elsif key.usage == KeyUsageInfo::SIGNING
+         *         can?(:delete_sign_key)
+         *       else
+         *         can?(:delete_key)
+         *       end
+         *     end
+         *
+         *  -- delete = !key.notSupported && key.deletable && (!key.unsaved || token.active)
+         *
+         * (keys.js)
+         *         if (!selectedKey.is(".not-supported")
+         *             && getKeyData(oKeys.getFocus()).key_deletable
+         *             && (!selectedKey.hasClass("unsaved")
+         *                 || selectedKey.hasClass("token-active"))) {
+         *
+         *             $("#delete").enable();
+         *         }
          *
          *  key.notSupported = token_id != SOFTTOKEN_ID
          *                     && key_usage == KEY_USAGE_AUTH
@@ -125,8 +152,8 @@ public class StateChangeActionHelper {
          *     && (keyUsage = null || keyUsage = AUTH)
          *     && generate_csr_possible
          *
-         *  -- generate_sign_csr = keyData.token_id != SOFTTOKEN_ID
-         *     && (keyUsage = null || keyUsage = SIGN)
+         *  -- generate_sign_csr =
+         *     (keyUsage = null || keyUsage = SIGN)
          *     && generate_csr_possible
          *
          *  (keys.js#35)
@@ -153,23 +180,6 @@ public class StateChangeActionHelper {
          *       false
          *     end
          *
-         * -- delete =
-         *      if (token.readonly && !key.saved_to_conf) => false
-         *      else true;
-         *
-         *     def can_delete_key?(token, key, saved_to_conf)
-         *       if token.readOnly && !saved_to_conf
-         *         return false
-         *       end
-         *
-         *       if key.usage == KeyUsageInfo::AUTHENTICATION
-         *         can?(:delete_auth_key)
-         *       elsif key.usage == KeyUsageInfo::SIGNING
-         *         can?(:delete_sign_key)
-         *       else
-         *         can?(:delete_key)
-         *       end
-         *     end
          *
          *
          *

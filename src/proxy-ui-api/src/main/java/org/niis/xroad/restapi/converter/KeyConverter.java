@@ -98,7 +98,7 @@ public class KeyConverter {
         }
 
         key.setAvailable(keyInfo.isAvailable());
-        key.setSavedToConfiguration(isSavedToConfiguration(keyInfo));
+        key.setSavedToConfiguration(keyInfo.isSavedToConfiguration());
 
         if (tokenInfo == null) {
             // without possibleactions
@@ -115,20 +115,6 @@ public class KeyConverter {
         }
 
         return key;
-    }
-
-
-    /**
-     * Logic to determine if a key is saved to configuration,
-     * copied from token_renderer.rb#key_saved_to_configuration
-     * @param keyInfo
-     */
-    public boolean isSavedToConfiguration(KeyInfo keyInfo) {
-        if (!keyInfo.getCertRequests().isEmpty()) {
-            return true;
-        }
-        return keyInfo.getCerts().stream()
-                       .anyMatch(certificateInfo -> certificateInfo.isSavedToConfiguration());
     }
 
     /**

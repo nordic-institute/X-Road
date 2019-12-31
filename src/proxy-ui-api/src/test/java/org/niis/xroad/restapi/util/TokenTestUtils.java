@@ -139,9 +139,10 @@ public final class TokenTestUtils {
         private KeyUsageInfo keyUsageInfo = KeyUsageInfo.SIGNING;
         private List<CertRequestInfo> certRequests = new ArrayList<>();
         private List<CertificateInfo> certificates = new ArrayList<>();
+        private boolean available = true;
 
         public KeyInfo build() {
-            return new KeyInfo(true,
+            return new KeyInfo(available,
                     keyUsageInfo,
                     friendlyName,
                     id,
@@ -164,6 +165,11 @@ public final class TokenTestUtils {
 
         public KeyInfoBuilder keyUsageInfo(KeyUsageInfo keyUsageInfoParam) {
             this.keyUsageInfo = keyUsageInfoParam;
+            return this;
+        }
+
+        public KeyInfoBuilder available(boolean availableParam) {
+            this.available = availableParam;
             return this;
         }
 

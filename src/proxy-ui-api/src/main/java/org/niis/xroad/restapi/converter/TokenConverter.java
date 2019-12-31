@@ -83,7 +83,7 @@ public class TokenConverter {
 
         token.setLoggedIn(tokenInfo.isActive());
         token.setAvailable(tokenInfo.isAvailable());
-        token.setSavedToConfiguration(isSavedToConfiguration(tokenInfo));
+        token.setSavedToConfiguration(tokenInfo.isSavedToConfiguration());
         token.setReadOnly(tokenInfo.isReadOnly());
         token.setSerialNumber(tokenInfo.getSerialNumber());
         token.setTokenInfos(new ArrayList<>());
@@ -102,17 +102,7 @@ public class TokenConverter {
         return token;
     }
 
-    /**
-     * Logic to determine if a token is saved to configuration,
-     * copied from token_renderer.rb#token_saved_to_configuration
-     * @param tokenInfo
-     */
-    private boolean isSavedToConfiguration(TokenInfo tokenInfo) {
-        return tokenInfo.getKeyInfo().stream()
-                .anyMatch(keyInfo -> keyConverter.isSavedToConfiguration(keyInfo));
-    }
-
-    /**
+   /**
      * Convert a group of {@link TokenInfo tokenInfos} to a list of {@link Token tokens}
      * @param tokenInfos
      * @return List of {@link TokenInfo tokenInfos}

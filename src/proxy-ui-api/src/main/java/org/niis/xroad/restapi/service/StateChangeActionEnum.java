@@ -25,13 +25,21 @@
 package org.niis.xroad.restapi.service;
 
 /**
+ * TO DO: better name since there are also other than state change actions?
  * different state change actions
+ *
+ * Uses service / core naming. Token logout is "deactivate" instead of "logout".
  */
 public enum StateChangeActionEnum {
     DELETE,
     ACTIVATE,
-    DISABLE,
+    DISABLE, // cert
+    DEACTIVATE, // token
     REGISTER,
     UNREGISTER,
-    IMPORT_FROM_TOKEN
+    IMPORT_FROM_TOKEN,
+    GENERATE_KEY,
+    EDIT_FRIENDLY_NAME,
+    GENERATE_AUTH_CSR,
+    GENERATE_SIGN_CSR,
 }
