@@ -47,6 +47,6 @@ public class StateChangeActionConverter {
     }
 
     public StateChangeAction convert(StateChangeActionEnum stateChangeActionEnum) {
-        return StateChangeAction.fromValue(stateChangeActionEnum.toString());
+        return StateChangeActionMapping.map(stateChangeActionEnum).get();
     }
 }

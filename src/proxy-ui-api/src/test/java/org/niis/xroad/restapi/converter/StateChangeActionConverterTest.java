@@ -29,6 +29,7 @@ import org.niis.xroad.restapi.openapi.model.StateChangeAction;
 import org.niis.xroad.restapi.service.StateChangeActionEnum;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -42,7 +43,7 @@ public class StateChangeActionConverterTest {
 
     @Test
     public void enumsAreInSync() {
-        // test to verify openapi and service layer enums contain same items
+        // test to verify openapi and service layer enums contain same number of discreet items
         Set<String> openApiEnumNames = Arrays.stream(StateChangeAction.values())
                 .map(Enum::name)
                 .collect(Collectors.toSet());
@@ -50,14 +51,25 @@ public class StateChangeActionConverterTest {
                 .map(Enum::name)
                 .collect(Collectors.toSet());
         assertEquals(openApiEnumNames.size(), serviceEnumNames.size());
-        assertTrue(openApiEnumNames.containsAll(serviceEnumNames));
     }
 
     @Test
-    public void convert() {
+    public void convertOne() {
         StateChangeAction converted = new StateChangeActionConverter()
                 .convert(StateChangeActionEnum.IMPORT_FROM_TOKEN);
         assertEquals(StateChangeAction.IMPORT_FROM_TOKEN, converted);
+    }
+
+    @Test
+    public void convertAll() {
+        Set<StateChangeAction> allItemsConverted = new HashSet(
+                new StateChangeActionConverter()
+                .convert(Arrays.asList(StateChangeActionEnum.values())));
+        Set<StateChangeAction> allOpenApiValues = new HashSet(
+                Arrays.asList(StateChangeAction.values()));
+        assertTrue(allOpenApiValues.containsAll(allItemsConverted));
+        assertTrue(allItemsConverted.containsAll(allOpenApiValues));
+        assertEquals(StateChangeAction.values().length, allItemsConverted.size());
     }
 
 }

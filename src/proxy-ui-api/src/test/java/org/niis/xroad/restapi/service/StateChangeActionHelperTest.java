@@ -255,36 +255,36 @@ public class StateChangeActionHelperTest {
                         .available(true)
                         .active(false)
                         .build())
-                .contains(StateChangeActionEnum.ACTIVATE));
+                .contains(StateChangeActionEnum.TOKEN_ACTIVATE));
         assertFalse(helper.getPossibleTokenActions(
                 new TokenInfoBuilder()
                         .available(true)
                         .active(true)
                         .build())
-                .contains(StateChangeActionEnum.ACTIVATE));
+                .contains(StateChangeActionEnum.TOKEN_ACTIVATE));
         assertFalse(helper.getPossibleTokenActions(
                 new TokenInfoBuilder()
                         .available(false)
                         .active(false)
                         .build())
-                .contains(StateChangeActionEnum.ACTIVATE));
+                .contains(StateChangeActionEnum.TOKEN_ACTIVATE));
 
         assertTrue(helper.getPossibleTokenActions(
                 new TokenInfoBuilder()
                         .active(true)
                         .build())
-                .contains(StateChangeActionEnum.DEACTIVATE));
+                .contains(StateChangeActionEnum.TOKEN_DEACTIVATE));
         assertFalse(helper.getPossibleTokenActions(
                 new TokenInfoBuilder()
                         .active(false)
                         .build())
-                .contains(StateChangeActionEnum.DEACTIVATE));
+                .contains(StateChangeActionEnum.TOKEN_DEACTIVATE));
         assertTrue(helper.getPossibleTokenActions(
                 new TokenInfoBuilder()
                         .available(false)
                         .active(true)
                         .build())
-                .contains(StateChangeActionEnum.DEACTIVATE));
+                .contains(StateChangeActionEnum.TOKEN_DEACTIVATE));
     }
 
     @Test

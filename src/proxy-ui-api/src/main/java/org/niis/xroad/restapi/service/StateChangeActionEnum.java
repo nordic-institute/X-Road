@@ -34,7 +34,8 @@ public enum StateChangeActionEnum {
     DELETE,
     ACTIVATE,
     DISABLE, // cert
-    DEACTIVATE, // token
+    TOKEN_ACTIVATE,
+    TOKEN_DEACTIVATE, // token
     REGISTER,
     UNREGISTER,
     IMPORT_FROM_TOKEN,
