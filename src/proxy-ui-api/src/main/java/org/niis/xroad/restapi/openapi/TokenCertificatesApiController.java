@@ -66,11 +66,8 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
     @Override
     @PreAuthorize("hasAnyAuthority('ACTIVATE_DISABLE_AUTH_CERT','ACTIVATE_DISABLE_SIGN_CERT')")
     public ResponseEntity<Void> activateCertificate(String hash) {
-        CertificateInfo certificateInfo = null;
         try {
-            certificateInfo = tokenCertificateService.getCertificateInfo(hash);
-            tokenCertificateService.checkCertificateAuthority(certificateInfo.getCertificateBytes());
-            tokenCertificateService.activateCertificate(certificateInfo.getId());
+            tokenCertificateService.activateCertificate(hash);
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (TokenCertificateService.InvalidCertificateException e) {
@@ -82,11 +79,8 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
     @Override
     @PreAuthorize("hasAnyAuthority('ACTIVATE_DISABLE_AUTH_CERT','ACTIVATE_DISABLE_SIGN_CERT')")
     public ResponseEntity<Void> deactivateCertificate(String hash) {
-        CertificateInfo certificateInfo = null;
         try {
-            certificateInfo = tokenCertificateService.getCertificateInfo(hash);
-            tokenCertificateService.checkCertificateAuthority(certificateInfo.getCertificateBytes());
-            tokenCertificateService.deactivateCertificate(certificateInfo.getId());
+            tokenCertificateService.deactivateCertificate(hash);
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (TokenCertificateService.InvalidCertificateException e) {

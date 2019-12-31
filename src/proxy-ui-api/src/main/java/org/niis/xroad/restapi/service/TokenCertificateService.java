@@ -335,17 +335,27 @@ public class TokenCertificateService {
     }
 
     /**
-     * Activates certificate by given certificateId
+     * Activates certificate
      *
-     * @param certificateId
+     * @param hash
      * @throws CertificateNotFoundException
+     * @throws AccessDeniedException
      */
-    public void activateCertificate(String certificateId) throws CertificateNotFoundException, AccessDeniedException {
+    public void activateCertificate(String hash) throws CertificateNotFoundException,
+            AccessDeniedException, InvalidCertificateException {
+        CertificateInfo certificateInfo = getCertificateInfo(hash);
         try {
-            signerProxyFacade.activateCert(certificateId);
-        } catch (CodedException e) {
+            verifyAuthorityToCertificate(certificateInfo.getCertificateBytes());
+        } catch (InvalidCertificateException e) {
+            throw e;
+        }
+
+        try {
+            signerProxyFacade.activateCert(certificateInfo.getId());
+        }  catch (CodedException e) {
             if (isCausedByCertNotFound(e)) {
-                throw new CertificateNotFoundException("Certificate with id " + certificateId + " " + NOT_FOUND);
+                throw new CertificateNotFoundException("Certificate with id " + certificateInfo.getId() + " "
+                       + NOT_FOUND);
             } else {
                 throw e;
             }
@@ -355,17 +365,26 @@ public class TokenCertificateService {
     }
 
     /**
-     * Deactivates certificate by given certificateId
+     * Deactivates certificate
      *
-     * @param certificateId
+     * @param hash
      * @throws CertificateNotFoundException
      */
-    public void deactivateCertificate(String certificateId) throws CertificateNotFoundException {
+    public void deactivateCertificate(String hash) throws CertificateNotFoundException, AccessDeniedException,
+            InvalidCertificateException {
+        CertificateInfo certificateInfo = getCertificateInfo(hash);
         try {
-            signerProxyFacade.deactivateCert(certificateId);
+            verifyAuthorityToCertificate(certificateInfo.getCertificateBytes());
+        } catch (InvalidCertificateException e) {
+            throw e;
+        }
+
+        try {
+            signerProxyFacade.deactivateCert(certificateInfo.getId());
         } catch (CodedException e) {
             if (isCausedByCertNotFound(e)) {
-                throw new CertificateNotFoundException("Certificate with id " + certificateId + " " + NOT_FOUND);
+                throw new CertificateNotFoundException("Certificate with id " + certificateInfo.getId() + " "
+                        + NOT_FOUND);
             } else {
                 throw e;
             }
@@ -401,7 +420,7 @@ public class TokenCertificateService {
      * @throws InvalidCertificateException
      * @throws AccessDeniedException
      */
-    public void checkCertificateAuthority(byte[] certificateBytes) throws InvalidCertificateException,
+    public void verifyAuthorityToCertificate(byte[] certificateBytes) throws InvalidCertificateException,
             AccessDeniedException {
         X509Certificate x509Certificate = null;
         try {
@@ -413,9 +432,9 @@ public class TokenCertificateService {
         try {
             boolean isAuthCert = CertUtils.isAuthCert(x509Certificate);
             if (isAuthCert) {
-                verifyAuthority(IMPORT_AUTH_CERT);
+                verifyAuthority("ACTIVATE_DISABLE_AUTH_CERT");
             } else {
-                verifyAuthority(IMPORT_SIGN_CERT);
+                verifyAuthority("ACTIVATE_DISABLE_SIGN_CERT");
             }
         } catch (AccessDeniedException e) {
             throw e;
