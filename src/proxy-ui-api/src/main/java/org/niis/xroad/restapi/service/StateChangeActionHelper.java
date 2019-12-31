@@ -43,6 +43,40 @@ public class StateChangeActionHelper {
     public EnumSet<StateChangeActionEnum> getPossibleTokenActions(TokenInfo tokenInfo) {
         EnumSet<StateChangeActionEnum> actions = EnumSet.noneOf(StateChangeActionEnum.class);
         // not implemented yet
+
+        /**
+         * keys.js studied 100%
+         * application.scss 100%
+         * views/keys/key_details
+         * views/keys/token_details
+         * views/keys/index
+         * token_renderer.rb
+         * keys_controller.rb
+         *
+         * * (keys.js#17)
+         * -- generate_key: token.active
+         *
+         *     if ($(".token.row_selected.token-active").length > 0) {
+         *         $("#generate_key").enable();
+         *     }
+         *
+         * (keys.js#61) (application.scss #86)
+         * -- activate = token.available && !token.active
+         * -- deactivate = token.active (not linked to token.available!)
+         *
+         * token-available =
+         * token-active =
+         *     $(".token-available .activate_token").enable();
+         *     $(".token-unavailable .activate_token").disable();
+         * token_activatable => can?(:activate_token),
+         * token_locked => token.status == TokenStatusInfo::USER_PIN_LOCKED,
+         *
+         * ??? edit friendly name?
+         *
+         *
+          */
+
+
         return actions;
     }
 
@@ -51,6 +85,55 @@ public class StateChangeActionHelper {
         EnumSet<StateChangeActionEnum> actions = EnumSet.noneOf(StateChangeActionEnum.class);
         // not implemented yet
         return actions;
+
+        /**
+         *  (keys.js#21)
+         *  -- delete = !key.notSupported && key.deletable && (!key.unsaved || key.active)
+         *
+         *  key.notSupported = token_id != SOFTTOKEN_ID
+         *                     && key_usage == KEY_USAGE_AUTH
+         *  key.deletable =
+         *        if token.readOnly && !saved_to_conf
+         *         return false
+         *       end
+         *  (also authorization)
+         *
+         *
+         *  key.unsaved = !key_saved_to_conf
+         *  key_saved_to_conf = def key_saved_to_configuration?(key)
+         *       return true unless key.certRequests.isEmpty
+         *
+         *       key.certs.each do |cert|
+         *         return true if cert.savedToConfiguration
+         *       end
+         *
+         *       false
+         *     end
+         *
+         *  (keys.js#260)
+         *
+         *  -- generate_auth_csr = keyData.token_id == SOFTTOKEN_ID
+         *     && (keyUsage = null || keyUsage = AUTH)
+         *     && generate_csr_possible
+         *
+         *  -- generate_sign_csr = keyData.token_id != SOFTTOKEN_ID
+         *     && (keyUsage = null || keyUsage = SIGN)
+         *     && generate_csr_possible
+         *
+         *  (keys.js#35)
+         *  generate_csr_possible = !
+         *    (key-unavailable || token-inactive || not-supported)
+         *
+         *          // only softToken with id 0 is allowed to have auth keys
+         *         if (!keyUsage && keyData.token_id != SOFTTOKEN_ID) {
+         *             keyUsage = KEY_USAGE_SIGN;
+         *         }
+         *  generate_csr - replacing this with generate_auth_csr and generate_sign_csr that take into
+         *  account token type
+         *
+         *  ??? edit friendly name?
+         *
+         */
     }
 
     /**
