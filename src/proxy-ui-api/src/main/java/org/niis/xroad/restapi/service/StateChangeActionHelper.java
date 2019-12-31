@@ -35,6 +35,7 @@ import org.springframework.stereotype.Component;
 import java.util.EnumSet;
 
 /**
+ * TO DO: rename, if we are keeping friendly name edit (is not a state change per se)
  * Logic for possible state changes
  */
 @Component
@@ -47,11 +48,11 @@ public class StateChangeActionHelper {
         /**
          * keys.js studied 100%
          * application.scss 100%
-         * views/keys/key_details
-         * views/keys/token_details
-         * views/keys/index
-         * token_renderer.rb
-         * keys_controller.rb
+         * views/keys/key_details 100%
+         * views/keys/token_details 100%
+         * views/keys/index 100%
+         * token_renderer.rb 100%
+         * keys_controller.rb 100%
          *
          * * (keys.js#17)
          * -- generate_key: token.active
@@ -71,8 +72,16 @@ public class StateChangeActionHelper {
          * token_activatable => can?(:activate_token),
          * token_locked => token.status == TokenStatusInfo::USER_PIN_LOCKED,
          *
-         * ??? edit friendly name?
+         * -- edit_friendly_name = token_saved_to_configuration (token_details.erb)
+         *  * not a state change action as such? does it belong here? TO DO
          *
+         *     def token_saved_to_configuration?(token)
+         *       token.keyInfo.each do |key|
+         *         return true if key_saved_to_configuration?(key)
+         *       end
+         *
+         *       false
+         *     end
          *
           */
 
@@ -131,7 +140,38 @@ public class StateChangeActionHelper {
          *  generate_csr - replacing this with generate_auth_csr and generate_sign_csr that take into
          *  account token type
          *
-         *  ??? edit friendly name?
+         *  - edit_friendly_name = key_saved_to_configuration (key_details.erb)
+         *  * not a state change action as such? does it belong here? TO DO
+         *
+         *     def key_saved_to_configuration?(key)
+         *       return true unless key.certRequests.isEmpty
+         *
+         *       key.certs.each do |cert|
+         *         return true if cert.savedToConfiguration
+         *       end
+         *
+         *       false
+         *     end
+         *
+         * -- delete =
+         *      if (token.readonly && !key.saved_to_conf) => false
+         *      else true;
+         *
+         *     def can_delete_key?(token, key, saved_to_conf)
+         *       if token.readOnly && !saved_to_conf
+         *         return false
+         *       end
+         *
+         *       if key.usage == KeyUsageInfo::AUTHENTICATION
+         *         can?(:delete_auth_key)
+         *       elsif key.usage == KeyUsageInfo::SIGNING
+         *         can?(:delete_sign_key)
+         *       else
+         *         can?(:delete_key)
+         *       end
+         *     end
+         *
+         *
          *
          */
     }
@@ -206,6 +246,7 @@ public class StateChangeActionHelper {
     }
 
     /**
+     * TO DO: find better name!
      * from keys.js:
      *             if (cert.cert_deletable &&
      *                 (cert.cert_saved_to_conf || cert.token_active)) {
@@ -225,6 +266,9 @@ public class StateChangeActionHelper {
         }
     }
 
+    /**
+     * TO DO: better name, document where this is from!
+     */
     private boolean certOrCsrDeletable(TokenInfo tokenInfo, KeyInfo keyInfo, boolean savedToConfiguration) {
         boolean canDelete = false;
         if (tokenInfo.isReadOnly() && !savedToConfiguration) {
