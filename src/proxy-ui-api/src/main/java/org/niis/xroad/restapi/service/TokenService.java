@@ -62,14 +62,16 @@ import static java.util.stream.Collectors.toList;
 public class TokenService {
 
     private final SignerProxyFacade signerProxyFacade;
+    private final StateChangeActionHelper stateChangeActionHelper;
 
     /**
      * TokenService constructor
-     * @param signerProxyFacade
      */
     @Autowired
-    public TokenService(SignerProxyFacade signerProxyFacade) {
+    public TokenService(SignerProxyFacade signerProxyFacade,
+            StateChangeActionHelper stateChangeActionHelper) {
         this.signerProxyFacade = signerProxyFacade;
+        this.stateChangeActionHelper = stateChangeActionHelper;
     }
 
     /**
@@ -132,9 +134,16 @@ public class TokenService {
      * @param password password for token
      * @throws TokenNotFoundException if token was not found
      * @throws PinIncorrectException if token login failed due to wrong ping
+     * @throws ActionNotPossibleException if token activation was not possible
      */
     public void activateToken(String id, char[] password) throws
-            TokenNotFoundException, PinIncorrectException {
+            TokenNotFoundException, PinIncorrectException, ActionNotPossibleException {
+
+        // check that action is possible
+        TokenInfo tokenInfo = getToken(id);
+        stateChangeActionHelper.requirePossibleTokenAction(StateChangeActionEnum.TOKEN_ACTIVATE,
+                tokenInfo);
+
         try {
             signerProxyFacade.activateToken(id, password);
         } catch (CodedException e) {
@@ -154,8 +163,15 @@ public class TokenService {
      * Deactivate a token
      * @param id id of token
      * @throws TokenNotFoundException if token was not found
+     * @throws ActionNotPossibleException if deactivation was not possible
      */
-    public void deactivateToken(String id) throws TokenNotFoundException {
+    public void deactivateToken(String id) throws TokenNotFoundException, ActionNotPossibleException {
+
+        // check that action is possible
+        TokenInfo tokenInfo = getToken(id);
+        stateChangeActionHelper.requirePossibleTokenAction(StateChangeActionEnum.TOKEN_DEACTIVATE,
+                tokenInfo);
+
         try {
             signerProxyFacade.deactivateToken(id);
         } catch (CodedException e) {

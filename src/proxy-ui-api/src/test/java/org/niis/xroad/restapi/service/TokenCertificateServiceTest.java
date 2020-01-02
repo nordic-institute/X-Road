@@ -119,7 +119,7 @@ public class TokenCertificateServiceTest {
     @MockBean
     private CertificateAuthorityService certificateAuthorityService;
 
-    @MockBean
+    @SpyBean
     private KeyService keyService;
 
     @MockBean
@@ -192,9 +192,26 @@ public class TokenCertificateServiceTest {
         mockGetCertForHash();
         mockDeleteCert();
         mockDeleteCertRequest();
+        mockGetTokenForKeyId(tokenInfo);
         // by default all actions are possible
         doReturn(EnumSet.allOf(StateChangeActionEnum.class)).when(stateChangeActionHelper)
                 .getPossibleCertificateActions(any(), any(), any());
+    }
+
+    private void mockGetTokenForKeyId(TokenInfo tokenInfo) throws KeyNotFoundException {
+        doAnswer(invocation -> {
+            String keyId = (String) invocation.getArguments()[0];
+            switch (keyId) {
+                case AUTH_KEY_ID:
+                    return tokenInfo;
+                case SIGN_KEY_ID:
+                    return tokenInfo;
+                case GOOD_KEY_ID:
+                    return tokenInfo;
+                default:
+                    throw new KeyNotFoundException("unknown keyId: " + keyId);
+            }
+        }).when(tokenService).getTokenForKeyId(any());
     }
 
     private void mockDeleteCertRequest() throws Exception {

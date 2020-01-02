@@ -136,6 +136,7 @@ public class TokenCertificateService {
      * were some extra parameters
      * @throws KeyNotFoundException
      * @throws CsrCreationFailureException when signer could not create CSR for some reason.
+     * @throws ActionNotPossibleException if generate csr was not possible for this key
      * Subclass {@link KeyNotOperationalException} when the reason is key not being operational.
      */
     public byte[] generateCertRequest(String keyId, ClientId memberId, KeyUsageInfo keyUsage,
@@ -143,10 +144,11 @@ public class TokenCertificateService {
             throws CertificateAuthorityNotFoundException, ClientNotFoundException,
             CertificateProfileInstantiationException, WrongKeyUsageException,
             KeyNotFoundException, CsrCreationFailureException,
-            DnFieldHelper.InvalidDnParameterException {
+            DnFieldHelper.InvalidDnParameterException, ActionNotPossibleException {
 
         // validate key and memberId existence
-        KeyInfo key = keyService.getKey(keyId);
+        TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
+        KeyInfo key = keyService.getKey(tokenInfo, keyId);
 
         if (keyUsage == KeyUsageInfo.SIGNING) {
             // validate that the member exists or has a subsystem on this server
@@ -160,6 +162,15 @@ public class TokenCertificateService {
             if (key.getUsage() != keyUsage) {
                 throw new WrongKeyUsageException();
             }
+        }
+
+        // validate that generate csr is possible
+        if (keyUsage == KeyUsageInfo.SIGNING) {
+            stateChangeActionHelper.requirePossibleKeyAction(StateChangeActionEnum.GENERATE_SIGN_CSR,
+                    tokenInfo, key);
+        } else {
+            stateChangeActionHelper.requirePossibleKeyAction(StateChangeActionEnum.GENERATE_AUTH_CSR,
+                    tokenInfo, key);
         }
 
         CertificateProfileInfo profile = certificateAuthorityService.getCertificateProfile(caName, keyUsage, memberId);
@@ -615,10 +626,9 @@ public class TokenCertificateService {
             verifyAuthority("DELETE_AUTH_CERT");
         }
 
-        EnumSet<StateChangeActionEnum> possibleActions = stateChangeActionHelper.
-                getPossibleCsrActions(tokenInfo, keyInfo, certRequestInfo);
-        stateChangeActionHelper.requirePossibleAction(
-                StateChangeActionEnum.DELETE, possibleActions);
+        // check that delete is possible
+        stateChangeActionHelper.requirePossibleCsrAction(
+            StateChangeActionEnum.DELETE, tokenInfo, keyInfo, certRequestInfo);
 
         try {
             signerProxyFacade.deleteCertRequest(csrId);

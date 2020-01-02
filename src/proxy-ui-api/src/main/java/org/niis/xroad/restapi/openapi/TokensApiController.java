@@ -110,6 +110,8 @@ public class TokensApiController implements TokensApi {
             throw new ResourceNotFoundException(e);
         } catch (TokenService.PinIncorrectException e) {
             throw new BadRequestException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
         }
         Token token = getTokenFromService(id);
         return new ResponseEntity<>(token, HttpStatus.OK);
@@ -122,6 +124,8 @@ public class TokensApiController implements TokensApi {
             tokenService.deactivateToken(id);
         } catch (TokenNotFoundException e) {
             throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
         }
         Token token = getTokenFromService(id);
         return new ResponseEntity<>(token, HttpStatus.OK);

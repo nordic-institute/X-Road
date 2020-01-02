@@ -164,7 +164,7 @@ public class KeysApiController implements KeysApi {
             throw new BadRequestException(e);
         } catch (KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (TokenCertificateService.KeyNotOperationalException e) {
+        } catch (TokenCertificateService.KeyNotOperationalException | ActionNotPossibleException e) {
             throw new ConflictException(e);
         } catch (TokenCertificateService.CsrCreationFailureException
                 | CertificateProfileInstantiationException e) {
