@@ -9,7 +9,7 @@ plugins {
     id "io.spring.dependency-management" version "1.0.8.RELEASE" apply false
     id 'org.springframework.boot' version '2.1.3.RELEASE' apply false
     id 'com.github.hierynomus.license' version '0.15.0'
-    id 'org.owasp.dependencycheck' version '5.2.2'
+//    id 'org.owasp.dependencycheck' version '5.2.2'
     id 'jacoco'
     id 'idea'
 }
@@ -35,6 +35,7 @@ sonarqube {
     }
 }
 
+/*
 dependencyCheck {
     outputDirectory = "${project.buildDir}/reports/owasp-dependency-check"
     suppressionFile = "${project.rootDir}/dependencycheck-suppressions.xml"
@@ -56,7 +57,7 @@ dependencyCheck {
         composerEnabled = false
         nodeEnabled = false
     }
-}
+}*/
 
 
 allprojects {
