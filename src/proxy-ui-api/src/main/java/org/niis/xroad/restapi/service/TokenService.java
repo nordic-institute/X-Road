@@ -210,8 +210,14 @@ public class TokenService {
      * @param friendlyName
      * @throws TokenNotFoundException if token was not found
      */
-    public TokenInfo updateTokenFriendlyName(String tokenId, String friendlyName) throws TokenNotFoundException {
-        TokenInfo tokenInfo = null;
+    public TokenInfo updateTokenFriendlyName(String tokenId, String friendlyName) throws TokenNotFoundException,
+            ActionNotPossibleException {
+
+        // check that updating friendly name is possible
+        TokenInfo tokenInfo = getToken(tokenId);
+        possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.EDIT_FRIENDLY_NAME,
+                tokenInfo);
+
         try {
             signerProxyFacade.setTokenFriendlyName(tokenId, friendlyName);
             tokenInfo = signerProxyFacade.getToken(tokenId);

@@ -150,6 +150,8 @@ public class TokensApiController implements TokensApi {
             return new ResponseEntity<>(token, HttpStatus.OK);
         } catch (TokenNotFoundException e) {
             throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
         }
     }
 
