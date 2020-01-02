@@ -35,74 +35,35 @@ import org.springframework.stereotype.Component;
 import java.util.EnumSet;
 
 /**
- * TO DO: rename, if we are keeping friendly name edit (is not a state change per se)
- * Logic for possible state changes
+ * Validation logic for possible actions done on tokens, keys, certs and csrs
  */
 @Component
-public class StateChangeActionHelper {
+public class PossibleActionsRuleEngine {
 
     // duplicate definition, since we dont want add direct dependency on signer
     public static final String SOFTWARE_TOKEN_ID = "0";
 
-
-    public EnumSet<StateChangeActionEnum> getPossibleTokenActions(TokenInfo tokenInfo) {
-        EnumSet<StateChangeActionEnum> actions = EnumSet.noneOf(StateChangeActionEnum.class);
+    /**
+     * Get possible actions for a token
+     */
+    public EnumSet<PossibleActionEnum> getPossibleTokenActions(TokenInfo tokenInfo) {
+        EnumSet<PossibleActionEnum> actions = EnumSet.noneOf(PossibleActionEnum.class);
 
         if (tokenInfo.isActive()) {
-            actions.add(StateChangeActionEnum.GENERATE_KEY);
+            actions.add(PossibleActionEnum.GENERATE_KEY);
         }
 
         if (tokenInfo.isActive()) {
-            actions.add(StateChangeActionEnum.TOKEN_DEACTIVATE);
+            actions.add(PossibleActionEnum.TOKEN_DEACTIVATE);
         } else {
             if (tokenInfo.isAvailable()) {
-                actions.add(StateChangeActionEnum.TOKEN_ACTIVATE);
+                actions.add(PossibleActionEnum.TOKEN_ACTIVATE);
             }
         }
 
         if (tokenInfo.isSavedToConfiguration()) {
-            actions.add(StateChangeActionEnum.EDIT_FRIENDLY_NAME);
+            actions.add(PossibleActionEnum.EDIT_FRIENDLY_NAME);
         }
-        /**
-         * keys.js studied 100%
-         * application.scss 100%
-         * views/keys/key_details 100%
-         * views/keys/token_details 100%
-         * views/keys/index 100%
-         * token_renderer.rb 100%
-         * keys_controller.rb 100%
-         *
-         * * (keys.js#17)
-         * -- generate_key: token.active
-         *
-         *     if ($(".token.row_selected.token-active").length > 0) {
-         *         $("#generate_key").enable();
-         *     }
-         *
-         * (keys.js#61) (application.scss #86)
-         * -- activate = token.available && !token.active
-         * -- deactivate = token.active (not linked to token.available!)
-         *
-         * token-available =
-         * token-active =
-         *     $(".token-available .activate_token").enable();
-         *     $(".token-unavailable .activate_token").disable();
-         * token_activatable => can?(:activate_token),
-         * token_locked => token.status == TokenStatusInfo::USER_PIN_LOCKED,
-         *
-         * -- edit_friendly_name = token_saved_to_configuration (token_details.erb)
-         *  * not a state change action as such? does it belong here? TO DO
-         *
-         *     def token_saved_to_configuration?(token)
-         *       token.keyInfo.each do |key|
-         *         return true if key_saved_to_configuration?(key)
-         *       end
-         *
-         *       false
-         *     end
-         *
-          */
-
 
         return actions;
     }
@@ -116,9 +77,12 @@ public class StateChangeActionHelper {
 
     }
 
-    public EnumSet<StateChangeActionEnum> getPossibleKeyActions(TokenInfo tokenInfo,
+    /**
+     * Get possible actions for a key
+     */
+    public EnumSet<PossibleActionEnum> getPossibleKeyActions(TokenInfo tokenInfo,
             KeyInfo keyInfo) {
-        EnumSet<StateChangeActionEnum> actions = EnumSet.noneOf(StateChangeActionEnum.class);
+        EnumSet<PossibleActionEnum> actions = EnumSet.noneOf(PossibleActionEnum.class);
 
         // DELETE
         boolean keyNotSupported = isKeyUnsupported(tokenInfo, keyInfo);
@@ -127,7 +91,7 @@ public class StateChangeActionHelper {
         if (!keyNotSupported
             && !(tokenInfo.isReadOnly() && !keyInfo.isSavedToConfiguration())
             && (keyInfo.isSavedToConfiguration() || tokenInfo.isActive())) {
-            actions.add(StateChangeActionEnum.DELETE);
+            actions.add(PossibleActionEnum.DELETE);
         }
 
         // GENERATE_AUTH_CSR
@@ -135,174 +99,69 @@ public class StateChangeActionHelper {
         if (SOFTWARE_TOKEN_ID.equals(tokenInfo.getId())
                 && (keyInfo.getUsage() == null || keyInfo.getUsage() == KeyUsageInfo.AUTHENTICATION)
                 && !(!keyInfo.isAvailable() || !tokenInfo.isActive() || keyNotSupported)) {
-            actions.add(StateChangeActionEnum.GENERATE_AUTH_CSR);
+            actions.add(PossibleActionEnum.GENERATE_AUTH_CSR);
         }
         // GENERATE_SIGN_CSR
         if ((keyInfo.getUsage() == null || keyInfo.getUsage() == KeyUsageInfo.SIGNING)
                 && !(!keyInfo.isAvailable() || !tokenInfo.isActive() || keyNotSupported)) {
-            actions.add(StateChangeActionEnum.GENERATE_SIGN_CSR);
+            actions.add(PossibleActionEnum.GENERATE_SIGN_CSR);
         }
         // EDIT_FRIENDLY_NAME
         if (keyInfo.isSavedToConfiguration()) {
-            actions.add(StateChangeActionEnum.EDIT_FRIENDLY_NAME);
+            actions.add(PossibleActionEnum.EDIT_FRIENDLY_NAME);
         }
-        /**
-         *  (keys.js#21)
-         * -- delete =
-         *      if (token.readonly && !key.saved_to_conf) => false
-         *      else true;
-         *
-         *     def can_delete_key?(token, key, saved_to_conf)
-         *       if token.readOnly && !saved_to_conf
-         *         return false
-         *       end
-         *
-         *       if key.usage == KeyUsageInfo::AUTHENTICATION
-         *         can?(:delete_auth_key)
-         *       elsif key.usage == KeyUsageInfo::SIGNING
-         *         can?(:delete_sign_key)
-         *       else
-         *         can?(:delete_key)
-         *       end
-         *     end
-         *
-         *  -- delete = !key.notSupported && key.deletable && (!key.unsaved || token.active)
-         *
-         * (keys.js)
-         *         if (!selectedKey.is(".not-supported")
-         *             && getKeyData(oKeys.getFocus()).key_deletable
-         *             && (!selectedKey.hasClass("unsaved")
-         *                 || selectedKey.hasClass("token-active"))) {
-         *
-         *             $("#delete").enable();
-         *         }
-         *
-         *  key.notSupported = token_id != SOFTTOKEN_ID
-         *                     && key_usage == KEY_USAGE_AUTH
-         *  key.deletable =
-         *        if token.readOnly && !saved_to_conf
-         *         return false
-         *       end
-         *  (also authorization)
-         *
-         *
-         *  key.unsaved = !key_saved_to_conf
-         *  key_saved_to_conf = def key_saved_to_configuration?(key)
-         *       return true unless key.certRequests.isEmpty
-         *
-         *       key.certs.each do |cert|
-         *         return true if cert.savedToConfiguration
-         *       end
-         *
-         *       false
-         *     end
-         *
-         *  (keys.js#260)
-         *
-         *  -- generate_auth_csr = keyData.token_id == SOFTTOKEN_ID
-         *     && (keyUsage = null || keyUsage = AUTH)
-         *     && generate_csr_possible
-         *
-         *  -- generate_sign_csr =
-         *     (keyUsage = null || keyUsage = SIGN)
-         *     && generate_csr_possible
-         *
-         *  (keys.js#35)
-         *  generate_csr_possible =
-         *    !(key-unavailable || token-inactive || not-supported)
-         *
-         *          // only softToken with id 0 is allowed to have auth keys
-         *         if (!keyUsage && keyData.token_id != SOFTTOKEN_ID) {
-         *             keyUsage = KEY_USAGE_SIGN;
-         *         }
-         *  generate_csr - replacing this with generate_auth_csr and generate_sign_csr that take into
-         *  account token type
-         *
-         *  - edit_friendly_name = key_saved_to_configuration (key_details.erb)
-         *  * not a state change action as such? does it belong here? TO DO
-         *
-         *     def key_saved_to_configuration?(key)
-         *       return true unless key.certRequests.isEmpty
-         *
-         *       key.certs.each do |cert|
-         *         return true if cert.savedToConfiguration
-         *       end
-         *
-         *       false
-         *     end
-         *
-         *
-         *
-         *
-         */
+
         return actions;
     }
 
     /**
-     * get possible actions for certificate
-     * @param tokenInfo
-     * @param keyInfo
-     * @param certificateInfo
-     * @return
+     * get possible actions for a certificate
      */
-    public EnumSet<StateChangeActionEnum> getPossibleCertificateActions(TokenInfo tokenInfo,
+    public EnumSet<PossibleActionEnum> getPossibleCertificateActions(TokenInfo tokenInfo,
             KeyInfo keyInfo,
             CertificateInfo certificateInfo) {
-        EnumSet<StateChangeActionEnum> actions = EnumSet.noneOf(StateChangeActionEnum.class);
+        EnumSet<PossibleActionEnum> actions = EnumSet.noneOf(PossibleActionEnum.class);
         boolean canUnregister = keyInfo.getUsage() == KeyUsageInfo.AUTHENTICATION
                 && (CertificateInfo.STATUS_REGINPROG.equals(certificateInfo.getStatus())
                 || CertificateInfo.STATUS_REGISTERED.equals(certificateInfo.getStatus()));
         if (canUnregister) {
-            actions.add(StateChangeActionEnum.UNREGISTER);
+            actions.add(PossibleActionEnum.UNREGISTER);
         }
         boolean savedToConfiguration = certificateInfo.isSavedToConfiguration();
         if (canDelete(tokenInfo, keyInfo, savedToConfiguration, canUnregister,
                 certOrCsrDeletable(tokenInfo, keyInfo, savedToConfiguration))) {
-            actions.add(StateChangeActionEnum.DELETE);
+            actions.add(PossibleActionEnum.DELETE);
         }
         if (keyInfo.getUsage() == KeyUsageInfo.AUTHENTICATION
                 && CertificateInfo.STATUS_SAVED.equals(certificateInfo.getStatus())
                 && (!canUnregister)) {
-            actions.add(StateChangeActionEnum.REGISTER);
+            actions.add(PossibleActionEnum.REGISTER);
         }
         if (keyInfo.getUsage() != null && certificateInfo.isSavedToConfiguration()) {
             if (certificateInfo.isActive()) {
-                actions.add(StateChangeActionEnum.DISABLE);
+                actions.add(PossibleActionEnum.DISABLE);
             } else {
-                actions.add(StateChangeActionEnum.ACTIVATE);
+                actions.add(PossibleActionEnum.ACTIVATE);
             }
         }
         if (!certificateInfo.isSavedToConfiguration()) {
-            actions.add(StateChangeActionEnum.IMPORT_FROM_TOKEN);
+            actions.add(PossibleActionEnum.IMPORT_FROM_TOKEN);
         }
 
         return actions;
     }
 
     /**
-     * get possible actions for csr
-     * @param tokenInfo
-     * @param keyInfo
-     * @param certRequestInfo
-     * @return
+     * get possible actions for a csr
      */
-    public EnumSet<StateChangeActionEnum> getPossibleCsrActions(TokenInfo tokenInfo,
+    public EnumSet<PossibleActionEnum> getPossibleCsrActions(TokenInfo tokenInfo,
             KeyInfo keyInfo,
             CertRequestInfo certRequestInfo) {
-        EnumSet<StateChangeActionEnum> actions = EnumSet.noneOf(StateChangeActionEnum.class);
-        // for csr, savedToConfiguration = always true since
-        // token_renderer.rb:
-        // :cert_deletable => can_delete_cert?(token, key, true))
-        //
-        // canUnregister = always false, since
-        // token_renderer.rb:
-        //         :unregister_enabled => key.usage == KeyUsageInfo::AUTHENTICATION &&
-        //          [CertificateInfo::STATUS_REGINPROG,
-        //           CertificateInfo::STATUS_REGISTERED].include?(cert.status)
-        // (CSR is never in status REGINPROG or REGISTERED)
+        EnumSet<PossibleActionEnum> actions = EnumSet.noneOf(PossibleActionEnum.class);
+
         if (canDelete(tokenInfo, keyInfo, true, false,
                 certOrCsrDeletable(tokenInfo, keyInfo, true))) {
-            actions.add(StateChangeActionEnum.DELETE);
+            actions.add(PossibleActionEnum.DELETE);
         }
         return actions;
     }
@@ -344,9 +203,10 @@ public class StateChangeActionHelper {
     }
 
     /**
+     * Shortcut helper method for verifying required action
      * @throws ActionNotPossibleException if given action is not in possibleActions
      */
-    public void requirePossibleAction(StateChangeActionEnum action, EnumSet<StateChangeActionEnum> possibleActions)
+    public void requirePossibleAction(PossibleActionEnum action, EnumSet<PossibleActionEnum> possibleActions)
             throws ActionNotPossibleException {
         if (!possibleActions.contains(action)) {
             throw new ActionNotPossibleException(action + " is not possible");
@@ -357,7 +217,7 @@ public class StateChangeActionHelper {
      * Shortcut helper method for verifying required action
      * @throws ActionNotPossibleException if given token action is not possible
      */
-    public void requirePossibleTokenAction(StateChangeActionEnum action, TokenInfo tokenInfo)
+    public void requirePossibleTokenAction(PossibleActionEnum action, TokenInfo tokenInfo)
             throws ActionNotPossibleException {
         requirePossibleAction(action, ActionTargetType.TOKEN, tokenInfo, null, null, null);
     }
@@ -366,7 +226,7 @@ public class StateChangeActionHelper {
      * Shortcut helper method for verifying required action
      * @throws ActionNotPossibleException if given key action is not possible
      */
-    public void requirePossibleKeyAction(StateChangeActionEnum action, TokenInfo tokenInfo, KeyInfo keyInfo)
+    public void requirePossibleKeyAction(PossibleActionEnum action, TokenInfo tokenInfo, KeyInfo keyInfo)
             throws ActionNotPossibleException {
         requirePossibleAction(action, ActionTargetType.KEY, tokenInfo, keyInfo, null, null);
     }
@@ -375,7 +235,7 @@ public class StateChangeActionHelper {
      * Shortcut helper method for verifying required action
      * @throws ActionNotPossibleException if given certificate action is not possible
      */
-    public void requirePossibleCertificateAction(StateChangeActionEnum action, TokenInfo tokenInfo, KeyInfo keyInfo,
+    public void requirePossibleCertificateAction(PossibleActionEnum action, TokenInfo tokenInfo, KeyInfo keyInfo,
             CertificateInfo certificateInfo)
             throws ActionNotPossibleException {
         requirePossibleAction(action, ActionTargetType.CERTIFICATE, tokenInfo, keyInfo, certificateInfo, null);
@@ -385,7 +245,7 @@ public class StateChangeActionHelper {
      * Shortcut helper method for verifying required action
      * @throws ActionNotPossibleException if given csr action is not possible
      */
-    public void requirePossibleCsrAction(StateChangeActionEnum action, TokenInfo tokenInfo, KeyInfo keyInfo,
+    public void requirePossibleCsrAction(PossibleActionEnum action, TokenInfo tokenInfo, KeyInfo keyInfo,
             CertRequestInfo certRequestInfo)
             throws ActionNotPossibleException {
         requirePossibleAction(action, ActionTargetType.CSR, tokenInfo, keyInfo, null, certRequestInfo);
@@ -395,10 +255,10 @@ public class StateChangeActionHelper {
      * Shortcut helper method for verifying required action
      * @throws ActionNotPossibleException if given action is not possible for give target type
      */
-    public void requirePossibleAction(StateChangeActionEnum action, ActionTargetType target,
+    public void requirePossibleAction(PossibleActionEnum action, ActionTargetType target,
             TokenInfo tokenInfo, KeyInfo keyInfo, CertificateInfo certificateInfo, CertRequestInfo certRequestInfo)
             throws ActionNotPossibleException {
-        EnumSet<StateChangeActionEnum> possibleActions;
+        EnumSet<PossibleActionEnum> possibleActions;
         switch (target) {
             case TOKEN:
                 possibleActions = getPossibleTokenActions(tokenInfo);
@@ -420,6 +280,9 @@ public class StateChangeActionHelper {
         }
     }
 
+    /**
+     * Enum for supported action targets (token, key, cert, csr)
+     */
     public enum ActionTargetType {
         TOKEN,
         KEY,

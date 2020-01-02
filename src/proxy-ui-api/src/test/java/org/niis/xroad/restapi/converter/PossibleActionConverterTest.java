@@ -25,8 +25,8 @@
 package org.niis.xroad.restapi.converter;
 
 import org.junit.Test;
-import org.niis.xroad.restapi.openapi.model.StateChangeAction;
-import org.niis.xroad.restapi.service.StateChangeActionEnum;
+import org.niis.xroad.restapi.openapi.model.PossibleAction;
+import org.niis.xroad.restapi.service.PossibleActionEnum;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -39,15 +39,15 @@ import static org.junit.Assert.assertTrue;
 /**
  * test StateChangeActionConverter
  */
-public class StateChangeActionConverterTest {
+public class PossibleActionConverterTest {
 
     @Test
     public void enumsAreInSync() {
         // test to verify openapi and service layer enums contain same number of discreet items
-        Set<String> openApiEnumNames = Arrays.stream(StateChangeAction.values())
+        Set<String> openApiEnumNames = Arrays.stream(PossibleAction.values())
                 .map(Enum::name)
                 .collect(Collectors.toSet());
-        Set<String> serviceEnumNames = Arrays.stream(StateChangeActionEnum.values())
+        Set<String> serviceEnumNames = Arrays.stream(PossibleActionEnum.values())
                 .map(Enum::name)
                 .collect(Collectors.toSet());
         assertEquals(openApiEnumNames.size(), serviceEnumNames.size());
@@ -55,21 +55,21 @@ public class StateChangeActionConverterTest {
 
     @Test
     public void convertOne() {
-        StateChangeAction converted = new StateChangeActionConverter()
-                .convert(StateChangeActionEnum.IMPORT_FROM_TOKEN);
-        assertEquals(StateChangeAction.IMPORT_FROM_TOKEN, converted);
+        PossibleAction converted = new PossibleActionConverter()
+                .convert(PossibleActionEnum.IMPORT_FROM_TOKEN);
+        assertEquals(PossibleAction.IMPORT_FROM_TOKEN, converted);
     }
 
     @Test
     public void convertAll() {
-        Set<StateChangeAction> allItemsConverted = new HashSet(
-                new StateChangeActionConverter()
-                .convert(Arrays.asList(StateChangeActionEnum.values())));
-        Set<StateChangeAction> allOpenApiValues = new HashSet(
-                Arrays.asList(StateChangeAction.values()));
+        Set<PossibleAction> allItemsConverted = new HashSet(
+                new PossibleActionConverter()
+                .convert(Arrays.asList(PossibleActionEnum.values())));
+        Set<PossibleAction> allOpenApiValues = new HashSet(
+                Arrays.asList(PossibleAction.values()));
         assertTrue(allOpenApiValues.containsAll(allItemsConverted));
         assertTrue(allItemsConverted.containsAll(allOpenApiValues));
-        assertEquals(StateChangeAction.values().length, allItemsConverted.size());
+        assertEquals(PossibleAction.values().length, allItemsConverted.size());
     }
 
 }

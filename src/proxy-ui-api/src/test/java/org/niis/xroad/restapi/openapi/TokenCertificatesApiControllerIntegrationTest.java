@@ -40,15 +40,15 @@ import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.KeyUsage;
-import org.niis.xroad.restapi.openapi.model.StateChangeAction;
+import org.niis.xroad.restapi.openapi.model.PossibleAction;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.CsrNotFoundException;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
-import org.niis.xroad.restapi.service.StateChangeActionEnum;
-import org.niis.xroad.restapi.service.StateChangeActionHelper;
+import org.niis.xroad.restapi.service.PossibleActionEnum;
+import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
 import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
@@ -117,7 +117,7 @@ public class TokenCertificatesApiControllerIntegrationTest {
     private TokenCertificatesApiController tokenCertificatesApiController;
 
     @SpyBean
-    private StateChangeActionHelper stateChangeActionHelper;
+    private PossibleActionsRuleEngine possibleActionsRuleEngine;
 
     @Before
     public void setup() throws Exception {
@@ -137,7 +137,7 @@ public class TokenCertificatesApiControllerIntegrationTest {
         doAnswer(answer -> tokenInfoAndKeyId).when(signerProxyFacade).getTokenAndKeyIdForCertRequestId(any());
         doAnswer(answer -> tokenInfoAndKeyId).when(signerProxyFacade).getTokenAndKeyIdForCertHash(any());
         // by default all actions are possible
-        doReturn(EnumSet.allOf(StateChangeActionEnum.class)).when(stateChangeActionHelper)
+        doReturn(EnumSet.allOf(PossibleActionEnum.class)).when(possibleActionsRuleEngine)
                 .getPossibleCertificateActions(any(), any(), any());
     }
 
@@ -331,7 +331,7 @@ public class TokenCertificatesApiControllerIntegrationTest {
     @WithMockUser(authorities = "IMPORT_SIGN_CERT")
     public void importCertificateFromTokenActionNotPossible() throws Exception {
         // by default all actions are possible
-        doReturn(EnumSet.noneOf(StateChangeActionEnum.class)).when(stateChangeActionHelper)
+        doReturn(EnumSet.noneOf(PossibleActionEnum.class)).when(possibleActionsRuleEngine)
                 .getPossibleCertificateActions(any(), any(), any());
 
         tokenCertificatesApiController.importCertificateFromToken(MOCK_CERTIFICATE_HASH);
@@ -443,10 +443,10 @@ public class TokenCertificatesApiControllerIntegrationTest {
     @Test
     @WithMockUser(authorities = { "VIEW_KEYS" })
     public void getPossibleActionsForCertificate() throws Exception {
-        ResponseEntity<List<StateChangeAction>> response = tokenCertificatesApiController
+        ResponseEntity<List<PossibleAction>> response = tokenCertificatesApiController
                 .getPossibleActionsForCertificate(MOCK_CERTIFICATE_HASH);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Set<StateChangeAction> allActions = new HashSet(Arrays.asList(StateChangeAction.values()));
+        Set<PossibleAction> allActions = new HashSet(Arrays.asList(PossibleAction.values()));
         assertEquals(allActions, new HashSet<>(response.getBody()));
     }
 

@@ -25,28 +25,27 @@
 package org.niis.xroad.restapi.converter;
 
 import com.google.common.collect.Streams;
-import org.niis.xroad.restapi.openapi.model.StateChangeAction;
-import org.niis.xroad.restapi.service.StateChangeActionEnum;
+import org.niis.xroad.restapi.openapi.model.PossibleAction;
+import org.niis.xroad.restapi.service.PossibleActionEnum;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Converts state change action items.
- * Converts purely based on enum names, since we manage both items
+ * Converts PossibleAction items.
  */
 @Component
-public class StateChangeActionConverter {
+public class PossibleActionConverter {
 
-    public List<StateChangeAction> convert(
-            Iterable<StateChangeActionEnum> actionEnums) {
+    public List<PossibleAction> convert(
+            Iterable<PossibleActionEnum> actionEnums) {
         return Streams.stream(actionEnums)
                        .map(this::convert)
                        .collect(Collectors.toList());
     }
 
-    public StateChangeAction convert(StateChangeActionEnum stateChangeActionEnum) {
-        return StateChangeActionMapping.map(stateChangeActionEnum).get();
+    public PossibleAction convert(PossibleActionEnum possibleActionEnum) {
+        return PossibleActionMapping.map(possibleActionEnum).get();
     }
 }

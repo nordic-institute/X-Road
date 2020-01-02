@@ -78,7 +78,8 @@ public class KeyServiceTest {
     private TokenService tokenService;
 
     // allow all actions
-    @MockBean StateChangeActionHelper stateChangeActionHelper;
+    @MockBean
+    PossibleActionsRuleEngine possibleActionsRuleEngine;
 
     @Before
     public void setup() throws Exception {

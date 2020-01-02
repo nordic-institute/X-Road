@@ -53,17 +53,17 @@ public class KeyService {
 
     private final SignerProxyFacade signerProxyFacade;
     private final TokenService tokenService;
-    private final StateChangeActionHelper stateChangeActionHelper;
+    private final PossibleActionsRuleEngine possibleActionsRuleEngine;
 
     /**
      * KeyService constructor
      */
     @Autowired
     public KeyService(TokenService tokenService, SignerProxyFacade signerProxyFacade,
-            StateChangeActionHelper stateChangeActionHelper) {
+            PossibleActionsRuleEngine possibleActionsRuleEngine) {
         this.tokenService = tokenService;
         this.signerProxyFacade = signerProxyFacade;
-        this.stateChangeActionHelper = stateChangeActionHelper;
+        this.possibleActionsRuleEngine = possibleActionsRuleEngine;
     }
 
     /**
@@ -110,7 +110,7 @@ public class KeyService {
         // check that updating friendly name is possible
         TokenInfo tokenInfo = tokenService.getTokenForKeyId(id);
         KeyInfo keyInfo = getKey(tokenInfo, id);
-        stateChangeActionHelper.requirePossibleKeyAction(StateChangeActionEnum.EDIT_FRIENDLY_NAME,
+        possibleActionsRuleEngine.requirePossibleKeyAction(PossibleActionEnum.EDIT_FRIENDLY_NAME,
                 tokenInfo, keyInfo);
 
         try {
@@ -144,7 +144,7 @@ public class KeyService {
 
         // check that adding a key is possible
         TokenInfo tokenInfo = tokenService.getToken(tokenId);
-        stateChangeActionHelper.requirePossibleTokenAction(StateChangeActionEnum.GENERATE_KEY,
+        possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.GENERATE_KEY,
                 tokenInfo);
 
         KeyInfo keyInfo = null;

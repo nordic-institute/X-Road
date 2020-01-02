@@ -30,7 +30,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.openapi.model.TokenCertificateSigningRequest;
-import org.niis.xroad.restapi.service.StateChangeActionHelper;
+import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,16 +44,16 @@ import java.util.stream.Collectors;
 public class TokenCertificateSigningRequestConverter {
 
     private final ClientConverter clientConverter;
-    private final StateChangeActionHelper stateChangeActionHelper;
-    private final StateChangeActionConverter stateChangeActionConverter;
+    private final PossibleActionsRuleEngine possibleActionsRuleEngine;
+    private final PossibleActionConverter possibleActionConverter;
 
     @Autowired
     public TokenCertificateSigningRequestConverter(ClientConverter clientConverter,
-            StateChangeActionHelper stateChangeActionHelper,
-            StateChangeActionConverter stateChangeActionConverter) {
+            PossibleActionsRuleEngine possibleActionsRuleEngine,
+            PossibleActionConverter possibleActionConverter) {
         this.clientConverter = clientConverter;
-        this.stateChangeActionHelper = stateChangeActionHelper;
-        this.stateChangeActionConverter = stateChangeActionConverter;
+        this.possibleActionsRuleEngine = possibleActionsRuleEngine;
+        this.possibleActionConverter = possibleActionConverter;
     }
 
     /**
@@ -66,8 +66,8 @@ public class TokenCertificateSigningRequestConverter {
             KeyInfo keyInfo,
             TokenInfo tokenInfo) {
         TokenCertificateSigningRequest request = convert(csrInfo);
-        request.setPossibleActions(stateChangeActionConverter.convert(
-                stateChangeActionHelper.getPossibleCsrActions(
+        request.setPossibleActions(possibleActionConverter.convert(
+                possibleActionsRuleEngine.getPossibleCsrActions(
                         tokenInfo, keyInfo, csrInfo)));
         return request;
     }

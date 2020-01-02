@@ -25,12 +25,12 @@
 package org.niis.xroad.restapi.service;
 
 /**
- * TO DO: better name since there are also other than state change actions?
- * different state change actions
+ * List of actions that can be possible / not possible for tokens, keys,
+ * certs and csrs.
  *
  * Uses service / core naming. Token logout is "deactivate" instead of "logout".
  */
-public enum StateChangeActionEnum {
+public enum PossibleActionEnum {
     DELETE,
     ACTIVATE,
     DISABLE, // cert

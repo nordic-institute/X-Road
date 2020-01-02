@@ -81,7 +81,7 @@ public class TokenServiceTest {
 
     // allow all operations in this test
     @MockBean
-    private StateChangeActionHelper stateChangeActionHelper;
+    private PossibleActionsRuleEngine possibleActionsRuleEngine;
 
     @Before
     public void setup() throws Exception {

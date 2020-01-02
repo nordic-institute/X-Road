@@ -32,10 +32,10 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.openapi.model.StateChangeAction;
+import org.niis.xroad.restapi.openapi.model.PossibleAction;
 import org.niis.xroad.restapi.openapi.model.TokenCertificateSigningRequest;
-import org.niis.xroad.restapi.service.StateChangeActionEnum;
-import org.niis.xroad.restapi.service.StateChangeActionHelper;
+import org.niis.xroad.restapi.service.PossibleActionEnum;
+import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertRequestInfoBuilder;
 import org.niis.xroad.restapi.util.TokenTestUtils.KeyInfoBuilder;
 import org.niis.xroad.restapi.util.TokenTestUtils.TokenInfoBuilder;
@@ -60,11 +60,11 @@ public class TokenCertificateSigningRequestConverterTest {
     private TokenCertificateSigningRequestConverter csrConverter;
 
     @MockBean
-    private StateChangeActionHelper stateChangeActionHelper;
+    private PossibleActionsRuleEngine possibleActionsRuleEngine;
 
     @Before
     public void setup() {
-        doReturn(EnumSet.of(StateChangeActionEnum.DISABLE)).when(stateChangeActionHelper)
+        doReturn(EnumSet.of(PossibleActionEnum.DISABLE)).when(possibleActionsRuleEngine)
                 .getPossibleCsrActions(any(), any(), any());
     }
 
@@ -89,8 +89,8 @@ public class TokenCertificateSigningRequestConverterTest {
                 .key(keyInfo)
                 .build();
         TokenCertificateSigningRequest csr = csrConverter.convert(certRequestInfo, keyInfo, tokenInfo);
-        Collection<StateChangeAction> actions = csr.getPossibleActions();
-        assertTrue(actions.contains(StateChangeAction.DISABLE));
+        Collection<PossibleAction> actions = csr.getPossibleActions();
+        assertTrue(actions.contains(PossibleAction.DISABLE));
         assertEquals(1, actions.size());
     }
 

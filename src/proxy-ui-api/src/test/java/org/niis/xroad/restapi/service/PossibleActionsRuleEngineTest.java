@@ -49,7 +49,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.niis.xroad.restapi.service.StateChangeActionHelper.SOFTWARE_TOKEN_ID;
+import static org.niis.xroad.restapi.service.PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -57,10 +57,10 @@ import static org.niis.xroad.restapi.service.StateChangeActionHelper.SOFTWARE_TO
 @Slf4j
 @Transactional
 @WithMockUser
-public class StateChangeActionHelperTest {
+public class PossibleActionsRuleEngineTest {
 
     @Autowired
-    private StateChangeActionHelper helper;
+    private PossibleActionsRuleEngine helper;
 
     @Test
     public void getPossibleCertificateActionUnregister() {
@@ -69,15 +69,15 @@ public class StateChangeActionHelperTest {
         assertTrue(helper.getPossibleCertificateActions(tokenInfo,
                 new KeyInfoBuilder().keyUsageInfo(KeyUsageInfo.AUTHENTICATION).build(),
                 new CertificateInfoBuilder().certificateStatus(CertificateInfo.STATUS_REGINPROG).build())
-                .contains(StateChangeActionEnum.UNREGISTER));
+                .contains(PossibleActionEnum.UNREGISTER));
         assertFalse(helper.getPossibleCertificateActions(tokenInfo,
                 new KeyInfoBuilder().keyUsageInfo(KeyUsageInfo.AUTHENTICATION).build(),
                 new CertificateInfoBuilder().certificateStatus(CertificateInfo.STATUS_SAVED).build())
-                .contains(StateChangeActionEnum.UNREGISTER));
+                .contains(PossibleActionEnum.UNREGISTER));
         assertFalse(helper.getPossibleCertificateActions(tokenInfo,
                 new KeyInfoBuilder().keyUsageInfo(KeyUsageInfo.SIGNING).build(),
                 new CertificateInfoBuilder().certificateStatus(CertificateInfo.STATUS_REGINPROG).build())
-                .contains(StateChangeActionEnum.UNREGISTER));
+                .contains(PossibleActionEnum.UNREGISTER));
     }
 
     @Test
@@ -87,15 +87,15 @@ public class StateChangeActionHelperTest {
         assertTrue(helper.getPossibleCertificateActions(tokenInfo,
                 new KeyInfoBuilder().keyUsageInfo(KeyUsageInfo.AUTHENTICATION).build(),
                 new CertificateInfoBuilder().certificateStatus(CertificateInfo.STATUS_SAVED).build())
-                .contains(StateChangeActionEnum.REGISTER));
+                .contains(PossibleActionEnum.REGISTER));
         assertFalse(helper.getPossibleCertificateActions(tokenInfo,
                 new KeyInfoBuilder().keyUsageInfo(KeyUsageInfo.AUTHENTICATION).build(),
                 new CertificateInfoBuilder().certificateStatus(CertificateInfo.STATUS_REGINPROG).build())
-                .contains(StateChangeActionEnum.REGISTER));
+                .contains(PossibleActionEnum.REGISTER));
         assertFalse(helper.getPossibleCertificateActions(tokenInfo,
                 new KeyInfoBuilder().keyUsageInfo(KeyUsageInfo.SIGNING).build(),
                 new CertificateInfoBuilder().certificateStatus(CertificateInfo.STATUS_SAVED).build())
-                .contains(StateChangeActionEnum.REGISTER));
+                .contains(PossibleActionEnum.REGISTER));
     }
 
     @Test
@@ -105,14 +105,14 @@ public class StateChangeActionHelperTest {
                 new KeyInfoBuilder().keyUsageInfo(KeyUsageInfo.AUTHENTICATION).build(),
                 new CertificateInfoBuilder().certificateStatus(CertificateInfo.STATUS_REGINPROG)
                         .savedToConfiguration(false).build())
-                .contains(StateChangeActionEnum.DELETE));
+                .contains(PossibleActionEnum.DELETE));
 
         assertTrue(helper.getPossibleCertificateActions(
                 new TokenInfoBuilder().readOnly(false).build(),
                 new KeyInfoBuilder().keyUsageInfo(null).build(),
                 new CertificateInfoBuilder().certificateStatus(CertificateInfo.STATUS_REGINPROG)
                         .savedToConfiguration(false).build())
-                .contains(StateChangeActionEnum.DELETE));
+                .contains(PossibleActionEnum.DELETE));
 
         // unreg enabled -> delete not possible
         assertFalse(helper.getPossibleCertificateActions(
@@ -120,21 +120,21 @@ public class StateChangeActionHelperTest {
                 new KeyInfoBuilder().keyUsageInfo(KeyUsageInfo.AUTHENTICATION).build(),
                 new CertificateInfoBuilder().certificateStatus(CertificateInfo.STATUS_REGINPROG)
                         .savedToConfiguration(false).build())
-                .contains(StateChangeActionEnum.DELETE));
+                .contains(PossibleActionEnum.DELETE));
 
         assertTrue(helper.getPossibleCertificateActions(
                 new TokenInfoBuilder().readOnly(false).build(),
                 new KeyInfoBuilder().keyUsageInfo(KeyUsageInfo.AUTHENTICATION).build(),
                 new CertificateInfoBuilder().certificateStatus(CertificateInfo.STATUS_SAVED)
                         .savedToConfiguration(false).build())
-                .contains(StateChangeActionEnum.DELETE));
+                .contains(PossibleActionEnum.DELETE));
 
         assertTrue(helper.getPossibleCertificateActions(
                 new TokenInfoBuilder().readOnly(false).active(false).build(),
                 new KeyInfoBuilder().keyUsageInfo(KeyUsageInfo.AUTHENTICATION).build(),
                 new CertificateInfoBuilder().certificateStatus(CertificateInfo.STATUS_SAVED)
                         .savedToConfiguration(true).build())
-                .contains(StateChangeActionEnum.DELETE));
+                .contains(PossibleActionEnum.DELETE));
     }
 
     @Test
@@ -145,7 +145,7 @@ public class StateChangeActionHelperTest {
                 new CertificateInfoBuilder()
                         .active(true)
                         .savedToConfiguration(true).build())
-                .contains(StateChangeActionEnum.DISABLE));
+                .contains(PossibleActionEnum.DISABLE));
 
         assertFalse(helper.getPossibleCertificateActions(
                 new TokenInfoBuilder().build(),
@@ -153,7 +153,7 @@ public class StateChangeActionHelperTest {
                 new CertificateInfoBuilder()
                         .active(false)
                         .savedToConfiguration(true).build())
-                .contains(StateChangeActionEnum.DISABLE));
+                .contains(PossibleActionEnum.DISABLE));
 
         assertFalse(helper.getPossibleCertificateActions(
                 new TokenInfoBuilder().build(),
@@ -161,7 +161,7 @@ public class StateChangeActionHelperTest {
                 new CertificateInfoBuilder()
                         .active(true)
                         .savedToConfiguration(false).build())
-                .contains(StateChangeActionEnum.DISABLE));
+                .contains(PossibleActionEnum.DISABLE));
     }
 
     @Test
@@ -172,7 +172,7 @@ public class StateChangeActionHelperTest {
                 new CertificateInfoBuilder()
                         .active(false)
                         .savedToConfiguration(true).build())
-                .contains(StateChangeActionEnum.ACTIVATE));
+                .contains(PossibleActionEnum.ACTIVATE));
 
         assertFalse(helper.getPossibleCertificateActions(
                 new TokenInfoBuilder().build(),
@@ -180,7 +180,7 @@ public class StateChangeActionHelperTest {
                 new CertificateInfoBuilder()
                         .active(true)
                         .savedToConfiguration(true).build())
-                .contains(StateChangeActionEnum.ACTIVATE));
+                .contains(PossibleActionEnum.ACTIVATE));
 
         assertFalse(helper.getPossibleCertificateActions(
                 new TokenInfoBuilder().build(),
@@ -188,7 +188,7 @@ public class StateChangeActionHelperTest {
                 new CertificateInfoBuilder()
                         .active(false)
                         .savedToConfiguration(false).build())
-                .contains(StateChangeActionEnum.ACTIVATE));
+                .contains(PossibleActionEnum.ACTIVATE));
     }
 
     @Test
@@ -198,37 +198,37 @@ public class StateChangeActionHelperTest {
                 new KeyInfoBuilder().build(),
                 new CertificateInfoBuilder()
                         .savedToConfiguration(false).build())
-                .contains(StateChangeActionEnum.IMPORT_FROM_TOKEN));
+                .contains(PossibleActionEnum.IMPORT_FROM_TOKEN));
 
         assertFalse(helper.getPossibleCertificateActions(
                 new TokenInfoBuilder().build(),
                 new KeyInfoBuilder().build(),
                 new CertificateInfoBuilder()
                         .savedToConfiguration(true).build())
-                .contains(StateChangeActionEnum.IMPORT_FROM_TOKEN));
+                .contains(PossibleActionEnum.IMPORT_FROM_TOKEN));
     }
 
     @Test
     public void getPossibleCsrActionDelete() {
-        EnumSet<StateChangeActionEnum> actions = helper.getPossibleCsrActions(
+        EnumSet<PossibleActionEnum> actions = helper.getPossibleCsrActions(
                 new TokenInfoBuilder().build(),
                 new KeyInfoBuilder().build(),
                 new CertRequestInfoBuilder().build());
-        assertTrue(actions.contains(StateChangeActionEnum.DELETE));
+        assertTrue(actions.contains(PossibleActionEnum.DELETE));
         assertEquals(1, actions.size()); // no other actions
 
         assertTrue(helper.getPossibleCsrActions(
                 new TokenInfoBuilder().build(),
                 new KeyInfoBuilder().keyUsageInfo(null).build(),
                 new CertRequestInfoBuilder().build())
-                .contains(StateChangeActionEnum.DELETE));
+                .contains(PossibleActionEnum.DELETE));
     }
     @Test
     public void requirePossibleAction() throws Exception {
-        EnumSet<StateChangeActionEnum> actions = EnumSet.of(StateChangeActionEnum.ACTIVATE);
-        helper.requirePossibleAction(StateChangeActionEnum.ACTIVATE, actions);
+        EnumSet<PossibleActionEnum> actions = EnumSet.of(PossibleActionEnum.ACTIVATE);
+        helper.requirePossibleAction(PossibleActionEnum.ACTIVATE, actions);
         try {
-            helper.requirePossibleAction(StateChangeActionEnum.DELETE, actions);
+            helper.requirePossibleAction(PossibleActionEnum.DELETE, actions);
             fail("should throw exception");
         } catch (ActionNotPossibleException expected) {
         }
@@ -240,13 +240,13 @@ public class StateChangeActionHelperTest {
                 new TokenInfoBuilder()
                         .active(true)
                         .build())
-                .contains(StateChangeActionEnum.GENERATE_KEY));
+                .contains(PossibleActionEnum.GENERATE_KEY));
 
         assertFalse(helper.getPossibleTokenActions(
                 new TokenInfoBuilder()
                         .active(false)
                         .build())
-                .contains(StateChangeActionEnum.GENERATE_KEY));
+                .contains(PossibleActionEnum.GENERATE_KEY));
     }
 
     @Test
@@ -256,36 +256,36 @@ public class StateChangeActionHelperTest {
                         .available(true)
                         .active(false)
                         .build())
-                .contains(StateChangeActionEnum.TOKEN_ACTIVATE));
+                .contains(PossibleActionEnum.TOKEN_ACTIVATE));
         assertFalse(helper.getPossibleTokenActions(
                 new TokenInfoBuilder()
                         .available(true)
                         .active(true)
                         .build())
-                .contains(StateChangeActionEnum.TOKEN_ACTIVATE));
+                .contains(PossibleActionEnum.TOKEN_ACTIVATE));
         assertFalse(helper.getPossibleTokenActions(
                 new TokenInfoBuilder()
                         .available(false)
                         .active(false)
                         .build())
-                .contains(StateChangeActionEnum.TOKEN_ACTIVATE));
+                .contains(PossibleActionEnum.TOKEN_ACTIVATE));
 
         assertTrue(helper.getPossibleTokenActions(
                 new TokenInfoBuilder()
                         .active(true)
                         .build())
-                .contains(StateChangeActionEnum.TOKEN_DEACTIVATE));
+                .contains(PossibleActionEnum.TOKEN_DEACTIVATE));
         assertFalse(helper.getPossibleTokenActions(
                 new TokenInfoBuilder()
                         .active(false)
                         .build())
-                .contains(StateChangeActionEnum.TOKEN_DEACTIVATE));
+                .contains(PossibleActionEnum.TOKEN_DEACTIVATE));
         assertTrue(helper.getPossibleTokenActions(
                 new TokenInfoBuilder()
                         .available(false)
                         .active(true)
                         .build())
-                .contains(StateChangeActionEnum.TOKEN_DEACTIVATE));
+                .contains(PossibleActionEnum.TOKEN_DEACTIVATE));
     }
 
     @Test
@@ -306,43 +306,43 @@ public class StateChangeActionHelperTest {
 
         // actual test
         assertTrue(helper.getPossibleTokenActions(saved)
-                .contains(StateChangeActionEnum.EDIT_FRIENDLY_NAME));
+                .contains(PossibleActionEnum.EDIT_FRIENDLY_NAME));
         assertFalse(helper.getPossibleTokenActions(unsaved)
-                .contains(StateChangeActionEnum.EDIT_FRIENDLY_NAME));
+                .contains(PossibleActionEnum.EDIT_FRIENDLY_NAME));
     }
 
     /**
      * Helps when there is only one key. Uses the given token and the single key to request actions.
      */
-    private EnumSet<StateChangeActionEnum> getPossibleKeyActions(TokenInfo tokenInfo) {
+    private EnumSet<PossibleActionEnum> getPossibleKeyActions(TokenInfo tokenInfo) {
         return helper.getPossibleKeyActions(tokenInfo,
                 tokenInfo.getKeyInfo().iterator().next());
     }
 
     @Test
     public void getPossibleKeyActionDelete() {
-        EnumSet<StateChangeActionEnum> actions = getPossibleKeyActions(
+        EnumSet<PossibleActionEnum> actions = getPossibleKeyActions(
                 createTestToken(true, false,
                         true, false));
-        assertTrue(actions.contains(StateChangeActionEnum.DELETE));
+        assertTrue(actions.contains(PossibleActionEnum.DELETE));
 
         // cant delete unsupported key
         actions = getPossibleKeyActions(
                 createTestToken(true, false,
                         true, true));
-        assertFalse(actions.contains(StateChangeActionEnum.DELETE));
+        assertFalse(actions.contains(PossibleActionEnum.DELETE));
 
         // cant delete if unsaved and inactive
         actions = getPossibleKeyActions(
                 createTestToken(false, false,
                         false, false));
-        assertFalse(actions.contains(StateChangeActionEnum.DELETE));
+        assertFalse(actions.contains(PossibleActionEnum.DELETE));
 
         // cant delete if token readonly and key unsaved
         actions = getPossibleKeyActions(
                 createTestToken(false, true,
                         true, false));
-        assertFalse(actions.contains(StateChangeActionEnum.DELETE));
+        assertFalse(actions.contains(PossibleActionEnum.DELETE));
     }
 
     /**
@@ -379,7 +379,7 @@ public class StateChangeActionHelperTest {
     @Test
     public void getPossibleKeyActionGenerateAuthCsr() {
         TokenInfo tokenInfo;
-        EnumSet<StateChangeActionEnum> actions;
+        EnumSet<PossibleActionEnum> actions;
 
         // basic happy case
         tokenInfo = new TokenInfoBuilder()
@@ -391,8 +391,8 @@ public class StateChangeActionHelperTest {
                         .build())
                 .build();
         actions = getPossibleKeyActions(tokenInfo);
-        assertTrue(actions.contains(StateChangeActionEnum.GENERATE_AUTH_CSR));
-        assertFalse(actions.contains(StateChangeActionEnum.GENERATE_SIGN_CSR));
+        assertTrue(actions.contains(PossibleActionEnum.GENERATE_AUTH_CSR));
+        assertFalse(actions.contains(PossibleActionEnum.GENERATE_SIGN_CSR));
 
         // generate is possible is usage = null (undefined)
         tokenInfo = new TokenInfoBuilder()
@@ -404,8 +404,8 @@ public class StateChangeActionHelperTest {
                         .build())
                 .build();
         actions = getPossibleKeyActions(tokenInfo);
-        assertTrue(actions.contains(StateChangeActionEnum.GENERATE_AUTH_CSR));
-        assertTrue(actions.contains(StateChangeActionEnum.GENERATE_SIGN_CSR));
+        assertTrue(actions.contains(PossibleActionEnum.GENERATE_AUTH_CSR));
+        assertTrue(actions.contains(PossibleActionEnum.GENERATE_SIGN_CSR));
 
         // not possible if token is not softtoken
         tokenInfo = new TokenInfoBuilder()
@@ -417,8 +417,8 @@ public class StateChangeActionHelperTest {
                         .build())
                 .build();
         actions = getPossibleKeyActions(tokenInfo);
-        assertFalse(actions.contains(StateChangeActionEnum.GENERATE_AUTH_CSR));
-        assertFalse(actions.contains(StateChangeActionEnum.GENERATE_SIGN_CSR));
+        assertFalse(actions.contains(PossibleActionEnum.GENERATE_AUTH_CSR));
+        assertFalse(actions.contains(PossibleActionEnum.GENERATE_SIGN_CSR));
 
         // not possible if usage = signing
         tokenInfo = new TokenInfoBuilder()
@@ -430,7 +430,7 @@ public class StateChangeActionHelperTest {
                         .build())
                 .build();
         actions = getPossibleKeyActions(tokenInfo);
-        assertFalse(actions.contains(StateChangeActionEnum.GENERATE_AUTH_CSR));
+        assertFalse(actions.contains(PossibleActionEnum.GENERATE_AUTH_CSR));
 
         // not possible if key unavailable
         tokenInfo = new TokenInfoBuilder()
@@ -442,7 +442,7 @@ public class StateChangeActionHelperTest {
                         .build())
                 .build();
         actions = getPossibleKeyActions(tokenInfo);
-        assertFalse(actions.contains(StateChangeActionEnum.GENERATE_AUTH_CSR));
+        assertFalse(actions.contains(PossibleActionEnum.GENERATE_AUTH_CSR));
 
         // not possible if token inactive
         tokenInfo = new TokenInfoBuilder()
@@ -454,12 +454,12 @@ public class StateChangeActionHelperTest {
                         .build())
                 .build();
         actions = getPossibleKeyActions(tokenInfo);
-        assertFalse(actions.contains(StateChangeActionEnum.GENERATE_AUTH_CSR));
+        assertFalse(actions.contains(PossibleActionEnum.GENERATE_AUTH_CSR));
     }
     @Test
     public void getPossibleKeyActionGenerateSignCsr() {
         TokenInfo tokenInfo;
-        EnumSet<StateChangeActionEnum> actions;
+        EnumSet<PossibleActionEnum> actions;
 
         // basic happy case
         tokenInfo = new TokenInfoBuilder()
@@ -470,8 +470,8 @@ public class StateChangeActionHelperTest {
                         .build())
                 .build();
         actions = getPossibleKeyActions(tokenInfo);
-        assertTrue(actions.contains(StateChangeActionEnum.GENERATE_SIGN_CSR));
-        assertFalse(actions.contains(StateChangeActionEnum.GENERATE_AUTH_CSR));
+        assertTrue(actions.contains(PossibleActionEnum.GENERATE_SIGN_CSR));
+        assertFalse(actions.contains(PossibleActionEnum.GENERATE_AUTH_CSR));
 
         // generate is possible is usage = null (undefined)
         tokenInfo = new TokenInfoBuilder()
@@ -482,7 +482,7 @@ public class StateChangeActionHelperTest {
                         .build())
                 .build();
         actions = getPossibleKeyActions(tokenInfo);
-        assertTrue(actions.contains(StateChangeActionEnum.GENERATE_SIGN_CSR));
+        assertTrue(actions.contains(PossibleActionEnum.GENERATE_SIGN_CSR));
 
         // not possible if usage = auth
         tokenInfo = new TokenInfoBuilder()
@@ -493,7 +493,7 @@ public class StateChangeActionHelperTest {
                         .build())
                 .build();
         actions = getPossibleKeyActions(tokenInfo);
-        assertFalse(actions.contains(StateChangeActionEnum.GENERATE_SIGN_CSR));
+        assertFalse(actions.contains(PossibleActionEnum.GENERATE_SIGN_CSR));
 
         // not possible if key unavailable
         tokenInfo = new TokenInfoBuilder()
@@ -504,7 +504,7 @@ public class StateChangeActionHelperTest {
                         .build())
                 .build();
         actions = getPossibleKeyActions(tokenInfo);
-        assertFalse(actions.contains(StateChangeActionEnum.GENERATE_SIGN_CSR));
+        assertFalse(actions.contains(PossibleActionEnum.GENERATE_SIGN_CSR));
 
         // not possible if token inactive
         tokenInfo = new TokenInfoBuilder()
@@ -515,7 +515,7 @@ public class StateChangeActionHelperTest {
                         .build())
                 .build();
         actions = getPossibleKeyActions(tokenInfo);
-        assertFalse(actions.contains(StateChangeActionEnum.GENERATE_SIGN_CSR));
+        assertFalse(actions.contains(PossibleActionEnum.GENERATE_SIGN_CSR));
     }
 
     @Test
@@ -530,11 +530,11 @@ public class StateChangeActionHelperTest {
                         new CertificateInfoBuilder()
                                 .savedToConfiguration(true).build())
                         .build()).build();
-        EnumSet<StateChangeActionEnum> actions = getPossibleKeyActions(saved);
-        assertTrue(actions.contains(StateChangeActionEnum.EDIT_FRIENDLY_NAME));
+        EnumSet<PossibleActionEnum> actions = getPossibleKeyActions(saved);
+        assertTrue(actions.contains(PossibleActionEnum.EDIT_FRIENDLY_NAME));
 
         actions = getPossibleKeyActions(unsaved);
-        assertFalse(actions.contains(StateChangeActionEnum.EDIT_FRIENDLY_NAME));
+        assertFalse(actions.contains(PossibleActionEnum.EDIT_FRIENDLY_NAME));
 
     }
 }

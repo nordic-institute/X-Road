@@ -132,7 +132,7 @@ public class TokenCertificateServiceTest {
     private ClientRepository clientRepository;
 
     @SpyBean
-    private StateChangeActionHelper stateChangeActionHelper;
+    private PossibleActionsRuleEngine possibleActionsRuleEngine;
 
     @MockBean
     private TokenService tokenService;
@@ -194,7 +194,7 @@ public class TokenCertificateServiceTest {
         mockDeleteCertRequest();
         mockGetTokenForKeyId(tokenInfo);
         // by default all actions are possible
-        doReturn(EnumSet.allOf(StateChangeActionEnum.class)).when(stateChangeActionHelper)
+        doReturn(EnumSet.allOf(PossibleActionEnum.class)).when(possibleActionsRuleEngine)
                 .getPossibleCertificateActions(any(), any(), any());
     }
 
@@ -384,8 +384,8 @@ public class TokenCertificateServiceTest {
     @Test(expected = ActionNotPossibleException.class)
     @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
     public void deleteCertificateActionNotPossible() throws Exception {
-        EnumSet empty = EnumSet.noneOf(StateChangeActionEnum.class);
-        doReturn(empty).when(stateChangeActionHelper).getPossibleCertificateActions(any(), any(), any());
+        EnumSet empty = EnumSet.noneOf(PossibleActionEnum.class);
+        doReturn(empty).when(possibleActionsRuleEngine).getPossibleCertificateActions(any(), any(), any());
         tokenCertificateService.deleteCertificate(EXISTING_CERT_HASH);
     }
 
@@ -469,7 +469,7 @@ public class TokenCertificateServiceTest {
     @Test(expected = ActionNotPossibleException.class)
     @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
     public void deleteCsrActionNotPossible() throws Exception {
-        doReturn(EnumSet.noneOf(StateChangeActionEnum.class)).when(stateChangeActionHelper)
+        doReturn(EnumSet.noneOf(PossibleActionEnum.class)).when(possibleActionsRuleEngine)
                 .getPossibleCsrActions(any(), any(), any());
         tokenCertificateService.deleteCsr(GOOD_CSR_ID);
     }

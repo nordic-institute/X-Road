@@ -32,11 +32,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.Key;
-import org.niis.xroad.restapi.openapi.model.StateChangeAction;
+import org.niis.xroad.restapi.openapi.model.PossibleAction;
 import org.niis.xroad.restapi.service.CsrNotFoundException;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.KeyService;
-import org.niis.xroad.restapi.service.StateChangeActionEnum;
+import org.niis.xroad.restapi.service.PossibleActionEnum;
 import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,7 +111,7 @@ public class KeysApiControllerTest {
         }).when(tokenCertificateService).deleteCsr(any());
 
         // by default all actions are possible
-        doReturn(EnumSet.allOf(StateChangeActionEnum.class)).when(tokenCertificateService)
+        doReturn(EnumSet.allOf(PossibleActionEnum.class)).when(tokenCertificateService)
                 .getPossibleActionsForCsr(any());
     }
 
@@ -157,10 +157,10 @@ public class KeysApiControllerTest {
     @Test
     @WithMockUser(authorities = { "VIEW_KEYS" })
     public void getPossibleActionsForCsr() throws Exception {
-        ResponseEntity<List<StateChangeAction>> response = keysApiController
+        ResponseEntity<List<PossibleAction>> response = keysApiController
                 .getPossibleActionsForCsr(GOOD_SIGN_KEY_ID, GOOD_CSR_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Set<StateChangeAction> allActions = new HashSet(Arrays.asList(StateChangeAction.values()));
+        Set<PossibleAction> allActions = new HashSet(Arrays.asList(PossibleAction.values()));
         assertEquals(allActions, new HashSet<>(response.getBody()));
     }
 }

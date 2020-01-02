@@ -62,16 +62,16 @@ import static java.util.stream.Collectors.toList;
 public class TokenService {
 
     private final SignerProxyFacade signerProxyFacade;
-    private final StateChangeActionHelper stateChangeActionHelper;
+    private final PossibleActionsRuleEngine possibleActionsRuleEngine;
 
     /**
      * TokenService constructor
      */
     @Autowired
     public TokenService(SignerProxyFacade signerProxyFacade,
-            StateChangeActionHelper stateChangeActionHelper) {
+            PossibleActionsRuleEngine possibleActionsRuleEngine) {
         this.signerProxyFacade = signerProxyFacade;
-        this.stateChangeActionHelper = stateChangeActionHelper;
+        this.possibleActionsRuleEngine = possibleActionsRuleEngine;
     }
 
     /**
@@ -141,7 +141,7 @@ public class TokenService {
 
         // check that action is possible
         TokenInfo tokenInfo = getToken(id);
-        stateChangeActionHelper.requirePossibleTokenAction(StateChangeActionEnum.TOKEN_ACTIVATE,
+        possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.TOKEN_ACTIVATE,
                 tokenInfo);
 
         try {
@@ -169,7 +169,7 @@ public class TokenService {
 
         // check that action is possible
         TokenInfo tokenInfo = getToken(id);
-        stateChangeActionHelper.requirePossibleTokenAction(StateChangeActionEnum.TOKEN_DEACTIVATE,
+        possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.TOKEN_DEACTIVATE,
                 tokenInfo);
 
         try {

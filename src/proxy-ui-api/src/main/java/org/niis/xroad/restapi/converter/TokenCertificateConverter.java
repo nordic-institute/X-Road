@@ -39,7 +39,7 @@ import org.bouncycastle.cert.ocsp.SingleResp;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.CertificateOcspStatus;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
-import org.niis.xroad.restapi.service.StateChangeActionHelper;
+import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -56,18 +56,18 @@ public class TokenCertificateConverter {
 
     private final CertificateDetailsConverter certificateDetailsConverter;
     private final ClientConverter clientConverter;
-    private final StateChangeActionHelper stateChangeActionHelper;
-    private final StateChangeActionConverter stateChangeActionConverter;
+    private final PossibleActionsRuleEngine possibleActionsRuleEngine;
+    private final PossibleActionConverter possibleActionConverter;
 
     @Autowired
     public TokenCertificateConverter(CertificateDetailsConverter certificateDetailsConverter,
             ClientConverter clientConverter,
-            StateChangeActionHelper stateChangeActionHelper,
-            StateChangeActionConverter stateChangeActionConverter) {
+            PossibleActionsRuleEngine possibleActionsRuleEngine,
+            PossibleActionConverter possibleActionConverter) {
         this.certificateDetailsConverter = certificateDetailsConverter;
         this.clientConverter = clientConverter;
-        this.stateChangeActionHelper = stateChangeActionHelper;
-        this.stateChangeActionConverter = stateChangeActionConverter;
+        this.possibleActionsRuleEngine = possibleActionsRuleEngine;
+        this.possibleActionConverter = possibleActionConverter;
     }
 
     /**
@@ -78,8 +78,8 @@ public class TokenCertificateConverter {
             KeyInfo keyInfo,
             TokenInfo tokenInfo) {
         TokenCertificate tokenCertificate = convert(certificateInfo);
-        tokenCertificate.setPossibleActions(stateChangeActionConverter.convert(
-                stateChangeActionHelper.getPossibleCertificateActions(
+        tokenCertificate.setPossibleActions(possibleActionConverter.convert(
+                possibleActionsRuleEngine.getPossibleCertificateActions(
                         tokenInfo, keyInfo, certificateInfo)));
         return tokenCertificate;
     }
