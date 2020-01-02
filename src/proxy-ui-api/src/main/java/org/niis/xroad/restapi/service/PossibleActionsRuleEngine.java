@@ -128,8 +128,7 @@ public class PossibleActionsRuleEngine {
             actions.add(PossibleActionEnum.UNREGISTER);
         }
         boolean savedToConfiguration = certificateInfo.isSavedToConfiguration();
-        if (canDelete(tokenInfo, keyInfo, savedToConfiguration, canUnregister,
-                certOrCsrDeletable(tokenInfo, keyInfo, savedToConfiguration))) {
+        if (canDeleteCertOrCsr(tokenInfo, savedToConfiguration, canUnregister)) {
             actions.add(PossibleActionEnum.DELETE);
         }
         if (keyInfo.getUsage() == KeyUsageInfo.AUTHENTICATION
@@ -159,47 +158,35 @@ public class PossibleActionsRuleEngine {
             CertRequestInfo certRequestInfo) {
         EnumSet<PossibleActionEnum> actions = EnumSet.noneOf(PossibleActionEnum.class);
 
-        if (canDelete(tokenInfo, keyInfo, true, false,
-                certOrCsrDeletable(tokenInfo, keyInfo, true))) {
+        if (canDeleteCertOrCsr(tokenInfo, true, false)) {
             actions.add(PossibleActionEnum.DELETE);
         }
         return actions;
     }
 
     /**
-     * TO DO: find better name!
-     * from keys.js:
-     *             if (cert.cert_deletable &&
-     *                 (cert.cert_saved_to_conf || cert.token_active)) {
-     *                 $("#delete").enable();
-     *             }
+     * combined logic from keys.js and token_renderer.rb
      */
-    private boolean canDelete(TokenInfo tokenInfo, KeyInfo keyInfo,
+    private boolean canDeleteCertOrCsr(TokenInfo tokenInfo,
             boolean savedToConfiguration,
-            boolean canUnregister,
-            boolean certOrCsrDeletable) {
+            boolean canUnregister) {
+
+        // token_renderer.rb#230
+        boolean canDeleteCertFromTokenRenderer;
+        if (tokenInfo.isReadOnly() && !savedToConfiguration) {
+            canDeleteCertFromTokenRenderer = false;
+        } else {
+            canDeleteCertFromTokenRenderer = true;
+        }
+
+        // keys.js#77
         if (!canUnregister
-                && certOrCsrDeletable
+                && canDeleteCertFromTokenRenderer
                 && (savedToConfiguration || tokenInfo.isActive())) {
             return true;
         } else {
             return false;
         }
-    }
-
-    /**
-     * TO DO: better name, document where this is from!
-     */
-    private boolean certOrCsrDeletable(TokenInfo tokenInfo, KeyInfo keyInfo, boolean savedToConfiguration) {
-        boolean canDelete = false;
-        if (tokenInfo.isReadOnly() && !savedToConfiguration) {
-            canDelete = false;
-        } else if (keyInfo.getUsage() == null) {
-            canDelete = true;
-        } else {
-            canDelete = true;
-        }
-        return canDelete;
     }
 
     /**
