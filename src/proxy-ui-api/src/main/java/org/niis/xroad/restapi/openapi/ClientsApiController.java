@@ -315,15 +315,18 @@ public class ClientsApiController implements ClientsApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('ADD_WSDL')")
+    @PreAuthorize("hasAnyAuthority('ADD_WSDL', 'ADD_OPENAPI3')")
     public ResponseEntity<ServiceDescription> addClientServiceDescription(String id,
             ServiceDescriptionAdd serviceDescription) {
+        ClientId clientId = clientConverter.convertId(id);
+        String url = serviceDescription.getUrl();
+        boolean ignoreWarnings = serviceDescription.getIgnoreWarnings();
+
         ServiceDescriptionType addedServiceDescriptionType = null;
         if (serviceDescription.getType() == ServiceType.WSDL) {
             try {
                 addedServiceDescriptionType = serviceDescriptionService.addWsdlServiceDescription(
-                        clientConverter.convertId(id),
-                        serviceDescription.getUrl(), serviceDescription.getIgnoreWarnings());
+                        clientId, url, ignoreWarnings);
             } catch (WsdlParser.WsdlNotFoundException | UnhandledWarningsException
                     | InvalidUrlException | InvalidWsdlException e) {
                 // deviation data (errorcode + warnings) copied
@@ -336,9 +339,12 @@ public class ClientsApiController implements ClientsApi {
                 // deviation data (errorcode + warnings) copied
                 throw new ConflictException(e);
             }
-
         } else if (serviceDescription.getType() == ServiceType.OPENAPI3) {
             return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+//            addedServiceDescriptionType = serviceDescriptionService.addOpenapi3ServiceDescription(clientId, url,
+//            serviceDescription.getRestServiceCode());
+        } else if (serviceDescription.getType() == ServiceType.REST) {
+            addedServiceDescriptionType = serviceDescriptionService.addOpenapi3EndpointServiceDescription(clientId, url, serviceDescription.getRestServiceCode());
         }
         ServiceDescription addedServiceDescription = serviceDescriptionConverter.convert(
                 addedServiceDescriptionType);

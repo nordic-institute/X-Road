@@ -40,6 +40,7 @@ import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
+import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +59,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
 
 /**
  * ServiceDescription service
@@ -233,6 +236,79 @@ public class ServiceDescriptionService {
     }
 
     /**
+     *
+     * @param clientId
+     * @param url
+     * @return
+     */
+    public ServiceDescriptionType addOpenapi3ServiceDescription(ClientId clientId, String url)
+            throws OpenApiParser.ParsingException {
+        verifyAuthority("ADD_OPENAPI3");
+
+        ClientType client = clientService.getClient(clientId);
+        ServiceDescriptionType serviceDescriptionType = getServiceDescriptionOfType(client, url,
+                DescriptionType.OPENAPI3);
+
+        try {
+            OpenApiParser.Result result = parseOpenapi3(url);
+        } catch (OpenApiParser.ParsingException e) {
+            throw e;
+        }
+
+        return serviceDescriptionType;
+    }
+
+    public ServiceDescriptionType addOpenapi3EndpointServiceDescription(ClientId clientId, String url,
+                                                                        String serviceCode) {
+        verifyAuthority("ADD_OPENAPI3");
+
+        ClientType client = clientService.getClient(clientId);
+        ServiceDescriptionType serviceDescriptionType = getServiceDescriptionOfType(client, url,
+                DescriptionType.REST);
+
+        // Initiate default service
+        ServiceType serviceType = new ServiceType();
+        serviceType.setServiceCode(serviceCode);
+        serviceType.setTimeout(DEFAULT_SERVICE_TIMEOUT);
+        serviceType.setUrl(url);
+        serviceType.setServiceDescription(serviceDescriptionType);
+
+        List<ServiceType> services = new ArrayList<ServiceType>() {{
+            add(serviceType);
+        }};
+        serviceDescriptionType.getService().addAll(services);
+
+        Map<String, EndpointType> endpointMap = new HashMap<>();
+        EndpointType endpointType = new EndpointType(serviceCode, EndpointType.ANY_METHOD,
+                EndpointType.ANY_PATH, false);
+        String endpointKey = createEndpointKey(endpointType);
+        endpointMap.put(endpointKey, endpointType);
+
+        Collection<EndpointType> endpoints = endpointMap.values();
+        client.getEndpoint().addAll(endpoints);
+        client.getServiceDescription().add(serviceDescriptionType);
+        clientRepository.saveOrUpdateAndFlush(client);
+
+        return serviceDescriptionType;
+    }
+
+    private OpenApiParser.Result parseOpenapi3(String url) throws OpenApiParser.ParsingException {
+        OpenApiParser parser = new OpenApiParser(url);
+        OpenApiParser.Result result = null;
+        try {
+            result = parser.parse();
+        } catch (OpenApiParser.ParsingException e) {
+            throw e;
+        }
+
+//        if (result.hasWarnings()) {
+//          TODO handle warnings
+//        }
+
+        return result;
+    }
+
+    /**
      * Create a new {@link EndpointType} for all Services in the provided {@link ServiceDescriptionType}.
      * If an equal EndpointType already exists for the provided {@link ClientType} it will not be returned
      * @param client
@@ -247,19 +323,22 @@ public class ServiceDescriptionService {
         newServiceDescription.getService().forEach(serviceType -> {
             EndpointType endpointType = new EndpointType(serviceType.getServiceCode(), EndpointType.ANY_METHOD,
                     EndpointType.ANY_PATH, true);
-            String endpointKey = endpointType.getServiceCode() + endpointType.getMethod() + endpointType.getPath()
-                    + endpointType.isGenerated();
+            String endpointKey = createEndpointKey(endpointType);
             endpointMap.put(endpointKey, endpointType);
         });
 
         // remove all existing endpoints with an equal combination key from the map
         client.getEndpoint().forEach(endpointType -> {
-            String endpointKey = endpointType.getServiceCode() + endpointType.getMethod() + endpointType.getPath()
-                    + endpointType.isGenerated();
+            String endpointKey = createEndpointKey(endpointType);
             endpointMap.remove(endpointKey);
         });
 
         return endpointMap.values();
+    }
+
+    private String createEndpointKey(EndpointType endpointType) {
+        return endpointType.getServiceCode() + endpointType.getMethod() + endpointType.getPath()
+                + endpointType.isGenerated();
     }
 
     /**
