@@ -20,8 +20,7 @@ done
 ARGUMENTS=("-PxroadBuildType=$RELEASE" --stacktrace buildAll runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest)
 
 if [[ -n "$SONAR" ]]; then
-#    ARGUMENTS+=(dependencyCheckAnalyze sonarqube)
-    ARGUMENTS+=(sonarqube)
+    ARGUMENTS+=(dependencyCheckAnalyze sonarqube)
 fi
 
 if [[ -n "$NODAEMON" ]]; then
