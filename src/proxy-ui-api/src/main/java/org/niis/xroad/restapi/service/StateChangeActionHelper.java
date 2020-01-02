@@ -41,10 +41,28 @@ import java.util.EnumSet;
 @Component
 public class StateChangeActionHelper {
 
+    // duplicate definition, since we dont want add direct dependency on signer
+    public static final String SOFTWARE_TOKEN_ID = "0";
+
+
     public EnumSet<StateChangeActionEnum> getPossibleTokenActions(TokenInfo tokenInfo) {
         EnumSet<StateChangeActionEnum> actions = EnumSet.noneOf(StateChangeActionEnum.class);
-        // not implemented yet
 
+        if (tokenInfo.isActive()) {
+            actions.add(StateChangeActionEnum.GENERATE_KEY);
+        }
+
+        if (tokenInfo.isActive()) {
+            actions.add(StateChangeActionEnum.TOKEN_DEACTIVATE);
+        } else {
+            if (tokenInfo.isAvailable()) {
+                actions.add(StateChangeActionEnum.TOKEN_ACTIVATE);
+            }
+        }
+
+        if (tokenInfo.isSavedToConfiguration()) {
+            actions.add(StateChangeActionEnum.EDIT_FRIENDLY_NAME);
+        }
         /**
          * keys.js studied 100%
          * application.scss 100%
@@ -89,12 +107,45 @@ public class StateChangeActionHelper {
         return actions;
     }
 
+    /**
+     * key is "not supported" if it's an auth key inside other than softtoken (id 0)
+     */
+    public boolean isKeyUnsupported(TokenInfo tokenInfo, KeyInfo keyInfo) {
+        return (!SOFTWARE_TOKEN_ID.equals(tokenInfo.getId()))
+                && keyInfo.getUsage() == KeyUsageInfo.AUTHENTICATION;
+
+    }
+
     public EnumSet<StateChangeActionEnum> getPossibleKeyActions(TokenInfo tokenInfo,
             KeyInfo keyInfo) {
         EnumSet<StateChangeActionEnum> actions = EnumSet.noneOf(StateChangeActionEnum.class);
-        // not implemented yet
-        return actions;
 
+        // DELETE
+        boolean keyNotSupported = isKeyUnsupported(tokenInfo, keyInfo);
+
+        // key.js#L26
+        if (!keyNotSupported
+            && !(tokenInfo.isReadOnly() && !keyInfo.isSavedToConfiguration())
+            && (keyInfo.isSavedToConfiguration() || tokenInfo.isActive())) {
+            actions.add(StateChangeActionEnum.DELETE);
+        }
+
+        // GENERATE_AUTH_CSR
+        // keys.js#35
+        if (SOFTWARE_TOKEN_ID.equals(tokenInfo.getId())
+                && (keyInfo.getUsage() == null || keyInfo.getUsage() == KeyUsageInfo.AUTHENTICATION)
+                && !(!keyInfo.isAvailable() || !tokenInfo.isActive() || keyNotSupported)) {
+            actions.add(StateChangeActionEnum.GENERATE_AUTH_CSR);
+        }
+        // GENERATE_SIGN_CSR
+        if ((keyInfo.getUsage() == null || keyInfo.getUsage() == KeyUsageInfo.SIGNING)
+                && !(!keyInfo.isAvailable() || !tokenInfo.isActive() || keyNotSupported)) {
+            actions.add(StateChangeActionEnum.GENERATE_SIGN_CSR);
+        }
+        // EDIT_FRIENDLY_NAME
+        if (keyInfo.isSavedToConfiguration()) {
+            actions.add(StateChangeActionEnum.EDIT_FRIENDLY_NAME);
+        }
         /**
          *  (keys.js#21)
          * -- delete =
@@ -157,8 +208,8 @@ public class StateChangeActionHelper {
          *     && generate_csr_possible
          *
          *  (keys.js#35)
-         *  generate_csr_possible = !
-         *    (key-unavailable || token-inactive || not-supported)
+         *  generate_csr_possible =
+         *    !(key-unavailable || token-inactive || not-supported)
          *
          *          // only softToken with id 0 is allowed to have auth keys
          *         if (!keyUsage && keyData.token_id != SOFTTOKEN_ID) {
@@ -184,6 +235,7 @@ public class StateChangeActionHelper {
          *
          *
          */
+        return actions;
     }
 
     /**

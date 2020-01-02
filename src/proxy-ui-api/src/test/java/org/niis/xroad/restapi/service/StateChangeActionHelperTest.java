@@ -49,6 +49,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.niis.xroad.restapi.service.StateChangeActionHelper.SOFTWARE_TOKEN_ID;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -243,7 +244,7 @@ public class StateChangeActionHelperTest {
 
         assertFalse(helper.getPossibleTokenActions(
                 new TokenInfoBuilder()
-                        .active(true)
+                        .active(false)
                         .build())
                 .contains(StateChangeActionEnum.GENERATE_KEY));
     }
@@ -309,10 +310,6 @@ public class StateChangeActionHelperTest {
         assertFalse(helper.getPossibleTokenActions(unsaved)
                 .contains(StateChangeActionEnum.EDIT_FRIENDLY_NAME));
     }
-
-    // duplicate since we dont want direct dependency on signer
-    private static final String SOFTWARE_TOKEN_ID = "0";
-
 
     /**
      * Helps when there is only one key. Uses the given token and the single key to request actions.
@@ -445,7 +442,7 @@ public class StateChangeActionHelperTest {
                         .build())
                 .build();
         actions = getPossibleKeyActions(tokenInfo);
-        assertTrue(actions.contains(StateChangeActionEnum.GENERATE_AUTH_CSR));
+        assertFalse(actions.contains(StateChangeActionEnum.GENERATE_AUTH_CSR));
 
         // not possible if token inactive
         tokenInfo = new TokenInfoBuilder()
@@ -457,7 +454,7 @@ public class StateChangeActionHelperTest {
                         .build())
                 .build();
         actions = getPossibleKeyActions(tokenInfo);
-        assertTrue(actions.contains(StateChangeActionEnum.GENERATE_AUTH_CSR));
+        assertFalse(actions.contains(StateChangeActionEnum.GENERATE_AUTH_CSR));
     }
     @Test
     public void getPossibleKeyActionGenerateSignCsr() {
@@ -486,7 +483,6 @@ public class StateChangeActionHelperTest {
                 .build();
         actions = getPossibleKeyActions(tokenInfo);
         assertTrue(actions.contains(StateChangeActionEnum.GENERATE_SIGN_CSR));
-        assertTrue(actions.contains(StateChangeActionEnum.GENERATE_AUTH_CSR));
 
         // not possible if usage = auth
         tokenInfo = new TokenInfoBuilder()
@@ -508,7 +504,7 @@ public class StateChangeActionHelperTest {
                         .build())
                 .build();
         actions = getPossibleKeyActions(tokenInfo);
-        assertTrue(actions.contains(StateChangeActionEnum.GENERATE_SIGN_CSR));
+        assertFalse(actions.contains(StateChangeActionEnum.GENERATE_SIGN_CSR));
 
         // not possible if token inactive
         tokenInfo = new TokenInfoBuilder()
@@ -519,7 +515,7 @@ public class StateChangeActionHelperTest {
                         .build())
                 .build();
         actions = getPossibleKeyActions(tokenInfo);
-        assertTrue(actions.contains(StateChangeActionEnum.GENERATE_SIGN_CSR));
+        assertFalse(actions.contains(StateChangeActionEnum.GENERATE_SIGN_CSR));
     }
 
     @Test
