@@ -63,6 +63,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.util.TestUtils.CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT;
 
 /**
  * Test ServiceDescriptionsApiController
@@ -180,7 +181,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
         serviceDescriptionsApiController.deleteServiceDescription("2");
         List<ServiceDescription> serviceDescriptions =
                 clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1).getBody();
-        assertEquals(2, serviceDescriptions.size());
+        assertEquals(CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT - 1, serviceDescriptions.size());
         client = clientsApiController.getClient(TestUtils.CLIENT_ID_SS1).getBody();
         assertNotNull(client);
     }

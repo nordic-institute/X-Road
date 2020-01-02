@@ -149,7 +149,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
                 throw new ResourceNotFoundException(e);
             }
             serviceDescription = serviceDescriptionConverter.convert(updatedServiceDescription);
-        } else if (serviceDescriptionUpdate.getType() == ServiceType.REST) {
+        } else if (serviceDescriptionUpdate.getType() == ServiceType.OPENAPI3) {
             return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
         } else {
             throw new BadRequestException("ServiceType not recognized");

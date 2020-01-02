@@ -90,6 +90,7 @@ import static org.niis.xroad.restapi.util.CertificateTestUtils.getResource;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithMetadata;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithoutMetadata;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertWarning;
+import static org.niis.xroad.restapi.util.TestUtils.CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT;
 import static org.niis.xroad.restapi.util.TestUtils.assertLocationHeader;
 import static org.niis.xroad.restapi.wsdl.InvalidWsdlException.ERROR_INVALID_WSDL;
 
@@ -526,7 +527,7 @@ public class ClientsApiControllerIntegrationTest {
         // client with some services
         descriptions = clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1);
         assertEquals(HttpStatus.OK, descriptions.getStatusCode());
-        assertEquals(3, descriptions.getBody().size());
+        assertEquals(CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT, descriptions.getBody().size());
         ServiceDescription serviceDescription = getDescription(descriptions.getBody(),
                 "https://restservice.com/api/v1")
                 .get();
@@ -534,7 +535,7 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(true, serviceDescription.getDisabled());
         assertEquals("Kaputt", serviceDescription.getDisabledNotice());
         assertNotNull(serviceDescription.getRefreshedAt());
-        assertEquals(ServiceType.REST, serviceDescription.getType());
+        assertEquals(ServiceType.OPENAPI3, serviceDescription.getType());
         assertEquals(1, serviceDescription.getServices().size());
 
         Service service = serviceDescription.getServices().iterator().next();
@@ -548,6 +549,10 @@ public class ClientsApiControllerIntegrationTest {
                 "https://soapservice.com/v1/Endpoint?wsdl")
                 .get();
         assertEquals(3, wsdlServiceDescription.getServices().size());
+
+        ServiceDescription serviceDescriptionTypeRest = getDescription(descriptions.getBody(),
+                "https://restservice.com/api/v1/nosuchservice").get();
+        assertEquals(ServiceType.REST, serviceDescriptionTypeRest.getType());
     }
 
     private Optional<ServiceDescription> getDescription(List<ServiceDescription> descriptions, String url) {
@@ -592,7 +597,7 @@ public class ClientsApiControllerIntegrationTest {
 
         ResponseEntity<List<ServiceDescription>> descriptions =
                 clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1);
-        assertEquals(4, descriptions.getBody().size());
+        assertEquals(CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT + 1, descriptions.getBody().size());
         try {
             serviceDescription.setIgnoreWarnings(true);
             clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription);
@@ -650,7 +655,7 @@ public class ClientsApiControllerIntegrationTest {
         clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription);
         ResponseEntity<List<ServiceDescription>> descriptions =
                 clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1);
-        assertEquals(4, descriptions.getBody().size());
+        assertEquals(CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT + 1, descriptions.getBody().size());
     }
 
     @Test
