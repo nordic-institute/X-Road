@@ -153,7 +153,11 @@ public class TokenCertificateServiceTest {
         CertificateInfo certificateInfo = CertificateTestUtils.createTestCertificateInfo(mockAuthCert,
                 CertificateStatus.GOOD, "SAVED");
         doAnswer(answer -> certificateInfo).when(signerProxyFacade).getCertForHash(any());
-        tokenCertificateService.registerAuthCert(MOCK_AUTH_CERTIFICATE_HASH, GOOD_ADDRESS);
+        try {
+            tokenCertificateService.registerAuthCert(MOCK_AUTH_CERTIFICATE_HASH, GOOD_ADDRESS);
+        } catch (Exception e) {
+            fail();
+        }
     }
 
     @Test(expected = CodedException.class)
@@ -173,8 +177,11 @@ public class TokenCertificateServiceTest {
         CertificateInfo certificateInfo = CertificateTestUtils.createTestCertificateInfo(mockAuthCert,
                 CertificateStatus.GOOD, "SAVED");
         doAnswer(answer -> certificateInfo).when(signerProxyFacade).getCertForHash(any());
-        tokenCertificateService.unregisterAuthCert(MOCK_AUTH_CERTIFICATE_HASH);
-
+        try {
+            tokenCertificateService.unregisterAuthCert(MOCK_AUTH_CERTIFICATE_HASH);
+        } catch (Exception e) {
+            fail();
+        }
     }
 
     @Test(expected = TokenCertificateService.SignCertificateNotSupportedException.class)
