@@ -204,4 +204,11 @@ public class SignerProxyFacade {
     public TokenInfoAndKeyId getTokenAndKeyIdForCertRequestId(String certRequestId) throws Exception {
         return SignerProxy.getTokenAndKeyIdForCertRequestId(certRequestId);
     }
+
+    /**
+     * {@link SignerProxy#getTokenForKeyId(String)}
+     */
+    public TokenInfo getTokenForKeyId(String keyId) throws Exception {
+        return SignerProxy.getTokenForKeyId(keyId);
+    }
 }

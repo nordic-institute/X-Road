@@ -49,6 +49,7 @@ import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHashResponse;
 import ee.ria.xroad.signer.protocol.message.GetTokenInfo;
 import ee.ria.xroad.signer.protocol.message.GetTokenInfoAndKeyIdForCertHash;
 import ee.ria.xroad.signer.protocol.message.GetTokenInfoAndKeyIdForCertRequestId;
+import ee.ria.xroad.signer.protocol.message.GetTokenInfoForKeyId;
 import ee.ria.xroad.signer.protocol.message.ImportCert;
 import ee.ria.xroad.signer.protocol.message.ImportCertResponse;
 import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
@@ -384,6 +385,17 @@ public final class SignerProxy {
 
         return response;
     }
+
+    /**
+     * Gets information about the token which has the specified key.
+     * @param keyId id of the key
+     * @return TokenInfo
+     * @throws Exception if any errors occur
+     */
+    public static TokenInfo getTokenForKeyId(String keyId) throws Exception {
+        return execute(new GetTokenInfoForKeyId(keyId));
+    }
+
 
     /**
      * @throws IllegalArgumentException if parameter was not a lowercase string

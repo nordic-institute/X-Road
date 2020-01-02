@@ -254,6 +254,24 @@ public class TokenService {
     static final String TOKEN_NOT_ACTIVE_FAULT_CODE = SIGNER_X + "." + X_TOKEN_NOT_ACTIVE;
     static final String CKR_PIN_INCORRECT_MESSAGE = "Login failed: CKR_PIN_INCORRECT";
 
+
+    /**
+     * Get TokenInfo for key id
+     */
+    public TokenInfo getTokenForKeyId(String keyId) throws KeyNotFoundException {
+        try {
+            return signerProxyFacade.getTokenForKeyId(keyId);
+        } catch (CodedException e) {
+            if (isCausedByKeyNotFound(e)) {
+                throw new KeyNotFoundException(e);
+            } else {
+                throw e;
+            }
+        } catch (Exception other) {
+            throw new RuntimeException("getTokenForKeyId failed", other);
+        }
+    }
+
     /**
      * Get TokenInfoAndKeyId for certificate hash
      */

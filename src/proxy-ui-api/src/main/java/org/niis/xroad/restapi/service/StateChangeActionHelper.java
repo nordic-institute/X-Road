@@ -352,4 +352,78 @@ public class StateChangeActionHelper {
             throw new ActionNotPossibleException(action + " is not possible");
         }
     }
+
+    /**
+     * Shortcut helper method for verifying required action
+     * @throws ActionNotPossibleException if given token action is not possible
+     */
+    public void requirePossibleTokenAction(StateChangeActionEnum action, TokenInfo tokenInfo)
+            throws ActionNotPossibleException {
+        requirePossibleAction(action, ActionTargetType.TOKEN, tokenInfo, null, null, null);
+    }
+
+    /**
+     * Shortcut helper method for verifying required action
+     * @throws ActionNotPossibleException if given key action is not possible
+     */
+    public void requirePossibleKeyAction(StateChangeActionEnum action, TokenInfo tokenInfo, KeyInfo keyInfo)
+            throws ActionNotPossibleException {
+        requirePossibleAction(action, ActionTargetType.KEY, tokenInfo, keyInfo, null, null);
+    }
+
+    /**
+     * Shortcut helper method for verifying required action
+     * @throws ActionNotPossibleException if given certificate action is not possible
+     */
+    public void requirePossibleCertificateAction(StateChangeActionEnum action, TokenInfo tokenInfo, KeyInfo keyInfo,
+            CertificateInfo certificateInfo)
+            throws ActionNotPossibleException {
+        requirePossibleAction(action, ActionTargetType.CERTIFICATE, tokenInfo, keyInfo, certificateInfo, null);
+    }
+
+    /**
+     * Shortcut helper method for verifying required action
+     * @throws ActionNotPossibleException if given csr action is not possible
+     */
+    public void requirePossibleCsrAction(StateChangeActionEnum action, TokenInfo tokenInfo, KeyInfo keyInfo,
+            CertRequestInfo certRequestInfo)
+            throws ActionNotPossibleException {
+        requirePossibleAction(action, ActionTargetType.CSR, tokenInfo, keyInfo, null, certRequestInfo);
+    }
+
+    /**
+     * Shortcut helper method for verifying required action
+     * @throws ActionNotPossibleException if given action is not possible for give target type
+     */
+    public void requirePossibleAction(StateChangeActionEnum action, ActionTargetType target,
+            TokenInfo tokenInfo, KeyInfo keyInfo, CertificateInfo certificateInfo, CertRequestInfo certRequestInfo)
+            throws ActionNotPossibleException {
+        EnumSet<StateChangeActionEnum> possibleActions;
+        switch (target) {
+            case TOKEN:
+                possibleActions = getPossibleTokenActions(tokenInfo);
+                break;
+            case KEY:
+                possibleActions = getPossibleKeyActions(tokenInfo, keyInfo);
+                break;
+            case CERTIFICATE:
+                possibleActions = getPossibleCertificateActions(tokenInfo, keyInfo, certificateInfo);
+                break;
+            case CSR:
+                possibleActions = getPossibleCsrActions(tokenInfo, keyInfo, certRequestInfo);
+                break;
+            default:
+                throw new IllegalStateException("bad target: " + target);
+        }
+        if (!possibleActions.contains(action)) {
+            throw new ActionNotPossibleException(action + " is not possible");
+        }
+    }
+
+    public enum ActionTargetType {
+        TOKEN,
+        KEY,
+        CERTIFICATE,
+        CSR
+    }
 }

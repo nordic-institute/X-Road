@@ -218,6 +218,17 @@ public final class TokenManager {
     }
 
     /**
+     * @param keyId id of a key inside the token
+     * @return the token info DTO for the token
+     * @throws Exception if key was not found
+     */
+    public static synchronized TokenInfo findTokenInfoForKeyId(String keyId) {
+        log.trace("getTokenInfoForKeyId({})", keyId);
+        String tokenId = findTokenIdForKeyId(keyId);
+        return getTokenInfo(tokenId);
+    }
+
+    /**
      * @param keyId the key id
      * @return the token and key or throws exception if not found
      */

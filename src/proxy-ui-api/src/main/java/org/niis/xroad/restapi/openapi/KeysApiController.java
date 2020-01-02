@@ -123,6 +123,8 @@ public class KeysApiController implements KeysApi {
             keyInfo = keyService.updateKeyFriendlyName(id, keyName.getName());
         } catch (KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
         }
         Key key = keyConverter.convert(keyInfo);
         return new ResponseEntity<>(key, HttpStatus.OK);

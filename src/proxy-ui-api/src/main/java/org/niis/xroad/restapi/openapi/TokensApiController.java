@@ -35,6 +35,7 @@ import org.niis.xroad.restapi.openapi.model.KeyLabel;
 import org.niis.xroad.restapi.openapi.model.Token;
 import org.niis.xroad.restapi.openapi.model.TokenName;
 import org.niis.xroad.restapi.openapi.model.TokenPassword;
+import org.niis.xroad.restapi.service.ActionNotPossibleException;
 import org.niis.xroad.restapi.service.KeyService;
 import org.niis.xroad.restapi.service.TokenNotFoundException;
 import org.niis.xroad.restapi.service.TokenService;
@@ -157,7 +158,7 @@ public class TokensApiController implements TokensApi {
             return ApiUtil.createCreatedResponse("/api/keys/{keyId}", key, key.getId());
         } catch (TokenNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (TokenService.TokenNotActiveException e) {
+        } catch (ActionNotPossibleException e) {
             throw new ConflictException(e);
         }
     }
