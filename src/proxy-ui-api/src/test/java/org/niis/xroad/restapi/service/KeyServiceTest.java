@@ -25,7 +25,10 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
@@ -33,24 +36,33 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.restapi.util.CertificateTestUtils.CertRequestInfoBuilder;
+import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.niis.xroad.restapi.util.TokenTestUtils.KeyInfoBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.EnumSet;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -65,8 +77,12 @@ import static org.mockito.Mockito.when;
 public class KeyServiceTest {
 
     // token ids for mocking
-    private static final String GOOD_KEY_ID = "key-which-exists";
     private static final String KEY_NOT_FOUND_KEY_ID = "key-404";
+    private static final String AUTH_KEY_ID = "auth-key-id";
+    private static final String SIGN_KEY_ID = "sign-key-id";
+    private static final String TYPELESS_KEY_ID = "typeless-key-id";
+    private static final String REGISTERED_AUTH_CERT_ID = "registered-auth-cert";
+    private static final String NONREGISTERED_AUTH_CERT_ID = "unregistered-auth-cert";
 
     @Autowired
     private KeyService keyService;
@@ -86,8 +102,39 @@ public class KeyServiceTest {
         TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
                 .friendlyName("good-token").build();
 
-        KeyInfo mockKey = new KeyInfoBuilder().id(GOOD_KEY_ID).build();
-        tokenInfo.getKeyInfo().add(mockKey);
+        // auth key
+        KeyInfo authKey = new KeyInfoBuilder()
+                .id(AUTH_KEY_ID)
+                .keyUsageInfo(KeyUsageInfo.AUTHENTICATION)
+                .build();
+        CertificateInfo registeredCert = new CertificateInfoBuilder()
+                .savedToConfiguration(true)
+                .certificateStatus(CertificateInfo.STATUS_REGISTERED)
+                .id(REGISTERED_AUTH_CERT_ID)
+                .build();
+        CertificateInfo nonregisteredCert = new CertificateInfoBuilder()
+                .savedToConfiguration(true)
+                .certificateStatus(CertificateInfo.STATUS_SAVED)
+                .id(NONREGISTERED_AUTH_CERT_ID)
+                .build();
+        authKey.getCerts().add(registeredCert);
+        authKey.getCerts().add(nonregisteredCert);
+        CertRequestInfo certRequestInfo = new CertRequestInfoBuilder()
+                .build();
+        authKey.getCertRequests().add(certRequestInfo);
+
+        // sign and typeless keys
+        KeyInfo signKey = new KeyInfoBuilder()
+                .id(SIGN_KEY_ID)
+                .keyUsageInfo(KeyUsageInfo.SIGNING)
+                .build();
+        KeyInfo typelessKey = new KeyInfoBuilder()
+                .id(TYPELESS_KEY_ID)
+                .keyUsageInfo(null)
+                .build();
+        tokenInfo.getKeyInfo().add(authKey);
+        tokenInfo.getKeyInfo().add(signKey);
+        tokenInfo.getKeyInfo().add(typelessKey);
         when(tokenService.getAllTokens()).thenReturn(Collections.singletonList(tokenInfo));
 
         doAnswer(invocation -> {
@@ -96,14 +143,21 @@ public class KeyServiceTest {
             if ("new-friendly-name-update-fails".equals(newKeyName)) {
                 throw new CodedException(SIGNER_X + "." + X_KEY_NOT_FOUND);
             }
-            ReflectionTestUtils.setField(mockKey, "friendlyName", newKeyName);
+            if (arguments[0].equals(AUTH_KEY_ID)) {
+                ReflectionTestUtils.setField(authKey, "friendlyName", newKeyName);
+            } else {
+                throw new RuntimeException(arguments[0] + " not supported");
+            }
             return null;
         }).when(signerProxyFacade).setKeyFriendlyName(any(), any());
         doAnswer(invocation -> {
-            if (GOOD_KEY_ID.equals(invocation.getArguments()[0])) {
+            String keyId = (String) invocation.getArguments()[0];
+            if (AUTH_KEY_ID.equals(keyId)
+                || SIGN_KEY_ID.equals(keyId)
+                || TYPELESS_KEY_ID.equals(keyId)) {
                 return tokenInfo;
             } else {
-                throw new KeyNotFoundException("");
+                throw new KeyNotFoundException(keyId + " not supported");
             }
         }).when(tokenService).getTokenForKeyId(any());
     }
@@ -114,15 +168,15 @@ public class KeyServiceTest {
             keyService.getKey(KEY_NOT_FOUND_KEY_ID);
         } catch (KeyNotFoundException expected) {
         }
-        KeyInfo keyInfo = keyService.getKey(GOOD_KEY_ID);
-        assertEquals(GOOD_KEY_ID, keyInfo.getId());
+        KeyInfo keyInfo = keyService.getKey(AUTH_KEY_ID);
+        assertEquals(AUTH_KEY_ID, keyInfo.getId());
     }
 
     @Test
     public void updateKeyFriendlyName() throws Exception {
-        KeyInfo keyInfo = keyService.getKey(GOOD_KEY_ID);
+        KeyInfo keyInfo = keyService.getKey(AUTH_KEY_ID);
         assertEquals("friendly-name", keyInfo.getFriendlyName());
-        keyInfo = keyService.updateKeyFriendlyName(GOOD_KEY_ID, "new-friendly-name");
+        keyInfo = keyService.updateKeyFriendlyName(AUTH_KEY_ID, "new-friendly-name");
         assertEquals("new-friendly-name", keyInfo.getFriendlyName());
     }
 
@@ -133,7 +187,87 @@ public class KeyServiceTest {
 
     @Test(expected = KeyNotFoundException.class)
     public void updateFriendlyNameUpdatingKeyFails() throws Exception {
-        keyService.updateKeyFriendlyName(GOOD_KEY_ID, "new-friendly-name-update-fails");
+        keyService.updateKeyFriendlyName(AUTH_KEY_ID, "new-friendly-name-update-fails");
     }
 
+    @Test
+    public void deleteKey() throws Exception {
+        keyService.deleteKey(AUTH_KEY_ID);
+        verify(signerProxyFacade, times(1))
+                .setCertStatus(REGISTERED_AUTH_CERT_ID, CertificateInfo.STATUS_DELINPROG);
+        verify(signerProxyFacade, times(2)).deleteKey(AUTH_KEY_ID, any());
+        // just to test our verify works at all
+        verify(signerProxyFacade, times(2)).deleteKey(SIGN_KEY_ID, any());
+
+        fail("should verify management request sending for unregister (but cant yet");
+        try {
+            keyService.deleteKey(KEY_NOT_FOUND_KEY_ID);
+            fail("should throw exception");
+        } catch (KeyNotFoundException expected) {
+        }
+
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DELETE_AUTH_KEY" })
+    public void deleteAuthKeyPermissionCheck() throws Exception {
+        try {
+            keyService.deleteKey(SIGN_KEY_ID);
+            fail("should not be allowed");
+        } catch (AccessDeniedException expected) {
+        }
+        try {
+            keyService.deleteKey(TYPELESS_KEY_ID);
+            fail("should not be allowed");
+        } catch (AccessDeniedException expected) {
+        }
+        keyService.deleteKey(AUTH_KEY_ID);
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DELETE_SIGN_KEY" })
+    public void deleteSignKeyPermissionCheck() throws Exception {
+        try {
+            keyService.deleteKey(AUTH_KEY_ID);
+            fail("should not be allowed");
+        } catch (AccessDeniedException expected) {
+        }
+        try {
+            keyService.deleteKey(TYPELESS_KEY_ID);
+            fail("should not be allowed");
+        } catch (AccessDeniedException expected) {
+        }
+        keyService.deleteKey(SIGN_KEY_ID);
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DELETE_KEY" })
+    public void deleteTypelessKeyPermissionCheck() throws Exception {
+        try {
+            keyService.deleteKey(AUTH_KEY_ID);
+            fail("should not be allowed");
+        } catch (AccessDeniedException expected) {
+        }
+        try {
+            keyService.deleteKey(SIGN_KEY_ID);
+            fail("should not be allowed");
+        } catch (AccessDeniedException expected) {
+        }
+        keyService.deleteKey(TYPELESS_KEY_ID);
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DELETE_KEY" })
+    public void deleteChecksPossibleActions() throws Exception {
+        // prepare so that no actions are possible
+        when(possibleActionsRuleEngine.getPossibleKeyActions(any(), any()))
+                .thenReturn(EnumSet.noneOf(PossibleActionEnum.class));
+        doThrow(new ActionNotPossibleException("")).when(possibleActionsRuleEngine)
+                .requirePossibleKeyAction(eq(PossibleActionEnum.DELETE), any(), any());
+        try {
+            keyService.deleteKey(AUTH_KEY_ID);
+            fail("should not be possible");
+        } catch (ActionNotPossibleException expected) {
+        }
+    }
 }

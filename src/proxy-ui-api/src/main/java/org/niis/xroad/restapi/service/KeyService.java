@@ -167,4 +167,11 @@ public class KeyService {
     }
 
     static final String KEY_NOT_FOUND_FAULT_CODE = signerFaultCode(X_KEY_NOT_FOUND);
+
+    /**
+     * Deletes one key
+     * @param keyId
+     */
+    public void deleteKey(String keyId) throws KeyNotFoundException, ActionNotPossibleException {
+    }
 }

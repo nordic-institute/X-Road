@@ -201,5 +201,18 @@ public class KeysApiController implements KeysApi {
             throw new ResourceNotFoundException(e);
         }
     }
+
+    @Override
+    @PreAuthorize("hasAnyAuthority('DELETE_KEY', 'DELETE_AUTH_KEY', 'DELETE_SIGN_KEY')")
+    public ResponseEntity<Void> deleteKey(String keyId) {
+        try {
+            keyService.deleteKey(keyId);
+        } catch (KeyNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }
 
