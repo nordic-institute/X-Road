@@ -191,15 +191,18 @@ public class KeyServiceTest {
     }
 
     @Test
+    @WithMockUser(authorities = { "DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY", "SEND_AUTH_CERT_DEL_REQ" })
     public void deleteKey() throws Exception {
         keyService.deleteKey(AUTH_KEY_ID);
         verify(signerProxyFacade, times(1))
                 .setCertStatus(REGISTERED_AUTH_CERT_ID, CertificateInfo.STATUS_DELINPROG);
-        verify(signerProxyFacade, times(2)).deleteKey(AUTH_KEY_ID, any());
-        // just to test our verify works at all
-        verify(signerProxyFacade, times(2)).deleteKey(SIGN_KEY_ID, any());
 
-        fail("should verify management request sending for unregister (but cant yet");
+        verify(signerProxyFacade, times(1))
+                .deleteKey(AUTH_KEY_ID, true);
+        verify(signerProxyFacade, times(1))
+                .deleteKey(AUTH_KEY_ID, false);
+
+        fail("we should verify management request sending for unregister (but cant yet)");
         try {
             keyService.deleteKey(KEY_NOT_FOUND_KEY_ID);
             fail("should throw exception");
@@ -208,8 +211,15 @@ public class KeyServiceTest {
 
     }
 
+    @Test(expected = AccessDeniedException.class)
+    // missing SEND_AUTH_CERT_DEL_REQ
+    @WithMockUser(authorities = { "DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY" })
+    public void deleteKeyUnregisterRequiresSpecificPermission() throws Exception {
+        keyService.deleteKey(AUTH_KEY_ID);
+    }
+
     @Test
-    @WithMockUser(authorities = { "DELETE_AUTH_KEY" })
+    @WithMockUser(authorities = { "DELETE_AUTH_KEY", "SEND_AUTH_CERT_DEL_REQ" })
     public void deleteAuthKeyPermissionCheck() throws Exception {
         try {
             keyService.deleteKey(SIGN_KEY_ID);
@@ -257,7 +267,7 @@ public class KeyServiceTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "DELETE_KEY" })
+    @WithMockUser(authorities = { "DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY" })
     public void deleteChecksPossibleActions() throws Exception {
         // prepare so that no actions are possible
         when(possibleActionsRuleEngine.getPossibleKeyActions(any(), any()))

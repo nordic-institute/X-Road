@@ -25,7 +25,9 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +43,7 @@ import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
 
 /**
  * Service that handles keys
@@ -171,7 +174,56 @@ public class KeyService {
     /**
      * Deletes one key
      * @param keyId
+     * @throws ActionNotPossibleException if delete was not possible for the key
+     * @throws KeyNotFoundException if key with given id was not found
      */
     public void deleteKey(String keyId) throws KeyNotFoundException, ActionNotPossibleException {
+        TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
+        KeyInfo keyInfo = getKey(tokenInfo, keyId);
+
+        // verify permissions
+        if (keyInfo.getUsage() == null) {
+            verifyAuthority("DELETE_KEY");
+        } else if (keyInfo.getUsage() == KeyUsageInfo.AUTHENTICATION) {
+            verifyAuthority("DELETE_AUTH_KEY");
+        } else if (keyInfo.getUsage() == KeyUsageInfo.SIGNING) {
+            verifyAuthority("DELETE_SIGN_KEY");
+        }
+
+        // verify that action is possible
+        possibleActionsRuleEngine.requirePossibleKeyAction(PossibleActionEnum.DELETE,
+                tokenInfo, keyInfo);
+
+        // unregister auth certs
+        if (keyInfo.getUsage() == KeyUsageInfo.AUTHENTICATION) {
+            for (CertificateInfo certificateInfo: keyInfo.getCerts()) {
+                if (certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGINPROG)
+                    || certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED)) {
+                    // TO DO: this permission should be checked by the service
+                    // which sends the request?
+                    verifyAuthority("SEND_AUTH_CERT_DEL_REQ");
+                    // TO DO: cannot send the request yet, as 771 is not done yet
+                    // unregister_cert(cert.certificateBytes)
+
+                    try {
+                        signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
+                    } catch (CodedException e) {
+                        throw e;
+                    } catch (Exception other) {
+                        throw new RuntimeException("set cert status failed", other);
+                    }
+                }
+            }
+        }
+
+        // delete key needs to be done twice. First call deletes certs / csrs
+        try {
+            signerProxyFacade.deleteKey(keyId, false);
+            signerProxyFacade.deleteKey(keyId, true);
+        } catch (CodedException e) {
+            throw e;
+        } catch (Exception other) {
+            throw new RuntimeException("delete key failed", other);
+        }
     }
 }
