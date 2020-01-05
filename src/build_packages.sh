@@ -6,8 +6,8 @@ export XROAD=$(cd "$(dirname "$0")"; pwd)
 
 if command -v docker &>/dev/null; then
     docker build -q -t xroad-deb-bionic $XROAD/packages/docker/deb-bionic
-    docker build -q -t xroad-rpm-redhat-7 $XROAD/packages/docker/rpm
-    docker build -q -t xroad-rpm-redhat-8 $XROAD/packages/docker/rpm
+    docker build -q -t xroad-rpm-redhat-7 $XROAD/packages/docker/rpm/redhat-7
+    docker build -q -t xroad-rpm-redhat-8 $XROAD/packages/docker/rpm/redhat-8
 
     docker run --rm -v $XROAD/..:/workspace -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -u $(id -u):$(id -g) -e HOME=/workspace/src/packages xroad-deb-bionic /workspace/src/packages/build-deb.sh bionic
     docker run --rm -v $XROAD/..:/workspace -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -u $(id -u):$(id -g) -e HOME=/workspace/src/packages xroad-rpm-redhat-7 /workspace/src/packages/build-rpm.sh
