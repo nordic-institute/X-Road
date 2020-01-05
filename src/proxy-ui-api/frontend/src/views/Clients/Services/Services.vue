@@ -390,7 +390,7 @@ export default Vue.extend({
         .post(`/clients/${this.id}/service-descriptions`, {
           url: rest.url,
           rest_service_code: rest.serviceCode,
-          type: 'REST',
+          type: 'OPENAPI3',
         })
         .then((res) => {
           this.$bus.$emit('show-success', 'services.restAdded');

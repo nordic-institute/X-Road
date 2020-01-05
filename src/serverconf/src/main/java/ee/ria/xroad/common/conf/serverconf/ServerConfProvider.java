@@ -178,4 +178,11 @@ public interface ServerConfProvider {
      * @return the service description url
      */
     String getServiceDescriptionURL(ServiceId service);
+
+    /**
+     * Log serverconf statistics
+     */
+    default void logStatistics() {
+        //NOP
+    }
 }

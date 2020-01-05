@@ -27,6 +27,13 @@
     "name": "Name",
     "id": "ID",
     "status": "Status",
+    "statusText": {
+      "registered": "REGISTERED",
+      "globalError": "GLOBAL ERROR",
+      "deletionInProgress": "DELETION IN PROGRESS",
+      "saved": "SAVED",
+      "registrationInProgress": "REGISTRATION IN PROGRESS"
+    },
     "owner": "Owner",
     "memberName": "Member Name",
     "memberClass": "Member Class",
@@ -171,7 +178,9 @@
     "remove": "Remove",
     "removeAll": "Remove All",
     "save": "Save",
-    "continue": "Continue"
+    "continue": "Continue",
+    "previous": "Previous",
+    "done": "Done"
   },
   "keys": {
     "token": "Token:",
@@ -208,10 +217,17 @@
     "readOnly": "Read-only:",
     "helpTitleKeys": "AUTH and SIGN Keys",
     "helpTitleApi": "API Keys",
+    "keyAdded": "Key added",
+    "generateCsr": "Generate CSR",
+    "request": "Request",
     "helpTitleSS": "Security Server TLS Certificate",
     "helpTextKeys": "Authentication key and certificate certify authenticity of a Security Server. They are used for authentication in connections between Security Servers. Signature key and certificate certify authenticity of an X-Road member. They are used for signing and verifying the integrity of mediated messages.",
     "helpTextApi": "API keys are used to authenticate API calls to Security Server’s management REST API. API keys are associated with roles that define the permissions granted to the API key.",
     "helpTextSS": "Security Server’s TLS certificate is used in connections between the Security Server and an information system. The internal TLS certificate is used as both client and server certificate depending on the roles of the Security Server and information system.",
+    "keyLabelInput": "Key label",
+    "keyLabelTitle": "Generate a new key",
+    "keyLabelInfo": "You can define a label for the newly created Key (not mandatory)",
+    "importCertSuccess": "Uploading certificate succeeded",
     "ocspStatus": {
       "disabled": "Disabled",
       "expired": "Expired",
@@ -227,6 +243,19 @@
       "deletion": "Deletion in progress",
       "globalError": "Global error"
     }
+  },
+  "csr": {
+    "usage": "Usage",
+    "client": "Client",
+    "certificationService": "Certification Service",
+    "csrFormat": "CSR Format",
+    "generateCsr": "Generate CSR",
+    "csrDetails": "CSR details",
+    "saveInfo": "Generate a new CSR and save it into a safe place",
+    "helpUsage": "Usage policy of the certificate: signing messages or authenticating Security Server.",
+    "helpClient": "X-Road member the certificate will be issued for.",
+    "helpCertificationService": "Certification Authority (CA) that will issue the certificate.",
+    "helpCsrFormat": "Format of the certificate signing request according to the CA’s requirements."
   },
   "login": {
     "logIn": "Log in",
@@ -266,5 +295,17 @@
     "keys": {
       "friendlyName": "Friendly name"
     }
+  },
+  "certificateProfile": {
+    "COMMON_NAME": "Common Name (CN)",
+    "COUNTRY_CODE": "Country Code (C)",
+    "INSTANCE_IDENTIFIER": "Instance Identifier (C)",
+    "MEMBER_CLASS": "Member Class (O)",
+    "MEMBER_CODE": "Member Code (CN)",
+    "ORGANIZATION_NAME": "Organization Name (O)",
+    "SERIAL_NUMBER": "Serial Number",
+    "SERIAL_NUMBER_SN": "Serial Number (SN)",
+    "SERVER_CODE": "Server Code (CN)",
+    "SERVER_DNS_NAME": "Server DNS name (CN)"
   }
 }

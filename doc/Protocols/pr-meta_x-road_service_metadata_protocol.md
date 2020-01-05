@@ -5,7 +5,7 @@
 # X-Road: Service Metadata Protocol <!-- omit in toc --> 
 **Technical Specification**
 
-Version: 2.9  
+Version: 2.10  
 Doc. ID: PR-META
 
 ---
@@ -28,39 +28,40 @@ Doc. ID: PR-META
  05.06.2019 | 2.7     | Add JSON response for listClients metadata API                  | Jarkko Hyöty
  30.07.2019 | 2.8     | Update listMethods and allowedMethods descriptions              | Ilkka Seppälä
  09.10.2019 | 2.9     | Remove listCentralServices from the OpenAPI definition          | Jarkko Hyöty
+ 07.11.2019 | 2.10    | Update getWsdl metaservice description                          | Ilkka Seppälä
 
 ## Table of Contents <!-- omit in toc --> 
 
 <!-- toc -->
 <!-- vim-markdown-toc GFM -->
 
-* [License](#license)
-* [1 Introduction](#1-introduction)
-  * [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
-  * [1.2 References](#12-references)
-* [2 Retrieving List of Service Providers](#2-retrieving-list-of-service-providers)
-* [3 Retrieving List of Central Services](#3-retrieving-list-of-central-services)
-* [4 Retrieving List of Services](#4-retrieving-list-of-services)
-* [5 Retrieving the WSDL of a Service](#5-retrieving-the-wsdl-of-a-service)
-    * [X-Road protocol POST-request](#x-road-protocol-post-request)
-    * [HTTP GET-request](#http-get-request)
-    * [WSDL-information modifications](#wsdl-information-modifications)
-* [Annex A XML Schema for Messages](#annex-a-xml-schema-for-messages)
-* [Annex B listMethods, allowedMethods, and getWsdl service descriptions](#annex-b-listmethods-allowedmethods-and-getwsdl-service-descriptions)
-  * [WSDL](#wsdl)
-  * [OpenAPI definition](#openapi-definition)
-* [Annex C Example Messages](#annex-c-example-messages)
-  * [C.1 listClients Response](#c1-listclients-response)
-    * [XML Response](#xml-response)
-    * [JSON Response](#json-response)
-  * [C.2 listCentralServices Response](#c2-listcentralservices-response)
-  * [C.3 listMethods Request](#c3-listmethods-request)
-  * [C.4 listMethods Response](#c4-listmethods-response)
-  * [C.5 allowedMethods Request](#c5-allowedmethods-request)
-  * [C.6 allowedMethods Response](#c6-allowedmethods-response)
-  * [C.7 getWsdl Request](#c7-getwsdl-request)
-  * [C.8 getWsdl Response](#c8-getwsdl-response)
-  * [C.9 getWsdl Response attachment](#c9-getwsdl-response-attachment)
+- [License](#license)
+- [1 Introduction](#1-introduction)
+  - [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
+  - [1.2 References](#12-references)
+- [2 Retrieving List of Service Providers](#2-retrieving-list-of-service-providers)
+- [3 Retrieving List of Central Services](#3-retrieving-list-of-central-services)
+- [4 Retrieving List of Services](#4-retrieving-list-of-services)
+- [5 Retrieving the WSDL of a Service](#5-retrieving-the-wsdl-of-a-service)
+    - [X-Road protocol POST-request](#x-road-protocol-post-request)
+    - [HTTP GET-request](#http-get-request)
+    - [WSDL-information modifications](#wsdl-information-modifications)
+- [Annex A XML Schema for Messages](#annex-a-xml-schema-for-messages)
+- [Annex B listMethods, allowedMethods, and getWsdl service descriptions](#annex-b-listmethods-allowedmethods-and-getwsdl-service-descriptions)
+  - [WSDL](#wsdl)
+  - [OpenAPI definition](#openapi-definition)
+- [Annex C Example Messages](#annex-c-example-messages)
+  - [C.1 listClients Response](#c1-listclients-response)
+    - [XML Response](#xml-response)
+    - [JSON Response](#json-response)
+  - [C.2 listCentralServices Response](#c2-listcentralservices-response)
+  - [C.3 listMethods Request](#c3-listmethods-request)
+  - [C.4 listMethods Response](#c4-listmethods-response)
+  - [C.5 allowedMethods Request](#c5-allowedmethods-request)
+  - [C.6 allowedMethods Response](#c6-allowedmethods-response)
+  - [C.7 getWsdl Request](#c7-getwsdl-request)
+  - [C.8 getWsdl Response](#c8-getwsdl-response)
+  - [C.9 getWsdl Response attachment](#c9-getwsdl-response-attachment)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -183,6 +184,7 @@ Service clients are able to download WSDL-files that contain the definition of a
   * the standard method for retrieving the WSDL
   * uses the connection type settings of the client subsystem
   * WSDL is retrieved as a SOAP-attachment
+  * Fetching the WSDL obeys the service's "Verify TLS Certificate" setting
 
 An example of a `getWsdl` X-Road protocol POST-request to the client security server is documented in annex [C.7](#c7-getwsdl-request) and the corresponding response in annexes [C.8](#c8-getwsdl-response) and [C.9](#c9-getwsdl-response-attachment).
 
@@ -192,6 +194,7 @@ An example of a `getWsdl` X-Road protocol POST-request to the client security se
   * disabled by default in new `6.17.x` installations, availability is configured by the `allow-get-wsdl-request` system parameter \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
   * uses the connection type settings of the owner member on the client security server
   * WSDL is retrieved in the response body.
+  * Fetching the WSDL does not verify the server's TLS certificate
 
 The URL for the HTTP GET-request is either `http://SECURITYSERVER/wsdl` or `https://SECURITYSERVER/wsdl` depending on the connection type settings for the client owner member. When making the request, the address `SECURITYSERVER` must be replaced with the actual address of the client security server. The client MUST specify the identifier of the service using the following HTTP-parameters:
 

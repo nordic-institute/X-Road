@@ -30,7 +30,11 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 /**
- * Default implementation of DnFieldDescription.
+ * Old implementation of DnFieldDescription, that uses inline labels instead
+ * of localizable labelKeys.
+ *
+ * New implementations should prefer {@link LocalizedFieldDescriptionImpl} if
+ * needed {@link DnFieldLabelLocalizationKey} exists.
  */
 @Data
 @Accessors(chain = true)

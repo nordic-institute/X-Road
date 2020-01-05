@@ -27,6 +27,7 @@ package ee.ria.xroad.commonui;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -40,6 +41,8 @@ import ee.ria.xroad.signer.protocol.message.GenerateCertRequestResponse;
 import ee.ria.xroad.signer.protocol.message.GenerateKey;
 import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCert;
 import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCertResponse;
+import ee.ria.xroad.signer.protocol.message.GetCertificateInfoForHash;
+import ee.ria.xroad.signer.protocol.message.GetCertificateInfoResponse;
 import ee.ria.xroad.signer.protocol.message.GetTokenInfo;
 import ee.ria.xroad.signer.protocol.message.ImportCert;
 import ee.ria.xroad.signer.protocol.message.ImportCertResponse;
@@ -306,6 +309,23 @@ public final class SignerProxy {
         log.trace("Setting cert ('{}') status to '{}'", certId, status);
 
         execute(new SetCertStatus(certId, status));
+    }
+
+    /**
+     * Get a cert by it's hash
+     * @param hash cert hash. Must be lowerCase!
+     * @return CertificateInfo
+     * @throws Exception
+     */
+    public static CertificateInfo getCertForHash(String hash) throws Exception {
+        log.trace("Getting cert by hash '{}'", hash);
+
+        GetCertificateInfoResponse response = execute(new GetCertificateInfoForHash(hash));
+        CertificateInfo certificateInfo = response.getCertificateInfo();
+
+        log.trace("Cert with hash '{}' found", hash);
+
+        return certificateInfo;
     }
 
     private static <T> T execute(Object message) throws Exception {

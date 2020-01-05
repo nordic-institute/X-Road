@@ -31,7 +31,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,9 +44,11 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -75,12 +76,34 @@ public class ClientService {
     }
 
     /**
-     * return all clients that are registered on the instance
+     * return all clients that exist on this security server
      * @return
      */
     public List<ClientType> getAllLocalClients() {
         return clientRepository.getAllLocalClients();
     }
+
+    /**
+     * Return ClientId for all members who have clients on this instance.
+     * For example if following clients exist:
+     * - XRD:GOV:123 (owner member)
+     * - XRD:GOV:123:SS1 (subsystem)
+     * - XRD:COM:FOO:SS1 (subsystem)
+     * method will return
+     * - XRD:GOV:123 (owner member)
+     * - XRD:COM:FOO (client subsystem's member)
+     * @return
+     */
+    public Set<ClientId> getLocalClientMemberIds() {
+        List<ClientType> allClients = getAllLocalClients();
+        Set<ClientId> members = new HashSet<>();
+        for (ClientType client: allClients) {
+            ClientId id = client.getIdentifier();
+            members.add(ClientId.create(id.getXRoadInstance(), id.getMemberClass(), id.getMemberCode()));
+        }
+        return members;
+    }
+
 
     /**
      * return all global clients as ClientTypes
@@ -98,8 +121,9 @@ public class ClientService {
     }
 
     /**
-     * return one client
+     * Return one client, or null if not found
      * @param id
+     * @return the client, or null if matching client was not found
      */
     public ClientType getClient(ClientId id) {
         return clientRepository.getClient(id);
@@ -110,7 +134,7 @@ public class ClientService {
      * @param id
      * @param connectionType
      * @return
-     * @throws IllegalArgumentException                            if connectionType was not supported value
+     * @throws IllegalArgumentException if connectionType was not supported value
      * @throws ClientNotFoundException if client was not found
      */
     public ClientType updateConnectionType(ClientId id, String connectionType) throws ClientNotFoundException {
@@ -123,7 +147,7 @@ public class ClientService {
     }
 
     /**
-     * Get a ClientType
+     * Get a client, throw exception if not found
      * @throws ClientNotFoundException if not found
      */
     private ClientType getClientType(ClientId id) throws ClientNotFoundException {
@@ -169,16 +193,6 @@ public class ClientService {
         clientType.getIsCert().add(certificateType);
         clientRepository.saveOrUpdateAndFlush(clientType);
         return certificateType;
-    }
-
-    /**
-     * If trying to add certificate which already exists
-     */
-    public static class CertificateAlreadyExistsException extends ServiceException {
-        public static final String ERROR_CERTIFICATE_ALREADY_EXISTS = "certificate_already_exists";
-        public CertificateAlreadyExistsException(String s) {
-            super(s, new ErrorDeviation(ERROR_CERTIFICATE_ALREADY_EXISTS));
-        }
     }
 
     /**
@@ -231,8 +245,8 @@ public class ClientService {
      * Returns a single client tls certificate that has matching hash
      * @param id
      * @param certificateHash
-     * @throws ClientNotFoundException if client was not found
      * @return
+     * @throws ClientNotFoundException if client was not found
      */
     public Optional<CertificateType> getTlsCertificate(ClientId id, String certificateHash)
             throws ClientNotFoundException {

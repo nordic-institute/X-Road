@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
@@ -41,7 +42,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
 import static org.niis.xroad.restapi.service.TokenService.isCausedByTokenNotActive;
 import static org.niis.xroad.restapi.service.TokenService.isCausedByTokenNotFound;
 
@@ -88,6 +91,20 @@ public class KeyService {
         return keyInfo.get();
     }
 
+    /**
+     * Finds csr with matching id from KeyInfo, or throws {@link CsrNotFoundException}
+     * @throws CsrNotFoundException
+     */
+    private CertRequestInfo getCsr(KeyInfo keyInfo, String csrId) throws CsrNotFoundException {
+        Optional<CertRequestInfo> csr = keyInfo.getCertRequests().stream()
+                .filter(csrInfo -> csrInfo.getId().equals(csrId))
+                .findFirst();
+        if (!csr.isPresent()) {
+            throw new CsrNotFoundException("csr with id " + csrId + " not found");
+        }
+        return csr.get();
+    }
+
     public KeyInfo updateKeyFriendlyName(String id, String friendlyName) throws KeyNotFoundException {
         KeyInfo keyInfo = null;
         try {
@@ -96,7 +113,7 @@ public class KeyService {
         } catch (KeyNotFoundException e) {
             throw e;
         } catch (CodedException e) {
-            if ((SIGNER_X + "." + X_KEY_NOT_FOUND).equals(e.getFaultCode())) {
+            if (isCausedByKeyNotFound(e)) {
                 throw new KeyNotFoundException(e);
             } else {
                 throw e;
@@ -134,19 +151,57 @@ public class KeyService {
         return keyInfo;
     }
 
-    public static class KeyNotFoundException extends NotFoundException {
-        public static final String ERROR_KEY_NOT_FOUND = "key_not_found";
+    static boolean isCausedByKeyNotFound(CodedException e) {
+        return KEY_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
+    }
 
-        public KeyNotFoundException(String s) {
-            super(s, new ErrorDeviation(ERROR_KEY_NOT_FOUND));
+    static boolean isCausedByCsrNotFound(CodedException e) {
+        return CSR_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
+    }
+
+    private static String signerFaultCode(String detail) {
+        return SIGNER_X + "." + detail;
+    }
+
+    static final String KEY_NOT_FOUND_FAULT_CODE = signerFaultCode(X_KEY_NOT_FOUND);
+    static final String CSR_NOT_FOUND_FAULT_CODE = signerFaultCode(X_CSR_NOT_FOUND);
+
+    public void deleteCsr(String keyId, String csrId) throws KeyNotFoundException, CsrNotFoundException {
+        KeyInfo keyInfo = getKey(keyId);
+        // getCsr to get CsrNotFoundException
+        getCsr(keyInfo, csrId);
+
+        if (keyInfo.isForSigning()) {
+            verifyAuthority("DELETE_SIGN_CERT");
+        } else {
+            verifyAuthority("DELETE_AUTH_CERT");
         }
+        try {
+            signerProxyFacade.deleteCertRequest(csrId);
+        } catch (CodedException e) {
+            if (isCausedByCsrNotFound(e)) {
+                throw new CsrNotFoundException(e);
+            } else {
+                throw e;
+            }
+        } catch (Exception other) {
+            throw new RuntimeException("deleting a csr failed", other);
+        }
+    }
 
-        public KeyNotFoundException(Throwable t) {
+    public static class CsrNotFoundException extends NotFoundException {
+        public static final String ERROR_CSR_NOT_FOUND = "csr_not_found";
+
+        public CsrNotFoundException(String s) {
+            super(s, createError());        }
+
+        public CsrNotFoundException(Throwable t) {
             super(t, createError());
         }
 
         private static ErrorDeviation createError() {
-            return new ErrorDeviation(ERROR_KEY_NOT_FOUND);
+            return new ErrorDeviation(ERROR_CSR_NOT_FOUND);
         }
     }
+
 }

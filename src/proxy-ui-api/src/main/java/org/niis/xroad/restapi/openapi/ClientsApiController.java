@@ -33,7 +33,6 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.ConnectionTypeMapping;
@@ -56,6 +55,7 @@ import org.niis.xroad.restapi.openapi.model.Subject;
 import org.niis.xroad.restapi.openapi.model.SubjectType;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.service.AccessRightService;
+import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.ClientService;
@@ -64,6 +64,7 @@ import org.niis.xroad.restapi.service.LocalGroupService;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
+import org.niis.xroad.restapi.util.ResourceUtils;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +75,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.io.IOException;
 import java.security.cert.CertificateException;
 import java.util.List;
 import java.util.Optional;
@@ -90,8 +90,6 @@ import static org.niis.xroad.restapi.openapi.ApiUtil.createCreatedResponse;
 @Slf4j
 @PreAuthorize("denyAll")
 public class ClientsApiController implements ClientsApi {
-
-    public static final String ERROR_INVALID_CERT_UPLOAD = "invalid_cert_upload";
     public static final String ERROR_INVALID_CERT = "invalid_cert";
 
     private final ClientConverter clientConverter;
@@ -225,13 +223,7 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('ADD_CLIENT_INTERNAL_CERT')")
     public ResponseEntity<CertificateDetails> addClientTlsCertificate(String encodedId,
             Resource body) {
-        byte[] certificateBytes;
-        try {
-            certificateBytes = IOUtils.toByteArray(body.getInputStream());
-        } catch (IOException ex) {
-            throw new BadRequestException("cannot read certificate data", ex,
-                    new ErrorDeviation(ERROR_INVALID_CERT_UPLOAD));
-        }
+        byte[] certificateBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(body);
         ClientId clientId = clientConverter.convertId(encodedId);
         CertificateType certificateType = null;
         try {
@@ -240,11 +232,12 @@ public class ClientsApiController implements ClientsApi {
             throw new BadRequestException(c, new ErrorDeviation(ERROR_INVALID_CERT));
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (ClientService.CertificateAlreadyExistsException e) {
+        } catch (CertificateAlreadyExistsException e) {
             throw new ConflictException(e);
         }
         CertificateDetails certificateDetails = certificateDetailsConverter.convert(certificateType);
-        return createCreatedResponse("/api/certificates/{hash}", certificateDetails, certificateDetails.getHash());
+        return createCreatedResponse("/api/clients/{id}/tls-certificates/{hash}", certificateDetails, encodedId,
+                certificateDetails.getHash());
     }
 
     @Override
@@ -256,7 +249,7 @@ public class ClientsApiController implements ClientsApi {
         } catch (ClientNotFoundException | CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @Override
@@ -344,7 +337,7 @@ public class ClientsApiController implements ClientsApi {
                 throw new ConflictException(e);
             }
 
-        } else if (serviceDescription.getType() == ServiceType.REST) {
+        } else if (serviceDescription.getType() == ServiceType.OPENAPI3) {
             return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
         }
         ServiceDescription addedServiceDescription = serviceDescriptionConverter.convert(

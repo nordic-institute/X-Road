@@ -90,6 +90,7 @@ import static org.niis.xroad.restapi.util.CertificateTestUtils.getResource;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithMetadata;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithoutMetadata;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertWarning;
+import static org.niis.xroad.restapi.util.TestUtils.CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT;
 import static org.niis.xroad.restapi.util.TestUtils.assertLocationHeader;
 import static org.niis.xroad.restapi.wsdl.InvalidWsdlException.ERROR_INVALID_WSDL;
 
@@ -167,7 +168,7 @@ public class ClientsApiControllerIntegrationTest {
         ResponseEntity<List<Client>> response =
                 clientsApiController.findClients(null, null, null, null, null, true, false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(7, response.getBody().size());
+        assertEquals(8, response.getBody().size());
     }
 
     @Test
@@ -176,7 +177,7 @@ public class ClientsApiControllerIntegrationTest {
         ResponseEntity<List<Client>> response = clientsApiController.findClients(null, null, null, null, null, true,
                 true);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(3, response.getBody().size());
+        assertEquals(4, response.getBody().size());
         Client client = response.getBody().get(0);
         assertEquals(TestUtils.NAME_FOR + "test-member", client.getMemberName());
         assertEquals("M1", client.getMemberCode());
@@ -316,7 +317,8 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals("O=Internet Widgits Pty Ltd, ST=Some-State, C=AU",
                 certificateDetails.getSubjectDistinguishedName());
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertLocationHeader("/api/certificates/" + certificateDetails.getHash(), response);
+        assertLocationHeader("/api/clients/" + TestUtils.CLIENT_ID_SS1 + "/tls-certificates/"
+                + certificateDetails.getHash(), response);
 
         assertEquals(1, clientsApiController.getClientTlsCertificates(TestUtils.CLIENT_ID_SS1).getBody().size());
         // cert already exists
@@ -349,7 +351,7 @@ public class ClientsApiControllerIntegrationTest {
         ResponseEntity<Void> deleteResponse =
                 clientsApiController.deleteClientTlsCertificate(TestUtils.CLIENT_ID_SS1,
                         CertificateTestUtils.getWidgitsCertificateHash());
-        assertEquals(HttpStatus.OK, deleteResponse.getStatusCode());
+        assertEquals(HttpStatus.NO_CONTENT, deleteResponse.getStatusCode());
         assertEquals(0, clientsApiController.getClientTlsCertificates(TestUtils.CLIENT_ID_SS1).getBody().size());
         // cert does not exist
         try {
@@ -442,7 +444,7 @@ public class ClientsApiControllerIntegrationTest {
         ResponseEntity<List<Client>> clientsResponse = clientsApiController.findClients(null, null, null, null, null,
                 true, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
-        assertEquals(7, clientsResponse.getBody().size());
+        assertEquals(8, clientsResponse.getBody().size());
     }
 
     @Test
@@ -525,7 +527,7 @@ public class ClientsApiControllerIntegrationTest {
         // client with some services
         descriptions = clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1);
         assertEquals(HttpStatus.OK, descriptions.getStatusCode());
-        assertEquals(3, descriptions.getBody().size());
+        assertEquals(CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT, descriptions.getBody().size());
         ServiceDescription serviceDescription = getDescription(descriptions.getBody(),
                 "https://restservice.com/api/v1")
                 .get();
@@ -533,7 +535,7 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(true, serviceDescription.getDisabled());
         assertEquals("Kaputt", serviceDescription.getDisabledNotice());
         assertNotNull(serviceDescription.getRefreshedAt());
-        assertEquals(ServiceType.REST, serviceDescription.getType());
+        assertEquals(ServiceType.OPENAPI3, serviceDescription.getType());
         assertEquals(1, serviceDescription.getServices().size());
 
         Service service = serviceDescription.getServices().iterator().next();
@@ -547,6 +549,10 @@ public class ClientsApiControllerIntegrationTest {
                 "https://soapservice.com/v1/Endpoint?wsdl")
                 .get();
         assertEquals(3, wsdlServiceDescription.getServices().size());
+
+        ServiceDescription serviceDescriptionTypeRest = getDescription(descriptions.getBody(),
+                "https://restservice.com/api/v1/nosuchservice").get();
+        assertEquals(ServiceType.REST, serviceDescriptionTypeRest.getType());
     }
 
     private Optional<ServiceDescription> getDescription(List<ServiceDescription> descriptions, String url) {
@@ -591,7 +597,7 @@ public class ClientsApiControllerIntegrationTest {
 
         ResponseEntity<List<ServiceDescription>> descriptions =
                 clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1);
-        assertEquals(4, descriptions.getBody().size());
+        assertEquals(CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT + 1, descriptions.getBody().size());
         try {
             serviceDescription.setIgnoreWarnings(true);
             clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription);
@@ -649,7 +655,7 @@ public class ClientsApiControllerIntegrationTest {
         clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription);
         ResponseEntity<List<ServiceDescription>> descriptions =
                 clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1);
-        assertEquals(4, descriptions.getBody().size());
+        assertEquals(CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT + 1, descriptions.getBody().size());
     }
 
     @Test
