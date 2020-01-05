@@ -15,7 +15,7 @@ Requires(postun):   systemd
 Requires:   xroad-proxy = %version-%release, expect, systemd
 Obsoletes: aux-xroad-autologin < 1.4-1
 
-%define src %{_topdir}/../../../../autologin/source
+%define src %{_topdir}/../../../../../autologin/source
 
 %description
 Optional utility that automatically enters the software token pin code on xroad-signer start
