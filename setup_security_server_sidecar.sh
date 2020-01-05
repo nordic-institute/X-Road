@@ -21,13 +21,12 @@ fi
 httpport=$(($2 + 1))
 
 # Create xroad-network to provide container-to-container communication
-docker network create -d bridge xroad-network
+docker network inspect xroad-network >/dev/null 2>&1 || docker network create -d bridge xroad-network
 
 echo "=====> Build sidecar image"
 docker build -f sidecar/Dockerfile -t xroad-sidecar-security-server-image sidecar/
-printf "=====> Run container"
+echo "=====> Run container"
 docker run --detach -p $2:4000 -p $httpport:80 --network xroad-network -e XROAD_TOKEN_PIN=$3 --name $1 xroad-sidecar-security-server-image
-
 
 printf "\n
 Sidecar security server admin UI should be accessible shortly in https://localhost:$2
