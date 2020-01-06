@@ -15,7 +15,7 @@ Requires(preun): systemd
 Requires(postun): systemd
 BuildRequires: systemd
 Requires:  systemd
-Requires:  rlwrap, crudini
+Requires:  crudini, epel-release
 Requires:  jre-1.8.0-headless >= 1.8.0.51
 Requires:  sudo
 
