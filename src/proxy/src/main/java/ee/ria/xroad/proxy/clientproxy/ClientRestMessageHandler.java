@@ -37,6 +37,7 @@ import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import com.google.gson.stream.JsonWriter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.http.HttpStatus;
 import org.w3c.dom.Document;
@@ -103,9 +104,9 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
         }
         response.setCharacterEncoding(MimeUtils.UTF8);
         response.setHeader("X-Road-Error", ex.getFaultCode());
-        if (requestAcceptType.equalsIgnoreCase("text/xml")
-                || requestAcceptType.equalsIgnoreCase("application/xml")) {
-            response.setContentType(requestAcceptType);
+        if (StringUtils.containsIgnoreCase(requestAcceptType, "text/xml")
+                || StringUtils.containsIgnoreCase(requestAcceptType, "application/xml")) {
+            response.setContentType("application/xml");
             DocumentBuilderFactory docFactory = XmlUtils.createDocumentBuilderFactory();
             try {
                 DocumentBuilder docBuilder = docFactory.newDocumentBuilder();

@@ -360,7 +360,31 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .then()
                 .statusCode(Matchers.is(500))
                 .header("X-Road-Error", Matchers.notNullValue())
-                .header("Content-Type", "text/xml;charset=utf-8");
+                .header("Content-Type", "application/xml;charset=utf-8");
+
+        given()
+                .baseUri("http://127.0.0.1")
+                .port(proxyClientPort)
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/xml, text/xml")
+                .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
+                .get(PREFIX + "/EE/BUSINESS/producer/sub/wsdl")
+                .then()
+                .statusCode(Matchers.is(500))
+                .header("X-Road-Error", Matchers.notNullValue())
+                .header("Content-Type", "application/xml;charset=utf-8");
+
+        given()
+                .baseUri("http://127.0.0.1")
+                .port(proxyClientPort)
+                .header("Content-Type", "application/json")
+                .header("Accept", "text/xml, application/xml, application/json")
+                .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
+                .get(PREFIX + "/EE/BUSINESS/producer/sub/wsdl")
+                .then()
+                .statusCode(Matchers.is(500))
+                .header("X-Road-Error", Matchers.notNullValue())
+                .header("Content-Type", "application/xml;charset=utf-8");
     }
 
     private static final TestService.Handler LARGE_OBJECT_HANDLER = (target, request, response) -> {
