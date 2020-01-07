@@ -36,7 +36,6 @@
               outlined
             >{{$t('keys.logOut')}}</large-button>
           </template>
-          <div v-else></div>
         </template>
 
         <template v-slot:link>
