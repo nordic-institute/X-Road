@@ -11,7 +11,7 @@
         :title="$t('keys.authDetailsTitle')"
         @close="close"
       />
-      <div class="delete-wrap">
+      <div class="details-view-tools">
         <large-button @click="confirmDelete = true" outlined>{{$t('action.delete')}}</large-button>
       </div>
     </div>

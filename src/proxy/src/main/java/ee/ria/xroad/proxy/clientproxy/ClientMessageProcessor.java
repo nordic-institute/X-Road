@@ -290,13 +290,13 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
 
     private void updateOpMonitoringDataByResponse(ProxyMessageDecoder decoder) {
         if (response.getSoap() != null) {
-            long responseSoapSize = response.getSoap().getBytes().length;
+            long responseSize = response.getSoap().getBytes().length;
 
-            opMonitoringData.setResponseSoapSize(responseSoapSize);
+            opMonitoringData.setResponseSize(responseSize);
             opMonitoringData.setResponseAttachmentCount(decoder.getAttachmentCount());
 
             if (decoder.getAttachmentCount() > 0) {
-                opMonitoringData.setResponseMimeSize(responseSoapSize + decoder.getAttachmentsByteCount());
+                opMonitoringData.setResponseMimeSize(responseSize + decoder.getAttachmentsByteCount());
             }
         }
     }

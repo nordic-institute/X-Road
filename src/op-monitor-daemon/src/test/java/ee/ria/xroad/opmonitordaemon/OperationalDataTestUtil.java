@@ -88,6 +88,7 @@ final class OperationalDataTestUtil {
                 .append("\"serviceMemberClass\":\"GOV\",")
                 .append("\"requestInTs\":14749689780000,")
                 .append("\"responseOutTs\":14749689790000,")
+                .append("\"serviceType\":\"WSDL\",")
                 .append("\"succeeded\":false,")
                 .append("\"statusCode\":400}")
                 .toString();
@@ -114,6 +115,7 @@ final class OperationalDataTestUtil {
                 .append("\"requestInTs\":14749689780000,")
                 .append("\"serviceSubsystemCode\":\"Center\",")
                 .append("\"responseOutTs\":14749689790000,")
+                .append("\"serviceType\":\"WSDL\",")
                 .append("\"succeeded\":true,")
                 .append("\"statusCode\":200}")
                 .toString();
