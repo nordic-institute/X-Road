@@ -66,6 +66,7 @@ import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.ResourceUtils;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
+import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -321,6 +322,7 @@ public class ClientsApiController implements ClientsApi {
         ClientId clientId = clientConverter.convertId(id);
         String url = serviceDescription.getUrl();
         boolean ignoreWarnings = serviceDescription.getIgnoreWarnings();
+        String restServiceCode = serviceDescription.getRestServiceCode();
 
         ServiceDescriptionType addedServiceDescriptionType = null;
         if (serviceDescription.getType() == ServiceType.WSDL) {
@@ -340,11 +342,26 @@ public class ClientsApiController implements ClientsApi {
                 throw new ConflictException(e);
             }
         } else if (serviceDescription.getType() == ServiceType.OPENAPI3) {
-            return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
-//            addedServiceDescriptionType = serviceDescriptionService.addOpenapi3ServiceDescription(clientId, url,
-//            serviceDescription.getRestServiceCode());
+            try {
+                addedServiceDescriptionType = serviceDescriptionService.addOpenapi3ServiceDescription(clientId, url,
+                        restServiceCode, ignoreWarnings);
+            } catch (OpenApiParser.ParsingException e) {
+                throw new BadRequestException(e);
+            } catch (UnhandledWarningsException e) {
+                throw new BadRequestException(e);
+            } catch (ClientNotFoundException e) {
+                throw new ResourceNotFoundException(e);
+            } catch (ServiceDescriptionService.UrlAlreadyExistsException
+                    | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
+                throw new ConflictException(e);
+            }
         } else if (serviceDescription.getType() == ServiceType.REST) {
-            addedServiceDescriptionType = serviceDescriptionService.addOpenapi3EndpointServiceDescription(clientId, url, serviceDescription.getRestServiceCode());
+            try {
+                addedServiceDescriptionType = serviceDescriptionService.addRestEndpointServiceDescription(clientId,
+                        url, serviceDescription.getRestServiceCode());
+            } catch (ClientNotFoundException e) {
+                throw new ResourceNotFoundException(e);
+            }
         }
         ServiceDescription addedServiceDescription = serviceDescriptionConverter.convert(
                 addedServiceDescriptionType);

@@ -32,7 +32,8 @@ import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.wsdl.HttpUrlConnectionConfig;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.service.ServiceException;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -188,21 +189,18 @@ public class OpenApiParser {
     /**
      * OpenAPI Parsing Exception
      */
-    public static class ParsingException extends Exception {
-        public ParsingException() {
-        }
+    public static class ParsingException extends ServiceException {
+
+        public static final String ERROR_OPENAPI_PARSING = "openapi_parsing_error";
 
         public ParsingException(String message) {
-            super(message);
+            super(new ErrorDeviation(ERROR_OPENAPI_PARSING, message));
         }
 
         public ParsingException(String message, Throwable cause) {
-            super(message, cause);
+            super(cause, new ErrorDeviation(ERROR_OPENAPI_PARSING, message));
         }
 
-        public ParsingException(Throwable cause) {
-            super(cause);
-        }
     }
 
 }
