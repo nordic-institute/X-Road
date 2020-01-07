@@ -3,7 +3,7 @@
     <div>
       <subViewTitle v-if="key.usage == 'SIGNING'" :title="$t('keys.signDetailsTitle')" @close="close" />
       <subViewTitle v-if="key.usage == 'AUTHENTICATION'" :title="$t('keys.authDetailsTitle')" @close="close" />
-      <div class="delete-wrap">
+      <div class="details-view-tools">
         <large-button @click="confirmDelete = true" outlined>{{$t('action.delete')}}</large-button>
       </div>
     </div>

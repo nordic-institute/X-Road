@@ -85,7 +85,9 @@
     "rsaExp": "RSA Public Key Exponent",
     "deleteCertTitle": "Delete certificate?",
     "deleteCertConfirm": "Are you sure that you want to delete this certificate?",
-    "certDeleted": "Certificate deleted"
+    "certDeleted": "Certificate deleted",
+    "activateSuccess": "Certificate has been activated",
+    "deactivateSuccess": "Certificate has been disabled"
   },
   "localGroups": {
     "addGroup": "Add group",
@@ -179,6 +181,8 @@
     "removeAll": "Remove All",
     "save": "Save",
     "continue": "Continue",
+    "activate": "Activate",
+    "deactivate": "Disable",
     "previous": "Previous",
     "done": "Done"
   },
