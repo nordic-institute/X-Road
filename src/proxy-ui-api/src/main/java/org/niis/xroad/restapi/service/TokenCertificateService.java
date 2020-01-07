@@ -345,7 +345,7 @@ public class TokenCertificateService {
             AccessDeniedException, InvalidCertificateException {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         try {
-            verifyAuthorityToCertificate(certificateInfo.getCertificateBytes());
+            verifyActivateDisableAuthority(certificateInfo.getCertificateBytes());
         } catch (InvalidCertificateException e) {
             throw e;
         }
@@ -374,7 +374,7 @@ public class TokenCertificateService {
             InvalidCertificateException {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         try {
-            verifyAuthorityToCertificate(certificateInfo.getCertificateBytes());
+            verifyActivateDisableAuthority(certificateInfo.getCertificateBytes());
         } catch (InvalidCertificateException e) {
             throw e;
         }
@@ -420,7 +420,7 @@ public class TokenCertificateService {
      * @throws InvalidCertificateException
      * @throws AccessDeniedException
      */
-    public void verifyAuthorityToCertificate(byte[] certificateBytes) throws InvalidCertificateException,
+    public void verifyActivateDisableAuthority(byte[] certificateBytes) throws InvalidCertificateException,
             AccessDeniedException {
         X509Certificate x509Certificate = null;
         try {
