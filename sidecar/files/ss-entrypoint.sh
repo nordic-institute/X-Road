@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Set autologin token PIN code
+# Set xroad-autologin software token PIN code
 if [  -n "$XROAD_TOKEN_PIN" ]
 then
     echo "XROAD_TOKEN_PIN variable set, writing to /etc/xroad/autologin"

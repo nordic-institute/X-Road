@@ -3,9 +3,9 @@
 usage="\n
 To create a sidecar security server instance you need to provide the three arguments described here below.
 
-#1 Name for the container
-#2 Local port number to bind the UI
-#3 Token PIN code for autologin
+#1 Name for the sidecar security server container
+#2 Local port number to bind the sidecar security server admin UI
+#3 Software token PIN code for autologin service
 "
 
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
@@ -29,6 +29,7 @@ echo "=====> Run container"
 docker run --detach -p $2:4000 -p $httpport:80 --network xroad-network -e XROAD_TOKEN_PIN=$3 --name $1 xroad-sidecar-security-server-image
 
 printf "\n
+Sidecar security server software token PIN is set to $3
 Sidecar security server admin UI should be accessible shortly in https://localhost:$2
 $1-container port 80 is mapped to $httpport
 "
