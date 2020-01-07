@@ -179,6 +179,7 @@
     "delete": "Delete",
     "remove": "Remove",
     "removeAll": "Remove All",
+    "register": "Register",
     "save": "Save",
     "continue": "Continue",
     "activate": "Activate",
@@ -231,6 +232,8 @@
     "keyLabelInput": "Key label",
     "keyLabelTitle": "Generate a new key",
     "keyLabelInfo": "You can define a label for the newly created Key (not mandatory)",
+    "registrationRequest": "Registration request",
+    "certRegistrationInfo": "Security server DNS name or IP address",
     "importCertSuccess": "Uploading certificate succeeded",
     "ocspStatus": {
       "disabled": "Disabled",
@@ -272,7 +275,8 @@
   },
   "customValidation": {
     "invalidRest": "REST URL is not valid",
-    "invalidWsdl": "WSDL URL is not valid"
+    "invalidWsdl": "WSDL URL is not valid",
+    "invalidUrl": "URL is not valid"
   },
   "subjectType": {
     "globalGroup": "GLOBALGROUP",
