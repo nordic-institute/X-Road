@@ -30,6 +30,7 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
 
 import lombok.extern.slf4j.Slf4j;
@@ -181,5 +182,26 @@ public class SignerProxyFacade {
      */
     public CertificateInfo getCertForHash(String hash) throws Exception {
         return SignerProxy.getCertForHash(hash);
+    }
+
+    /**
+     * {@link SignerProxy#getKeyIdForCertHash(String)}
+     */
+    public String getKeyIdForCertHash(String hash) throws Exception {
+        return SignerProxy.getKeyIdForCertHash(hash);
+    }
+
+    /**
+     * {@link SignerProxy#getTokenAndKeyIdForCertHash(String)}
+     */
+    public TokenInfoAndKeyId getTokenAndKeyIdForCertHash(String hash) throws Exception {
+        return SignerProxy.getTokenAndKeyIdForCertHash(hash);
+    }
+
+    /**
+     * {@link SignerProxy#getTokenAndKeyIdForCertRequestId(String)}
+     */
+    public TokenInfoAndKeyId getTokenAndKeyIdForCertRequestId(String certRequestId) throws Exception {
+        return SignerProxy.getTokenAndKeyIdForCertRequestId(certRequestId);
     }
 }

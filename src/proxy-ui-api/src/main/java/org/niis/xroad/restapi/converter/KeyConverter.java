@@ -25,10 +25,12 @@
 package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.KeyUsageType;
+import org.niis.xroad.restapi.service.StateChangeActionHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,12 +45,18 @@ public class KeyConverter {
 
     private final TokenCertificateConverter tokenCertificateConverter;
     private final TokenCertificateSigningRequestConverter tokenCsrConverter;
+    private final StateChangeActionHelper stateChangeActionHelper;
+    private final StateChangeActionConverter stateChangeActionConverter;
 
     @Autowired
     public KeyConverter(TokenCertificateConverter tokenCertificateConverter,
-            TokenCertificateSigningRequestConverter tokenCsrConverter) {
+            TokenCertificateSigningRequestConverter tokenCsrConverter,
+            StateChangeActionHelper stateChangeActionHelper,
+            StateChangeActionConverter stateChangeActionConverter) {
         this.tokenCertificateConverter = tokenCertificateConverter;
         this.tokenCsrConverter = tokenCsrConverter;
+        this.stateChangeActionHelper = stateChangeActionHelper;
+        this.stateChangeActionConverter = stateChangeActionConverter;
     }
 
     /**
@@ -56,6 +64,27 @@ public class KeyConverter {
      * @param keyInfo
      */
     public Key convert(KeyInfo keyInfo) {
+        return convertInternal(keyInfo, null);
+    }
+
+    /**
+     * Convert {@link KeyInfo} to openapi {@link Key} object
+     * and populate possibleActions
+     * @param keyInfo
+     */
+    public Key convert(KeyInfo keyInfo, TokenInfo tokenInfo) {
+        if (tokenInfo == null) {
+            throw new IllegalArgumentException("tokenInfo is mandatory to populate possibleActions");
+        }
+        return convertInternal(keyInfo, tokenInfo);
+    }
+
+    /**
+     * Convert {@link KeyInfo} to openapi {@link Key} object
+     * and populate possibleActions if TokenInfo param was given
+     * @param keyInfo
+     */
+    private Key convertInternal(KeyInfo keyInfo, TokenInfo tokenInfo) {
         Key key = new Key();
         key.setId(keyInfo.getId());
         key.setName(keyInfo.getFriendlyName());
@@ -71,11 +100,23 @@ public class KeyConverter {
         key.setAvailable(keyInfo.isAvailable());
         key.setSavedToConfiguration(isSavedToConfiguration(keyInfo));
 
-        key.setCertificates(tokenCertificateConverter.convert(keyInfo.getCerts()));
-        key.setCertificateSigningRequests(tokenCsrConverter.convert(keyInfo.getCertRequests()));
+        if (tokenInfo == null) {
+            // without possibleactions
+            key.setCertificates(tokenCertificateConverter.convert(keyInfo.getCerts()));
+            key.setCertificateSigningRequests(tokenCsrConverter.convert(keyInfo.getCertRequests()));
+        } else {
+            // with possibleactions
+            key.setCertificates(tokenCertificateConverter.convert(keyInfo.getCerts(), keyInfo, tokenInfo));
+            key.setCertificateSigningRequests(tokenCsrConverter.convert(keyInfo.getCertRequests(), keyInfo, tokenInfo));
+
+            key.setPossibleActions(stateChangeActionConverter.convert(
+                    stateChangeActionHelper.getPossibleKeyActions(
+                            tokenInfo, keyInfo)));
+        }
 
         return key;
     }
+
 
     /**
      * Logic to determine if a key is saved to configuration,
@@ -98,6 +139,17 @@ public class KeyConverter {
     public List<Key> convert(Iterable<KeyInfo> keyInfos) {
         return Streams.stream(keyInfos)
                 .map(this::convert)
+                .collect(Collectors.toList());
+    }
+    /**
+     * Convert a group of {@link KeyInfo keyInfos} to a list of {@link Key keyInfos},
+     * populating possibleActions
+     * @param keyInfos
+     * @return List of {@link KeyInfo keyInfos}
+     */
+    public List<Key> convert(Iterable<KeyInfo> keyInfos, TokenInfo tokenInfo) {
+        return Streams.stream(keyInfos)
+                .map(k -> convert(k, tokenInfo))
                 .collect(Collectors.toList());
     }
 }

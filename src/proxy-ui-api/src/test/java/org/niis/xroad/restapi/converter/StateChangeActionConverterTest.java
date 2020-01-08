@@ -22,36 +22,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package org.niis.xroad.restapi.converter;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.junit.Test;
+import org.niis.xroad.restapi.openapi.model.StateChangeAction;
+import org.niis.xroad.restapi.service.StateChangeActionEnum;
 
-public class CertificateNotFoundException extends NotFoundException {
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-    public static final String ERROR_CERTIFICATE_NOT_FOUND = "certificate_not_found";
-    public static final String ERROR_CERTIFICATE_NOT_FOUND_WITH_ID = "certificate_id_not_found";
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-    /**
-     * default error
-     * @return
-     */
-    private static ErrorDeviation createDefaultError() {
-        return new ErrorDeviation(ERROR_CERTIFICATE_NOT_FOUND);
+/**
+ * test StateChangeActionConverter
+ */
+public class StateChangeActionConverterTest {
+
+    @Test
+    public void enumsAreInSync() {
+        // test to verify openapi and service layer enums contain same items
+        Set<String> openApiEnumNames = Arrays.stream(StateChangeAction.values())
+                .map(Enum::name)
+                .collect(Collectors.toSet());
+        Set<String> serviceEnumNames = Arrays.stream(StateChangeActionEnum.values())
+                .map(Enum::name)
+                .collect(Collectors.toSet());
+        assertEquals(openApiEnumNames.size(), serviceEnumNames.size());
+        assertTrue(openApiEnumNames.containsAll(serviceEnumNames));
     }
 
-    public CertificateNotFoundException(ErrorDeviation errorDeviation) {
-        super(errorDeviation);
+    @Test
+    public void convert() {
+        StateChangeAction converted = new StateChangeActionConverter()
+                .convert(StateChangeActionEnum.IMPORT_FROM_TOKEN);
+        assertEquals(StateChangeAction.IMPORT_FROM_TOKEN, converted);
     }
-    public CertificateNotFoundException(Throwable t, ErrorDeviation errorDeviation) {
-        super(t, errorDeviation);
-    }
-    public CertificateNotFoundException(String s) {
-        super(s, createDefaultError());
-    }
-    public CertificateNotFoundException() {
-        super(createDefaultError());
-    }
-    public CertificateNotFoundException(Throwable t) {
-        super(t, createDefaultError());
-    }
+
 }

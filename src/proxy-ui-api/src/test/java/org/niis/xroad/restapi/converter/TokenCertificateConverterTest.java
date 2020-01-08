@@ -26,26 +26,39 @@ package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import org.bouncycastle.asn1.x509.CRLReason;
-import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.CertificateOcspStatus;
+import org.niis.xroad.restapi.openapi.model.StateChangeAction;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
+import org.niis.xroad.restapi.service.StateChangeActionEnum;
+import org.niis.xroad.restapi.service.StateChangeActionHelper;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
+import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
+import org.niis.xroad.restapi.util.TokenTestUtils.KeyInfoBuilder;
+import org.niis.xroad.restapi.util.TokenTestUtils.TokenInfoBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.security.cert.X509Certificate;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.Date;
+import java.util.EnumSet;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.niis.xroad.restapi.util.CertificateTestUtils.createTestCertificateInfo;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -54,11 +67,35 @@ public class TokenCertificateConverterTest {
     @Autowired
     private TokenCertificateConverter tokenCertificateConverter;
 
+    @MockBean
+    private StateChangeActionHelper stateChangeActionHelper;
+
+    @Before
+    public void setup() {
+        doReturn(EnumSet.of(StateChangeActionEnum.ACTIVATE)).when(stateChangeActionHelper)
+                .getPossibleCertificateActions(any(), any(), any());
+        doReturn(EnumSet.of(StateChangeActionEnum.DISABLE)).when(stateChangeActionHelper)
+                .getPossibleCsrActions(any(), any(), any());
+    }
+
+    @Test
+    public void convertWithPossibleActions() throws Exception {
+        CertificateInfo certificateInfo = new CertificateInfoBuilder().build();
+        KeyInfo keyInfo = new KeyInfoBuilder()
+                .cert(certificateInfo)
+                .build();
+        TokenInfo tokenInfo = new TokenInfoBuilder()
+                .key(keyInfo)
+                .build();
+        TokenCertificate certificate = tokenCertificateConverter.convert(certificateInfo, keyInfo, tokenInfo);
+        Collection<StateChangeAction> actions = certificate.getPossibleActions();
+        assertTrue(actions.contains(StateChangeAction.ACTIVATE));
+        assertEquals(1, actions.size());
+    }
+
     @Test
     public void convert() throws Exception {
-        X509Certificate cert = CertificateTestUtils.getMockCertificate();
-        CertificateInfo certificateInfo = createTestCertificateInfo(cert, CertificateStatus.GOOD,
-                CertificateInfo.STATUS_REGISTERED);
+        CertificateInfo certificateInfo = new CertificateInfoBuilder().build();
         TokenCertificate certificate = tokenCertificateConverter.convert(certificateInfo);
         assertEquals(true, certificate.getActive());
         assertEquals("N/A", certificate.getCertificateDetails().getSubjectCommonName());
@@ -80,32 +117,33 @@ public class TokenCertificateConverterTest {
         // Not After : Sep 14 11:57:16 2013 GMT
         X509Certificate cert = TestCertUtil.getCertChainCert("user_1.p12");
 
-        CertificateInfo certificateInfo = createTestCertificateInfo(cert,
-                CertificateStatus.GOOD,
-                CertificateInfo.STATUS_REGISTERED);
+        CertificateInfo certificateInfo = new CertificateInfoBuilder()
+                .certificate(cert)
+                .build();
         TokenCertificate certificate = tokenCertificateConverter.convert(certificateInfo);
         assertEquals(CertificateOcspStatus.EXPIRED, certificate.getOcspStatus());
 
         // Not After : Jan  1 00:00:00 2038 GMT
         cert = CertificateTestUtils.getMockCertificate();
-        certificateInfo = createTestCertificateInfo(cert,
-                CertificateStatus.GOOD,
-                CertificateInfo.STATUS_REGISTERED);
+        certificateInfo = new CertificateInfoBuilder()
+                .certificate(cert).build();
         certificate = tokenCertificateConverter.convert(certificateInfo);
         assertEquals(CertificateOcspStatus.OCSP_RESPONSE_GOOD, certificate.getOcspStatus());
 
         RevokedStatus revokedStatus = new RevokedStatus(new Date(), CRLReason.certificateHold);
-        certificateInfo = createTestCertificateInfo(cert,
-                revokedStatus,
-                CertificateInfo.STATUS_REGISTERED);
+        certificateInfo = new CertificateInfoBuilder()
+                .certificate(cert)
+                .ocspStatus(revokedStatus)
+                .build();
 
         certificate = tokenCertificateConverter.convert(certificateInfo);
         assertEquals(CertificateOcspStatus.OCSP_RESPONSE_SUSPENDED, certificate.getOcspStatus());
 
         revokedStatus = new RevokedStatus(new Date(), CRLReason.unspecified);
-        certificateInfo = createTestCertificateInfo(cert,
-                revokedStatus,
-                CertificateInfo.STATUS_REGISTERED);
+        certificateInfo = new CertificateInfoBuilder()
+                .certificate(cert)
+                .ocspStatus(revokedStatus)
+                .build();
         certificate = tokenCertificateConverter.convert(certificateInfo);
         assertEquals(CertificateOcspStatus.OCSP_RESPONSE_REVOKED, certificate.getOcspStatus());
     }

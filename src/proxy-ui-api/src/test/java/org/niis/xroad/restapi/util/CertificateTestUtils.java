@@ -28,6 +28,7 @@ import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import org.bouncycastle.cert.ocsp.CertificateStatus;
@@ -258,46 +259,97 @@ public final class CertificateTestUtils {
     }
 
     /**
-     * Create a test CertificateInfo object with given ocsp status and certificate status.
-     * CertificateInfo has savedToConfiguration = true
-     * @param certificate
-     * @param ocspStatus
-     * @param certificateStatus
-     * @return
-     * @throws Exception
+     * Builder for CertRequestInfo objects.
+     * Default values:
+     * - id = 1
+     * - clientId = a:b:c
+     * - subjectName = "subject-name"
      */
-    public static CertificateInfo createTestCertificateInfo(X509Certificate certificate,
-            CertificateStatus ocspStatus,
-            String certificateStatus) throws Exception {
-        return createTestCertificateInfo(certificate,
-                ocspStatus,
-                certificateStatus,
-                true);
+    public static class CertRequestInfoBuilder {
+
+        public CertRequestInfoBuilder() {
+        }
+
+        public CertRequestInfo build() {
+            return new CertRequestInfo(
+                    "id",
+                    ClientId.create("a", "b", "c"),
+                    "subject-name");
+        }
     }
 
+
     /**
-     * Create a test CertificateInfo object with given ocsp status and certificate status
-     * @param certificate
-     * @param ocspStatus
-     * @param certificateStatus
-     * @param isSavedToConfiguration
-     * @return
-     * @throws Exception
+     * Builder for CertificateInfo objects.
+     * Default values:
+     * - clientId = a:b:c
+     * - active = true
+     * - savedToConfiguration = true
+     * - status = REGISTERED
+     * - id = 1
+     * - certificate bytes = CertificateTestUtils.getMockCertificate
+     * - ocsp response = GOOD
      */
-    public static CertificateInfo createTestCertificateInfo(X509Certificate certificate,
-            CertificateStatus ocspStatus,
-            String certificateStatus,
-            boolean isSavedToConfiguration) throws Exception {
-        List<OCSPResp> ocsp = generateOcspResponses(
-                Arrays.asList(certificate),
-                ocspStatus);
-        CertificateInfo certificateInfo = new CertificateInfo(
-                ClientId.create("a", "b", "c"),
-                true, isSavedToConfiguration,
-                certificateStatus, "1",
-                certificate.getEncoded(),
-                ocsp.iterator().next().getEncoded());
-        return certificateInfo;
+    public static class CertificateInfoBuilder {
+        private X509Certificate certificate = CertificateTestUtils.getMockCertificate();
+        private CertificateStatus ocspStatus = CertificateStatus.GOOD;
+        private String certificateStatus = CertificateInfo.STATUS_REGISTERED;
+        private boolean savedToConfiguration = true;
+        private boolean active = true;
+        private String id = "1";
+
+        public CertificateInfoBuilder() {
+        }
+
+        public CertificateInfoBuilder active(boolean activeParam) {
+            this.active = activeParam;
+            return this;
+        }
+
+        public CertificateInfoBuilder id(String idParam) {
+            this.id = idParam;
+            return this;
+        }
+
+        public CertificateInfoBuilder certificate(X509Certificate certificateParam) {
+            this.certificate = certificateParam;
+            return this;
+        }
+
+        public CertificateInfoBuilder ocspStatus(CertificateStatus ocspStatusParam) {
+            this.ocspStatus = ocspStatusParam;
+            return this;
+        }
+
+        public CertificateInfoBuilder certificateStatus(String certificateStatusParam) {
+            this.certificateStatus = certificateStatusParam;
+            return this;
+        }
+
+        public CertificateInfoBuilder savedToConfiguration(boolean savedToConfigurationParam) {
+            savedToConfiguration = savedToConfigurationParam;
+            return this;
+        }
+
+        public CertificateInfo build() {
+            try {
+                List<OCSPResp> ocsp = generateOcspResponses(
+                        Arrays.asList(certificate),
+                        ocspStatus);
+                CertificateInfo certificateInfo = new CertificateInfo(
+                        ClientId.create("a", "b", "c"),
+                        active,
+                        savedToConfiguration,
+                        certificateStatus,
+                        id,
+                        certificate.getEncoded(),
+                        ocsp.iterator().next().getEncoded());
+                return certificateInfo;
+
+            } catch (Exception e) {
+                throw new RuntimeException("failed to create CertificateInfo", e);
+            }
+        }
     }
 
     private static List<OCSPResp> generateOcspResponses(List<X509Certificate> certs,

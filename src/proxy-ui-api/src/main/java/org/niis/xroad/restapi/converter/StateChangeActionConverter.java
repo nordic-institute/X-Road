@@ -22,36 +22,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package org.niis.xroad.restapi.converter;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import com.google.common.collect.Streams;
+import org.niis.xroad.restapi.openapi.model.StateChangeAction;
+import org.niis.xroad.restapi.service.StateChangeActionEnum;
+import org.springframework.stereotype.Component;
 
-public class CertificateNotFoundException extends NotFoundException {
+import java.util.List;
+import java.util.stream.Collectors;
 
-    public static final String ERROR_CERTIFICATE_NOT_FOUND = "certificate_not_found";
-    public static final String ERROR_CERTIFICATE_NOT_FOUND_WITH_ID = "certificate_id_not_found";
+/**
+ * Converts state change action items.
+ * Converts purely based on enum names, since we manage both items
+ */
+@Component
+public class StateChangeActionConverter {
 
-    /**
-     * default error
-     * @return
-     */
-    private static ErrorDeviation createDefaultError() {
-        return new ErrorDeviation(ERROR_CERTIFICATE_NOT_FOUND);
+    public List<StateChangeAction> convert(
+            Iterable<StateChangeActionEnum> actionEnums) {
+        return Streams.stream(actionEnums)
+                       .map(this::convert)
+                       .collect(Collectors.toList());
     }
 
-    public CertificateNotFoundException(ErrorDeviation errorDeviation) {
-        super(errorDeviation);
-    }
-    public CertificateNotFoundException(Throwable t, ErrorDeviation errorDeviation) {
-        super(t, errorDeviation);
-    }
-    public CertificateNotFoundException(String s) {
-        super(s, createDefaultError());
-    }
-    public CertificateNotFoundException() {
-        super(createDefaultError());
-    }
-    public CertificateNotFoundException(Throwable t) {
-        super(t, createDefaultError());
+    public StateChangeAction convert(StateChangeActionEnum stateChangeActionEnum) {
+        return StateChangeAction.fromValue(stateChangeActionEnum.toString());
     }
 }

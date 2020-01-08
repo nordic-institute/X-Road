@@ -26,32 +26,20 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-public class CertificateNotFoundException extends NotFoundException {
+/**
+ * Thrown if Certificate sign request was not found
+ */
+public class CsrNotFoundException extends NotFoundException {
+    public static final String ERROR_CSR_NOT_FOUND = "csr_not_found";
 
-    public static final String ERROR_CERTIFICATE_NOT_FOUND = "certificate_not_found";
-    public static final String ERROR_CERTIFICATE_NOT_FOUND_WITH_ID = "certificate_id_not_found";
+    public CsrNotFoundException(String s) {
+        super(s, createError());        }
 
-    /**
-     * default error
-     * @return
-     */
-    private static ErrorDeviation createDefaultError() {
-        return new ErrorDeviation(ERROR_CERTIFICATE_NOT_FOUND);
+    public CsrNotFoundException(Throwable t) {
+        super(t, createError());
     }
 
-    public CertificateNotFoundException(ErrorDeviation errorDeviation) {
-        super(errorDeviation);
-    }
-    public CertificateNotFoundException(Throwable t, ErrorDeviation errorDeviation) {
-        super(t, errorDeviation);
-    }
-    public CertificateNotFoundException(String s) {
-        super(s, createDefaultError());
-    }
-    public CertificateNotFoundException() {
-        super(createDefaultError());
-    }
-    public CertificateNotFoundException(Throwable t) {
-        super(t, createDefaultError());
+    private static ErrorDeviation createError() {
+        return new ErrorDeviation(ERROR_CSR_NOT_FOUND);
     }
 }
