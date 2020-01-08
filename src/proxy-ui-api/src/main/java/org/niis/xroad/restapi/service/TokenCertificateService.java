@@ -265,7 +265,7 @@ public class TokenCertificateService {
     public CertificateInfo getCertificateInfo(String hash) throws CertificateNotFoundException {
         CertificateInfo certificateInfo = null;
         try {
-            certificateInfo = signerProxyFacade.getCertForHash(hash.toLowerCase()); // lowercase needed in Signer
+            certificateInfo = signerProxyFacade.getCertForHash(hash);
         } catch (CodedException e) {
             if (isCausedByCertNotFound(e)) {
                 throw new CertificateNotFoundException("Certificate with hash " + hash + " " + NOT_FOUND);
@@ -581,7 +581,7 @@ public class TokenCertificateService {
      */
     public String getKeyIdForCertificateHash(String hash) throws CertificateNotFoundException {
         try {
-            return signerProxyFacade.getKeyIdForCertHash(hash.toLowerCase());
+            return signerProxyFacade.getKeyIdForCertHash(hash);
         } catch (CodedException e) {
             if (isCausedByCertNotFound(e)) {
                 throw new CertificateNotFoundException("Certificate with hash " + hash + " not found");

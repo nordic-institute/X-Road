@@ -71,7 +71,7 @@ public class StateChangeActionHelper {
             actions.add(StateChangeActionEnum.UNREGISTER);
         }
         boolean savedToConfiguration = certificateInfo.isSavedToConfiguration();
-        if (canDelete(tokenInfo, keyInfo, savedToConfiguration, canUnregister,
+        if (canDelete(tokenInfo, savedToConfiguration, canUnregister,
                 certOrCsrDeletable(tokenInfo, keyInfo, savedToConfiguration))) {
             actions.add(StateChangeActionEnum.DELETE);
         }
@@ -115,7 +115,7 @@ public class StateChangeActionHelper {
         //          [CertificateInfo::STATUS_REGINPROG,
         //           CertificateInfo::STATUS_REGISTERED].include?(cert.status)
         // (CSR is never in status REGINPROG or REGISTERED)
-        if (canDelete(tokenInfo, keyInfo, true, false,
+        if (canDelete(tokenInfo, true, false,
                 certOrCsrDeletable(tokenInfo, keyInfo, true))) {
             actions.add(StateChangeActionEnum.DELETE);
         }
@@ -129,7 +129,7 @@ public class StateChangeActionHelper {
      *                 $("#delete").enable();
      *             }
      */
-    private boolean canDelete(TokenInfo tokenInfo, KeyInfo keyInfo,
+    private boolean canDelete(TokenInfo tokenInfo,
             boolean savedToConfiguration,
             boolean canUnregister,
             boolean certOrCsrDeletable) {

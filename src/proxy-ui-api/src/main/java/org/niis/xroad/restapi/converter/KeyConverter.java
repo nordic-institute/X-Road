@@ -74,7 +74,7 @@ public class KeyConverter {
      */
     public Key convert(KeyInfo keyInfo, TokenInfo tokenInfo) {
         if (tokenInfo == null) {
-            throw new NullPointerException("tokenInfo is mandatory to populate possibleActions");
+            throw new IllegalArgumentException("tokenInfo is mandatory to populate possibleActions");
         }
         return convertInternal(keyInfo, tokenInfo);
     }

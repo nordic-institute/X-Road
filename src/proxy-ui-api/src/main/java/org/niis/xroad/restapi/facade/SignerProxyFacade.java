@@ -185,10 +185,10 @@ public class SignerProxyFacade {
     }
 
     /**
-     * {@link SignerProxy#getKeyIdForCerthash(String)}
+     * {@link SignerProxy#getKeyIdForCertHash(String)}
      */
     public String getKeyIdForCertHash(String hash) throws Exception {
-        return SignerProxy.getKeyIdForCerthash(hash);
+        return SignerProxy.getKeyIdForCertHash(hash);
     }
 
     /**

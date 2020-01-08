@@ -318,13 +318,13 @@ public final class SignerProxy {
 
     /**
      * Get a cert by it's hash
-     * @param hash cert hash. Must be lowerCase!
+     * @param hash cert hash. Will be converted to lowercase, which is what signer uses internally
      * @return CertificateInfo
      * @throws Exception
      */
     public static CertificateInfo getCertForHash(String hash) throws Exception {
+        hash = hash.toLowerCase();
         log.trace("Getting cert by hash '{}'", hash);
-        checkLowerCase(hash);
 
         GetCertificateInfoResponse response = execute(new GetCertificateInfoForHash(hash));
         CertificateInfo certificateInfo = response.getCertificateInfo();
@@ -336,13 +336,13 @@ public final class SignerProxy {
 
     /**
      * Get key for a given cert hash
-     * @param hash cert hash. Must be lowerCase!
+     * @param hash cert hash. Will be converted to lowercase, which is what signer uses internally
      * @return CertificateInfo
      * @throws Exception
      */
-    public static String getKeyIdForCerthash(String hash) throws Exception {
+    public static String getKeyIdForCertHash(String hash) throws Exception {
+        hash = hash.toLowerCase();
         log.trace("Getting cert by hash '{}'", hash);
-        checkLowerCase(hash);
 
         GetKeyIdForCertHashResponse response = execute(new GetKeyIdForCertHash(hash));
         String keyId = response.getKeyId();
@@ -354,13 +354,14 @@ public final class SignerProxy {
 
     /**
      * Get TokenInfoAndKeyId for a given cert hash
-     * @param hash cert hash. Must be lowerCase!
+     * @param hash cert hash. Will be converted to lowercase, which is what signer uses internally
+     *
      * @return TokenInfoAndKeyId
      * @throws Exception
      */
     public static TokenInfoAndKeyId getTokenAndKeyIdForCertHash(String hash) throws Exception {
+        hash = hash.toLowerCase();
         log.trace("Getting token and key id by cert hash '{}'", hash);
-        checkLowerCase(hash);
 
         TokenInfoAndKeyId response = execute(new GetTokenInfoAndKeyIdForCertHash(hash));
 
@@ -383,15 +384,6 @@ public final class SignerProxy {
         log.trace("Token and key id with cert request id '{}' found", certRequestId);
 
         return response;
-    }
-
-    /**
-     * @throws IllegalArgumentException if parameter was not a lowercase string
-     */
-    private static void checkLowerCase(String s) {
-        if (s == null || !s.toLowerCase().equals(s)) {
-            throw new IllegalArgumentException(s + " should be a lowerCase string");
-        }
     }
 
     private static <T> T execute(Object message) throws Exception {

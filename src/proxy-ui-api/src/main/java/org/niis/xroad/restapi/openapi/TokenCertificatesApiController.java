@@ -119,12 +119,11 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
                 | TokenCertificateService.InvalidCertificateException
                 | TokenCertificateService.AuthCertificateNotSupportedException e) {
             throw new BadRequestException(e);
-        } catch (CertificateAlreadyExistsException | CsrNotFoundException e) {
+        } catch (CertificateAlreadyExistsException | CsrNotFoundException
+                | ActionNotPossibleException e) {
             throw new ConflictException(e);
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (ActionNotPossibleException e) {
-            throw new ConflictException(e);
         }
         TokenCertificate tokenCertificate = tokenCertificateConverter.convert(certificate);
         return ApiUtil.createCreatedResponse("/api/token-certificates/{hash}", tokenCertificate,
