@@ -592,7 +592,7 @@ public class TokenCertificateService {
         CertRequestInfo certRequestInfo = getCsr(keyInfo, csrId);
 
         EnumSet<PossibleActionEnum> possibleActions = possibleActionsRuleEngine.
-                getPossibleCsrActions(tokenInfo, keyInfo, certRequestInfo);
+                getPossibleCsrActions(tokenInfo);
         return possibleActions;
     }
 

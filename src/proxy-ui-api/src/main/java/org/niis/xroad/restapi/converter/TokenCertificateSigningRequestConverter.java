@@ -68,7 +68,7 @@ public class TokenCertificateSigningRequestConverter {
         TokenCertificateSigningRequest request = convert(csrInfo);
         request.setPossibleActions(possibleActionConverter.convert(
                 possibleActionsRuleEngine.getPossibleCsrActions(
-                        tokenInfo, keyInfo, csrInfo)));
+                        tokenInfo)));
         return request;
     }
     /**

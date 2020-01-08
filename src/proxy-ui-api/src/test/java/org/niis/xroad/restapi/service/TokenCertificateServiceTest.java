@@ -501,7 +501,7 @@ public class TokenCertificateServiceTest {
     @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
     public void deleteCsrActionNotPossible() throws Exception {
         doReturn(EnumSet.noneOf(PossibleActionEnum.class)).when(possibleActionsRuleEngine)
-                .getPossibleCsrActions(any(), any(), any());
+                .getPossibleCsrActions(any());
         tokenCertificateService.deleteCsr(GOOD_CSR_ID);
     }
 

@@ -153,9 +153,7 @@ public class PossibleActionsRuleEngine {
     /**
      * get possible actions for a csr
      */
-    public EnumSet<PossibleActionEnum> getPossibleCsrActions(TokenInfo tokenInfo,
-            KeyInfo keyInfo,
-            CertRequestInfo certRequestInfo) {
+    public EnumSet<PossibleActionEnum> getPossibleCsrActions(TokenInfo tokenInfo) {
         EnumSet<PossibleActionEnum> actions = EnumSet.noneOf(PossibleActionEnum.class);
 
         if (canDeleteCertOrCsr(tokenInfo, true, false)) {
@@ -257,7 +255,7 @@ public class PossibleActionsRuleEngine {
                 possibleActions = getPossibleCertificateActions(tokenInfo, keyInfo, certificateInfo);
                 break;
             case CSR:
-                possibleActions = getPossibleCsrActions(tokenInfo, keyInfo, certRequestInfo);
+                possibleActions = getPossibleCsrActions(tokenInfo);
                 break;
             default:
                 throw new IllegalStateException("bad target: " + target);
