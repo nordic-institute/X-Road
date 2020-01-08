@@ -97,6 +97,7 @@ public class TokenCertificateServiceTest {
     private static final String EXISTING_CERT_HASH = "ok-cert";
     private static final String EXISTING_CERT_IN_AUTH_KEY_HASH = "ok-cert-auth";
     private static final String EXISTING_CERT_IN_SIGN_KEY_HASH = "ok-cert-sign";
+    private static final String MISSING_CERTIFICATE_HASH = "MISSING_HASH";
     private static final String GOOD_KEY_ID = "key-which-exists";
     private static final String AUTH_KEY_ID = "auth-key";
     private static final String SIGN_KEY_ID = "sign-key";
@@ -144,14 +145,8 @@ public class TokenCertificateServiceTest {
     @MockBean
     private TokenService tokenService;
 
-    private static final String MISSING_CERTIFICATE_HASH = "MISSING_HASH";
-
     private final ClientId client = ClientId.create(TestUtils.INSTANCE_FI,
             TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1);
-    private static final String AUTH_KEY = "auth-id";
-    private static final String SIGN_KEY = "sign-id";
-    private static final String AMBIGUOUS_KEY = "ambiguous-id";
-
 
     @Before
     public void setup() throws Exception {
