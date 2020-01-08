@@ -87,7 +87,7 @@ public class TokenCertificateServiceTest {
     private ClientService clientService;
 
     @MockBean
-    private ManagementRequestService managementRequestService;
+    private ManagementRequestSenderService managementRequestSenderService;
 
     @MockBean
     private CertificateAuthorityService certificateAuthorityService;
@@ -166,7 +166,7 @@ public class TokenCertificateServiceTest {
         CertificateInfo certificateInfo = CertificateTestUtils.createTestCertificateInfo(mockAuthCert,
                 CertificateStatus.GOOD, "SAVED");
         doAnswer(answer -> certificateInfo).when(signerProxyFacade).getCertForHash(any());
-        when(managementRequestService.sendAuthCertRegisterRequest(any(), any(), any()))
+        when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any()))
                 .thenThrow(new CodedException("FAILED"));
         tokenCertificateService.registerAuthCert(MOCK_AUTH_CERTIFICATE_HASH, BAD_ADDRESS);
     }

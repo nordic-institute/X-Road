@@ -42,13 +42,13 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @PreAuthorize("isAuthenticated()")
-public class ManagementRequestService {
+public class ManagementRequestSenderService {
     private final GlobalConfFacade globalConfFacade;
     private final GlobalConfService globalConfService;
     private final ServerConfService serverConfService;
 
     @Autowired
-    public ManagementRequestService(GlobalConfFacade globalConfFacade, GlobalConfService globalConfService,
+    public ManagementRequestSenderService(GlobalConfFacade globalConfFacade, GlobalConfService globalConfService,
             ServerConfService serverConfService) {
         this.globalConfFacade = globalConfFacade;
         this.globalConfService = globalConfService;

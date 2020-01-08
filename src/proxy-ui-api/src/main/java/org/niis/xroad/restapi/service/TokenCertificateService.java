@@ -85,7 +85,7 @@ public class TokenCertificateService {
     private final GlobalConfFacade globalConfFacade;
     private final SignerProxyFacade signerProxyFacade;
     private final ClientRepository clientRepository;
-    private final ManagementRequestService managementRequestService;
+    private final ManagementRequestSenderService managementRequestSenderService;
     private final ServerConfService serverConfService;
     private final ClientService clientService;
     private final CertificateAuthorityService certificateAuthorityService;
@@ -99,7 +99,7 @@ public class TokenCertificateService {
             GlobalConfService globalConfService,
             GlobalConfFacade globalConfFacade,
             ClientRepository clientRepository,
-            ManagementRequestService managementRequestService, ServerConfService serverConfService) {
+            ManagementRequestSenderService managementRequestSenderService, ServerConfService serverConfService) {
         this.signerProxyFacade = signerProxyFacade;
         this.clientService = clientService;
         this.certificateAuthorityService = certificateAuthorityService;
@@ -108,7 +108,7 @@ public class TokenCertificateService {
         this.globalConfService = globalConfService;
         this.globalConfFacade = globalConfFacade;
         this.clientRepository = clientRepository;
-        this.managementRequestService = managementRequestService;
+        this.managementRequestSenderService = managementRequestSenderService;
         this.serverConfService = serverConfService;
     }
 
@@ -396,7 +396,7 @@ public class TokenCertificateService {
         verifyAuthCert(certificateInfo);
         SecurityServerId securityServerId = serverConfService.getSecurityServerId();
         try {
-            managementRequestService.sendAuthCertRegisterRequest(securityServerId, securityServerAddress,
+            managementRequestSenderService.sendAuthCertRegisterRequest(securityServerId, securityServerAddress,
                     certificateInfo.getCertificateBytes());
             signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_REGINPROG);
         } catch (GlobalConfService.GlobalConfOutdatedException e) {
@@ -426,7 +426,7 @@ public class TokenCertificateService {
         verifyAuthCert(certificateInfo);
         SecurityServerId securityServerId = serverConfService.getSecurityServerId();
         try {
-            managementRequestService.sendAuthCertDeletionRequest(securityServerId,
+            managementRequestSenderService.sendAuthCertDeletionRequest(securityServerId,
                     certificateInfo.getCertificateBytes());
             signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
         } catch (GlobalConfService.GlobalConfOutdatedException e) {
