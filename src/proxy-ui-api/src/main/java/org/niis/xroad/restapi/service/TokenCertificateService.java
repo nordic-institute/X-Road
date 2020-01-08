@@ -422,15 +422,9 @@ public class TokenCertificateService {
             managementRequestSenderService.sendAuthCertDeletionRequest(securityServerId,
                     certificateInfo.getCertificateBytes());
             signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
-        } catch (GlobalConfService.GlobalConfOutdatedException e) {
+        } catch (GlobalConfService.GlobalConfOutdatedException | CodedException e) {
             throw e;
         } catch (Exception e) {
-            if (e instanceof CodedException) {
-                CodedException ce = (CodedException) e;
-                if (isCausedByCertNotFound(ce)) {
-                    throw new CertificateNotFoundException(ce);
-                }
-            }
             throw new RuntimeException("Could not set certificate status", e);
         }
     }
