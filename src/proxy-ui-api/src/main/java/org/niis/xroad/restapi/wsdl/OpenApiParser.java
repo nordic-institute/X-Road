@@ -34,6 +34,7 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.service.ServiceException;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -52,35 +53,31 @@ import java.util.Optional;
  * Parser for OpenAPI descriptions
  */
 @Slf4j
+@Component
 public class OpenApiParser {
 
-    private final URI openApiUrl;
     private static final int BUF_SIZE = 8192;
     private static final long MAX_DESCRIPTION_SIZE = 10 * 1024 * 1024;
 
     /**
-     * Create a OpenAPI parser
+     * Parse openapi3 description
+     *
+     * @return OpenApiParser.Result
      */
-    public OpenApiParser(String openApiUrl) throws ParsingException {
+    public Result parse(String urlString) throws ParsingException {
+        URI openApiUrl = null;
         try {
-            this.openApiUrl = new URI(openApiUrl);
+            openApiUrl = new URI(urlString);
         } catch (URISyntaxException e) {
             throw new ParsingException("Invalid URL", e);
         }
-    }
-
-    /**
-     * Parse
-     *
-     * @return
-     */
-    public Result parse() throws ParsingException {
 
         final ParseOptions options = new ParseOptions();
         options.setResolve(false);
 
-        final SwaggerParseResult result = new OpenAPIV3Parser().readContents(readOpenAPIDescription(), null, options);
-        validate(result);
+        final SwaggerParseResult result = new OpenAPIV3Parser().readContents(readOpenAPIDescription(openApiUrl),
+                null, options);
+        validate(result, openApiUrl);
 
         String baseUrl = Optional.ofNullable(result.getOpenAPI().getServers())
                 .flatMap(s -> s.stream().findFirst())
@@ -105,7 +102,7 @@ public class OpenApiParser {
         return new Result(baseUrl, operations, result.getMessages());
     }
 
-    private void validate(SwaggerParseResult result) throws ParsingException {
+    private void validate(SwaggerParseResult result, URI openApiUrl) throws ParsingException {
         if (result == null || result.getOpenAPI() == null) {
             throw new ParsingException("Unable to parse OpenAPI description from " + openApiUrl);
         }
@@ -116,7 +113,7 @@ public class OpenApiParser {
         }
     }
 
-    private String readOpenAPIDescription() throws ParsingException {
+    private String readOpenAPIDescription(URI openApiUrl) throws ParsingException {
         URLConnection conn = null;
         try {
             if (!allowProtocol(openApiUrl.getScheme())) {
@@ -153,8 +150,7 @@ public class OpenApiParser {
         }
     }
 
-    // package private for testability
-    boolean allowProtocol(String protocol) {
+    public boolean allowProtocol(String protocol) {
         return "http".equals(protocol) || "https".equals(protocol);
     }
 

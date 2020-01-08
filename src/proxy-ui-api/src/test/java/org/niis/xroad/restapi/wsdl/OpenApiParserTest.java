@@ -36,42 +36,42 @@ public class OpenApiParserTest {
 
     @Test
     public void shouldParseOpenApiYaml() throws OpenApiParser.ParsingException {
-        URL url = getClass().getResource("/valid.yaml");
-        final OpenApiParser.Result result = new TestOpenApiParser(url.toString()).parse();
+        URL url = getClass().getResource("/openapiparser/valid.yaml");
+        final OpenApiParser.Result result = new TestOpenApiParser().parse(url.toString());
         Assert.assertFalse(result.hasWarnings());
         Assert.assertEquals("https://example.org/api", result.getBaseUrl());
     }
 
     @Test
     public void shouldHaveWarnings() throws OpenApiParser.ParsingException {
-        URL url = getClass().getResource("/warnings.yml");
-        final OpenApiParser.Result result = new TestOpenApiParser(url.toString()).parse();
+        URL url = getClass().getResource("/openapiparser/warnings.yml");
+        final OpenApiParser.Result result = new TestOpenApiParser().parse(url.toString());
         Assert.assertTrue(result.hasWarnings());
         Assert.assertEquals("https://{securityserver}/r1", result.getBaseUrl());
     }
 
     @Test
     public void shouldParseOpenApiJson() throws OpenApiParser.ParsingException {
-        URL url = getClass().getResource("/valid.json");
-        final OpenApiParser.Result result = new TestOpenApiParser(url.toString()).parse();
+        URL url = getClass().getResource("/openapiparser/valid.json");
+        final OpenApiParser.Result result = new TestOpenApiParser().parse(url.toString());
         Assert.assertFalse(result.hasWarnings());
         Assert.assertEquals("https://example.org/api", result.getBaseUrl());
     }
 
     @Test(expected = OpenApiParser.ParsingException.class)
     public void shouldFailIfInvalidProtocol() throws OpenApiParser.ParsingException {
-        URL url = getClass().getResource("/valid.json");
-        final OpenApiParser.Result result = new OpenApiParser(url.toString()).parse();
+        URL url = getClass().getResource("/openapiparser/valid.json");
+        final OpenApiParser.Result result = new OpenApiParser().parse(url.toString());
     }
 
     static class TestOpenApiParser extends OpenApiParser {
 
-        TestOpenApiParser(String openApiUrl) throws ParsingException {
-            super(openApiUrl);
+        TestOpenApiParser() throws ParsingException {
+            super();
         }
 
         @Override
-        boolean allowProtocol(String protocol) {
+        public boolean allowProtocol(String protocol) {
             return true;
         }
     }

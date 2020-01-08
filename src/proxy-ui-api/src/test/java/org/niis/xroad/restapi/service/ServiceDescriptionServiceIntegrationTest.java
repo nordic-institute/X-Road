@@ -36,17 +36,21 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.util.DeviationTestUtils;
+import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -102,9 +106,13 @@ public class ServiceDescriptionServiceIntegrationTest {
     @MockBean
     private WsdlUrlValidator wsdlUrlValidator;
 
+    @SpyBean
+    private OpenApiParser openApiParser;
+
     @Before
     public void setup() {
         when(wsdlUrlValidator.isValidWsdlUrl(any())).thenReturn(true);
+        when(openApiParser.allowProtocol(any())).thenReturn(true);
     }
 
     @Test
@@ -465,4 +473,81 @@ public class ServiceDescriptionServiceIntegrationTest {
                 .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME, XROAD_GET_RANDOM_SERVICECODE,
                         BMI_SERVICE)));
     }
+
+    @Test
+    @WithMockUser(authorities = "ADD_OPENAPI3")
+    public void addRestEndpointServiceDescriptionSuccess() throws Exception {
+        ClientType client = clientService.getClient(CLIENT_ID_SS1);
+        assertEquals(3, client.getEndpoint().size());
+        serviceDescriptionService.addRestEndpointServiceDescription(CLIENT_ID_SS1, "http://testurl.com", "testcode");
+        client = clientService.getClient(CLIENT_ID_SS1);
+        assertEquals(4, client.getEndpoint().size());
+        assertTrue(client.getEndpoint().stream()
+                .map(EndpointType::getServiceCode)
+                .collect(Collectors.toList())
+                .contains("testcode"));
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADD_OPENAPI3")
+    public void addOpenapi3ServiceDescriptionSuccess() throws Exception {
+        ClientType client = clientService.getClient(CLIENT_ID_SS1);
+        assertEquals(3, client.getEndpoint().size());
+        URL url = getClass().getResource("/openapiparser/valid.yaml");
+        serviceDescriptionService.addOpenapi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode", false);
+
+        client = clientService.getClient(CLIENT_ID_SS1);
+        assertEquals(5, client.getEndpoint().size());
+        assertTrue(client.getEndpoint().stream()
+                .map(EndpointType::getServiceCode)
+                .filter(s -> "testcode".equals(s))
+                .collect(Collectors.toList()).size() == 2);
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADD_OPENAPI3")
+    public void addOpenapi3ServiceDescriptionWithWarnings() throws Exception {
+        ClientType client = clientService.getClient(CLIENT_ID_SS1);
+        assertEquals(3, client.getEndpoint().size());
+        URL url = getClass().getResource("/openapiparser/warnings.yml");
+        boolean foundWarnings = false;
+        try {
+            serviceDescriptionService.addOpenapi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode", false);
+        } catch (UnhandledWarningsException e) {
+            foundWarnings = true;
+        }
+        assertTrue(foundWarnings);
+
+        try {
+            serviceDescriptionService.addOpenapi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode", true);
+        } catch (UnhandledWarningsException e) {
+            fail("Shouldn't throw warnings exception when ignorewarning is true");
+        }
+
+        client = clientService.getClient(CLIENT_ID_SS1);
+        assertEquals(5, client.getEndpoint().size());
+    }
+
+    @Test(expected = ServiceDescriptionService.ServiceCodeAlreadyExistsException.class)
+    @WithMockUser(authorities = "ADD_OPENAPI3")
+    public void addOpenapi3ServiceDescriptionWithDuplicateServiceCode() throws Exception {
+        URL url1 = getClass().getResource("/openapiparser/valid.yaml");
+        serviceDescriptionService.addOpenapi3ServiceDescription(CLIENT_ID_SS1, url1.toString(), "testcode", false);
+
+        // Should throw ServiceCodeAlreadyExistsException
+        URL url2 = getClass().getResource("/openapiparser/warnings.yml");
+        serviceDescriptionService.addOpenapi3ServiceDescription(CLIENT_ID_SS1, url2.toString(), "testcode", true);
+    }
+
+    @Test(expected = ServiceDescriptionService.UrlAlreadyExistsException.class)
+    @WithMockUser(authorities = "ADD_OPENAPI3")
+    public void addOpenapi3ServiceDescriptionWithDuplicateUrl() throws Exception {
+        URL url = getClass().getResource("/openapiparser/valid.yaml");
+        serviceDescriptionService.addOpenapi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode1", false);
+
+        // should throw UrlAlreadyExistsException
+        serviceDescriptionService.addOpenapi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode2", false);
+    }
+
+
 }

@@ -36,7 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
-import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -86,6 +85,7 @@ public class ServiceDescriptionService {
     private final ServiceChangeChecker serviceChangeChecker;
     private final WsdlValidator wsdlValidator;
     private final WsdlUrlValidator wsdlUrlValidator;
+    private final OpenApiParser openApiParser;
 
     /**
      * ServiceDescriptionService constructor
@@ -99,13 +99,15 @@ public class ServiceDescriptionService {
     public ServiceDescriptionService(ServiceDescriptionRepository serviceDescriptionRepository,
                                      ClientService clientService, ClientRepository clientRepository,
                                      ServiceChangeChecker serviceChangeChecker,
-                                     WsdlValidator wsdlValidator, WsdlUrlValidator wsdlUrlValidator) {
+                                     WsdlValidator wsdlValidator, WsdlUrlValidator wsdlUrlValidator,
+                                     OpenApiParser openApiParser) {
         this.serviceDescriptionRepository = serviceDescriptionRepository;
         this.clientService = clientService;
         this.clientRepository = clientRepository;
         this.serviceChangeChecker = serviceChangeChecker;
         this.wsdlValidator = wsdlValidator;
         this.wsdlUrlValidator = wsdlUrlValidator;
+        this.openApiParser = openApiParser;
     }
 
     /**
@@ -278,7 +280,6 @@ public class ServiceDescriptionService {
                 + endpointType.isGenerated();
     }
 
-
     public ServiceDescriptionType addOpenapi3ServiceDescription(ClientId clientId, String url,
                                                                 String serviceCode, boolean ignoreWarnings)
             throws OpenApiParser.ParsingException, ClientNotFoundException,
@@ -290,7 +291,7 @@ public class ServiceDescriptionService {
         // Parse openapi definition
         OpenApiParser.Result result = null;
         try {
-            result = parseOpenapi3(url);
+            result = openApiParser.parse(url);
         } catch (OpenApiParser.ParsingException e) {
             throw e;
         }
@@ -305,7 +306,6 @@ public class ServiceDescriptionService {
         if (client == null) {
             throw new ClientNotFoundException("Client with id " + clientId.toShortString() + " not found");
         }
-
 
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptionOfType(client, url,
                 DescriptionType.OPENAPI3);
@@ -322,7 +322,7 @@ public class ServiceDescriptionService {
 
         // Create endpoints
         List<EndpointType> endpoints = result.getOperations().stream()
-                .map(operation -> createEndpointType(serviceCode, operation.getMethod(), operation.getPath(), true))
+                .map(operation -> new EndpointType(serviceCode, operation.getMethod(), operation.getPath(), true))
                 .collect(Collectors.toList());
 
         try {
@@ -338,22 +338,6 @@ public class ServiceDescriptionService {
         clientRepository.saveOrUpdateAndFlush(client);
 
         return serviceDescriptionType;
-    }
-
-    private OpenApiParser.Result parseOpenapi3(String url) throws OpenApiParser.ParsingException {
-        OpenApiParser parser = new OpenApiParser(url);
-        OpenApiParser.Result result = null;
-        try {
-            result = parser.parse();
-        } catch (OpenApiParser.ParsingException e) {
-            throw e;
-        }
-
-        return result;
-    }
-
-    private EndpointType createEndpointType(String serviceCode, String method, String path, boolean generated) {
-        return new EndpointType(serviceCode, method, path, generated);
     }
 
     /**
@@ -437,8 +421,8 @@ public class ServiceDescriptionService {
         serviceType.setServiceDescription(serviceDescriptionType);
 
         serviceDescriptionType.getService().add(serviceType);
-        EndpointType endpointType = createEndpointType(serviceCode, EndpointType.ANY_METHOD, EndpointType.ANY_PATH,
-                false);
+        EndpointType endpointType = new EndpointType(serviceCode, EndpointType.ANY_METHOD,
+                EndpointType.ANY_PATH, false);
         client.getEndpoint().add(endpointType);
         client.getServiceDescription().add(serviceDescriptionType);
         clientRepository.saveOrUpdateAndFlush(client);
@@ -635,7 +619,8 @@ public class ServiceDescriptionService {
     }
 
     private ServiceDescriptionType buildWsdlServiceDescription(ClientType client,
-                                                               Collection<WsdlParser.ServiceInfo> parsedServices, String url) {
+                                                               Collection<WsdlParser.ServiceInfo> parsedServices,
+                                                               String url) {
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptionOfType(client, url, DescriptionType.WSDL);
 
         // create services
