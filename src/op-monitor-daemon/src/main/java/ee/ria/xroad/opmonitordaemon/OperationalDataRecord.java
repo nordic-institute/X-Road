@@ -183,11 +183,11 @@ public class OperationalDataRecord {
 
     @Getter
     @Setter
-    private Long requestSoapSize;
+    private Long requestSize;
 
     @Getter
     @Setter
-    private Long requestRestSize;
+    private Long responseSize;
 
     @Getter
     @Setter
@@ -196,14 +196,6 @@ public class OperationalDataRecord {
     @Getter
     @Setter
     private Integer requestAttachmentCount;
-
-    @Getter
-    @Setter
-    private Long responseSoapSize;
-
-    @Getter
-    @Setter
-    private Long responseRestSize;
 
     @Getter
     @Setter
@@ -219,11 +211,11 @@ public class OperationalDataRecord {
 
     @Getter
     @Setter
-    private String soapFaultCode;
+    private String faultCode;
 
     @Getter
     @Setter
-    private String soapFaultString;
+    private String faultString;
 
     @Getter
     @Setter
@@ -233,4 +225,7 @@ public class OperationalDataRecord {
     @Setter
     private Integer statusCode;
 
+    @Getter
+    @Setter
+    private String serviceType;
 }

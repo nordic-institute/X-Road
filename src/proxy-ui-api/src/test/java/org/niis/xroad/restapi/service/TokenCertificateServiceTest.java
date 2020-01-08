@@ -57,12 +57,16 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.service.TokenCertificateService.CERT_NOT_FOUND_FAULT_CODE;
 import static org.niis.xroad.restapi.util.CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH;
 import static org.niis.xroad.restapi.util.CertificateTestUtils.MOCK_CERTIFICATE_HASH;
+import static org.niis.xroad.restapi.util.CertificateTestUtils.getMockAuthCertificateBytes;
 
 /**
  * Test TokenCertificateService
@@ -95,6 +99,7 @@ public class TokenCertificateServiceTest {
     @MockBean
     private KeyService keyService;
 
+    private static final String MISSING_CERTIFICATE_HASH = "MISSING_HASH";
     private final ClientId client = ClientId.create(TestUtils.INSTANCE_FI,
             TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1);
     private static final String AUTH_KEY = "auth-id";
@@ -123,6 +128,36 @@ public class TokenCertificateServiceTest {
         when(certificateAuthorityService.getCertificateProfile(any(), any(), any()))
                 .thenReturn(new DnFieldTestCertificateProfileInfo(
                         editableField, true));
+
+        doAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
+            String hash = (String) args[0];
+            if (MISSING_CERTIFICATE_HASH.equals(hash)) {
+                throw new CodedException(CERT_NOT_FOUND_FAULT_CODE);
+            }
+
+            return null;
+        }).when(signerProxyFacade).deactivateCert(any());
+
+        doAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
+            String hash = (String) args[0];
+            if (MISSING_CERTIFICATE_HASH.equals(hash)) {
+                throw new CodedException(CERT_NOT_FOUND_FAULT_CODE);
+            }
+            return null;
+        }).when(signerProxyFacade).activateCert(eq("certID"));
+
+        doAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
+            String hash = (String) args[0];
+            if (MISSING_CERTIFICATE_HASH.toLowerCase().equals(hash)) {
+                return new CertificateInfo(null, false, false, "status", "certID", getMockAuthCertificateBytes(),
+                        null);
+            }
+            return null;
+        }).when(signerProxyFacade).getCertForHash(MISSING_CERTIFICATE_HASH.toLowerCase());
+
     }
 
     @Test
@@ -145,6 +180,28 @@ public class TokenCertificateServiceTest {
         tokenCertificateService.generateCertRequest(SIGN_KEY, client,
                 KeyUsageInfo.SIGNING, "ca", ImmutableMap.of("O", "baz"),
                 GenerateCertRequest.RequestFormat.DER);
+    }
+
+    @WithMockUser(authorities = { "ACTIVATE_DISABLE_AUTH_CERT", "ACTIVATE_DISABLE_SIGN_CERT" })
+    public void activateCertificate() throws CertificateNotFoundException {
+        try {
+            tokenCertificateService.activateCertificate(MISSING_CERTIFICATE_HASH);
+        } catch (TokenCertificateService.InvalidCertificateException e) {
+            fail("shouldn't throw InvalidCertificateException");
+        } catch (CodedException expected) {
+            assertEquals(expected.getFaultCode(), CERT_NOT_FOUND_FAULT_CODE);
+        }
+    }
+
+    @WithMockUser(authorities = { "ACTIVATE_DISABLE_AUTH_CERT", "ACTIVATE_DISABLE_SIGN_CERT" })
+    public void deactivateCertificate() throws CertificateNotFoundException {
+        try {
+            tokenCertificateService.deactivateCertificate(MISSING_CERTIFICATE_HASH);
+        } catch (TokenCertificateService.InvalidCertificateException e) {
+            fail("shouldn't throw InvalidCertificateException");
+        } catch (CodedException e) {
+            assertEquals(e.getFaultCode(), CERT_NOT_FOUND_FAULT_CODE);
+        }
     }
 
     @Test

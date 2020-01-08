@@ -27,6 +27,7 @@ package ee.ria.xroad.proxy.util;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.monitoring.MessageInfo;
@@ -42,6 +43,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAPACTION;
 
@@ -127,8 +129,8 @@ public abstract class MessageProcessorBase {
                     soapMessage.getRepresentedParty());
             opMonitoringData.setMessageProtocolVersion(
                     soapMessage.getProtocolVersion());
-
-            opMonitoringData.setRequestSoapSize(soapMessage.getBytes().length);
+            opMonitoringData.setServiceType(DescriptionType.WSDL.name());
+            opMonitoringData.setRequestSize(soapMessage.getBytes().length);
         }
     }
 
@@ -144,6 +146,8 @@ public abstract class MessageProcessorBase {
             opMonitoringData.setMessageUserId(request.findHeaderValueByName(MimeUtils.HEADER_USER_ID));
             opMonitoringData.setMessageIssue(request.findHeaderValueByName(MimeUtils.HEADER_ISSUE));
             opMonitoringData.setMessageProtocolVersion(String.valueOf(request.getVersion()));
+            opMonitoringData.setServiceType(Optional.ofNullable(
+                    ServerConf.getDescriptionType(request.getServiceId())).orElse(DescriptionType.REST).name());
         }
     }
 

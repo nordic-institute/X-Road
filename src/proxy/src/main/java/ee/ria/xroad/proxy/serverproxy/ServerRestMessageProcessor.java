@@ -288,7 +288,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     private void updateOpMonitoringDataByRequest() {
         updateOpMonitoringDataByRestRequest(opMonitoringData, requestMessage.getRest());
         opMonitoringData.setRequestAttachmentCount(0);
-        opMonitoringData.setRequestRestSize(requestMessage.getRest().getMessageBytes().length
+        opMonitoringData.setRequestSize(requestMessage.getRest().getMessageBytes().length
                 + decoder.getAttachmentsByteCount());
     }
 
@@ -591,7 +591,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             }
 
             monitoringData.setResponseAttachmentCount(0);
-            monitoringData.setResponseRestSize(restResponse.getMessageBytes().length
+            monitoringData.setResponseSize(restResponse.getMessageBytes().length
                     + messageEncoder.getAttachmentsByteCount());
         }
 

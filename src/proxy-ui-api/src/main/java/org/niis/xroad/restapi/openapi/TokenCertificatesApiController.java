@@ -65,6 +65,32 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
     }
 
     @Override
+    @PreAuthorize("hasAnyAuthority('ACTIVATE_DISABLE_AUTH_CERT','ACTIVATE_DISABLE_SIGN_CERT')")
+    public ResponseEntity<Void> activateCertificate(String hash) {
+        try {
+            tokenCertificateService.activateCertificate(hash);
+        } catch (CertificateNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (TokenCertificateService.InvalidCertificateException e) {
+            throw new BadRequestException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAnyAuthority('ACTIVATE_DISABLE_AUTH_CERT','ACTIVATE_DISABLE_SIGN_CERT')")
+    public ResponseEntity<Void> deactivateCertificate(String hash) {
+        try {
+            tokenCertificateService.deactivateCertificate(hash);
+        } catch (CertificateNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (TokenCertificateService.InvalidCertificateException e) {
+            throw new BadRequestException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
     @PreAuthorize("hasAnyAuthority('IMPORT_AUTH_CERT', 'IMPORT_SIGN_CERT')")
     public ResponseEntity<TokenCertificate> importCertificate(Resource certificateResource) {
         byte[] certificateBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(certificateResource);
