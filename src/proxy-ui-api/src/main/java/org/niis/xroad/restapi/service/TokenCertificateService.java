@@ -402,7 +402,7 @@ public class TokenCertificateService {
         } catch (GlobalConfService.GlobalConfOutdatedException | CodedException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Could not set certificate status", e);
+            throw new RuntimeException("Could not register auth cert", e);
         }
     }
 
@@ -425,7 +425,7 @@ public class TokenCertificateService {
         } catch (GlobalConfService.GlobalConfOutdatedException | CodedException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Could not set certificate status", e);
+            throw new RuntimeException("Could not unregister auth cert", e);
         }
     }
 
