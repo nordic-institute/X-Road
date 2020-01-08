@@ -46,9 +46,10 @@
             <td class="no-border"></td>
             <td class="no-border td-align-right">
               <SmallButton
-                      class="table-button-fix"
-                      :disabled="disableGenerateCsr"
-                      @click="generateCsr(key)"
+                v-if="hasPermission"
+                class="table-button-fix"
+                :disabled="disableGenerateCsr"
+                @click="generateCsr(key)"
               >{{$t('keys.generateCsr')}}</SmallButton>
             </td>
           </tr>
@@ -66,7 +67,9 @@
             <td>{{cert.owner_id}}</td>
             <td>{{ cert.ocsp_status | ocspStatus }}</td>
             <td>{{cert.certificate_details.not_after | formatDate}}</td>
-            <td class="status-cell"><certificate-status :certificate="cert" /></td>
+            <td class="status-cell">
+              <certificate-status :certificate="cert" />
+            </td>
             <td></td>
           </tr>
         </template>
@@ -83,11 +86,14 @@
             <td class="no-border"></td>
             <td class="no-border"></td>
             <td class="no-border"></td>
-            <td class="no-border td-align-right"><SmallButton
-                    class="table-button-fix"
-                    :disabled="disableGenerateCsr"
-                    @click="generateCsr(key)"
-            >{{$t('keys.generateCsr')}}</SmallButton></td>
+            <td class="no-border td-align-right">
+              <SmallButton
+                v-if="hasPermission"
+                class="table-button-fix"
+                :disabled="disableGenerateCsr"
+                @click="generateCsr(key)"
+              >{{$t('keys.generateCsr')}}</SmallButton>
+            </td>
           </tr>
 
           <tr v-for="cert in key.certificates" v-bind:key="cert.id">
@@ -95,18 +101,24 @@
               <div class="name-wrap">
                 <v-icon class="icon" @click="certificateClick(cert)">mdi-file-document-outline</v-icon>
                 <div
-                        class="clickable-link"
-                        @click="certificateClick(cert)"
+                  class="clickable-link"
+                  @click="certificateClick(cert)"
                 >{{cert.certificate_details.issuer_common_name}} {{cert.certificate_details.serial}}</div>
               </div>
             </td>
             <td>{{cert.owner_id}}</td>
             <td>{{ cert.ocsp_status | ocspStatus }}</td>
             <td>{{cert.certificate_details.not_after | formatDate}}</td>
-            <td class="status-cell"><certificate-status :certificate="cert" /></td>
+            <td class="status-cell">
+              <certificate-status :certificate="cert" />
+            </td>
             <td></td>
             <td class="td-align-right">
-              <SmallButton class="table-button-fix" v-if="!cert.saved_to_configuration" @click="importCert()">{{$t('keys.importCert')}}</SmallButton>
+              <SmallButton
+                class="table-button-fix"
+                v-if="!cert.saved_to_configuration && hasPermission"
+                @click="importCert()"
+              >{{$t('keys.importCert')}}</SmallButton>
             </td>
           </tr>
         </template>
@@ -143,6 +155,7 @@ import Vue from 'vue';
 import CertificateStatus from './CertificateStatus.vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import {Key, TokenCertificate} from '@/types';
+import { Permissions, UsageTypes } from '@/global';
 
 export default Vue.extend({
   components: {
@@ -166,7 +179,13 @@ export default Vue.extend({
       required: true,
     },
   },
-  computed: {},
+  computed: {
+    hasPermission(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.ACTIVATE_DEACTIVATE_TOKEN,
+      );
+    },
+  },
   methods: {
     keyClick(key: Key): void {
       this.$emit('keyClick', key);

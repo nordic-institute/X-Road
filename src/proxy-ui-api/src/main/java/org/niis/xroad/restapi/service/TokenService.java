@@ -300,7 +300,7 @@ public class TokenService {
     public TokenInfoAndKeyId getTokenAndKeyIdForCertificateHash(String hash) throws KeyNotFoundException,
             CertificateNotFoundException {
         try {
-            return signerProxyFacade.getTokenAndKeyIdForCertHash(hash.toLowerCase());
+            return signerProxyFacade.getTokenAndKeyIdForCertHash(hash);
         } catch (CodedException e) {
             if (isCausedByKeyNotFound(e)) {
                 throw new KeyNotFoundException(e);

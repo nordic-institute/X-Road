@@ -57,7 +57,6 @@
 import Vue from 'vue';
 
 import { mapGetters } from 'vuex';
-import { Permissions } from '@/global';
 import CertificateDialog from './CertificateDialog.vue';
 
 export default Vue.extend({

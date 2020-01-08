@@ -72,14 +72,21 @@ import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_READONLY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.service.TokenCertificateService.CERT_NOT_FOUND_FAULT_CODE;
+import static org.niis.xroad.restapi.util.CertificateTestUtils.getMockAuthCertificateBytes;
 
+
+/**
+ * Test TokenCertificateService
+ */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @AutoConfigureTestDatabase
 @Slf4j
 @Transactional
@@ -90,6 +97,7 @@ public class TokenCertificateServiceTest {
     private static final String EXISTING_CERT_HASH = "ok-cert";
     private static final String EXISTING_CERT_IN_AUTH_KEY_HASH = "ok-cert-auth";
     private static final String EXISTING_CERT_IN_SIGN_KEY_HASH = "ok-cert-sign";
+    private static final String MISSING_CERTIFICATE_HASH = "MISSING_HASH";
     private static final String GOOD_KEY_ID = "key-which-exists";
     private static final String AUTH_KEY_ID = "auth-key";
     private static final String SIGN_KEY_ID = "sign-key";
@@ -193,6 +201,26 @@ public class TokenCertificateServiceTest {
         mockDeleteCert();
         mockDeleteCertRequest();
         mockGetTokenForKeyId(tokenInfo);
+        // activate / deactivate
+        doAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
+            String hash = (String) args[0];
+            if (MISSING_CERTIFICATE_HASH.equals(hash)) {
+                throw new CodedException(CERT_NOT_FOUND_FAULT_CODE);
+            }
+
+            return null;
+        }).when(signerProxyFacade).deactivateCert(any());
+
+        doAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
+            String hash = (String) args[0];
+            if (MISSING_CERTIFICATE_HASH.equals(hash)) {
+                throw new CodedException(CERT_NOT_FOUND_FAULT_CODE);
+            }
+            return null;
+        }).when(signerProxyFacade).activateCert(eq("certID"));
+
         // by default all actions are possible
         doReturn(EnumSet.allOf(PossibleActionEnum.class)).when(possibleActionsRuleEngine)
                 .getPossibleCertificateActions(any(), any(), any());
@@ -269,6 +297,9 @@ public class TokenCertificateServiceTest {
                 case SIGNER_EX_TOKEN_READONLY_HASH:
                     // cert will have same id as hash
                     return new CertificateInfoBuilder().id(certHash).build();
+                case MISSING_CERTIFICATE_HASH:
+                    return new CertificateInfo(null, false, false, "status", "certID",
+                            getMockAuthCertificateBytes(), null);
                 default:
                     throw new RuntimeException("bad switch option: " + certHash);
             }
@@ -472,6 +503,28 @@ public class TokenCertificateServiceTest {
         doReturn(EnumSet.noneOf(PossibleActionEnum.class)).when(possibleActionsRuleEngine)
                 .getPossibleCsrActions(any(), any(), any());
         tokenCertificateService.deleteCsr(GOOD_CSR_ID);
+    }
+
+    @WithMockUser(authorities = {"ACTIVATE_DISABLE_AUTH_CERT", "ACTIVATE_DISABLE_SIGN_CERT"})
+    public void activateCertificate() throws CertificateNotFoundException {
+        try {
+            tokenCertificateService.activateCertificate(MISSING_CERTIFICATE_HASH);
+        } catch (TokenCertificateService.InvalidCertificateException e) {
+            fail("shouldn't throw InvalidCertificateException");
+        } catch (CodedException expected) {
+            assertEquals(expected.getFaultCode(), CERT_NOT_FOUND_FAULT_CODE);
+        }
+    }
+
+    @WithMockUser(authorities = {"ACTIVATE_DISABLE_AUTH_CERT", "ACTIVATE_DISABLE_SIGN_CERT"})
+    public void deactivateCertificate() throws CertificateNotFoundException {
+        try {
+            tokenCertificateService.deactivateCertificate(MISSING_CERTIFICATE_HASH);
+        } catch (TokenCertificateService.InvalidCertificateException e) {
+            fail("shouldn't throw InvalidCertificateException");
+        } catch (CodedException e) {
+            assertEquals(e.getFaultCode(), CERT_NOT_FOUND_FAULT_CODE);
+        }
     }
 
 }
