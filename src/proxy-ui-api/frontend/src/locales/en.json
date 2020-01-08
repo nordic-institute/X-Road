@@ -27,6 +27,13 @@
     "name": "Name",
     "id": "ID",
     "status": "Status",
+    "statusText": {
+      "registered": "REGISTERED",
+      "globalError": "GLOBAL ERROR",
+      "deletionInProgress": "DELETION IN PROGRESS",
+      "saved": "SAVED",
+      "registrationInProgress": "REGISTRATION IN PROGRESS"
+    },
     "owner": "Owner",
     "memberName": "Member Name",
     "memberClass": "Member Class",
@@ -78,7 +85,9 @@
     "rsaExp": "RSA Public Key Exponent",
     "deleteCertTitle": "Delete certificate?",
     "deleteCertConfirm": "Are you sure that you want to delete this certificate?",
-    "certDeleted": "Certificate deleted"
+    "certDeleted": "Certificate deleted",
+    "activateSuccess": "Certificate has been activated",
+    "deactivateSuccess": "Certificate has been disabled"
   },
   "localGroups": {
     "addGroup": "Add group",
@@ -170,8 +179,13 @@
     "delete": "Delete",
     "remove": "Remove",
     "removeAll": "Remove All",
+    "register": "Register",
     "save": "Save",
-    "continue": "Continue"
+    "continue": "Continue",
+    "activate": "Activate",
+    "deactivate": "Disable",
+    "previous": "Previous",
+    "done": "Done"
   },
   "keys": {
     "token": "Token:",
@@ -218,6 +232,9 @@
     "keyLabelInput": "Key label",
     "keyLabelTitle": "Generate a new key",
     "keyLabelInfo": "You can define a label for the newly created Key (not mandatory)",
+    "registrationRequest": "Registration request",
+    "certRegistrationInfo": "Security server DNS name or IP address",
+    "importCertSuccess": "Uploading certificate succeeded",
     "ocspStatus": {
       "disabled": "Disabled",
       "expired": "Expired",
@@ -234,6 +251,19 @@
       "globalError": "Global error"
     }
   },
+  "csr": {
+    "usage": "Usage",
+    "client": "Client",
+    "certificationService": "Certification Service",
+    "csrFormat": "CSR Format",
+    "generateCsr": "Generate CSR",
+    "csrDetails": "CSR details",
+    "saveInfo": "Generate a new CSR and save it into a safe place",
+    "helpUsage": "Usage policy of the certificate: signing messages or authenticating Security Server.",
+    "helpClient": "X-Road member the certificate will be issued for.",
+    "helpCertificationService": "Certification Authority (CA) that will issue the certificate.",
+    "helpCsrFormat": "Format of the certificate signing request according to the CA’s requirements."
+  },
   "login": {
     "logIn": "Log in",
     "logOut": "Log out",
@@ -245,7 +275,8 @@
   },
   "customValidation": {
     "invalidRest": "REST URL is not valid",
-    "invalidWsdl": "WSDL URL is not valid"
+    "invalidWsdl": "WSDL URL is not valid",
+    "invalidUrl": "URL is not valid"
   },
   "subjectType": {
     "globalGroup": "GLOBALGROUP",

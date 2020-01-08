@@ -33,6 +33,7 @@
       :items="clients"
       :search="search"
       :must-sort="true"
+      :items-per-page="-1"
       :sort-by="['sortNameAsc']"
       :custom-sort="customSort"
       :custom-filter="customFilter"
@@ -74,10 +75,7 @@
       </template>
 
       <template v-slot:item.status="{ item }">
-        <div class="status-wrapper">
-          <div :class="getStatusIconClass(item.status)"></div>
-          <div class="status-text">{{ item.status | capitalize }}</div>
-        </div>
+        <client-status :status="item.status" />
       </template>
 
       <template v-slot:item.button="{ item }">
@@ -110,15 +108,19 @@
  * Default sort and filter functions are replaced to achieve the end result where
  */
 import Vue from 'vue';
+import ClientStatus from './ClientStatus.vue';
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
 
 export default Vue.extend({
+  components: {
+    ClientStatus,
+  },
+
   data: () => ({
     search: '',
     pagination: {
       sortBy: 'sortNameAsc',
-      rowsPerPage: -1,
     },
   }),
 
@@ -169,40 +171,6 @@ export default Vue.extend({
     },
     canOpenClient(): boolean {
       return this.$store.getters.hasPermission(Permissions.VIEW_CLIENT_DETAILS);
-    },
-    getClientIcon(type: string): string {
-      if (!type) {
-        return '';
-      }
-      switch (type.toLowerCase()) {
-        case 'client':
-          return 'status-green';
-        case 'owner':
-          return 'status-green-ring';
-        case 'subsystem':
-          return 'status-orange-ring';
-        default:
-          return '';
-      }
-    },
-    getStatusIconClass(status: string): string {
-      if (!status) {
-        return '';
-      }
-      switch (status.toLowerCase()) {
-        case 'registered':
-          return 'status-green';
-        case 'registration in progress':
-          return 'status-green-ring';
-        case 'saved':
-          return 'status-orange-ring';
-        case 'deletion in progress':
-          return 'status-red-ring';
-        case 'global error':
-          return 'status-red';
-        default:
-          return '';
-      }
     },
 
     openClient(item: any): void {
@@ -339,52 +307,6 @@ export default Vue.extend({
   margin-top: auto;
   margin-bottom: auto;
   text-align: center;
-}
-
-.status-wrapper {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
-%status-icon-shared {
-  height: 8px;
-  width: 8px;
-  border-radius: 50%;
-  margin-right: 16px;
-}
-
-%status-ring-icon-shared {
-  height: 10px;
-  width: 10px;
-  border-radius: 50%;
-  margin-right: 16px;
-  border: 2px solid;
-}
-
-.status-red {
-  @extend %status-icon-shared;
-  background: #d0021b;
-}
-
-.status-red-ring {
-  @extend %status-ring-icon-shared;
-  border-color: #d0021b;
-}
-
-.status-green {
-  @extend %status-icon-shared;
-  background: #7ed321;
-}
-
-.status-green-ring {
-  @extend %status-ring-icon-shared;
-  border-color: #7ed321;
-}
-
-.status-orange-ring {
-  @extend %status-ring-icon-shared;
-  border-color: #f5a623;
 }
 
 .button-wrap {

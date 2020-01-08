@@ -177,6 +177,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
         // and the responseInTs must be equal with the responseOutTs.
         opMonitoringData.setRequestOutTs(opMonitoringData.getRequestInTs());
         opMonitoringData.setAssignResponseOutTsToResponseInTs(true);
+        opMonitoringData.setServiceType(DescriptionType.WSDL.name());
 
 
         switch (serviceCode) {

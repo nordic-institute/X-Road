@@ -4359,7 +4359,7 @@ components:
             $ref: '#/components/schemas/AccessRight'
     ServiceDescription: # ok
       type: object
-      description: WSDL/REST service
+      description: WSDL/OPENAPI3/REST service
       required:
         - id
         - url
@@ -4475,6 +4475,7 @@ components:
       enum:
         - WSDL
         - REST
+        - OPENAPI3
     Subject: # ok
       type: object
       description: subject

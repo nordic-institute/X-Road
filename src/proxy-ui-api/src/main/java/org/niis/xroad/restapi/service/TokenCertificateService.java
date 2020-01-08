@@ -85,6 +85,8 @@ public class TokenCertificateService {
 
     private static final String DUMMY_MEMBER = "dummy";
     private static final String NOT_FOUND = "not found";
+    private static final String IMPORT_AUTH_CERT = "IMPORT_AUTH_CERT";
+    private static final String IMPORT_SIGN_CERT = "IMPORT_SIGN_CERT";
 
     private final GlobalConfService globalConfService;
     private final GlobalConfFacade globalConfFacade;
@@ -335,13 +337,13 @@ public class TokenCertificateService {
             ClientId clientId = null;
             boolean isAuthCert = CertUtils.isAuthCert(x509Certificate);
             if (isAuthCert) {
-                verifyAuthority("IMPORT_AUTH_CERT");
+                verifyAuthority(IMPORT_AUTH_CERT);
                 if (isFromToken) {
                     throw new AuthCertificateNotSupportedException("auth cert cannot be imported from a token");
                 }
                 certificateState = CertificateInfo.STATUS_SAVED;
             } else {
-                verifyAuthority("IMPORT_SIGN_CERT");
+                verifyAuthority(IMPORT_SIGN_CERT);
                 String xroadInstance = globalConfFacade.getInstanceIdentifier();
                 clientId = getClientIdForSigningCert(xroadInstance, x509Certificate);
                 boolean clientExists = clientRepository.clientExists(clientId, true);
@@ -367,6 +369,65 @@ public class TokenCertificateService {
     }
 
     /**
+     * Activates certificate
+     *
+     * @param hash
+     * @throws CertificateNotFoundException
+     * @throws AccessDeniedException
+     */
+    public void activateCertificate(String hash) throws CertificateNotFoundException,
+            AccessDeniedException, InvalidCertificateException {
+        CertificateInfo certificateInfo = getCertificateInfo(hash);
+        try {
+            verifyActivateDisableAuthority(certificateInfo.getCertificateBytes());
+        } catch (InvalidCertificateException e) {
+            throw e;
+        }
+
+        try {
+            signerProxyFacade.activateCert(certificateInfo.getId());
+        }  catch (CodedException e) {
+            if (isCausedByCertNotFound(e)) {
+                throw new CertificateNotFoundException("Certificate with id " + certificateInfo.getId() + " "
+                       + NOT_FOUND);
+            } else {
+                throw e;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("certificate activation failed", e);
+        }
+    }
+
+    /**
+     * Deactivates certificate
+     *
+     * @param hash
+     * @throws CertificateNotFoundException
+     */
+    public void deactivateCertificate(String hash) throws CertificateNotFoundException, AccessDeniedException,
+            InvalidCertificateException {
+        CertificateInfo certificateInfo = getCertificateInfo(hash);
+        try {
+            verifyActivateDisableAuthority(certificateInfo.getCertificateBytes());
+        } catch (InvalidCertificateException e) {
+            throw e;
+        }
+
+        try {
+            signerProxyFacade.deactivateCert(certificateInfo.getId());
+        } catch (CodedException e) {
+            if (isCausedByCertNotFound(e)) {
+                throw new CertificateNotFoundException("Certificate with id " + certificateInfo.getId() + " "
+                        + NOT_FOUND);
+            } else {
+                throw e;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("certificate deactivation failed", e);
+        }
+    }
+
+    /**
      * Import a cert from given bytes. If importing an existing cert from a token use
      * {@link #importCertificateFromToken(String hash)}
      * @param certificateBytes
@@ -384,6 +445,36 @@ public class TokenCertificateService {
             WrongCertificateUsageException, ClientNotFoundException, CsrNotFoundException,
             AuthCertificateNotSupportedException {
         return importCertificate(certificateBytes, false);
+    }
+
+    /**
+     * Check user authority to the given certificate
+     *
+     * @param certificateBytes
+     * @throws InvalidCertificateException
+     * @throws AccessDeniedException
+     */
+    public void verifyActivateDisableAuthority(byte[] certificateBytes) throws InvalidCertificateException,
+            AccessDeniedException {
+        X509Certificate x509Certificate = null;
+        try {
+            x509Certificate = CryptoUtils.readCertificate(certificateBytes);
+        } catch (Exception e) {
+            throw new InvalidCertificateException("cannot convert bytes to certificate", e);
+        }
+
+        try {
+            boolean isAuthCert = CertUtils.isAuthCert(x509Certificate);
+            if (isAuthCert) {
+                verifyAuthority("ACTIVATE_DISABLE_AUTH_CERT");
+            } else {
+                verifyAuthority("ACTIVATE_DISABLE_SIGN_CERT");
+            }
+        } catch (AccessDeniedException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("error in checking authority to the certificate", e);
+        }
     }
 
     /**
@@ -673,6 +764,18 @@ public class TokenCertificateService {
             super(t, new ErrorDeviation(ERROR_CERTIFICATE_WRONG_USAGE));
         }
     }
+
+    /**
+     * Certificate sign request not found
+     */
+    /*
+    public static class CsrNotFoundException extends ServiceException {
+        public static final String ERROR_CSR_NOT_FOUND = "csr_not_found";
+
+        public CsrNotFoundException(Throwable t) {
+            super(t, new ErrorDeviation(ERROR_CSR_NOT_FOUND));
+        }
+    }*/
 
     /**
      * Probably a rare case of when importing an auth cert from an HSM

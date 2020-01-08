@@ -10,9 +10,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-
 import { mapGetters } from 'vuex';
-import { Permissions } from '@/global';
 
 export default Vue.extend({
   components: {},

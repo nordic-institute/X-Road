@@ -67,7 +67,7 @@ final class OpMonitorDaemonDatabaseCtx {
     private static class StringValueTruncator extends EmptyInterceptor {
         private static final long serialVersionUID = 1L;
 
-        private static final String SOAP_FAULT_STRING = "soapFaultString";
+        private static final String SOAP_FAULT_STRING = "faultString";
 
         private static final int FAULT_MAX_LENGTH = 2048;
         private static final int MAX_LENGTH = 255;

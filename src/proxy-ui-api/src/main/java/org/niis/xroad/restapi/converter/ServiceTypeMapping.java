@@ -38,7 +38,8 @@ import java.util.Optional;
 @Getter
 public enum ServiceTypeMapping {
     WSDL(DescriptionType.WSDL, ServiceType.WSDL),
-    REST(DescriptionType.OPENAPI3, ServiceType.REST);
+    OPENAPI3(DescriptionType.OPENAPI3, ServiceType.OPENAPI3),
+    REST(DescriptionType.REST, ServiceType.REST);
 
     private final DescriptionType descriptionType;
     private final ServiceType serviceType;
