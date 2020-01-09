@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -290,13 +291,12 @@ public class ServiceDescriptionService {
             ServiceCodeAlreadyExistsException {
         verifyAuthority("ADD_OPENAPI3");
 
-        // Parse openapi definition
-        OpenApiParser.Result result = null;
-        try {
-            result = openApiParser.parse(url);
-        } catch (OpenApiParser.ParsingException e) {
-            throw e;
+        if (serviceCode == null) {
+            throw new BadRequestException("Missing ServiceCode");
         }
+
+        // Parse openapi definition
+        OpenApiParser.Result result = openApiParser.parse(url);
 
         if (!ignoreWarnings && result.hasWarnings()) {
             WarningDeviation openapiParserWarnings = new WarningDeviation("OpenapiParserWarnings",
@@ -327,12 +327,8 @@ public class ServiceDescriptionService {
                 .map(operation -> new EndpointType(serviceCode, operation.getMethod(), operation.getPath(), true))
                 .collect(Collectors.toList());
 
-        try {
-            checkDuplicateUrl(serviceDescriptionType);
-            checkDuplicateServiceCodes(serviceDescriptionType);
-        } catch (UrlAlreadyExistsException | ServiceCodeAlreadyExistsException e) {
-            throw e;
-        }
+        checkDuplicateUrl(serviceDescriptionType);
+        checkDuplicateServiceCodes(serviceDescriptionType);
 
         // Populate client with new servicedescription and endpoints
         client.getEndpoint().addAll(endpoints);
@@ -350,8 +346,8 @@ public class ServiceDescriptionService {
      */
     private void checkDuplicateUrl(ServiceDescriptionType serviceDescription) throws UrlAlreadyExistsException {
         Boolean hasDuplicates = serviceDescription.getClient().getServiceDescription().stream()
-                .map(other -> !serviceDescription.equals(other) && serviceDescription.getUrl().equals(other.getUrl()))
-                .reduce(false, (prev, curr) -> prev || curr);
+                .anyMatch(other -> !serviceDescription.equals(other) &&
+                        serviceDescription.getUrl().equals(other.getUrl()));
 
         if (hasDuplicates) {
             throw new UrlAlreadyExistsException(serviceDescription.getUrl());
@@ -406,6 +402,10 @@ public class ServiceDescriptionService {
                                                                     String serviceCode) throws
             ClientNotFoundException {
         verifyAuthority("ADD_OPENAPI3");
+
+        if (serviceCode == null) {
+            throw new BadRequestException("Missing ServiceCode");
+        }
 
         ClientType client = clientService.getClient(clientId);
         if (client == null) {

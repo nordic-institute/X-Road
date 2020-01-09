@@ -356,7 +356,7 @@ public class ClientsApiController implements ClientsApi {
         } else if (serviceDescription.getType() == ServiceType.REST) {
             try {
                 addedServiceDescriptionType = serviceDescriptionService.addRestEndpointServiceDescription(clientId,
-                        url, serviceDescription.getRestServiceCode());
+                        url, restServiceCode);
             } catch (ClientNotFoundException e) {
                 throw new ResourceNotFoundException(e);
             }
