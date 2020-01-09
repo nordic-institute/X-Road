@@ -63,6 +63,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -92,6 +93,9 @@ public class KeyServiceTest {
 
     @MockBean
     private TokenService tokenService;
+
+    @MockBean
+    private ManagementRequestSenderService managementRequestSenderService;
 
     // allow all actions
     @MockBean
@@ -195,14 +199,15 @@ public class KeyServiceTest {
     public void deleteKey() throws Exception {
         keyService.deleteKey(AUTH_KEY_ID);
         verify(signerProxyFacade, times(1))
-                .setCertStatus(REGISTERED_AUTH_CERT_ID, CertificateInfo.STATUS_DELINPROG);
-
-        verify(signerProxyFacade, times(1))
                 .deleteKey(AUTH_KEY_ID, true);
         verify(signerProxyFacade, times(1))
                 .deleteKey(AUTH_KEY_ID, false);
+        verify(signerProxyFacade, times(1))
+                .setCertStatus(REGISTERED_AUTH_CERT_ID, CertificateInfo.STATUS_DELINPROG);
+        verify(managementRequestSenderService, times(1))
+                .sendAuthCertDeletionRequest(any());
+        verifyNoMoreInteractions(signerProxyFacade);
 
-        fail("we should verify management request sending for unregister (but cant yet)");
         try {
             keyService.deleteKey(KEY_NOT_FOUND_KEY_ID);
             fail("should throw exception");

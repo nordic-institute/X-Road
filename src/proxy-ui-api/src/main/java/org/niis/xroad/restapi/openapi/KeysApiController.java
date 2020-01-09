@@ -45,6 +45,7 @@ import org.niis.xroad.restapi.service.CertificateProfileInstantiationException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.CsrNotFoundException;
 import org.niis.xroad.restapi.service.DnFieldHelper;
+import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.KeyService;
 import org.niis.xroad.restapi.service.PossibleActionEnum;
@@ -211,6 +212,8 @@ public class KeysApiController implements KeysApi {
             throw new ResourceNotFoundException(e);
         } catch (ActionNotPossibleException e) {
             throw new ConflictException(e);
+        } catch (GlobalConfService.GlobalConfOutdatedException e) {
+            throw new BadRequestException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

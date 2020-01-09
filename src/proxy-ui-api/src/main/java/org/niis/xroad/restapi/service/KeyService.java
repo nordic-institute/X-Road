@@ -57,16 +57,19 @@ public class KeyService {
     private final SignerProxyFacade signerProxyFacade;
     private final TokenService tokenService;
     private final PossibleActionsRuleEngine possibleActionsRuleEngine;
+    private final ManagementRequestSenderService managementRequestSenderService;
 
     /**
      * KeyService constructor
      */
     @Autowired
     public KeyService(TokenService tokenService, SignerProxyFacade signerProxyFacade,
-            PossibleActionsRuleEngine possibleActionsRuleEngine) {
+            PossibleActionsRuleEngine possibleActionsRuleEngine,
+            ManagementRequestSenderService managementRequestSenderService) {
         this.tokenService = tokenService;
         this.signerProxyFacade = signerProxyFacade;
         this.possibleActionsRuleEngine = possibleActionsRuleEngine;
+        this.managementRequestSenderService = managementRequestSenderService;
     }
 
     /**
@@ -176,8 +179,11 @@ public class KeyService {
      * @param keyId
      * @throws ActionNotPossibleException if delete was not possible for the key
      * @throws KeyNotFoundException if key with given id was not found
+     * @throws org.niis.xroad.restapi.service.GlobalConfService.GlobalConfOutdatedException
+     * if global conf was outdated
      */
-    public void deleteKey(String keyId) throws KeyNotFoundException, ActionNotPossibleException {
+    public void deleteKey(String keyId) throws KeyNotFoundException, ActionNotPossibleException,
+            GlobalConfService.GlobalConfOutdatedException {
         TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
         KeyInfo keyInfo = getKey(tokenInfo, keyId);
 
@@ -199,24 +205,30 @@ public class KeyService {
             for (CertificateInfo certificateInfo: keyInfo.getCerts()) {
                 if (certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGINPROG)
                     || certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED)) {
-                    // TO DO: this permission should be checked by the service
-                    // which sends the request?
+
+                    // this permission is not checked by unregisterCertificate()
                     verifyAuthority("SEND_AUTH_CERT_DEL_REQ");
-                    // TO DO: cannot send the request yet, as 771 is not done yet
-                    // unregister_cert(cert.certificateBytes)
+
+                    // do not use tokenCertificateService.unregisterAuthCert because
+                    // - it does a bit of extra work to what we need (and makes us do extra work)
+                    // - we do not want to solve circular dependency KeyService <-> TokenCertificateService
 
                     try {
+                        // management request to unregister / delete
+                        managementRequestSenderService.sendAuthCertDeletionRequest(
+                                certificateInfo.getCertificateBytes());
+                        // update status
                         signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
-                    } catch (CodedException e) {
+                    } catch (GlobalConfService.GlobalConfOutdatedException | CodedException e) {
                         throw e;
-                    } catch (Exception other) {
-                        throw new RuntimeException("set cert status failed", other);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Could not unregister auth cert", e);
                     }
                 }
             }
         }
 
-        // delete key needs to be done twice. First call deletes certs / csrs
+        // delete key needs to be done twice. First call deletes the certs & csrs
         try {
             signerProxyFacade.deleteKey(keyId, false);
             signerProxyFacade.deleteKey(keyId, true);
