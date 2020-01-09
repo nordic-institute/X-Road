@@ -4340,11 +4340,18 @@ components:
           example: https://domain.com/service
           minLength: 1
           maxLength: 255
-        rest_service_code:
+        original_rest_service_code:
           type: string
           format: text
-          description: service code for REST service
-          example: exampleServiceCode
+          description: original service code for REST service
+          example: oldExampleServiceCode
+          minLength: 1
+          maxLength: 255
+        new_rest_service_code:
+          type: string
+          format: test
+          description: new service code for REST service
+          example: newExampleServiceCode
           minLength: 1
           maxLength: 255
         ignore_warnings:

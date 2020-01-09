@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -335,6 +336,7 @@ public class ServiceDescriptionServiceIntegrationTest {
 
     /**
      * Assert servicedescription contains the given codes. Checks codes only, no versions
+     *
      * @param serviceDescriptionType
      */
     private void assertServiceCodes(ServiceDescriptionType serviceDescriptionType, String... expectedCodes) {
@@ -362,7 +364,7 @@ public class ServiceDescriptionServiceIntegrationTest {
         ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
 
         // 2 as set in data.sql
-        assertEquals(3, clientType.getEndpoint().size());
+        assertEquals(6, clientType.getEndpoint().size());
         assertTrue(clientType.getEndpoint()
                 .stream()
                 .map(EndpointType::getServiceCode)
@@ -376,7 +378,7 @@ public class ServiceDescriptionServiceIntegrationTest {
         clientType = clientService.getClient(CLIENT_ID_SS1);
 
         // 3 new endpoints saved: xroadSmallAttachment and xroadBigAttachment and xroadGetRandom
-        assertEquals(6, clientType.getEndpoint().size());
+        assertEquals(9, clientType.getEndpoint().size());
         assertTrue(clientType.getEndpoint()
                 .stream()
                 .map(EndpointType::getServiceCode)
@@ -389,7 +391,7 @@ public class ServiceDescriptionServiceIntegrationTest {
     public void updateWsdlServiceDescriptionAndCheckEndpoints() throws Exception {
         ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
 
-        assertEquals(3, clientType.getEndpoint().size());
+        assertEquals(6, clientType.getEndpoint().size());
         assertTrue(clientType.getEndpoint()
                 .stream()
                 .map(EndpointType::getServiceCode)
@@ -403,7 +405,7 @@ public class ServiceDescriptionServiceIntegrationTest {
 
         clientType = clientService.getClient(CLIENT_ID_SS1);
 
-        assertEquals(3, clientType.getEndpoint().size());
+        assertEquals(6, clientType.getEndpoint().size());
         assertTrue(clientType.getEndpoint()
                 .stream()
                 .map(EndpointType::getServiceCode)
@@ -415,7 +417,7 @@ public class ServiceDescriptionServiceIntegrationTest {
     public void removeWsdlServiceDescriptionAndCheckEndpoints() throws Exception {
         ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
 
-        assertEquals(3, clientType.getEndpoint().size());
+        assertEquals(6, clientType.getEndpoint().size());
         assertTrue(clientType.getEndpoint()
                 .stream()
                 .map(EndpointType::getServiceCode)
@@ -428,14 +430,14 @@ public class ServiceDescriptionServiceIntegrationTest {
 
         clientType = clientService.getClient(CLIENT_ID_SS1);
 
-        assertEquals(1, clientType.getEndpoint().size());
+        assertEquals(4, clientType.getEndpoint().size());
     }
 
     @Test
     public void refreshWsdlServiceDescriptionAndCheckEndpoints() throws Exception {
         ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
 
-        assertEquals(3, clientType.getEndpoint().size());
+        assertEquals(6, clientType.getEndpoint().size());
         assertTrue(clientType.getEndpoint()
                 .stream()
                 .map(EndpointType::getServiceCode)
@@ -457,7 +459,7 @@ public class ServiceDescriptionServiceIntegrationTest {
 
         clientType = clientService.getClient(CLIENT_ID_SS1);
 
-        assertEquals(5, clientType.getEndpoint().size());
+        assertEquals(8, clientType.getEndpoint().size());
         assertTrue(clientType.getEndpoint()
                 .stream()
                 .map(EndpointType::getServiceCode)
@@ -465,4 +467,46 @@ public class ServiceDescriptionServiceIntegrationTest {
                 .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME, XROAD_GET_RANDOM_SERVICECODE,
                         BMI_SERVICE)));
     }
+
+    @Test
+    @WithMockUser(authorities = "EDIT_OPENAPI3")
+    public void updateRestServiceDescriptionSuccess() throws Exception {
+        final String originalServiceCode = "rest-servicecode";
+        final String newServiceCode = "new-rest-servicecode";
+
+        ClientType client = clientService.getClient(CLIENT_ID_SS1);
+        ServiceDescriptionType serviceDescription = serviceDescriptionService.getServiceDescriptiontype(5L);
+
+        assertEquals(3, getEndpointWithServiceCodeCount(client, originalServiceCode));
+        assertTrue(serviceDescriptionContainsServiceWithServiceCode(serviceDescription, originalServiceCode));
+
+        serviceDescriptionService.updateRestServiceDescription(5L, "https://restservice.com/api/v1/nosuchservice",
+                originalServiceCode, newServiceCode);
+
+        assertEquals(3, getEndpointWithServiceCodeCount(client, newServiceCode));
+        assertTrue(serviceDescriptionContainsServiceWithServiceCode(serviceDescription, newServiceCode));
+
+        assertEquals(0, getEndpointWithServiceCodeCount(client, originalServiceCode));
+        assertFalse(serviceDescriptionContainsServiceWithServiceCode(serviceDescription, originalServiceCode));
+    }
+
+    private boolean serviceDescriptionContainsServiceWithServiceCode(ServiceDescriptionType serviceDescription,
+                                                                     String serviceCode) {
+        return serviceDescription.getService().stream()
+                .map(s -> s.getServiceCode())
+                .collect(Collectors.toList())
+                .contains(serviceCode);
+    }
+
+    private int getEndpointWithServiceCodeCount(ClientType client, String serviceCode) {
+        return client.getEndpoint().stream()
+                .map(e -> e.getServiceCode())
+                .filter(sc -> serviceCode.equals(sc))
+                .collect(Collectors.toList())
+                .size();
+    }
+
+
+
+
 }

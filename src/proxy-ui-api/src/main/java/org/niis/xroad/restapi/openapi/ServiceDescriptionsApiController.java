@@ -70,6 +70,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
 
     /**
      * ServiceDescriptionsApiController constructor
+     *
      * @param serviceDescriptionService
      * @param serviceDescriptionConverter
      * @param serviceConverter
@@ -77,8 +78,8 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
 
     @Autowired
     public ServiceDescriptionsApiController(ServiceDescriptionService serviceDescriptionService,
-            ServiceDescriptionConverter serviceDescriptionConverter,
-            ServiceConverter serviceConverter) {
+                                            ServiceDescriptionConverter serviceDescriptionConverter,
+                                            ServiceConverter serviceConverter) {
         this.serviceDescriptionService = serviceDescriptionService;
         this.serviceDescriptionConverter = serviceDescriptionConverter;
         this.serviceConverter = serviceConverter;
@@ -99,7 +100,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     @Override
     @PreAuthorize("hasAuthority('ENABLE_DISABLE_WSDL')")
     public ResponseEntity<Void> disableServiceDescription(String id,
-            ServiceDescriptionDisabledNotice serviceDescriptionDisabledNotice) {
+                                                    ServiceDescriptionDisabledNotice serviceDescriptionDisabledNotice) {
         String disabledNotice = null;
         if (serviceDescriptionDisabledNotice != null) {
             disabledNotice = serviceDescriptionDisabledNotice.getDisabledNotice();
@@ -129,7 +130,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     @Override
     @PreAuthorize("hasAnyAuthority('EDIT_WSDL', 'EDIT_OPENAPI3', 'EDIT_REST')")
     public ResponseEntity<ServiceDescription> updateServiceDescription(String id,
-            ServiceDescriptionUpdate serviceDescriptionUpdate) {
+                                                                   ServiceDescriptionUpdate serviceDescriptionUpdate) {
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
         ServiceDescription serviceDescription;
         if (serviceDescriptionUpdate.getType() == ServiceType.WSDL) {
@@ -139,8 +140,8 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
                         serviceDescriptionId, serviceDescriptionUpdate.getUrl(),
                         serviceDescriptionUpdate.getIgnoreWarnings());
             } catch (WsdlParser.WsdlNotFoundException | UnhandledWarningsException
-                             | InvalidUrlException | InvalidWsdlException
-                             | ServiceDescriptionService.WrongServiceDescriptionTypeException e) {
+                    | InvalidUrlException | InvalidWsdlException
+                    | ServiceDescriptionService.WrongServiceDescriptionTypeException e) {
                 throw new BadRequestException(e);
             } catch (ServiceDescriptionService.ServiceAlreadyExistsException
                     | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
@@ -160,8 +161,9 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
             return new ResponseEntity(HttpStatus.NOT_IMPLEMENTED);
         } else if (serviceDescriptionUpdate.getType() == ServiceType.REST) {
             ServiceDescriptionType updatedServiceDescription = null;
-                updatedServiceDescription = serviceDescriptionService.updateRestServiceDescription(serviceDescriptionId,
-                    serviceDescriptionUpdate.getUrl(), serviceDescriptionUpdate.getRestServiceCode());
+            updatedServiceDescription = serviceDescriptionService.updateRestServiceDescription(serviceDescriptionId,
+                    serviceDescriptionUpdate.getUrl(), serviceDescriptionUpdate.getOriginalRestServiceCode(),
+                    serviceDescriptionUpdate.getNewRestServiceCode());
             serviceDescription = serviceDescriptionConverter.convert(updatedServiceDescription);
         } else {
             throw new BadRequestException("ServiceType not recognized");
@@ -179,8 +181,8 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
                     serviceDescriptionService.refreshServiceDescription(serviceDescriptionId,
                             ignoreWarnings.getIgnoreWarnings()));
         } catch (WsdlParser.WsdlNotFoundException | UnhandledWarningsException
-                                     | InvalidUrlException | InvalidWsdlException
-                                     | ServiceDescriptionService.WrongServiceDescriptionTypeException e) {
+                | InvalidUrlException | InvalidWsdlException
+                | ServiceDescriptionService.WrongServiceDescriptionTypeException e) {
             throw new BadRequestException(e);
         } catch (ServiceDescriptionService.ServiceAlreadyExistsException
                 | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {

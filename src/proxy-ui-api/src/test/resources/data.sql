@@ -67,7 +67,7 @@ INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, T
 values (2, 1, 'calculatePrime', 'v1', null, 'https://soapservice.com/v1/Endpoint', false, 60);
 
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
-values (3, 2, 'test-rest-servicecode', 'v1', null, 'https://restservice.com/api/v1', true, 60);
+values (3, 2, 'openapi-servicecode', 'v1', null, 'https://restservice.com/api/v1', true, 60);
 
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
 values (4, 3, 'xroadGetRandomOld', 'v1', null, 'http://xroad-lxd-web.lxd:8088/xroadGetRandom', true, 60);
@@ -79,7 +79,7 @@ INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, T
 values (6, 1, 'getRandom', 'v2', 'getrandom-v2-title', 'https://soapservice.com/v1/Endpoint', true, 60);
 
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
-values (7, 5, 'testServiceCode', 'v1', null, 'https://restservice.com/api/v1/nosuchservice', false, 60);
+values (7, 5, 'rest-servicecode', 'v1', null, 'https://restservice.com/api/v1/nosuchservice', false, 60);
 
 
 
@@ -93,7 +93,16 @@ INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
 values (3, 2, 'calculatePrime', '*', '**', true);
 
 INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
-values (4, 2, 'testServiceCode', '*', '**', true);
+values (4, 2, 'openapi-servicecode', '*', '**', true);
+
+INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
+values (5, 2, 'rest-servicecode', '*', '**', true);
+
+INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
+values (6, 2, 'rest-servicecode', '*', '/item', false);
+
+INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
+values (7, 2, 'rest-servicecode', 'DELETE', '/item', false);
 
 
 
