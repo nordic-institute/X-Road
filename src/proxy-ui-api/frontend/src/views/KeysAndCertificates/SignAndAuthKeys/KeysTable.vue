@@ -32,12 +32,11 @@
       </template>
 
       <tbody v-for="key in keys" v-bind:key="key.id">
-
         <!-- SOFTWARE token table body -->
         <template v-if="tokenType === 'SOFTWARE'">
           <tr>
             <div class="name-wrap-top">
-              <v-icon class="icon" @click="keyClick(key)">mdi-key-outline</v-icon>
+              <i class="icon-xrd_key icon" @click="keyClick(key)"></i>
               <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
             </div>
             <td class="no-border"></td>
@@ -57,7 +56,7 @@
           <tr v-for="cert in key.certificates" v-bind:key="cert.id">
             <td class="td-name">
               <div class="name-wrap">
-                <v-icon class="icon" @click="certificateClick(cert)">mdi-file-document-outline</v-icon>
+                <i class="icon-xrd_certificate icon" @click="certificateClick(cert)"></i>
                 <div
                   class="clickable-link"
                   @click="certificateClick(cert)"
@@ -78,7 +77,7 @@
         <template v-if="tokenType === 'HARDWARE'">
           <tr>
             <div class="name-wrap-top">
-              <v-icon class="icon" @click="keyClick(key)">mdi-key-outline</v-icon>
+              <i class="icon-xrd_key icon" @click="keyClick(key)"></i>
               <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
             </div>
             <td class="no-border"></td>
@@ -99,7 +98,7 @@
           <tr v-for="cert in key.certificates" v-bind:key="cert.id">
             <td class="td-name">
               <div class="name-wrap">
-                <v-icon class="icon" @click="certificateClick(cert)">mdi-file-document-outline</v-icon>
+                <i class="icon-xrd_certificate icon" @click="certificateClick(cert)"></i>
                 <div
                   class="clickable-link"
                   @click="certificateClick(cert)"
