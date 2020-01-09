@@ -22,16 +22,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package org.niis.xroad.restapi.converter;
+
+import com.google.common.collect.Streams;
+import org.niis.xroad.restapi.openapi.model.PossibleAction;
+import org.niis.xroad.restapi.service.PossibleActionEnum;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * different state change actions
+ * Converts PossibleAction items.
  */
-public enum StateChangeActionEnum {
-    DELETE,
-    ACTIVATE,
-    DISABLE,
-    REGISTER,
-    UNREGISTER,
-    IMPORT_FROM_TOKEN
+@Component
+public class PossibleActionConverter {
+
+    public List<PossibleAction> convert(
+            Iterable<PossibleActionEnum> actionEnums) {
+        return Streams.stream(actionEnums)
+                       .map(this::convert)
+                       .collect(Collectors.toList());
+    }
+
+    public PossibleAction convert(PossibleActionEnum possibleActionEnum) {
+        return PossibleActionMapping.map(possibleActionEnum).get();
+    }
 }

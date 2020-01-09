@@ -127,7 +127,7 @@ public class TokenCertificateServiceTest {
     @MockBean
     private CertificateAuthorityService certificateAuthorityService;
 
-    @MockBean
+    @SpyBean
     private KeyService keyService;
 
     @MockBean
@@ -140,7 +140,7 @@ public class TokenCertificateServiceTest {
     private ClientRepository clientRepository;
 
     @SpyBean
-    private StateChangeActionHelper stateChangeActionHelper;
+    private PossibleActionsRuleEngine possibleActionsRuleEngine;
 
     @MockBean
     private TokenService tokenService;
@@ -200,6 +200,7 @@ public class TokenCertificateServiceTest {
         mockGetCertForHash();
         mockDeleteCert();
         mockDeleteCertRequest();
+        mockGetTokenForKeyId(tokenInfo);
         // activate / deactivate
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
@@ -221,8 +222,24 @@ public class TokenCertificateServiceTest {
         }).when(signerProxyFacade).activateCert(eq("certID"));
 
         // by default all actions are possible
-        doReturn(EnumSet.allOf(StateChangeActionEnum.class)).when(stateChangeActionHelper)
+        doReturn(EnumSet.allOf(PossibleActionEnum.class)).when(possibleActionsRuleEngine)
                 .getPossibleCertificateActions(any(), any(), any());
+    }
+
+    private void mockGetTokenForKeyId(TokenInfo tokenInfo) throws KeyNotFoundException {
+        doAnswer(invocation -> {
+            String keyId = (String) invocation.getArguments()[0];
+            switch (keyId) {
+                case AUTH_KEY_ID:
+                    return tokenInfo;
+                case SIGN_KEY_ID:
+                    return tokenInfo;
+                case GOOD_KEY_ID:
+                    return tokenInfo;
+                default:
+                    throw new KeyNotFoundException("unknown keyId: " + keyId);
+            }
+        }).when(tokenService).getTokenForKeyId(any());
     }
 
     private void mockDeleteCertRequest() throws Exception {
@@ -398,8 +415,8 @@ public class TokenCertificateServiceTest {
     @Test(expected = ActionNotPossibleException.class)
     @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
     public void deleteCertificateActionNotPossible() throws Exception {
-        EnumSet empty = EnumSet.noneOf(StateChangeActionEnum.class);
-        doReturn(empty).when(stateChangeActionHelper).getPossibleCertificateActions(any(), any(), any());
+        EnumSet empty = EnumSet.noneOf(PossibleActionEnum.class);
+        doReturn(empty).when(possibleActionsRuleEngine).getPossibleCertificateActions(any(), any(), any());
         tokenCertificateService.deleteCertificate(EXISTING_CERT_HASH);
     }
 
@@ -483,8 +500,8 @@ public class TokenCertificateServiceTest {
     @Test(expected = ActionNotPossibleException.class)
     @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
     public void deleteCsrActionNotPossible() throws Exception {
-        doReturn(EnumSet.noneOf(StateChangeActionEnum.class)).when(stateChangeActionHelper)
-                .getPossibleCsrActions(any(), any(), any());
+        doReturn(EnumSet.noneOf(PossibleActionEnum.class)).when(possibleActionsRuleEngine)
+                .getPossibleCsrActions(any());
         tokenCertificateService.deleteCsr(GOOD_CSR_ID);
     }
 

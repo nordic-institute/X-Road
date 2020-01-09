@@ -22,42 +22,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.converter;
+package ee.ria.xroad.signer.protocol.message;
 
-import org.junit.Test;
-import org.niis.xroad.restapi.openapi.model.StateChangeAction;
-import org.niis.xroad.restapi.service.StateChangeActionEnum;
+import lombok.Value;
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import java.io.Serializable;
 
 /**
- * test StateChangeActionConverter
+ * Signer API message.
  */
-public class StateChangeActionConverterTest {
+@Value
+public class GetTokenInfoForKeyId implements Serializable {
 
-    @Test
-    public void enumsAreInSync() {
-        // test to verify openapi and service layer enums contain same items
-        Set<String> openApiEnumNames = Arrays.stream(StateChangeAction.values())
-                .map(Enum::name)
-                .collect(Collectors.toSet());
-        Set<String> serviceEnumNames = Arrays.stream(StateChangeActionEnum.values())
-                .map(Enum::name)
-                .collect(Collectors.toSet());
-        assertEquals(openApiEnumNames.size(), serviceEnumNames.size());
-        assertTrue(openApiEnumNames.containsAll(serviceEnumNames));
-    }
-
-    @Test
-    public void convert() {
-        StateChangeAction converted = new StateChangeActionConverter()
-                .convert(StateChangeActionEnum.IMPORT_FROM_TOKEN);
-        assertEquals(StateChangeAction.IMPORT_FROM_TOKEN, converted);
-    }
+    private final String keyId;
 
 }

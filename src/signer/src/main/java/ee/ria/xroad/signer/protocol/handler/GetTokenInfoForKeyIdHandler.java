@@ -22,31 +22,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.converter;
+package ee.ria.xroad.signer.protocol.handler;
 
-import com.google.common.collect.Streams;
-import org.niis.xroad.restapi.openapi.model.StateChangeAction;
-import org.niis.xroad.restapi.service.StateChangeActionEnum;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.message.GetTokenInfoForKeyId;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
 /**
- * Converts state change action items.
- * Converts purely based on enum names, since we manage both items
+ * Handles requests for TokenInfo based on key id.
  */
-@Component
-public class StateChangeActionConverter {
+public class GetTokenInfoForKeyIdHandler
+        extends AbstractRequestHandler<GetTokenInfoForKeyId> {
 
-    public List<StateChangeAction> convert(
-            Iterable<StateChangeActionEnum> actionEnums) {
-        return Streams.stream(actionEnums)
-                       .map(this::convert)
-                       .collect(Collectors.toList());
+    @Override
+    protected Object handle(GetTokenInfoForKeyId message) throws Exception {
+        TokenInfo tokenInfo = TokenManager.findTokenInfoForKeyId(message.getKeyId());
+        return tokenInfo;
     }
 
-    public StateChangeAction convert(StateChangeActionEnum stateChangeActionEnum) {
-        return StateChangeAction.fromValue(stateChangeActionEnum.toString());
-    }
 }

@@ -77,9 +77,14 @@ public class KeyServiceTest {
     @MockBean
     private TokenService tokenService;
 
+    // allow all actions
+    @MockBean
+    PossibleActionsRuleEngine possibleActionsRuleEngine;
+
     @Before
     public void setup() throws Exception {
-        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder().friendlyName("good-token").build();
+        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
+                .friendlyName("good-token").build();
 
         KeyInfo mockKey = new KeyInfoBuilder().id(GOOD_KEY_ID).build();
         tokenInfo.getKeyInfo().add(mockKey);
@@ -94,6 +99,13 @@ public class KeyServiceTest {
             ReflectionTestUtils.setField(mockKey, "friendlyName", newKeyName);
             return null;
         }).when(signerProxyFacade).setKeyFriendlyName(any(), any());
+        doAnswer(invocation -> {
+            if (GOOD_KEY_ID.equals(invocation.getArguments()[0])) {
+                return tokenInfo;
+            } else {
+                throw new KeyNotFoundException("");
+            }
+        }).when(tokenService).getTokenForKeyId(any());
     }
 
     @Test

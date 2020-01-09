@@ -22,52 +22,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.protocol.dto;
-
-import lombok.Value;
-
-import java.io.Serializable;
-import java.util.List;
+package org.niis.xroad.restapi.service;
 
 /**
- * Tiny container class to help handle the key list
+ * List of actions that can be possible / not possible for tokens, keys,
+ * certs and csrs.
+ *
+ * Uses service / core naming. Token logout is "deactivate" instead of "logout".
  */
-@Value
-public final class KeyInfo implements Serializable {
-
-    private final boolean available;
-
-    private final KeyUsageInfo usage;
-
-    private final String friendlyName;
-
-    private final String id;
-
-    private final String label;
-
-    private final String publicKey;
-
-    private final List<CertificateInfo> certs;
-
-    private final List<CertRequestInfo> certRequests;
-
-    private final String signMechanismName;
-
-    public boolean isForSigning() {
-        return usage == KeyUsageInfo.SIGNING;
-    }
-
-    /**
-     * Logic to determine if a token is saved to configuration.
-     * True if there are some cert requests, or there is at least one certificate which is saved to configuration.
-     * (logic originally from token_renderer.rb#key_saved_to_configuration)
-     */
-    public boolean isSavedToConfiguration() {
-        if (!certRequests.isEmpty()) {
-            return true;
-        }
-        return certs.stream()
-                .anyMatch(certificateInfo -> certificateInfo.isSavedToConfiguration());
-
-    }
+public enum PossibleActionEnum {
+    DELETE,
+    ACTIVATE,
+    DISABLE, // cert
+    TOKEN_ACTIVATE,
+    TOKEN_DEACTIVATE, // token
+    REGISTER,
+    UNREGISTER,
+    IMPORT_FROM_TOKEN,
+    GENERATE_KEY,
+    EDIT_FRIENDLY_NAME,
+    GENERATE_AUTH_CSR,
+    GENERATE_SIGN_CSR,
 }

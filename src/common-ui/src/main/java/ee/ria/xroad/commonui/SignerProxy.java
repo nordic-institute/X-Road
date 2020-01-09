@@ -49,6 +49,7 @@ import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHashResponse;
 import ee.ria.xroad.signer.protocol.message.GetTokenInfo;
 import ee.ria.xroad.signer.protocol.message.GetTokenInfoAndKeyIdForCertHash;
 import ee.ria.xroad.signer.protocol.message.GetTokenInfoAndKeyIdForCertRequestId;
+import ee.ria.xroad.signer.protocol.message.GetTokenInfoForKeyId;
 import ee.ria.xroad.signer.protocol.message.ImportCert;
 import ee.ria.xroad.signer.protocol.message.ImportCertResponse;
 import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
@@ -384,6 +385,26 @@ public final class SignerProxy {
         log.trace("Token and key id with cert request id '{}' found", certRequestId);
 
         return response;
+    }
+
+    /**
+     * Gets information about the token which has the specified key.
+     * @param keyId id of the key
+     * @return TokenInfo
+     * @throws Exception if any errors occur
+     */
+    public static TokenInfo getTokenForKeyId(String keyId) throws Exception {
+        return execute(new GetTokenInfoForKeyId(keyId));
+    }
+
+
+    /**
+     * @throws IllegalArgumentException if parameter was not a lowercase string
+     */
+    private static void checkLowerCase(String s) {
+        if (s == null || !s.toLowerCase().equals(s)) {
+            throw new IllegalArgumentException(s + " should be a lowerCase string");
+        }
     }
 
     private static <T> T execute(Object message) throws Exception {

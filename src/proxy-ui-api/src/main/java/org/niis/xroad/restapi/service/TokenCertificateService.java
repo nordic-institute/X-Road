@@ -96,7 +96,7 @@ public class TokenCertificateService {
     private final CertificateAuthorityService certificateAuthorityService;
     private final KeyService keyService;
     private final DnFieldHelper dnFieldHelper;
-    private final StateChangeActionHelper stateChangeActionHelper;
+    private final PossibleActionsRuleEngine possibleActionsRuleEngine;
     private final TokenService tokenService;
 
     @Autowired
@@ -106,7 +106,7 @@ public class TokenCertificateService {
             GlobalConfService globalConfService,
             GlobalConfFacade globalConfFacade,
             ClientRepository clientRepository,
-            StateChangeActionHelper stateChangeActionHelper,
+            PossibleActionsRuleEngine possibleActionsRuleEngine,
             TokenService tokenService) {
 
         this.signerProxyFacade = signerProxyFacade;
@@ -118,7 +118,7 @@ public class TokenCertificateService {
         this.globalConfFacade = globalConfFacade;
         this.clientRepository = clientRepository;
         this.tokenService = tokenService;
-        this.stateChangeActionHelper = stateChangeActionHelper;
+        this.possibleActionsRuleEngine = possibleActionsRuleEngine;
     }
 
     /**
@@ -138,6 +138,7 @@ public class TokenCertificateService {
      * were some extra parameters
      * @throws KeyNotFoundException
      * @throws CsrCreationFailureException when signer could not create CSR for some reason.
+     * @throws ActionNotPossibleException if generate csr was not possible for this key
      * Subclass {@link KeyNotOperationalException} when the reason is key not being operational.
      */
     public byte[] generateCertRequest(String keyId, ClientId memberId, KeyUsageInfo keyUsage,
@@ -145,10 +146,11 @@ public class TokenCertificateService {
             throws CertificateAuthorityNotFoundException, ClientNotFoundException,
             CertificateProfileInstantiationException, WrongKeyUsageException,
             KeyNotFoundException, CsrCreationFailureException,
-            DnFieldHelper.InvalidDnParameterException {
+            DnFieldHelper.InvalidDnParameterException, ActionNotPossibleException {
 
         // validate key and memberId existence
-        KeyInfo key = keyService.getKey(keyId);
+        TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
+        KeyInfo key = keyService.getKey(tokenInfo, keyId);
 
         if (keyUsage == KeyUsageInfo.SIGNING) {
             // validate that the member exists or has a subsystem on this server
@@ -162,6 +164,15 @@ public class TokenCertificateService {
             if (key.getUsage() != keyUsage) {
                 throw new WrongKeyUsageException();
             }
+        }
+
+        // validate that generate csr is possible
+        if (keyUsage == KeyUsageInfo.SIGNING) {
+            possibleActionsRuleEngine.requirePossibleKeyAction(PossibleActionEnum.GENERATE_SIGN_CSR,
+                    tokenInfo, key);
+        } else {
+            possibleActionsRuleEngine.requirePossibleKeyAction(PossibleActionEnum.GENERATE_AUTH_CSR,
+                    tokenInfo, key);
         }
 
         CertificateProfileInfo profile = certificateAuthorityService.getCertificateProfile(caName, keyUsage, memberId);
@@ -301,10 +312,10 @@ public class TokenCertificateService {
             CertificateAlreadyExistsException, WrongCertificateUsageException, ClientNotFoundException,
             CsrNotFoundException, AuthCertificateNotSupportedException, ActionNotPossibleException {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
-        EnumSet<StateChangeActionEnum> possibleActions =
+        EnumSet<PossibleActionEnum> possibleActions =
                 getPossibleActionsForCertificateInternal(hash, certificateInfo, null, null);
-        stateChangeActionHelper.requirePossibleAction(
-                StateChangeActionEnum.IMPORT_FROM_TOKEN, possibleActions);
+        possibleActionsRuleEngine.requirePossibleAction(
+                PossibleActionEnum.IMPORT_FROM_TOKEN, possibleActions);
         return importCertificate(certificateInfo.getCertificateBytes(), true);
     }
 
@@ -556,7 +567,7 @@ public class TokenCertificateService {
      * @return
      * @throws CertificateNotFoundException
      */
-    public EnumSet<StateChangeActionEnum> getPossibleActionsForCertificate(String hash)
+    public EnumSet<PossibleActionEnum> getPossibleActionsForCertificate(String hash)
             throws CertificateNotFoundException {
         return getPossibleActionsForCertificateInternal(hash, null, null, null);
     }
@@ -567,7 +578,7 @@ public class TokenCertificateService {
      * since them happening is considered to be internal error.
      * @throws CertificateNotFoundException
      */
-    public EnumSet<StateChangeActionEnum> getPossibleActionsForCsr(
+    public EnumSet<PossibleActionEnum> getPossibleActionsForCsr(
             String csrId) throws CsrNotFoundException {
 
         TokenInfoAndKeyId tokenInfoAndKeyId = null;
@@ -580,8 +591,8 @@ public class TokenCertificateService {
         KeyInfo keyInfo = tokenInfoAndKeyId.getKeyInfo();
         CertRequestInfo certRequestInfo = getCsr(keyInfo, csrId);
 
-        EnumSet<StateChangeActionEnum> possibleActions = stateChangeActionHelper.
-                getPossibleCsrActions(tokenInfo, keyInfo, certRequestInfo);
+        EnumSet<PossibleActionEnum> possibleActions = possibleActionsRuleEngine.
+                getPossibleCsrActions(tokenInfo);
         return possibleActions;
     }
 
@@ -595,7 +606,7 @@ public class TokenCertificateService {
      * since them happening is considered to be internal error.
      * @throws CertificateNotFoundException
      */
-    private EnumSet<StateChangeActionEnum> getPossibleActionsForCertificateInternal(
+    private EnumSet<PossibleActionEnum> getPossibleActionsForCertificateInternal(
             String hash,
             CertificateInfo certificateInfo,
             KeyInfo keyInfo,
@@ -619,7 +630,7 @@ public class TokenCertificateService {
             throw new RuntimeException("internal error", e);
         }
 
-        EnumSet<StateChangeActionEnum> possibleActions = stateChangeActionHelper.
+        EnumSet<PossibleActionEnum> possibleActions = possibleActionsRuleEngine.
                 getPossibleCertificateActions(tokenInfo, keyInfo, certificateInfo);
         return possibleActions;
     }
@@ -639,10 +650,10 @@ public class TokenCertificateService {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         String keyId = getKeyIdForCertificateHash(hash);
         KeyInfo keyInfo = keyService.getKey(keyId);
-        EnumSet<StateChangeActionEnum> possibleActions =
+        EnumSet<PossibleActionEnum> possibleActions =
                 getPossibleActionsForCertificateInternal(hash, certificateInfo, keyInfo, null);
-        stateChangeActionHelper.requirePossibleAction(
-                StateChangeActionEnum.DELETE, possibleActions);
+        possibleActionsRuleEngine.requirePossibleAction(
+                PossibleActionEnum.DELETE, possibleActions);
 
         if (keyInfo.isForSigning()) {
             verifyAuthority("DELETE_SIGN_CERT");
@@ -706,10 +717,9 @@ public class TokenCertificateService {
             verifyAuthority("DELETE_AUTH_CERT");
         }
 
-        EnumSet<StateChangeActionEnum> possibleActions = stateChangeActionHelper.
-                getPossibleCsrActions(tokenInfo, keyInfo, certRequestInfo);
-        stateChangeActionHelper.requirePossibleAction(
-                StateChangeActionEnum.DELETE, possibleActions);
+        // check that delete is possible
+        possibleActionsRuleEngine.requirePossibleCsrAction(
+            PossibleActionEnum.DELETE, tokenInfo, keyInfo, certRequestInfo);
 
         try {
             signerProxyFacade.deleteCertRequest(csrId);

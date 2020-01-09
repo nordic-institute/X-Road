@@ -30,7 +30,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.KeyUsageType;
-import org.niis.xroad.restapi.service.StateChangeActionHelper;
+import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -45,18 +45,18 @@ public class KeyConverter {
 
     private final TokenCertificateConverter tokenCertificateConverter;
     private final TokenCertificateSigningRequestConverter tokenCsrConverter;
-    private final StateChangeActionHelper stateChangeActionHelper;
-    private final StateChangeActionConverter stateChangeActionConverter;
+    private final PossibleActionsRuleEngine possibleActionsRuleEngine;
+    private final PossibleActionConverter possibleActionConverter;
 
     @Autowired
     public KeyConverter(TokenCertificateConverter tokenCertificateConverter,
             TokenCertificateSigningRequestConverter tokenCsrConverter,
-            StateChangeActionHelper stateChangeActionHelper,
-            StateChangeActionConverter stateChangeActionConverter) {
+            PossibleActionsRuleEngine possibleActionsRuleEngine,
+            PossibleActionConverter possibleActionConverter) {
         this.tokenCertificateConverter = tokenCertificateConverter;
         this.tokenCsrConverter = tokenCsrConverter;
-        this.stateChangeActionHelper = stateChangeActionHelper;
-        this.stateChangeActionConverter = stateChangeActionConverter;
+        this.possibleActionsRuleEngine = possibleActionsRuleEngine;
+        this.possibleActionConverter = possibleActionConverter;
     }
 
     /**
@@ -98,7 +98,7 @@ public class KeyConverter {
         }
 
         key.setAvailable(keyInfo.isAvailable());
-        key.setSavedToConfiguration(isSavedToConfiguration(keyInfo));
+        key.setSavedToConfiguration(keyInfo.isSavedToConfiguration());
 
         if (tokenInfo == null) {
             // without possibleactions
@@ -109,26 +109,12 @@ public class KeyConverter {
             key.setCertificates(tokenCertificateConverter.convert(keyInfo.getCerts(), keyInfo, tokenInfo));
             key.setCertificateSigningRequests(tokenCsrConverter.convert(keyInfo.getCertRequests(), keyInfo, tokenInfo));
 
-            key.setPossibleActions(stateChangeActionConverter.convert(
-                    stateChangeActionHelper.getPossibleKeyActions(
+            key.setPossibleActions(possibleActionConverter.convert(
+                    possibleActionsRuleEngine.getPossibleKeyActions(
                             tokenInfo, keyInfo)));
         }
 
         return key;
-    }
-
-
-    /**
-     * Logic to determine if a key is saved to configuration,
-     * copied from token_renderer.rb#key_saved_to_configuration
-     * @param keyInfo
-     */
-    public boolean isSavedToConfiguration(KeyInfo keyInfo) {
-        if (!keyInfo.getCertRequests().isEmpty()) {
-            return true;
-        }
-        return keyInfo.getCerts().stream()
-                       .anyMatch(certificateInfo -> certificateInfo.isSavedToConfiguration());
     }
 
     /**

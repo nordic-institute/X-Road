@@ -41,8 +41,6 @@ import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
-import static org.niis.xroad.restapi.service.TokenService.isCausedByTokenNotActive;
-import static org.niis.xroad.restapi.service.TokenService.isCausedByTokenNotFound;
 
 /**
  * Service that handles keys
@@ -55,16 +53,17 @@ public class KeyService {
 
     private final SignerProxyFacade signerProxyFacade;
     private final TokenService tokenService;
+    private final PossibleActionsRuleEngine possibleActionsRuleEngine;
 
     /**
      * KeyService constructor
-     * @param tokenService
-     * @param signerProxyFacade
      */
     @Autowired
-    public KeyService(TokenService tokenService, SignerProxyFacade signerProxyFacade) {
+    public KeyService(TokenService tokenService, SignerProxyFacade signerProxyFacade,
+            PossibleActionsRuleEngine possibleActionsRuleEngine) {
         this.tokenService = tokenService;
         this.signerProxyFacade = signerProxyFacade;
+        this.possibleActionsRuleEngine = possibleActionsRuleEngine;
     }
 
     /**
@@ -87,8 +86,33 @@ public class KeyService {
         return keyInfo.get();
     }
 
-    public KeyInfo updateKeyFriendlyName(String id, String friendlyName) throws KeyNotFoundException {
-        KeyInfo keyInfo = null;
+    /**
+     * Finds matching KeyInfo from this TokenInfo, or throws exception
+     * @param tokenInfo token
+     * @param keyId id of a key inside the token
+     * @throws NoSuchElementException if key with keyId was not found
+     */
+    public KeyInfo getKey(TokenInfo tokenInfo, String keyId) {
+        return tokenInfo.getKeyInfo().stream()
+                .filter(k -> k.getId().equals(keyId))
+                .findFirst()
+                .get();
+    }
+
+    /**
+     * Updates key friendly name
+     * @throws KeyNotFoundException if key was not found
+     * @throws ActionNotPossibleException if friendly name could not be updated for this key
+     */
+    public KeyInfo updateKeyFriendlyName(String id, String friendlyName) throws KeyNotFoundException,
+            ActionNotPossibleException {
+
+        // check that updating friendly name is possible
+        TokenInfo tokenInfo = tokenService.getTokenForKeyId(id);
+        KeyInfo keyInfo = getKey(tokenInfo, id);
+        possibleActionsRuleEngine.requirePossibleKeyAction(PossibleActionEnum.EDIT_FRIENDLY_NAME,
+                tokenInfo, keyInfo);
+
         try {
             signerProxyFacade.setKeyFriendlyName(id, friendlyName);
             keyInfo = getKey(id);
@@ -112,21 +136,22 @@ public class KeyService {
      * @param tokenId
      * @param keyLabel
      * @return {@link KeyInfo}
-     * @throws TokenNotFoundException
+     * @throws TokenNotFoundException if token was not found
+     * @throws ActionNotPossibleException if generate key was not possible for this token
      */
     public KeyInfo addKey(String tokenId, String keyLabel) throws TokenNotFoundException,
-            TokenService.TokenNotActiveException {
+            ActionNotPossibleException {
+
+        // check that adding a key is possible
+        TokenInfo tokenInfo = tokenService.getToken(tokenId);
+        possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.GENERATE_KEY,
+                tokenInfo);
+
         KeyInfo keyInfo = null;
         try {
             keyInfo = signerProxyFacade.generateKey(tokenId, keyLabel);
         } catch (CodedException e) {
-            if (isCausedByTokenNotFound(e)) {
-                throw new TokenNotFoundException(e);
-            } else if (isCausedByTokenNotActive(e)) {
-                throw new TokenService.TokenNotActiveException(e);
-            } else {
-                throw e;
-            }
+            throw e;
         } catch (Exception other) {
             throw new RuntimeException("adding a new key failed", other);
         }

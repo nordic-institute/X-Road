@@ -3718,21 +3718,27 @@ components:
         - OCSP_RESPONSE_REVOKED
     PossibleActions: # ok
       type: array
-      description: array containing the possible state change actions for this item
+      description: array containing the possible actions that can be done for this item
       items:
-        $ref: '#/components/schemas/StateChangeAction'
-    StateChangeAction: # ok
+        $ref: '#/components/schemas/PossibleAction'
+    PossibleAction: # ok
       type: string
       format: enum
-      description: action to change state of token, key, cert or csr
-      example: IN_USE
+      description: an action to change state or edit token, key, cert or csr
+      example: DELETE
       enum:
         - DELETE
         - ACTIVATE
         - DISABLE
+        - LOGIN
+        - LOGOUT
         - REGISTER
         - UNREGISTER
         - IMPORT_FROM_TOKEN
+        - GENERATE_KEY
+        - EDIT_FRIENDLY_NAME
+        - GENERATE_AUTH_CSR
+        - GENERATE_SIGN_CSR
     Client: # ok
       type: object
       description: x-road client

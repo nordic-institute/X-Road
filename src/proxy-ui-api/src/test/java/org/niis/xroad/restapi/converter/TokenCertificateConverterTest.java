@@ -35,10 +35,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.CertificateOcspStatus;
-import org.niis.xroad.restapi.openapi.model.StateChangeAction;
+import org.niis.xroad.restapi.openapi.model.PossibleAction;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
-import org.niis.xroad.restapi.service.StateChangeActionEnum;
-import org.niis.xroad.restapi.service.StateChangeActionHelper;
+import org.niis.xroad.restapi.service.PossibleActionEnum;
+import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
 import org.niis.xroad.restapi.util.TokenTestUtils.KeyInfoBuilder;
@@ -68,14 +68,14 @@ public class TokenCertificateConverterTest {
     private TokenCertificateConverter tokenCertificateConverter;
 
     @MockBean
-    private StateChangeActionHelper stateChangeActionHelper;
+    private PossibleActionsRuleEngine possibleActionsRuleEngine;
 
     @Before
     public void setup() {
-        doReturn(EnumSet.of(StateChangeActionEnum.ACTIVATE)).when(stateChangeActionHelper)
+        doReturn(EnumSet.of(PossibleActionEnum.ACTIVATE)).when(possibleActionsRuleEngine)
                 .getPossibleCertificateActions(any(), any(), any());
-        doReturn(EnumSet.of(StateChangeActionEnum.DISABLE)).when(stateChangeActionHelper)
-                .getPossibleCsrActions(any(), any(), any());
+        doReturn(EnumSet.of(PossibleActionEnum.DELETE)).when(possibleActionsRuleEngine)
+                .getPossibleCsrActions(any());
     }
 
     @Test
@@ -88,8 +88,8 @@ public class TokenCertificateConverterTest {
                 .key(keyInfo)
                 .build();
         TokenCertificate certificate = tokenCertificateConverter.convert(certificateInfo, keyInfo, tokenInfo);
-        Collection<StateChangeAction> actions = certificate.getPossibleActions();
-        assertTrue(actions.contains(StateChangeAction.ACTIVATE));
+        Collection<PossibleAction> actions = certificate.getPossibleActions();
+        assertTrue(actions.contains(PossibleAction.ACTIVATE));
         assertEquals(1, actions.size());
     }
 
