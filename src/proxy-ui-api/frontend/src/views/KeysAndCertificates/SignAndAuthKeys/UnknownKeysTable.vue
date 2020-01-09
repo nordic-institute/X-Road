@@ -8,14 +8,13 @@
         </tr>
       </thead>
       <tbody v-for="key in keys" v-bind:key="key.id">
-
         <!-- Key type SOFTWARE -->
         <template v-if="tokenType === 'SOFTWARE'">
           <tr>
             <td>
               <div class="name-wrap">
                 <i class="icon-xrd_key icon" @click="keyClick(key)"></i>
-                <div class="clickable-link" @click="keyClick(key)">{{key.label}}</div>
+                <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
               </div>
             </td>
             <td>
@@ -79,9 +78,7 @@
             </tr>
           </template>
         </template>
-
       </tbody>
-
     </table>
   </div>
 </template>
@@ -193,5 +190,4 @@ export default Vue.extend({
 .hidden {
   visibility: hidden;
 }
-
 </style>
