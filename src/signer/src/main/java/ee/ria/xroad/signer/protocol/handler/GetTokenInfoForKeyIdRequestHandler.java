@@ -32,7 +32,7 @@ import ee.ria.xroad.signer.tokenmanager.TokenManager;
 /**
  * Handles requests for TokenInfo based on key id.
  */
-public class GetTokenInfoForKeyIdHandler
+public class GetTokenInfoForKeyIdRequestHandler
         extends AbstractRequestHandler<GetTokenInfoForKeyId> {
 
     @Override

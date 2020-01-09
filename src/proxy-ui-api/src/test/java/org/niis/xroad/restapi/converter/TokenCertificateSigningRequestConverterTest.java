@@ -64,8 +64,8 @@ public class TokenCertificateSigningRequestConverterTest {
 
     @Before
     public void setup() {
-        doReturn(EnumSet.of(PossibleActionEnum.DISABLE)).when(possibleActionsRuleEngine)
-                .getPossibleCsrActions(any(), any(), any());
+        doReturn(EnumSet.of(PossibleActionEnum.DELETE)).when(possibleActionsRuleEngine)
+                .getPossibleCsrActions(any());
     }
 
 
@@ -90,7 +90,7 @@ public class TokenCertificateSigningRequestConverterTest {
                 .build();
         TokenCertificateSigningRequest csr = csrConverter.convert(certRequestInfo, keyInfo, tokenInfo);
         Collection<PossibleAction> actions = csr.getPossibleActions();
-        assertTrue(actions.contains(PossibleAction.DISABLE));
+        assertTrue(actions.contains(PossibleAction.DELETE));
         assertEquals(1, actions.size());
     }
 

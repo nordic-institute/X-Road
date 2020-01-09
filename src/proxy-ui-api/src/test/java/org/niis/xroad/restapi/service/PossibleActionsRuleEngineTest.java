@@ -32,7 +32,6 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.util.CertificateTestUtils.CertRequestInfoBuilder;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
 import org.niis.xroad.restapi.util.TokenTestUtils.KeyInfoBuilder;
 import org.niis.xroad.restapi.util.TokenTestUtils.TokenInfoBuilder;
@@ -211,16 +210,12 @@ public class PossibleActionsRuleEngineTest {
     @Test
     public void getPossibleCsrActionDelete() {
         EnumSet<PossibleActionEnum> actions = helper.getPossibleCsrActions(
-                new TokenInfoBuilder().build(),
-                new KeyInfoBuilder().build(),
-                new CertRequestInfoBuilder().build());
+                new TokenInfoBuilder().build());
         assertTrue(actions.contains(PossibleActionEnum.DELETE));
         assertEquals(1, actions.size()); // no other actions
 
         assertTrue(helper.getPossibleCsrActions(
-                new TokenInfoBuilder().build(),
-                new KeyInfoBuilder().keyUsageInfo(null).build(),
-                new CertRequestInfoBuilder().build())
+                new TokenInfoBuilder().build())
                 .contains(PossibleActionEnum.DELETE));
     }
     @Test

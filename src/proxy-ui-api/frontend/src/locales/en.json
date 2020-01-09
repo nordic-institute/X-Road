@@ -85,7 +85,9 @@
     "rsaExp": "RSA Public Key Exponent",
     "deleteCertTitle": "Delete certificate?",
     "deleteCertConfirm": "Are you sure that you want to delete this certificate?",
-    "certDeleted": "Certificate deleted"
+    "certDeleted": "Certificate deleted",
+    "activateSuccess": "Certificate has been activated",
+    "deactivateSuccess": "Certificate has been disabled"
   },
   "localGroups": {
     "addGroup": "Add group",
@@ -177,8 +179,11 @@
     "delete": "Delete",
     "remove": "Remove",
     "removeAll": "Remove All",
+    "register": "Register",
     "save": "Save",
     "continue": "Continue",
+    "activate": "Activate",
+    "deactivate": "Disable",
     "previous": "Previous",
     "done": "Done"
   },
@@ -227,6 +232,8 @@
     "keyLabelInput": "Key label",
     "keyLabelTitle": "Generate a new key",
     "keyLabelInfo": "You can define a label for the newly created Key (not mandatory)",
+    "registrationRequest": "Registration request",
+    "certRegistrationInfo": "Security server DNS name or IP address",
     "importCertSuccess": "Uploading certificate succeeded",
     "ocspStatus": {
       "disabled": "Disabled",
@@ -268,7 +275,8 @@
   },
   "customValidation": {
     "invalidRest": "REST URL is not valid",
-    "invalidWsdl": "WSDL URL is not valid"
+    "invalidWsdl": "WSDL URL is not valid",
+    "invalidUrl": "URL is not valid"
   },
   "subjectType": {
     "globalGroup": "GLOBALGROUP",

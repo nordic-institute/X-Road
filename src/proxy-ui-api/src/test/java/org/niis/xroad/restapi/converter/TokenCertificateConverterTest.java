@@ -74,8 +74,8 @@ public class TokenCertificateConverterTest {
     public void setup() {
         doReturn(EnumSet.of(PossibleActionEnum.ACTIVATE)).when(possibleActionsRuleEngine)
                 .getPossibleCertificateActions(any(), any(), any());
-        doReturn(EnumSet.of(PossibleActionEnum.DISABLE)).when(possibleActionsRuleEngine)
-                .getPossibleCsrActions(any(), any(), any());
+        doReturn(EnumSet.of(PossibleActionEnum.DELETE)).when(possibleActionsRuleEngine)
+                .getPossibleCsrActions(any());
     }
 
     @Test
