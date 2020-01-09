@@ -147,4 +147,11 @@ public class GlobalConfFacade {
     public static ClientId getServerOwner(SecurityServerId serverId) {
         return GlobalConf.getServerOwner(serverId);
     }
+
+    /**
+     * {@link GlobalConf#getManagementRequestService()}
+     */
+    public ClientId getManagementRequestService() {
+        return GlobalConf.getManagementRequestService();
+    }
 }

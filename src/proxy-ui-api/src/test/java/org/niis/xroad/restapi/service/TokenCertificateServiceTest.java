@@ -79,8 +79,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.service.TokenCertificateService.CERT_NOT_FOUND_FAULT_CODE;
+import static org.niis.xroad.restapi.util.CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH;
+import static org.niis.xroad.restapi.util.CertificateTestUtils.MOCK_CERTIFICATE_HASH;
+import static org.niis.xroad.restapi.util.CertificateTestUtils.getMockAuthCertificate;
 import static org.niis.xroad.restapi.util.CertificateTestUtils.getMockAuthCertificateBytes;
-
 
 /**
  * Test TokenCertificateService
@@ -92,6 +94,8 @@ import static org.niis.xroad.restapi.util.CertificateTestUtils.getMockAuthCertif
 @Transactional
 @WithMockUser
 public class TokenCertificateServiceTest {
+    public static final String GOOD_ADDRESS = "0.0.0.0";
+    public static final String BAD_ADDRESS = "1.1.1.1";
 
     // hashes and ids for mocking
     private static final String EXISTING_CERT_HASH = "ok-cert";
@@ -125,6 +129,9 @@ public class TokenCertificateServiceTest {
     private ClientService clientService;
 
     @MockBean
+    private ManagementRequestSenderService managementRequestSenderService;
+
+    @MockBean
     private CertificateAuthorityService certificateAuthorityService;
 
     @SpyBean
@@ -147,6 +154,9 @@ public class TokenCertificateServiceTest {
 
     private final ClientId client = ClientId.create(TestUtils.INSTANCE_FI,
             TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1);
+    private final CertificateInfo signCert = new CertificateInfoBuilder().id(EXISTING_CERT_IN_SIGN_KEY_HASH).build();
+    private final CertificateInfo authCert = new CertificateInfoBuilder().id(EXISTING_CERT_IN_AUTH_KEY_HASH)
+            .certificate(getMockAuthCertificate()).build();
 
     @Before
     public void setup() throws Exception {
@@ -170,8 +180,6 @@ public class TokenCertificateServiceTest {
         CertRequestInfo signCsr = new CertRequestInfo(GOOD_SIGN_CSR_ID, null, null);
         CertRequestInfo signerExceptionCsr = new CertRequestInfo(
                 SIGNER_EXCEPTION_CSR_ID, null, null);
-        CertificateInfo authCert = new CertificateInfoBuilder().id(EXISTING_CERT_IN_AUTH_KEY_HASH).build();
-        CertificateInfo signCert = new CertificateInfoBuilder().id(EXISTING_CERT_IN_SIGN_KEY_HASH).build();
         KeyInfo authKey = new TokenTestUtils.KeyInfoBuilder().id(AUTH_KEY_ID)
                 .keyUsageInfo(KeyUsageInfo.AUTHENTICATION)
                 .csr(authCsr)
@@ -362,6 +370,7 @@ public class TokenCertificateServiceTest {
             String hash = (String) invocation.getArguments()[0];
             switch (hash) {
                 case EXISTING_CERT_IN_AUTH_KEY_HASH:
+                case MOCK_AUTH_CERTIFICATE_HASH:
                     return new TokenInfoAndKeyId(tokenInfo, authKey.getId());
                 case EXISTING_CERT_IN_SIGN_KEY_HASH:
                     return new TokenInfoAndKeyId(tokenInfo, signKey.getId());
@@ -475,21 +484,25 @@ public class TokenCertificateServiceTest {
     public void deleteCsrCsrNotFound() throws Exception {
         tokenCertificateService.deleteCsr(CSR_NOT_FOUND_CSR_ID);
     }
+
     @Test(expected = CsrNotFoundException.class)
     @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
     public void deleteCsrSignerExceptions() throws Exception {
         tokenCertificateService.deleteCsr(SIGNER_EXCEPTION_CSR_ID);
     }
+
     @Test(expected = AccessDeniedException.class)
     @WithMockUser(authorities = { "DELETE_SIGN_CERT" })
     public void deleteAuthCsrWithoutPermission() throws Exception {
         tokenCertificateService.deleteCsr(GOOD_AUTH_CSR_ID);
     }
+
     @Test(expected = AccessDeniedException.class)
     @WithMockUser(authorities = { "DELETE_AUTH_CERT" })
     public void deleteSignCsrWithoutPermission() throws Exception {
         tokenCertificateService.deleteCsr(GOOD_SIGN_CSR_ID);
     }
+
     @Test
     @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
     public void deleteCsr() throws Exception {
@@ -497,6 +510,7 @@ public class TokenCertificateServiceTest {
         tokenCertificateService.deleteCsr(GOOD_CSR_ID);
         verify(signerProxyFacade, times(1)).deleteCertRequest(GOOD_CSR_ID);
     }
+
     @Test(expected = ActionNotPossibleException.class)
     @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
     public void deleteCsrActionNotPossible() throws Exception {
@@ -505,7 +519,7 @@ public class TokenCertificateServiceTest {
         tokenCertificateService.deleteCsr(GOOD_CSR_ID);
     }
 
-    @WithMockUser(authorities = {"ACTIVATE_DISABLE_AUTH_CERT", "ACTIVATE_DISABLE_SIGN_CERT"})
+    @WithMockUser(authorities = { "ACTIVATE_DISABLE_AUTH_CERT", "ACTIVATE_DISABLE_SIGN_CERT" })
     public void activateCertificate() throws CertificateNotFoundException {
         try {
             tokenCertificateService.activateCertificate(MISSING_CERTIFICATE_HASH);
@@ -516,7 +530,7 @@ public class TokenCertificateServiceTest {
         }
     }
 
-    @WithMockUser(authorities = {"ACTIVATE_DISABLE_AUTH_CERT", "ACTIVATE_DISABLE_SIGN_CERT"})
+    @WithMockUser(authorities = { "ACTIVATE_DISABLE_AUTH_CERT", "ACTIVATE_DISABLE_SIGN_CERT" })
     public void deactivateCertificate() throws CertificateNotFoundException {
         try {
             tokenCertificateService.deactivateCertificate(MISSING_CERTIFICATE_HASH);
@@ -527,4 +541,51 @@ public class TokenCertificateServiceTest {
         }
     }
 
+    @Test
+    public void registerAuthCertificate() throws Exception {
+        doAnswer(answer -> authCert).when(signerProxyFacade).getCertForHash(any());
+        try {
+            tokenCertificateService.registerAuthCert(MOCK_AUTH_CERTIFICATE_HASH, GOOD_ADDRESS);
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
+    @Test(expected = CodedException.class)
+    public void registerAuthCertificateFail() throws Exception {
+        doAnswer(answer -> authCert).when(signerProxyFacade).getCertForHash(any());
+        when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any()))
+                .thenThrow(new CodedException("FAILED"));
+        tokenCertificateService.registerAuthCert(MOCK_AUTH_CERTIFICATE_HASH, BAD_ADDRESS);
+    }
+
+    @Test(expected = ActionNotPossibleException.class)
+    public void registerAuthCertificateNotPossible() throws Exception {
+        EnumSet empty = EnumSet.noneOf(PossibleActionEnum.class);
+        doReturn(empty).when(possibleActionsRuleEngine).getPossibleCertificateActions(any(), any(), any());
+        doAnswer(answer -> authCert).when(signerProxyFacade).getCertForHash(any());
+        tokenCertificateService.registerAuthCert(MOCK_AUTH_CERTIFICATE_HASH, GOOD_ADDRESS);
+    }
+
+    @Test
+    public void unregisterAuthCertificate() throws Exception {
+        doAnswer(answer -> authCert).when(signerProxyFacade).getCertForHash(any());
+        try {
+            tokenCertificateService.unregisterAuthCert(MOCK_AUTH_CERTIFICATE_HASH);
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
+    @Test(expected = TokenCertificateService.SignCertificateNotSupportedException.class)
+    public void registerSignCertificate() throws Exception {
+        doAnswer(answer -> signCert).when(signerProxyFacade).getCertForHash(any());
+        tokenCertificateService.registerAuthCert(MOCK_CERTIFICATE_HASH, GOOD_ADDRESS);
+    }
+
+    @Test(expected = TokenCertificateService.SignCertificateNotSupportedException.class)
+    public void unregisterSignCertificate() throws Exception {
+        doAnswer(answer -> signCert).when(signerProxyFacade).getCertForHash(any());
+        tokenCertificateService.unregisterAuthCert(MOCK_CERTIFICATE_HASH);
+    }
 }

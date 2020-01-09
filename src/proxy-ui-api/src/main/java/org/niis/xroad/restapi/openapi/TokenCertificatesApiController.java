@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.PossibleActionConverter;
 import org.niis.xroad.restapi.converter.TokenCertificateConverter;
 import org.niis.xroad.restapi.openapi.model.PossibleAction;
+import org.niis.xroad.restapi.openapi.model.SecurityServerAddress;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.service.ActionNotPossibleException;
 import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
@@ -67,8 +68,7 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
 
     @Autowired
     public TokenCertificatesApiController(TokenCertificateService tokenCertificateService,
-            TokenCertificateConverter tokenCertificateConverter,
-            PossibleActionConverter possibleActionConverter) {
+            TokenCertificateConverter tokenCertificateConverter, PossibleActionConverter possibleActionConverter) {
         this.tokenCertificateService = tokenCertificateService;
         this.tokenCertificateConverter = tokenCertificateConverter;
         this.possibleActionConverter = possibleActionConverter;
@@ -182,5 +182,38 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('SEND_AUTH_CERT_REG_REQ')")
+    public ResponseEntity<Void> registerCertificate(String hash, SecurityServerAddress securityServerAddress) {
+        try {
+            tokenCertificateService.registerAuthCert(hash, securityServerAddress.getAddress());
+        } catch (CertificateNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (GlobalConfService.GlobalConfOutdatedException
+                | TokenCertificateService.InvalidCertificateException
+                | TokenCertificateService.SignCertificateNotSupportedException e) {
+            throw new BadRequestException(e);
+        } catch (ActionNotPossibleException | KeyNotFoundException e) {
+            throw new ConflictException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('SEND_AUTH_CERT_DEL_REQ')")
+    public ResponseEntity<Void> unregisterCertificate(String hash) {
+        try {
+            tokenCertificateService.unregisterAuthCert(hash);
+        } catch (CertificateNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (GlobalConfService.GlobalConfOutdatedException | TokenCertificateService.InvalidCertificateException
+                | TokenCertificateService.SignCertificateNotSupportedException e) {
+            throw new BadRequestException(e);
+        } catch (ActionNotPossibleException | KeyNotFoundException e) {
+            throw new ConflictException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

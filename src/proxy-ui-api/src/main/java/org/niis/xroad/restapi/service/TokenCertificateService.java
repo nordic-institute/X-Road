@@ -29,6 +29,7 @@ import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.DnFieldValue;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
@@ -92,6 +93,8 @@ public class TokenCertificateService {
     private final GlobalConfFacade globalConfFacade;
     private final SignerProxyFacade signerProxyFacade;
     private final ClientRepository clientRepository;
+    private final ManagementRequestSenderService managementRequestSenderService;
+    private final ServerConfService serverConfService;
     private final ClientService clientService;
     private final CertificateAuthorityService certificateAuthorityService;
     private final KeyService keyService;
@@ -101,14 +104,10 @@ public class TokenCertificateService {
 
     @Autowired
     public TokenCertificateService(SignerProxyFacade signerProxyFacade, ClientService clientService,
-            CertificateAuthorityService certificateAuthorityService,
-            KeyService keyService, DnFieldHelper dnFieldHelper,
-            GlobalConfService globalConfService,
-            GlobalConfFacade globalConfFacade,
-            ClientRepository clientRepository,
-            PossibleActionsRuleEngine possibleActionsRuleEngine,
-            TokenService tokenService) {
-
+            CertificateAuthorityService certificateAuthorityService, KeyService keyService, DnFieldHelper dnFieldHelper,
+            GlobalConfService globalConfService, GlobalConfFacade globalConfFacade, ClientRepository clientRepository,
+            ManagementRequestSenderService managementRequestSenderService, ServerConfService serverConfService,
+            PossibleActionsRuleEngine possibleActionsRuleEngine, TokenService tokenService) {
         this.signerProxyFacade = signerProxyFacade;
         this.clientService = clientService;
         this.certificateAuthorityService = certificateAuthorityService;
@@ -117,6 +116,8 @@ public class TokenCertificateService {
         this.globalConfService = globalConfService;
         this.globalConfFacade = globalConfFacade;
         this.clientRepository = clientRepository;
+        this.managementRequestSenderService = managementRequestSenderService;
+        this.serverConfService = serverConfService;
         this.tokenService = tokenService;
         this.possibleActionsRuleEngine = possibleActionsRuleEngine;
     }
@@ -198,7 +199,9 @@ public class TokenCertificateService {
     private static String signerFaultCode(String detail) {
         return SIGNER_X + "." + detail;
     }
+
     static final Set<String> KEY_NOT_OPERATIONAL_FOR_CSR_FAULT_CODES;
+
     static {
         KEY_NOT_OPERATIONAL_FOR_CSR_FAULT_CODES = new HashSet<>();
         KEY_NOT_OPERATIONAL_FOR_CSR_FAULT_CODES.add(signerFaultCode(X_KEY_NOT_AVAILABLE));
@@ -224,9 +227,11 @@ public class TokenCertificateService {
         public SignerOperationFailedException(Throwable t, ErrorDeviation errorDeviation) {
             super(t, errorDeviation);
         }
+
         public SignerOperationFailedException(Throwable t) {
             super(t, new ErrorDeviation(ERROR_SIGNER_OPERATION_FAILED));
         }
+
         public SignerOperationFailedException(String s) {
             super(s, new ErrorDeviation(ERROR_SIGNER_OPERATION_FAILED));
         }
@@ -241,9 +246,11 @@ public class TokenCertificateService {
         public CsrCreationFailureException(Throwable t, ErrorDeviation errorDeviation) {
             super(t, errorDeviation);
         }
+
         public CsrCreationFailureException(Throwable t) {
             super(t, new ErrorDeviation(ERROR_INVALID_DN_PARAMETER));
         }
+
         public CsrCreationFailureException(String s) {
             super(s, new ErrorDeviation(ERROR_INVALID_DN_PARAMETER));
         }
@@ -322,7 +329,7 @@ public class TokenCertificateService {
     /**
      * Import a cert that is found from a token by it's bytes
      * @param certificateBytes
-     * @param isFromToken whether the token was read from a token or not
+     * @param isFromToken whether the cert was read from a token or not
      * @return CertificateType
      * @throws GlobalConfService.GlobalConfOutdatedException
      * @throws KeyNotFoundException
@@ -381,7 +388,6 @@ public class TokenCertificateService {
 
     /**
      * Activates certificate
-     *
      * @param hash
      * @throws CertificateNotFoundException
      * @throws AccessDeniedException
@@ -397,10 +403,10 @@ public class TokenCertificateService {
 
         try {
             signerProxyFacade.activateCert(certificateInfo.getId());
-        }  catch (CodedException e) {
+        } catch (CodedException e) {
             if (isCausedByCertNotFound(e)) {
                 throw new CertificateNotFoundException("Certificate with id " + certificateInfo.getId() + " "
-                       + NOT_FOUND);
+                        + NOT_FOUND);
             } else {
                 throw e;
             }
@@ -411,7 +417,6 @@ public class TokenCertificateService {
 
     /**
      * Deactivates certificate
-     *
      * @param hash
      * @throws CertificateNotFoundException
      */
@@ -460,7 +465,6 @@ public class TokenCertificateService {
 
     /**
      * Check user authority to the given certificate
-     *
      * @param certificateBytes
      * @throws InvalidCertificateException
      * @throws AccessDeniedException
@@ -507,6 +511,89 @@ public class TokenCertificateService {
             throw new InvalidCertificateException("Cannot read member identifier from signing certificate", e);
         }
         return certificateSubject;
+    }
+
+    /**
+     * Verify if action can be performed on cert
+     * @param action
+     * @param certificateInfo
+     * @param hash
+     * @throws CertificateNotFoundException
+     * @throws KeyNotFoundException
+     * @throws ActionNotPossibleException
+     */
+    private void verifyCertAction(PossibleActionEnum action, CertificateInfo certificateInfo, String hash) throws
+            CertificateNotFoundException, KeyNotFoundException, ActionNotPossibleException {
+        TokenInfoAndKeyId tokenInfoAndKeyId = tokenService.getTokenAndKeyIdForCertificateHash(hash);
+        TokenInfo tokenInfo = tokenInfoAndKeyId.getTokenInfo();
+        KeyInfo keyInfo = tokenInfoAndKeyId.getKeyInfo();
+        possibleActionsRuleEngine.requirePossibleCertificateAction(action, tokenInfo, keyInfo, certificateInfo);
+    }
+
+    /**
+     * Send the authentication certificate registration request to central server
+     * @param hash certificate hash
+     * @param securityServerAddress IP address or DNS name of the security server
+     * @throws CertificateNotFoundException
+     * @throws GlobalConfService.GlobalConfOutdatedException
+     */
+    public void registerAuthCert(String hash, String securityServerAddress) throws CertificateNotFoundException,
+            GlobalConfService.GlobalConfOutdatedException, InvalidCertificateException,
+            SignCertificateNotSupportedException, KeyNotFoundException, ActionNotPossibleException {
+        CertificateInfo certificateInfo = getCertificateInfo(hash);
+        verifyAuthCert(certificateInfo);
+        verifyCertAction(PossibleActionEnum.REGISTER, certificateInfo, hash);
+        SecurityServerId securityServerId = serverConfService.getSecurityServerId();
+        try {
+            managementRequestSenderService.sendAuthCertRegisterRequest(securityServerId, securityServerAddress,
+                    certificateInfo.getCertificateBytes());
+            signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_REGINPROG);
+        } catch (GlobalConfService.GlobalConfOutdatedException | CodedException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Could not register auth cert", e);
+        }
+    }
+
+    /**
+     * Send the authentication certificate deletion request to central server
+     * @param hash certificate hash
+     * @throws CertificateNotFoundException
+     * @throws GlobalConfService.GlobalConfOutdatedException
+     */
+    public void unregisterAuthCert(String hash) throws CertificateNotFoundException,
+            GlobalConfService.GlobalConfOutdatedException, InvalidCertificateException,
+            SignCertificateNotSupportedException, KeyNotFoundException, ActionNotPossibleException {
+        CertificateInfo certificateInfo = getCertificateInfo(hash);
+        verifyAuthCert(certificateInfo);
+        verifyCertAction(PossibleActionEnum.UNREGISTER, certificateInfo, hash);
+        SecurityServerId securityServerId = serverConfService.getSecurityServerId();
+        try {
+            managementRequestSenderService.sendAuthCertDeletionRequest(securityServerId,
+                    certificateInfo.getCertificateBytes());
+            signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
+        } catch (GlobalConfService.GlobalConfOutdatedException | CodedException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Could not unregister auth cert", e);
+        }
+    }
+
+    private void verifyAuthCert(CertificateInfo certificateInfo)
+            throws SignCertificateNotSupportedException, InvalidCertificateException {
+        boolean isAuthCert;
+        X509Certificate certificate = null;
+        try {
+            certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
+            isAuthCert = CertUtils.isAuthCert(certificate);
+            if (!isAuthCert) {
+                throw new SignCertificateNotSupportedException("not an auth cert");
+            }
+        } catch (SignCertificateNotSupportedException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new InvalidCertificateException("invalid certificate", e);
+        }
     }
 
     /**
@@ -719,7 +806,7 @@ public class TokenCertificateService {
 
         // check that delete is possible
         possibleActionsRuleEngine.requirePossibleCsrAction(
-            PossibleActionEnum.DELETE, tokenInfo, keyInfo, certRequestInfo);
+                PossibleActionEnum.DELETE, tokenInfo, keyInfo, certRequestInfo);
 
         try {
             signerProxyFacade.deleteCertRequest(csrId);
@@ -747,7 +834,6 @@ public class TokenCertificateService {
         }
         return csr.get();
     }
-
 
     /**
      * General error that happens when importing a cert. Usually a wrong file type
@@ -795,6 +881,17 @@ public class TokenCertificateService {
 
         public AuthCertificateNotSupportedException(String msg) {
             super(msg, new ErrorDeviation(AUTH_CERT_NOT_SUPPORTED));
+        }
+    }
+
+    /**
+     * When trying to register a sign cert
+     */
+    public static class SignCertificateNotSupportedException extends ServiceException {
+        public static final String SIGN_CERT_NOT_SUPPORTED = "sign_cert_not_supported";
+
+        public SignCertificateNotSupportedException(String msg) {
+            super(msg, new ErrorDeviation(SIGN_CERT_NOT_SUPPORTED));
         }
     }
 }
