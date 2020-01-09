@@ -51,7 +51,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
@@ -76,6 +76,7 @@ public class TokensApiControllerTest {
     private static final String TOKEN_NOT_FOUND_TOKEN_ID = "token-404";
     private static final String GOOD_TOKEN_ID = "token-which-exists";
     private static final String NOT_ACTIVE_TOKEN_ID = "token-not-active";
+    private static final String NOT_ACTIVE_TOKEN_KEY_ID = "token-not-active-key";
     private static final String KEY_LABEL = "key-label";
 
     @MockBean
@@ -86,21 +87,51 @@ public class TokensApiControllerTest {
     @Autowired
     private TokensApiController tokensApiController;
 
+
+    private List<TokenInfo> allTokens;
+
     @Before
     public void setUp() throws Exception {
-        TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo("friendly-name", GOOD_TOKEN_ID);
         KeyInfo keyInfo = new TokenTestUtils.KeyInfoBuilder().build();
-        when(tokenService.getAllTokens()).thenReturn(Collections.singletonList(tokenInfo));
+        TokenInfo activeTokenInfo = new TokenTestUtils.TokenInfoBuilder()
+                .id(GOOD_TOKEN_ID)
+                .key(keyInfo)
+                .build();
+        KeyInfo inactiveKeyInfo = new TokenTestUtils.KeyInfoBuilder()
+                .id(NOT_ACTIVE_TOKEN_KEY_ID)
+                .build();
+        TokenInfo inactiveTokenInfo = new TokenTestUtils.TokenInfoBuilder()
+                .id(NOT_ACTIVE_TOKEN_ID)
+                .active(false)
+                .key(inactiveKeyInfo)
+                .build();
+        allTokens = Arrays.asList(new TokenInfo[] {activeTokenInfo, inactiveTokenInfo});
+
+        when(tokenService.getAllTokens()).thenReturn(allTokens);
 
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
             String tokenId = (String) args[0];
             if (GOOD_TOKEN_ID.equals(tokenId)) {
-                return tokenInfo;
+                return activeTokenInfo;
+            } else if (NOT_ACTIVE_TOKEN_ID.equals(tokenId)) {
+                return inactiveTokenInfo;
             } else {
                 throw new TokenNotFoundException(new RuntimeException());
             }
         }).when(tokenService).getToken(any());
+
+        doAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
+            String keyId = (String) args[0];
+            if (keyInfo.getId().equals(keyId)) {
+                return activeTokenInfo;
+            } else if (inactiveKeyInfo.getId().equals(keyId)) {
+                return inactiveTokenInfo;
+            } else {
+                throw new TokenNotFoundException(new RuntimeException());
+            }
+        }).when(tokenService).getTokenForKeyId(any());
 
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
@@ -124,7 +155,7 @@ public class TokensApiControllerTest {
         ResponseEntity<List<Token>> response = tokensApiController.getTokens();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         List<Token> tokens = response.getBody();
-        assertEquals(1, tokens.size());
+        assertEquals(allTokens.size(), tokens.size());
         Token token = tokens.iterator().next();
         assertEquals(TokenStatus.OK, token.getStatus());
         assertEquals("friendly-name", token.getName());

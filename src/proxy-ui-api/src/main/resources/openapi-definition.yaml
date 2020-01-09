@@ -420,6 +420,42 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
+  /token-certificates/{hash}/possible-actions:
+    get: # ok
+      tags:
+        - security server
+      summary: get possible actions for one certificate
+      operationId: getPossibleActionsForCertificate
+      description: UI needs to know which actions can be done on one certificate
+      parameters:
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '200':
+          description: possible actions that can be done on the certificate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PossibleActions'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /token-certificates/{hash}/register:
     put: # ok
       tags:
@@ -455,7 +491,7 @@ paths:
               example:
                 address: 127.0.0.1
       responses:
-        '204':
+        '200':
           description: request was successful
         '400':
           description: request was invalid
@@ -1750,6 +1786,50 @@ paths:
       responses:
         '204':
           description: csr deletion was successful
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /keys/{id}/csrs/{csr_id}/possible-actions:
+    get: # ok
+      tags:
+        - security server
+      summary: get possible actions for one csr
+      operationId: getPossibleActionsForCsr
+      description: UI needs to know which actions can be done on one csr
+      parameters:
+        - in: path
+          name: id
+          description: id of the key
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+        - in: path
+          name: csr_id
+          description: id of the csr
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '200':
+          description: possible actions that can be done on the certificate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PossibleActions'
         '400':
           description: request was invalid
         '401':
@@ -3410,6 +3490,7 @@ components:
       required:
         - id
         - owner_id
+        - possible_actions
       properties:
         id:
           type: string
@@ -3425,6 +3506,11 @@ components:
           minLength: 1
           maxLength: 767
           readOnly: true
+        possible_actions:
+          $ref: '#/components/schemas/PossibleActions'
+          description: possible actions that can be done to this object, e.g DELETE.
+            Has value only for operationIds getToken and getTokens.
+            Does not consider user authorization.
     TokenCertificate: # ok
       type: object
       description: certificate that is stored in a Token (auth or sign cert)
@@ -3458,6 +3544,11 @@ components:
           $ref: '#/components/schemas/CertificateDetails'
         status:
           $ref: '#/components/schemas/CertificateStatus'
+        possible_actions:
+          $ref: '#/components/schemas/PossibleActions'
+          description: possible actions that can be done to this object, e.g DELETE.
+            Has value only for operationIds getToken and getTokens.
+            Does not consider user authorization.
     CertificateDetails: # ok
       type: object
       description: certificate details for any kind of certificate (TLS, auth, sign)
@@ -3642,6 +3733,29 @@ components:
         - OCSP_RESPONSE_GOOD
         - OCSP_RESPONSE_SUSPENDED
         - OCSP_RESPONSE_REVOKED
+    PossibleActions: # ok
+      type: array
+      description: array containing the possible actions that can be done for this item
+      items:
+        $ref: '#/components/schemas/PossibleAction'
+    PossibleAction: # ok
+      type: string
+      format: enum
+      description: an action to change state or edit token, key, cert or csr
+      example: DELETE
+      enum:
+        - DELETE
+        - ACTIVATE
+        - DISABLE
+        - LOGIN
+        - LOGOUT
+        - REGISTER
+        - UNREGISTER
+        - IMPORT_FROM_TOKEN
+        - GENERATE_KEY
+        - EDIT_FRIENDLY_NAME
+        - GENERATE_AUTH_CSR
+        - GENERATE_SIGN_CSR
     Client: # ok
       type: object
       description: x-road client
@@ -4023,6 +4137,11 @@ components:
           type: boolean
           description: if the key is saved to configuration
           example: true
+        possible_actions:
+          $ref: '#/components/schemas/PossibleActions'
+          description: possible actions that can be done to this object, e.g DELETE.
+            Has value only for operationIds getToken and getTokens.
+            Does not consider user authorization.
     KeyUsage: # ok
       type: string
       format: enum
@@ -4581,6 +4700,11 @@ components:
           description: Contains label-value pairs of information
           items:
             $ref: '#/components/schemas/KeyValuePair'
+        possible_actions:
+          $ref: '#/components/schemas/PossibleActions'
+          description: possible actions that can be done to this object, e.g DELETE.
+            Has value only for operationIds getToken and getTokens.
+            Does not consider user authorization.
     TokenStatus: # ok
       type: string
       format: text

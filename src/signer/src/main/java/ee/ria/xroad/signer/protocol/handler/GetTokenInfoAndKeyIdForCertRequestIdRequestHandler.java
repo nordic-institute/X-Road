@@ -22,36 +22,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package ee.ria.xroad.signer.protocol.handler;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
+import ee.ria.xroad.signer.protocol.message.GetTokenInfoAndKeyIdForCertRequestId;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
-public class CertificateNotFoundException extends NotFoundException {
+/**
+ * Handles requests for TokenInfo + key id based on certificate request ids.
+ */
+public class GetTokenInfoAndKeyIdForCertRequestIdRequestHandler
+        extends AbstractRequestHandler<GetTokenInfoAndKeyIdForCertRequestId> {
 
-    public static final String ERROR_CERTIFICATE_NOT_FOUND = "certificate_not_found";
-    public static final String ERROR_CERTIFICATE_NOT_FOUND_WITH_ID = "certificate_id_not_found";
-
-    /**
-     * default error
-     * @return
-     */
-    private static ErrorDeviation createDefaultError() {
-        return new ErrorDeviation(ERROR_CERTIFICATE_NOT_FOUND);
+    @Override
+    protected Object handle(GetTokenInfoAndKeyIdForCertRequestId message) throws Exception {
+        TokenInfoAndKeyId tokenInfoAndKeyId = TokenManager.findTokenAndKeyIdForCertRequestId(
+                message.getCertRequestId());
+        return tokenInfoAndKeyId;
     }
 
-    public CertificateNotFoundException(ErrorDeviation errorDeviation) {
-        super(errorDeviation);
-    }
-    public CertificateNotFoundException(Throwable t, ErrorDeviation errorDeviation) {
-        super(t, errorDeviation);
-    }
-    public CertificateNotFoundException(String s) {
-        super(s, createDefaultError());
-    }
-    public CertificateNotFoundException() {
-        super(createDefaultError());
-    }
-    public CertificateNotFoundException(Throwable t) {
-        super(t, createDefaultError());
-    }
 }

@@ -22,36 +22,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package org.niis.xroad.restapi.converter;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import com.google.common.collect.Streams;
+import org.niis.xroad.restapi.openapi.model.PossibleAction;
+import org.niis.xroad.restapi.service.PossibleActionEnum;
+import org.springframework.stereotype.Component;
 
-public class CertificateNotFoundException extends NotFoundException {
+import java.util.List;
+import java.util.stream.Collectors;
 
-    public static final String ERROR_CERTIFICATE_NOT_FOUND = "certificate_not_found";
-    public static final String ERROR_CERTIFICATE_NOT_FOUND_WITH_ID = "certificate_id_not_found";
+/**
+ * Converts PossibleAction items.
+ */
+@Component
+public class PossibleActionConverter {
 
-    /**
-     * default error
-     * @return
-     */
-    private static ErrorDeviation createDefaultError() {
-        return new ErrorDeviation(ERROR_CERTIFICATE_NOT_FOUND);
+    public List<PossibleAction> convert(
+            Iterable<PossibleActionEnum> actionEnums) {
+        return Streams.stream(actionEnums)
+                       .map(this::convert)
+                       .collect(Collectors.toList());
     }
 
-    public CertificateNotFoundException(ErrorDeviation errorDeviation) {
-        super(errorDeviation);
-    }
-    public CertificateNotFoundException(Throwable t, ErrorDeviation errorDeviation) {
-        super(t, errorDeviation);
-    }
-    public CertificateNotFoundException(String s) {
-        super(s, createDefaultError());
-    }
-    public CertificateNotFoundException() {
-        super(createDefaultError());
-    }
-    public CertificateNotFoundException(Throwable t) {
-        super(t, createDefaultError());
+    public PossibleAction convert(PossibleActionEnum possibleActionEnum) {
+        return PossibleActionMapping.map(possibleActionEnum).get();
     }
 }

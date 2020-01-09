@@ -26,32 +26,14 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-public class CertificateNotFoundException extends NotFoundException {
+/**
+ * Thrown if attempted to do an action (e.g. DELETE) on an object,
+ * but action is not possible in object's current state
+ */
+public class ActionNotPossibleException extends ServiceException {
+    public static final String ACTION_NOT_POSSIBLE = "action_not_possible";
 
-    public static final String ERROR_CERTIFICATE_NOT_FOUND = "certificate_not_found";
-    public static final String ERROR_CERTIFICATE_NOT_FOUND_WITH_ID = "certificate_id_not_found";
-
-    /**
-     * default error
-     * @return
-     */
-    private static ErrorDeviation createDefaultError() {
-        return new ErrorDeviation(ERROR_CERTIFICATE_NOT_FOUND);
-    }
-
-    public CertificateNotFoundException(ErrorDeviation errorDeviation) {
-        super(errorDeviation);
-    }
-    public CertificateNotFoundException(Throwable t, ErrorDeviation errorDeviation) {
-        super(t, errorDeviation);
-    }
-    public CertificateNotFoundException(String s) {
-        super(s, createDefaultError());
-    }
-    public CertificateNotFoundException() {
-        super(createDefaultError());
-    }
-    public CertificateNotFoundException(Throwable t) {
-        super(t, createDefaultError());
+    public ActionNotPossibleException(String msg) {
+        super(msg, new ErrorDeviation(ACTION_NOT_POSSIBLE));
     }
 }
