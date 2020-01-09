@@ -1,7 +1,6 @@
 <template>
   <div>
     <table class="xrd-table">
-
       <!-- SOFTWARE token table header -->
       <template v-if="tokenType === 'SOFTWARE'">
         <thead>
@@ -196,6 +195,7 @@ export default Vue.extend({
   },
   data() {
     return {
+      confirmDeleteCsr: false,
       selectedCsr: null as TokenCertificateSigningRequest | null,
       selectedKey: null as Key | null,
     };
