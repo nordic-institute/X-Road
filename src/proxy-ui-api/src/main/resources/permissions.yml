@@ -29,6 +29,7 @@
 -       enable_disable_wsdl: [XROAD_SERVICE_ADMINISTRATOR]
 -       edit_wsdl: [XROAD_SERVICE_ADMINISTRATOR]
 -       edit_openapi3: [XROAD_SERVICE_ADMINISTRATOR]
+-       edit_rest: [XROAD_SERVICE_ADMINISTRATOR]
 -       edit_openapi3_endpoint: [XROAD_SERVICE_ADMINISTRATOR]
 -       refresh_wsdl: [XROAD_SERVICE_ADMINISTRATOR]
 -       refresh_openapi3: [XROAD_SERVICE_ADMINISTRATOR]

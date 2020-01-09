@@ -127,7 +127,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     }
 
     @Override
-    @PreAuthorize("hasAuthority('EDIT_WSDL')")
+    @PreAuthorize("hasAnyAuthority('EDIT_WSDL', 'EDIT_OPENAPI3', 'EDIT_REST')")
     public ResponseEntity<ServiceDescription> updateServiceDescription(String id,
             ServiceDescriptionUpdate serviceDescriptionUpdate) {
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
@@ -150,7 +150,19 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
             }
             serviceDescription = serviceDescriptionConverter.convert(updatedServiceDescription);
         } else if (serviceDescriptionUpdate.getType() == ServiceType.OPENAPI3) {
-            return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+/*
+            ServiceDescriptionType updatedServiceDescription = null;
+            updatedServiceDescription = serviceDescriptionService.updateOpenApi3ServiceDescription(serviceDescriptionId,
+                    serviceDescriptionUpdate.getUrl(), serviceDescriptionUpdate.getRestServiceCode(),
+                    serviceDescriptionUpdate.getIgnoreWarnings());
+            serviceDescription = serviceDescriptionConverter.convert(updatedServiceDescription);
+*/
+            return new ResponseEntity(HttpStatus.NOT_IMPLEMENTED);
+        } else if (serviceDescriptionUpdate.getType() == ServiceType.REST) {
+            ServiceDescriptionType updatedServiceDescription = null;
+                updatedServiceDescription = serviceDescriptionService.updateRestServiceDescription(serviceDescriptionId,
+                    serviceDescriptionUpdate.getUrl(), serviceDescriptionUpdate.getRestServiceCode());
+            serviceDescription = serviceDescriptionConverter.convert(updatedServiceDescription);
         } else {
             throw new BadRequestException("ServiceType not recognized");
         }

@@ -59,6 +59,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
+
 /**
  * ServiceDescription service
  */
@@ -324,6 +326,43 @@ public class ServiceDescriptionService {
         // we only have two types at the moment so the type must be OPENAPI3 if we end up this far
         throw new NotImplementedException("REST ServiceDescription refresh not implemented yet");
     }
+
+    public ServiceDescriptionType updateRestServiceDescription(Long id, String url, String restServiceCode) {
+        verifyAuthority("EDIT_OPENAPI3");
+        ServiceDescriptionType serviceDescriptiontype = getServiceDescriptiontype(id);
+        serviceDescriptiontype.setUrl(url);
+
+        // Update service codes of endpoints
+        ClientType client = serviceDescriptiontype.getClient();
+        client.getEndpoint().stream()
+            .map(endpoint -> {
+                endpoint.setServiceCode(restServiceCode);
+                return endpoint;
+            });
+
+        serviceDescriptiontype.getService().stream()
+                .map(service -> {
+                    service.setServiceCode(restServiceCode);
+                    return service;
+                });
+
+        /* Checks are implemented in XRDDEV-794
+        try {
+            checkDuplicateServiceCodes(serviceDescriptiontype);
+            checkDuplicateUrl(serviceDescriptiontype);
+        } catch (UrlAlreadyExistsException | ServiceCodeAlreadyExistsException e) {
+            throw e;
+        }
+        */
+
+        clientRepository.saveOrUpdateAndFlush(client);
+        return serviceDescriptiontype;
+    }
+
+//    public ServiceDescriptionType updateOpenApi3ServiceDescription(Long id, String url, String restServiceCode,
+//    boolean ignoreWarnings) {
+//
+//    }
 
     /**
      * Get one ServiceDescriptionType by id
