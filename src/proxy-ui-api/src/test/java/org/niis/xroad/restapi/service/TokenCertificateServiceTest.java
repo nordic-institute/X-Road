@@ -370,6 +370,7 @@ public class TokenCertificateServiceTest {
             String hash = (String) invocation.getArguments()[0];
             switch (hash) {
                 case EXISTING_CERT_IN_AUTH_KEY_HASH:
+                case MOCK_AUTH_CERTIFICATE_HASH:
                     return new TokenInfoAndKeyId(tokenInfo, authKey.getId());
                 case EXISTING_CERT_IN_SIGN_KEY_HASH:
                     return new TokenInfoAndKeyId(tokenInfo, signKey.getId());
@@ -556,6 +557,14 @@ public class TokenCertificateServiceTest {
         when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any()))
                 .thenThrow(new CodedException("FAILED"));
         tokenCertificateService.registerAuthCert(MOCK_AUTH_CERTIFICATE_HASH, BAD_ADDRESS);
+    }
+
+    @Test(expected = ActionNotPossibleException.class)
+    public void registerAuthCertificateNotPossible() throws Exception {
+        EnumSet empty = EnumSet.noneOf(PossibleActionEnum.class);
+        doReturn(empty).when(possibleActionsRuleEngine).getPossibleCertificateActions(any(), any(), any());
+        doAnswer(answer -> authCert).when(signerProxyFacade).getCertForHash(any());
+        tokenCertificateService.registerAuthCert(MOCK_AUTH_CERTIFICATE_HASH, GOOD_ADDRESS);
     }
 
     @Test

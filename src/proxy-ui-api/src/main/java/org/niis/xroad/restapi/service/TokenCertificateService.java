@@ -514,6 +514,23 @@ public class TokenCertificateService {
     }
 
     /**
+     * Verify if action can be performed on cert
+     * @param action
+     * @param certificateInfo
+     * @param hash
+     * @throws CertificateNotFoundException
+     * @throws KeyNotFoundException
+     * @throws ActionNotPossibleException
+     */
+    private void verifyCertAction(PossibleActionEnum action, CertificateInfo certificateInfo, String hash) throws
+            CertificateNotFoundException, KeyNotFoundException, ActionNotPossibleException {
+        TokenInfoAndKeyId tokenInfoAndKeyId = tokenService.getTokenAndKeyIdForCertificateHash(hash);
+        TokenInfo tokenInfo = tokenInfoAndKeyId.getTokenInfo();
+        KeyInfo keyInfo = tokenInfoAndKeyId.getKeyInfo();
+        possibleActionsRuleEngine.requirePossibleCertificateAction(action, tokenInfo, keyInfo, certificateInfo);
+    }
+
+    /**
      * Send the authentication certificate registration request to central server
      * @param hash certificate hash
      * @param securityServerAddress IP address or DNS name of the security server
@@ -522,9 +539,10 @@ public class TokenCertificateService {
      */
     public void registerAuthCert(String hash, String securityServerAddress) throws CertificateNotFoundException,
             GlobalConfService.GlobalConfOutdatedException, InvalidCertificateException,
-            SignCertificateNotSupportedException {
+            SignCertificateNotSupportedException, KeyNotFoundException, ActionNotPossibleException {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         verifyAuthCert(certificateInfo);
+        verifyCertAction(PossibleActionEnum.REGISTER, certificateInfo, hash);
         SecurityServerId securityServerId = serverConfService.getSecurityServerId();
         try {
             managementRequestSenderService.sendAuthCertRegisterRequest(securityServerId, securityServerAddress,
@@ -545,9 +563,10 @@ public class TokenCertificateService {
      */
     public void unregisterAuthCert(String hash) throws CertificateNotFoundException,
             GlobalConfService.GlobalConfOutdatedException, InvalidCertificateException,
-            SignCertificateNotSupportedException {
+            SignCertificateNotSupportedException, KeyNotFoundException, ActionNotPossibleException {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         verifyAuthCert(certificateInfo);
+        verifyCertAction(PossibleActionEnum.UNREGISTER, certificateInfo, hash);
         SecurityServerId securityServerId = serverConfService.getSecurityServerId();
         try {
             managementRequestSenderService.sendAuthCertDeletionRequest(securityServerId,
