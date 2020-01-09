@@ -345,9 +345,7 @@ public class ClientsApiController implements ClientsApi {
             try {
                 addedServiceDescriptionType = serviceDescriptionService.addOpenapi3ServiceDescription(clientId, url,
                         restServiceCode, ignoreWarnings);
-            } catch (OpenApiParser.ParsingException e) {
-                throw new BadRequestException(e);
-            } catch (UnhandledWarningsException e) {
+            } catch (OpenApiParser.ParsingException | UnhandledWarningsException e) {
                 throw new BadRequestException(e);
             } catch (ClientNotFoundException e) {
                 throw new ResourceNotFoundException(e);

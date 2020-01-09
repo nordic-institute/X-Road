@@ -79,6 +79,8 @@ public class ServiceDescriptionService {
     public static final String WARNING_DELETING_SERVICES = "deleting_services";
     public static final String WARNING_WSDL_VALIDATION_WARNINGS = "wsdl_validation_warnings";
 
+    public static final String CLIENT_WITH_ID = "Client with id";
+
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final ClientService clientService;
     private final ClientRepository clientRepository;
@@ -224,7 +226,7 @@ public class ServiceDescriptionService {
             WsdlUrlAlreadyExistsException {
         ClientType client = clientService.getClient(clientId);
         if (client == null) {
-            throw new ClientNotFoundException("Client with id " + clientId.toShortString() + " not found");
+            throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + " not found");
         }
 
         WsdlProcessingResult wsdlProcessingResult = processWsdl(client, url, null);
@@ -304,7 +306,7 @@ public class ServiceDescriptionService {
 
         ClientType client = clientService.getClient(clientId);
         if (client == null) {
-            throw new ClientNotFoundException("Client with id " + clientId.toShortString() + " not found");
+            throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + " not found");
         }
 
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptionOfType(client, url,
@@ -407,7 +409,7 @@ public class ServiceDescriptionService {
 
         ClientType client = clientService.getClient(clientId);
         if (client == null) {
-            throw new ClientNotFoundException("Client with id " + clientId.toShortString() + " not found");
+            throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + " not found");
         }
 
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptionOfType(client, url,
