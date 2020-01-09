@@ -138,12 +138,25 @@
             <td></td>
             <td></td>
             <td class="status-cell"></td>
-            <td></td>
+            <td class="td-align-right">
+              <SmallButton
+                class="table-button-fix"
+                v-if="hasPermission && req.possible_actions.includes('DELETE')"
+                @click="deleteCsr(req, key)"
+              >{{$t('keys.deleteCsr')}}</SmallButton>
+            </td>
           </tr>
         </template>
-
       </tbody>
     </table>
+
+    <ConfirmDialog
+      :dialog="confirmDeleteCsr"
+      title="keys.deleteCsrTitle"
+      text="keys.deleteCsrText"
+      @cancel="confirmDeleteCsr = false"
+      @accept="doDeleteCsr()"
+    />
   </div>
 </template>
 
@@ -154,13 +167,16 @@
 import Vue from 'vue';
 import CertificateStatus from './CertificateStatus.vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
-import {Key, TokenCertificate} from '@/types';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import { Key, TokenCertificate, TokenCertificateSigningRequest } from '@/types';
 import { Permissions, UsageTypes } from '@/global';
+import * as api from '@/util/api';
 
 export default Vue.extend({
   components: {
     CertificateStatus,
     SmallButton,
+    ConfirmDialog,
   },
   props: {
     keys: {
@@ -178,6 +194,12 @@ export default Vue.extend({
       type: String,
       required: true,
     },
+  },
+  data() {
+    return {
+      selectedCsr: null as TokenCertificateSigningRequest | null,
+      selectedKey: null as Key | null,
+    };
   },
   computed: {
     hasPermission(): boolean {
@@ -198,6 +220,28 @@ export default Vue.extend({
     },
     importCert(hash: string): void {
       this.$emit('importCertByHash', hash);
+    },
+    deleteCsr(req: TokenCertificateSigningRequest, key: Key): void {
+      this.confirmDeleteCsr = true;
+      this.selectedCsr = req;
+      this.selectedKey = key;
+    },
+    doDeleteCsr(): void {
+      this.confirmDeleteCsr = false;
+
+      if (!this.selectedKey || !this.selectedCsr) {
+        return;
+      }
+
+      api
+        .remove(`/keys/${this.selectedKey.id}/csrs/${this.selectedCsr.id}`)
+        .then((res) => {
+          this.$bus.$emit('show-success', 'keys.csrDeleted');
+          this.$emit('refreshList');
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
     },
   },
 });
