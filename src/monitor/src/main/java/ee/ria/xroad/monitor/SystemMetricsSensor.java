@@ -54,7 +54,7 @@ public class SystemMetricsSensor extends AbstractSensor {
     private final String agentPath;
 
     private static final String DEFAULT_AGENT_PATH =
-            "akka.tcp://Proxy@127.0.0.1:" + SystemProperties.getProxyActorSystemPort() + "/user/ProxyMonitorAgent";
+            "akka://Proxy@127.0.0.1:" + SystemProperties.getProxyActorSystemPort() + "/user/ProxyMonitorAgent";
 
     private ActorRef agent;
     private long correlationId = 1;
@@ -141,7 +141,7 @@ public class SystemMetricsSensor extends AbstractSensor {
             if (agent != null) {
                 context().unwatch(agent);
             }
-            agent = message.getRef();
+            agent = message.getActorRef().orElse(null);
             if (agent != null) {
                 context().watch(agent);
                 log.info("ProxyMonitorAgent attached");

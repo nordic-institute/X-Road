@@ -31,11 +31,11 @@ import ee.ria.xroad.signer.protocol.message.GetTokenBatchSigningEnabled;
 import ee.ria.xroad.signer.protocol.message.Sign;
 import ee.ria.xroad.signer.protocol.message.SignResponse;
 
+import akka.actor.AbstractActorWithStash;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.UntypedAbstractActor;
-import akka.actor.UntypedActorWithStash;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
 import lombok.Data;
@@ -143,7 +143,7 @@ public class BatchSigner extends UntypedAbstractActor {
         // Signing worker based on cert hash.
         String name = calculateCertHexHash(signRequest.getSigningCert());
 
-        ActorRef worker = getContext().getChild(name);
+        ActorRef worker = getContext().findChild(name).orElse(null);
 
         if (worker == null) {
             log.trace("Creating new worker for cert '{}'", name);
@@ -157,7 +157,7 @@ public class BatchSigner extends UntypedAbstractActor {
     /**
      * This is the worker that does the heavy lifting.
      */
-    private static class WorkerImpl extends UntypedActorWithStash {
+    private static class WorkerImpl extends AbstractActorWithStash {
 
         // The currently active signing ctx.
         private BatchSignatureCtx workingSigningCtx;
@@ -171,18 +171,13 @@ public class BatchSigner extends UntypedAbstractActor {
         private Boolean batchSigningEnabled;
 
         @Override
-        public void onReceive(Object message) throws Exception {
-            log.trace("onReceive({})", message);
-
-            if (message instanceof SigningRequestWrapper) {
-                handleSignRequest((SigningRequestWrapper) message);
-            } else if (message instanceof SignResponse) {
-                handleSignResponse((SignResponse) message);
-            } else if (message instanceof Exception) {
-                handleException((Exception) message);
-            } else {
-                unhandled(message);
-            }
+        public Receive createReceive() {
+            return receiveBuilder()
+                    .match(SigningRequestWrapper.class, this::handleSignRequest)
+                    .match(SignResponse.class, this::handleSignResponse)
+                    .match(Exception.class, this::handleException)
+                    .matchAny(this::unhandled)
+                    .build();
         }
 
         private void handleSignRequest(SigningRequestWrapper signRequest) throws Exception {
@@ -358,6 +353,7 @@ public class BatchSigner extends UntypedAbstractActor {
                 }
             }
         }
+
     }
 
     /**
