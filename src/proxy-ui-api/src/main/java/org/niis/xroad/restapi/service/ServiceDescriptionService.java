@@ -346,8 +346,8 @@ public class ServiceDescriptionService {
      */
     private void checkDuplicateUrl(ServiceDescriptionType serviceDescription) throws UrlAlreadyExistsException {
         Boolean hasDuplicates = serviceDescription.getClient().getServiceDescription().stream()
-                .anyMatch(other -> !serviceDescription.equals(other) &&
-                        serviceDescription.getUrl().equals(other.getUrl()));
+                .anyMatch(other -> !serviceDescription.equals(other)
+                        && serviceDescription.getUrl().equals(other.getUrl()));
 
         if (hasDuplicates) {
             throw new UrlAlreadyExistsException(serviceDescription.getUrl());
