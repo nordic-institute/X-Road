@@ -402,13 +402,13 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .baseUri("http://127.0.0.1")
                 .port(proxyClientPort)
                 .header("Content-Type", "application/json")
-                .header("Accept", "application/xml-patch+xml")
+                .header("Accept", "application/xml; q=0.2")
                 .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
                 .get(PREFIX + "/EE/BUSINESS/producer/sub/wsdl")
                 .then()
                 .statusCode(Matchers.is(500))
                 .header("X-Road-Error", Matchers.notNullValue())
-                .header("Content-Type", "application/json;charset=utf-8");
+                .header("Content-Type", "application/xml;charset=utf-8");
 
         given()
                 .baseUri("http://127.0.0.1")

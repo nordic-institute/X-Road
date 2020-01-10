@@ -49,6 +49,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
@@ -155,12 +156,19 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
     }
 
     private String decideErrorResponseContentType(String acceptHeaderValue) {
-        String[] split = acceptHeaderValue.trim().split("\\s*,\\s*");
-        if (Arrays.stream(split).anyMatch(TEXT_XML::equalsIgnoreCase)) {
+        List<String> allPieces = new ArrayList<>();
+        String[] commaSplit = acceptHeaderValue.trim().split("\\s*,\\s*");
+        for (String s1: commaSplit) {
+            String[] colonSplit = s1.trim().split("\\s*;\\s*");
+            for (String s2: colonSplit) {
+                allPieces.add(s2);
+            }
+        }
+        if (allPieces.stream().anyMatch(TEXT_XML::equalsIgnoreCase)) {
             return TEXT_XML;
-        } else if (Arrays.stream(split).anyMatch(APPLICATION_XML::equalsIgnoreCase)) {
+        } else if (allPieces.stream().anyMatch(APPLICATION_XML::equalsIgnoreCase)) {
             return APPLICATION_XML;
-        } else if (Arrays.stream(split).anyMatch(TEXT_ANY::equalsIgnoreCase)) {
+        } else if (allPieces.stream().anyMatch(TEXT_ANY::equalsIgnoreCase)) {
             return TEXT_XML;
         } else {
             return APPLICATION_JSON;
