@@ -282,6 +282,22 @@ public class ServiceDescriptionService {
                 + endpointType.isGenerated();
     }
 
+
+    /**
+     * Add openapi3 ServiceDescription
+     *
+     * @param clientId
+     * @param url
+     * @param serviceCode
+     * @param ignoreWarnings
+     * @return
+     * @throws OpenApiParser.ParsingException
+     * @throws ClientNotFoundException
+     * @throws UnhandledWarningsException
+     * @throws UrlAlreadyExistsException
+     * @throws ServiceCodeAlreadyExistsException
+     * @throws MissingParameterException
+     */
     public ServiceDescriptionType addOpenapi3ServiceDescription(ClientId clientId, String url,
                                                                 String serviceCode, boolean ignoreWarnings)
             throws OpenApiParser.ParsingException, ClientNotFoundException,
@@ -323,9 +339,12 @@ public class ServiceDescriptionService {
         serviceDescriptionType.getService().add(serviceType);
 
         // Create endpoints
-        List<EndpointType> endpoints = result.getOperations().stream()
+        EndpointType endpointType = new EndpointType(serviceCode, EndpointType.ANY_METHOD, EndpointType.ANY_PATH, true);
+        List endpoints = new ArrayList<EndpointType>();
+        endpoints.add(endpointType);
+        endpoints.addAll(result.getOperations().stream()
                 .map(operation -> new EndpointType(serviceCode, operation.getMethod(), operation.getPath(), true))
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
 
         checkDuplicateUrl(serviceDescriptionType);
         checkDuplicateServiceCodes(serviceDescriptionType);
@@ -382,6 +401,12 @@ public class ServiceDescriptionService {
         }
     }
 
+    /**
+     * Creates combination of Services ServiceCode and version
+     *
+     * @param service
+     * @return String presentation
+     */
     private String createServiceCodeAndVersionCombination(ServiceType service) {
         String serviceCode = service.getServiceCode();
         String serviceVersion = service.getServiceVersion() == null ? "" : service.getServiceVersion();
