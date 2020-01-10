@@ -200,30 +200,12 @@ public class KeyService {
         possibleActionsRuleEngine.requirePossibleKeyAction(PossibleActionEnum.DELETE,
                 tokenInfo, keyInfo);
 
-        // unregister auth certs
+        // unregister possible auth certs
         if (keyInfo.getUsage() == KeyUsageInfo.AUTHENTICATION) {
             for (CertificateInfo certificateInfo: keyInfo.getCerts()) {
                 if (certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGINPROG)
                     || certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED)) {
-
-                    // this permission is not checked by unregisterCertificate()
-                    verifyAuthority("SEND_AUTH_CERT_DEL_REQ");
-
-                    // do not use tokenCertificateService.unregisterAuthCert because
-                    // - it does a bit of extra work to what we need (and makes us do extra work)
-                    // - we do not want to solve circular dependency KeyService <-> TokenCertificateService
-
-                    try {
-                        // management request to unregister / delete
-                        managementRequestSenderService.sendAuthCertDeletionRequest(
-                                certificateInfo.getCertificateBytes());
-                        // update status
-                        signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
-                    } catch (GlobalConfService.GlobalConfOutdatedException | CodedException e) {
-                        throw e;
-                    } catch (Exception e) {
-                        throw new RuntimeException("Could not unregister auth cert", e);
-                    }
+                    unregisterAuthCert(certificateInfo);
                 }
             }
         }
@@ -236,6 +218,31 @@ public class KeyService {
             throw e;
         } catch (Exception other) {
             throw new RuntimeException("delete key failed", other);
+        }
+    }
+
+    /**
+     * Unregister one auth cert
+     */
+    private void unregisterAuthCert(CertificateInfo certificateInfo)
+            throws GlobalConfService.GlobalConfOutdatedException {
+        // this permission is not checked by unregisterCertificate()
+        verifyAuthority("SEND_AUTH_CERT_DEL_REQ");
+
+        // do not use tokenCertificateService.unregisterAuthCert because
+        // - it does a bit of extra work to what we need (and makes us do extra work)
+        // - we do not want to solve circular dependency KeyService <-> TokenCertificateService
+
+        try {
+            // management request to unregister / delete
+            managementRequestSenderService.sendAuthCertDeletionRequest(
+                    certificateInfo.getCertificateBytes());
+            // update status
+            signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
+        } catch (GlobalConfService.GlobalConfOutdatedException | CodedException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Could not unregister auth cert", e);
         }
     }
 }
