@@ -36,8 +36,6 @@ import ee.ria.xroad.proxy.testutil.TestGlobalConf;
 import ee.ria.xroad.proxy.testutil.TestServerConf;
 import ee.ria.xroad.proxy.testutil.TestService;
 
-import io.restassured.http.Header;
-import io.restassured.http.Headers;
 import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -46,10 +44,8 @@ import javax.servlet.ServletOutputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
@@ -431,20 +427,6 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .port(proxyClientPort)
                 .header("Content-Type", "application/json")
                 .header("Accept", "text/*")
-                .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
-                .get(PREFIX + "/EE/BUSINESS/producer/sub/wsdl")
-                .then()
-                .statusCode(Matchers.is(500))
-                .header("X-Road-Error", Matchers.notNullValue())
-                .header("Content-Type", "text/xml;charset=utf-8");
-
-        given()
-                .baseUri("http://127.0.0.1")
-                .port(proxyClientPort)
-                .header("Content-Type", "application/json")
-                .header("Accept", "application/json")
-                .header("Accept", "application/xml")
-                .header("Accept", "text/xml")
                 .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
                 .get(PREFIX + "/EE/BUSINESS/producer/sub/wsdl")
                 .then()
