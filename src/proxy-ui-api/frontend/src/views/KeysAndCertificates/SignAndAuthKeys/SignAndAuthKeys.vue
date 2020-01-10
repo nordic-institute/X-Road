@@ -101,7 +101,6 @@
               :tokenType="token.type"
               @keyClick="keyClick"
               @generateCsr="generateCsr"
-              @certificateClick="certificateClick"
               @importCertByHash="importCertByHash"
             />
           </div>
