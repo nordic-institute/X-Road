@@ -48,6 +48,6 @@ module.exports = {
       .waitForElementVisible('div.server-name');
 
     browser
-      .end()
+      .end();
   }
 };

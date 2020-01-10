@@ -15,6 +15,14 @@ var navigateCommands = {
   openSettingsTab: function() {
     this.click('@settingsTab');
     return this;
+  },
+  logout: function() {
+    this.click('@userMenuButton').click('@userMenuitemLogout');
+    return this;
+  },
+  acceptLogout: function() {
+    this.click('@logoutOKButton');
+    return this;
   }
 };
 
@@ -96,7 +104,13 @@ module.exports = {
       locateStrategy: 'xpath' },
     userMenuButton: { 
       selector: 'div.v-toolbar__content button .mdi-account-circle', 
-      locateStrategy: 'css selector' }
+      locateStrategy: 'css selector' },
+    userMenuitemLogout: { 
+      selector: '#logout-list-tile', 
+      locateStrategy: 'css selector' },
+    logoutOKButton: { 
+      selector: '//div[contains(@class, "v-dialog")]//button[.//*[contains(text(), "Ok")]]', 
+      locateStrategy: 'xpath' }
   },
   sections: {
     clientsTab: {

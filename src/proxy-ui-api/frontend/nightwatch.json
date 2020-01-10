@@ -14,7 +14,8 @@
         "login_usr" : "xrd",
         "login_pwd" : "secret",
         "login_wrong_usr" : "foo",
-        "login_wrong_pwd" : "bar"
+        "login_wrong_pwd" : "bar",
+        "logout_timeout_ms" : 60000
       }
     }
   }
