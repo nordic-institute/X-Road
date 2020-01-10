@@ -22,38 +22,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package ee.ria.xroad.signer.protocol.handler;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
-
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
+import ee.ria.xroad.signer.protocol.message.GetTokenInfoAndKeyIdForCertRequestId;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
 /**
- * repository for working with ServerConfType / serverconf table
+ * Handles requests for TokenInfo + key id based on certificate request ids.
  */
-@Slf4j
-@Repository
-@Transactional
-public class ServerConfRepository {
+public class GetTokenInfoAndKeyIdForCertRequestIdRequestHandler
+        extends AbstractRequestHandler<GetTokenInfoAndKeyIdForCertRequestId> {
 
-    private final PersistenceUtils persistenceUtils;
-
-    @Autowired
-    public ServerConfRepository(PersistenceUtils persistenceUtils) {
-        this.persistenceUtils = persistenceUtils;
+    @Override
+    protected Object handle(GetTokenInfoAndKeyIdForCertRequestId message) throws Exception {
+        TokenInfoAndKeyId tokenInfoAndKeyId = TokenManager.findTokenAndKeyIdForCertRequestId(
+                message.getCertRequestId());
+        return tokenInfoAndKeyId;
     }
 
-    /**
-     * Return ServerConfType
-     * @return
-     */
-    public ServerConfType getServerConf() {
-        ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
-        return serverConfDAO.getConf(persistenceUtils.getCurrentSession());
-    }
 }

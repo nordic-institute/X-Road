@@ -22,38 +22,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+public class MissingParameterException extends ServiceException {
+    public static final String ERROR_MISSING_PARAMETER = "Missing parameter";
 
-/**
- * repository for working with ServerConfType / serverconf table
- */
-@Slf4j
-@Repository
-@Transactional
-public class ServerConfRepository {
-
-    private final PersistenceUtils persistenceUtils;
-
-    @Autowired
-    public ServerConfRepository(PersistenceUtils persistenceUtils) {
-        this.persistenceUtils = persistenceUtils;
+    public MissingParameterException(String s) {
+        super(s, new ErrorDeviation(ERROR_MISSING_PARAMETER));
     }
 
-    /**
-     * Return ServerConfType
-     * @return
-     */
-    public ServerConfType getServerConf() {
-        ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
-        return serverConfDAO.getConf(persistenceUtils.getCurrentSession());
-    }
 }

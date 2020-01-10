@@ -22,38 +22,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package ee.ria.xroad.signer.protocol.message;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+import lombok.Value;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+import java.io.Serializable;
 
 /**
- * repository for working with ServerConfType / serverconf table
+ * Signer API message.
  */
-@Slf4j
-@Repository
-@Transactional
-public class ServerConfRepository {
+@Value
+public class GetTokenInfoForKeyId implements Serializable {
 
-    private final PersistenceUtils persistenceUtils;
+    private final String keyId;
 
-    @Autowired
-    public ServerConfRepository(PersistenceUtils persistenceUtils) {
-        this.persistenceUtils = persistenceUtils;
-    }
-
-    /**
-     * Return ServerConfType
-     * @return
-     */
-    public ServerConfType getServerConf() {
-        ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
-        return serverConfDAO.getConf(persistenceUtils.getCurrentSession());
-    }
 }

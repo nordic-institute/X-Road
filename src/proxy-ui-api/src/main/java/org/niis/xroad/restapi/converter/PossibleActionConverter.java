@@ -22,38 +22,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+import com.google.common.collect.Streams;
+import org.niis.xroad.restapi.openapi.model.PossibleAction;
+import org.niis.xroad.restapi.service.PossibleActionEnum;
+import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * repository for working with ServerConfType / serverconf table
+ * Converts PossibleAction items.
  */
-@Slf4j
-@Repository
-@Transactional
-public class ServerConfRepository {
+@Component
+public class PossibleActionConverter {
 
-    private final PersistenceUtils persistenceUtils;
-
-    @Autowired
-    public ServerConfRepository(PersistenceUtils persistenceUtils) {
-        this.persistenceUtils = persistenceUtils;
+    public List<PossibleAction> convert(
+            Iterable<PossibleActionEnum> actionEnums) {
+        return Streams.stream(actionEnums)
+                       .map(this::convert)
+                       .collect(Collectors.toList());
     }
 
-    /**
-     * Return ServerConfType
-     * @return
-     */
-    public ServerConfType getServerConf() {
-        ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
-        return serverConfDAO.getConf(persistenceUtils.getCurrentSession());
+    public PossibleAction convert(PossibleActionEnum possibleActionEnum) {
+        return PossibleActionMapping.map(possibleActionEnum).get();
     }
 }

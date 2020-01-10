@@ -25,12 +25,10 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,11 +40,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
-import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
-import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
-import static org.niis.xroad.restapi.service.TokenService.isCausedByTokenNotActive;
-import static org.niis.xroad.restapi.service.TokenService.isCausedByTokenNotFound;
 
 /**
  * Service that handles keys
@@ -59,16 +53,17 @@ public class KeyService {
 
     private final SignerProxyFacade signerProxyFacade;
     private final TokenService tokenService;
+    private final PossibleActionsRuleEngine possibleActionsRuleEngine;
 
     /**
      * KeyService constructor
-     * @param tokenService
-     * @param signerProxyFacade
      */
     @Autowired
-    public KeyService(TokenService tokenService, SignerProxyFacade signerProxyFacade) {
+    public KeyService(TokenService tokenService, SignerProxyFacade signerProxyFacade,
+            PossibleActionsRuleEngine possibleActionsRuleEngine) {
         this.tokenService = tokenService;
         this.signerProxyFacade = signerProxyFacade;
+        this.possibleActionsRuleEngine = possibleActionsRuleEngine;
     }
 
     /**
@@ -92,21 +87,32 @@ public class KeyService {
     }
 
     /**
-     * Finds csr with matching id from KeyInfo, or throws {@link CsrNotFoundException}
-     * @throws CsrNotFoundException
+     * Finds matching KeyInfo from this TokenInfo, or throws exception
+     * @param tokenInfo token
+     * @param keyId id of a key inside the token
+     * @throws NoSuchElementException if key with keyId was not found
      */
-    private CertRequestInfo getCsr(KeyInfo keyInfo, String csrId) throws CsrNotFoundException {
-        Optional<CertRequestInfo> csr = keyInfo.getCertRequests().stream()
-                .filter(csrInfo -> csrInfo.getId().equals(csrId))
-                .findFirst();
-        if (!csr.isPresent()) {
-            throw new CsrNotFoundException("csr with id " + csrId + " not found");
-        }
-        return csr.get();
+    public KeyInfo getKey(TokenInfo tokenInfo, String keyId) {
+        return tokenInfo.getKeyInfo().stream()
+                .filter(k -> k.getId().equals(keyId))
+                .findFirst()
+                .get();
     }
 
-    public KeyInfo updateKeyFriendlyName(String id, String friendlyName) throws KeyNotFoundException {
-        KeyInfo keyInfo = null;
+    /**
+     * Updates key friendly name
+     * @throws KeyNotFoundException if key was not found
+     * @throws ActionNotPossibleException if friendly name could not be updated for this key
+     */
+    public KeyInfo updateKeyFriendlyName(String id, String friendlyName) throws KeyNotFoundException,
+            ActionNotPossibleException {
+
+        // check that updating friendly name is possible
+        TokenInfo tokenInfo = tokenService.getTokenForKeyId(id);
+        KeyInfo keyInfo = getKey(tokenInfo, id);
+        possibleActionsRuleEngine.requirePossibleKeyAction(PossibleActionEnum.EDIT_FRIENDLY_NAME,
+                tokenInfo, keyInfo);
+
         try {
             signerProxyFacade.setKeyFriendlyName(id, friendlyName);
             keyInfo = getKey(id);
@@ -130,21 +136,22 @@ public class KeyService {
      * @param tokenId
      * @param keyLabel
      * @return {@link KeyInfo}
-     * @throws TokenNotFoundException
+     * @throws TokenNotFoundException if token was not found
+     * @throws ActionNotPossibleException if generate key was not possible for this token
      */
     public KeyInfo addKey(String tokenId, String keyLabel) throws TokenNotFoundException,
-            TokenService.TokenNotActiveException {
+            ActionNotPossibleException {
+
+        // check that adding a key is possible
+        TokenInfo tokenInfo = tokenService.getToken(tokenId);
+        possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.GENERATE_KEY,
+                tokenInfo);
+
         KeyInfo keyInfo = null;
         try {
             keyInfo = signerProxyFacade.generateKey(tokenId, keyLabel);
         } catch (CodedException e) {
-            if (isCausedByTokenNotFound(e)) {
-                throw new TokenNotFoundException(e);
-            } else if (isCausedByTokenNotActive(e)) {
-                throw new TokenService.TokenNotActiveException(e);
-            } else {
-                throw e;
-            }
+            throw e;
         } catch (Exception other) {
             throw new RuntimeException("adding a new key failed", other);
         }
@@ -155,53 +162,9 @@ public class KeyService {
         return KEY_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
     }
 
-    static boolean isCausedByCsrNotFound(CodedException e) {
-        return CSR_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
-    }
-
     private static String signerFaultCode(String detail) {
         return SIGNER_X + "." + detail;
     }
 
     static final String KEY_NOT_FOUND_FAULT_CODE = signerFaultCode(X_KEY_NOT_FOUND);
-    static final String CSR_NOT_FOUND_FAULT_CODE = signerFaultCode(X_CSR_NOT_FOUND);
-
-    public void deleteCsr(String keyId, String csrId) throws KeyNotFoundException, CsrNotFoundException {
-        KeyInfo keyInfo = getKey(keyId);
-        // getCsr to get CsrNotFoundException
-        getCsr(keyInfo, csrId);
-
-        if (keyInfo.isForSigning()) {
-            verifyAuthority("DELETE_SIGN_CERT");
-        } else {
-            verifyAuthority("DELETE_AUTH_CERT");
-        }
-        try {
-            signerProxyFacade.deleteCertRequest(csrId);
-        } catch (CodedException e) {
-            if (isCausedByCsrNotFound(e)) {
-                throw new CsrNotFoundException(e);
-            } else {
-                throw e;
-            }
-        } catch (Exception other) {
-            throw new RuntimeException("deleting a csr failed", other);
-        }
-    }
-
-    public static class CsrNotFoundException extends NotFoundException {
-        public static final String ERROR_CSR_NOT_FOUND = "csr_not_found";
-
-        public CsrNotFoundException(String s) {
-            super(s, createError());        }
-
-        public CsrNotFoundException(Throwable t) {
-            super(t, createError());
-        }
-
-        private static ErrorDeviation createError() {
-            return new ErrorDeviation(ERROR_CSR_NOT_FOUND);
-        }
-    }
-
 }

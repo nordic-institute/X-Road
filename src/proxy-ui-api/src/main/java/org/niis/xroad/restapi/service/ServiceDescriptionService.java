@@ -40,6 +40,7 @@ import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
+import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -77,12 +79,15 @@ public class ServiceDescriptionService {
     public static final String WARNING_DELETING_SERVICES = "deleting_services";
     public static final String WARNING_WSDL_VALIDATION_WARNINGS = "wsdl_validation_warnings";
 
+    public static final String CLIENT_WITH_ID = "Client with id";
+
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final ClientService clientService;
     private final ClientRepository clientRepository;
     private final ServiceChangeChecker serviceChangeChecker;
     private final WsdlValidator wsdlValidator;
     private final WsdlUrlValidator wsdlUrlValidator;
+    private final OpenApiParser openApiParser;
 
     /**
      * ServiceDescriptionService constructor
@@ -96,13 +101,15 @@ public class ServiceDescriptionService {
     public ServiceDescriptionService(ServiceDescriptionRepository serviceDescriptionRepository,
                                      ClientService clientService, ClientRepository clientRepository,
                                      ServiceChangeChecker serviceChangeChecker,
-                                     WsdlValidator wsdlValidator, WsdlUrlValidator wsdlUrlValidator) {
+                                     WsdlValidator wsdlValidator, WsdlUrlValidator wsdlUrlValidator,
+                                     OpenApiParser openApiParser) {
         this.serviceDescriptionRepository = serviceDescriptionRepository;
         this.clientService = clientService;
         this.clientRepository = clientRepository;
         this.serviceChangeChecker = serviceChangeChecker;
         this.wsdlValidator = wsdlValidator;
         this.wsdlUrlValidator = wsdlUrlValidator;
+        this.openApiParser = openApiParser;
     }
 
     /**
@@ -219,7 +226,7 @@ public class ServiceDescriptionService {
             WsdlUrlAlreadyExistsException {
         ClientType client = clientService.getClient(clientId);
         if (client == null) {
-            throw new ClientNotFoundException("Client with id " + clientId.toShortString() + " not found");
+            throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + " not found");
         }
 
         WsdlProcessingResult wsdlProcessingResult = processWsdl(client, url, null);
@@ -257,19 +264,172 @@ public class ServiceDescriptionService {
         newServiceDescription.getService().forEach(serviceType -> {
             EndpointType endpointType = new EndpointType(serviceType.getServiceCode(), EndpointType.ANY_METHOD,
                     EndpointType.ANY_PATH, true);
-            String endpointKey = endpointType.getServiceCode() + endpointType.getMethod() + endpointType.getPath()
-                    + endpointType.isGenerated();
+            String endpointKey = createEndpointKey(endpointType);
             endpointMap.put(endpointKey, endpointType);
         });
 
         // remove all existing endpoints with an equal combination key from the map
         client.getEndpoint().forEach(endpointType -> {
-            String endpointKey = endpointType.getServiceCode() + endpointType.getMethod() + endpointType.getPath()
-                    + endpointType.isGenerated();
+            String endpointKey = createEndpointKey(endpointType);
             endpointMap.remove(endpointKey);
         });
 
         return endpointMap.values();
+    }
+
+    private String createEndpointKey(EndpointType endpointType) {
+        return endpointType.getServiceCode() + endpointType.getMethod() + endpointType.getPath()
+                + endpointType.isGenerated();
+    }
+
+    public ServiceDescriptionType addOpenapi3ServiceDescription(ClientId clientId, String url,
+                                                                String serviceCode, boolean ignoreWarnings)
+            throws OpenApiParser.ParsingException, ClientNotFoundException,
+            UnhandledWarningsException,
+            UrlAlreadyExistsException,
+            ServiceCodeAlreadyExistsException,
+            MissingParameterException {
+        verifyAuthority("ADD_OPENAPI3");
+
+        if (serviceCode == null) {
+            throw new MissingParameterException("Missing ServiceCode");
+        }
+
+        // Parse openapi definition
+        OpenApiParser.Result result = openApiParser.parse(url);
+
+        if (!ignoreWarnings && result.hasWarnings()) {
+            WarningDeviation openapiParserWarnings = new WarningDeviation("OpenapiParserWarnings",
+                    result.getWarnings());
+            throw new UnhandledWarningsException(Arrays.asList(openapiParserWarnings));
+        }
+
+        ClientType client = clientService.getClient(clientId);
+        if (client == null) {
+            throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + " not found");
+        }
+
+        ServiceDescriptionType serviceDescriptionType = getServiceDescriptionOfType(client, url,
+                DescriptionType.OPENAPI3);
+
+        // Initiate default service
+        ServiceType serviceType = new ServiceType();
+        serviceType.setServiceCode(serviceCode);
+        serviceType.setTimeout(DEFAULT_SERVICE_TIMEOUT);
+        serviceType.setUrl(url);
+        serviceType.setServiceDescription(serviceDescriptionType);
+
+        // Populate ServiceDescription
+        serviceDescriptionType.getService().add(serviceType);
+
+        // Create endpoints
+        List<EndpointType> endpoints = result.getOperations().stream()
+                .map(operation -> new EndpointType(serviceCode, operation.getMethod(), operation.getPath(), true))
+                .collect(Collectors.toList());
+
+        checkDuplicateUrl(serviceDescriptionType);
+        checkDuplicateServiceCodes(serviceDescriptionType);
+
+        // Populate client with new servicedescription and endpoints
+        client.getEndpoint().addAll(endpoints);
+        client.getServiceDescription().add(serviceDescriptionType);
+        clientRepository.saveOrUpdateAndFlush(client);
+
+        return serviceDescriptionType;
+    }
+
+    /**
+     * Check whether the ServiceDescriptions url already exists in the linked Client
+     *
+     * @param serviceDescription
+     * @throws UrlAlreadyExistsException
+     */
+    private void checkDuplicateUrl(ServiceDescriptionType serviceDescription) throws UrlAlreadyExistsException {
+        Boolean hasDuplicates = serviceDescription.getClient().getServiceDescription().stream()
+                .anyMatch(other -> !serviceDescription.equals(other)
+                        && serviceDescription.getUrl().equals(other.getUrl()));
+
+        if (hasDuplicates) {
+            throw new UrlAlreadyExistsException(serviceDescription.getUrl());
+        }
+    }
+
+
+    /**
+     * Check whether the ServiceDescriptions ServiceCode already exists in the linked Client
+     *
+     * @param serviceDescription
+     * @throws ServiceCodeAlreadyExistsException
+     */
+    private void checkDuplicateServiceCodes(ServiceDescriptionType serviceDescription)
+            throws ServiceCodeAlreadyExistsException {
+        List<String> existingServices = serviceDescription.getClient().getServiceDescription().stream()
+                .filter(s -> !s.equals(serviceDescription))
+                .flatMap(otherServiceDescription -> otherServiceDescription.getService().stream())
+                .map(otherService -> createServiceCodeAndVersionCombination(otherService))
+                .collect(Collectors.toList());
+
+        List<String> duplicateServiceCodes = serviceDescription.getService().stream()
+                .filter(candidate -> {
+                    String candidateCombination = createServiceCodeAndVersionCombination(candidate);
+                    return existingServices.contains(candidateCombination);
+                })
+                .map(duplicate -> duplicate.getServiceCode())
+                .collect(Collectors.toList());
+
+        if (duplicateServiceCodes.size() > 0) {
+            throw new ServiceCodeAlreadyExistsException(duplicateServiceCodes);
+        }
+    }
+
+    private String createServiceCodeAndVersionCombination(ServiceType service) {
+        String serviceCode = service.getServiceCode();
+        String serviceVersion = service.getServiceVersion() == null ? "" : service.getServiceVersion();
+        return serviceCode + serviceVersion;
+    }
+
+
+    /**
+     * Add a new REST ServiceDescription
+     *
+     * @param clientId
+     * @param url
+     * @param serviceCode
+     * @return
+     * @throws ClientNotFoundException
+     */
+    public ServiceDescriptionType addRestEndpointServiceDescription(ClientId clientId, String url,
+                                                                    String serviceCode) throws
+            ClientNotFoundException, MissingParameterException {
+        verifyAuthority("ADD_OPENAPI3");
+
+        if (serviceCode == null) {
+            throw new MissingParameterException("Missing ServiceCode");
+        }
+
+        ClientType client = clientService.getClient(clientId);
+        if (client == null) {
+            throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + " not found");
+        }
+
+        ServiceDescriptionType serviceDescriptionType = getServiceDescriptionOfType(client, url,
+                DescriptionType.REST);
+
+        // Populate service
+        ServiceType serviceType = new ServiceType();
+        serviceType.setServiceCode(serviceCode);
+        serviceType.setTimeout(DEFAULT_SERVICE_TIMEOUT);
+        serviceType.setUrl(url);
+        serviceType.setServiceDescription(serviceDescriptionType);
+
+        serviceDescriptionType.getService().add(serviceType);
+        EndpointType endpointType = new EndpointType(serviceCode, EndpointType.ANY_METHOD,
+                EndpointType.ANY_PATH, false);
+        client.getEndpoint().add(endpointType);
+        client.getServiceDescription().add(serviceDescriptionType);
+        clientRepository.saveOrUpdateAndFlush(client);
+
+        return serviceDescriptionType;
     }
 
     /**
@@ -683,6 +843,24 @@ public class ServiceDescriptionService {
 
         public WsdlUrlAlreadyExistsException(String s) {
             super(s, new ErrorDeviation(ERROR_WSDL_EXISTS));
+        }
+    }
+
+    public static class UrlAlreadyExistsException extends ServiceException {
+
+        public static final String ERROR_EXISTING_URL = "url_already_exists";
+
+        public UrlAlreadyExistsException(String s) {
+            super(new ErrorDeviation(ERROR_EXISTING_URL, s));
+        }
+    }
+
+    public static class ServiceCodeAlreadyExistsException extends ServiceException {
+
+        public static final String ERROR_EXISTING_SERVICE_CODE = "service_code_already_exists";
+
+        public ServiceCodeAlreadyExistsException(List<String> metadata) {
+            super(new ErrorDeviation(ERROR_EXISTING_SERVICE_CODE, metadata));
         }
     }
 }
