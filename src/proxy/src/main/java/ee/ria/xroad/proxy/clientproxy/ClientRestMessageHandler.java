@@ -37,7 +37,6 @@ import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import com.google.gson.stream.JsonWriter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.http.HttpStatus;
 import org.w3c.dom.Document;
@@ -50,6 +49,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 
@@ -62,7 +64,12 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 @Slf4j
 class ClientRestMessageHandler extends AbstractClientProxyHandler {
 
+    private static final String TEXT_XML = "text/xml";
+    private static final String APPLICATION_XML = "application/xml";
+    private static final String TEXT_ANY = "text/*";
+    private static final String APPLICATION_JSON = "application/json";
     private String requestAcceptType;
+    private static final List<String> XML_TYPES = Arrays.asList(TEXT_XML, APPLICATION_XML, TEXT_ANY);
 
     ClientRestMessageHandler(HttpClient client) {
         super(client, true);
@@ -72,7 +79,16 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
     MessageProcessorBase createRequestProcessor(String target,
             HttpServletRequest request, HttpServletResponse response,
             OpMonitoringData opMonitoringData) throws Exception {
-        requestAcceptType = request.getHeader("Accept");
+
+        requestAcceptType = "";
+        Enumeration<String> acceptHeaders = request.getHeaders("Accept");
+        while (acceptHeaders.hasMoreElements()) {
+            requestAcceptType += acceptHeaders.nextElement();
+            if (acceptHeaders.hasMoreElements()) {
+                requestAcceptType += ", ";
+            }
+        }
+
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
             verifyCanProcess();
             return new ClientRestMessageProcessor(request, response, client,
@@ -104,9 +120,10 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
         }
         response.setCharacterEncoding(MimeUtils.UTF8);
         response.setHeader("X-Road-Error", ex.getFaultCode());
-        if (StringUtils.containsIgnoreCase(requestAcceptType, "text/xml")
-                || StringUtils.containsIgnoreCase(requestAcceptType, "application/xml")) {
-            response.setContentType("application/xml");
+
+        String responseContentType = decideErrorResponseContentType(requestAcceptType);
+        response.setContentType(responseContentType);
+        if (XML_TYPES.contains(responseContentType)) {
             DocumentBuilderFactory docFactory = XmlUtils.createDocumentBuilderFactory();
             try {
                 DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
@@ -127,7 +144,6 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
                 log.error("Unable to generate XML document");
             }
         } else {
-            response.setContentType("application/json");
             final JsonWriter writer = new JsonWriter(new PrintWriter(response.getOutputStream()));
             writer.beginObject()
                     .name("type").value(ex.getFaultCode())
@@ -135,6 +151,19 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
                     .name("detail").value(ex.getFaultDetail())
                     .endObject()
                     .close();
+        }
+    }
+
+    private String decideErrorResponseContentType(String acceptHeaderValue) {
+        String[] split = acceptHeaderValue.trim().split("\\s*,\\s*");
+        if (Arrays.stream(split).anyMatch(TEXT_XML::equalsIgnoreCase)) {
+            return TEXT_XML;
+        } else if (Arrays.stream(split).anyMatch(APPLICATION_XML::equalsIgnoreCase)) {
+            return APPLICATION_XML;
+        } else if (Arrays.stream(split).anyMatch(TEXT_ANY::equalsIgnoreCase)) {
+            return TEXT_XML;
+        } else {
+            return APPLICATION_JSON;
         }
     }
 }
