@@ -61,6 +61,7 @@ import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.LocalGroupService;
+import org.niis.xroad.restapi.service.MissingParameterException;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
@@ -345,7 +346,7 @@ public class ClientsApiController implements ClientsApi {
             try {
                 addedServiceDescriptionType = serviceDescriptionService.addOpenapi3ServiceDescription(clientId, url,
                         restServiceCode, ignoreWarnings);
-            } catch (OpenApiParser.ParsingException | UnhandledWarningsException e) {
+            } catch (OpenApiParser.ParsingException | UnhandledWarningsException | MissingParameterException e) {
                 throw new BadRequestException(e);
             } catch (ClientNotFoundException e) {
                 throw new ResourceNotFoundException(e);
@@ -359,6 +360,8 @@ public class ClientsApiController implements ClientsApi {
                         url, restServiceCode);
             } catch (ClientNotFoundException e) {
                 throw new ResourceNotFoundException(e);
+            } catch (MissingParameterException e) {
+                throw new BadRequestException(e);
             }
         }
         ServiceDescription addedServiceDescription = serviceDescriptionConverter.convert(

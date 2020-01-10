@@ -36,7 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -288,11 +287,12 @@ public class ServiceDescriptionService {
             throws OpenApiParser.ParsingException, ClientNotFoundException,
             UnhandledWarningsException,
             UrlAlreadyExistsException,
-            ServiceCodeAlreadyExistsException {
+            ServiceCodeAlreadyExistsException,
+            MissingParameterException {
         verifyAuthority("ADD_OPENAPI3");
 
         if (serviceCode == null) {
-            throw new BadRequestException("Missing ServiceCode");
+            throw new MissingParameterException("Missing ServiceCode");
         }
 
         // Parse openapi definition
@@ -400,11 +400,11 @@ public class ServiceDescriptionService {
      */
     public ServiceDescriptionType addRestEndpointServiceDescription(ClientId clientId, String url,
                                                                     String serviceCode) throws
-            ClientNotFoundException {
+            ClientNotFoundException, MissingParameterException {
         verifyAuthority("ADD_OPENAPI3");
 
         if (serviceCode == null) {
-            throw new BadRequestException("Missing ServiceCode");
+            throw new MissingParameterException("Missing ServiceCode");
         }
 
         ClientType client = clientService.getClient(clientId);
