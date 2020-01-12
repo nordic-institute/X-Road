@@ -132,7 +132,7 @@
 <script lang="ts">
 // View for services tab
 import Vue from 'vue';
-import { Permissions, RouteName } from '@/global';
+import { Permissions, RouteName, UsageTypes } from '@/global';
 import Expandable from '@/components/ui/Expandable.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
@@ -322,7 +322,7 @@ export default Vue.extend({
     getSignKeys(keys: Key[]): Key[] {
       // Filter out service descriptions that don't include search term
       const filtered = keys.filter((key: Key) => {
-        return key.usage === 'SIGNING';
+        return key.usage === UsageTypes.SIGNING;
       });
 
       return filtered;
@@ -331,7 +331,7 @@ export default Vue.extend({
     getOtherKeys(keys: Key[]): Key[] {
       // Filter out service descriptions that don't include search term
       const filtered = keys.filter((key: Key) => {
-        return key.usage !== 'SIGNING' && key.usage !== 'AUTHENTICATION';
+        return key.usage !== UsageTypes.SIGNING && key.usage !== UsageTypes.AUTHENTICATION;
       });
 
       return filtered;
