@@ -58,7 +58,7 @@
                 <i class="icon-xrd_certificate icon clickable" @click="certificateClick(cert, key)"></i>
                 <div
                   class="clickable-link"
-                  @click="certificateClick(cert)"
+                  @click="certificateClick(cert, key)"
                 >{{cert.certificate_details.issuer_common_name}} {{cert.certificate_details.serial}}</div>
               </div>
             </td>
@@ -100,7 +100,7 @@
                 <i class="icon-xrd_certificate icon clickable" @click="certificateClick(cert, key)"></i>
                 <div
                   class="clickable-link"
-                  @click="certificateClick(cert)"
+                  @click="certificateClick(cert, key)"
                 >{{cert.certificate_details.issuer_common_name}} {{cert.certificate_details.serial}}</div>
               </div>
             </td>

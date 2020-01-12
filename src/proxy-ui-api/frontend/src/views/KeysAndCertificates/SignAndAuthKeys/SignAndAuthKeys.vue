@@ -263,10 +263,13 @@ export default Vue.extend({
       });
     },
 
-    certificateClick(cert: TokenCertificate): void {
+    certificateClick(payload: { cert: TokenCertificate; key: Key }): void {
       this.$router.push({
         name: RouteName.Certificate,
-        params: { hash: cert.certificate_details.hash },
+        params: {
+          hash: payload.cert.certificate_details.hash,
+          usage: payload.key.usage,
+        },
       });
     },
 
