@@ -1,15 +1,15 @@
 
-/** 
+/**
  * The following content is copied from a file generated with dtsgenerator(https://github.com/horiuchi/dtsgenerator)
  * That tool creates TypeScript typings out of openapi definition.
- * 
+ *
  * Example of running dtsgenerator at the frontend directory:
  * dtsgen - o output.ts../ src / main / resources / openapi - definition.yaml
- * Only the content of Schemas namespace should be copied. The rest is not needed and the TypeScript linter rules of 
+ * Only the content of Schemas namespace should be copied. The rest is not needed and the TypeScript linter rules of
  * the project doesn't allow napespaces.
- * 
+ *
  * This method is not optimal and should be improved at some point.
-*/
+ */
 
 /**
  * access right for clients and services
