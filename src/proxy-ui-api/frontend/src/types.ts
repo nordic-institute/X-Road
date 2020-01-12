@@ -1061,4 +1061,3 @@ export interface Version {
    */
   info: string; // text
 }
-    }
