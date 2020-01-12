@@ -196,6 +196,8 @@ export default Vue.extend({
   data() {
     return {
       confirmDeleteCsr: false,
+      usageTypes: UsageTypes,
+      selectedCert: undefined as TokenCertificate | undefined,
       selectedCsr: null as TokenCertificateSigningRequest | null,
       selectedKey: null as Key | null,
     };
@@ -211,8 +213,8 @@ export default Vue.extend({
     keyClick(key: Key): void {
       this.$emit('keyClick', key);
     },
-    certificateClick(cert: TokenCertificate): void {
-      this.$emit('certificateClick', cert);
+    certificateClick(cert: TokenCertificate, key: Key): void {
+      this.$emit('certificateClick', { cert, key });
     },
     generateCsr(key: Key): void {
       this.$emit('generateCsr', key);
