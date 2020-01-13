@@ -157,21 +157,21 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
 
     private String decideErrorResponseContentType(String acceptHeaderValue) {
         List<String> allPieces = new ArrayList<>();
-        String[] commaSplit = acceptHeaderValue.trim().split("\\s*,\\s*");
+        String[] commaSplit = acceptHeaderValue.trim().toLowerCase().split("\\s*,\\s*");
         for (String s1: commaSplit) {
             String[] colonSplit = s1.trim().split("\\s*;\\s*");
             for (String s2: colonSplit) {
                 allPieces.add(s2);
             }
         }
-        if (allPieces.stream().anyMatch(TEXT_XML::equalsIgnoreCase)) {
-            return TEXT_XML;
-        } else if (allPieces.stream().anyMatch(APPLICATION_XML::equalsIgnoreCase)) {
-            return APPLICATION_XML;
-        } else if (allPieces.stream().anyMatch(TEXT_ANY::equalsIgnoreCase)) {
-            return TEXT_XML;
-        } else {
-            return APPLICATION_JSON;
-        }
+        return allPieces.stream()
+                .filter(XML_TYPES::contains)
+                .findAny()
+                .map(orig -> mapTextToXml(orig))
+                .orElse(APPLICATION_JSON);
+    }
+
+    private String mapTextToXml(String orig) {
+        return TEXT_ANY.equals(orig) ? TEXT_XML : orig;
     }
 }

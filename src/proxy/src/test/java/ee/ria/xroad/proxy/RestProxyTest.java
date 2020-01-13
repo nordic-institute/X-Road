@@ -372,7 +372,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .then()
                 .statusCode(Matchers.is(500))
                 .header("X-Road-Error", Matchers.notNullValue())
-                .header("Content-Type", "text/xml;charset=utf-8");
+                .header("Content-Type", "application/xml;charset=utf-8");
 
         given()
                 .baseUri("http://127.0.0.1")
