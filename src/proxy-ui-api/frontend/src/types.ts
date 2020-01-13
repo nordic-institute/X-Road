@@ -1,4 +1,15 @@
 
+/**
+ * The following content is copied from a file generated with dtsgenerator(https://github.com/horiuchi/dtsgenerator)
+ * That tool creates TypeScript typings out of openapi definition.
+ *
+ * Example of running dtsgenerator at the frontend directory:
+ * dtsgen - o output.ts../ src / main / resources / openapi - definition.yaml
+ * Only the content of Schemas namespace should be copied. The rest is not needed and the TypeScript linter rules of
+ * the project doesn't allow napespaces.
+ *
+ * This method is not optimal and should be improved at some point.
+ */
 
 /**
  * access right for clients and services
@@ -465,6 +476,10 @@ export interface Key {
    * true
    */
   saved_to_configuration?: boolean;
+  /**
+   * possible actions that can be done to this object, e.g DELETE. Has value only for operationIds getToken and getTokens. Does not consider user authorization.
+   */
+  possible_actions?: PossibleActions;
 }
 /**
  * certificate key usage
@@ -581,6 +596,16 @@ export interface OcspResponders {
  */
 export type OcspStatus = 'SUCCESS' | 'ERROR_CODE_OCSP_CONNECTION_ERROR' | 'ERROR_CODE_OCSP_FAILED' | 'ERROR_CODE_OCSP_RESPONSE_INVALID' | 'ERROR_CODE_OCSP_UNINITIALIZED'; // enum
 /**
+ * an action to change state or edit token, key, cert or csr
+ * example:
+ * DELETE
+ */
+export type PossibleAction = 'DELETE' | 'ACTIVATE' | 'DISABLE' | 'LOGIN' | 'LOGOUT' | 'REGISTER' | 'UNREGISTER' | 'IMPORT_FROM_TOKEN' | 'GENERATE_KEY' | 'EDIT_FRIENDLY_NAME' | 'GENERATE_AUTH_CSR' | 'GENERATE_SIGN_CSR'; // enum
+/**
+ * array containing the possible actions that can be done for this item
+ */
+export type PossibleActions = PossibleAction /* enum */[];
+/**
  * security server information
  */
 export interface SecurityServer {
@@ -673,7 +698,7 @@ export interface ServiceClient {
   access_rights: AccessRight[];
 }
 /**
- * WSDL/REST service
+ * WSDL/OPENAPI3/REST service
  */
 export interface ServiceDescription {
   /**
@@ -767,7 +792,7 @@ export interface ServiceDescriptionUpdate {
  * example:
  * WSDL
  */
-export type ServiceType = 'WSDL' | 'REST'; // text
+export type ServiceType = 'WSDL' | 'REST' | 'OPENAPI3'; // text
 /**
  * object for updating a service or all services within service description
  */
@@ -938,6 +963,10 @@ export interface Token {
    * Contains label-value pairs of information
    */
   token_infos?: KeyValuePair[];
+  /**
+   * possible actions that can be done to this object, e.g DELETE. Has value only for operationIds getToken and getTokens. Does not consider user authorization.
+   */
+  possible_actions?: PossibleActions;
 }
 /**
  * certificate that is stored in a Token (auth or sign cert)
@@ -964,6 +993,10 @@ export interface TokenCertificate {
   saved_to_configuration: boolean;
   certificate_details: CertificateDetails;
   status: CertificateStatus; // enum
+  /**
+   * possible actions that can be done to this object, e.g DELETE. Has value only for operationIds getToken and getTokens. Does not consider user authorization.
+   */
+  possible_actions?: PossibleActions;
 }
 /**
  * CSR for certificate that is stored in a Token
@@ -981,6 +1014,10 @@ export interface TokenCertificateSigningRequest {
    * FI:GOV:123
    */
   readonly owner_id: string; // text
+  /**
+   * possible actions that can be done to this object, e.g DELETE. Has value only for operationIds getToken and getTokens. Does not consider user authorization.
+   */
+  possible_actions: PossibleActions;
 }
 /**
  * token type
@@ -1024,6 +1061,3 @@ export interface Version {
    */
   info: string; // text
 }
-
-
-
