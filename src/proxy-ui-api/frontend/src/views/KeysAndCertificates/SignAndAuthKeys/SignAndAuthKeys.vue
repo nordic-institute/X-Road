@@ -65,7 +65,7 @@
               />
             </div>
 
-            <!-- AUTH table -->
+            <!-- AUTH keys table -->
             <keys-table
               v-if="getAuthKeys(token.keys).length > 0"
               :keys="getAuthKeys(token.keys)"
@@ -78,7 +78,7 @@
               @importCertByHash="importCertByHash"
             />
 
-            <!-- SIGN table -->
+            <!-- SIGN keys table -->
             <keys-table
               v-if="getSignKeys(token.keys).length > 0"
               :keys="getSignKeys(token.keys)"
@@ -331,7 +331,10 @@ export default Vue.extend({
     getOtherKeys(keys: Key[]): Key[] {
       // Filter out service descriptions that don't include search term
       const filtered = keys.filter((key: Key) => {
-        return key.usage !== UsageTypes.SIGNING && key.usage !== UsageTypes.AUTHENTICATION;
+        return (
+          key.usage !== UsageTypes.SIGNING &&
+          key.usage !== UsageTypes.AUTHENTICATION
+        );
       });
 
       return filtered;
