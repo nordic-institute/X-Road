@@ -60,6 +60,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_EXISTS;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
@@ -198,6 +199,10 @@ public class TokenCertificateService {
 
     private static String signerFaultCode(String detail) {
         return SIGNER_X + "." + detail;
+    }
+
+    private static String clientProxyFaultCode(String detail) {
+        return SERVER_CLIENTPROXY_X + "." + detail;
     }
 
     static final Set<String> KEY_NOT_OPERATIONAL_FOR_CSR_FAULT_CODES;
@@ -556,26 +561,79 @@ public class TokenCertificateService {
     }
 
     /**
-     * Send the authentication certificate deletion request to central server
+     * Send the authentication certificate deletion request to central server and set the cert status to
+     * {@link CertificateInfo#STATUS_DELINPROG}
      * @param hash certificate hash
-     * @throws CertificateNotFoundException
+     * @param skipUnregister whether to skip the actual delete request and only change cert status
+     * @throws SignCertificateNotSupportedException
+     * @throws ActionNotPossibleException
      * @throws GlobalConfService.GlobalConfOutdatedException
+     * @throws InvalidCertificateException
+     * @throws KeyNotFoundException
+     * @throws CertificateNotFoundException
+     * @throws NoValidAuthCertificateException
      */
-    public void unregisterAuthCert(String hash) throws CertificateNotFoundException,
-            GlobalConfService.GlobalConfOutdatedException, InvalidCertificateException,
-            SignCertificateNotSupportedException, KeyNotFoundException, ActionNotPossibleException {
+    private void unregisterAuthCertAndMarkForDeletion(String hash, boolean skipUnregister)
+            throws CertificateNotFoundException, GlobalConfService.GlobalConfOutdatedException,
+            InvalidCertificateException, SignCertificateNotSupportedException, KeyNotFoundException,
+            ActionNotPossibleException, NoValidAuthCertificateException {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         verifyAuthCert(certificateInfo);
         verifyCertAction(PossibleActionEnum.UNREGISTER, certificateInfo, hash);
         SecurityServerId securityServerId = serverConfService.getSecurityServerId();
         try {
-            managementRequestSenderService.sendAuthCertDeletionRequest(securityServerId,
-                    certificateInfo.getCertificateBytes());
+            if (!skipUnregister) {
+                managementRequestSenderService.sendAuthCertDeletionRequest(securityServerId,
+                        certificateInfo.getCertificateBytes());
+            }
             signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
-        } catch (GlobalConfService.GlobalConfOutdatedException | CodedException e) {
+        } catch (CodedException ce) {
+            if (isCausedBySslAuthFailure(ce)) {
+                throw new NoValidAuthCertificateException(ce);
+            }
+            throw ce;
+        } catch (GlobalConfService.GlobalConfOutdatedException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException("Could not unregister auth cert", e);
+        }
+    }
+
+    /**
+     * Send the authentication certificate deletion request to central server and set cert status to
+     * {@link CertificateInfo#STATUS_DELINPROG}
+     * @param hash certificate hash
+     * @throws SignCertificateNotSupportedException
+     * @throws ActionNotPossibleException
+     * @throws GlobalConfService.GlobalConfOutdatedException
+     * @throws InvalidCertificateException
+     * @throws KeyNotFoundException
+     * @throws CertificateNotFoundException
+     * @throws NoValidAuthCertificateException
+     */
+    public void unregisterAuthCert(String hash) throws SignCertificateNotSupportedException,
+            ActionNotPossibleException, GlobalConfService.GlobalConfOutdatedException, InvalidCertificateException,
+            KeyNotFoundException, CertificateNotFoundException, NoValidAuthCertificateException {
+        unregisterAuthCertAndMarkForDeletion(hash, false);
+    }
+
+    /**
+     * Set the authentication certificate status to {@link CertificateInfo#STATUS_DELINPROG}
+     * @param hash certificate hash
+     * @throws SignCertificateNotSupportedException
+     * @throws ActionNotPossibleException
+     * @throws GlobalConfService.GlobalConfOutdatedException
+     * @throws InvalidCertificateException
+     * @throws KeyNotFoundException
+     * @throws CertificateNotFoundException
+     */
+    public void markAuthCertForDeletion(String hash) throws SignCertificateNotSupportedException,
+            ActionNotPossibleException, GlobalConfService.GlobalConfOutdatedException, InvalidCertificateException,
+            KeyNotFoundException, CertificateNotFoundException {
+        try {
+            unregisterAuthCertAndMarkForDeletion(hash, true);
+        } catch (NoValidAuthCertificateException e) {
+            // Not a possible exception because the unregister request was never sent
         }
     }
 
@@ -642,11 +700,16 @@ public class TokenCertificateService {
         return CERT_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
     }
 
+    static boolean isCausedBySslAuthFailure(CodedException e) {
+        return SSL_AUTH_FAULT_CODE.equals(e.getFaultCode());
+    }
+
     static final String DUPLICATE_CERT_FAULT_CODE = signerFaultCode(X_CERT_EXISTS);
     static final String INCORRECT_CERT_FAULT_CODE = signerFaultCode(X_INCORRECT_CERTIFICATE);
     static final String CERT_WRONG_USAGE_FAULT_CODE = signerFaultCode(X_WRONG_CERT_USAGE);
     static final String CSR_NOT_FOUND_FAULT_CODE = signerFaultCode(X_CSR_NOT_FOUND);
     static final String CERT_NOT_FOUND_FAULT_CODE = signerFaultCode(X_CERT_NOT_FOUND);
+    static final String SSL_AUTH_FAULT_CODE = clientProxyFaultCode(X_CERT_NOT_FOUND);
 
     /**
      * Return possible actions for one cert
@@ -892,6 +955,17 @@ public class TokenCertificateService {
 
         public SignCertificateNotSupportedException(String msg) {
             super(msg, new ErrorDeviation(SIGN_CERT_NOT_SUPPORTED));
+        }
+    }
+
+    /**
+     * Missing a valid auth cert
+     */
+    public static class NoValidAuthCertificateException extends ServiceException {
+        public static final String NO_VALID_AUTH_CERT = "no_valid_auth_cert";
+
+        public NoValidAuthCertificateException(Throwable t) {
+            super(t, new ErrorDeviation(NO_VALID_AUTH_CERT));
         }
     }
 }
