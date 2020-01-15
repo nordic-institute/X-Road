@@ -203,7 +203,7 @@ const router = new Router({
         },
         {
           name: RouteName.Certificate,
-          path: '/certificate/:hash',
+          path: '/certificate/:hash/:usage',
           components: {
             default: CertificateDetails,
           },

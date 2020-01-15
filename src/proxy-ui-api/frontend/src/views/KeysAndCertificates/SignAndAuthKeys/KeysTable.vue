@@ -1,7 +1,6 @@
 <template>
   <div>
     <table class="xrd-table">
-
       <!-- SOFTWARE token table header -->
       <template v-if="tokenType === 'SOFTWARE'">
         <thead>
@@ -32,12 +31,11 @@
       </template>
 
       <tbody v-for="key in keys" v-bind:key="key.id">
-
         <!-- SOFTWARE token table body -->
         <template v-if="tokenType === 'SOFTWARE'">
           <tr>
             <div class="name-wrap-top">
-              <v-icon class="icon" @click="keyClick(key)">mdi-key-outline</v-icon>
+              <i class="icon-xrd_key icon clickable" @click="keyClick(key)"></i>
               <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
             </div>
             <td class="no-border"></td>
@@ -57,10 +55,10 @@
           <tr v-for="cert in key.certificates" v-bind:key="cert.id">
             <td class="td-name">
               <div class="name-wrap">
-                <v-icon class="icon" @click="certificateClick(cert)">mdi-file-document-outline</v-icon>
+                <i class="icon-xrd_certificate icon clickable" @click="certificateClick(cert, key)"></i>
                 <div
                   class="clickable-link"
-                  @click="certificateClick(cert)"
+                  @click="certificateClick(cert, key)"
                 >{{cert.certificate_details.issuer_common_name}} {{cert.certificate_details.serial}}</div>
               </div>
             </td>
@@ -70,7 +68,18 @@
             <td class="status-cell">
               <certificate-status :certificate="cert" />
             </td>
-            <td></td>
+            <td class="td-align-right">
+              <SmallButton
+                class="table-button-fix test-register"
+                v-if="cert.possible_actions.includes('REGISTER') && hasPermission"
+                @click="showRegisterCert(cert)"
+              >{{$t('action.register')}}</SmallButton>
+              <SmallButton
+                class="table-button-fix test-unregister"
+                v-if="cert.possible_actions.includes('UNREGISTER')  && hasPermission"
+                @click="unregisterCert(cert)"
+              >{{$t('action.unregister')}}</SmallButton>
+            </td>
           </tr>
         </template>
 
@@ -78,7 +87,7 @@
         <template v-if="tokenType === 'HARDWARE'">
           <tr>
             <div class="name-wrap-top">
-              <v-icon class="icon" @click="keyClick(key)">mdi-key-outline</v-icon>
+              <i class="icon-xrd_key icon clickable" @click="keyClick(key)"></i>
               <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
             </div>
             <td class="no-border"></td>
@@ -99,10 +108,10 @@
           <tr v-for="cert in key.certificates" v-bind:key="cert.id">
             <td class="td-name">
               <div class="name-wrap">
-                <v-icon class="icon" @click="certificateClick(cert)">mdi-file-document-outline</v-icon>
+                <i class="icon-xrd_certificate icon clickable" @click="certificateClick(cert, key)"></i>
                 <div
                   class="clickable-link"
-                  @click="certificateClick(cert)"
+                  @click="certificateClick(cert, key)"
                 >{{cert.certificate_details.issuer_common_name}} {{cert.certificate_details.serial}}</div>
               </div>
             </td>
@@ -130,7 +139,7 @@
           <tr v-for="req in key.certificate_signing_requests" v-bind:key="req.id">
             <td class="td-name">
               <div class="name-wrap">
-                <i class="icon-xrd_certificate icon" @click="certificateClick(req)"></i>
+                <i class="icon-xrd_certificate icon"></i>
                 <div>{{$t('keys.request')}}</div>
               </div>
             </td>
@@ -138,12 +147,39 @@
             <td></td>
             <td></td>
             <td class="status-cell"></td>
-            <td></td>
+            <td class="td-align-right">
+              <SmallButton
+                class="table-button-fix"
+                v-if="hasPermission && req.possible_actions.includes('DELETE')"
+                @click="deleteCsr(req, key)"
+              >{{$t('keys.deleteCsr')}}</SmallButton>
+            </td>
           </tr>
         </template>
-
       </tbody>
     </table>
+
+    <RegisterCertificateDialog
+      :dialog="registerDialog"
+      @save="registerCert"
+      @cancel="registerDialog = false"
+    />
+
+    <ConfirmDialog
+      :dialog="confirmUnregiseterCertificate"
+      title="keys.unregisterTitle"
+      text="keys.unregisterText"
+      @cancel="confirmUnregiseterCertificate = false"
+      @accept="doUnregisterCert()"
+    />
+
+    <ConfirmDialog
+      :dialog="confirmDeleteCsr"
+      title="keys.deleteCsrTitle"
+      text="keys.deleteCsrText"
+      @cancel="confirmDeleteCsr = false"
+      @accept="doDeleteCsr()"
+    />
   </div>
 </template>
 
@@ -153,14 +189,19 @@
  */
 import Vue from 'vue';
 import CertificateStatus from './CertificateStatus.vue';
+import RegisterCertificateDialog from './RegisterCertificateDialog.vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
-import {Key, TokenCertificate} from '@/types';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import { Key, TokenCertificate, TokenCertificateSigningRequest } from '@/types';
 import { Permissions, UsageTypes } from '@/global';
+import * as api from '@/util/api';
 
 export default Vue.extend({
   components: {
     CertificateStatus,
     SmallButton,
+    RegisterCertificateDialog,
+    ConfirmDialog,
   },
   props: {
     keys: {
@@ -179,6 +220,17 @@ export default Vue.extend({
       required: true,
     },
   },
+  data() {
+    return {
+      registerDialog: false,
+      confirmUnregiseterCertificate: false,
+      confirmDeleteCsr: false,
+      usageTypes: UsageTypes,
+      selectedCert: null as TokenCertificate | null,
+      selectedCsr: null as TokenCertificateSigningRequest | null,
+      selectedKey: null as Key | null,
+    };
+  },
   computed: {
     hasPermission(): boolean {
       return this.$store.getters.hasPermission(
@@ -190,14 +242,84 @@ export default Vue.extend({
     keyClick(key: Key): void {
       this.$emit('keyClick', key);
     },
-    certificateClick(cert: TokenCertificate): void {
-      this.$emit('certificateClick', cert);
+    certificateClick(cert: TokenCertificate, key: Key): void {
+      this.$emit('certificateClick', { cert, key });
     },
     generateCsr(key: Key): void {
       this.$emit('generateCsr', key);
     },
     importCert(hash: string): void {
       this.$emit('importCertByHash', hash);
+    },
+    showRegisterCert(cert: TokenCertificate): void {
+      this.registerDialog = true;
+      this.selectedCert = cert;
+    },
+    cancelRegisterCert(): void {
+      this.registerDialog = false;
+    },
+    registerCert(address: string): void {
+      this.registerDialog = false;
+      if (!this.selectedCert) {
+        return;
+      }
+
+      api
+        .put(
+          `/token-certificates/${this.selectedCert.certificate_details.hash}/register`,
+          { address },
+        )
+        .then((res) => {
+          this.$bus.$emit('show-success', 'keys.certificateRegistered');
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
+    },
+    unregisterCert(cert: TokenCertificate): void {
+      this.confirmUnregiseterCertificate = true;
+      this.selectedCert = cert;
+    },
+    doUnregisterCert(): void {
+      if (!this.selectedCert) {
+        return;
+      }
+
+      api
+        .put(
+          `/token-certificates/${this.selectedCert.certificate_details.hash}/unregister`,
+          {},
+        )
+        .then((res) => {
+          this.$bus.$emit('show-success', 'keys.keyAdded');
+          this.confirmUnregiseterCertificate = false;
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+          this.confirmUnregiseterCertificate = false;
+        });
+    },
+    deleteCsr(req: TokenCertificateSigningRequest, key: Key): void {
+      this.confirmDeleteCsr = true;
+      this.selectedCsr = req;
+      this.selectedKey = key;
+    },
+    doDeleteCsr(): void {
+      this.confirmDeleteCsr = false;
+
+      if (!this.selectedKey || !this.selectedCsr) {
+        return;
+      }
+
+      api
+        .remove(`/keys/${this.selectedKey.id}/csrs/${this.selectedCsr.id}`)
+        .then((res) => {
+          this.$bus.$emit('show-success', 'keys.csrDeleted');
+          this.$emit('refreshList');
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
     },
   },
 });
@@ -209,6 +331,9 @@ export default Vue.extend({
 .icon {
   margin-left: 18px;
   margin-right: 20px;
+}
+
+.clickable {
   cursor: pointer;
 }
 
