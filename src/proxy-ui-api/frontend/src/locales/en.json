@@ -180,6 +180,7 @@
     "remove": "Remove",
     "removeAll": "Remove All",
     "register": "Register",
+    "unregister": "Unregister",
     "save": "Save",
     "continue": "Continue",
     "activate": "Activate",
@@ -239,6 +240,9 @@
     "registrationRequest": "Registration request",
     "certRegistrationInfo": "Security server DNS name or IP address",
     "importCertSuccess": "Uploading certificate succeeded",
+    "certificateRegistered": "Certificate registered",
+    "unregisterTitle": "Unregister certitficate",
+    "unregisterText": "Do you want to unregister this certificate?",
     "ocspStatus": {
       "disabled": "Disabled",
       "expired": "Expired",
