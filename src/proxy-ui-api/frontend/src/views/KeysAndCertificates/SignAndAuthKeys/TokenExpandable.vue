@@ -36,7 +36,7 @@
             outlined
             class="button-spacing"
             :disabled="!token.logged_in"
-            @click="$refs.certUpload[0].click()"
+            @click="$refs.certUpload.click()"
           >{{$t('keys.importCert')}}</large-button>
           <input
             v-show="false"
