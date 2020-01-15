@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<configuration>
+<configuration scan="true" scanPeriod="60 seconds">
 
     <property name="logOutputPath" value="/var/log/xroad"/>
 
@@ -48,6 +48,7 @@
     </logger>
 
     <logger name="ee.ria.xroad" level="INFO"/>
+    <logger name="akka" level="WARN" />
 
     <root level="INFO">
         <appender-ref ref="FILE"/>

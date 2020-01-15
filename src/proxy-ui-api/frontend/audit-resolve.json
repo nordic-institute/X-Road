@@ -2,8 +2,8 @@
   "decisions": {
     "961|node-sass": {
       "decision": "ignore",
-      "madeAt": 1579006732621,
-      "expiresAt": 1581598630459
+      "madeAt": 1579006978204,
+      "expiresAt": 1581598965549
     }
   },
   "rules": {},
