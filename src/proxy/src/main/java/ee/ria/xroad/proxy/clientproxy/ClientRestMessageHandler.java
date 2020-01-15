@@ -160,8 +160,8 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
         String[] commaSplit = acceptHeaderValue.trim().toLowerCase().split("\\s*,\\s*");
         for (String s1: commaSplit) {
             String[] colonSplit = s1.trim().split("\\s*;\\s*");
-            for (String s2: colonSplit) {
-                allPieces.add(s2);
+            if (colonSplit.length > 0) {
+                allPieces.add(colonSplit[0]);
             }
         }
         return allPieces.stream()
