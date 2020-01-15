@@ -41,24 +41,24 @@ public class FiVRKAuthCertificateProfileInfo
     public FiVRKAuthCertificateProfileInfo(Parameters params) {
         super(new DnFieldDescription[] {
                 // Country Code
-                new DnFieldDescriptionImpl("C", "Country code (C)",
+                new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.COUNTRY_CODE,
                     "FI"
                 ).setReadOnly(true),
 
                 // Organization name
-                new DnFieldDescriptionImpl("O", "Organization name (O)",
+                new EnumLocalizedFieldDescriptionImpl("O", DnFieldLabelLocalizationKey.ORGANIZATION_NAME,
                     ""
                 ).setReadOnly(false),
 
                 // Serialnumber
-                new DnFieldDescriptionImpl("serialNumber", "Serial number",
+                new EnumLocalizedFieldDescriptionImpl("serialNumber", DnFieldLabelLocalizationKey.SERIAL_NUMBER,
                     params.getServerId().getXRoadInstance() + "/"
                     + params.getServerId().getServerCode() + "/"
                     + params.getServerId().getMemberClass()
                 ).setReadOnly(true),
 
                 // Server code
-                new DnFieldDescriptionImpl("CN", "Server DNS name (CN)",
+                new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.SERVER_DNS_NAME,
                     ""
                 ).setReadOnly(false) }
         );

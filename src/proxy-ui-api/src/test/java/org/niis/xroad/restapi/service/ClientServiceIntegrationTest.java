@@ -47,7 +47,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -63,6 +65,7 @@ import static org.mockito.Mockito.when;
 @AutoConfigureTestDatabase
 @Slf4j
 @Transactional
+@WithMockUser
 public class ClientServiceIntegrationTest {
 
     @Autowired
@@ -112,8 +115,6 @@ public class ClientServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "EDIT_CLIENT_INTERNAL_CONNECTION_TYPE",
-            "VIEW_CLIENT_DETAILS" })
     public void updateConnectionType() throws Exception {
         ClientId id = TestUtils.getM1Ss1ClientId();
         ClientType clientType = clientService.getClient(id);
@@ -133,7 +134,6 @@ public class ClientServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_CLIENT_INTERNAL_CERT" })
     public void addCertificatePem() throws Exception {
 
         ClientId id = TestUtils.getM1Ss1ClientId();
@@ -148,7 +148,6 @@ public class ClientServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_CLIENT_INTERNAL_CERT" })
     public void addInvalidCertificate() throws Exception {
 
         ClientId id = TestUtils.getM1Ss1ClientId();
@@ -163,7 +162,6 @@ public class ClientServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_CLIENT_INTERNAL_CERT" })
     public void addCertificateDer() throws Exception {
 
         ClientId id = TestUtils.getM1Ss1ClientId();
@@ -178,7 +176,6 @@ public class ClientServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_CLIENT_INTERNAL_CERT" })
     public void addDuplicate() throws Exception {
 
         ClientId id = TestUtils.getM1Ss1ClientId();
@@ -190,13 +187,11 @@ public class ClientServiceIntegrationTest {
         try {
             clientService.addTlsCertificate(id, pemBytes);
             fail("should have thrown CertificateAlreadyExistsException");
-        } catch (ClientService.CertificateAlreadyExistsException expected) {
+        } catch (CertificateAlreadyExistsException expected) {
         }
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_CLIENT_INTERNAL_CERT",
-            "DELETE_CLIENT_INTERNAL_CERT" })
     public void deleteCertificate() throws Exception {
 
         ClientId id = TestUtils.getM1Ss1ClientId();
@@ -232,14 +227,14 @@ public class ClientServiceIntegrationTest {
     public void findLocalClientsByInstanceIncludeMembers() {
         List<ClientType> clients = clientService.findLocalClients(null, TestUtils.INSTANCE_FI, null,
                 null, null, true);
-        assertEquals(3, clients.size());
+        assertEquals(4, clients.size());
     }
 
     @Test
     public void findLocalClientsByClassIncludeMembers() {
         List<ClientType> clients = clientService.findLocalClients(null, null, TestUtils.MEMBER_CLASS_GOV,
                 null, null, true);
-        assertEquals(3, clients.size());
+        assertEquals(4, clients.size());
     }
 
     @Test
@@ -269,14 +264,14 @@ public class ClientServiceIntegrationTest {
     public void findLocalClientsByInstanceExcludeMembers() {
         List<ClientType> clients = clientService.findLocalClients(null, TestUtils.INSTANCE_FI, null,
                 null, null, false);
-        assertEquals(2, clients.size());
+        assertEquals(3, clients.size());
     }
 
     @Test
     public void findLocalClientsByClassExcludeMembers() {
         List<ClientType> clients = clientService.findLocalClients(null, null, TestUtils.MEMBER_CLASS_GOV,
                 null, null, false);
-        assertEquals(2, clients.size());
+        assertEquals(3, clients.size());
     }
 
     @Test
@@ -367,5 +362,16 @@ public class ClientServiceIntegrationTest {
                 TestUtils.INSTANCE_FI,
                 TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1, false);
         assertEquals(1, clients.size());
+    }
+
+    @Test
+    public void getLocalClientMemberIds() {
+        Set<ClientId> expected = new HashSet();
+        expected.add(ClientId.create(TestUtils.INSTANCE_FI,
+                TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1));
+        expected.add(ClientId.create(TestUtils.INSTANCE_FI,
+                TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M2));
+        Set<ClientId> result = clientService.getLocalClientMemberIds();
+        assertEquals(expected, result);
     }
 }

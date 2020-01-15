@@ -21,6 +21,8 @@
             type="text"
             :maxlength="255"
             :error-messages="errors"
+            :loading="loading"
+            :disabled="!canEdit"
             @input="touched = true"
           ></v-text-field>
         </ValidationProvider>
@@ -79,10 +81,18 @@ export default Vue.extend({
       required: true,
     },
   },
+  computed: {
+    canEdit(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.EDIT_TOKEN_FRIENDLY_NAME,
+      );
+    },
+  },
   data() {
     return {
       touched: false,
       saveBusy: false,
+      loading: false,
       token: {},
     };
   },
@@ -92,11 +102,24 @@ export default Vue.extend({
     },
 
     save(): void {
-      // TODO will be implemented later
       this.saveBusy = true;
+
+      api
+        .patch(`/tokens/${this.id}`, this.token)
+        .then((res) => {
+          this.$bus.$emit('show-success', 'keys.tokenSaved');
+          this.$router.go(-1);
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        })
+        .finally(() => {
+          this.saveBusy = false;
+        });
     },
 
     fetchData(id: string): void {
+      this.loading = true;
       api
         .get(`/tokens/${this.id}`)
         .then((res) => {
@@ -104,6 +127,9 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
   },

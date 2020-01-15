@@ -30,12 +30,11 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
-import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.KeyUsageType;
-import org.niis.xroad.restapi.util.CertificateTestUtils;
+import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -46,7 +45,6 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.niis.xroad.restapi.util.CertificateTestUtils.createTestCertificateInfo;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -59,9 +57,7 @@ public class KeyConverterTest {
     @Test
     public void convert() throws Exception {
         List<CertificateInfo> certs = new ArrayList<>();
-        certs.add(createTestCertificateInfo(CertificateTestUtils.getMockCertificate(),
-                CertificateStatus.GOOD,
-                CertificateInfo.STATUS_REGISTERED));
+        certs.add(new CertificateInfoBuilder().build());
         List<CertRequestInfo> csrs = new ArrayList<>();
         csrs.add(new CertRequestInfo("id", ClientId.create("a", "b", "c"),
                 "sujbect-name"));
@@ -92,7 +88,7 @@ public class KeyConverterTest {
     @Test
     public void isSavedToConfiguration() throws Exception {
         // test different combinations of keys and certs and the logic for isSavedToConfiguration
-        KeyInfo info = TokenTestUtils.createTestKeyInfo();
+        KeyInfo info = new TokenTestUtils.KeyInfoBuilder().build();
 
         info.getCerts().clear();
         info.getCertRequests().clear();
@@ -105,26 +101,20 @@ public class KeyConverterTest {
 
         info.getCerts().clear();
         info.getCertRequests().clear();
-        info.getCerts().add(createTestCertificateInfo(CertificateTestUtils.getMockCertificate(),
-                CertificateStatus.GOOD, CertificateInfo.STATUS_REGISTERED, false));
-        info.getCerts().add(createTestCertificateInfo(CertificateTestUtils.getMockCertificate(),
-                CertificateStatus.GOOD, CertificateInfo.STATUS_REGISTERED, false));
+        info.getCerts().add(new CertificateInfoBuilder().savedToConfiguration(false).build());
+        info.getCerts().add(new CertificateInfoBuilder().savedToConfiguration(false).build());
         assertEquals(false, keyConverter.convert(info).getSavedToConfiguration());
 
         info.getCerts().clear();
         info.getCertRequests().clear();
-        info.getCerts().add(createTestCertificateInfo(CertificateTestUtils.getMockCertificate(),
-                CertificateStatus.GOOD, CertificateInfo.STATUS_REGISTERED, false));
-        info.getCerts().add(createTestCertificateInfo(CertificateTestUtils.getMockCertificate(),
-                CertificateStatus.GOOD, CertificateInfo.STATUS_REGISTERED, true));
+        info.getCerts().add(new CertificateInfoBuilder().savedToConfiguration(false).build());
+        info.getCerts().add(new CertificateInfoBuilder().savedToConfiguration(true).build());
         assertEquals(true, keyConverter.convert(info).getSavedToConfiguration());
 
         info.getCerts().clear();
         info.getCertRequests().clear();
-        info.getCerts().add(createTestCertificateInfo(CertificateTestUtils.getMockCertificate(),
-                CertificateStatus.GOOD, CertificateInfo.STATUS_REGISTERED, true));
-        info.getCerts().add(createTestCertificateInfo(CertificateTestUtils.getMockCertificate(),
-                CertificateStatus.GOOD, CertificateInfo.STATUS_REGISTERED, false));
+        info.getCerts().add(new CertificateInfoBuilder().savedToConfiguration(true).build());
+        info.getCerts().add(new CertificateInfoBuilder().savedToConfiguration(false).build());
         assertEquals(true, keyConverter.convert(info).getSavedToConfiguration());
     }
 

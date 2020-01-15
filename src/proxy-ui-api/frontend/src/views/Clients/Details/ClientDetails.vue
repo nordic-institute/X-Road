@@ -48,6 +48,8 @@
         </template>
       </table>
     </v-card>
+
+    <certificateDialog :dialog="dialog" :certificate="certificate" @close="closeDialog()" />
   </div>
 </template>
 
@@ -55,15 +57,23 @@
 import Vue from 'vue';
 
 import { mapGetters } from 'vuex';
-import { Permissions, RouteName } from '@/global';
 import CertificateDialog from './CertificateDialog.vue';
 
 export default Vue.extend({
+  components: {
+    CertificateDialog,
+  },
   props: {
     id: {
       type: String,
       required: true,
     },
+  },
+  data() {
+    return {
+      dialog: false,
+      certificate: null,
+    };
   },
   computed: {
     ...mapGetters(['client', 'signCertificates']),
@@ -73,10 +83,11 @@ export default Vue.extend({
   },
   methods: {
     viewCertificate(cert: any) {
-      this.$router.push({
-        name: RouteName.Certificate,
-        params: { hash: cert.certificate_details.hash },
-      });
+      this.certificate = cert;
+      this.dialog = true;
+    },
+    closeDialog() {
+      this.dialog = false;
     },
     fetchClient(id: string) {
       this.$store.dispatch('fetchClient', id).catch((error) => {

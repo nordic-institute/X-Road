@@ -27,9 +27,11 @@ package ee.ria.xroad.commonui;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import ee.ria.xroad.signer.protocol.message.ActivateCert;
 import ee.ria.xroad.signer.protocol.message.ActivateToken;
 import ee.ria.xroad.signer.protocol.message.DeleteCert;
@@ -40,7 +42,14 @@ import ee.ria.xroad.signer.protocol.message.GenerateCertRequestResponse;
 import ee.ria.xroad.signer.protocol.message.GenerateKey;
 import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCert;
 import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCertResponse;
+import ee.ria.xroad.signer.protocol.message.GetCertificateInfoForHash;
+import ee.ria.xroad.signer.protocol.message.GetCertificateInfoResponse;
+import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHash;
+import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHashResponse;
 import ee.ria.xroad.signer.protocol.message.GetTokenInfo;
+import ee.ria.xroad.signer.protocol.message.GetTokenInfoAndKeyIdForCertHash;
+import ee.ria.xroad.signer.protocol.message.GetTokenInfoAndKeyIdForCertRequestId;
+import ee.ria.xroad.signer.protocol.message.GetTokenInfoForKeyId;
 import ee.ria.xroad.signer.protocol.message.ImportCert;
 import ee.ria.xroad.signer.protocol.message.ImportCertResponse;
 import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
@@ -306,6 +315,96 @@ public final class SignerProxy {
         log.trace("Setting cert ('{}') status to '{}'", certId, status);
 
         execute(new SetCertStatus(certId, status));
+    }
+
+    /**
+     * Get a cert by it's hash
+     * @param hash cert hash. Will be converted to lowercase, which is what signer uses internally
+     * @return CertificateInfo
+     * @throws Exception
+     */
+    public static CertificateInfo getCertForHash(String hash) throws Exception {
+        hash = hash.toLowerCase();
+        log.trace("Getting cert by hash '{}'", hash);
+
+        GetCertificateInfoResponse response = execute(new GetCertificateInfoForHash(hash));
+        CertificateInfo certificateInfo = response.getCertificateInfo();
+
+        log.trace("Cert with hash '{}' found", hash);
+
+        return certificateInfo;
+    }
+
+    /**
+     * Get key for a given cert hash
+     * @param hash cert hash. Will be converted to lowercase, which is what signer uses internally
+     * @return CertificateInfo
+     * @throws Exception
+     */
+    public static String getKeyIdForCertHash(String hash) throws Exception {
+        hash = hash.toLowerCase();
+        log.trace("Getting cert by hash '{}'", hash);
+
+        GetKeyIdForCertHashResponse response = execute(new GetKeyIdForCertHash(hash));
+        String keyId = response.getKeyId();
+
+        log.trace("Cert with hash '{}' found", hash);
+
+        return keyId;
+    }
+
+    /**
+     * Get TokenInfoAndKeyId for a given cert hash
+     * @param hash cert hash. Will be converted to lowercase, which is what signer uses internally
+     *
+     * @return TokenInfoAndKeyId
+     * @throws Exception
+     */
+    public static TokenInfoAndKeyId getTokenAndKeyIdForCertHash(String hash) throws Exception {
+        hash = hash.toLowerCase();
+        log.trace("Getting token and key id by cert hash '{}'", hash);
+
+        TokenInfoAndKeyId response = execute(new GetTokenInfoAndKeyIdForCertHash(hash));
+
+        log.trace("Token and key id with hash '{}' found", hash);
+
+        return response;
+    }
+
+    /**
+     * Get TokenInfoAndKeyId for a given cert hash
+     * @param certRequestId
+     * @return TokenInfoAndKeyId
+     * @throws Exception
+     */
+    public static TokenInfoAndKeyId getTokenAndKeyIdForCertRequestId(String certRequestId) throws Exception {
+        log.trace("Getting token and key id by cert request id '{}'", certRequestId);
+
+        TokenInfoAndKeyId response = execute(new GetTokenInfoAndKeyIdForCertRequestId(certRequestId));
+
+        log.trace("Token and key id with cert request id '{}' found", certRequestId);
+
+        return response;
+    }
+
+    /**
+     * Gets information about the token which has the specified key.
+     * @param keyId id of the key
+     * @return TokenInfo
+     * @throws Exception if any errors occur
+     */
+    public static TokenInfo getTokenForKeyId(String keyId) throws Exception {
+        return execute(new GetTokenInfoForKeyId(keyId));
+    }
+
+
+    /**
+     * @throws IllegalArgumentException if parameter was not a lowercase string
+     */
+    private static void checkLowerCase(String s) {
+        if (s == null || !s.toLowerCase().equals(s)) {
+            throw new IllegalArgumentException(s + " should be a lowerCase string");
+        }
     }
 
     private static <T> T execute(Object message) throws Exception {

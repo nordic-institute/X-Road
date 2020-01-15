@@ -83,6 +83,7 @@ public class ClientRepository {
     /**
      * return one client
      * @param id
+     * @return the client, or null if matching client was not found
      */
     public ClientType getClient(ClientId id) {
         ClientDAOImpl clientDAO = new ClientDAOImpl();
@@ -98,6 +99,18 @@ public class ClientRepository {
         List<ClientType> clientTypes = serverConf.getConf(persistenceUtils.getCurrentSession()).getClient();
         Hibernate.initialize(clientTypes);
         return clientTypes;
+    }
+
+    /**
+     * Returns true, if client with specified identifier exists.
+     * @param id the identifier
+     * @param includeSubsystems if true and identifier is not subsystem,
+     * also looks for clients whose identifier is a subsystem
+     * @return true, if client with specified identifier exists
+     */
+    public boolean clientExists(ClientId id, boolean includeSubsystems) {
+        ClientDAOImpl clientDAO = new ClientDAOImpl();
+        return clientDAO.clientExists(persistenceUtils.getCurrentSession(), id, includeSubsystems);
     }
 }
 

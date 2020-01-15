@@ -60,7 +60,7 @@ public final class MonitorMain {
                 .load();
     }
 
-    private static final String AKKA_PORT = "akka.remote.netty.tcp.port";
+    private static final String AKKA_PORT = "akka.remote.artery.canonical.port";
 
     private static ActorSystem actorSystem;
     private static JmxReporter jmxReporter;

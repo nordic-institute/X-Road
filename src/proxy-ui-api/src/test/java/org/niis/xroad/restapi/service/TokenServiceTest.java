@@ -60,6 +60,7 @@ import static org.niis.xroad.restapi.service.TokenService.TOKEN_NOT_FOUND_FAULT_
 @AutoConfigureTestDatabase
 @Slf4j
 @Transactional
+@WithMockUser
 public class TokenServiceTest {
 
     // token ids for mocking
@@ -77,6 +78,10 @@ public class TokenServiceTest {
 
     @MockBean
     private SignerProxyFacade signerProxyFacade;
+
+    // allow all operations in this test
+    @MockBean
+    private PossibleActionsRuleEngine possibleActionsRuleEngine;
 
     @Before
     public void setup() throws Exception {
@@ -112,8 +117,8 @@ public class TokenServiceTest {
             return null;
         }).when(signerProxyFacade).deactivateToken(any());
 
-        TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo(GOOD_TOKEN_NAME);
-        KeyInfo keyInfo = TokenTestUtils.createTestKeyInfo(GOOD_KEY_ID);
+        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder().friendlyName(GOOD_TOKEN_NAME).build();
+        KeyInfo keyInfo = new TokenTestUtils.KeyInfoBuilder().id(GOOD_KEY_ID).build();
         tokenInfo.getKeyInfo().add(keyInfo);
 
         doAnswer(invocation -> {
@@ -135,7 +140,6 @@ public class TokenServiceTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "ACTIVATE_TOKEN" })
     public void activateToken() throws Exception {
         char[] password = "foobar".toCharArray();
         tokenService.activateToken("token-should-be-activatable", password);
@@ -163,7 +167,7 @@ public class TokenServiceTest {
         try {
             tokenService.activateToken(TOKEN_NOT_FOUND_TOKEN_ID, password);
             fail("should have thrown exception");
-        } catch (TokenService.TokenNotFoundException expected) {
+        } catch (TokenNotFoundException expected) {
         }
 
         try {
@@ -177,14 +181,13 @@ public class TokenServiceTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "DEACTIVATE_TOKEN" })
     public void deactivateToken() throws Exception {
         tokenService.deactivateToken("token-should-be-deactivatable");
 
         try {
             tokenService.deactivateToken(TOKEN_NOT_FOUND_TOKEN_ID);
             fail("should have thrown exception");
-        } catch (TokenService.TokenNotFoundException expected) {
+        } catch (TokenNotFoundException expected) {
         }
 
         try {
@@ -197,7 +200,18 @@ public class TokenServiceTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "EDIT_KEYTABLE_FRIENDLY_NAMES", "VIEW_KEYS" })
+    public void getToken() throws Exception {
+
+        try {
+            tokenService.getToken(TOKEN_NOT_FOUND_TOKEN_ID);
+        } catch (TokenNotFoundException expected) {
+        }
+
+        TokenInfo tokenInfo = tokenService.getToken(GOOD_TOKEN_ID);
+        assertEquals(GOOD_TOKEN_NAME, tokenInfo.getFriendlyName());
+    }
+
+    @Test
     public void updateTokenFriendlyName() throws Exception {
         TokenInfo tokenInfo = tokenService.getToken(GOOD_TOKEN_ID);
         assertEquals(GOOD_TOKEN_NAME, tokenInfo.getFriendlyName());
@@ -205,22 +219,8 @@ public class TokenServiceTest {
         assertEquals("friendly-neighborhood", tokenInfo.getFriendlyName());
     }
 
-    @Test(expected = TokenService.TokenNotFoundException.class)
-    @WithMockUser(authorities = { "EDIT_KEYTABLE_FRIENDLY_NAMES", "VIEW_KEYS" })
+    @Test(expected = TokenNotFoundException.class)
     public void updateNonExistingTokenFriendlyName() throws Exception {
         tokenService.updateTokenFriendlyName(TOKEN_NOT_FOUND_TOKEN_ID, "new-name");
-    }
-
-    @Test
-    @WithMockUser(authorities = { "VIEW_KEYS" })
-    public void getToken() throws Exception {
-
-        try {
-            tokenService.getToken(TOKEN_NOT_FOUND_TOKEN_ID);
-        } catch (TokenService.TokenNotFoundException expected) {
-        }
-
-        TokenInfo tokenInfo = tokenService.getToken(GOOD_TOKEN_ID);
-        assertEquals(GOOD_TOKEN_NAME, tokenInfo.getFriendlyName());
     }
 }

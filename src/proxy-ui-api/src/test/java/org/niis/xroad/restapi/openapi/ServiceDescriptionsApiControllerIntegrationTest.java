@@ -63,6 +63,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.util.TestUtils.CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT;
 
 /**
  * Test ServiceDescriptionsApiController
@@ -98,7 +99,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "ENABLE_DISABLE_WSDL", "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
+    @WithMockUser(authorities = { "ENABLE_DISABLE_WSDL", "VIEW_CLIENT_SERVICES" })
     public void enableServiceDescription() {
         // serviceDescription that was disabled
         serviceDescriptionsApiController.enableServiceDescription("2");
@@ -138,7 +139,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "ENABLE_DISABLE_WSDL", "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
+    @WithMockUser(authorities = { "ENABLE_DISABLE_WSDL", "VIEW_CLIENT_SERVICES" })
     public void disableServiceDescription() {
         // serviceDescription that was disabled
         serviceDescriptionsApiController.disableServiceDescription("2",
@@ -173,20 +174,20 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "DELETE_WSDL", "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
+    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "DELETE_WSDL", "VIEW_CLIENT_SERVICES" })
     public void deleteServiceDescription() {
         Client client = clientsApiController.getClient(TestUtils.CLIENT_ID_SS1).getBody();
         assertNotNull(client);
         serviceDescriptionsApiController.deleteServiceDescription("2");
         List<ServiceDescription> serviceDescriptions =
                 clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1).getBody();
-        assertEquals(2, serviceDescriptions.size());
+        assertEquals(CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT - 1, serviceDescriptions.size());
         client = clientsApiController.getClient(TestUtils.CLIENT_ID_SS1).getBody();
         assertNotNull(client);
     }
 
     @Test
-    @WithMockUser(authorities = { "EDIT_WSDL", "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
+    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES", "EDIT_WSDL" })
     public void updateServiceDescription() {
         Client client = clientsApiController.getClient(TestUtils.CLIENT_ID_SS1).getBody();
         assertNotNull(client);
@@ -228,7 +229,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "REFRESH_WSDL", "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
+    @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES", "REFRESH_WSDL" })
     public void refreshServiceDescription() {
         ServiceDescription serviceDescription = getServiceDescription(
                 clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS2).getBody(), "3").get();

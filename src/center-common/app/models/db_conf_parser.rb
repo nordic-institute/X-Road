@@ -40,7 +40,9 @@ class DbConfParser
         "username" => ini_conf.getString("username"),
         "password" => ini_conf.getString("password"),
         "database" => ini_conf.getString("database"),
-        "reconnect" => ini_conf.getBoolean("reconnect")
+        "reconnect" => ini_conf.getBoolean("reconnect"),
+        "host" => ini_conf.getString("host", "localhost"),
+        "port" => ini_conf.getInt("port", 5432)
     }
 
     return { @environment => db_conf }

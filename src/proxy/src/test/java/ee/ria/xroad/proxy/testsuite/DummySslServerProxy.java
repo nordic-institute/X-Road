@@ -30,8 +30,10 @@ import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.StartStop;
 
+import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import javax.net.ssl.KeyManager;
@@ -40,7 +42,11 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509TrustManager;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
+import java.io.IOException;
 import java.net.Socket;
 import java.security.Principal;
 import java.security.PrivateKey;
@@ -56,28 +62,46 @@ import java.security.cert.X509Certificate;
  */
 public class DummySslServerProxy extends Server implements StartStop {
 
-    DummySslServerProxy() throws Exception {
+    public DummySslServerProxy() throws Exception {
+        this(PortNumbers.PROXY_PORT, new DummyAuthKeyManager());
+    }
+
+    public DummySslServerProxy(int port, KeyManager keyManager) throws Exception {
         SslContextFactory.Server cf = new SslContextFactory.Server();
-        cf.setNeedClientAuth(true);
+        cf.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);
         cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
+        cf.setSessionCachingEnabled(true);
+        cf.setNeedClientAuth(true);
+        cf.setSslSessionTimeout(5000);
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[] {new DummyAuthKeyManager()},
+        ctx.init(new KeyManager[] {keyManager},
                 new TrustManager[] {new DummyAuthTrustManager()},
                 new SecureRandom());
         cf.setSslContext(ctx);
-
 
         ServerConnector connector = new ServerConnector(this, cf);
 
         connector.setName("ClientSslConnector");
         connector.setHost("127.0.0.5");
-        connector.setPort(PortNumbers.PROXY_PORT);
+        connector.setPort(port);
 
         addConnector(connector);
+        setHandler(new DummyHandler());
     }
 
-    private class DummyAuthKeyManager extends X509ExtendedKeyManager {
+    public static class DummyHandler extends AbstractHandler {
+
+        @Override
+        public void handle(String target, Request baseRequest,
+                HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+
+            baseRequest.setHandled(true);
+            response.setStatus(200);
+        }
+    }
+
+    public static class DummyAuthKeyManager extends X509ExtendedKeyManager {
 
         @Override
         public String[] getClientAliases(String keyType, Principal[] issuers) {
@@ -103,12 +127,12 @@ public class DummySslServerProxy extends Server implements StartStop {
 
         @Override
         public X509Certificate[] getCertificateChain(String alias) {
-            return new X509Certificate[] {TestCertUtil.getProducer().certChain[0]};
+            return new X509Certificate[] {TestCertUtil.getInternalKey().certChain[0]};
         }
 
         @Override
         public PrivateKey getPrivateKey(String alias) {
-            return TestCertUtil.getProducer().key;
+            return TestCertUtil.getInternalKey().key;
         }
 
         @Override
@@ -125,7 +149,7 @@ public class DummySslServerProxy extends Server implements StartStop {
 
     }
 
-    private class DummyAuthTrustManager implements X509TrustManager {
+    public static class DummyAuthTrustManager implements X509TrustManager {
 
         @Override
         public void checkClientTrusted(X509Certificate[] chain, String authType)

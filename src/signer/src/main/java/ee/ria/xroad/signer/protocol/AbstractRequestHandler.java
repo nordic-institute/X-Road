@@ -29,7 +29,7 @@ import ee.ria.xroad.signer.protocol.message.SuccessResponse;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
 import akka.actor.ActorRef;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import lombok.extern.slf4j.Slf4j;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
@@ -44,7 +44,7 @@ import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotAvailable;
  */
 @SuppressWarnings("unchecked")
 @Slf4j
-public abstract class AbstractRequestHandler<T> extends UntypedActor {
+public abstract class AbstractRequestHandler<T> extends UntypedAbstractActor {
 
     private static final Object SUCCESS = new SuccessResponse();
     private static final Object NOTHING = null;

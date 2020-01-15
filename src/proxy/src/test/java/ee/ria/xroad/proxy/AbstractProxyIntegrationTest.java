@@ -127,7 +127,7 @@ public abstract class AbstractProxyIntegrationTest {
 
         jobManager = new JobManager();
         actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy")
-                .withValue("akka.remote.netty.tcp.port", ConfigValueFactory.fromAnyRef(0)));
+                .withValue("akka.remote.artery.canonical.port", ConfigValueFactory.fromAnyRef(0)));
 
         MessageLog.init(actorSystem, jobManager);
         OpMonitoring.init(actorSystem);

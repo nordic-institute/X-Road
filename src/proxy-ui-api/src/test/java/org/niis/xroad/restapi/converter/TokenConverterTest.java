@@ -73,7 +73,7 @@ public class TokenConverterTest {
         tokenInfos.put("key1", "value1");
         tokenInfos.put("key2", "value2");
         // keyinfo not used, keyConverter mocked
-        KeyInfo dummyKeyInfo = TokenTestUtils.createTestKeyInfo();
+        KeyInfo dummyKeyInfo = new TokenTestUtils.KeyInfoBuilder().build();
 
         TokenInfo tokenInfo = new TokenInfo(TokenInfo.SOFTWARE_MODULE_TYPE,
                 "friendly-name",
@@ -127,8 +127,8 @@ public class TokenConverterTest {
     @Test
     public void isSavedToConfiguration() throws Exception {
         // test different combinations of saved and unsaved keys and the logic for isSavedToConfiguration
-        KeyInfo savedKey = TokenTestUtils.createTestKeyInfo();
-        KeyInfo unsavedKey = TokenTestUtils.createTestKeyInfo();
+        KeyInfo savedKey = new TokenTestUtils.KeyInfoBuilder().build();
+        KeyInfo unsavedKey = new TokenTestUtils.KeyInfoBuilder().build();
 
         savedKey.getCerts().clear();
         savedKey.getCertRequests().clear();
@@ -137,7 +137,7 @@ public class TokenConverterTest {
         unsavedKey.getCerts().clear();
         unsavedKey.getCertRequests().clear();
 
-        TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo("friendly-name");
+        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder().build();
 
         tokenInfo.getKeyInfo().clear();
         assertEquals(false, tokenConverter.convert(tokenInfo).getSavedToConfiguration());

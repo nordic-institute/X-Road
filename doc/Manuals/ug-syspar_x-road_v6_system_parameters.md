@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.47  
+Version: 2.48  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -57,11 +57,12 @@ Doc. ID: UG-SYSPAR
 | 08.04.2019 | 2.45     | Update REST related message log parameters' descriptions | Petteri Kivimäki |
 | 30.04.2019 | 2.46     | Added new parameter *timestamp-retry-delay* | Petteri Kivimäki |
 | 02.07.2019 | 2.47     | Added new Central Server parameter *auto-approve-owner-change-requests* | Petteri Kivimäki |
+| 26.11.2019 | 2.48     | Add proxy serverconf caching parameters | Jarkko Hyöty |
+| 5.12.2019  | 2.49     | Fix broken link in Table of Contents | Tapio Jaakkola | 
 
 ## Table of Contents
 
 <!-- toc -->
-
   * [License](#license)
 - [X-Road: System Parameters User Guide](#x-road-system-parameters-user-guide)
   - [Table of Contents](#table-of-contents)
@@ -83,7 +84,7 @@ Doc. ID: UG-SYSPAR
     - [3.7 Message log add-on parameters: `[message-log]`](#37-message-log-add-on-parameters-message-log)
       - [3.7.1 Note on logged X-Road message headers](#371-note-on-logged-x-road-message-headers)
     - [3.8 Environmental monitoring add-on configuration parameters: `[env-monitor]`](#38-environmental-monitoring-add-on-configuration-parameters-env-monitor)
-    - [3.9 Management REST API parameters: `[proxy-ui-api]`](#39-management-rest-api-parameters-rest-api)
+    - [3.9 Management REST API parameters: `[proxy-ui-api]`](#39-management-rest-api-parameters-proxy-ui-api)
   - [4 Central Server System Parameters](#4-central-server-system-parameters)
     - [4.1 System Parameters in the Configuration File](#41-system-parameters-in-the-configuration-file)
       - [4.1.1 Common parameters: `[common]`](#411-common-parameters-common)
@@ -253,6 +254,11 @@ This chapter describes the system parameters used by the components of the X-Roa
 | health-check-interface                           | 0.0.0.0                                    |   |   | The network interface where the health check service listens to requests. Default is all available interfaces.|
 | actorsystem-port                                 | 5567                                       |   |   | The (localhost) port where the proxy actorsystem binds to. Used for communicating with xroad-signer and xroad-monitor. |
 | allow-get-wsdl-request                           | false                                      |   |   | Whether to allow getWsdl metaservice to be called with HTTP/HTTPS GET method. |
+| server-conf-cache-period                         | 60                                         |   |   | Number of seconds to keep selected serverconf configuration items in memory |
+| server-conf-client-cache-size                    | 100                                        |   |   | Maximum number of local clients to keep cached |
+| server-conf-service-cache-size                   | 1000                                       |   |   | Maximum number of services to keep cached |
+| server-conf-acl-cache-size                       | 100000                                     |   |   | Maximum number of access rights to keep cached in memory. | 
+
 
 Note about `database-properties` file: Management REST API module uses the same database-properties file, but
 limits the configuration parameters usage:

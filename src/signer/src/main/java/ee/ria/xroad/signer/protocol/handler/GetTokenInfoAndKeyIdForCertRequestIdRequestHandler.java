@@ -22,40 +22,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.devtools;
+package ee.ria.xroad.signer.protocol.handler;
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
-import org.springframework.core.annotation.Order;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
+import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
+import ee.ria.xroad.signer.protocol.message.GetTokenInfoAndKeyIdForCertRequestId;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
 /**
- * Configuration that allows devtools remote hot deploy in development
- * and actuator endpoint
+ * Handles requests for TokenInfo + key id based on certificate request ids.
  */
-@Configuration
-@Profile("devtools")
-@Order(DevToolsWebSecurityConfig.AFTER_STATIC_ASSETS)
-public class DevToolsWebSecurityConfig extends WebSecurityConfigurerAdapter {
-    public static final int AFTER_STATIC_ASSETS = 10;
+public class GetTokenInfoAndKeyIdForCertRequestIdRequestHandler
+        extends AbstractRequestHandler<GetTokenInfoAndKeyIdForCertRequestId> {
 
     @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-            .requestMatchers()
-                .antMatchers("/actuator/**",
-                        "/.~~spring-boot!~/**")
-                .and()
-            .authorizeRequests()
-                .anyRequest()
-                .permitAll()
-                .and()
-            .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-            .csrf()
-                .disable();
+    protected Object handle(GetTokenInfoAndKeyIdForCertRequestId message) throws Exception {
+        TokenInfoAndKeyId tokenInfoAndKeyId = TokenManager.findTokenAndKeyIdForCertRequestId(
+                message.getCertRequestId());
+        return tokenInfoAndKeyId;
     }
+
 }

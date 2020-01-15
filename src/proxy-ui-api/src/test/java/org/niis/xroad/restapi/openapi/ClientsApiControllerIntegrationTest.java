@@ -90,6 +90,7 @@ import static org.niis.xroad.restapi.util.CertificateTestUtils.getResource;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithMetadata;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithoutMetadata;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertWarning;
+import static org.niis.xroad.restapi.util.TestUtils.CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT;
 import static org.niis.xroad.restapi.util.TestUtils.assertLocationHeader;
 import static org.niis.xroad.restapi.wsdl.InvalidWsdlException.ERROR_INVALID_WSDL;
 
@@ -167,7 +168,7 @@ public class ClientsApiControllerIntegrationTest {
         ResponseEntity<List<Client>> response =
                 clientsApiController.findClients(null, null, null, null, null, true, false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(7, response.getBody().size());
+        assertEquals(8, response.getBody().size());
     }
 
     @Test
@@ -176,7 +177,7 @@ public class ClientsApiControllerIntegrationTest {
         ResponseEntity<List<Client>> response = clientsApiController.findClients(null, null, null, null, null, true,
                 true);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(3, response.getBody().size());
+        assertEquals(4, response.getBody().size());
         Client client = response.getBody().get(0);
         assertEquals(TestUtils.NAME_FOR + "test-member", client.getMemberName());
         assertEquals("M1", client.getMemberCode());
@@ -214,8 +215,7 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "EDIT_CLIENT_INTERNAL_CONNECTION_TYPE",
-            "VIEW_CLIENT_DETAILS" })
+    @WithMockUser(authorities = { "EDIT_CLIENT_INTERNAL_CONNECTION_TYPE", "VIEW_CLIENT_DETAILS" })
     public void updateClient() throws Exception {
         ResponseEntity<Client> response =
                 clientsApiController.getClient("FI:GOV:M1:SS1");
@@ -304,9 +304,7 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_CLIENT_INTERNAL_CERT",
-            "VIEW_CLIENT_DETAILS",
-            "VIEW_CLIENT_INTERNAL_CERTS" })
+    @WithMockUser(authorities = { "VIEW_CLIENT_INTERNAL_CERTS", "ADD_CLIENT_INTERNAL_CERT" })
     public void addTlsCert() throws Exception {
         ResponseEntity<List<CertificateDetails>> certs = clientsApiController.getClientTlsCertificates(
                 TestUtils.CLIENT_ID_SS1);
@@ -319,7 +317,8 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals("O=Internet Widgits Pty Ltd, ST=Some-State, C=AU",
                 certificateDetails.getSubjectDistinguishedName());
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertLocationHeader("/api/certificates/" + certificateDetails.getHash(), response);
+        assertLocationHeader("/api/clients/" + TestUtils.CLIENT_ID_SS1 + "/tls-certificates/"
+                + certificateDetails.getHash(), response);
 
         assertEquals(1, clientsApiController.getClientTlsCertificates(TestUtils.CLIENT_ID_SS1).getBody().size());
         // cert already exists
@@ -341,9 +340,7 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_CLIENT_INTERNAL_CERT",
-            "VIEW_CLIENT_DETAILS",
-            "DELETE_CLIENT_INTERNAL_CERT",
+    @WithMockUser(authorities = { "ADD_CLIENT_INTERNAL_CERT", "DELETE_CLIENT_INTERNAL_CERT",
             "VIEW_CLIENT_INTERNAL_CERTS" })
     public void deleteTlsCert() throws Exception {
         ResponseEntity<CertificateDetails> response =
@@ -354,7 +351,7 @@ public class ClientsApiControllerIntegrationTest {
         ResponseEntity<Void> deleteResponse =
                 clientsApiController.deleteClientTlsCertificate(TestUtils.CLIENT_ID_SS1,
                         CertificateTestUtils.getWidgitsCertificateHash());
-        assertEquals(HttpStatus.OK, deleteResponse.getStatusCode());
+        assertEquals(HttpStatus.NO_CONTENT, deleteResponse.getStatusCode());
         assertEquals(0, clientsApiController.getClientTlsCertificates(TestUtils.CLIENT_ID_SS1).getBody().size());
         // cert does not exist
         try {
@@ -367,10 +364,8 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_CLIENT_INTERNAL_CERT",
-            "VIEW_CLIENT_DETAILS",
-            "VIEW_CLIENT_INTERNAL_CERT_DETAILS",
-            "VIEW_CLIENT_INTERNAL_CERTS" })
+    @WithMockUser(authorities = { "ADD_CLIENT_INTERNAL_CERT", "VIEW_CLIENT_INTERNAL_CERTS",
+            "VIEW_CLIENT_INTERNAL_CERT_DETAILS" })
     public void findTlsCert() throws Exception {
         ResponseEntity<CertificateDetails> response =
                 clientsApiController.addClientTlsCertificate(TestUtils.CLIENT_ID_SS1,
@@ -398,7 +393,7 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "ADD_LOCAL_GROUP" })
+    @WithMockUser(authorities = { "ADD_LOCAL_GROUP" })
     public void addLocalGroup() throws Exception {
         ResponseEntity<LocalGroup> response = clientsApiController.addClientGroup(TestUtils.CLIENT_ID_SS1,
                 createGroup(TestUtils.NEW_GROUPCODE));
@@ -409,7 +404,7 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_LOCAL_GROUPS", "ADD_LOCAL_GROUP" })
+    @WithMockUser(authorities = { "VIEW_CLIENT_LOCAL_GROUPS"})
     public void getClientGroups() throws Exception {
         ResponseEntity<List<LocalGroup>> response =
                 clientsApiController.getClientGroups(TestUtils.CLIENT_ID_SS1);
@@ -449,7 +444,7 @@ public class ClientsApiControllerIntegrationTest {
         ResponseEntity<List<Client>> clientsResponse = clientsApiController.findClients(null, null, null, null, null,
                 true, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
-        assertEquals(7, clientsResponse.getBody().size());
+        assertEquals(8, clientsResponse.getBody().size());
     }
 
     @Test
@@ -508,7 +503,7 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
+    @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES" })
     public void getServiceDescriptions() {
         // client with 0 services
         ResponseEntity<List<ServiceDescription>> descriptions =
@@ -532,7 +527,7 @@ public class ClientsApiControllerIntegrationTest {
         // client with some services
         descriptions = clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1);
         assertEquals(HttpStatus.OK, descriptions.getStatusCode());
-        assertEquals(3, descriptions.getBody().size());
+        assertEquals(CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT, descriptions.getBody().size());
         ServiceDescription serviceDescription = getDescription(descriptions.getBody(),
                 "https://restservice.com/api/v1")
                 .get();
@@ -540,7 +535,7 @@ public class ClientsApiControllerIntegrationTest {
         assertEquals(true, serviceDescription.getDisabled());
         assertEquals("Kaputt", serviceDescription.getDisabledNotice());
         assertNotNull(serviceDescription.getRefreshedAt());
-        assertEquals(ServiceType.REST, serviceDescription.getType());
+        assertEquals(ServiceType.OPENAPI3, serviceDescription.getType());
         assertEquals(1, serviceDescription.getServices().size());
 
         Service service = serviceDescription.getServices().iterator().next();
@@ -554,6 +549,10 @@ public class ClientsApiControllerIntegrationTest {
                 "https://soapservice.com/v1/Endpoint?wsdl")
                 .get();
         assertEquals(3, wsdlServiceDescription.getServices().size());
+
+        ServiceDescription serviceDescriptionTypeRest = getDescription(descriptions.getBody(),
+                "https://restservice.com/api/v1/nosuchservice").get();
+        assertEquals(ServiceType.REST, serviceDescriptionTypeRest.getType());
     }
 
     private Optional<ServiceDescription> getDescription(List<ServiceDescription> descriptions, String url) {
@@ -581,7 +580,7 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
+    @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_SERVICES" })
     public void addWsdlServiceDescription() {
         ServiceDescriptionAdd serviceDescription = new ServiceDescriptionAdd()
                 .url("file:src/test/resources/wsdl/valid.wsdl");
@@ -598,7 +597,7 @@ public class ClientsApiControllerIntegrationTest {
 
         ResponseEntity<List<ServiceDescription>> descriptions =
                 clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1);
-        assertEquals(4, descriptions.getBody().size());
+        assertEquals(CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT + 1, descriptions.getBody().size());
         try {
             serviceDescription.setIgnoreWarnings(true);
             clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription);
@@ -619,7 +618,7 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
+    @WithMockUser(authorities = { "ADD_WSDL" })
     public void addWsdlServiceDescriptionParserFail() {
         ServiceDescriptionAdd serviceDescription =
                 new ServiceDescriptionAdd().url("file:src/test/resources/wsdl/invalid.wsdl");
@@ -634,7 +633,7 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
+    @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_SERVICES" })
     public void addWsdlServiceDescriptionWithWarnings() {
         ServiceDescriptionAdd serviceDescription =
                 new ServiceDescriptionAdd().url("file:src/test/resources/wsdl/warning.wsdl");
@@ -656,11 +655,11 @@ public class ClientsApiControllerIntegrationTest {
         clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription);
         ResponseEntity<List<ServiceDescription>> descriptions =
                 clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1);
-        assertEquals(4, descriptions.getBody().size());
+        assertEquals(CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT + 1, descriptions.getBody().size());
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
+    @WithMockUser(authorities = { "ADD_WSDL" })
     public void addWsdlServiceDescriptionValidationFail() {
         ServiceDescriptionAdd serviceDescription =
                 new ServiceDescriptionAdd().url("file:src/test/resources/wsdl/error.wsdl");
@@ -687,7 +686,7 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_WSDL", "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES" })
+    @WithMockUser(authorities = { "ADD_WSDL" })
     public void addWsdlServiceDescriptionSkipValidation() {
         ServiceDescriptionAdd serviceDescription =
                 new ServiceDescriptionAdd().url("file:src/test/resources/wsdl/error.wsdl");
@@ -703,7 +702,7 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
     public void findAllSubjects() {
         ResponseEntity<List<Subject>> subjectsResponse = clientsApiController.findSubjects(TestUtils.CLIENT_ID_SS1,
                 null,
@@ -713,7 +712,7 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
     public void findSubjectsByName() {
         ResponseEntity<List<Subject>> subjectsResponse = clientsApiController.findSubjects(TestUtils.CLIENT_ID_SS1,
                 TestUtils.NAME_FOR + TestUtils.SUBSYSTEM2, null, null, null, null, null);
@@ -722,7 +721,7 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
     public void findSubjectsByGroupDescription() {
         ResponseEntity<List<Subject>> subjectsResponse = clientsApiController.findSubjects(TestUtils.CLIENT_ID_SS1,
                 TestUtils.GLOBALGROUP, null, null, null, null, null);
@@ -736,7 +735,7 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
     public void findSubjectsByType() {
         ResponseEntity<List<Subject>> subjectsResponse = clientsApiController.findSubjects(TestUtils.CLIENT_ID_SS1,
                 null, SubjectType.LOCALGROUP, null, null, null, null);
@@ -745,7 +744,7 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
     public void findSubjectsByInstance() {
         ResponseEntity<List<Subject>> subjectsResponse = clientsApiController.findSubjects(TestUtils.CLIENT_ID_SS1,
                 null, null, TestUtils.INSTANCE_EE, null, null, null);
@@ -754,7 +753,7 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
     public void findSubjectsByMemberClass() {
         ResponseEntity<List<Subject>> subjectsResponse = clientsApiController.findSubjects(TestUtils.CLIENT_ID_SS1,
                 null, null, null, TestUtils.MEMBER_CLASS_GOV, null, null);
@@ -763,7 +762,7 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
     public void findSubjectsByMemberOrGroupCode() {
         ResponseEntity<List<Subject>> subjectsResponse = clientsApiController.findSubjects(TestUtils.CLIENT_ID_SS1,
                 null, null, null, null, TestUtils.MEMBER_CODE_M1, null);
@@ -782,7 +781,7 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
     public void findSubjectsBySubsystemCode() {
         ResponseEntity<List<Subject>> subjectsResponse = clientsApiController.findSubjects(TestUtils.CLIENT_ID_SS1,
                 null, null, null, null, null, TestUtils.SUBSYSTEM2);
@@ -791,7 +790,7 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
     public void findSubjectsByAllSearchTerms() {
         ResponseEntity<List<Subject>> subjectsResponse = clientsApiController.findSubjects(TestUtils.CLIENT_ID_SS1,
                 TestUtils.NAME_FOR + TestUtils.SUBSYSTEM3, SubjectType.SUBSYSTEM, TestUtils.INSTANCE_EE,
@@ -802,13 +801,13 @@ public class ClientsApiControllerIntegrationTest {
     }
 
     @Test(expected = ResourceNotFoundException.class)
-    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
     public void findSubjectsClientNotFound() {
         clientsApiController.findSubjects(TestUtils.CLIENT_ID_SS4, null, null, null, null, null, null);
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS", "VIEW_CLIENTS", "VIEW_MEMBER_CLASSES" })
+    @WithMockUser(authorities = { "VIEW_CLIENT_ACL_SUBJECTS" })
     public void findSubjectsNoResults() {
         ResponseEntity<List<Subject>> subjectsResponse = clientsApiController.findSubjects(TestUtils.CLIENT_ID_SS1,
                 TestUtils.NAME_FOR + TestUtils.SUBSYSTEM3, SubjectType.LOCALGROUP, TestUtils.INSTANCE_EE,

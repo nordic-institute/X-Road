@@ -77,6 +77,8 @@ public class QueryRequestHandlerTest {
     private static final String HEALTH_DATA_REQUEST =
             "src/test/resources/healthdata.request";
 
+    private static final String SERVICE_TYPE_REST = "REST";
+
     private static final long TEST_TIMESTAMP = System.currentTimeMillis();
 
     private String testContentType;
@@ -258,9 +260,10 @@ public class QueryRequestHandlerTest {
             record.setSecurityServerType(
                     OpMonitoringData.SecurityServerType.PRODUCER
                     .getTypeString());
+            record.setServiceType(SERVICE_TYPE_REST);
             record.setSucceeded(success);
-            record.setRequestSoapSize(999L);
-            record.setResponseSoapSize(888L);
+            record.setRequestSize(999L);
+            record.setResponseSize(888L);
 
             return record;
         }

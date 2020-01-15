@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @Transactional
-@PreAuthorize("denyAll")
+@PreAuthorize("isAuthenticated()")
 public class IdentifierService {
     private final IdentifierRepository identifierRepository;
 
@@ -59,7 +59,6 @@ public class IdentifierService {
      * @param xRoadIds
      * @return List of XRoadIds
      */
-    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
     public Set<XRoadId> getOrPersistXroadIds(Set<XRoadId> xRoadIds) {
         Set<XRoadId> txEntities = getXroadIds(xRoadIds);
         xRoadIds.removeAll(txEntities); // remove the persistent ones
@@ -73,7 +72,6 @@ public class IdentifierService {
      * @param xRoadIds
      * @return List of XRoadIds
      */
-    @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
     public Set<XRoadId> getXroadIds(Set<XRoadId> xRoadIds) {
         Collection<XRoadId> allIdsFromDb = identifierRepository.getIdentifiers();
         return allIdsFromDb.stream()

@@ -30,7 +30,11 @@ public class ClientNotFoundException extends NotFoundException {
 
     public static final String ERROR_CLIENT_NOT_FOUND = "client_not_found";
 
-    public ClientNotFoundException(String s) {
-        super(s, new ErrorDeviation(ERROR_CLIENT_NOT_FOUND));
+    public ClientNotFoundException(String msg) {
+        super(msg, new ErrorDeviation(ERROR_CLIENT_NOT_FOUND));
+    }
+
+    public ClientNotFoundException(String msg, String encodedMissingClientId) {
+        super(msg, new ErrorDeviation(ERROR_CLIENT_NOT_FOUND, encodedMissingClientId));
     }
 }
