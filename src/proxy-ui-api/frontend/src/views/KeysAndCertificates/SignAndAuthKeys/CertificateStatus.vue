@@ -67,6 +67,8 @@ export default Vue.extend({
 %status-icon-shared {
   height: 8px;
   width: 8px;
+  min-height: 8px;
+  min-width: 8px;
   border-radius: 50%;
   margin-right: 16px;
 }
