@@ -69,7 +69,6 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
     private static final String APPLICATION_XML = "application/xml";
     private static final String TEXT_ANY = "text/*";
     private static final String APPLICATION_JSON = "application/json";
-    private String requestAcceptType;
     private static final List<String> XML_TYPES = Arrays.asList(TEXT_XML, APPLICATION_XML, TEXT_ANY);
 
     ClientRestMessageHandler(HttpClient client) {
@@ -80,16 +79,6 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
     MessageProcessorBase createRequestProcessor(String target,
             HttpServletRequest request, HttpServletResponse response,
             OpMonitoringData opMonitoringData) throws Exception {
-
-        requestAcceptType = "";
-        Enumeration<String> acceptHeaders = request.getHeaders("Accept");
-        while (acceptHeaders.hasMoreElements()) {
-            requestAcceptType += acceptHeaders.nextElement();
-            if (acceptHeaders.hasMoreElements()) {
-                requestAcceptType += ", ";
-            }
-        }
-
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
             verifyCanProcess();
             return new ClientRestMessageProcessor(request, response, client,
@@ -113,7 +102,9 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
     }
 
     @Override
-    public void sendErrorResponse(HttpServletResponse response, CodedException ex) throws IOException {
+    public void sendErrorResponse(HttpServletRequest request,
+                                  HttpServletResponse response,
+                                  CodedException ex) throws IOException {
         if (ex.getFaultCode().startsWith("Server.")) {
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
         } else {
@@ -121,6 +112,15 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
         }
         response.setCharacterEncoding(MimeUtils.UTF8);
         response.setHeader("X-Road-Error", ex.getFaultCode());
+
+        String requestAcceptType = "";
+        Enumeration<String> acceptHeaders = request.getHeaders("Accept");
+        while (acceptHeaders.hasMoreElements()) {
+            requestAcceptType += acceptHeaders.nextElement();
+            if (acceptHeaders.hasMoreElements()) {
+                requestAcceptType += ", ";
+            }
+        }
 
         String responseContentType = decideErrorResponseContentType(requestAcceptType);
         response.setContentType(responseContentType);
