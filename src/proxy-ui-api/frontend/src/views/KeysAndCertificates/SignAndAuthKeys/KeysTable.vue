@@ -68,7 +68,18 @@
             <td class="status-cell">
               <certificate-status :certificate="cert" />
             </td>
-            <td></td>
+            <td class="td-align-right">
+              <SmallButton
+                class="table-button-fix test-register"
+                v-if="cert.possible_actions.includes('REGISTER') && hasPermission"
+                @click="showRegisterCert(cert)"
+              >{{$t('action.register')}}</SmallButton>
+              <SmallButton
+                class="table-button-fix test-unregister"
+                v-if="cert.possible_actions.includes('UNREGISTER')  && hasPermission"
+                @click="unregisterCert(cert)"
+              >{{$t('action.unregister')}}</SmallButton>
+            </td>
           </tr>
         </template>
 
@@ -148,6 +159,20 @@
       </tbody>
     </table>
 
+    <RegisterCertificateDialog
+      :dialog="registerDialog"
+      @save="registerCert"
+      @cancel="registerDialog = false"
+    />
+
+    <ConfirmDialog
+      :dialog="confirmUnregiseterCertificate"
+      title="keys.unregisterTitle"
+      text="keys.unregisterText"
+      @cancel="confirmUnregiseterCertificate = false"
+      @accept="doUnregisterCert()"
+    />
+
     <ConfirmDialog
       :dialog="confirmDeleteCsr"
       title="keys.deleteCsrTitle"
@@ -164,6 +189,7 @@
  */
 import Vue from 'vue';
 import CertificateStatus from './CertificateStatus.vue';
+import RegisterCertificateDialog from './RegisterCertificateDialog.vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { Key, TokenCertificate, TokenCertificateSigningRequest } from '@/types';
@@ -174,6 +200,7 @@ export default Vue.extend({
   components: {
     CertificateStatus,
     SmallButton,
+    RegisterCertificateDialog,
     ConfirmDialog,
   },
   props: {
@@ -195,9 +222,11 @@ export default Vue.extend({
   },
   data() {
     return {
+      registerDialog: false,
+      confirmUnregiseterCertificate: false,
       confirmDeleteCsr: false,
       usageTypes: UsageTypes,
-      selectedCert: undefined as TokenCertificate | undefined,
+      selectedCert: null as TokenCertificate | null,
       selectedCsr: null as TokenCertificateSigningRequest | null,
       selectedKey: null as Key | null,
     };
@@ -221,6 +250,54 @@ export default Vue.extend({
     },
     importCert(hash: string): void {
       this.$emit('importCertByHash', hash);
+    },
+    showRegisterCert(cert: TokenCertificate): void {
+      this.registerDialog = true;
+      this.selectedCert = cert;
+    },
+    cancelRegisterCert(): void {
+      this.registerDialog = false;
+    },
+    registerCert(address: string): void {
+      this.registerDialog = false;
+      if (!this.selectedCert) {
+        return;
+      }
+
+      api
+        .put(
+          `/token-certificates/${this.selectedCert.certificate_details.hash}/register`,
+          { address },
+        )
+        .then((res) => {
+          this.$bus.$emit('show-success', 'keys.certificateRegistered');
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
+    },
+    unregisterCert(cert: TokenCertificate): void {
+      this.confirmUnregiseterCertificate = true;
+      this.selectedCert = cert;
+    },
+    doUnregisterCert(): void {
+      if (!this.selectedCert) {
+        return;
+      }
+
+      api
+        .put(
+          `/token-certificates/${this.selectedCert.certificate_details.hash}/unregister`,
+          {},
+        )
+        .then((res) => {
+          this.$bus.$emit('show-success', 'keys.keyAdded');
+          this.confirmUnregiseterCertificate = false;
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+          this.confirmUnregiseterCertificate = false;
+        });
     },
     deleteCsr(req: TokenCertificateSigningRequest, key: Key): void {
       this.confirmDeleteCsr = true;
