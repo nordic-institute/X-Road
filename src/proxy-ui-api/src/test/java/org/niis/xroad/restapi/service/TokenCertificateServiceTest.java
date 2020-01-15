@@ -63,6 +63,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
@@ -79,6 +80,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.service.TokenCertificateService.CERT_NOT_FOUND_FAULT_CODE;
+import static org.niis.xroad.restapi.service.TokenCertificateService.SSL_AUTH_FAULT_CODE;
 import static org.niis.xroad.restapi.util.CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH;
 import static org.niis.xroad.restapi.util.CertificateTestUtils.MOCK_CERTIFICATE_HASH;
 import static org.niis.xroad.restapi.util.CertificateTestUtils.getMockAuthCertificate;
@@ -577,6 +579,14 @@ public class TokenCertificateServiceTest {
         }
     }
 
+    @Test(expected = TokenCertificateService.NoValidAuthCertificateException.class)
+    public void unregisterAuthCertNoValid() throws Exception {
+        doAnswer(answer -> authCert).when(signerProxyFacade).getCertForHash(any());
+        when(managementRequestSenderService.sendAuthCertDeletionRequest(any(), any()))
+                .thenThrow(new CodedException(SSL_AUTH_FAULT_CODE).withPrefix(SERVER_CLIENTPROXY_X));
+        tokenCertificateService.unregisterAuthCert(MOCK_AUTH_CERTIFICATE_HASH);
+    }
+
     @Test(expected = TokenCertificateService.SignCertificateNotSupportedException.class)
     public void registerSignCertificate() throws Exception {
         doAnswer(answer -> signCert).when(signerProxyFacade).getCertForHash(any());
@@ -587,5 +597,11 @@ public class TokenCertificateServiceTest {
     public void unregisterSignCertificate() throws Exception {
         doAnswer(answer -> signCert).when(signerProxyFacade).getCertForHash(any());
         tokenCertificateService.unregisterAuthCert(MOCK_CERTIFICATE_HASH);
+    }
+
+    @Test
+    public void markAuthCertForDeletion() throws Exception {
+        doAnswer(answer -> authCert).when(signerProxyFacade).getCertForHash(any());
+        tokenCertificateService.markAuthCertForDeletion(MOCK_AUTH_CERTIFICATE_HASH);
     }
 }
