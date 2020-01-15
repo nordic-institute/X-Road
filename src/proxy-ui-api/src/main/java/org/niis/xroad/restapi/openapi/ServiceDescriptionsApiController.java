@@ -37,11 +37,13 @@ import org.niis.xroad.restapi.openapi.model.ServiceDescriptionDisabledNotice;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.service.InvalidUrlException;
+import org.niis.xroad.restapi.service.MissingParameterException;
 import org.niis.xroad.restapi.service.ServiceDescriptionNotFoundException;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
+import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -134,6 +136,8 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
         ServiceDescription serviceDescription;
         if (serviceDescriptionUpdate.getType() == ServiceType.WSDL) {
+
+            // Update WSDL servicedescription
             ServiceDescriptionType updatedServiceDescription = null;
             try {
                 updatedServiceDescription = serviceDescriptionService.updateWsdlUrl(
@@ -150,21 +154,41 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
                 throw new ResourceNotFoundException(e);
             }
             serviceDescription = serviceDescriptionConverter.convert(updatedServiceDescription);
+
         } else if (serviceDescriptionUpdate.getType() == ServiceType.OPENAPI3) {
-/*
+
+            // Update OPENAPI3 servicedescription
             ServiceDescriptionType updatedServiceDescription = null;
-            updatedServiceDescription = serviceDescriptionService.updateOpenApi3ServiceDescription(serviceDescriptionId,
-                    serviceDescriptionUpdate.getUrl(), serviceDescriptionUpdate.getRestServiceCode(),
-                    serviceDescriptionUpdate.getIgnoreWarnings());
+            try {
+                updatedServiceDescription =
+                        serviceDescriptionService.updateOpenApi3ServiceDescription(serviceDescriptionId,
+                        serviceDescriptionUpdate.getUrl(), serviceDescriptionUpdate.getOriginalRestServiceCode(),
+                        serviceDescriptionUpdate.getNewRestServiceCode(), serviceDescriptionUpdate.getIgnoreWarnings());
+
+            } catch (OpenApiParser.ParsingException | UnhandledWarningsException | MissingParameterException e) {
+                throw new BadRequestException(e);
+            } catch (ServiceDescriptionService.UrlAlreadyExistsException
+                    | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
+                throw new ConflictException(e);
+            }
             serviceDescription = serviceDescriptionConverter.convert(updatedServiceDescription);
-*/
-            return new ResponseEntity(HttpStatus.NOT_IMPLEMENTED);
+
         } else if (serviceDescriptionUpdate.getType() == ServiceType.REST) {
+
+            // Update REST servicedescription
             ServiceDescriptionType updatedServiceDescription = null;
-            updatedServiceDescription = serviceDescriptionService.updateRestServiceDescription(serviceDescriptionId,
-                    serviceDescriptionUpdate.getUrl(), serviceDescriptionUpdate.getOriginalRestServiceCode(),
-                    serviceDescriptionUpdate.getNewRestServiceCode());
+            try {
+
+                updatedServiceDescription = serviceDescriptionService.updateRestServiceDescription(serviceDescriptionId,
+                        serviceDescriptionUpdate.getUrl(), serviceDescriptionUpdate.getOriginalRestServiceCode(),
+                        serviceDescriptionUpdate.getNewRestServiceCode());
+            } catch (ServiceDescriptionService.UrlAlreadyExistsException
+                | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
+                throw new ConflictException(e);
+            }
             serviceDescription = serviceDescriptionConverter.convert(updatedServiceDescription);
+
+
         } else {
             throw new BadRequestException("ServiceType not recognized");
         }

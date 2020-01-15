@@ -18,6 +18,8 @@ INSERT INTO IDENTIFIER(ID, DISCRIMINATOR, TYPE, GROUP_CODE)
 values (6,'LG','LOCALGROUP', 'group2');
 INSERT INTO IDENTIFIER(ID, DISCRIMINATOR, TYPE, X_ROAD_INSTANCE, MEMBER_CLASS, MEMBER_CODE, SUBSYSTEM_CODE)
 values (7, 'C', 'SUBSYSTEM', 'FI', 'GOV', 'M2', 'SS5');
+INSERT INTO IDENTIFIER(ID, DISCRIMINATOR, TYPE, X_ROAD_INSTANCE, MEMBER_CLASS, MEMBER_CODE, SUBSYSTEM_CODE)
+values (8, 'C', 'SUBSYSTEM', 'FI', 'GOV', 'M2', 'SS6');
 
 
 
@@ -29,6 +31,8 @@ INSERT INTO CLIENT(ID, CONF_ID, IDENTIFIER, CLIENT_STATUS, IS_AUTHENTICATION)
 values (3,null,3,'registered', 'SSLNOAUTH');
 INSERT INTO CLIENT(ID, CONF_ID, IDENTIFIER, CLIENT_STATUS, IS_AUTHENTICATION)
 values (4,null,7,'registered', 'SSLNOAUTH');
+INSERT INTO CLIENT(ID, CONF_ID, IDENTIFIER, CLIENT_STATUS, IS_AUTHENTICATION)
+values (5,null,8,'registered', 'SSLNOAUTH');
 
 
 
@@ -45,73 +49,77 @@ UPDATE CLIENT SET CONF_ID = 1;
 
 INSERT INTO SERVICEDESCRIPTION (ID, CLIENT_ID, URL, DISABLED, DISABLED_NOTICE, REFRESHED_DATE, TYPE)
 values (1, 2, 'https://soapservice.com/v1/Endpoint?wsdl', false, 'Out of order', now(), 'WSDL');
-
 INSERT INTO SERVICEDESCRIPTION (ID, CLIENT_ID, URL, DISABLED, DISABLED_NOTICE, REFRESHED_DATE, TYPE)
 values (2, 2, 'https://restservice.com/api/v1', true, 'Kaputt', now(), 'OPENAPI3');
-
 INSERT INTO SERVICEDESCRIPTION (ID, CLIENT_ID, URL, DISABLED, DISABLED_NOTICE, REFRESHED_DATE, TYPE)
 values (3, 3, 'file:src/test/resources/wsdl/testservice.wsdl', true, 'Do not use!', now(), 'WSDL');
-
 INSERT INTO SERVICEDESCRIPTION (ID, CLIENT_ID, URL, DISABLED, DISABLED_NOTICE, REFRESHED_DATE, TYPE)
 values (4, 2, 'https://soapservice.com/v1/no-services?wsdl', true, 'A WSDL without any services', now(), 'WSDL');
-
 INSERT INTO SERVICEDESCRIPTION (ID, CLIENT_ID, URL, DISABLED, DISABLED_NOTICE, REFRESHED_DATE, TYPE)
 values (5, 2, 'https://restservice.com/api/v1/nosuchservice', true, 'Single test url', now(), 'REST');
+INSERT INTO SERVICEDESCRIPTION (ID, CLIENT_ID, URL, DISABLED, DISABLED_NOTICE, REFRESHED_DATE, TYPE)
+values (6, 5, 'file:src/test/resources/openapiparser/valid.yaml', true, 'disabled by default', now(), 'OPENAPI3');
 
 
 
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
 values (1, 1, 'getRandom', 'v1', 'getrandom-title', 'https://soapservice.com/v1/Endpoint', true, 60);
-
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
 values (2, 1, 'calculatePrime', 'v1', null, 'https://soapservice.com/v1/Endpoint', false, 60);
-
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
 values (3, 2, 'openapi-servicecode', 'v1', null, 'https://restservice.com/api/v1', true, 60);
-
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
 values (4, 3, 'xroadGetRandomOld', 'v1', null, 'http://xroad-lxd-web.lxd:8088/xroadGetRandom', true, 60);
-
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
 values (5, 3, 'bodyMassIndexOld', 'v1', null, 'http://xroad-lxd-web.lxd:8088/bodyMassIndex', true, 60);
-
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
 values (6, 1, 'getRandom', 'v2', 'getrandom-v2-title', 'https://soapservice.com/v1/Endpoint', true, 60);
-
 INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
 values (7, 5, 'rest-servicecode', 'v1', null, 'https://restservice.com/api/v1/nosuchservice', false, 60);
+INSERT INTO SERVICE (ID, SERVICEDESCRIPTION_ID, SERVICE_CODE, SERVICE_VERSION, TITLE, URL, SSL_AUTHENTICATION, TIMEOUT)
+values (8, 6, 'openapi3-test', 'v1', null, 'file:src/test/resources/openapiparser/valid.yaml', false, 60);
 
 
 
 INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
 values (1, 2, 'getRandom', '*', '**', true);
-
 INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
 values (2, 3, 'bodyMassIndexOld', '*', '**', true);
-
 INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
 values (3, 2, 'calculatePrime', '*', '**', true);
-
 INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
 values (4, 2, 'openapi-servicecode', '*', '**', true);
-
 INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
 values (5, 2, 'rest-servicecode', '*', '**', true);
-
 INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
 values (6, 2, 'rest-servicecode', '*', '/item', false);
-
 INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
 values (7, 2, 'rest-servicecode', 'DELETE', '/item', false);
+INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
+values (8, 5, 'openapi3-test', '*', '**', true);
+INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
+values (9, 5, 'openapi3-test', 'GET', '/test', true);
+INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
+values (10, 5, 'openapi3-test', 'POST', '/test', true);
+INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
+values (11, 5, 'openapi3-test', 'GET', '/foo', false);
+INSERT INTO ENDPOINT (ID, CLIENT_ID, SERVICE_CODE, METHOD, PATH, GENERATED)
+values (12, 5, 'openapi3-test', 'PUT', '/foo', false);
 
 
 
 INSERT INTO ACCESSRIGHT (ID, SUBJECT_ID, RIGHTS_GIVEN, CLIENT_ID, ENDPOINT_ID)
 values (1, 3, {ts '2019-05-14 10:46:30.389000'}, 2, 1);
-
 INSERT INTO ACCESSRIGHT (ID, SUBJECT_ID, RIGHTS_GIVEN, CLIENT_ID, ENDPOINT_ID)
 values (2, 4, {ts '2019-05-15 10:46:30.389000'}, 2, 1);
-
 INSERT INTO ACCESSRIGHT (ID, SUBJECT_ID, RIGHTS_GIVEN, CLIENT_ID, ENDPOINT_ID)
 values (3, 5, {ts '2019-05-16 10:46:30.389000'}, 2, 1);
+INSERT INTO ACCESSRIGHT (ID, SUBJECT_ID, RIGHTS_GIVEN, CLIENT_ID, ENDPOINT_ID)
+values (4, 5, {ts '2019-05-16 10:46:30.389000'}, 5, 9);
+INSERT INTO ACCESSRIGHT (ID, SUBJECT_ID, RIGHTS_GIVEN, CLIENT_ID, ENDPOINT_ID)
+values (5, 5, {ts '2019-05-16 10:46:30.389000'}, 5, 10);
+INSERT INTO ACCESSRIGHT (ID, SUBJECT_ID, RIGHTS_GIVEN, CLIENT_ID, ENDPOINT_ID)
+values (6, 5, {ts '2019-05-16 10:46:30.389000'}, 5, 8);
+INSERT INTO ACCESSRIGHT (ID, SUBJECT_ID, RIGHTS_GIVEN, CLIENT_ID, ENDPOINT_ID)
+values (7, 5, {ts '2019-05-16 10:46:30.389000'}, 5, 11);
 

@@ -362,6 +362,9 @@ public class ClientsApiController implements ClientsApi {
                 throw new ResourceNotFoundException(e);
             } catch (MissingParameterException e) {
                 throw new BadRequestException(e);
+            } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException
+                    | ServiceDescriptionService.UrlAlreadyExistsException e) {
+                throw new ConflictException(e);
             }
         }
         ServiceDescription addedServiceDescription = serviceDescriptionConverter.convert(

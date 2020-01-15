@@ -425,7 +425,8 @@ public class ServiceDescriptionService {
      */
     public ServiceDescriptionType addRestEndpointServiceDescription(ClientId clientId, String url,
                                                                     String serviceCode) throws
-            ClientNotFoundException, MissingParameterException {
+            ClientNotFoundException, MissingParameterException, ServiceCodeAlreadyExistsException,
+            UrlAlreadyExistsException {
         verifyAuthority("ADD_OPENAPI3");
 
         if (serviceCode == null) {
@@ -452,6 +453,10 @@ public class ServiceDescriptionService {
                 EndpointType.ANY_PATH, false);
         client.getEndpoint().add(endpointType);
         client.getServiceDescription().add(serviceDescriptionType);
+
+        checkDuplicateServiceCodes(serviceDescriptionType);
+        checkDuplicateUrl(serviceDescriptionType);
+
         clientRepository.saveOrUpdateAndFlush(client);
 
         return serviceDescriptionType;
@@ -522,39 +527,180 @@ public class ServiceDescriptionService {
         throw new NotImplementedException("REST ServiceDescription refresh not implemented yet");
     }
 
+    /**
+     * Update Rest service description
+     *
+     * @param id
+     * @param url
+     * @param originalRestServiceCode
+     * @param newRestServiceCode
+     * @return {@link ServiceDescriptionType}
+     * @throws UrlAlreadyExistsException
+     * @throws ServiceCodeAlreadyExistsException
+     */
     public ServiceDescriptionType updateRestServiceDescription(Long id, String url, String originalRestServiceCode,
-                                                               String newRestServiceCode) {
-        verifyAuthority("EDIT_OPENAPI3");
-        ServiceDescriptionType serviceDescriptiontype = getServiceDescriptiontype(id);
-        serviceDescriptiontype.setUrl(url);
+                                                               String newRestServiceCode)
+            throws UrlAlreadyExistsException, ServiceCodeAlreadyExistsException {
+        verifyAuthority("EDIT_REST");
 
-        // Update service codes
+        ServiceDescriptionType serviceDescription = getServiceDescriptiontype(id);
+        serviceDescription.setUrl(url);
+        updateServiceCodes(originalRestServiceCode, newRestServiceCode, serviceDescription);
+
+        checkDuplicateServiceCodes(serviceDescription);
+        checkDuplicateUrl(serviceDescription);
+
+        clientRepository.saveOrUpdateAndFlush(serviceDescription.getClient());
+        return serviceDescription;
+    }
+
+    /**
+     * Update OpenApi3 ServiceDescription
+     *
+     * @param id
+     * @param url
+     * @param originalRestServiceCode
+     * @param newRestServiceCode
+     * @param ignoreWarnings
+     * @return
+     * @throws UrlAlreadyExistsException
+     * @throws ServiceCodeAlreadyExistsException
+     * @throws UnhandledWarningsException
+     * @throws OpenApiParser.ParsingException
+     */
+    public ServiceDescriptionType updateOpenApi3ServiceDescription(Long id, String url, String originalRestServiceCode,
+            String newRestServiceCode, boolean ignoreWarnings) throws UrlAlreadyExistsException,
+            ServiceCodeAlreadyExistsException, UnhandledWarningsException, OpenApiParser.ParsingException,
+            MissingParameterException {
+
+        verifyAuthority("EDIT_OPENAPI3");
+        ServiceDescriptionType serviceDescription = getServiceDescriptiontype(id);
+
+        if (originalRestServiceCode == null) {
+            throw new MissingParameterException("Missing original servicecode");
+        }
+
+        if (newRestServiceCode == null) {
+            newRestServiceCode = originalRestServiceCode;
+        }
+
+        updateServiceCodes(originalRestServiceCode, newRestServiceCode, serviceDescription);
+
+        // Parse openapi definition and handle updating endpoints and acls
+        if (serviceDescription.getUrl() != url) {
+            parseOpenapi3ToServiceDescription(url, newRestServiceCode, ignoreWarnings, serviceDescription);
+        }
+
+        checkDuplicateServiceCodes(serviceDescription);
+        checkDuplicateUrl(serviceDescription);
+
+        clientRepository.saveOrUpdateAndFlush(serviceDescription.getClient());
+
+        return serviceDescription;
+    }
+
+    /**
+     * Parse OpenApi3 description and update endpoints and acls in ServiceDescription accordingly
+     *
+     * @param url
+     * @param serviceCode
+     * @param ignoreWarnings
+     * @param serviceDescription
+     * @throws OpenApiParser.ParsingException
+     * @throws UnhandledWarningsException
+     */
+    private void parseOpenapi3ToServiceDescription(String url, String serviceCode, boolean ignoreWarnings,
+                                                   ServiceDescriptionType serviceDescription) throws
+            OpenApiParser.ParsingException, UnhandledWarningsException {
+        OpenApiParser.Result result = openApiParser.parse(url);
+        if (!ignoreWarnings && result.hasWarnings()) {
+            WarningDeviation openapiParserWarnings = new WarningDeviation("OpenapiParserWarnings",
+                    result.getWarnings());
+            throw new UnhandledWarningsException(Arrays.asList(openapiParserWarnings));
+        }
+
+        // Update url
+        updateServiceDescriptionUrl(serviceDescription, serviceCode, url);
+
+        // Create endpoints from parsed results
+        List<EndpointType> parsedEndpoints = result.getOperations().stream()
+                .map(operation -> new EndpointType(serviceCode, operation.getMethod(), operation.getPath(),
+                        true))
+                .collect(Collectors.toList());
+        parsedEndpoints.add(new EndpointType(serviceCode, "*", "**", true));
+
+        // Change existing, manually added, endpoints to generated if they're found from parsedEndpoints
+        serviceDescription.getClient().getEndpoint().forEach(ep -> {
+            if (parsedEndpoints.stream().anyMatch(parsedEp -> parsedEp.isEquivalent(ep))) {
+                ep.setGenerated(true);
+            }
+        });
+
+        // Remove ACLs that don't exist in the parsed endpoints list
+        serviceDescription.getClient().getAcl().removeIf(acl ->
+                acl.getEndpoint().isGenerated()
+                        && !parsedEndpoints.stream().anyMatch(endpoint -> acl.getEndpoint().isEquivalent(endpoint)));
+
+
+        // Remove generated endpoints that are not found from the parsed endpoints
+        serviceDescription.getClient().getEndpoint().removeIf(ep -> {
+            return ep.isGenerated() && !parsedEndpoints.stream()
+                    .anyMatch(parsedEp -> parsedEp.isEquivalent(ep));
+        });
+
+        // Add parsed endpoints to endpoints list if it is not already there
+        serviceDescription.getClient().getEndpoint().addAll(
+                parsedEndpoints.stream()
+                        .filter(parsedEp -> !serviceDescription.getClient().getEndpoint()
+                            .stream()
+                            .anyMatch(ep -> ep.isEquivalent(parsedEp)))
+                            .collect(Collectors.toList()));
+    }
+
+    /**
+     * Updates the ServiceCodes of Endpoints and Service linked to given ServiceDescription
+     *
+     * @param originalRestServiceCode
+     * @param newRestServiceCode
+     * @param serviceDescriptiontype
+     */
+    private void updateServiceCodes(String originalRestServiceCode, String newRestServiceCode,
+                                          ServiceDescriptionType serviceDescriptiontype) {
+        // Update endpoint service codes
         ClientType client = serviceDescriptiontype.getClient();
         client.getEndpoint().stream()
                 .filter(e -> e.getServiceCode().equals(originalRestServiceCode))
                 .forEach(e -> e.setServiceCode(newRestServiceCode));
-        serviceDescriptiontype.getService().forEach(sd -> sd.setServiceCode(newRestServiceCode));
 
-        /* Checks are implemented in XRDDEV-794
-        try {
-            checkDuplicateServiceCodes(serviceDescriptiontype);
-            checkDuplicateUrl(serviceDescriptiontype);
-        } catch (UrlAlreadyExistsException | ServiceCodeAlreadyExistsException e) {
-            throw e;
-        }
-        */
-
-        clientRepository.saveOrUpdateAndFlush(client);
-        return serviceDescriptiontype;
+        // Update service service code
+        ServiceType service = serviceDescriptiontype.getService().stream()
+                .filter(s -> originalRestServiceCode.equals(s.getServiceCode()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Service with servicecode: " + originalRestServiceCode
+                        + " wasn't found from servicedescription with id: " + serviceDescriptiontype.getId()));
+        service.setServiceCode(newRestServiceCode);
     }
 
-//    public ServiceDescriptionType updateOpenApi3ServiceDescription(Long id, String url, String restServiceCode,
-//    boolean ignoreWarnings) {
-//
-//    }
+    /**
+     * Updates the url of the given ServiceDescription and service attached to it with matching ServiceCode to one given
+     *
+     * @param serviceDescriptionType
+     * @param serviceCode
+     * @param url
+     */
+    private void updateServiceDescriptionUrl(ServiceDescriptionType serviceDescriptionType, String serviceCode,
+                                             String url) {
+        serviceDescriptionType.setUrl(url);
+        ServiceType service = serviceDescriptionType.getService().stream()
+                .filter(s -> serviceCode.equals(s.getServiceCode()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Service with servicecode: " + serviceCode
+                        + " wasn't found from servicedescription with id: " + serviceDescriptionType.getId()));
+        service.setUrl(url);
+    }
 
     /**
-     * Get one ServiceDescriptionType by id
+     * Return matching ServiceDescription or null
      *
      * @param id
      * @return ServiceDescriptionType

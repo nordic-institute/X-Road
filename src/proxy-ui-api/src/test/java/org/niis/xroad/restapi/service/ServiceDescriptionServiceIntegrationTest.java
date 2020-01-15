@@ -91,8 +91,8 @@ public class ServiceDescriptionServiceIntegrationTest {
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
-    private static final ClientId CLIENT_ID_SS1 = ClientId.create(
-            "FI", "GOV", "M1", "SS1");
+    private static final ClientId CLIENT_ID_SS1 = ClientId.create("FI", "GOV", "M1", "SS1");
+    private static final ClientId CLIENT_ID_SS6 = ClientId.create("FI", "GOV", "M2", "SS6");
 
     @Autowired
     private ServiceDescriptionService serviceDescriptionService;
@@ -475,44 +475,6 @@ public class ServiceDescriptionServiceIntegrationTest {
                         BMI_SERVICE)));
     }
 
-    @Test
-    @WithMockUser(authorities = "EDIT_OPENAPI3")
-    public void updateRestServiceDescriptionSuccess() throws Exception {
-        final String originalServiceCode = "rest-servicecode";
-        final String newServiceCode = "new-rest-servicecode";
-
-        ClientType client = clientService.getClient(CLIENT_ID_SS1);
-        ServiceDescriptionType serviceDescription = serviceDescriptionService.getServiceDescriptiontype(5L);
-
-        assertEquals(3, getEndpointWithServiceCodeCount(client, originalServiceCode));
-        assertTrue(serviceDescriptionContainsServiceWithServiceCode(serviceDescription, originalServiceCode));
-
-        serviceDescriptionService.updateRestServiceDescription(5L, "https://restservice.com/api/v1/nosuchservice",
-                originalServiceCode, newServiceCode);
-
-        assertEquals(3, getEndpointWithServiceCodeCount(client, newServiceCode));
-        assertTrue(serviceDescriptionContainsServiceWithServiceCode(serviceDescription, newServiceCode));
-
-        assertEquals(0, getEndpointWithServiceCodeCount(client, originalServiceCode));
-        assertFalse(serviceDescriptionContainsServiceWithServiceCode(serviceDescription, originalServiceCode));
-    }
-
-    private boolean serviceDescriptionContainsServiceWithServiceCode(ServiceDescriptionType serviceDescription,
-                                                                     String serviceCode) {
-        return serviceDescription.getService().stream()
-                .map(s -> s.getServiceCode())
-                .collect(Collectors.toList())
-                .contains(serviceCode);
-    }
-
-    private int getEndpointWithServiceCodeCount(ClientType client, String serviceCode) {
-        return client.getEndpoint().stream()
-                .map(e -> e.getServiceCode())
-                .filter(sc -> serviceCode.equals(sc))
-                .collect(Collectors.toList())
-                .size();
-    }
-
     @WithMockUser(authorities = "ADD_OPENAPI3")
     public void addRestEndpointServiceDescriptionSuccess() throws Exception {
         ClientType client = clientService.getClient(CLIENT_ID_SS1);
@@ -530,23 +492,23 @@ public class ServiceDescriptionServiceIntegrationTest {
     @WithMockUser(authorities = "ADD_OPENAPI3")
     public void addOpenapi3ServiceDescriptionSuccess() throws Exception {
         ClientType client = clientService.getClient(CLIENT_ID_SS1);
-        assertEquals(3, client.getEndpoint().size());
+        assertEquals(6, client.getEndpoint().size());
         URL url = getClass().getResource("/openapiparser/valid.yaml");
         serviceDescriptionService.addOpenapi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode", false);
 
         client = clientService.getClient(CLIENT_ID_SS1);
-        assertEquals(5, client.getEndpoint().size());
+        assertEquals(9, client.getEndpoint().size());
         assertTrue(client.getEndpoint().stream()
                 .map(EndpointType::getServiceCode)
                 .filter(s -> "testcode".equals(s))
-                .collect(Collectors.toList()).size() == 2);
+                .collect(Collectors.toList()).size() == 3);
     }
 
     @Test
     @WithMockUser(authorities = "ADD_OPENAPI3")
     public void addOpenapi3ServiceDescriptionWithWarnings() throws Exception {
         ClientType client = clientService.getClient(CLIENT_ID_SS1);
-        assertEquals(3, client.getEndpoint().size());
+        assertEquals(6, client.getEndpoint().size());
         URL url = getClass().getResource("/openapiparser/warnings.yml");
         boolean foundWarnings = false;
         try {
@@ -563,7 +525,7 @@ public class ServiceDescriptionServiceIntegrationTest {
         }
 
         client = clientService.getClient(CLIENT_ID_SS1);
-        assertEquals(5, client.getEndpoint().size());
+        assertEquals(9, client.getEndpoint().size());
     }
 
     @Test(expected = ServiceDescriptionService.ServiceCodeAlreadyExistsException.class)
@@ -585,6 +547,83 @@ public class ServiceDescriptionServiceIntegrationTest {
 
         // should throw UrlAlreadyExistsException
         serviceDescriptionService.addOpenapi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode2", false);
+    }
+
+    @Test
+    @WithMockUser(authorities = "EDIT_REST")
+    public void updateRestServiceDescriptionSuccess() throws Exception {
+        final String originalServiceCode = "rest-servicecode";
+        final String newServiceCode = "new-rest-servicecode";
+
+        ClientType client = clientService.getClient(CLIENT_ID_SS1);
+        ServiceDescriptionType serviceDescription = serviceDescriptionService.getServiceDescriptiontype(5L);
+
+        assertEquals(3, getEndpointCountByServiceCode(client, originalServiceCode));
+        assertTrue(serviceDescriptionContainsServiceWithServiceCode(serviceDescription, originalServiceCode));
+
+        serviceDescriptionService.updateRestServiceDescription(5L, "https://restservice.com/api/v1/nosuchservice",
+                originalServiceCode, newServiceCode);
+
+        assertEquals(3, getEndpointCountByServiceCode(client, newServiceCode));
+        assertTrue(serviceDescriptionContainsServiceWithServiceCode(serviceDescription, newServiceCode));
+
+        assertEquals(0, getEndpointCountByServiceCode(client, originalServiceCode));
+        assertFalse(serviceDescriptionContainsServiceWithServiceCode(serviceDescription, originalServiceCode));
+    }
+
+    private boolean serviceDescriptionContainsServiceWithServiceCode(ServiceDescriptionType serviceDescription,
+                                                                     String serviceCode) {
+        return serviceDescription.getService().stream()
+                .map(s -> s.getServiceCode())
+                .collect(Collectors.toList())
+                .contains(serviceCode);
+    }
+
+    private int getEndpointCountByServiceCode(ClientType client, String serviceCode) {
+        return client.getEndpoint().stream()
+                .map(e -> e.getServiceCode())
+                .filter(sc -> serviceCode.equals(sc))
+                .collect(Collectors.toList())
+                .size();
+    }
+
+    @Test
+    @WithMockUser(authorities = "EDIT_OPENAPI3")
+    public void updateOpenapi3ServiceDescriptionSuccess() throws Exception {
+        URL url = getClass().getResource("/openapiparser/valid_modified.yaml");
+
+        ClientType client = clientService.getClient(CLIENT_ID_SS6);
+        assertEquals(5, getEndpointCountByServiceCode(client, "openapi3-test"));
+        assertEquals(4, client.getAcl().size());
+        assertTrue(client.getEndpoint().stream().filter(ep -> ep.getMethod().equals("POST")).count() == 1);
+
+        serviceDescriptionService.updateOpenApi3ServiceDescription(6L, url.toString(), "openapi3-test",
+                "openapi3-test", false);
+
+        List<EndpointType> endpoints = client.getEndpoint();
+        assertEquals(5, getEndpointCountByServiceCode(client, "openapi3-test"));
+        assertEquals(3, client.getAcl().size());
+        assertFalse(endpoints.stream().anyMatch(ep -> ep.getMethod().equals("POST")));
+        assertTrue(endpoints.stream().anyMatch(ep -> ep.getMethod().equals("PATCH")));
+
+        // Assert that the pre-existing, manually added, endpoint is transformed to generated during update
+        assertTrue(endpoints.stream()
+                .anyMatch(ep -> ep.getServiceCode().equals("openapi3-test")
+                    && ep.getMethod().equals("GET")
+                    && ep.getPath().equals("/foo")
+                    && ep.isGenerated()));
+
+        assertTrue(endpoints.stream()
+                .anyMatch(ep -> ep.getServiceCode().equals("openapi3-test")
+                        && ep.getMethod().equals("*")
+                        && ep.getPath().equals("**")));
+
+        assertTrue(endpoints.stream()
+                .anyMatch(ep -> ep.getServiceCode().equals("openapi3-test")
+                        && ep.getMethod().equals("PUT")
+                        && ep.getPath().equals("/foo")));
+
+
     }
 
 }
