@@ -8,6 +8,7 @@
     :disableSave="!isValid"
   >
     <div slot="content">
+
       <ValidationObserver ref="form" v-slot="{ validate, invalid }">
         <div class="dlg-edit-row">
           <div class="dlg-row-title">{{$t('services.serviceType')}}</div>
@@ -74,6 +75,7 @@ import Vue from 'vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 import { isValidRestURL } from '@/util/helpers';
+import * as api from "@/util/api";
 
 export default Vue.extend({
   components: { SimpleDialog, ValidationProvider, ValidationObserver },
@@ -82,6 +84,10 @@ export default Vue.extend({
       type: Boolean,
       required: true,
     },
+    clientId: {
+      type: String,
+      required: true
+    }
   },
   data() {
     return {
@@ -105,8 +111,23 @@ export default Vue.extend({
       this.clear();
     },
     save(): void {
-      this.$emit('save', { serviceType: this.serviceType, url: this.url, serviceCode: this.serviceCode });
-      this.clear();
+      api
+        .post(`/clients/${this.clientId}/service-descriptions`, {
+          url: this.url,
+          rest_service_code: this.serviceCode,
+          type: this.serviceType,
+        })
+        .then((res) => {
+          this.$bus.$emit('show-success', this.serviceType === 'OPENAPI3' ?
+                  'services.openApi3Added' : 'services.restAdded');
+          this.$emit('save', { serviceType: this.serviceType, url: this.url, serviceCode: this.serviceCode });
+          this.clear();
+        })
+        .catch((error) => {
+          const errorMessage = error?.response?.data?.error?.code === 'openapi_parsing_error' ?
+                  this.$t('services.openApi3ParsingFailed') : error.message;
+          this.$bus.$emit('show-error', errorMessage);
+        });
     },
     clear(): void {
       this.url = '';

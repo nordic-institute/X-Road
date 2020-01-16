@@ -106,7 +106,7 @@
     </template>
 
     <addWsdlDialog :dialog="addWsdlDialog" @save="wsdlSave" @cancel="cancelAddWsdl" />
-    <addRestDialog :dialog="addRestDialog" @save="restSave" @cancel="cancelAddRest" />
+    <addRestDialog :dialog="addRestDialog" @save="restSave" :clientId="this.id" @cancel="cancelAddRest" />
     <disableServiceDescDialog
       :dialog="disableDescDialog"
       @cancel="disableDescCancel"
@@ -385,26 +385,8 @@ export default Vue.extend({
       this.addWsdlDialog = false;
     },
 
-    restSave(rest: any): void {
-      api
-        .post(`/clients/${this.id}/service-descriptions`, {
-          url: rest.url,
-          rest_service_code: rest.serviceCode,
-          type: rest.serviceType,
-        })
-        .then((res) => {
-          this.$bus.$emit('show-success', rest.serviceType === 'OPENAPI3' ?
-                  'services.openApi3Added' : 'services.restAdded');
-        })
-        .catch((error) => {
-          const errorMessage = error?.response?.data?.error?.code === 'openapi_parsing_error' ?
-                  this.$t('services.openApi3ParsingFailed') : error.message;
-          this.$bus.$emit('show-error', errorMessage);
-        })
-        .finally(() => {
-          this.fetchData();
-        });
-
+    restSave(): void {
+      this.fetchData();
       this.addRestDialog = false;
     },
 
