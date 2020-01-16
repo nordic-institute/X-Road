@@ -45,6 +45,7 @@ import org.niis.xroad.restapi.service.CertificateProfileInstantiationException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.CsrNotFoundException;
 import org.niis.xroad.restapi.service.DnFieldHelper;
+import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.KeyService;
 import org.niis.xroad.restapi.service.PossibleActionEnum;
@@ -200,6 +201,21 @@ public class KeysApiController implements KeysApi {
         } catch (CsrNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
+    }
+
+    @Override
+    @PreAuthorize("hasAnyAuthority('DELETE_KEY', 'DELETE_AUTH_KEY', 'DELETE_SIGN_KEY')")
+    public ResponseEntity<Void> deleteKey(String keyId) {
+        try {
+            keyService.deleteKey(keyId);
+        } catch (KeyNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
+        } catch (GlobalConfService.GlobalConfOutdatedException e) {
+            throw new BadRequestException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
 

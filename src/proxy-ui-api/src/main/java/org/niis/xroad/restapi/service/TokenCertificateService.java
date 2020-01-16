@@ -545,7 +545,7 @@ public class TokenCertificateService {
         verifyCertAction(PossibleActionEnum.REGISTER, certificateInfo, hash);
         SecurityServerId securityServerId = serverConfService.getSecurityServerId();
         try {
-            managementRequestSenderService.sendAuthCertRegisterRequest(securityServerId, securityServerAddress,
+            managementRequestSenderService.sendAuthCertRegisterRequest(securityServerAddress,
                     certificateInfo.getCertificateBytes());
             signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_REGINPROG);
         } catch (GlobalConfService.GlobalConfOutdatedException | CodedException e) {
@@ -556,7 +556,8 @@ public class TokenCertificateService {
     }
 
     /**
-     * Send the authentication certificate deletion request to central server
+     * Send the authentication certificate deletion request to central server.
+     * Also sets cert status to STATUS_DELINPROG
      * @param hash certificate hash
      * @throws CertificateNotFoundException
      * @throws GlobalConfService.GlobalConfOutdatedException
@@ -567,9 +568,8 @@ public class TokenCertificateService {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         verifyAuthCert(certificateInfo);
         verifyCertAction(PossibleActionEnum.UNREGISTER, certificateInfo, hash);
-        SecurityServerId securityServerId = serverConfService.getSecurityServerId();
         try {
-            managementRequestSenderService.sendAuthCertDeletionRequest(securityServerId,
+            managementRequestSenderService.sendAuthCertDeletionRequest(
                     certificateInfo.getCertificateBytes());
             signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
         } catch (GlobalConfService.GlobalConfOutdatedException | CodedException e) {
