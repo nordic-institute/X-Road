@@ -49,8 +49,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -113,16 +113,7 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
         response.setCharacterEncoding(MimeUtils.UTF8);
         response.setHeader("X-Road-Error", ex.getFaultCode());
 
-        String requestAcceptType = "";
-        Enumeration<String> acceptHeaders = request.getHeaders("Accept");
-        while (acceptHeaders.hasMoreElements()) {
-            requestAcceptType += acceptHeaders.nextElement();
-            if (acceptHeaders.hasMoreElements()) {
-                requestAcceptType += ", ";
-            }
-        }
-
-        String responseContentType = decideErrorResponseContentType(requestAcceptType);
+        final String responseContentType = decideErrorResponseContentType(request.getHeaders("Accept"));
         response.setContentType(responseContentType);
         if (XML_TYPES.contains(responseContentType)) {
             DocumentBuilderFactory docFactory = XmlUtils.createDocumentBuilderFactory();
@@ -155,23 +146,17 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
         }
     }
 
-    private String decideErrorResponseContentType(String acceptHeaderValue) {
-        List<String> allPieces = new ArrayList<>();
-        String[] commaSplit = acceptHeaderValue.trim().toLowerCase().split("\\s*,\\s*");
-        for (String s1: commaSplit) {
-            String[] colonSplit = s1.trim().split("\\s*;\\s*");
-            if (colonSplit.length > 0) {
-                allPieces.add(colonSplit[0]);
-            }
-        }
-        return allPieces.stream()
+    private static String decideErrorResponseContentType(Enumeration<String> acceptHeaderValue) {
+        return Collections.list(acceptHeaderValue).stream()
+                .flatMap(h -> Arrays.stream(h.split(",")))
+                .map(s -> s.split(";", 2)[0].trim().toLowerCase())
                 .filter(XML_TYPES::contains)
                 .findAny()
                 .map(orig -> mapTextToXml(orig))
                 .orElse(APPLICATION_JSON);
     }
 
-    private String mapTextToXml(String orig) {
+    private static String mapTextToXml(String orig) {
         return TEXT_ANY.equals(orig) ? TEXT_XML : orig;
     }
 }
