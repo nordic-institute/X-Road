@@ -101,7 +101,6 @@
               :tokenType="token.type"
               @keyClick="keyClick"
               @generateCsr="generateCsr"
-              @certificateClick="certificateClick"
               @importCertByHash="importCertByHash"
             />
           </div>
@@ -133,7 +132,7 @@
 <script lang="ts">
 // View for services tab
 import Vue from 'vue';
-import { Permissions, RouteName } from '@/global';
+import { Permissions, RouteName, UsageTypes } from '@/global';
 import Expandable from '@/components/ui/Expandable.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
@@ -264,10 +263,13 @@ export default Vue.extend({
       });
     },
 
-    certificateClick(cert: TokenCertificate): void {
+    certificateClick(payload: { cert: TokenCertificate; key: Key }): void {
       this.$router.push({
         name: RouteName.Certificate,
-        params: { hash: cert.certificate_details.hash },
+        params: {
+          hash: payload.cert.certificate_details.hash,
+          usage: payload.key.usage,
+        },
       });
     },
 
@@ -320,7 +322,7 @@ export default Vue.extend({
     getSignKeys(keys: Key[]): Key[] {
       // Filter out service descriptions that don't include search term
       const filtered = keys.filter((key: Key) => {
-        return key.usage === 'SIGNING';
+        return key.usage === UsageTypes.SIGNING;
       });
 
       return filtered;
@@ -329,7 +331,7 @@ export default Vue.extend({
     getOtherKeys(keys: Key[]): Key[] {
       // Filter out service descriptions that don't include search term
       const filtered = keys.filter((key: Key) => {
-        return key.usage !== 'SIGNING' && key.usage !== 'AUTHENTICATION';
+        return key.usage !== UsageTypes.SIGNING && key.usage !== UsageTypes.AUTHENTICATION;
       });
 
       return filtered;

@@ -35,7 +35,7 @@
         <template v-if="tokenType === 'SOFTWARE'">
           <tr>
             <div class="name-wrap-top">
-              <i class="icon-xrd_key icon" @click="keyClick(key)"></i>
+              <i class="icon-xrd_key icon clickable" @click="keyClick(key)"></i>
               <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
             </div>
             <td class="no-border"></td>
@@ -55,10 +55,10 @@
           <tr v-for="cert in key.certificates" v-bind:key="cert.id">
             <td class="td-name">
               <div class="name-wrap">
-                <i class="icon-xrd_certificate icon" @click="certificateClick(cert)"></i>
+                <i class="icon-xrd_certificate icon clickable" @click="certificateClick(cert, key)"></i>
                 <div
                   class="clickable-link"
-                  @click="certificateClick(cert)"
+                  @click="certificateClick(cert, key)"
                 >{{cert.certificate_details.issuer_common_name}} {{cert.certificate_details.serial}}</div>
               </div>
             </td>
@@ -76,7 +76,7 @@
         <template v-if="tokenType === 'HARDWARE'">
           <tr>
             <div class="name-wrap-top">
-              <i class="icon-xrd_key icon" @click="keyClick(key)"></i>
+              <i class="icon-xrd_key icon clickable" @click="keyClick(key)"></i>
               <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
             </div>
             <td class="no-border"></td>
@@ -97,10 +97,10 @@
           <tr v-for="cert in key.certificates" v-bind:key="cert.id">
             <td class="td-name">
               <div class="name-wrap">
-                <i class="icon-xrd_certificate icon" @click="certificateClick(cert)"></i>
+                <i class="icon-xrd_certificate icon clickable" @click="certificateClick(cert, key)"></i>
                 <div
                   class="clickable-link"
-                  @click="certificateClick(cert)"
+                  @click="certificateClick(cert, key)"
                 >{{cert.certificate_details.issuer_common_name}} {{cert.certificate_details.serial}}</div>
               </div>
             </td>
@@ -128,7 +128,7 @@
           <tr v-for="req in key.certificate_signing_requests" v-bind:key="req.id">
             <td class="td-name">
               <div class="name-wrap">
-                <i class="icon-xrd_certificate icon" @click="certificateClick(req)"></i>
+                <i class="icon-xrd_certificate icon"></i>
                 <div>{{$t('keys.request')}}</div>
               </div>
             </td>
@@ -196,6 +196,7 @@ export default Vue.extend({
   data() {
     return {
       confirmDeleteCsr: false,
+      usageTypes: UsageTypes,
       selectedCsr: null as TokenCertificateSigningRequest | null,
       selectedKey: null as Key | null,
     };
@@ -211,8 +212,8 @@ export default Vue.extend({
     keyClick(key: Key): void {
       this.$emit('keyClick', key);
     },
-    certificateClick(cert: TokenCertificate): void {
-      this.$emit('certificateClick', cert);
+    certificateClick(cert: TokenCertificate, key: Key): void {
+      this.$emit('certificateClick', { cert, key });
     },
     generateCsr(key: Key): void {
       this.$emit('generateCsr', key);
@@ -252,6 +253,9 @@ export default Vue.extend({
 .icon {
   margin-left: 18px;
   margin-right: 20px;
+}
+
+.clickable {
   cursor: pointer;
 }
 
