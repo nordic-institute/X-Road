@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<configuration>
+<configuration scan="true" scanPeriod="60 seconds">
 
     <property name="logOutputPath" value="/var/log/xroad" />
 
@@ -30,6 +30,7 @@
     </appender>
 
     <logger name="ee.ria.xroad" level="INFO" />
+    <logger name="akka" level="WARN" />
 
     <!--TokenManager is very verbose /-->
     <logger name="ee.ria.xroad.signer.tokenmanager.TokenManager" level="OFF" />

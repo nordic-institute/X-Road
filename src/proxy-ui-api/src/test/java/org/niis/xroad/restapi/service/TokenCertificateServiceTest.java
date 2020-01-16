@@ -554,7 +554,7 @@ public class TokenCertificateServiceTest {
     @Test(expected = CodedException.class)
     public void registerAuthCertificateFail() throws Exception {
         doAnswer(answer -> authCert).when(signerProxyFacade).getCertForHash(any());
-        when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any()))
+        when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any()))
                 .thenThrow(new CodedException("FAILED"));
         tokenCertificateService.registerAuthCert(MOCK_AUTH_CERTIFICATE_HASH, BAD_ADDRESS);
     }
