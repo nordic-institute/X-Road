@@ -1,7 +1,6 @@
 <template>
   <div>
     <table class="xrd-table">
-
       <!-- SOFTWARE token table header -->
       <template v-if="tokenType === 'SOFTWARE'">
         <thead>
@@ -32,12 +31,11 @@
       </template>
 
       <tbody v-for="key in keys" v-bind:key="key.id">
-
         <!-- SOFTWARE token table body -->
         <template v-if="tokenType === 'SOFTWARE'">
           <tr>
             <div class="name-wrap-top">
-              <v-icon class="icon" @click="keyClick(key)">mdi-key-outline</v-icon>
+              <i class="icon-xrd_key icon" @click="keyClick(key)"></i>
               <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
             </div>
             <td class="no-border"></td>
@@ -57,7 +55,7 @@
           <tr v-for="cert in key.certificates" v-bind:key="cert.id">
             <td class="td-name">
               <div class="name-wrap">
-                <v-icon class="icon" @click="certificateClick(cert)">mdi-file-document-outline</v-icon>
+                <i class="icon-xrd_certificate icon" @click="certificateClick(cert)"></i>
                 <div
                   class="clickable-link"
                   @click="certificateClick(cert)"
@@ -78,7 +76,7 @@
         <template v-if="tokenType === 'HARDWARE'">
           <tr>
             <div class="name-wrap-top">
-              <v-icon class="icon" @click="keyClick(key)">mdi-key-outline</v-icon>
+              <i class="icon-xrd_key icon" @click="keyClick(key)"></i>
               <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
             </div>
             <td class="no-border"></td>
@@ -99,7 +97,7 @@
           <tr v-for="cert in key.certificates" v-bind:key="cert.id">
             <td class="td-name">
               <div class="name-wrap">
-                <v-icon class="icon" @click="certificateClick(cert)">mdi-file-document-outline</v-icon>
+                <i class="icon-xrd_certificate icon" @click="certificateClick(cert)"></i>
                 <div
                   class="clickable-link"
                   @click="certificateClick(cert)"
@@ -138,12 +136,25 @@
             <td></td>
             <td></td>
             <td class="status-cell"></td>
-            <td></td>
+            <td class="td-align-right">
+              <SmallButton
+                class="table-button-fix"
+                v-if="hasPermission && req.possible_actions.includes('DELETE')"
+                @click="showDeleteCsrDialog(req, key)"
+              >{{$t('keys.deleteCsr')}}</SmallButton>
+            </td>
           </tr>
         </template>
-
       </tbody>
     </table>
+
+    <ConfirmDialog
+      :dialog="confirmDeleteCsr"
+      title="keys.deleteCsrTitle"
+      text="keys.deleteCsrText"
+      @cancel="confirmDeleteCsr = false"
+      @accept="deleteCsr()"
+    />
   </div>
 </template>
 
@@ -154,13 +165,16 @@
 import Vue from 'vue';
 import CertificateStatus from './CertificateStatus.vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
-import {Key, TokenCertificate} from '@/types';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import { Key, TokenCertificate, TokenCertificateSigningRequest } from '@/types';
 import { Permissions, UsageTypes } from '@/global';
+import * as api from '@/util/api';
 
 export default Vue.extend({
   components: {
     CertificateStatus,
     SmallButton,
+    ConfirmDialog,
   },
   props: {
     keys: {
@@ -178,6 +192,13 @@ export default Vue.extend({
       type: String,
       required: true,
     },
+  },
+  data() {
+    return {
+      confirmDeleteCsr: false,
+      selectedCsr: null as TokenCertificateSigningRequest | null,
+      selectedKey: null as Key | null,
+    };
   },
   computed: {
     hasPermission(): boolean {
@@ -198,6 +219,28 @@ export default Vue.extend({
     },
     importCert(hash: string): void {
       this.$emit('importCertByHash', hash);
+    },
+    showDeleteCsrDialog(req: TokenCertificateSigningRequest, key: Key): void {
+      this.confirmDeleteCsr = true;
+      this.selectedCsr = req;
+      this.selectedKey = key;
+    },
+    deleteCsr(): void {
+      this.confirmDeleteCsr = false;
+
+      if (!this.selectedKey || !this.selectedCsr) {
+        return;
+      }
+
+      api
+        .remove(`/keys/${this.selectedKey.id}/csrs/${this.selectedCsr.id}`)
+        .then((res) => {
+          this.$bus.$emit('show-success', 'keys.csrDeleted');
+          this.$emit('refreshList');
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
     },
   },
 });

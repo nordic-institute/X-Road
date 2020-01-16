@@ -89,6 +89,7 @@
               @generateCsr="generateCsr"
               @certificateClick="certificateClick"
               @importCertByHash="importCertByHash"
+              @refreshList="fetchData"
             />
 
             <!-- Keys with unknown type -->
