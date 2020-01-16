@@ -390,13 +390,16 @@ export default Vue.extend({
         .post(`/clients/${this.id}/service-descriptions`, {
           url: rest.url,
           rest_service_code: rest.serviceCode,
-          type: 'OPENAPI3',
+          type: rest.serviceType,
         })
         .then((res) => {
-          this.$bus.$emit('show-success', 'services.restAdded');
+          this.$bus.$emit('show-success', rest.serviceType === 'OPENAPI3' ?
+                  'services.openApi3Added' : 'services.restAdded');
         })
         .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
+          const errorMessage = error?.response?.data?.error?.code === 'openapi_parsing_error' ?
+                  this.$t('services.openApi3ParsingFailed') : error.message;
+          this.$bus.$emit('show-error', errorMessage);
         })
         .finally(() => {
           this.fetchData();

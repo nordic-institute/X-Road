@@ -1,6 +1,7 @@
 <template>
   <simpleDialog
     :dialog="dialog"
+    :width="560"
     title="services.addRest"
     @save="save"
     @cancel="cancel"
@@ -8,6 +9,23 @@
   >
     <div slot="content">
       <ValidationObserver ref="form" v-slot="{ validate, invalid }">
+        <div class="dlg-edit-row">
+          <div class="dlg-row-title">{{$t('services.serviceType')}}</div>
+
+          <ValidationProvider
+            rules="required"
+            name="serviceType"
+            v-slot="{ errors }"
+            class="validation-provider dlg-row-input">
+
+            <v-radio-group v-model="serviceType" name="serviceType" :error-messages="errors" row>
+              <v-radio name="REST" :label="$t('services.restApiBasePath')" value="REST" ></v-radio>
+              <v-radio name="OPENAPI3" :label="$t('services.OpenApi3Description')" value="OPENAPI3" ></v-radio>
+            </v-radio-group>
+
+          </ValidationProvider>
+        </div>
+
         <div class="dlg-edit-row">
           <div class="dlg-row-title">{{$t('services.url')}}</div>
 
@@ -17,7 +35,11 @@
             v-slot="{ errors }"
             class="validation-provider dlg-row-input"
           >
-            <v-text-field v-model="url" single-line name="serviceUrl" :error-messages="errors"></v-text-field>
+            <v-text-field :placeholder="$t('services.urlPlaceholder')"
+                          v-model="url"
+                          single-line
+                          name="serviceUrl"
+                          :error-messages="errors"></v-text-field>
           </ValidationProvider>
         </div>
 
@@ -36,6 +58,7 @@
               class="dlg-row-input"
               name="serviceCode"
               type="text"
+              :placeholder="$t('services.serviceCodePlaceholder')"
               :maxlength="255"
               :error-messages="errors"
             ></v-text-field>
@@ -62,13 +85,14 @@ export default Vue.extend({
   },
   data() {
     return {
+      serviceType: '',
       url: '',
       serviceCode: '',
     };
   },
   computed: {
     isValid(): boolean {
-      if (isValidRestURL(this.url) && this.serviceCode.length > 0) {
+      if (isValidRestURL(this.url) && this.serviceCode.length > 0 && this.serviceType !== '') {
         return true;
       }
 
@@ -81,12 +105,13 @@ export default Vue.extend({
       this.clear();
     },
     save(): void {
-      this.$emit('save', { url: this.url, serviceCode: this.serviceCode });
+      this.$emit('save', { serviceType: this.serviceType, url: this.url, serviceCode: this.serviceCode });
       this.clear();
     },
     clear(): void {
       this.url = '';
       this.serviceCode = '';
+      this.serviceType = '';
       (this.$refs.form as InstanceType<typeof ValidationObserver>).reset();
     },
   },
