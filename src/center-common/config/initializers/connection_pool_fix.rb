@@ -22,8 +22,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-
 require 'java'
 
-class ApplicationController < ActionController::Base
+class ActiveRecord::ConnectionAdapters::ConnectionPool
+
+  def checkout_and_verify_with_rescue(c)
+    checkout_and_verify_without_rescue(c)
+  rescue
+    c.disconnect!
+    @connections.delete(c)
+    raise
+  end
+  alias_method_chain :checkout_and_verify, :rescue
 end
