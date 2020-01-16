@@ -571,12 +571,12 @@ public class TokenCertificateService {
      * @throws InvalidCertificateException
      * @throws KeyNotFoundException
      * @throws CertificateNotFoundException
-     * @throws NoValidAuthCertificateException
+     * @throws ManagementRequestSendingFailedException
      */
     private void unregisterAuthCertAndMarkForDeletion(String hash, boolean skipUnregister)
             throws CertificateNotFoundException, GlobalConfService.GlobalConfOutdatedException,
             InvalidCertificateException, SignCertificateNotSupportedException, KeyNotFoundException,
-            ActionNotPossibleException, NoValidAuthCertificateException {
+            ActionNotPossibleException, ManagementRequestSendingFailedException {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         verifyAuthCert(certificateInfo);
         verifyCertAction(PossibleActionEnum.UNREGISTER, certificateInfo, hash);
@@ -586,16 +586,16 @@ public class TokenCertificateService {
                 managementRequestSenderService.sendAuthCertDeletionRequest(securityServerId,
                         certificateInfo.getCertificateBytes());
             }
-            signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
-        } catch (CodedException ce) {
-            if (isCausedBySslAuthFailure(ce)) {
-                throw new NoValidAuthCertificateException(ce);
-            }
-            throw ce;
-        } catch (GlobalConfService.GlobalConfOutdatedException e) {
+        } catch (GlobalConfService.GlobalConfOutdatedException | CodedException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Could not unregister auth cert", e);
+            throw new ManagementRequestSendingFailedException(e);
+        }
+        try {
+            signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
+        } catch (Exception e) {
+            // this means that cert was not found (which has been handled already) or some Akka error
+            throw new RuntimeException("Could not change auth cert status", e);
         }
     }
 
@@ -609,11 +609,11 @@ public class TokenCertificateService {
      * @throws InvalidCertificateException
      * @throws KeyNotFoundException
      * @throws CertificateNotFoundException
-     * @throws NoValidAuthCertificateException
+     * @throws ManagementRequestSendingFailedException
      */
     public void unregisterAuthCert(String hash) throws SignCertificateNotSupportedException,
             ActionNotPossibleException, GlobalConfService.GlobalConfOutdatedException, InvalidCertificateException,
-            KeyNotFoundException, CertificateNotFoundException, NoValidAuthCertificateException {
+            KeyNotFoundException, CertificateNotFoundException, ManagementRequestSendingFailedException {
         unregisterAuthCertAndMarkForDeletion(hash, false);
     }
 
@@ -629,12 +629,8 @@ public class TokenCertificateService {
      */
     public void markAuthCertForDeletion(String hash) throws SignCertificateNotSupportedException,
             ActionNotPossibleException, GlobalConfService.GlobalConfOutdatedException, InvalidCertificateException,
-            KeyNotFoundException, CertificateNotFoundException {
-        try {
-            unregisterAuthCertAndMarkForDeletion(hash, true);
-        } catch (NoValidAuthCertificateException e) {
-            // Not a possible exception because the unregister request was never sent
-        }
+            KeyNotFoundException, CertificateNotFoundException, ManagementRequestSendingFailedException {
+        unregisterAuthCertAndMarkForDeletion(hash, true);
     }
 
     private void verifyAuthCert(CertificateInfo certificateInfo)
@@ -700,16 +696,11 @@ public class TokenCertificateService {
         return CERT_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
     }
 
-    static boolean isCausedBySslAuthFailure(CodedException e) {
-        return SSL_AUTH_FAULT_CODE.equals(e.getFaultCode());
-    }
-
     static final String DUPLICATE_CERT_FAULT_CODE = signerFaultCode(X_CERT_EXISTS);
     static final String INCORRECT_CERT_FAULT_CODE = signerFaultCode(X_INCORRECT_CERTIFICATE);
     static final String CERT_WRONG_USAGE_FAULT_CODE = signerFaultCode(X_WRONG_CERT_USAGE);
     static final String CSR_NOT_FOUND_FAULT_CODE = signerFaultCode(X_CSR_NOT_FOUND);
     static final String CERT_NOT_FOUND_FAULT_CODE = signerFaultCode(X_CERT_NOT_FOUND);
-    static final String SSL_AUTH_FAULT_CODE = clientProxyFaultCode(X_CERT_NOT_FOUND);
 
     /**
      * Return possible actions for one cert
@@ -961,11 +952,15 @@ public class TokenCertificateService {
     /**
      * Missing a valid auth cert
      */
-    public static class NoValidAuthCertificateException extends ServiceException {
-        public static final String NO_VALID_AUTH_CERT = "no_valid_auth_cert";
+    public static class ManagementRequestSendingFailedException extends ServiceException {
+        public static final String MANAGEMENT_REQUEST_SENDING_FAILED = "management_request_sending_failed";
 
-        public NoValidAuthCertificateException(Throwable t) {
-            super(t, new ErrorDeviation(NO_VALID_AUTH_CERT));
+        public ManagementRequestSendingFailedException(Throwable t) {
+            super(t, createError(t));
+        }
+
+        private static ErrorDeviation createError(Throwable t) {
+            return new ErrorDeviation(MANAGEMENT_REQUEST_SENDING_FAILED, t.getMessage());
         }
     }
 }

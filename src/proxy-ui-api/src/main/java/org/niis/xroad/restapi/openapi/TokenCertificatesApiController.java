@@ -211,9 +211,10 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
         } catch (GlobalConfService.GlobalConfOutdatedException | TokenCertificateService.InvalidCertificateException
                 | TokenCertificateService.SignCertificateNotSupportedException e) {
             throw new BadRequestException(e);
-        } catch (ActionNotPossibleException | KeyNotFoundException
-                | TokenCertificateService.NoValidAuthCertificateException e) {
+        } catch (ActionNotPossibleException | KeyNotFoundException  e) {
             throw new ConflictException(e);
+        } catch (TokenCertificateService.ManagementRequestSendingFailedException e) {
+            throw new InternalServerErrorException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -230,6 +231,8 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
             throw new BadRequestException(e);
         } catch (ActionNotPossibleException | KeyNotFoundException e) {
             throw new ConflictException(e);
+        } catch (TokenCertificateService.ManagementRequestSendingFailedException e) {
+            throw new InternalServerErrorException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
