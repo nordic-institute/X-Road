@@ -153,7 +153,7 @@ export default Vue.extend({
       confirmEditWarning: false,
       warningInfo: [],
       touched: false,
-      serviceDesc: {},
+      serviceDesc: {} as any,
       initialServiceCode: undefined,
       saveBusy: false,
     };
@@ -175,7 +175,7 @@ export default Vue.extend({
         id: this.serviceDesc.id,
         url: this.serviceDesc.url,
         type: this.serviceDesc.type,
-      };
+      } as any;
 
       if (serviceDescriptionUpdate.type === 'REST' || serviceDescriptionUpdate.type === 'OPENAPI3') {
         serviceDescriptionUpdate.ignore_warnings = false;
