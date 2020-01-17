@@ -532,32 +532,24 @@ public class ServiceDescriptionService {
      *
      * @param id
      * @param url
-     * @param originalRestServiceCode
+     * @param restServiceCode
      * @param newRestServiceCode
      * @return {@link ServiceDescriptionType}
      * @throws UrlAlreadyExistsException
      * @throws ServiceCodeAlreadyExistsException
      */
-    public ServiceDescriptionType updateRestServiceDescription(Long id, String url, String originalRestServiceCode,
+    public ServiceDescriptionType updateRestServiceDescription(Long id, String url, String restServiceCode,
                                                                String newRestServiceCode)
-            throws UrlAlreadyExistsException, ServiceCodeAlreadyExistsException, MissingParameterException {
+            throws UrlAlreadyExistsException, ServiceCodeAlreadyExistsException {
         verifyAuthority("EDIT_REST");
 
-        if (url == null) {
-            throw new MissingParameterException("Missing url");
-        }
-
-        if (originalRestServiceCode == null) {
-            throw new MissingParameterException("Missing original servicecode");
-        }
-
         if (newRestServiceCode == null) {
-            newRestServiceCode = originalRestServiceCode;
+            newRestServiceCode = restServiceCode;
         }
 
         ServiceDescriptionType serviceDescription = getServiceDescriptiontype(id);
         serviceDescription.setUrl(url);
-        updateServiceCodes(originalRestServiceCode, newRestServiceCode, serviceDescription);
+        updateServiceCodes(restServiceCode, newRestServiceCode, serviceDescription);
 
         checkDuplicateServiceCodes(serviceDescription);
         checkDuplicateUrl(serviceDescription);
@@ -571,7 +563,7 @@ public class ServiceDescriptionService {
      *
      * @param id
      * @param url
-     * @param originalRestServiceCode
+     * @param restServiceCode
      * @param newRestServiceCode
      * @param ignoreWarnings
      * @return
@@ -580,31 +572,18 @@ public class ServiceDescriptionService {
      * @throws UnhandledWarningsException
      * @throws OpenApiParser.ParsingException
      */
-    public ServiceDescriptionType updateOpenApi3ServiceDescription(Long id, String url, String originalRestServiceCode,
+    public ServiceDescriptionType updateOpenApi3ServiceDescription(Long id, String url, String restServiceCode,
             String newRestServiceCode, Boolean ignoreWarnings) throws UrlAlreadyExistsException,
-            ServiceCodeAlreadyExistsException, UnhandledWarningsException, OpenApiParser.ParsingException,
-            MissingParameterException {
+            ServiceCodeAlreadyExistsException, UnhandledWarningsException, OpenApiParser.ParsingException {
 
         verifyAuthority("EDIT_OPENAPI3");
         ServiceDescriptionType serviceDescription = getServiceDescriptiontype(id);
 
-        if (ignoreWarnings == null) {
-            throw new MissingParameterException("Missing ignoreWarnings");
-        }
-
-        if (url == null) {
-            throw new MissingParameterException("Missing url");
-        }
-
-        if (originalRestServiceCode == null) {
-            throw new MissingParameterException("Missing original servicecode");
-        }
-
         if (newRestServiceCode == null) {
-            newRestServiceCode = originalRestServiceCode;
+            newRestServiceCode = restServiceCode;
         }
 
-        updateServiceCodes(originalRestServiceCode, newRestServiceCode, serviceDescription);
+        updateServiceCodes(restServiceCode, newRestServiceCode, serviceDescription);
 
         // Parse openapi definition and handle updating endpoints and acls
         if (serviceDescription.getUrl() != url) {
@@ -680,25 +659,25 @@ public class ServiceDescriptionService {
     /**
      * Updates the ServiceCodes of Endpoints and Service linked to given ServiceDescription
      *
-     * @param originalRestServiceCode
-     * @param newRestServiceCode
+     * @param serviceCode
+     * @param newserviceCode
      * @param serviceDescriptiontype
      */
-    private void updateServiceCodes(String originalRestServiceCode, String newRestServiceCode,
+    private void updateServiceCodes(String serviceCode, String newserviceCode,
                                           ServiceDescriptionType serviceDescriptiontype) {
         // Update endpoint service codes
         ClientType client = serviceDescriptiontype.getClient();
         client.getEndpoint().stream()
-                .filter(e -> e.getServiceCode().equals(originalRestServiceCode))
-                .forEach(e -> e.setServiceCode(newRestServiceCode));
+                .filter(e -> e.getServiceCode().equals(serviceCode))
+                .forEach(e -> e.setServiceCode(newserviceCode));
 
         // Update service service code
         ServiceType service = serviceDescriptiontype.getService().stream()
-                .filter(s -> originalRestServiceCode.equals(s.getServiceCode()))
+                .filter(s -> serviceCode.equals(s.getServiceCode()))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Service with servicecode: " + originalRestServiceCode
+                .orElseThrow(() -> new RuntimeException("Service with servicecode: " + serviceCode
                         + " wasn't found from servicedescription with id: " + serviceDescriptiontype.getId()));
-        service.setServiceCode(newRestServiceCode);
+        service.setServiceCode(newserviceCode);
     }
 
     /**

@@ -552,23 +552,23 @@ public class ServiceDescriptionServiceIntegrationTest {
     @Test
     @WithMockUser(authorities = "EDIT_REST")
     public void updateRestServiceDescriptionSuccess() throws Exception {
-        final String originalServiceCode = "rest-servicecode";
+        final String serviceCode = "rest-servicecode";
         final String newServiceCode = "new-rest-servicecode";
 
         ClientType client = clientService.getClient(CLIENT_ID_SS1);
         ServiceDescriptionType serviceDescription = serviceDescriptionService.getServiceDescriptiontype(5L);
 
-        assertEquals(3, getEndpointCountByServiceCode(client, originalServiceCode));
-        assertTrue(serviceDescriptionContainsServiceWithServiceCode(serviceDescription, originalServiceCode));
+        assertEquals(3, getEndpointCountByServiceCode(client, serviceCode));
+        assertTrue(serviceDescriptionContainsServiceWithServiceCode(serviceDescription, serviceCode));
 
         serviceDescriptionService.updateRestServiceDescription(5L, "https://restservice.com/api/v1/nosuchservice",
-                originalServiceCode, newServiceCode);
+                serviceCode, newServiceCode);
 
         assertEquals(3, getEndpointCountByServiceCode(client, newServiceCode));
         assertTrue(serviceDescriptionContainsServiceWithServiceCode(serviceDescription, newServiceCode));
 
-        assertEquals(0, getEndpointCountByServiceCode(client, originalServiceCode));
-        assertFalse(serviceDescriptionContainsServiceWithServiceCode(serviceDescription, originalServiceCode));
+        assertEquals(0, getEndpointCountByServiceCode(client, serviceCode));
+        assertFalse(serviceDescriptionContainsServiceWithServiceCode(serviceDescription, serviceCode));
     }
 
     private boolean serviceDescriptionContainsServiceWithServiceCode(ServiceDescriptionType serviceDescription,

@@ -4469,10 +4469,8 @@ components:
       type: object
       description: request object for updating a service description url or service code
       required:
-        - id
+        - type
         - url
-        - originalRestServiceCode
-        - newRestServiceCode
       properties:
         url:
           type: string
@@ -4481,11 +4479,11 @@ components:
           example: https://domain.com/service
           minLength: 1
           maxLength: 255
-        original_rest_service_code:
+        rest_service_code:
           type: string
           format: text
-          description: original service code for REST service
-          example: oldExampleServiceCode
+          description: service code for REST service
+          example: exampleServiceCode
           minLength: 1
           maxLength: 255
         new_rest_service_code:

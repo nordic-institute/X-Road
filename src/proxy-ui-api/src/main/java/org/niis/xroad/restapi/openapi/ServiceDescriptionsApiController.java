@@ -37,7 +37,6 @@ import org.niis.xroad.restapi.openapi.model.ServiceDescriptionDisabledNotice;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.service.InvalidUrlException;
-import org.niis.xroad.restapi.service.MissingParameterException;
 import org.niis.xroad.restapi.service.ServiceDescriptionNotFoundException;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
@@ -158,14 +157,18 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         } else if (serviceDescriptionUpdate.getType() == ServiceType.OPENAPI3) {
 
             // Update OPENAPI3 servicedescription
+            if (serviceDescriptionUpdate.getRestServiceCode() == null) {
+                throw new BadRequestException("Missing parameter rest_service_code");
+            }
+
             ServiceDescriptionType updatedServiceDescription = null;
             try {
                 updatedServiceDescription =
                         serviceDescriptionService.updateOpenApi3ServiceDescription(serviceDescriptionId,
-                        serviceDescriptionUpdate.getUrl(), serviceDescriptionUpdate.getOriginalRestServiceCode(),
+                        serviceDescriptionUpdate.getUrl(), serviceDescriptionUpdate.getRestServiceCode(),
                         serviceDescriptionUpdate.getNewRestServiceCode(), serviceDescriptionUpdate.getIgnoreWarnings());
 
-            } catch (OpenApiParser.ParsingException | UnhandledWarningsException | MissingParameterException e) {
+            } catch (OpenApiParser.ParsingException | UnhandledWarningsException e) {
                 throw new BadRequestException(e);
             } catch (ServiceDescriptionService.UrlAlreadyExistsException
                     | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
@@ -176,16 +179,18 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         } else if (serviceDescriptionUpdate.getType() == ServiceType.REST) {
 
             // Update REST servicedescription
+            if (serviceDescriptionUpdate.getRestServiceCode() == null) {
+                throw new BadRequestException("Missing parameter rest_service_code");
+            }
+
             ServiceDescriptionType updatedServiceDescription = null;
             try {
                 updatedServiceDescription = serviceDescriptionService.updateRestServiceDescription(serviceDescriptionId,
-                        serviceDescriptionUpdate.getUrl(), serviceDescriptionUpdate.getOriginalRestServiceCode(),
+                        serviceDescriptionUpdate.getUrl(), serviceDescriptionUpdate.getRestServiceCode(),
                         serviceDescriptionUpdate.getNewRestServiceCode());
             } catch (ServiceDescriptionService.UrlAlreadyExistsException
                 | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
                 throw new ConflictException(e);
-            } catch (MissingParameterException e) {
-                throw new BadRequestException(e);
             }
 
             serviceDescription = serviceDescriptionConverter.convert(updatedServiceDescription);
