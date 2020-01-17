@@ -2,19 +2,19 @@
   <div class="xrd-tab-max-width">
     <div>
       <subViewTitle
-        v-if="serviceDesc && serviceDesc.type === 'WSDL'"
+        v-if="serviceDesc.type === 'WSDL'"
         :title="$t('services.wsdlDetails')"
         @close="close"
       />
       <subViewTitle
-        v-if="serviceDesc && (serviceDesc.type === 'REST' || serviceDesc.type === 'OPENAPI3')"
+        v-if="serviceDesc.type === 'REST' || serviceDesc.type === 'OPENAPI3'"
         :title="$t('services.restDetails')"
         @close="close"
       />
       <div class="delete-wrap">
         <large-button
           v-if="showDelete"
-          @click="showDeletePopup(serviceDesc && serviceDesc.type)"
+          @click="showDeletePopup(serviceDesc.type)"
           outlined
         >{{$t('action.delete')}}</large-button>
       </div>
@@ -22,7 +22,7 @@
 
     <div class="edit-row">
       <div>{{$t('services.serviceType')}}</div>
-      <div class="code-input">{{serviceDesc && serviceDesc.type === 'OPENAPI3'
+      <div class="code-input">{{serviceDesc.type === 'OPENAPI3'
         ? $t('services.OpenApi3Description') : $t('services.restApiBasePath')}}</div>
     </div>
 
@@ -37,7 +37,7 @@
           class="validation-provider"
         >
           <v-text-field
-            v-model="serviceDesc && serviceDesc.url"
+            v-model="serviceDesc.url"
             single-line
             class="url-input"
             name="url"
@@ -49,7 +49,7 @@
       </div>
 
       <div class="edit-row">
-        <template v-if="serviceDesc && (serviceDesc.type === 'REST' || serviceDesc.type === 'OPENAPI3')">
+        <template v-if="serviceDesc.type === 'REST' || serviceDesc.type === 'OPENAPI3'">
           <div>{{$t('services.serviceCode')}}</div>
 
           <ValidationProvider
@@ -59,7 +59,9 @@
             class="validation-provider"
           >
             <v-text-field
-              v-model="serviceDesc && serviceDesc.services[0].service_code"
+              v-model="serviceDesc.services
+              && serviceDesc.services[0]
+              && serviceDesc.services[0].service_code"
               single-line
               class="code-input"
               name="code_field"
@@ -151,7 +153,8 @@ export default Vue.extend({
       confirmEditWarning: false,
       warningInfo: [],
       touched: false,
-      serviceDesc: undefined,
+      serviceDesc: {},
+      initialServiceCode: undefined,
       saveBusy: false,
     };
   },
@@ -167,8 +170,26 @@ export default Vue.extend({
 
     save(): void {
       this.saveBusy = true;
+
+      const serviceDescriptionUpdate = {
+        id: this.serviceDesc.id,
+        url: this.serviceDesc.url,
+        type: this.serviceDesc.type,
+      };
+
+      if (serviceDescriptionUpdate.type === 'REST' || serviceDescriptionUpdate.type === 'OPENAPI3') {
+        serviceDescriptionUpdate.ignore_warnings = false;
+        serviceDescriptionUpdate.rest_service_code = this.initialServiceCode;
+        const currentServiceCode = this.serviceDesc.services && this.serviceDesc.services[0]
+          && this.serviceDesc.services[0].service_code;
+
+        serviceDescriptionUpdate.new_rest_service_code =
+                serviceDescriptionUpdate.rest_service_code !== currentServiceCode ? currentServiceCode :
+                serviceDescriptionUpdate.rest_service_code;
+      }
+
       api
-        .patch(`/service-descriptions/${this.id}`, this.serviceDesc)
+        .patch(`/service-descriptions/${this.id}`, serviceDescriptionUpdate)
         .then((res) => {
           this.$bus.$emit('show-success', 'localGroup.descSaved');
           this.saveBusy = false;
@@ -190,6 +211,8 @@ export default Vue.extend({
         .get(`/service-descriptions/${id}`)
         .then((res) => {
           this.serviceDesc = res.data;
+          this.initialServiceCode = this.serviceDesc.services && this.serviceDesc.services[0]
+                  && this.serviceDesc.services[0].service_code;
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
