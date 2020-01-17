@@ -571,25 +571,19 @@ public class TokenCertificateService {
      * @throws InvalidCertificateException
      * @throws KeyNotFoundException
      * @throws CertificateNotFoundException
-     * @throws ManagementRequestSendingFailedException
+     * @throws ManagementRequestSenderService.ManagementRequestSendingFailedException
      */
     private void unregisterAuthCertAndMarkForDeletion(String hash, boolean skipUnregister)
             throws CertificateNotFoundException, GlobalConfService.GlobalConfOutdatedException,
             InvalidCertificateException, SignCertificateNotSupportedException, KeyNotFoundException,
-            ActionNotPossibleException, ManagementRequestSendingFailedException {
+            ActionNotPossibleException, ManagementRequestSenderService.ManagementRequestSendingFailedException {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         verifyAuthCert(certificateInfo);
         verifyCertAction(PossibleActionEnum.UNREGISTER, certificateInfo, hash);
         SecurityServerId securityServerId = serverConfService.getSecurityServerId();
-        try {
-            if (!skipUnregister) {
-                managementRequestSenderService.sendAuthCertDeletionRequest(securityServerId,
-                        certificateInfo.getCertificateBytes());
-            }
-        } catch (GlobalConfService.GlobalConfOutdatedException | CodedException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new ManagementRequestSendingFailedException(e);
+        if (!skipUnregister) {
+            managementRequestSenderService.sendAuthCertDeletionRequest(securityServerId,
+                    certificateInfo.getCertificateBytes());
         }
         try {
             signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
@@ -609,11 +603,12 @@ public class TokenCertificateService {
      * @throws InvalidCertificateException
      * @throws KeyNotFoundException
      * @throws CertificateNotFoundException
-     * @throws ManagementRequestSendingFailedException
+     * @throws ManagementRequestSenderService.ManagementRequestSendingFailedException
      */
     public void unregisterAuthCert(String hash) throws SignCertificateNotSupportedException,
             ActionNotPossibleException, GlobalConfService.GlobalConfOutdatedException, InvalidCertificateException,
-            KeyNotFoundException, CertificateNotFoundException, ManagementRequestSendingFailedException {
+            KeyNotFoundException, CertificateNotFoundException,
+            ManagementRequestSenderService.ManagementRequestSendingFailedException {
         unregisterAuthCertAndMarkForDeletion(hash, false);
     }
 
@@ -629,7 +624,8 @@ public class TokenCertificateService {
      */
     public void markAuthCertForDeletion(String hash) throws SignCertificateNotSupportedException,
             ActionNotPossibleException, GlobalConfService.GlobalConfOutdatedException, InvalidCertificateException,
-            KeyNotFoundException, CertificateNotFoundException, ManagementRequestSendingFailedException {
+            KeyNotFoundException, CertificateNotFoundException,
+            ManagementRequestSenderService.ManagementRequestSendingFailedException {
         unregisterAuthCertAndMarkForDeletion(hash, true);
     }
 
@@ -946,21 +942,6 @@ public class TokenCertificateService {
 
         public SignCertificateNotSupportedException(String msg) {
             super(msg, new ErrorDeviation(SIGN_CERT_NOT_SUPPORTED));
-        }
-    }
-
-    /**
-     * Missing a valid auth cert
-     */
-    public static class ManagementRequestSendingFailedException extends ServiceException {
-        public static final String MANAGEMENT_REQUEST_SENDING_FAILED = "management_request_sending_failed";
-
-        public ManagementRequestSendingFailedException(Throwable t) {
-            super(t, createError(t));
-        }
-
-        private static ErrorDeviation createError(Throwable t) {
-            return new ErrorDeviation(MANAGEMENT_REQUEST_SENDING_FAILED, t.getMessage());
         }
     }
 }

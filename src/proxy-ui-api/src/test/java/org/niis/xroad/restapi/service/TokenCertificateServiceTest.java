@@ -58,6 +58,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -68,9 +69,11 @@ import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_AVAILABLE;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_READONLY;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -80,7 +83,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.service.TokenCertificateService.CERT_NOT_FOUND_FAULT_CODE;
-import static org.niis.xroad.restapi.service.TokenCertificateService.SSL_AUTH_FAULT_CODE;
 import static org.niis.xroad.restapi.util.CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH;
 import static org.niis.xroad.restapi.util.CertificateTestUtils.MOCK_CERTIFICATE_HASH;
 import static org.niis.xroad.restapi.util.CertificateTestUtils.getMockAuthCertificate;
@@ -112,6 +114,8 @@ public class TokenCertificateServiceTest {
     private static final String GOOD_SIGN_CSR_ID = "sign-csr-which-exists";
     private static final String CSR_NOT_FOUND_CSR_ID = "csr-404";
     private static final String SIGNER_EXCEPTION_CSR_ID = "signer-ex-csr";
+    private static final String IO_EXCEPTION_MSG = "io-exception-msg";
+    private static final String SSL_AUTH_ERROR_MESSAGE = "Security server has no valid authentication certificate";
 
     // for this signerProxy.getCertForHash throws not found
     private static final String NOT_FOUND_CERT_HASH = "not-found-cert";
@@ -579,12 +583,33 @@ public class TokenCertificateServiceTest {
         }
     }
 
-    @Test(expected = TokenCertificateService.NoValidAuthCertificateException.class)
+    @Test
     public void unregisterAuthCertNoValid() throws Exception {
         doAnswer(answer -> authCert).when(signerProxyFacade).getCertForHash(any());
         when(managementRequestSenderService.sendAuthCertDeletionRequest(any(), any()))
-                .thenThrow(new CodedException(SSL_AUTH_FAULT_CODE).withPrefix(SERVER_CLIENTPROXY_X));
-        tokenCertificateService.unregisterAuthCert(MOCK_AUTH_CERTIFICATE_HASH);
+                .thenThrow(new ManagementRequestSenderService.ManagementRequestSendingFailedException(
+                        new CodedException(X_SSL_AUTH_FAILED, SSL_AUTH_ERROR_MESSAGE)
+                                .withPrefix(SERVER_CLIENTPROXY_X)));
+        try {
+            tokenCertificateService.unregisterAuthCert(MOCK_AUTH_CERTIFICATE_HASH);
+            fail("Should have thrown ManagementRequestSendingFailedException");
+        } catch (ManagementRequestSenderService.ManagementRequestSendingFailedException e) {
+            assertTrue(e.getErrorDeviation().getMetadata().get(0).contains(SSL_AUTH_ERROR_MESSAGE));
+        }
+    }
+
+    @Test
+    public void unregisterAuthCertAssertExceptionMessage() throws Exception {
+        doAnswer(answer -> authCert).when(signerProxyFacade).getCertForHash(any());
+        when(managementRequestSenderService.sendAuthCertDeletionRequest(any(), any()))
+                .thenThrow(new ManagementRequestSenderService.ManagementRequestSendingFailedException(
+                        new IOException(IO_EXCEPTION_MSG)));
+        try {
+            tokenCertificateService.unregisterAuthCert(MOCK_AUTH_CERTIFICATE_HASH);
+            fail("Should have thrown ManagementRequestSendingFailedException");
+        } catch (ManagementRequestSenderService.ManagementRequestSendingFailedException e) {
+            assertTrue(e.getErrorDeviation().getMetadata().contains(IO_EXCEPTION_MSG));
+        }
     }
 
     @Test(expected = TokenCertificateService.SignCertificateNotSupportedException.class)

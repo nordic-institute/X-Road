@@ -39,6 +39,7 @@ import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.CsrNotFoundException;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
+import org.niis.xroad.restapi.service.ManagementRequestSenderService;
 import org.niis.xroad.restapi.service.PossibleActionEnum;
 import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.util.ResourceUtils;
@@ -211,9 +212,9 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
         } catch (GlobalConfService.GlobalConfOutdatedException | TokenCertificateService.InvalidCertificateException
                 | TokenCertificateService.SignCertificateNotSupportedException e) {
             throw new BadRequestException(e);
-        } catch (ActionNotPossibleException | KeyNotFoundException  e) {
+        } catch (ActionNotPossibleException | KeyNotFoundException e) {
             throw new ConflictException(e);
-        } catch (TokenCertificateService.ManagementRequestSendingFailedException e) {
+        } catch (ManagementRequestSenderService.ManagementRequestSendingFailedException e) {
             throw new InternalServerErrorException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -231,7 +232,7 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
             throw new BadRequestException(e);
         } catch (ActionNotPossibleException | KeyNotFoundException e) {
             throw new ConflictException(e);
-        } catch (TokenCertificateService.ManagementRequestSendingFailedException e) {
+        } catch (ManagementRequestSenderService.ManagementRequestSendingFailedException e) {
             throw new InternalServerErrorException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
