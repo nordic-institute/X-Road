@@ -7,17 +7,23 @@
         @close="close"
       />
       <subViewTitle
-        v-if="serviceDesc && serviceDesc.type === 'REST'"
+        v-if="serviceDesc && (serviceDesc.type === 'REST' || serviceDesc.type === 'OPENAPI3')"
         :title="$t('services.restDetails')"
         @close="close"
       />
       <div class="delete-wrap">
         <large-button
           v-if="showDelete"
-          @click="confirmDelete = true"
+          @click="showDeletePopup(serviceDesc && serviceDesc.type)"
           outlined
         >{{$t('action.delete')}}</large-button>
       </div>
+    </div>
+
+    <div class="edit-row">
+      <div>{{$t('services.serviceType')}}</div>
+      <div class="code-input">{{serviceDesc && serviceDesc.type === 'OPENAPI3'
+        ? $t('services.OpenApi3Description') : $t('services.restApiBasePath')}}</div>
     </div>
 
     <ValidationObserver ref="form" v-slot="{ validate, invalid }">
@@ -25,14 +31,13 @@
         <div>{{$t('services.editUrl')}}</div>
 
         <ValidationProvider
-          v-if="serviceDesc && serviceDesc.type === 'WSDL'"
           rules="required|wsdlUrl"
           name="url"
           v-slot="{ errors }"
           class="validation-provider"
         >
           <v-text-field
-            v-model="serviceDesc.url"
+            v-model="serviceDesc && serviceDesc.url"
             single-line
             class="url-input"
             name="url"
@@ -44,8 +49,8 @@
       </div>
 
       <div class="edit-row">
-        <template v-if="serviceDesc && serviceDesc.type === 'REST'">
-          <div>{{$t('services.editServiceCode')}}</div>
+        <template v-if="serviceDesc && (serviceDesc.type === 'REST' || serviceDesc.type === 'OPENAPI3')">
+          <div>{{$t('services.serviceCode')}}</div>
 
           <ValidationProvider
             rules="required"
@@ -54,7 +59,7 @@
             class="validation-provider"
           >
             <v-text-field
-              v-model="serviceDesc.code"
+              v-model="serviceDesc && serviceDesc.services[0].service_code"
               single-line
               class="code-input"
               name="code_field"
@@ -82,10 +87,19 @@
 
     <!-- Confirm dialog delete WSDL -->
     <confirmDialog
-      :dialog="confirmDelete"
+      :dialog="confirmWSDLDelete"
       title="services.deleteTitle"
       text="services.deleteWsdlText"
-      @cancel="confirmDelete = false"
+      @cancel="confirmWSDLDelete = false"
+      @accept="doDeleteServiceDesc()"
+    />
+
+    <!-- Confirm dialog delete REST -->
+    <confirmDialog
+      :dialog="confirmRESTDelete"
+      title="services.deleteTitle"
+      text="services.deleteRestText"
+      @cancel="confirmRESTDelete = false"
       @accept="doDeleteServiceDesc()"
     />
     <!-- Confirm dialog for warnings when editing WSDL -->
@@ -95,6 +109,7 @@
       @cancel="cancelEditWarning()"
       @accept="acceptEditWarning()"
     ></warningDialog>
+
   </div>
 </template>
 
@@ -131,7 +146,8 @@ export default Vue.extend({
   },
   data() {
     return {
-      confirmDelete: false,
+      confirmWSDLDelete: false,
+      confirmRESTDelete: false,
       confirmEditWarning: false,
       warningInfo: [],
       touched: false,
@@ -179,13 +195,21 @@ export default Vue.extend({
           this.$bus.$emit('show-error', error.message);
         });
     },
-    doDeleteServiceDesc(): void {
-      this.confirmDelete = false;
 
+    showDeletePopup(serviceType: string): void {
+      if (serviceType === 'WSDL') {
+        this.confirmWSDLDelete = true;
+      } else {
+        this.confirmRESTDelete = true;
+      }
+    },
+    doDeleteServiceDesc(): void {
       api
         .remove(`/service-descriptions/${this.id}`)
         .then(() => {
           this.$bus.$emit('show-success', 'services.deleted');
+          this.confirmWSDLDelete = false;
+          this.confirmRESTDelete = false;
           this.$router.go(-1);
         })
         .catch((error) => {
