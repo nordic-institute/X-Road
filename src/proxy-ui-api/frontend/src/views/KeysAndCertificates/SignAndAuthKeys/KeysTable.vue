@@ -77,7 +77,7 @@
               <SmallButton
                 class="table-button-fix test-unregister"
                 v-if="cert.possible_actions.includes('UNREGISTER')  && hasPermission"
-                @click="unregisterCert(cert)"
+                @click="showUnregisterCertDialog(cert)"
               >{{$t('action.unregister')}}</SmallButton>
             </td>
           </tr>
@@ -170,7 +170,7 @@
       title="keys.unregisterTitle"
       text="keys.unregisterText"
       @cancel="confirmUnregiseterCertificate = false"
-      @accept="doUnregisterCert()"
+      @accept="unregisterCert()"
     />
 
     <ConfirmDialog
@@ -276,11 +276,11 @@ export default Vue.extend({
           this.$bus.$emit('show-error', error.message);
         });
     },
-    unregisterCert(cert: TokenCertificate): void {
+    showUnregisterCertDialog(cert: TokenCertificate): void {
       this.confirmUnregiseterCertificate = true;
       this.selectedCert = cert;
     },
-    doUnregisterCert(): void {
+    unregisterCert(): void {
       if (!this.selectedCert) {
         return;
       }
