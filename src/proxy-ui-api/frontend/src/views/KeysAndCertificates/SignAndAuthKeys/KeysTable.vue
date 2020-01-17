@@ -72,7 +72,7 @@
               <SmallButton
                 class="table-button-fix test-register"
                 v-if="cert.possible_actions.includes('REGISTER') && hasPermission"
-                @click="showRegisterCert(cert)"
+                @click="showRegisterCertDialog(cert)"
               >{{$t('action.register')}}</SmallButton>
               <SmallButton
                 class="table-button-fix test-unregister"
@@ -251,7 +251,7 @@ export default Vue.extend({
     importCert(hash: string): void {
       this.$emit('importCertByHash', hash);
     },
-    showRegisterCert(cert: TokenCertificate): void {
+    showRegisterCertDialog(cert: TokenCertificate): void {
       this.registerDialog = true;
       this.selectedCert = cert;
     },
