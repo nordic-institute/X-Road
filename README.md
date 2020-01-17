@@ -28,7 +28,7 @@ Minimum recommended docker engine configuration to run sidecar security server c
 Run the following script:
 
   ```bash
-  ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin UI username> <admin UI password>
+  ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password>
   ```
 
 The script setup_security_server_sidecar.sh will:
@@ -36,3 +36,4 @@ The script setup_security_server_sidecar.sh will:
 - Create a bridge-type network called xroad-network to provide container-to-container communication in a local development environment.
 - Create a new security server sidecar image and start a new security server sidecar container with the given arguments.
 - Configure xroad-autologin software token PIN code.
+- Configure admin username and password.
