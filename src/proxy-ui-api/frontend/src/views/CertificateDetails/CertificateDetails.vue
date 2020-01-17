@@ -17,7 +17,7 @@
           v-if="showDelete"
           class="button-spacing"
           outlined
-          @click="deleteCertificate()"
+          @click="showConfirmDelete()"
         >{{$t('action.delete')}}</large-button>
       </div>
       <template v-if="certificate && certificate.certificate_details">
@@ -34,7 +34,7 @@
       title="cert.deleteCertTitle"
       text="cert.deleteCertConfirm"
       @cancel="confirm = false"
-      @accept="doDeleteCertificate()"
+      @accept="deleteCertificate()"
     />
   </div>
 </template>
@@ -158,10 +158,10 @@ export default Vue.extend({
           this.$bus.$emit('show-error', error.message);
         });
     },
-    deleteCertificate(): void {
+    showConfirmDelete(): void {
       this.confirm = true;
     },
-    doDeleteCertificate(): void {
+    deleteCertificate(): void {
       this.confirm = false;
 
       api
