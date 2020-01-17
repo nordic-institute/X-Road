@@ -37,6 +37,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.List;
+
 /**
  * security servers listing controller
  */
@@ -70,5 +72,12 @@ public class SecurityServersApiController implements SecurityServersApi {
         }
         SecurityServer securityServer = securityServerConverter.convert(securityServerId);
         return new ResponseEntity<>(securityServer, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_SECURITY_SERVERS')")
+    public ResponseEntity<List<SecurityServer>> getSecurityServers(Boolean currentServer) {
+        boolean getOnlyCurrentServer = Boolean.TRUE.equals(currentServer);
+        return null;
     }
 }

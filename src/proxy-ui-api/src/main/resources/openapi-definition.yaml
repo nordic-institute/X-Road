@@ -1989,6 +1989,44 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /security-servers:
+    get: # ok
+      tags:
+        - security server
+      summary: get all security servers
+      operationId: getSecurityServers
+      description: SS administrator views the details of all security servers
+      parameters:
+        - in: query
+          name: current_server
+          description: whether to only get the current server's identifier
+          required: false
+          schema:
+            default: false
+            type: boolean
+      responses:
+        '200':
+          description: list of SecurityServer objects
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of SecurityServer objects
+                items:
+                  $ref: '#/components/schemas/SecurityServer'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /security-servers/{id}:
     get: # ok
       tags:
