@@ -627,6 +627,10 @@ public class TokenCertificateServiceTest {
     @Test
     public void markAuthCertForDeletion() throws Exception {
         doAnswer(answer -> authCert).when(signerProxyFacade).getCertForHash(any());
-        tokenCertificateService.markAuthCertForDeletion(MOCK_AUTH_CERTIFICATE_HASH);
+        try {
+            tokenCertificateService.markAuthCertForDeletion(MOCK_AUTH_CERTIFICATE_HASH);
+        } catch (Exception e) {
+            fail("Should not fail");
+        }
     }
 }
