@@ -550,7 +550,7 @@ public class TokenCertificateService {
         verifyCertAction(PossibleActionEnum.REGISTER, certificateInfo, hash);
         SecurityServerId securityServerId = serverConfService.getSecurityServerId();
         try {
-            managementRequestSenderService.sendAuthCertRegisterRequest(securityServerId, securityServerAddress,
+            managementRequestSenderService.sendAuthCertRegisterRequest(securityServerAddress,
                     certificateInfo.getCertificateBytes());
             signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_REGINPROG);
         } catch (GlobalConfService.GlobalConfOutdatedException | CodedException e) {
@@ -580,10 +580,8 @@ public class TokenCertificateService {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         verifyAuthCert(certificateInfo);
         verifyCertAction(PossibleActionEnum.UNREGISTER, certificateInfo, hash);
-        SecurityServerId securityServerId = serverConfService.getSecurityServerId();
         if (!skipUnregister) {
-            managementRequestSenderService.sendAuthCertDeletionRequest(securityServerId,
-                    certificateInfo.getCertificateBytes());
+            managementRequestSenderService.sendAuthCertDeletionRequest(certificateInfo.getCertificateBytes());
         }
         try {
             signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);

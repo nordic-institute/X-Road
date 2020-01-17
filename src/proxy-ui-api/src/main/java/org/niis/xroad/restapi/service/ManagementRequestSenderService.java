@@ -27,7 +27,6 @@ package org.niis.xroad.restapi.service;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.request.ManagementRequestSender;
 
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +43,7 @@ import org.springframework.stereotype.Service;
 @Service
 @PreAuthorize("isAuthenticated()")
 public class ManagementRequestSenderService {
+
     private final GlobalConfFacade globalConfFacade;
     private final GlobalConfService globalConfService;
     private final ServerConfService serverConfService;
@@ -60,17 +60,18 @@ public class ManagementRequestSenderService {
      * Sends the authentication certificate registration request directly
      * to the central server. The request is sent as a signed mime multipart
      * message.
-     * @param securityServer the security server id whose certificate is to be
-     * registered
+     *
+     * Request is sent for this securityserver (ManagementRequestSender
+     * call's SecurityServerId = this security server's id)
      * @param address the IP address of the security server
      * @param authCert the authentication certificate bytes
      * @return request ID in the central server database (e.g. for audit logs if wanted)
      */
-    public Integer sendAuthCertRegisterRequest(SecurityServerId securityServer, String address, byte[] authCert)
+    public Integer sendAuthCertRegisterRequest(String address, byte[] authCert)
             throws GlobalConfService.GlobalConfOutdatedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
-            return sender.sendAuthCertRegRequest(securityServer, address, authCert);
+            return sender.sendAuthCertRegRequest(serverConfService.getSecurityServerId(), address, authCert);
         } catch (Exception e) {
             if (e instanceof CodedException) {
                 throw (CodedException) e;
@@ -82,16 +83,17 @@ public class ManagementRequestSenderService {
     /**
      * Sends the authentication certificate deletion request as a normal
      * X-Road message.
-     * @param securityServer the security server id whose certificate is to be
-     * deleted
+     *
+     * Request is sent for this securityserver (ManagementRequestSender
+     * call's SecurityServerId = this security server's id)
      * @param authCert the authentication certificate bytes
      * @return request ID in the central server database (e.g. for audit logs if wanted)
      */
-    public Integer sendAuthCertDeletionRequest(SecurityServerId securityServer, byte[] authCert) throws
+    public Integer sendAuthCertDeletionRequest(byte[] authCert) throws
             GlobalConfService.GlobalConfOutdatedException, ManagementRequestSendingFailedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
-            return sender.sendAuthCertDeletionRequest(securityServer, authCert);
+            return sender.sendAuthCertDeletionRequest(serverConfService.getSecurityServerId(), authCert);
         } catch (Exception e) {
             throw new ManagementRequestSendingFailedException(e);
         }

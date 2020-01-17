@@ -560,7 +560,7 @@ public class TokenCertificateServiceTest {
     @Test(expected = CodedException.class)
     public void registerAuthCertificateFail() throws Exception {
         doAnswer(answer -> authCert).when(signerProxyFacade).getCertForHash(any());
-        when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any()))
+        when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any()))
                 .thenThrow(new CodedException("FAILED"));
         tokenCertificateService.registerAuthCert(MOCK_AUTH_CERTIFICATE_HASH, BAD_ADDRESS);
     }
@@ -586,7 +586,7 @@ public class TokenCertificateServiceTest {
     @Test
     public void unregisterAuthCertNoValid() throws Exception {
         doAnswer(answer -> authCert).when(signerProxyFacade).getCertForHash(any());
-        when(managementRequestSenderService.sendAuthCertDeletionRequest(any(), any()))
+        when(managementRequestSenderService.sendAuthCertDeletionRequest(any()))
                 .thenThrow(new ManagementRequestSenderService.ManagementRequestSendingFailedException(
                         new CodedException(X_SSL_AUTH_FAILED, SSL_AUTH_ERROR_MESSAGE)
                                 .withPrefix(SERVER_CLIENTPROXY_X)));
@@ -601,7 +601,7 @@ public class TokenCertificateServiceTest {
     @Test
     public void unregisterAuthCertAssertExceptionMessage() throws Exception {
         doAnswer(answer -> authCert).when(signerProxyFacade).getCertForHash(any());
-        when(managementRequestSenderService.sendAuthCertDeletionRequest(any(), any()))
+        when(managementRequestSenderService.sendAuthCertDeletionRequest(any()))
                 .thenThrow(new ManagementRequestSenderService.ManagementRequestSendingFailedException(
                         new IOException(IO_EXCEPTION_MSG)));
         try {
