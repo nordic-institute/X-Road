@@ -310,6 +310,7 @@
     "serviceCode": "Service Code",
     "url": "URL",
     "tokenPin": "Token PIN",
+    "dns": "DNS",
     "keys": {
       "friendlyName": "Friendly name"
     }
