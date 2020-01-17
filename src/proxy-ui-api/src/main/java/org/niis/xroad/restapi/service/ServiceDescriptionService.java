@@ -540,8 +540,20 @@ public class ServiceDescriptionService {
      */
     public ServiceDescriptionType updateRestServiceDescription(Long id, String url, String originalRestServiceCode,
                                                                String newRestServiceCode)
-            throws UrlAlreadyExistsException, ServiceCodeAlreadyExistsException {
+            throws UrlAlreadyExistsException, ServiceCodeAlreadyExistsException, MissingParameterException {
         verifyAuthority("EDIT_REST");
+
+        if (url == null) {
+            throw new MissingParameterException("Missing url");
+        }
+
+        if (originalRestServiceCode == null) {
+            throw new MissingParameterException("Missing original servicecode");
+        }
+
+        if (newRestServiceCode == null) {
+            newRestServiceCode = originalRestServiceCode;
+        }
 
         ServiceDescriptionType serviceDescription = getServiceDescriptiontype(id);
         serviceDescription.setUrl(url);
@@ -569,12 +581,20 @@ public class ServiceDescriptionService {
      * @throws OpenApiParser.ParsingException
      */
     public ServiceDescriptionType updateOpenApi3ServiceDescription(Long id, String url, String originalRestServiceCode,
-            String newRestServiceCode, boolean ignoreWarnings) throws UrlAlreadyExistsException,
+            String newRestServiceCode, Boolean ignoreWarnings) throws UrlAlreadyExistsException,
             ServiceCodeAlreadyExistsException, UnhandledWarningsException, OpenApiParser.ParsingException,
             MissingParameterException {
 
         verifyAuthority("EDIT_OPENAPI3");
         ServiceDescriptionType serviceDescription = getServiceDescriptiontype(id);
+
+        if (ignoreWarnings == null) {
+            throw new MissingParameterException("Missing ignoreWarnings");
+        }
+
+        if (url == null) {
+            throw new MissingParameterException("Missing url");
+        }
 
         if (originalRestServiceCode == null) {
             throw new MissingParameterException("Missing original servicecode");

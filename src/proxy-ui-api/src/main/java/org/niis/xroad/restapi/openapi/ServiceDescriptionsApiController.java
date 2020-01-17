@@ -178,14 +178,16 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
             // Update REST servicedescription
             ServiceDescriptionType updatedServiceDescription = null;
             try {
-
                 updatedServiceDescription = serviceDescriptionService.updateRestServiceDescription(serviceDescriptionId,
                         serviceDescriptionUpdate.getUrl(), serviceDescriptionUpdate.getOriginalRestServiceCode(),
                         serviceDescriptionUpdate.getNewRestServiceCode());
             } catch (ServiceDescriptionService.UrlAlreadyExistsException
                 | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
                 throw new ConflictException(e);
+            } catch (MissingParameterException e) {
+                throw new BadRequestException(e);
             }
+
             serviceDescription = serviceDescriptionConverter.convert(updatedServiceDescription);
 
 
