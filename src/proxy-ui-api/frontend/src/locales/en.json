@@ -239,6 +239,8 @@
     "registrationRequest": "Registration request",
     "certRegistrationInfo": "Security server DNS name or IP address",
     "importCertSuccess": "Uploading certificate succeeded",
+    "keySaved": "Key saved",
+    "keyDeleted": "Key deleted",
     "ocspStatus": {
       "disabled": "Disabled",
       "expired": "Expired",
