@@ -91,7 +91,6 @@ export default Vue.extend({
   },
   data() {
     return {
-      serviceType: '',
       url: '',
       serviceCode: '',
     };
