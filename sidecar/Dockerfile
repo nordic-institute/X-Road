@@ -5,13 +5,14 @@ ARG XROAD_ADMIN_PASSWORD
 
 RUN apt-get -qq update \
 && apt-get -qq upgrade \
-&& apt-get -qq install sudo ca-certificates gnupg supervisor net-tools iproute2 locales setpriv openjdk-8-jre-headless rlwrap ca-certificates-java crudini adduser expect nginx-light curl rsyslog authbind wget devscripts \
+&& apt-get -qq install sudo ca-certificates gnupg supervisor net-tools iproute2 locales setpriv openjdk-8-jre-headless rlwrap ca-certificates-java crudini adduser expect nginx-light curl rsyslog authbind wget \
 && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
 && locale-gen en_US.UTF-8 \
 && adduser --quiet --system --uid 998 --home /var/lib/postgresql --no-create-home --shell /bin/bash --group postgres \
 && adduser --quiet --system --uid 999 --home /var/lib/xroad --no-create-home --shell /bin/bash --group xroad \
 && adduser xroad sudo \
-&& useradd -m ${XROAD_ADMIN_USER} -s /usr/sbin/nologin -p $(python3 -c "import crypt; print(crypt.crypt('${XROAD_ADMIN_PASSWORD}', crypt.mksalt(crypt.METHOD_SHA512)))") \
+&& useradd -m ${XROAD_ADMIN_USER} -s /usr/sbin/nologin \
+&& echo "${XROAD_ADMIN_USER}:${XROAD_ADMIN_PASSWORD}" | chpasswd \
 && echo "xroad-proxy xroad-common/username string ${XROAD_ADMIN_USER}" | debconf-set-selections \
 && apt-get -qq install postgresql postgresql-contrib \
 && apt-get -qq clean
