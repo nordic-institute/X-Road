@@ -151,7 +151,7 @@
               <SmallButton
                 class="table-button-fix"
                 v-if="hasPermission && req.possible_actions.includes('DELETE')"
-                @click="deleteCsr(req, key)"
+                @click="showDeleteCsrDialog(req, key)"
               >{{$t('keys.deleteCsr')}}</SmallButton>
             </td>
           </tr>
@@ -178,7 +178,7 @@
       title="keys.deleteCsrTitle"
       text="keys.deleteCsrText"
       @cancel="confirmDeleteCsr = false"
-      @accept="doDeleteCsr()"
+      @accept="deleteCsr()"
     />
   </div>
 </template>
@@ -299,12 +299,12 @@ export default Vue.extend({
           this.confirmUnregiseterCertificate = false;
         });
     },
-    deleteCsr(req: TokenCertificateSigningRequest, key: Key): void {
+    showDeleteCsrDialog(req: TokenCertificateSigningRequest, key: Key): void {
       this.confirmDeleteCsr = true;
       this.selectedCsr = req;
       this.selectedKey = key;
     },
-    doDeleteCsr(): void {
+    deleteCsr(): void {
       this.confirmDeleteCsr = false;
 
       if (!this.selectedKey || !this.selectedCsr) {

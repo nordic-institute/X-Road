@@ -243,6 +243,8 @@
     "certificateRegistered": "Certificate registered",
     "unregisterTitle": "Unregister certitficate",
     "unregisterText": "Do you want to unregister this certificate?",
+    "keySaved": "Key saved",
+    "keyDeleted": "Key deleted",
     "ocspStatus": {
       "disabled": "Disabled",
       "expired": "Expired",

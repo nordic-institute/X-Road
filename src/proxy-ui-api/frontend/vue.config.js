@@ -1,6 +1,6 @@
 module.exports = {
   devServer: {
-    proxy: 'https://docker-rest-ui-ss.local:4000', // this needs to be parametrized (address where backend runs)
+    proxy: process.env.PROXY_ADDRESS || 'https://localhost:4100',
     https: true
   },
 

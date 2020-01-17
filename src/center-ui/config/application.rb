@@ -87,5 +87,6 @@ module CenterUi
         "DatabaseConnectionChecker")
 
     config.middleware.use "DatabaseConnectionChecker"
+
   end
 end
