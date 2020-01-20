@@ -28,8 +28,10 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.SecurityServerConverter;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.SecurityServer;
 import org.niis.xroad.restapi.service.GlobalConfService;
+import org.niis.xroad.restapi.service.ServerConfService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +39,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -49,18 +52,24 @@ import java.util.List;
 public class SecurityServersApiController implements SecurityServersApi {
 
     private final GlobalConfService globalConfService;
+    private final GlobalConfFacade globalConfFacade;
     private final SecurityServerConverter securityServerConverter;
+    private final ServerConfService serverConfService;
 
     /**
      * Constructor
      * @param globalConfService
+     * @param globalConfFacade
      * @param securityServerConverter
+     * @param serverConfService
      */
     @Autowired
-    public SecurityServersApiController(GlobalConfService globalConfService,
-            SecurityServerConverter securityServerConverter) {
+    public SecurityServersApiController(GlobalConfService globalConfService, GlobalConfFacade globalConfFacade,
+            SecurityServerConverter securityServerConverter, ServerConfService serverConfService) {
         this.globalConfService = globalConfService;
+        this.globalConfFacade = globalConfFacade;
         this.securityServerConverter = securityServerConverter;
+        this.serverConfService = serverConfService;
     }
 
     @Override
@@ -78,6 +87,15 @@ public class SecurityServersApiController implements SecurityServersApi {
     @PreAuthorize("hasAuthority('VIEW_SECURITY_SERVERS')")
     public ResponseEntity<List<SecurityServer>> getSecurityServers(Boolean currentServer) {
         boolean getOnlyCurrentServer = Boolean.TRUE.equals(currentServer);
-        return null;
+        List<SecurityServer> securityServers = null;
+        if (getOnlyCurrentServer) {
+            SecurityServerId currentSecurityServerId = serverConfService.getSecurityServerId();
+            SecurityServer currentSecurityServer = securityServerConverter.convert(currentSecurityServerId);
+            securityServers = Collections.singletonList(currentSecurityServer);
+        } else {
+            List<SecurityServerId> securityServerIds = globalConfFacade.getSecurityServers();
+            securityServers = securityServerConverter.convert(securityServerIds);
+        }
+        return new ResponseEntity<>(securityServers, HttpStatus.OK);
     }
 }

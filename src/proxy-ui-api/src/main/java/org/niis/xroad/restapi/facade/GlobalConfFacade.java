@@ -154,4 +154,19 @@ public class GlobalConfFacade {
     public ClientId getManagementRequestService() {
         return GlobalConf.getManagementRequestService();
     }
+
+    /**
+     * {@link GlobalConf#getSecurityServers(String...)}
+     */
+    public List<SecurityServerId> getSecurityServers(String... instanceIdentifiers) {
+        return GlobalConf.getSecurityServers(instanceIdentifiers);
+    }
+
+    /**
+     * {@link GlobalConf#getSecurityServerAddress(SecurityServerId)}
+     */
+    public String getSecurityServerAddress(SecurityServerId securityServerId) {
+        return GlobalConf.getSecurityServerAddress(securityServerId);
+    }
+
 }
