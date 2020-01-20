@@ -88,6 +88,7 @@ public class ServiceDescriptionService {
     private final WsdlValidator wsdlValidator;
     private final WsdlUrlValidator wsdlUrlValidator;
     private final OpenApiParser openApiParser;
+    private final EndpointService endpointService;
 
     /**
      * ServiceDescriptionService constructor
@@ -102,7 +103,7 @@ public class ServiceDescriptionService {
                                      ClientService clientService, ClientRepository clientRepository,
                                      ServiceChangeChecker serviceChangeChecker,
                                      WsdlValidator wsdlValidator, WsdlUrlValidator wsdlUrlValidator,
-                                     OpenApiParser openApiParser) {
+                                     OpenApiParser openApiParser, EndpointService endpointService) {
         this.serviceDescriptionRepository = serviceDescriptionRepository;
         this.clientService = clientService;
         this.clientRepository = clientRepository;
@@ -110,6 +111,7 @@ public class ServiceDescriptionService {
         this.wsdlValidator = wsdlValidator;
         this.wsdlUrlValidator = wsdlUrlValidator;
         this.openApiParser = openApiParser;
+        this.endpointService = endpointService;
     }
 
     /**
@@ -504,7 +506,8 @@ public class ServiceDescriptionService {
      * @return ServiceDescriptionType
      */
     public ServiceDescriptionType getServiceDescriptiontype(Long id) {
-        return serviceDescriptionRepository.getServiceDescription(id);
+        ServiceDescriptionType serviceDescription = serviceDescriptionRepository.getServiceDescription(id);
+        return this.endpointService.populateServiceDescriptionServiceEndpoints(serviceDescription);
     }
 
     /**

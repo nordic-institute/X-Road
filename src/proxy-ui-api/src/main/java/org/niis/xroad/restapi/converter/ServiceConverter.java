@@ -54,10 +54,12 @@ public class ServiceConverter {
     public static final int FULL_SERVICE_CODE_INDEX = 4;
 
     private ClientConverter clientConverter;
+    private EndpointConverter endpointConverter;
 
     @Autowired
-    public ServiceConverter(ClientConverter clientConverter) {
+    public ServiceConverter(ClientConverter clientConverter, EndpointConverter endpointConverter) {
         this.clientConverter = clientConverter;
+        this.endpointConverter = endpointConverter;
     }
 
     /**
@@ -85,6 +87,7 @@ public class ServiceConverter {
         service.setSslAuth(serviceType.getSslAuthentication());
         service.setTimeout(serviceType.getTimeout());
         service.setUrl(serviceType.getUrl());
+        service.setEndpoints(this.endpointConverter.convert(serviceType.getEndpoint()));
 
         return service;
     }

@@ -63,6 +63,7 @@ import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.LocalGroupService;
 import org.niis.xroad.restapi.service.MissingParameterException;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
+import org.niis.xroad.restapi.service.EndpointService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.ResourceUtils;
@@ -105,6 +106,7 @@ public class ClientsApiController implements ClientsApi {
     private final AccessRightService accessRightService;
     private final SubjectConverter subjectConverter;
     private final TokenCertificateConverter tokenCertificateConverter;
+    private final EndpointService endpointService;
 
     /**
      * ClientsApiController constructor
@@ -126,7 +128,8 @@ public class ClientsApiController implements ClientsApi {
             LocalGroupService localGroupService, CertificateDetailsConverter certificateDetailsConverter,
             ServiceDescriptionConverter serviceDescriptionConverter,
             ServiceDescriptionService serviceDescriptionService, AccessRightService accessRightService,
-            SubjectConverter subjectConverter, TokenCertificateConverter tokenCertificateConverter) {
+            SubjectConverter subjectConverter, TokenCertificateConverter tokenCertificateConverter,
+            EndpointService endpointService) {
         this.clientService = clientService;
         this.tokenService = tokenService;
         this.clientConverter = clientConverter;
@@ -138,6 +141,7 @@ public class ClientsApiController implements ClientsApi {
         this.accessRightService = accessRightService;
         this.subjectConverter = subjectConverter;
         this.tokenCertificateConverter = tokenCertificateConverter;
+        this.endpointService = endpointService;
     }
 
     /**
@@ -311,8 +315,9 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
     public ResponseEntity<List<ServiceDescription>> getClientServiceDescriptions(String encodedId) {
         ClientType clientType = getClientType(encodedId);
-        List<ServiceDescription> serviceDescriptions = serviceDescriptionConverter.convert(
-                clientType.getServiceDescription());
+        this.endpointService.populateClientServiceDescriptionServiceEndpoints(clientType);
+        List<ServiceDescription> serviceDescriptions =
+                serviceDescriptionConverter.convert(clientType.getServiceDescription());
         return new ResponseEntity<>(serviceDescriptions, HttpStatus.OK);
     }
 

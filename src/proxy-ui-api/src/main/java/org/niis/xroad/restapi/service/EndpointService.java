@@ -22,42 +22,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.serverconf.model;
+package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 
-import lombok.Getter;
-import lombok.Setter;
+import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Service.
- */
-@Getter
-@Setter
-public class ServiceType {
+@Component
+public class EndpointService {
 
-    private final List<SecurityCategoryId> requiredSecurityCategory =
-            new ArrayList<>();
 
-    private Long id;
+    public ClientType populateClientServiceDescriptionServiceEndpoints(ClientType client) {
+        client.getServiceDescription().forEach(sd -> populateServiceDescriptionServiceEndpoints(sd));
+        return client;
+    }
 
-    private ServiceDescriptionType serviceDescription;
+    public ServiceDescriptionType populateServiceDescriptionServiceEndpoints(
+            ServiceDescriptionType serviceDescription) {
+        ClientType client = serviceDescription.getClient();
+        serviceDescription.getService().forEach(s -> populateServiceEndpoints(s, client));
+        return serviceDescription;
+    }
 
-    private String serviceCode;
-
-    private String serviceVersion;
-
-    private String title;
-
-    private String url;
-
-    private Boolean sslAuthentication;
-
-    private int timeout;
-
-    private final List<EndpointType> endpoint = new ArrayList<>();
+    public ServiceType populateServiceEndpoints(ServiceType service, ClientType client) {
+        List<EndpointType> endpoints = client.getEndpoint();
+        endpoints.forEach(endpointType -> {
+            if (endpointType.getServiceCode().equals(service.getServiceCode())) {
+                service.getEndpoint().add(endpointType);
+            }
+        });
+        return service;
+    }
 
 }

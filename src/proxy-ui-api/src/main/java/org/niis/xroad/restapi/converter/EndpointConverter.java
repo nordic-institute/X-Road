@@ -22,42 +22,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.serverconf.model;
+package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 
-import lombok.Getter;
-import lombok.Setter;
+import org.niis.xroad.restapi.openapi.model.Endpoint;
+import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-/**
- * Service.
- */
-@Getter
-@Setter
-public class ServiceType {
+@Component
+public class EndpointConverter {
 
-    private final List<SecurityCategoryId> requiredSecurityCategory =
-            new ArrayList<>();
+    public Endpoint convert(EndpointType endpointType) {
+        Endpoint endpoint = new Endpoint();
 
-    private Long id;
+        endpoint.setId(String.valueOf(endpointType.getId()));
+        endpoint.setServiceCode(endpointType.getServiceCode());
+        endpoint.setMethod(endpointType.getMethod());
+        endpoint.setPath(endpointType.getPath());
+        endpoint.setGenerated(endpointType.isGenerated());
+        return endpoint;
+    }
 
-    private ServiceDescriptionType serviceDescription;
-
-    private String serviceCode;
-
-    private String serviceVersion;
-
-    private String title;
-
-    private String url;
-
-    private Boolean sslAuthentication;
-
-    private int timeout;
-
-    private final List<EndpointType> endpoint = new ArrayList<>();
+    public List<Endpoint> convert(List<EndpointType> endpointTypes) {
+        return endpointTypes.stream().map(e -> convert(e)).collect(Collectors.toList());
+    }
 
 }
