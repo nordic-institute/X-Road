@@ -232,8 +232,6 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
             throw new BadRequestException(e);
         } catch (ActionNotPossibleException | KeyNotFoundException e) {
             throw new ConflictException(e);
-        } catch (ManagementRequestSenderService.ManagementRequestSendingFailedException e) {
-            throw new InternalServerErrorException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

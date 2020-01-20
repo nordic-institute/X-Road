@@ -622,9 +622,13 @@ public class TokenCertificateService {
      */
     public void markAuthCertForDeletion(String hash) throws SignCertificateNotSupportedException,
             ActionNotPossibleException, GlobalConfService.GlobalConfOutdatedException, InvalidCertificateException,
-            KeyNotFoundException, CertificateNotFoundException,
-            ManagementRequestSenderService.ManagementRequestSendingFailedException {
-        unregisterAuthCertAndMarkForDeletion(hash, true);
+            KeyNotFoundException, CertificateNotFoundException {
+        try {
+            unregisterAuthCertAndMarkForDeletion(hash, true);
+        } catch (ManagementRequestSenderService.ManagementRequestSendingFailedException e) {
+            // should never happen
+            throw new RuntimeException("Management request failed", e);
+        }
     }
 
     private void verifyAuthCert(CertificateInfo certificateInfo)
