@@ -121,15 +121,14 @@
  * Both use the same api.
  */
 import Vue from 'vue';
-import _ from 'lodash';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import WarningDialog from '@/components/service/WarningDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
+import {ServiceDescription} from '@/types';
 
 export default Vue.extend({
   components: {
@@ -153,8 +152,8 @@ export default Vue.extend({
       confirmEditWarning: false,
       warningInfo: [],
       touched: false,
-      serviceDesc: {} as any,
-      initialServiceCode: undefined,
+      serviceDesc: {} as ServiceDescription,
+      initialServiceCode: '',
       saveBusy: false,
     };
   },

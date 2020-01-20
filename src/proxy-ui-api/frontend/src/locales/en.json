@@ -308,6 +308,7 @@
     "serviceUrl": "URL",
     "serviceTimeout": "Timeout",
     "serviceCode": "Service Code",
+    "serviceType": "Service Type",
     "url": "URL",
     "tokenPin": "Token PIN",
     "keys": {
