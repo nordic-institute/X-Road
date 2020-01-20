@@ -25,9 +25,10 @@
 package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.commonui.SignerProxy.RegeneratedCertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
+import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.ClientConverter;
@@ -35,6 +36,7 @@ import org.niis.xroad.restapi.converter.CsrFormatMapping;
 import org.niis.xroad.restapi.converter.KeyConverter;
 import org.niis.xroad.restapi.converter.KeyUsageTypeMapping;
 import org.niis.xroad.restapi.converter.PossibleActionConverter;
+import org.niis.xroad.restapi.openapi.model.CsrFormat;
 import org.niis.xroad.restapi.openapi.model.CsrGenerate;
 import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.KeyName;
@@ -150,7 +152,7 @@ public class KeysApiController implements KeysApi {
 
         // squid:S3655 throwing NoSuchElementException if there is no value present is
         // fine since csr format is mandatory parameter
-        GenerateCertRequest.RequestFormat csrFormat = CsrFormatMapping.map(csrGenerate.getCsrFormat()).get();
+        CertificateRequestFormat csrFormat = CsrFormatMapping.map(csrGenerate.getCsrFormat()).get();
 
         byte[] csr = null;
         try {
@@ -216,6 +218,33 @@ public class KeysApiController implements KeysApi {
             throw new BadRequestException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    // TO DO: proper auth
+    @PreAuthorize("hasAuthority('VIEW_KEYS')")
+    public ResponseEntity<Resource> downloadCsr(String keyId, String csrId, CsrFormat csrFormat) {
+
+        // squid:S3655 throwing NoSuchElementException if there is no value present is
+        // fine since csr format is mandatory parameter
+        CertificateRequestFormat certificateRequestFormat = CsrFormatMapping.map(csrFormat).get();
+        RegeneratedCertRequestInfo csrInfo;
+        try {
+            csrInfo = tokenCertificateService.regenerateCertRequest(keyId, csrId, certificateRequestFormat);
+            // TO DO: handle errors
+        } catch (KeyNotFoundException e) {
+            throw new BadRequestException(e);
+        } catch (CsrNotFoundException e) {
+            throw new BadRequestException(e);
+        } catch (TokenCertificateService.CsrCreationFailureException e) {
+            throw new BadRequestException(e);
+        }
+
+        String filename = csrFilenameCreator.createCsrFilename(csrInfo.getKeyUsage(),
+                certificateRequestFormat, csrInfo.getMemberId(),
+                serverConfService.getSecurityServerId());
+
+        return ApiUtil.createAttachmentResourceResponse(csrInfo.getCertRequest(), filename);
     }
 }
 

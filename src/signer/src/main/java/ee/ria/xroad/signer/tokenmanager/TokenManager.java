@@ -460,6 +460,18 @@ public final class TokenManager {
     }
 
     /**
+     * @param certReqId cert request id
+     * @return the certificate request info or null if not found
+     */
+    public static synchronized CertRequestInfo getCertRequestInfo(String certReqId) {
+        log.trace("getCertRequestInfo({})", certReqId);
+
+        return forCertRequest((k, c) -> certReqId.equals(c.getId()),
+                (k, c) -> c.toDTO())
+                .orElse(null);
+    }
+
+    /**
      * @param certHash the certificate hash
      * @return key info for the certificate hash
      */

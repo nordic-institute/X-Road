@@ -32,13 +32,14 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.commonui.SignerProxy.RegeneratedCertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
-import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
+import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -143,7 +144,7 @@ public class TokenCertificateService {
      * Subclass {@link KeyNotOperationalException} when the reason is key not being operational.
      */
     public byte[] generateCertRequest(String keyId, ClientId memberId, KeyUsageInfo keyUsage,
-            String caName, Map<String, String> subjectFieldValues, GenerateCertRequest.RequestFormat format)
+            String caName, Map<String, String> subjectFieldValues, CertificateRequestFormat format)
             throws CertificateAuthorityNotFoundException, ClientNotFoundException,
             CertificateProfileInstantiationException, WrongKeyUsageException,
             KeyNotFoundException, CsrCreationFailureException,
@@ -195,6 +196,38 @@ public class TokenCertificateService {
             throw new CsrCreationFailureException(e);
         }
     }
+
+    public RegeneratedCertRequestInfo regenerateCertRequest(String keyId, String csrId, CertificateRequestFormat format)
+            throws KeyNotFoundException, CsrNotFoundException, CsrCreationFailureException {
+
+        // validate key and memberId existence
+        // TO DO: optimize these away or not?
+        KeyInfo keyInfo = keyService.getKey(keyId);
+        getCsr(keyInfo, csrId);
+
+        // TO DO validate that generate csr is possible
+//        if (keyUsage == KeyUsageInfo.SIGNING) {
+//            possibleActionsRuleEngine.requirePossibleKeyAction(PossibleActionEnum.GENERATE_SIGN_CSR,
+//                    tokenInfo, key);
+//        } else {
+//            possibleActionsRuleEngine.requirePossibleKeyAction(PossibleActionEnum.GENERATE_AUTH_CSR,
+//                    tokenInfo, key);
+//        }
+
+        try {
+            return signerProxyFacade.regenerateCertRequest(csrId, format);
+            // TO DO: proper exception handling
+        } catch (CodedException e) {
+            if (isCausedByKeyNotOperational(e)) {
+                throw new KeyNotOperationalException(e);
+            } else {
+                throw new CsrCreationFailureException(e);
+            }
+        } catch (Exception e) {
+            throw new CsrCreationFailureException(e);
+        }
+    }
+
 
     private static String signerFaultCode(String detail) {
         return SIGNER_X + "." + detail;

@@ -25,9 +25,12 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
-import ee.ria.xroad.signer.protocol.message.GenerateCertRequestResponse;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
+import ee.ria.xroad.signer.protocol.message.RegenerateCertRequest;
+import ee.ria.xroad.signer.protocol.message.RegenerateCertRequestResponse;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
 import ee.ria.xroad.signer.util.TokenAndKey;
@@ -35,36 +38,55 @@ import ee.ria.xroad.signer.util.TokenAndKey;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 
-import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
+import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
 
 /**
- * Handles certificate request generations.
+ * Handles certificate request re-generations.
  */
 @Slf4j
-public class GenerateCertRequestRequestHandler extends AbstractGenerateCertRequest<GenerateCertRequest> {
+public class RegenerateCertRequestRequestHandler extends AbstractGenerateCertRequest<RegenerateCertRequest> {
 
     @Override
-    protected Object handle(GenerateCertRequest message) throws Exception {
-        TokenAndKey tokenAndKey = TokenManager.findTokenAndKey(message.getKeyId());
+    protected Object handle(RegenerateCertRequest message) throws Exception {
+        TokenAndKey tokenAndKey = findTokenAndKeyForCsrId(message.getCertRequestId());
 
         if (!TokenManager.isKeyAvailable(tokenAndKey.getKeyId())) {
             throw keyNotAvailable(tokenAndKey.getKeyId());
         }
 
-        if (message.getKeyUsage() == KeyUsageInfo.AUTHENTICATION
+        if (tokenAndKey.getKey().getUsage() == KeyUsageInfo.AUTHENTICATION
                 && !SoftwareTokenType.ID.equals(tokenAndKey.getTokenId())) {
-            throw CodedException.tr(X_WRONG_CERT_USAGE,
-                    "auth_cert_under_softtoken",
-                    "Authentication certificate requests can only be created under software tokens");
+            throw new CodedException(X_INTERNAL_ERROR,
+                    "Authentication keys are only supported for software tokens");
         }
 
-        PKCS10CertificationRequest generatedRequest = buildSignedCertRequest(tokenAndKey, message.getSubjectName());
+        String csrId = message.getCertRequestId();
 
-        String certReqId = TokenManager.addCertRequest(tokenAndKey.getKeyId(), message.getMemberId(),
-                message.getSubjectName(), message.getKeyUsage());
+        CertRequestInfo certRequestInfo = TokenManager.getCertRequestInfo(csrId);
+        if (certRequestInfo == null) {
+            throw CodedException.tr(X_CSR_NOT_FOUND,
+                    "csr_not_found", "Certificate request '%s' not found", csrId);
+        }
 
-        return new GenerateCertRequestResponse(certReqId, convert(generatedRequest, message.getFormat()),
-                message.getFormat());
+        String subjectName = certRequestInfo.getSubjectName();
+
+        PKCS10CertificationRequest generatedRequest = buildSignedCertRequest(tokenAndKey, subjectName);
+
+        return new RegenerateCertRequestResponse(message.getCertRequestId(),
+                convert(generatedRequest, message.getFormat()),
+                message.getFormat(),
+                certRequestInfo.getMemberId(),
+                tokenAndKey.getKey().getUsage()
+        );
     }
+
+    private TokenAndKey findTokenAndKeyForCsrId(String certRequestId) {
+        TokenInfoAndKeyId tokenInfoAndKeyId = TokenManager.findTokenAndKeyIdForCertRequestId(certRequestId);
+        KeyInfo keyInfo = TokenManager.getKeyInfo(tokenInfoAndKeyId.getKeyId());
+        return new TokenAndKey(tokenInfoAndKeyId.getTokenInfo().getId(),
+                keyInfo);
+    }
+
 }
