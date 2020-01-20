@@ -35,15 +35,16 @@ import java.io.Serializable;
  * Signer API message.
  */
 @Value
-public class GenerateCertRequest implements Serializable {
+public class RegenerateCertRequestResponse implements Serializable {
 
-    private final String keyId;
+    private final String certReqId;
+
+    private final byte[] certRequest;
+
+    private CertificateRequestFormat format;
 
     private final ClientId memberId;
 
     private final KeyUsageInfo keyUsage;
 
-    private final String subjectName;
-
-    private final CertificateRequestFormat format;
 }
