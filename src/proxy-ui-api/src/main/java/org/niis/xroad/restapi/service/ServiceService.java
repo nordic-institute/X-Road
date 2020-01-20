@@ -56,13 +56,15 @@ public class ServiceService {
     private final ClientRepository clientRepository;
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final WsdlUrlValidator wsdlUrlValidator;
+    private final EndpointService endpointService;
 
     @Autowired
     public ServiceService(ClientRepository clientRepository, ServiceDescriptionRepository serviceDescriptionRepository,
-            WsdlUrlValidator wsdlUrlValidator) {
+            WsdlUrlValidator wsdlUrlValidator, EndpointService endpointService) {
         this.clientRepository = clientRepository;
         this.serviceDescriptionRepository = serviceDescriptionRepository;
         this.wsdlUrlValidator = wsdlUrlValidator;
+        this.endpointService = endpointService;
     }
 
     /**
@@ -80,7 +82,9 @@ public class ServiceService {
         if (client == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
         }
-        return getServiceFromClient(client, fullServiceCode);
+        ServiceType service = getServiceFromClient(client, fullServiceCode);
+        this.endpointService.populateServiceEndpoints(service, client);
+        return service;
     }
 
     /**
