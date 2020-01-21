@@ -22,41 +22,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
-public class EndpointService {
+public class EndpointHelper {
 
-
-    public ClientType populateClientServiceDescriptionServiceEndpoints(ClientType client) {
-        client.getServiceDescription().forEach(sd -> populateServiceDescriptionServiceEndpoints(sd));
-        return client;
-    }
-
-    public ServiceDescriptionType populateServiceDescriptionServiceEndpoints(
-            ServiceDescriptionType serviceDescription) {
-        ClientType client = serviceDescription.getClient();
-        serviceDescription.getService().forEach(s -> populateServiceEndpoints(s, client));
-        return serviceDescription;
-    }
-
-    public ServiceType populateServiceEndpoints(ServiceType service, ClientType client) {
-        List<EndpointType> endpoints = client.getEndpoint();
-        endpoints.forEach(endpointType -> {
-            if (endpointType.getServiceCode().equals(service.getServiceCode())) {
-                service.getEndpoint().add(endpointType);
-            }
-        });
-        return service;
+    /**
+     * Get endpoints from client, for given service
+     * @param service
+     * @param client
+     * @return
+     */
+    public List<EndpointType> getEndpoints(ServiceType service, ClientType client) {
+        List<EndpointType> allEndpoints = client.getEndpoint();
+        return allEndpoints.stream()
+                .filter(endpointType -> endpointType.getServiceCode().equals(service.getServiceCode()))
+                .collect(Collectors.toList());
     }
 
 }
