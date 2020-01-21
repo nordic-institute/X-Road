@@ -509,9 +509,41 @@ paths:
     put: # ok
       tags:
         - security server
-      summary: unregister certificate
-      operationId: unregisterCertificate
-      description: Administrator unregisters selected certificate.
+      summary: unregister authentication certificate
+      operationId: unregisterAuthCertificate
+      description: Administrator unregisters selected authentication certificate.
+      parameters:
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '204':
+          description: request was successful
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /token-certificates/{hash}/mark-for-deletion:
+    put: # ok
+      tags:
+        - security server
+      summary: marks an auth certificate for deletion
+      operationId: markAuthCertForDeletion
+      description: Administrator marks an auth certificate for deletion.
       parameters:
         - in: path
           name: hash
