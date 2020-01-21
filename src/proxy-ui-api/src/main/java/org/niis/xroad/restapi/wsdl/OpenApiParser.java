@@ -23,7 +23,6 @@
  * THE SOFTWARE.
  */
 
-
 package org.niis.xroad.restapi.wsdl;
 
 import io.swagger.v3.oas.models.servers.Server;
@@ -61,7 +60,6 @@ public class OpenApiParser {
 
     /**
      * Parse openapi3 description
-     *
      * @return OpenApiParser.Result
      */
     public Result parse(String urlString) throws ParsingException {

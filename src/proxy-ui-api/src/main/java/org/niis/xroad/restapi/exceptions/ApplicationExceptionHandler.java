@@ -26,6 +26,13 @@ package org.niis.xroad.restapi.exceptions;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
+import org.niis.xroad.restapi.service.InvalidUrlException;
+import org.niis.xroad.restapi.service.NotFoundException;
+import org.niis.xroad.restapi.service.ServiceDescriptionNotFoundException;
+import org.niis.xroad.restapi.service.ServiceDescriptionService;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
+import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
+import org.niis.xroad.restapi.wsdl.WsdlParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -75,5 +82,104 @@ public class ApplicationExceptionHandler {
     public ResponseEntity<ErrorInfo> exception(AccessDeniedException e) {
         log.error("exception caught", e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.FORBIDDEN);
+    }
+
+    /**
+     * handle NotFound service exceptions
+     * @param e
+     * @return
+     */
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ErrorInfo> exception(NotFoundException e) {
+        log.error("exception caught", e);
+        return exceptionTranslator.toResponseEntity(e, HttpStatus.NOT_FOUND);
+    }
+
+    /**
+     * handle unhandled warnings service exceptions
+     * @param e
+     * @return
+     */
+    @ExceptionHandler(UnhandledWarningsException.class)
+    public ResponseEntity<ErrorInfo> exception(UnhandledWarningsException e) {
+        log.error("exception caught", e);
+        return exceptionTranslator.toResponseEntity(e, HttpStatus.CONFLICT);
+    }
+
+    /**
+     * handle ServiceDescriptionService.ServiceCodeAlreadyExistsException service exceptions
+     * @param e
+     * @return
+     */
+    @ExceptionHandler(ServiceDescriptionService.ServiceCodeAlreadyExistsException.class)
+    public ResponseEntity<ErrorInfo> exception(ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
+        log.error("exception caught", e);
+        return exceptionTranslator.toResponseEntity(e, HttpStatus.CONFLICT);
+    }
+
+    /**
+     * handle InvalidWsdlException service exceptions
+     * @param e
+     * @return
+     */
+    @ExceptionHandler(InvalidWsdlException.class)
+    public ResponseEntity<ErrorInfo> exception(InvalidWsdlException e) {
+        log.error("exception caught", e);
+        return exceptionTranslator.toResponseEntity(e, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * handle WsdlParser.WsdlNotFoundException service exceptions
+     * @param e
+     * @return
+     */
+    @ExceptionHandler(WsdlParser.WsdlNotFoundException.class)
+    public ResponseEntity<ErrorInfo> exception(WsdlParser.WsdlNotFoundException e) {
+        log.error("exception caught", e);
+        return exceptionTranslator.toResponseEntity(e, HttpStatus.NOT_FOUND);
+    }
+
+    /**
+     * handle InvalidUrlException service exceptions
+     * @param e
+     * @return
+     */
+    @ExceptionHandler(InvalidUrlException.class)
+    public ResponseEntity<ErrorInfo> exception(InvalidUrlException e) {
+        log.error("exception caught", e);
+        return exceptionTranslator.toResponseEntity(e, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * handle ServiceDescriptionService.WrongServiceDescriptionTypeException service exceptions
+     * @param e
+     * @return
+     */
+    @ExceptionHandler(ServiceDescriptionService.WrongServiceDescriptionTypeException.class)
+    public ResponseEntity<ErrorInfo> exception(ServiceDescriptionService.WrongServiceDescriptionTypeException e) {
+        log.error("exception caught", e);
+        return exceptionTranslator.toResponseEntity(e, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * handle ServiceDescriptionService.WsdlUrlAlreadyExistsException service exceptions
+     * @param e
+     * @return
+     */
+    @ExceptionHandler(ServiceDescriptionService.WsdlUrlAlreadyExistsException.class)
+    public ResponseEntity<ErrorInfo> exception(ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
+        log.error("exception caught", e);
+        return exceptionTranslator.toResponseEntity(e, HttpStatus.CONFLICT);
+    }
+
+    /**
+     * handle ServiceDescriptionNotFoundException service exceptions
+     * @param e
+     * @return
+     */
+    @ExceptionHandler(ServiceDescriptionNotFoundException.class)
+    public ResponseEntity<ErrorInfo> exception(ServiceDescriptionNotFoundException e) {
+        log.error("exception caught", e);
+        return exceptionTranslator.toResponseEntity(e, HttpStatus.NOT_FOUND);
     }
 }

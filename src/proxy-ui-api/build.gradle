@@ -1,7 +1,7 @@
 buildscript {
     ext {
         springBootVersion = '2.1.3.RELEASE'
-        openapiGeneratorVersion = '4.0.1'
+        openapiGeneratorVersion = '4.1.3'
         nodePluginVersion = '1.3.1'
         nodeVersion = '10.16.1'
         npmVersion = '6.9.0'
@@ -97,7 +97,7 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
             throw new GradleException('testTargetUrl property was empty, it is mandatory for e2eTests')
         }
     }
-    
+
     inputs.dir("frontend")
     outputs.dir("frontend")
 
@@ -130,7 +130,8 @@ openApiGenerate {
         models: ""
     ]
     configOptions = [
-        interfaceOnly: "true"
+        interfaceOnly: "true",
+        unhandledException: "true"
     ]
 }
 

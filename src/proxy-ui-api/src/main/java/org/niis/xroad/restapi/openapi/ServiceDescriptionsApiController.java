@@ -39,9 +39,11 @@ import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.ServiceDescriptionNotFoundException;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
+import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
+import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -129,28 +131,20 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     @Override
     @PreAuthorize("hasAuthority('EDIT_WSDL')")
     public ResponseEntity<ServiceDescription> updateServiceDescription(String id,
-            ServiceDescriptionUpdate serviceDescriptionUpdate) {
+            ServiceDescriptionUpdate serviceDescriptionUpdate) throws InvalidWsdlException,
+            ServiceDescriptionService.ServiceAlreadyExistsException, WsdlParser.WsdlNotFoundException,
+            UnhandledWarningsException, InvalidUrlException,
+            ServiceDescriptionService.WrongServiceDescriptionTypeException,
+            ServiceDescriptionService.WsdlUrlAlreadyExistsException, ServiceDescriptionNotFoundException {
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
         ServiceDescription serviceDescription;
         if (serviceDescriptionUpdate.getType() == ServiceType.WSDL) {
+            // Update WSDL servicedescription
             ServiceDescriptionType updatedServiceDescription = null;
-            try {
-                updatedServiceDescription = serviceDescriptionService.updateWsdlUrl(
-                        serviceDescriptionId, serviceDescriptionUpdate.getUrl(),
-                        serviceDescriptionUpdate.getIgnoreWarnings());
-            } catch (WsdlParser.WsdlNotFoundException | UnhandledWarningsException
-                             | InvalidUrlException | InvalidWsdlException
-                             | ServiceDescriptionService.WrongServiceDescriptionTypeException e) {
-                throw new BadRequestException(e);
-            } catch (ServiceDescriptionService.ServiceAlreadyExistsException
-                    | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
-                throw new ConflictException(e);
-            } catch (ServiceDescriptionNotFoundException e) {
-                throw new ResourceNotFoundException(e);
-            }
+            updatedServiceDescription = serviceDescriptionService.updateWsdlUrl(
+                    serviceDescriptionId, serviceDescriptionUpdate.getUrl(),
+                    serviceDescriptionUpdate.getIgnoreWarnings());
             serviceDescription = serviceDescriptionConverter.convert(updatedServiceDescription);
-        } else if (serviceDescriptionUpdate.getType() == ServiceType.OPENAPI3) {
-            return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
         } else {
             throw new BadRequestException("ServiceType not recognized");
         }
@@ -182,7 +176,6 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     /**
      * Returns one service description, using primary key id.
      * {@inheritDoc}
-     *
      * @param id primary key of service description
      */
     @Override
@@ -199,7 +192,6 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
      * Returns services of one service description.
      * Id = primary key of service description.
      * {@inheritDoc}
-     *
      * @param id primary key of service description
      */
     @Override
@@ -226,6 +218,5 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         }
         return serviceDescriptionType;
     }
-
 
 }
