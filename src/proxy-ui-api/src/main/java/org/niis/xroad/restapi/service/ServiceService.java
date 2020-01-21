@@ -83,7 +83,6 @@ public class ServiceService {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
         }
         ServiceType service = getServiceFromClient(client, fullServiceCode);
-        this.endpointService.populateServiceEndpoints(service, client);
         return service;
     }
 

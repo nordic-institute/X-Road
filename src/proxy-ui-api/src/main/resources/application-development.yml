@@ -1,12 +1,31 @@
 # non-harmful development profile settings
 # these can be included in the production jar
 
+
+spring:
+  jpa:
+# dont put this to develop yet
+    open-in-view: false
+
 logging:
   level:
     org:
+      hibernate:
+        SQL: DEBUG
       springframework:
         security: DEBUG
-
+        transaction:
+          interceptor: TRACE
 web:
   security:
     debug: true
+
+#log4j:
+#  logger:
+#    org:
+#      springframework:
+#        orm:
+#          jpa: DEBUG
+#        transaction: DEBUG
+
+

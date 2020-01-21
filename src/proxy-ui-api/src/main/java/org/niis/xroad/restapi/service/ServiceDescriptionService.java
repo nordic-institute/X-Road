@@ -507,7 +507,7 @@ public class ServiceDescriptionService {
      */
     public ServiceDescriptionType getServiceDescriptiontype(Long id) {
         ServiceDescriptionType serviceDescription = serviceDescriptionRepository.getServiceDescription(id);
-        return this.endpointService.populateServiceDescriptionServiceEndpoints(serviceDescription);
+        return serviceDescription;
     }
 
     /**

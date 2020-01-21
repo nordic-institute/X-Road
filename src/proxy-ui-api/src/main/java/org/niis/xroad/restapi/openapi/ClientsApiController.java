@@ -59,11 +59,11 @@ import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.restapi.service.CertificateNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.ClientService;
+import org.niis.xroad.restapi.service.EndpointService;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.LocalGroupService;
 import org.niis.xroad.restapi.service.MissingParameterException;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
-import org.niis.xroad.restapi.service.EndpointService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.ResourceUtils;
@@ -314,10 +314,13 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
     public ResponseEntity<List<ServiceDescription>> getClientServiceDescriptions(String encodedId) {
+        log.info("getting service descriptions for client " + encodedId);
         ClientType clientType = getClientType(encodedId);
-        this.endpointService.populateClientServiceDescriptionServiceEndpoints(clientType);
+        log.info("client object received for client " + encodedId);
+        log.info("converting service descriptions");
         List<ServiceDescription> serviceDescriptions =
                 serviceDescriptionConverter.convert(clientType.getServiceDescription());
+        log.info("converted, returning service descriptions");
         return new ResponseEntity<>(serviceDescriptions, HttpStatus.OK);
     }
 

@@ -22,42 +22,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.serverconf.model;
+package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 
-import lombok.Getter;
-import lombok.Setter;
+import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-/**
- * Service.
- */
-@Getter
-@Setter
-public class ServiceType {
-
-    private final List<SecurityCategoryId> requiredSecurityCategory =
-            new ArrayList<>();
-
-    private Long id;
-
-    private ServiceDescriptionType serviceDescription;
-
-    private String serviceCode;
-
-    private String serviceVersion;
-
-    private String title;
-
-    private String url;
-
-    private Boolean sslAuthentication;
-
-    private int timeout;
-
-//    private final List<EndpointType> endpoint = new ArrayList<>();
-
+@Component
+public class EndpointHelper {
+    /**
+     * Get endpoints from client, for given service
+     * @param service
+     * @param client
+     * @return
+     */
+    public List<EndpointType> getEndpoints(ServiceType service, ClientType client) {
+        List<EndpointType> allEndpoints = client.getEndpoint();
+        return allEndpoints.stream()
+                .filter(endpointType -> endpointType.getServiceCode().equals(service.getServiceCode()))
+                .collect(Collectors.toList());
+    }
 }

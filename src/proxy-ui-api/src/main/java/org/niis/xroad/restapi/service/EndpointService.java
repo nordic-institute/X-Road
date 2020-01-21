@@ -24,39 +24,39 @@
  */
 package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 public class EndpointService {
 
-
-    public ClientType populateClientServiceDescriptionServiceEndpoints(ClientType client) {
-        client.getServiceDescription().forEach(sd -> populateServiceDescriptionServiceEndpoints(sd));
-        return client;
+    /**
+     * TO DO: remove this service
+     * @return
+     */
+    public String foo() {
+        return "bar";
     }
 
-    public ServiceDescriptionType populateServiceDescriptionServiceEndpoints(
-            ServiceDescriptionType serviceDescription) {
-        ClientType client = serviceDescription.getClient();
-        serviceDescription.getService().forEach(s -> populateServiceEndpoints(s, client));
-        return serviceDescription;
-    }
-
-    public ServiceType populateServiceEndpoints(ServiceType service, ClientType client) {
-        List<EndpointType> endpoints = client.getEndpoint();
-        endpoints.forEach(endpointType -> {
-            if (endpointType.getServiceCode().equals(service.getServiceCode())) {
-                service.getEndpoint().add(endpointType);
-            }
-        });
-        return service;
-    }
+//    public ClientType populateClientServiceDescriptionServiceEndpoints(ClientType client) {
+//        client.getServiceDescription().forEach(sd -> populateServiceDescriptionServiceEndpoints(sd));
+//        return client;
+//    }
+//
+//    public ServiceDescriptionType populateServiceDescriptionServiceEndpoints(
+//            ServiceDescriptionType serviceDescription) {
+//        ClientType client = serviceDescription.getClient();
+//        serviceDescription.getService().forEach(s -> populateServiceEndpoints(s, client));
+//        return serviceDescription;
+//    }
+//
+//    public ServiceType populateServiceEndpoints(ServiceType service, ClientType client) {
+//        List<EndpointType> endpoints = client.getEndpoint();
+//        endpoints.forEach(endpointType -> {
+//            if (endpointType.getServiceCode().equals(service.getServiceCode())) {
+//                service.getEndpoint().add(endpointType);
+//            }
+//        });
+//        return service;
+//    }
 
 }

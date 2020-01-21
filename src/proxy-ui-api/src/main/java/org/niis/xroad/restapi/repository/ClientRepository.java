@@ -81,7 +81,8 @@ public class ClientRepository {
     }
 
     /**
-     * return one client
+     * return one client. Client.serviceDescription.service.endpoints
+     * collection is not initialized
      * @param id
      * @return the client, or null if matching client was not found
      */
