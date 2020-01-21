@@ -29,7 +29,7 @@ dependencies {
 
     compile 'ch.qos.logback:logback-classic:1.2.3'
 
-    compile ('org.quartz-scheduler:quartz:2.3.1') {
+    compile ('org.quartz-scheduler:quartz:2.3.2') {
         exclude module: 'c3p0'
     }
 
@@ -43,7 +43,7 @@ dependencies {
     compile "com.typesafe.akka:akka-remote_2.11:$akkaVersion"
     compile "com.typesafe.akka:akka-slf4j_2.11:$akkaVersion"
 
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.10.1'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.10.2'
     compile 'com.google.code.gson:gson:2.8.5'
     compile 'com.google.guava:guava:28.0-jre'
 
