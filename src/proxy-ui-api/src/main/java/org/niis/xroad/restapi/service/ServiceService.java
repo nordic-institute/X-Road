@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.EndpointHelper;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
@@ -56,11 +57,11 @@ public class ServiceService {
     private final ClientRepository clientRepository;
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final WsdlUrlValidator wsdlUrlValidator;
-    private final EndpointService endpointService;
+    private final EndpointHelper endpointService;
 
     @Autowired
     public ServiceService(ClientRepository clientRepository, ServiceDescriptionRepository serviceDescriptionRepository,
-            WsdlUrlValidator wsdlUrlValidator, EndpointService endpointService) {
+            WsdlUrlValidator wsdlUrlValidator, EndpointHelper endpointService) {
         this.clientRepository = clientRepository;
         this.serviceDescriptionRepository = serviceDescriptionRepository;
         this.wsdlUrlValidator = wsdlUrlValidator;
@@ -82,9 +83,7 @@ public class ServiceService {
         if (client == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
         }
-        ServiceType service = getServiceFromClient(client, fullServiceCode);
-        this.endpointService.populateServiceEndpoints(service, client);
-        return service;
+        return getServiceFromClient(client, fullServiceCode);
     }
 
     /**

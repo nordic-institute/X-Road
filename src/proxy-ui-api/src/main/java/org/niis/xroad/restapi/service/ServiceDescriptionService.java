@@ -34,6 +34,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
+import org.niis.xroad.restapi.converter.EndpointHelper;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.repository.ClientRepository;
@@ -88,7 +89,7 @@ public class ServiceDescriptionService {
     private final WsdlValidator wsdlValidator;
     private final WsdlUrlValidator wsdlUrlValidator;
     private final OpenApiParser openApiParser;
-    private final EndpointService endpointService;
+    private final EndpointHelper endpointService;
 
     /**
      * ServiceDescriptionService constructor
@@ -103,7 +104,7 @@ public class ServiceDescriptionService {
                                      ClientService clientService, ClientRepository clientRepository,
                                      ServiceChangeChecker serviceChangeChecker,
                                      WsdlValidator wsdlValidator, WsdlUrlValidator wsdlUrlValidator,
-                                     OpenApiParser openApiParser, EndpointService endpointService) {
+                                     OpenApiParser openApiParser, EndpointHelper endpointService) {
         this.serviceDescriptionRepository = serviceDescriptionRepository;
         this.clientService = clientService;
         this.clientRepository = clientRepository;
@@ -506,8 +507,7 @@ public class ServiceDescriptionService {
      * @return ServiceDescriptionType
      */
     public ServiceDescriptionType getServiceDescriptiontype(Long id) {
-        ServiceDescriptionType serviceDescription = serviceDescriptionRepository.getServiceDescription(id);
-        return this.endpointService.populateServiceDescriptionServiceEndpoints(serviceDescription);
+        return serviceDescriptionRepository.getServiceDescription(id);
     }
 
     /**
