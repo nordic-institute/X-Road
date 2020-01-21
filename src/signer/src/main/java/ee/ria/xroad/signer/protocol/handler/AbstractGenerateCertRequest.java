@@ -80,8 +80,8 @@ public abstract class AbstractGenerateCertRequest<T> extends AbstractRequestHand
 
         ContentSigner signer = new TokenContentSigner(tokenAndKey, this);
 
-        PKCS10CertificationRequest toret =  certRequestBuilder.build(signer);
-        return toret;
+        PKCS10CertificationRequest request = certRequestBuilder.build(signer);
+        return request;
     }
 
     private static PublicKey readPublicKey(String publicKeyBase64) throws Exception {

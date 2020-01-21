@@ -221,8 +221,7 @@ public class KeysApiController implements KeysApi {
     }
 
     @Override
-    // TO DO: proper auth
-    @PreAuthorize("hasAuthority('VIEW_KEYS')")
+    @PreAuthorize("hasAnyAuthority('GENERATE_AUTH_CERT_REQ', 'GENERATE_SIGN_CERT_REQ')")
     public ResponseEntity<Resource> downloadCsr(String keyId, String csrId, CsrFormat csrFormat) {
 
         // squid:S3655 throwing NoSuchElementException if there is no value present is
@@ -231,13 +230,12 @@ public class KeysApiController implements KeysApi {
         RegeneratedCertRequestInfo csrInfo;
         try {
             csrInfo = tokenCertificateService.regenerateCertRequest(keyId, csrId, certificateRequestFormat);
-            // TO DO: handle errors
-        } catch (KeyNotFoundException e) {
-            throw new BadRequestException(e);
-        } catch (CsrNotFoundException e) {
-            throw new BadRequestException(e);
+        } catch (KeyNotFoundException | CsrNotFoundException e) {
+            throw new ResourceNotFoundException(e);
         } catch (TokenCertificateService.CsrCreationFailureException e) {
-            throw new BadRequestException(e);
+            throw new InternalServerErrorException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
         }
 
         String filename = csrFilenameCreator.createCsrFilename(csrInfo.getKeyUsage(),

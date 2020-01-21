@@ -197,26 +197,59 @@ public class TokenCertificateService {
         }
     }
 
+    /**
+     * Regenerate a csr. Regenerate is used by download -endpoint.
+     * Regenerate will find an existing csr from TokenManager, and
+     * regenerate a new csr binary for it. TokenManager itself, and the csr
+     * info stored inside it, will be unchanged.
+     *
+     * Permissions and possible actions use the values for generate csr,
+     * there are no separate values for this operation.
+     *
+     * @param keyId
+     * @param csrId
+     * @param format
+     * @return
+     * @throws KeyNotFoundException if key with keyId was not found
+     * @throws CsrNotFoundException if csr with csrId was not found
+     * @throws CsrCreationFailureException if csr regeneration failed
+     * @throws ActionNotPossibleException if regenerate was not possible
+     */
     public RegeneratedCertRequestInfo regenerateCertRequest(String keyId, String csrId, CertificateRequestFormat format)
-            throws KeyNotFoundException, CsrNotFoundException, CsrCreationFailureException {
+            throws KeyNotFoundException, CsrNotFoundException, CsrCreationFailureException, ActionNotPossibleException {
 
         // validate key and memberId existence
-        // TO DO: optimize these away or not?
-        KeyInfo keyInfo = keyService.getKey(keyId);
+        TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
+        KeyInfo keyInfo = keyService.getKey(tokenInfo, keyId);
         getCsr(keyInfo, csrId);
 
-        // TO DO validate that generate csr is possible
-//        if (keyUsage == KeyUsageInfo.SIGNING) {
-//            possibleActionsRuleEngine.requirePossibleKeyAction(PossibleActionEnum.GENERATE_SIGN_CSR,
-//                    tokenInfo, key);
-//        } else {
-//            possibleActionsRuleEngine.requirePossibleKeyAction(PossibleActionEnum.GENERATE_AUTH_CSR,
-//                    tokenInfo, key);
-//        }
+        // currently regenerate is part of "generate csr" or
+        // "combo generate key + csr" operations in the web application.
+        // There are no separate permissions or possible action rules for
+        // downloading the csr.
+        // Downloading a csr means actually re-generating it, so the
+        // possible action rules for it would be very close, if not identical,
+        // to generate csr.
+
+        // TO DO: test
+        // check usage type specific auth in service, since controller does not know usage type
+        if (keyInfo.isForSigning()) {
+            verifyAuthority("GENERATE_SIGN_CERT_REQ");
+        } else {
+            verifyAuthority("GENERATE_AUTH_CERT_REQ");
+        }
+
+        // validate that regenerate csr is a possible action
+        if (keyInfo.isForSigning()) {
+            possibleActionsRuleEngine.requirePossibleKeyAction(PossibleActionEnum.GENERATE_SIGN_CSR,
+                    tokenInfo, keyInfo);
+        } else {
+            possibleActionsRuleEngine.requirePossibleKeyAction(PossibleActionEnum.GENERATE_AUTH_CSR,
+                    tokenInfo, keyInfo);
+        }
 
         try {
             return signerProxyFacade.regenerateCertRequest(csrId, format);
-            // TO DO: proper exception handling
         } catch (CodedException e) {
             if (isCausedByKeyNotOperational(e)) {
                 throw new KeyNotOperationalException(e);

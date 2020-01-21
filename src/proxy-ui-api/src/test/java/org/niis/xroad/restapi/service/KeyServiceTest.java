@@ -157,8 +157,8 @@ public class KeyServiceTest {
         doAnswer(invocation -> {
             String keyId = (String) invocation.getArguments()[0];
             if (AUTH_KEY_ID.equals(keyId)
-                || SIGN_KEY_ID.equals(keyId)
-                || TYPELESS_KEY_ID.equals(keyId)) {
+                    || SIGN_KEY_ID.equals(keyId)
+                    || TYPELESS_KEY_ID.equals(keyId)) {
                 return tokenInfo;
             } else {
                 throw new KeyNotFoundException(keyId + " not supported");
