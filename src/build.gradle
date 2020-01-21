@@ -7,7 +7,7 @@ buildscript {
 plugins {
     id 'org.sonarqube' version '2.7.1'
     id 'com.github.hierynomus.license' version '0.15.0'
-    id 'org.owasp.dependencycheck' version '5.2.2'
+    id 'org.owasp.dependencycheck' version '5.3.0'
     id 'jacoco'
     id 'idea'
 }
