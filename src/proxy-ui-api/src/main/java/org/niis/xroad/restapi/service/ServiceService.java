@@ -30,7 +30,6 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -155,14 +154,4 @@ public class ServiceService {
         return serviceType;
     }
 
-    /**
-     * If service was not found
-     */
-    public static class ServiceNotFoundException extends NotFoundException {
-        public static final String ERROR_SERVICE_NOT_FOUND = "service_not_found";
-
-        public ServiceNotFoundException(String s) {
-            super(s, new ErrorDeviation(ERROR_SERVICE_NOT_FOUND));
-        }
-    }
 }

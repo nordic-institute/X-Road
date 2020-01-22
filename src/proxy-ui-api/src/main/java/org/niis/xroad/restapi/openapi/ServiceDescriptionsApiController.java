@@ -39,6 +39,7 @@ import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.ServiceDescriptionNotFoundException;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
+import org.niis.xroad.restapi.service.ServiceNotFoundException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
@@ -79,8 +80,8 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
 
     @Autowired
     public ServiceDescriptionsApiController(ServiceDescriptionService serviceDescriptionService,
-                                            ServiceDescriptionConverter serviceDescriptionConverter,
-                                            ServiceConverter serviceConverter) {
+            ServiceDescriptionConverter serviceDescriptionConverter,
+            ServiceConverter serviceConverter) {
         this.serviceDescriptionService = serviceDescriptionService;
         this.serviceDescriptionConverter = serviceDescriptionConverter;
         this.serviceConverter = serviceConverter;
@@ -101,7 +102,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     @Override
     @PreAuthorize("hasAuthority('ENABLE_DISABLE_WSDL')")
     public ResponseEntity<Void> disableServiceDescription(String id,
-                                                    ServiceDescriptionDisabledNotice serviceDescriptionDisabledNotice) {
+            ServiceDescriptionDisabledNotice serviceDescriptionDisabledNotice) {
         String disabledNotice = null;
         if (serviceDescriptionDisabledNotice != null) {
             disabledNotice = serviceDescriptionDisabledNotice.getDisabledNotice();
@@ -131,7 +132,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     @Override
     @PreAuthorize("hasAnyAuthority('EDIT_WSDL', 'EDIT_OPENAPI3', 'EDIT_REST')")
     public ResponseEntity<ServiceDescription> updateServiceDescription(String id,
-                                                                   ServiceDescriptionUpdate serviceDescriptionUpdate) {
+            ServiceDescriptionUpdate serviceDescriptionUpdate) {
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
         ServiceDescription serviceDescription;
         if (serviceDescriptionUpdate.getType() == ServiceType.WSDL) {
@@ -165,14 +166,18 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
             try {
                 updatedServiceDescription =
                         serviceDescriptionService.updateOpenApi3ServiceDescription(serviceDescriptionId,
-                        serviceDescriptionUpdate.getUrl(), serviceDescriptionUpdate.getRestServiceCode(),
-                        serviceDescriptionUpdate.getNewRestServiceCode(), serviceDescriptionUpdate.getIgnoreWarnings());
+                                serviceDescriptionUpdate.getUrl(), serviceDescriptionUpdate.getRestServiceCode(),
+                                serviceDescriptionUpdate.getNewRestServiceCode(),
+                                serviceDescriptionUpdate.getIgnoreWarnings());
 
-            } catch (OpenApiParser.ParsingException | UnhandledWarningsException e) {
+            } catch (OpenApiParser.ParsingException | UnhandledWarningsException
+                    | ServiceDescriptionService.WrongServiceDescriptionTypeException e) {
                 throw new BadRequestException(e);
             } catch (ServiceDescriptionService.UrlAlreadyExistsException
                     | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
                 throw new ConflictException(e);
+            } catch (ServiceNotFoundException | ServiceDescriptionNotFoundException e) {
+                throw new ResourceNotFoundException(e);
             }
             serviceDescription = serviceDescriptionConverter.convert(updatedServiceDescription);
 
@@ -189,8 +194,12 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
                         serviceDescriptionUpdate.getUrl(), serviceDescriptionUpdate.getRestServiceCode(),
                         serviceDescriptionUpdate.getNewRestServiceCode());
             } catch (ServiceDescriptionService.UrlAlreadyExistsException
-                | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
+                    | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
                 throw new ConflictException(e);
+            } catch (ServiceDescriptionNotFoundException | ServiceNotFoundException e) {
+                throw new ResourceNotFoundException(e);
+            } catch (ServiceDescriptionService.WrongServiceDescriptionTypeException e) {
+                throw new BadRequestException(e);
             }
 
             serviceDescription = serviceDescriptionConverter.convert(updatedServiceDescription);
