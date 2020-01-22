@@ -69,7 +69,7 @@ public class SystemApiController implements SystemApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('VIEW_PROXY_INTERNAL_CERT')")
+    @PreAuthorize("hasAnyAuthority('VIEW_PROXY_INTERNAL_CERT', 'VIEW_INTERNAL_SSL_CERT')")
     public ResponseEntity<CertificateDetails> getSystemCertificate() {
         X509Certificate x509Certificate = internalTlsCertificateService.getInternalTlsCertificate();
         CertificateDetails certificate = certificateDetailsConverter.convert(x509Certificate);

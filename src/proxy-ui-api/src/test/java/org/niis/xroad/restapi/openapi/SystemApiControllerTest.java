@@ -39,6 +39,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.X509Certificate;
 
@@ -63,7 +64,17 @@ public class SystemApiControllerTest {
 
     @Test
     @WithMockUser(authorities = { "VIEW_PROXY_INTERNAL_CERT" })
-    public void getSystemCertificate() throws Exception {
+    public void getSystemCertificateWithViewProxyInternalCertPermission() throws Exception {
+        getSystemCertificate();
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_INTERNAL_SSL_CERT" })
+    public void getSystemCertificateWithViewInternalSslCertPermission() throws Exception {
+        getSystemCertificate();
+    }
+
+    private void getSystemCertificate() throws IOException {
         X509Certificate x509Certificate = null;
         try (InputStream stream = getClass().getClassLoader().getResourceAsStream("internal.crt")) {
             x509Certificate = CryptoUtils.readCertificate(stream);
@@ -74,5 +85,4 @@ public class SystemApiControllerTest {
                 systemApiController.getSystemCertificate().getBody();
         assertEquals("xroad2-lxd-ss1", certificate.getIssuerCommonName());
     }
-
 }
