@@ -48,4 +48,4 @@ ratelimit:
   requests:
     per:
       second: 20
-      minute: 60
+      minute: 600
