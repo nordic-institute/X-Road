@@ -145,8 +145,8 @@ public class SignerProxyFacade {
      * {@link SignerProxy#generateCertRequest(String, ClientId, KeyUsageInfo,
      * String, CertificateRequestFormat)}
      */
-    public byte[] generateCertRequest(String keyId, ClientId memberId, KeyUsageInfo keyUsage, String subjectName,
-            CertificateRequestFormat format) throws Exception {
+    public RegeneratedCertRequestInfo generateCertRequest(String keyId, ClientId memberId, KeyUsageInfo keyUsage,
+            String subjectName, CertificateRequestFormat format) throws Exception {
         return SignerProxy.generateCertRequest(keyId, memberId, keyUsage, subjectName, format);
     }
 

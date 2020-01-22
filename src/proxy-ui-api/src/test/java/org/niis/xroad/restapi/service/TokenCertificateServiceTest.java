@@ -449,19 +449,19 @@ public class TokenCertificateServiceTest {
         }
     }
 
-    @Test(expected = TokenCertificateService.SignerOperationFailedException.class)
+    @Test(expected = CodedException.class)
     @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
     public void deleteCertificateSignerInternalError() throws Exception {
         tokenCertificateService.deleteCertificate(SIGNER_EX_INTERNAL_ERROR_HASH);
     }
 
-    @Test(expected = TokenCertificateService.KeyNotOperationalException.class)
+    @Test(expected = CodedException.class)
     @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
     public void deleteCertificateSignerTokenNotAvailable() throws Exception {
         tokenCertificateService.deleteCertificate(SIGNER_EX_TOKEN_NOT_AVAILABLE_HASH);
     }
 
-    @Test(expected = TokenCertificateService.KeyNotOperationalException.class)
+    @Test(expected = CodedException.class)
     @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
     public void deleteCertificateSignerTokenReadonly() throws Exception {
         tokenCertificateService.deleteCertificate(SIGNER_EX_TOKEN_READONLY_HASH);

@@ -43,7 +43,6 @@ import org.niis.xroad.restapi.openapi.model.KeyName;
 import org.niis.xroad.restapi.openapi.model.PossibleAction;
 import org.niis.xroad.restapi.service.ActionNotPossibleException;
 import org.niis.xroad.restapi.service.CertificateAuthorityNotFoundException;
-import org.niis.xroad.restapi.service.CertificateProfileInstantiationException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.CsrNotFoundException;
 import org.niis.xroad.restapi.service.DnFieldHelper;
@@ -161,17 +160,14 @@ public class KeysApiController implements KeysApi {
                     keyUsageInfo,
                     csrGenerate.getCaName(),
                     csrGenerate.getSubjectFieldValues(),
-                    csrFormat);
+                    csrFormat).getCertRequest();
         } catch (WrongKeyUsageException | DnFieldHelper.InvalidDnParameterException
                 | ClientNotFoundException | CertificateAuthorityNotFoundException e) {
             throw new BadRequestException(e);
         } catch (KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (TokenCertificateService.KeyNotOperationalException | ActionNotPossibleException e) {
+        } catch (ActionNotPossibleException e) {
             throw new ConflictException(e);
-        } catch (TokenCertificateService.CsrCreationFailureException
-                | CertificateProfileInstantiationException e) {
-            throw new InternalServerErrorException(e);
         }
 
         String filename = csrFilenameCreator.createCsrFilename(keyUsageInfo, csrFormat, memberId,
@@ -232,8 +228,6 @@ public class KeysApiController implements KeysApi {
             csrInfo = tokenCertificateService.regenerateCertRequest(keyId, csrId, certificateRequestFormat);
         } catch (KeyNotFoundException | CsrNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (TokenCertificateService.CsrCreationFailureException e) {
-            throw new InternalServerErrorException(e);
         } catch (ActionNotPossibleException e) {
             throw new ConflictException(e);
         }

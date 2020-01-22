@@ -253,6 +253,7 @@ public final class SignerProxy {
     }
 
     /**
+     * TO DO: refactor and javadoc
      * Generates a certificate request for the given key and with provided parameters.
      * @param keyId ID of the key
      * @param memberId client ID of the certificate owner
@@ -262,7 +263,35 @@ public final class SignerProxy {
      * @return byte content of the certificate request
      * @throws Exception if any errors occur
      */
-    public static byte[] generateCertRequest(String keyId, ClientId memberId, KeyUsageInfo keyUsage, String subjectName,
+    public static RegeneratedCertRequestInfo generateCertRequest(String keyId, ClientId memberId, KeyUsageInfo keyUsage, String subjectName,
+            CertificateRequestFormat format) throws Exception {
+        GenerateCertRequestResponse response = execute(new GenerateCertRequest(keyId, memberId, keyUsage, subjectName,
+                format));
+
+        byte[] certRequestBytes = response.getCertRequest();
+
+        log.trace("Cert request with length of {} bytes generated", certRequestBytes.length);
+
+        return new RegeneratedCertRequestInfo(
+                response.getCertReqId(),
+                response.getCertRequest(),
+                response.getFormat(),
+                memberId,
+                keyUsage);
+    }
+
+    /**
+     * TO DO: refactor
+     * Generates a certificate request for the given key and with provided parameters.
+     * @param keyId ID of the key
+     * @param memberId client ID of the certificate owner
+     * @param keyUsage specifies whether the certificate is for signing or authentication
+     * @param subjectName subject name of the certificate
+     * @param format the format of the request
+     * @return byte content of the certificate request
+     * @throws Exception if any errors occur
+     */
+    public static byte[] generateCertRequest2(String keyId, ClientId memberId, KeyUsageInfo keyUsage, String subjectName,
             CertificateRequestFormat format) throws Exception {
         GenerateCertRequestResponse response = execute(new GenerateCertRequest(keyId, memberId, keyUsage, subjectName,
                 format));
@@ -273,6 +302,7 @@ public final class SignerProxy {
 
         return certRequestBytes;
     }
+
 
     /**
      * Regenerates a certificate request for the given csr id
@@ -302,7 +332,7 @@ public final class SignerProxy {
     public static class RegeneratedCertRequestInfo {
         private final String certReqId;
         private final byte[] certRequest;
-        private CertificateRequestFormat format;
+        private final CertificateRequestFormat format;
         private final ClientId memberId;
         private final KeyUsageInfo keyUsage;
     }
