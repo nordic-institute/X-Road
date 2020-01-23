@@ -7,12 +7,14 @@ import * as api from '@/util/api';
 
 export interface KeysState {
   expandedTokens: string[];
-  tokens: Token[],
+  tokens: Token[];
+  selectedToken: Token | undefined;
 }
 
 export const tokensState: KeysState = {
   expandedTokens: [],
   tokens: [],
+  selectedToken: undefined,
 };
 
 export const getters: GetterTree<KeysState, RootState> = {
@@ -22,6 +24,9 @@ export const getters: GetterTree<KeysState, RootState> = {
   tokens(state): Token[] {
     return state.tokens;
   },
+  selectedToken(state): Token | undefined {
+    return state.selectedToken;
+  }
 };
 
 export const mutations: MutationTree<KeysState> = {
@@ -48,6 +53,10 @@ export const mutations: MutationTree<KeysState> = {
 
   setTokens(state, tokens: Token[]) {
     state.tokens = tokens;
+  },
+
+  setSelectedToken(state, token: Token) {
+    state.selectedToken = token;
   },
 
 };
@@ -77,6 +86,25 @@ export const actions: ActionTree<KeysState, RootState> = {
         throw error;
       });
   },
+
+  tokenLogout({ commit, dispatch, rootGetters }, id: string) {
+    return api
+      .put(`/tokens/${id}/logout`, {})
+      .then((res) => {
+        //this.$bus.$emit('show-success', 'keys.loggedOut');
+        //this.fetchData();
+        this.dispatch('fetchTokens');
+      })
+      .catch((error) => {
+        /// this.$bus.$emit('show-error', error.message);
+        throw error;
+      });
+  },
+
+  setSelectedToken({ commit, dispatch, rootGetters }, token: Token) {
+    commit('setSelectedToken', token);
+  },
+
 };
 
 export const keysModule: Module<KeysState, RootState> = {

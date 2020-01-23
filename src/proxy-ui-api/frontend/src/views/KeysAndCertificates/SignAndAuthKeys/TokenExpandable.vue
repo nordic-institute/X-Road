@@ -8,15 +8,11 @@
     <template v-slot:action>
       <template v-if="canActivateToken">
         <large-button
-          @click="loginDialog = true"
+          @click="confirmLogin()"
           v-if="!token.logged_in"
           :disabled="!token.available"
         >{{$t('keys.logIn')}}</large-button>
-        <large-button
-          @click="logoutDialog = true"
-          v-if="token.logged_in"
-          outlined
-        >{{$t('keys.logOut')}}</large-button>
+        <large-button @click="confirmLogout()" v-if="token.logged_in" outlined>{{$t('keys.logOut')}}</large-button>
       </template>
     </template>
 
@@ -29,7 +25,7 @@
         <div class="button-wrap" v-if="canActivateToken">
           <large-button
             outlined
-            @click="keyLabelDialog = true"
+            @click="addKey()"
             :disabled="!token.logged_in"
           >{{$t('keys.addKey')}}</large-button>
           <large-button
@@ -87,23 +83,6 @@
         />
       </div>
     </template>
-    <!-- Confirm dialog for logging out of token -->
-    <ConfirmDialog
-      :dialog="logoutDialog"
-      title="keys.logOutTitle"
-      text="keys.logOutText"
-      @cancel="logoutDialog = false"
-      @accept="acceptLogout()"
-    />
-
-    <KeyLabelDialog :dialog="keyLabelDialog" @save="addKey" @cancel="keyLabelDialog = false" />
-
-    <TokenLoginDialog
-      :dialog="loginDialog"
-      :tokenId="token.id"
-      @cancel="loginDialog = false"
-      @save="login"
-    />
   </expandable>
 </template>
 
@@ -113,11 +92,8 @@ import Vue from 'vue';
 import { Permissions, RouteName, UsageTypes } from '@/global';
 import Expandable from '@/components/ui/Expandable.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-import TokenLoginDialog from './TokenLoginDialog.vue';
 import KeysTable from './KeysTable.vue';
 import UnknownKeysTable from './UnknownKeysTable.vue';
-import KeyLabelDialog from './KeyLabelDialog.vue';
 import { mapGetters } from 'vuex';
 import { Key, Token, TokenType, TokenCertificate } from '@/types';
 import * as api from '@/util/api';
@@ -126,24 +102,14 @@ export default Vue.extend({
   components: {
     Expandable,
     LargeButton,
-    TokenLoginDialog,
-    ConfirmDialog,
     KeysTable,
     UnknownKeysTable,
-    KeyLabelDialog,
   },
   props: {
     token: {
       type: Object,
       required: true,
     },
-  },
-  data() {
-    return {
-      logoutDialog: false,
-      loginDialog: false,
-      keyLabelDialog: false,
-    };
   },
   computed: {
     canActivateToken(): boolean {
@@ -153,6 +119,20 @@ export default Vue.extend({
     },
   },
   methods: {
+    confirmLogout(): void {
+      this.$store.dispatch('setSelectedToken', this.token);
+      this.$emit('tokenLogout');
+    },
+    confirmLogin(): void {
+      this.$store.dispatch('setSelectedToken', this.token);
+      this.$emit('tokenLogin');
+    },
+
+    addKey(): void {
+      this.$store.dispatch('setSelectedToken', this.token);
+      this.$emit('addKey');
+    },
+
     tokenClick(token: Token): void {
       this.$router.push({
         name: RouteName.Token,
@@ -175,25 +155,6 @@ export default Vue.extend({
           usage: payload.key.usage,
         },
       });
-    },
-
-    login(password: string): void {
-      this.fetchData();
-      this.loginDialog = false;
-    },
-
-    acceptLogout(): void {
-      api
-        .put(`/tokens/${this.token.id}/logout`, {})
-        .then((res) => {
-          this.$bus.$emit('show-success', 'keys.loggedOut');
-          this.fetchData();
-        })
-        .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
-        });
-
-      this.logoutDialog = false;
     },
 
     getAuthKeys(keys: Key[]): Key[] {
@@ -234,21 +195,6 @@ export default Vue.extend({
       return this.$store.getters.tokenExpanded(tokenId);
     },
 
-    addKey(label: string) {
-      // Send add new key request to backend
-      this.keyLabelDialog = false;
-      const request = label.length > 0 ? { label } : {};
-
-      api
-        .post(`/tokens/${this.token.id}/keys`, request)
-        .then((res) => {
-          this.fetchData();
-          this.$bus.$emit('show-success', 'keys.keyAdded');
-        })
-        .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
-        });
-    },
     importCert(event: any) {
       const fileList =
         (event && event.target && event.target.files) ||

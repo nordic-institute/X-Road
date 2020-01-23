@@ -19,9 +19,24 @@
         v-for="token in filtered"
         v-bind:key="token.id"
         @refreshList="fetchData"
+        @tokenLogout="logoutDialog = true"
+        @tokenLogin="loginDialog = true"
+        @addKey="addKeyDialog = true"
         :token="token"
       />
     </template>
+
+    <ConfirmDialog
+      :dialog="logoutDialog"
+      title="keys.logOutTitle"
+      text="keys.logOutText"
+      @cancel="logoutDialog = false"
+      @accept="acceptTokenLogout()"
+    />
+
+    <TokenLoginDialog :dialog="loginDialog" @cancel="loginDialog = false" @save="tokenLogin" />
+
+    <KeyLabelDialog :dialog="addKeyDialog" @save="addKey" @cancel="addKeyDialog = false" />
   </div>
 </template>
 
@@ -30,6 +45,10 @@
 import Vue from 'vue';
 import { Permissions, RouteName, UsageTypes } from '@/global';
 import TokenExpandable from './TokenExpandable.vue';
+import TokenLoginDialog from './TokenLoginDialog.vue';
+import KeyLabelDialog from './KeyLabelDialog.vue';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+
 import { mapGetters } from 'vuex';
 import { Key, Token, TokenType, TokenCertificate } from '@/types';
 import * as api from '@/util/api';
@@ -39,10 +58,16 @@ import _ from 'lodash';
 export default Vue.extend({
   components: {
     TokenExpandable,
+    ConfirmDialog,
+    TokenLoginDialog,
+    KeyLabelDialog,
   },
   data() {
     return {
       search: '',
+      loginDialog: false,
+      logoutDialog: false,
+      addKeyDialog: false,
     };
   },
   computed: {
@@ -118,6 +143,49 @@ export default Vue.extend({
       this.$store.dispatch('fetchTokens').catch((error) => {
         this.$bus.$emit('show-error', error.message);
       });
+    },
+    acceptTokenLogout(): void {
+      const token: Token = this.$store.getters.selectedToken;
+
+      if (!token) {
+        return;
+      }
+
+      this.$store.dispatch('tokenLogout', token.id).then(
+        (response) => {
+          this.$bus.$emit('show-success', 'keys.loggedOut');
+        },
+        (error) => {
+          this.$bus.$emit('show-error', error.message);
+        },
+      );
+
+      this.logoutDialog = false;
+    },
+    tokenLogin(password: string): void {
+      this.fetchData();
+      this.loginDialog = false;
+    },
+    addKey(label: string) {
+      // Send add new key request to backend
+      const request = label.length > 0 ? { label } : {};
+      const token: Token = this.$store.getters.selectedToken;
+
+      if (!token) {
+        return;
+      }
+
+      api
+        .post(`/tokens/${token.id}/keys`, request)
+        .then((res) => {
+          this.fetchData();
+          this.$bus.$emit('show-success', 'keys.keyAdded');
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
+
+      this.addKeyDialog = false;
     },
   },
   created() {
