@@ -32,7 +32,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.commonui.SignerProxy.RegeneratedCertRequestInfo;
+import ee.ria.xroad.commonui.SignerProxy.GeneratedCertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -133,7 +133,7 @@ public class TokenCertificateService {
      * were some extra parameters
      * @throws ActionNotPossibleException if generate csr was not possible for this key
      */
-    public RegeneratedCertRequestInfo generateCertRequest(String keyId, ClientId memberId, KeyUsageInfo keyUsage,
+    public GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId memberId, KeyUsageInfo keyUsage,
             String caName, Map<String, String> subjectFieldValues, CertificateRequestFormat format)
             throws CertificateAuthorityNotFoundException, ClientNotFoundException,
             WrongKeyUsageException,
@@ -207,7 +207,7 @@ public class TokenCertificateService {
      * @throws CsrNotFoundException if csr with csrId was not found
      * @throws ActionNotPossibleException if regenerate was not possible
      */
-    public RegeneratedCertRequestInfo regenerateCertRequest(String keyId, String csrId, CertificateRequestFormat format)
+    public GeneratedCertRequestInfo regenerateCertRequest(String keyId, String csrId, CertificateRequestFormat format)
             throws KeyNotFoundException, CsrNotFoundException, ActionNotPossibleException {
 
         // validate key and memberId existence

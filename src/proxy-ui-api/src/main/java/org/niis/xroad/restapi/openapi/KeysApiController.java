@@ -25,7 +25,7 @@
 package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.commonui.SignerProxy.RegeneratedCertRequestInfo;
+import ee.ria.xroad.commonui.SignerProxy.GeneratedCertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
@@ -223,7 +223,7 @@ public class KeysApiController implements KeysApi {
         // squid:S3655 throwing NoSuchElementException if there is no value present is
         // fine since csr format is mandatory parameter
         CertificateRequestFormat certificateRequestFormat = CsrFormatMapping.map(csrFormat).get();
-        RegeneratedCertRequestInfo csrInfo;
+        GeneratedCertRequestInfo csrInfo;
         try {
             csrInfo = tokenCertificateService.regenerateCertRequest(keyId, csrId, certificateRequestFormat);
         } catch (KeyNotFoundException | CsrNotFoundException e) {

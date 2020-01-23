@@ -25,7 +25,7 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.commonui.SignerProxy;
+import ee.ria.xroad.commonui.SignerProxy.GeneratedCertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
@@ -97,10 +97,10 @@ public class KeyAndCertificateRequestService {
             DnFieldHelper.InvalidDnParameterException,
             GlobalConfService.GlobalConfOutdatedException {
 
-        // maybe would be good to duplicate auth & possible actions checking before,
+        // TO DO: maybe would be good to duplicate auth & possible actions checking before,
         // so we can avoid some unnecessary create keys + rollbacks?
         KeyInfo keyInfo = keyService.addKey(tokenId, keyLabel);
-        SignerProxy.RegeneratedCertRequestInfo csrInfo;
+        GeneratedCertRequestInfo csrInfo;
         boolean csrGenerateSuccess = false;
         Exception csrGenerateException = null;
         try {

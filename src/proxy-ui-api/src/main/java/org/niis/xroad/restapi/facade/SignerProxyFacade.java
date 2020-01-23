@@ -26,7 +26,7 @@ package org.niis.xroad.restapi.facade;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.commonui.SignerProxy;
-import ee.ria.xroad.commonui.SignerProxy.RegeneratedCertRequestInfo;
+import ee.ria.xroad.commonui.SignerProxy.GeneratedCertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -145,7 +145,7 @@ public class SignerProxyFacade {
      * {@link SignerProxy#generateCertRequest(String, ClientId, KeyUsageInfo,
      * String, CertificateRequestFormat)}
      */
-    public RegeneratedCertRequestInfo generateCertRequest(String keyId, ClientId memberId, KeyUsageInfo keyUsage,
+    public GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId memberId, KeyUsageInfo keyUsage,
             String subjectName, CertificateRequestFormat format) throws Exception {
         return SignerProxy.generateCertRequest(keyId, memberId, keyUsage, subjectName, format);
     }
@@ -153,7 +153,7 @@ public class SignerProxyFacade {
     /**
      * {@link SignerProxy#regenerateCertRequest(String, CertificateRequestFormat)}
      */
-    public RegeneratedCertRequestInfo regenerateCertRequest(String certRequestId, CertificateRequestFormat format)
+    public GeneratedCertRequestInfo regenerateCertRequest(String certRequestId, CertificateRequestFormat format)
             throws Exception {
         return SignerProxy.regenerateCertRequest(certRequestId, format);
     }

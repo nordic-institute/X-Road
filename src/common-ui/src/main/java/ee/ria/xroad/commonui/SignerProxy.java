@@ -253,17 +253,16 @@ public final class SignerProxy {
     }
 
     /**
-     * TO DO: refactor and javadoc
      * Generates a certificate request for the given key and with provided parameters.
      * @param keyId ID of the key
      * @param memberId client ID of the certificate owner
      * @param keyUsage specifies whether the certificate is for signing or authentication
      * @param subjectName subject name of the certificate
      * @param format the format of the request
-     * @return byte content of the certificate request
+     * @return GeneratedCertRequestInfo containing details and content of the certificate request
      * @throws Exception if any errors occur
      */
-    public static RegeneratedCertRequestInfo generateCertRequest(String keyId, ClientId memberId,
+    public static GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId memberId,
             KeyUsageInfo keyUsage, String subjectName,
             CertificateRequestFormat format) throws Exception {
 
@@ -274,7 +273,7 @@ public final class SignerProxy {
 
         log.trace("Cert request with length of {} bytes generated", certRequestBytes.length);
 
-        return new RegeneratedCertRequestInfo(
+        return new GeneratedCertRequestInfo(
                 response.getCertReqId(),
                 response.getCertRequest(),
                 response.getFormat(),
@@ -282,27 +281,20 @@ public final class SignerProxy {
                 keyUsage);
     }
 
-    public static byte[] oldGenerateCertRequest(String keyId, ClientId memberId,
-            KeyUsageInfo keyUsage, String subjectName,
-            CertificateRequestFormat format) throws Exception {
-
-        return generateCertRequest(keyId, memberId, keyUsage, subjectName, format).getCertRequest();
-    }
-
     /**
      * Regenerates a certificate request for the given csr id
      * @param certRequestId csr ID
      * @param format the format of the request
-     * @return byte content of the certificate request
+     * @return GeneratedCertRequestInfo containing details and content of the certificate request
      * @throws Exception if any errors occur
      */
-    public static RegeneratedCertRequestInfo regenerateCertRequest(String certRequestId,
+    public static GeneratedCertRequestInfo regenerateCertRequest(String certRequestId,
             CertificateRequestFormat format) throws Exception {
         RegenerateCertRequestResponse response = execute(new RegenerateCertRequest(certRequestId, format));
 
         log.trace("Cert request with length of {} bytes generated", response.getCertRequest().length);
 
-        return new RegeneratedCertRequestInfo(
+        return new GeneratedCertRequestInfo(
                 response.getCertReqId(),
                 response.getCertRequest(),
                 response.getFormat(),
@@ -314,7 +306,7 @@ public final class SignerProxy {
      * DTO since we don't want to leak signer message objects out
      */
     @Value
-    public static class RegeneratedCertRequestInfo {
+    public static class GeneratedCertRequestInfo {
         private final String certReqId;
         private final byte[] certRequest;
         private final CertificateRequestFormat format;
