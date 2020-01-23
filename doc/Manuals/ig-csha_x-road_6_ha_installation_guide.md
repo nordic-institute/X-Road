@@ -180,7 +180,7 @@ The database can also be installed on the central server node(s), but that is no
 
 In addition, it is necessary to configure a unique node name for each node participating in the cluster before installing the X-Road software.
 
-1.  On each node, edit file `/etc/xroad/local.ini`, creating it if necessary
+1.  On each node, edit file `/etc/xroad/conf.d/local.ini`, creating it if necessary
 2.  Add the following lines
     ```
     [center]
