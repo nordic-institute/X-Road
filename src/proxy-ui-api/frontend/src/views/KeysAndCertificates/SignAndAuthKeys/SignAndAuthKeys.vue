@@ -43,10 +43,10 @@ export default Vue.extend({
   data() {
     return {
       search: '',
-      tokens: [] as Token[],
     };
   },
   computed: {
+    ...mapGetters(['tokens']),
     filtered(): Token[] {
       if (!this.tokens || this.tokens.length === 0) {
         return [];
@@ -115,14 +115,9 @@ export default Vue.extend({
   methods: {
     fetchData(): void {
       // Fetch tokens from backend
-      api
-        .get(`/tokens`)
-        .then((res) => {
-          this.tokens = res.data;
-        })
-        .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
-        });
+      this.$store.dispatch('fetchTokens').catch((error) => {
+        this.$bus.$emit('show-error', error.message);
+      });
     },
   },
   created() {
