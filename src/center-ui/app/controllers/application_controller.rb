@@ -23,6 +23,7 @@
 # THE SOFTWARE.
 #
 
+require 'java'
 require 'json'
 require 'common-ui/uploaded_file.rb'
 
@@ -113,7 +114,6 @@ class ApplicationController < BaseController
         ActiveRecord::Base.connection.commit_db_transaction
       end
     end
-
     execute_after_commit_actions
 
     # Everything that can fail has been done,

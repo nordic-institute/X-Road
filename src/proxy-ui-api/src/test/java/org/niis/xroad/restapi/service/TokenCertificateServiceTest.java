@@ -58,18 +58,22 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_AVAILABLE;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_READONLY;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -110,6 +114,8 @@ public class TokenCertificateServiceTest {
     private static final String GOOD_SIGN_CSR_ID = "sign-csr-which-exists";
     private static final String CSR_NOT_FOUND_CSR_ID = "csr-404";
     private static final String SIGNER_EXCEPTION_CSR_ID = "signer-ex-csr";
+    private static final String IO_EXCEPTION_MSG = "io-exception-msg";
+    private static final String SSL_AUTH_ERROR_MESSAGE = "Security server has no valid authentication certificate";
 
     // for this signerProxy.getCertForHash throws not found
     private static final String NOT_FOUND_CERT_HASH = "not-found-cert";
@@ -554,7 +560,7 @@ public class TokenCertificateServiceTest {
     @Test(expected = CodedException.class)
     public void registerAuthCertificateFail() throws Exception {
         doAnswer(answer -> authCert).when(signerProxyFacade).getCertForHash(any());
-        when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any(), any()))
+        when(managementRequestSenderService.sendAuthCertRegisterRequest(any(), any()))
                 .thenThrow(new CodedException("FAILED"));
         tokenCertificateService.registerAuthCert(MOCK_AUTH_CERTIFICATE_HASH, BAD_ADDRESS);
     }
@@ -577,6 +583,35 @@ public class TokenCertificateServiceTest {
         }
     }
 
+    @Test
+    public void unregisterAuthCertNoValid() throws Exception {
+        doAnswer(answer -> authCert).when(signerProxyFacade).getCertForHash(any());
+        when(managementRequestSenderService.sendAuthCertDeletionRequest(any()))
+                .thenThrow(new ManagementRequestSenderService.ManagementRequestSendingFailedException(
+                        new CodedException(X_SSL_AUTH_FAILED, SSL_AUTH_ERROR_MESSAGE)
+                                .withPrefix(SERVER_CLIENTPROXY_X)));
+        try {
+            tokenCertificateService.unregisterAuthCert(MOCK_AUTH_CERTIFICATE_HASH);
+            fail("Should have thrown ManagementRequestSendingFailedException");
+        } catch (ManagementRequestSenderService.ManagementRequestSendingFailedException e) {
+            assertTrue(e.getErrorDeviation().getMetadata().get(0).contains(SSL_AUTH_ERROR_MESSAGE));
+        }
+    }
+
+    @Test
+    public void unregisterAuthCertAssertExceptionMessage() throws Exception {
+        doAnswer(answer -> authCert).when(signerProxyFacade).getCertForHash(any());
+        when(managementRequestSenderService.sendAuthCertDeletionRequest(any()))
+                .thenThrow(new ManagementRequestSenderService.ManagementRequestSendingFailedException(
+                        new IOException(IO_EXCEPTION_MSG)));
+        try {
+            tokenCertificateService.unregisterAuthCert(MOCK_AUTH_CERTIFICATE_HASH);
+            fail("Should have thrown ManagementRequestSendingFailedException");
+        } catch (ManagementRequestSenderService.ManagementRequestSendingFailedException e) {
+            assertTrue(e.getErrorDeviation().getMetadata().contains(IO_EXCEPTION_MSG));
+        }
+    }
+
     @Test(expected = TokenCertificateService.SignCertificateNotSupportedException.class)
     public void registerSignCertificate() throws Exception {
         doAnswer(answer -> signCert).when(signerProxyFacade).getCertForHash(any());
@@ -587,5 +622,15 @@ public class TokenCertificateServiceTest {
     public void unregisterSignCertificate() throws Exception {
         doAnswer(answer -> signCert).when(signerProxyFacade).getCertForHash(any());
         tokenCertificateService.unregisterAuthCert(MOCK_CERTIFICATE_HASH);
+    }
+
+    @Test
+    public void markAuthCertForDeletion() throws Exception {
+        doAnswer(answer -> authCert).when(signerProxyFacade).getCertForHash(any());
+        try {
+            tokenCertificateService.markAuthCertForDeletion(MOCK_AUTH_CERTIFICATE_HASH);
+        } catch (Exception e) {
+            fail("Should not fail");
+        }
     }
 }
