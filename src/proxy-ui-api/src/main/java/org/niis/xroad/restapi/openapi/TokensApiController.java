@@ -48,7 +48,6 @@ import org.niis.xroad.restapi.service.ActionNotPossibleException;
 import org.niis.xroad.restapi.service.CertificateAuthorityNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.DnFieldHelper;
-import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.KeyAndCertificateRequestService;
 import org.niis.xroad.restapi.service.KeyService;
 import org.niis.xroad.restapi.service.TokenNotFoundException;
@@ -216,8 +215,6 @@ public class TokensApiController implements TokensApi {
         } catch (ClientNotFoundException | CertificateAuthorityNotFoundException
                 | DnFieldHelper.InvalidDnParameterException e) {
             throw new BadRequestException(e);
-        } catch (GlobalConfService.GlobalConfOutdatedException e) {
-            throw new InternalServerErrorException(e);
         } catch (ActionNotPossibleException e) {
             throw new ConflictException(e);
         } catch (TokenNotFoundException e) {

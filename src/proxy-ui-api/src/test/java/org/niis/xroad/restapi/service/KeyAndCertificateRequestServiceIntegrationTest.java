@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.commonui.SignerProxy;
@@ -36,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.util.TokenTestUtils;
@@ -52,8 +54,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.service.TokenService.KEY_NOT_FOUND_FAULT_CODE;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -196,4 +203,45 @@ public class KeyAndCertificateRequestServiceIntegrationTest {
                         KeyUsageInfo.AUTHENTICATION, MOCK_CA, dnParams,
                         CertificateRequestFormat.PEM);
     }
+
+    @Test
+    @WithMockUser(authorities = { "DELETE_KEY", "DELETE_SIGN_KEY", "DELETE_AUTH_KEY" })
+    public void csrGenerateFailureRollsBackKeyCreate() throws Exception {
+        HashMap<String, String> dnParams = createCsrDnParams();
+        try {
+            ClientId notFoundClient = ClientId.create("not-found", "GOV", "M1");
+            keyAndCertificateRequestService
+                    .addKeyAndCertRequest(SOFTWARE_TOKEN_ID, "keylabel",
+                            notFoundClient,
+                            KeyUsageInfo.SIGNING, MOCK_CA, dnParams,
+                            CertificateRequestFormat.PEM);
+            fail("should throw exception");
+        } catch (ClientNotFoundException expected) {
+            // our mock sets key id = label
+            verify(signerProxyFacade, times(1))
+                    .deleteKey("keylabel", true);
+            verify(signerProxyFacade, times(1))
+                    .deleteKey("keylabel", false);
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DELETE_KEY", "DELETE_SIGN_KEY", "DELETE_AUTH_KEY" })
+    public void failedRollback() throws Exception {
+        HashMap<String, String> dnParams = createCsrDnParams();
+        doThrow(new CodedException(KEY_NOT_FOUND_FAULT_CODE))
+                .when(signerProxyFacade).getTokenForKeyId(any());
+        try {
+            ClientId notFoundClient = ClientId.create("not-found", "GOV", "M1");
+            keyAndCertificateRequestService
+                    .addKeyAndCertRequest(SOFTWARE_TOKEN_ID, "keylabel",
+                            notFoundClient,
+                            KeyUsageInfo.SIGNING, MOCK_CA, dnParams,
+                            CertificateRequestFormat.PEM);
+            fail("should throw exception");
+        } catch (DeviationAwareRuntimeException expected) {
+            // delete key -attempt will not reach signerProxyFacade
+        }
+    }
+
 }

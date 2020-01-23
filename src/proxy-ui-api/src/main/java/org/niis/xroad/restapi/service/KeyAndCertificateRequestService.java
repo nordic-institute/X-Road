@@ -88,16 +88,13 @@ public class KeyAndCertificateRequestService {
      * @throws TokenNotFoundException if token with {@code tokenId} was not found
      * @throws DnFieldHelper.InvalidDnParameterException if required dn parameters were missing, or if there
      * were some extra parameters
-     * @throws GlobalConfService.GlobalConfOutdatedException if global conf is outdated (this prevents key delete,
-     * in rollback done if csr generate fails)
      */
     public KeyAndCertRequestInfo addKeyAndCertRequest(String tokenId, String keyLabel,
             ClientId memberId, KeyUsageInfo keyUsageInfo, String caName,
             Map<String, String> subjectFieldValues, CertificateRequestFormat csrFormat)
             throws ActionNotPossibleException,
             ClientNotFoundException, CertificateAuthorityNotFoundException, TokenNotFoundException,
-            DnFieldHelper.InvalidDnParameterException,
-            GlobalConfService.GlobalConfOutdatedException {
+            DnFieldHelper.InvalidDnParameterException {
 
         KeyInfo keyInfo = keyService.addKey(tokenId, keyLabel);
         GeneratedCertRequestInfo csrInfo;
@@ -148,15 +145,16 @@ public class KeyAndCertificateRequestService {
      * Rollback key creation by deleting that key
      * @param rootCause root cause why we rollback, to log in case new exceptions would mask it
      * @param keyId key id
-     * @throws GlobalConfService.GlobalConfOutdatedException if global conf was outdated
      */
-    private void tryRollbackCreateKey(Exception rootCause, String keyId)
-            throws GlobalConfService.GlobalConfOutdatedException {
+    private void tryRollbackCreateKey(Exception rootCause, String keyId) {
         // log error in case deleteKey throws an error, to not mask the original exception
         boolean rollbackSuccess = false;
         try {
             keyService.deleteKey(keyId);
             rollbackSuccess = true;
+        } catch (GlobalConfService.GlobalConfOutdatedException e) {
+            // should not happen, since only thrown from unregister cert (which wont be done)
+            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         } catch (KeyNotFoundException | ActionNotPossibleException e) {
             // this should be rare situations since we just created the key -> not checked exceptions
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
