@@ -49,7 +49,9 @@ public abstract class HandlerBase extends AbstractHandler {
      * @param ex exception that should be converted to a SOAP fault
      * @throws IOException if an I/O error occurred
      */
-    public void sendErrorResponse(HttpServletResponse response, CodedException ex) throws IOException {
+    public void sendErrorResponse(HttpServletRequest request,
+                                  HttpServletResponse response,
+                                  CodedException ex) throws IOException {
         String faultXml = ex instanceof CodedException.Fault
                 ? ((CodedException.Fault) ex).getFaultXml() : SoapFault.createFaultXml(ex);
         String encoding = MimeUtils.UTF8;
@@ -92,6 +94,7 @@ public abstract class HandlerBase extends AbstractHandler {
         }
     }
 
-    protected void failure(HttpServletResponse response, CodedException ex) throws IOException {
+    protected void failure(HttpServletRequest request, HttpServletResponse response, CodedException ex)
+            throws IOException {
     }
 }

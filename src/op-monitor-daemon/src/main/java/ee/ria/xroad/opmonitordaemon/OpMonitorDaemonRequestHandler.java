@@ -109,7 +109,7 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
         } catch (Throwable t) { // We want to catch serious errors as well
             log.error("Error while handling query request", t);
 
-            sendErrorResponse(response, translateWithPrefix(
+            sendErrorResponse(request, response, translateWithPrefix(
                     SERVER_SERVER_PROXY_OPMONITOR_X, t));
         }
     }

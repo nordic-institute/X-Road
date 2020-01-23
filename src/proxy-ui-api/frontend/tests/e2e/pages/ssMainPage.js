@@ -18,32 +18,57 @@ var navigateCommands = {
   }
 };
 
-var clientTabCommands = {};
+var clientTabCommands = {
+  clickNameHeader: function() {
+    this.click('@listNameHeader');
+    return this;
+  },
+  clickIDHeader: function() {
+    this.click('@listIDHeader');
+    return this;
+  },
+  clickStatusHeader: function() {
+    this.click('@listStatusHeader');
+    return this;
+  }
+};
 
 module.exports = {
   url: process.env.VUE_DEV_SERVER_URL,
   commands: [navigateCommands],
   elements: {
     clientsTab: { 
-      selector: '//div[contains(@class, "v-tabs__bar")]//a[text()="clients"]', 
+      selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()="Clients"]', 
       locateStrategy: 'xpath'},
     keysTab: { 
-      selector: '//div[contains(@class, "v-tabs__bar")]//a[text()="keys and certificates"]', 
+      selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()="Keys and certificates"]', 
       locateStrategy: 'xpath'},
     diagnosticsTab: { 
-      selector: '//div[contains(@class, "v-tabs__bar")]//a[text()="diagnostics"]', 
+      selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()="Diagnostics"]', 
       locateStrategy: 'xpath'},
     settingsTab: { 
-      selector: '//div[contains(@class, "v-tabs__bar")]//a[text()="settings"]', 
+      selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()="Settings"]', 
       locateStrategy: 'xpath' }
   },
   
   sections: {
     clientsTab: {
-      selector: '//div[contains(@class, "main-content") and .//a[contains(@class, "v-tabs__item--active") and text()="clients"]]//div[contains(@class, "mt-5")]',
+      selector: '//div[contains(@class, "data-table-wrapper") and .//button[.//*[contains(text(), "add client")]]]',
+      locateStrategy: 'xpath',
       commands: [clientTabCommands],
       elements: {
-        addClientButton: { selector: '//div[contains(@class, "v-btn__content") and text()="Add client"]', locateStrategy: 'xpath' },
+        addClientButton: { 
+          selector: '//div[contains(@class, "v-btn__content") and text()="Add client"]',
+          locateStrategy: 'xpath' },
+        listNameHeader: { 
+          selector: '//th[span[contains(text(),"Name")]]', 
+          locateStrategy: 'xpath' },
+        listIDHeader: { 
+          selector: '//th[span[contains(text(),"ID")]]', 
+          locateStrategy: 'xpath' },
+        listStatusHeader: { 
+          selector: '//th[span[contains(text(),"Status")]]', 
+          locateStrategy: 'xpath' }
       }
     }
   }

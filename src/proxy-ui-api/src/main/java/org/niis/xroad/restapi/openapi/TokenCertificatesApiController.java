@@ -39,6 +39,7 @@ import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.CsrNotFoundException;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
+import org.niis.xroad.restapi.service.ManagementRequestSenderService;
 import org.niis.xroad.restapi.service.PossibleActionEnum;
 import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.util.ResourceUtils;
@@ -200,9 +201,27 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
 
     @Override
     @PreAuthorize("hasAuthority('SEND_AUTH_CERT_DEL_REQ')")
-    public ResponseEntity<Void> unregisterCertificate(String hash) {
+    public ResponseEntity<Void> unregisterAuthCertificate(String hash) {
         try {
             tokenCertificateService.unregisterAuthCert(hash);
+        } catch (CertificateNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (GlobalConfService.GlobalConfOutdatedException | TokenCertificateService.InvalidCertificateException
+                | TokenCertificateService.SignCertificateNotSupportedException e) {
+            throw new BadRequestException(e);
+        } catch (ActionNotPossibleException | KeyNotFoundException e) {
+            throw new ConflictException(e);
+        } catch (ManagementRequestSenderService.ManagementRequestSendingFailedException e) {
+            throw new InternalServerErrorException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('SEND_AUTH_CERT_DEL_REQ')")
+    public ResponseEntity<Void> markAuthCertForDeletion(String hash) {
+        try {
+            tokenCertificateService.markAuthCertForDeletion(hash);
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (GlobalConfService.GlobalConfOutdatedException | TokenCertificateService.InvalidCertificateException

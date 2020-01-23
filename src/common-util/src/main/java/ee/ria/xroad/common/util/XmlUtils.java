@@ -70,6 +70,7 @@ public final class XmlUtils {
             "http://xml.org/sax/features/external-parameter-entities";
 
     private static final String ELEMENT_NOT_FOUND_WARNING = "Element not found with getElementXPathNS {}";
+    private static final int DEFAULT_INDENT = 4;
 
     private XmlUtils() {
     }
@@ -242,7 +243,7 @@ public final class XmlUtils {
      * @throws Exception if any errors occur
      */
     public static String prettyPrintXml(Document document) throws Exception {
-        return prettyPrintXml(document, "UTF-8");
+        return prettyPrintXml(document, "UTF-8", DEFAULT_INDENT);
     }
 
     /**
@@ -252,14 +253,17 @@ public final class XmlUtils {
      * @return printed document in String form
      * @throws Exception if any errors occur
      */
-    public static String prettyPrintXml(Document document, String charset) throws Exception {
+    public static String prettyPrintXml(Document document, String charset, int indent) throws Exception {
         StringWriter stringWriter = new StringWriter();
         StreamResult output = new StreamResult(stringWriter);
 
         Transformer transformer = createTransformerFactory().newTransformer();
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.setOutputProperty(OutputKeys.ENCODING, charset);
-        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+        if (indent > 0) {
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount",
+                    String.format("%d", indent));
+        }
         transformer.transform(new DOMSource(document), output);
 
         return output.getWriter().toString().trim();

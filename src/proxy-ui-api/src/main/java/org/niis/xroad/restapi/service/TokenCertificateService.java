@@ -533,26 +533,73 @@ public class TokenCertificateService {
     }
 
     /**
-     * Send the authentication certificate deletion request to central server.
-     * Also sets cert status to STATUS_DELINPROG
+     * Send the authentication certificate deletion request to central server and set the cert status to
+     * {@link CertificateInfo#STATUS_DELINPROG}
      * @param hash certificate hash
-     * @throws CertificateNotFoundException
+     * @param skipUnregister whether to skip the actual delete request and only change cert status
+     * @throws SignCertificateNotSupportedException
+     * @throws ActionNotPossibleException
      * @throws GlobalConfService.GlobalConfOutdatedException
+     * @throws InvalidCertificateException
+     * @throws KeyNotFoundException
+     * @throws CertificateNotFoundException
+     * @throws ManagementRequestSenderService.ManagementRequestSendingFailedException
      */
-    public void unregisterAuthCert(String hash) throws CertificateNotFoundException,
-            GlobalConfService.GlobalConfOutdatedException, InvalidCertificateException,
-            SignCertificateNotSupportedException, KeyNotFoundException, ActionNotPossibleException {
+    private void unregisterAuthCertAndMarkForDeletion(String hash, boolean skipUnregister)
+            throws CertificateNotFoundException, GlobalConfService.GlobalConfOutdatedException,
+            InvalidCertificateException, SignCertificateNotSupportedException, KeyNotFoundException,
+            ActionNotPossibleException, ManagementRequestSenderService.ManagementRequestSendingFailedException {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         verifyAuthCert(certificateInfo);
         verifyCertAction(PossibleActionEnum.UNREGISTER, certificateInfo, hash);
+        if (!skipUnregister) {
+            managementRequestSenderService.sendAuthCertDeletionRequest(certificateInfo.getCertificateBytes());
+        }
         try {
-            managementRequestSenderService.sendAuthCertDeletionRequest(
-                    certificateInfo.getCertificateBytes());
             signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
-        } catch (GlobalConfService.GlobalConfOutdatedException | CodedException e) {
-            throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Could not unregister auth cert", e);
+            // this means that cert was not found (which has been handled already) or some Akka error
+            throw new RuntimeException("Could not change auth cert status", e);
+        }
+    }
+
+    /**
+     * Send the authentication certificate deletion request to central server and set cert status to
+     * {@link CertificateInfo#STATUS_DELINPROG}
+     * @param hash certificate hash
+     * @throws SignCertificateNotSupportedException
+     * @throws ActionNotPossibleException
+     * @throws GlobalConfService.GlobalConfOutdatedException
+     * @throws InvalidCertificateException
+     * @throws KeyNotFoundException
+     * @throws CertificateNotFoundException
+     * @throws ManagementRequestSenderService.ManagementRequestSendingFailedException
+     */
+    public void unregisterAuthCert(String hash) throws SignCertificateNotSupportedException,
+            ActionNotPossibleException, GlobalConfService.GlobalConfOutdatedException, InvalidCertificateException,
+            KeyNotFoundException, CertificateNotFoundException,
+            ManagementRequestSenderService.ManagementRequestSendingFailedException {
+        unregisterAuthCertAndMarkForDeletion(hash, false);
+    }
+
+    /**
+     * Set the authentication certificate status to {@link CertificateInfo#STATUS_DELINPROG}
+     * @param hash certificate hash
+     * @throws SignCertificateNotSupportedException
+     * @throws ActionNotPossibleException
+     * @throws GlobalConfService.GlobalConfOutdatedException
+     * @throws InvalidCertificateException
+     * @throws KeyNotFoundException
+     * @throws CertificateNotFoundException
+     */
+    public void markAuthCertForDeletion(String hash) throws SignCertificateNotSupportedException,
+            ActionNotPossibleException, GlobalConfService.GlobalConfOutdatedException, InvalidCertificateException,
+            KeyNotFoundException, CertificateNotFoundException {
+        try {
+            unregisterAuthCertAndMarkForDeletion(hash, true);
+        } catch (ManagementRequestSenderService.ManagementRequestSendingFailedException e) {
+            // should never happen
+            throw new RuntimeException("Management request failed", e);
         }
     }
 
