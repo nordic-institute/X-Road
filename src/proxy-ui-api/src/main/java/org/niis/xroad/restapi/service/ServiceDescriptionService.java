@@ -68,7 +68,7 @@ import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
  */
 @Slf4j
 @Service
-@Transactional
+@Transactional(rollbackFor = ServiceException.class)
 @PreAuthorize("isAuthenticated()")
 public class ServiceDescriptionService {
 
@@ -452,11 +452,14 @@ public class ServiceDescriptionService {
         serviceType.setUrl(url);
         serviceType.setServiceDescription(serviceDescriptionType);
 
+        // Add created servicedescription to client
         serviceDescriptionType.getService().add(serviceType);
+        client.getServiceDescription().add(serviceDescriptionType);
+
+        // Add created endpoint to client
         EndpointType endpointType = new EndpointType(serviceCode, EndpointType.ANY_METHOD,
                 EndpointType.ANY_PATH, false);
         client.getEndpoint().add(endpointType);
-        client.getServiceDescription().add(serviceDescriptionType);
 
         checkDuplicateServiceCodes(serviceDescriptionType);
         checkDuplicateUrl(serviceDescriptionType);
@@ -563,7 +566,13 @@ public class ServiceDescriptionService {
             throw new ServiceDescriptionNotFoundException("ServiceDescription with id: " + id + " wasn't found");
         }
 
+        if (serviceDescription.getService().get(0) == null) {
+            throw new ServiceNotFoundException("Service not found from servicedescription with id "
+                    + serviceDescription.getId());
+        }
         serviceDescription.setUrl(url);
+        serviceDescription.getService().get(0).setUrl(url);
+
         updateServiceCodes(restServiceCode, newRestServiceCode, serviceDescription);
 
         checkDuplicateServiceCodes(serviceDescription);
@@ -608,6 +617,12 @@ public class ServiceDescriptionService {
             newRestServiceCode = restServiceCode;
         }
 
+        if (serviceDescription.getService().get(0) == null) {
+            throw new ServiceNotFoundException("Service not found from servicedescription with id "
+                    + serviceDescription.getId());
+        }
+        serviceDescription.setUrl(url);
+        serviceDescription.getService().get(0).setUrl(url);
         updateServiceCodes(restServiceCode, newRestServiceCode, serviceDescription);
 
         // Parse openapi definition and handle updating endpoints and acls
