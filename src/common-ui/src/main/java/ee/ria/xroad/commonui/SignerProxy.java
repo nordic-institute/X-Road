@@ -263,8 +263,10 @@ public final class SignerProxy {
      * @return byte content of the certificate request
      * @throws Exception if any errors occur
      */
-    public static RegeneratedCertRequestInfo generateCertRequest(String keyId, ClientId memberId, KeyUsageInfo keyUsage, String subjectName,
+    public static RegeneratedCertRequestInfo generateCertRequest(String keyId, ClientId memberId,
+            KeyUsageInfo keyUsage, String subjectName,
             CertificateRequestFormat format) throws Exception {
+
         GenerateCertRequestResponse response = execute(new GenerateCertRequest(keyId, memberId, keyUsage, subjectName,
                 format));
 
@@ -278,6 +280,13 @@ public final class SignerProxy {
                 response.getFormat(),
                 memberId,
                 keyUsage);
+    }
+
+    public static byte[] oldGenerateCertRequest(String keyId, ClientId memberId,
+            KeyUsageInfo keyUsage, String subjectName,
+            CertificateRequestFormat format) throws Exception {
+
+        return generateCertRequest(keyId, memberId, keyUsage, subjectName, format).getCertRequest();
     }
 
     /**

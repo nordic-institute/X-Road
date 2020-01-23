@@ -4198,11 +4198,11 @@ components:
       description: Key and TokenCertificateSigningRequest id
       required:
         - key
-        - tokenCertificateSigningRequestId
+        - csr_id
       properties:
         key:
           $ref: '#/components/schemas/Key'
-        tokenCertificateSigningRequestId:
+        csr_id:
           type: string
           format: text
           description: CSR id

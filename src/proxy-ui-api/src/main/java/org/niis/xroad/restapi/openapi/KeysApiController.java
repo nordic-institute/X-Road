@@ -153,7 +153,7 @@ public class KeysApiController implements KeysApi {
         // fine since csr format is mandatory parameter
         CertificateRequestFormat csrFormat = CsrFormatMapping.map(csrGenerate.getCsrFormat()).get();
 
-        byte[] csr = null;
+        byte[] csr;
         try {
             csr = tokenCertificateService.generateCertRequest(keyId,
                     memberId,

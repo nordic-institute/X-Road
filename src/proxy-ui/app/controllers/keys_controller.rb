@@ -31,6 +31,7 @@ java_import Java::ee.ria.xroad.common.certificateprofile.impl.SignCertificatePro
 java_import Java::ee.ria.xroad.common.util.CertUtils
 java_import Java::ee.ria.xroad.common.util.CryptoUtils
 java_import Java::ee.ria.xroad.commonui.SignerProxy
+#java_import Java::ee.ria.xroad.commonui.SignerProxy.RegeneratedCertRequestInfo
 java_import Java::ee.ria.xroad.proxyui.ImportCertUtil
 java_import Java::ee.ria.xroad.signer.protocol.dto.CertificateInfo
 java_import Java::ee.ria.xroad.signer.protocol.dto.KeyUsageInfo
@@ -240,7 +241,7 @@ class KeysController < ApplicationController
     audit_log_data[:certificationServiceName] = params[:approved_ca]
     audit_log_data[:csrFormat] = params[:csr_format].upcase
 
-    csr = SignerProxy::generateCertRequest(
+    csr = SignerProxy::oldGenerateCertRequest(
       params[:key_id], client_id, key_usage, subject_name,
       CertificateRequestFormat.valueOf(params[:csr_format]))
 

@@ -80,7 +80,7 @@ public class KeyAndCertificateRequestService {
      * @param subjectFieldValues
      * @param csrFormat
      * @return
-     * @throws ActionNotPossibleException if add key, generate csr, or delete key (if rolling back) was not possible
+     * @throws ActionNotPossibleException if add key or generate csr was not possible
      * @throws ClientNotFoundException if client with {@code memberId} id was not found
      * @throws CertificateAuthorityNotFoundException if ca authority with name {@code caName} does not exist
      * @throws TokenNotFoundException if token with {@code tokenId} was not found
@@ -127,7 +127,14 @@ public class KeyAndCertificateRequestService {
                         + "was not due to an Exception (we do not catch Errors)");
             }
         }
-        KeyAndCertRequestInfo info = new KeyAndCertRequestInfo(keyInfo,
+        // get a new keyInfo that contains the csr
+        KeyInfo refreshedKeyInfo;
+        try {
+            refreshedKeyInfo = keyService.getKey(keyInfo.getId());
+        } catch (KeyNotFoundException e) {
+            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        }
+        KeyAndCertRequestInfo info = new KeyAndCertRequestInfo(refreshedKeyInfo,
                 csrInfo.getCertReqId(),
                 csrInfo.getCertRequest(),
                 csrInfo.getFormat(),

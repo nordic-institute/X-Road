@@ -45,6 +45,10 @@ import org.niis.xroad.restapi.openapi.model.Token;
 import org.niis.xroad.restapi.openapi.model.TokenName;
 import org.niis.xroad.restapi.openapi.model.TokenPassword;
 import org.niis.xroad.restapi.service.ActionNotPossibleException;
+import org.niis.xroad.restapi.service.CertificateAuthorityNotFoundException;
+import org.niis.xroad.restapi.service.ClientNotFoundException;
+import org.niis.xroad.restapi.service.DnFieldHelper;
+import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.KeyAndCertificateRequestService;
 import org.niis.xroad.restapi.service.KeyService;
 import org.niis.xroad.restapi.service.TokenNotFoundException;
@@ -181,7 +185,8 @@ public class TokensApiController implements TokensApi {
     }
 
     @Override
-    // TO DO: proper permissions
+    @PreAuthorize("hasAuthority('GENERATE_KEY') "
+            + " and (hasAuthority('GENERATE_AUTH_CERT_REQ') or hasAuthority('GENERATE_SIGN_CERT_REQ'))")
     public ResponseEntity<KeyWithCertificateSigningRequestId> addKeyAndCsr(String tokenId,
             KeyLabelWithCsrGenerate keyLabelWithCsrGenerate) {
 
@@ -201,8 +206,7 @@ public class TokensApiController implements TokensApi {
         // fine since csr format is mandatory parameter
         CertificateRequestFormat csrFormat = CsrFormatMapping.map(csrGenerate.getCsrFormat()).get();
 
-        KeyAndCertificateRequestService.KeyAndCertRequestInfo keyAndCertRequest =
-                null;
+        KeyAndCertificateRequestService.KeyAndCertRequestInfo keyAndCertRequest;
         try {
             keyAndCertRequest = keyAndCertificateRequestService.addKeyAndCertRequest(
                     tokenId, keyLabelWithCsrGenerate.getKeyLabel(),
@@ -211,37 +215,21 @@ public class TokensApiController implements TokensApi {
                     csrGenerate.getCaName(),
                     csrGenerate.getSubjectFieldValues(),
                     csrFormat);
-        } catch (Exception e) {
-            // TO DO: exception handling
-            throw new RuntimeException(e);
-            /*
-        } catch (ActionNotPossibleException e) {
-            e.printStackTrace();
-        } catch (TokenNotFoundException e) {
-            e.printStackTrace();
-        } catch (WrongKeyUsageException e) {
-            e.printStackTrace();
-        } catch (DnFieldHelper.InvalidDnParameterException e) {
-            e.printStackTrace();
-        } catch (TokenCertificateService.CsrCreationFailureException e) {
-            e.printStackTrace();
-        } catch (CertificateProfileInstantiationException e) {
-            e.printStackTrace();
-        } catch (ClientNotFoundException e) {
-            e.printStackTrace();
-        } catch (CertificateAuthorityNotFoundException e) {
-            e.printStackTrace();
-        } catch (KeyNotFoundException e) {
-            e.printStackTrace();
+        } catch (ClientNotFoundException | CertificateAuthorityNotFoundException
+                | DnFieldHelper.InvalidDnParameterException e) {
+            throw new BadRequestException(e);
         } catch (GlobalConfService.GlobalConfOutdatedException e) {
-            e.printStackTrace();
-             */
+            throw new InternalServerErrorException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
+        } catch (TokenNotFoundException e) {
+            throw new ResourceNotFoundException(e);
         }
 
         KeyWithCertificateSigningRequestId result = new KeyWithCertificateSigningRequestId();
         Key key = keyConverter.convert(keyAndCertRequest.getKeyInfo());
         result.setKey(key);
-        result.setTokenCertificateSigningRequestId(keyAndCertRequest.getCertReqId());
+        result.setCsrId(keyAndCertRequest.getCertReqId());
 
         return new ResponseEntity<>(result, HttpStatus.OK);
 
