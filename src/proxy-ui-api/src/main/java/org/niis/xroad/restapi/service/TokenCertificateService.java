@@ -124,7 +124,7 @@ public class TokenCertificateService {
      * @param caName
      * @param subjectFieldValues user-submitted parameters for subject DN
      * @param format
-     * @return csr bytes TO DO: fix
+     * @return GeneratedCertRequestInfo containing details and bytes of the cert request
      * @throws CertificateAuthorityNotFoundException if ca authority with name {@code caName} does not exist
      * @throws ClientNotFoundException if client with {@code memberId} id was not found
      * @throws KeyNotFoundException if key with {@code keyId} was not found
@@ -202,7 +202,7 @@ public class TokenCertificateService {
      * @param keyId
      * @param csrId
      * @param format
-     * @return
+     * @return GeneratedCertRequestInfo containing details and bytes of the cert request
      * @throws KeyNotFoundException if key with keyId was not found
      * @throws CsrNotFoundException if csr with csrId was not found
      * @throws ActionNotPossibleException if regenerate was not possible
@@ -223,7 +223,6 @@ public class TokenCertificateService {
         // possible action rules for it would be very close, if not identical,
         // to generate csr.
 
-        // TO DO: test
         // check usage type specific auth in service, since controller does not know usage type
         if (keyInfo.isForSigning()) {
             verifyAuthority("GENERATE_SIGN_CERT_REQ");

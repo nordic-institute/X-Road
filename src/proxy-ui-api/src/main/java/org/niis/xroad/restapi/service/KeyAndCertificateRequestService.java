@@ -59,8 +59,10 @@ public class KeyAndCertificateRequestService {
         this.tokenCertificateService = tokenCertificateService;
     }
 
+    /**
+     * DTO for passing key & csr data in a single object
+     */
     @Value
-    // TO DO: proper main level DTO class?
     public static class KeyAndCertRequestInfo {
         private final KeyInfo keyInfo;
         private final String certReqId;
@@ -97,8 +99,6 @@ public class KeyAndCertificateRequestService {
             DnFieldHelper.InvalidDnParameterException,
             GlobalConfService.GlobalConfOutdatedException {
 
-        // TO DO: maybe would be good to duplicate auth & possible actions checking before,
-        // so we can avoid some unnecessary create keys + rollbacks?
         KeyInfo keyInfo = keyService.addKey(tokenId, keyLabel);
         GeneratedCertRequestInfo csrInfo;
         boolean csrGenerateSuccess = false;

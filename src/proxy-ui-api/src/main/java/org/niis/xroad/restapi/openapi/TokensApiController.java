@@ -192,8 +192,6 @@ public class TokensApiController implements TokensApi {
 
         // squid:S3655 throwing NoSuchElementException if there is no value present is
         // fine since keyUsageInfo is mandatory parameter
-
-        // TO DO: remove duplicate from KeysApiController.generateCsr - add helper?
         CsrGenerate csrGenerate = keyLabelWithCsrGenerate.getCsrGenerateRequest();
         KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(csrGenerate.getKeyUsageType()).get();
         ClientId memberId = null;

@@ -204,7 +204,7 @@ public class ClientsApiController implements ClientsApi {
     @Override
     public ResponseEntity<Client> updateClient(String encodedId, ConnectionTypeWrapper connectionTypeWrapper) {
         if (connectionTypeWrapper == null || connectionTypeWrapper.getConnectionType() == null) {
-            throw new InvalidParametersException();
+            throw new BadRequestException();
         }
         ConnectionType connectionType = connectionTypeWrapper.getConnectionType();
         ClientId clientId = clientConverter.convertId(encodedId);
