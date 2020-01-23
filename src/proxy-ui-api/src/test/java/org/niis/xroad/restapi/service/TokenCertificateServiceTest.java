@@ -28,6 +28,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.impl.DnFieldDescriptionImpl;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.commonui.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -146,6 +147,9 @@ public class TokenCertificateServiceTest {
     @MockBean
     private ClientRepository clientRepository;
 
+    @MockBean
+    private ServerConfService serverConfService;
+
     @SpyBean
     private PossibleActionsRuleEngine possibleActionsRuleEngine;
 
@@ -231,7 +235,13 @@ public class TokenCertificateServiceTest {
 
         // by default all actions are possible
         doReturn(EnumSet.allOf(PossibleActionEnum.class)).when(possibleActionsRuleEngine)
+                .getPossibleTokenActions(any());
+        doReturn(EnumSet.allOf(PossibleActionEnum.class)).when(possibleActionsRuleEngine)
+                .getPossibleKeyActions(any(), any());
+        doReturn(EnumSet.allOf(PossibleActionEnum.class)).when(possibleActionsRuleEngine)
                 .getPossibleCertificateActions(any(), any(), any());
+        doReturn(EnumSet.allOf(PossibleActionEnum.class)).when(possibleActionsRuleEngine)
+                .getPossibleCsrActions(any());
     }
 
     private void mockGetTokenForKeyId(TokenInfo tokenInfo) throws KeyNotFoundException {
@@ -407,6 +417,29 @@ public class TokenCertificateServiceTest {
         tokenCertificateService.generateCertRequest(SIGN_KEY_ID, client,
                 KeyUsageInfo.SIGNING, "ca", ImmutableMap.of("O", "baz"),
                 CertificateRequestFormat.DER);
+    }
+
+    @Test
+    @WithMockUser(authorities = { "GENERATE_SIGN_CERT_REQ", "GENERATE_AUTH_CERT_REQ" })
+    public void regenerateCertRequestSuccess() throws Exception {
+        SignerProxy.GeneratedCertRequestInfo csrInfo = tokenCertificateService
+                .regenerateCertRequest(AUTH_KEY_ID, GOOD_AUTH_CSR_ID, CertificateRequestFormat.PEM);
+        verify(signerProxyFacade, times(1))
+                .regenerateCertRequest(GOOD_AUTH_CSR_ID, CertificateRequestFormat.PEM);
+    }
+
+    @Test(expected = AccessDeniedException.class)
+    @WithMockUser(authorities = { "GENERATE_SIGN_CERT_REQ" })
+    public void regenerateAuthCsrPermission() throws Exception {
+        SignerProxy.GeneratedCertRequestInfo csrInfo = tokenCertificateService
+                .regenerateCertRequest(AUTH_KEY_ID, GOOD_AUTH_CSR_ID, CertificateRequestFormat.PEM);
+    }
+
+    @Test(expected = AccessDeniedException.class)
+    @WithMockUser(authorities = { "GENERATE_AUTH_CERT_REQ" })
+    public void regenerateSignCsrPermission() throws Exception {
+        SignerProxy.GeneratedCertRequestInfo csrInfo = tokenCertificateService
+                .regenerateCertRequest(SIGN_KEY_ID, GOOD_SIGN_CSR_ID, CertificateRequestFormat.PEM);
     }
 
     private CodedException signerException(String code) {
