@@ -91,12 +91,10 @@ export const actions: ActionTree<KeysState, RootState> = {
     return api
       .put(`/tokens/${id}/logout`, {})
       .then((res) => {
-        //this.$bus.$emit('show-success', 'keys.loggedOut');
-        //this.fetchData();
+        // Update tokens
         this.dispatch('fetchTokens');
       })
       .catch((error) => {
-        /// this.$bus.$emit('show-error', error.message);
         throw error;
       });
   },
@@ -104,7 +102,6 @@ export const actions: ActionTree<KeysState, RootState> = {
   setSelectedToken({ commit, dispatch, rootGetters }, token: Token) {
     commit('setSelectedToken', token);
   },
-
 };
 
 export const keysModule: Module<KeysState, RootState> = {
