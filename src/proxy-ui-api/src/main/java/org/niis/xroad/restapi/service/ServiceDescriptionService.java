@@ -610,7 +610,7 @@ public class ServiceDescriptionService {
         }
 
         if (!serviceDescription.getType().equals(DescriptionType.OPENAPI3)) {
-            throw new WrongServiceDescriptionTypeException("Expected description type REST");
+            throw new WrongServiceDescriptionTypeException("Expected description type OPENAPI3");
         }
 
         if (newRestServiceCode == null) {
@@ -621,14 +621,16 @@ public class ServiceDescriptionService {
             throw new ServiceNotFoundException("Service not found from servicedescription with id "
                     + serviceDescription.getId());
         }
-        serviceDescription.setUrl(url);
-        serviceDescription.getService().get(0).setUrl(url);
+
         updateServiceCodes(restServiceCode, newRestServiceCode, serviceDescription);
 
         // Parse openapi definition and handle updating endpoints and acls
         if (!serviceDescription.getUrl().equals(url)) {
             parseOpenapi3ToServiceDescription(url, newRestServiceCode, ignoreWarnings, serviceDescription);
         }
+
+        serviceDescription.setUrl(url);
+        serviceDescription.getService().get(0).setUrl(url);
 
         checkDuplicateServiceCodes(serviceDescription);
         checkDuplicateUrl(serviceDescription);
