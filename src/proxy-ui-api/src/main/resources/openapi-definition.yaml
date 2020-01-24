@@ -2811,6 +2811,27 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+    post: # ok
+      tags:
+        - security server
+      summary: generate a new internal TLS key and cert
+      operationId: generateSystemTlsKeyAndCertificate
+      description: Administrator generates new internal TLS key and certificate
+      responses:
+        '204':
+          description: tls key generated
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /system/certificate/export:
     get: # ok
       tags:
@@ -2827,28 +2848,6 @@ paths:
                 type: string
                 format: binary
                 description: certificate file
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
-  /system/certificate/tls-key:
-    post: # ok
-      tags:
-        - security server
-      summary: generate new TLS key
-      operationId: generateSystemCertificateTlsKey
-      description: Administrator generates new tls key.
-      responses:
-        '204':
-          description: tls key generated
         '400':
           description: request was invalid
         '401':

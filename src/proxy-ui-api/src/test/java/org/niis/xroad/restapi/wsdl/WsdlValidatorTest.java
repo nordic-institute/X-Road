@@ -24,7 +24,15 @@
  */
 package org.niis.xroad.restapi.wsdl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,15 +46,23 @@ import static org.junit.Assert.assertNotNull;
  * Test WSDLValidator
  * Tests external validator success and fail
  */
+@RunWith(SpringRunner.class)
+@SpringBootTest
+@AutoConfigureTestDatabase
+@Transactional
+@Slf4j
 public class WsdlValidatorTest {
-
     public static final String MOCK_VALIDATOR_ERROR = "ERROR: this is not fine";
     public static final String MOCK_VALIDATOR_WARNING = "WARNING: this can be ignored";
+    public static final String MOCK_VALIDATOR = "src/test/resources/validator/mock-wsdlvalidator.sh";
+    public static final String FOOBAR_VALIDATOR = "/bin/foobar-validator";
+
+    @Autowired
+    private WsdlValidator wsdlValidator;
 
     @Test
     public void validatorNotExecutable() throws Exception {
-        WsdlValidator wsdlValidator = new WsdlValidator();
-        wsdlValidator.setWsdlValidatorCommand("/bin/foobar-validator");
+        ReflectionTestUtils.setField(wsdlValidator, "wsdlValidatorCommand", FOOBAR_VALIDATOR);
         try {
             wsdlValidator.executeValidator("src/test/resources/wsdl/error.wsdl");
             fail("should have thrown WsdlValidationException");
@@ -56,8 +72,7 @@ public class WsdlValidatorTest {
 
     @Test
     public void shouldHandleWarnings() throws Exception {
-        WsdlValidator wsdlValidator = new WsdlValidator();
-        wsdlValidator.setWsdlValidatorCommand("src/test/resources/validator/mock-wsdlvalidator.sh");
+        ReflectionTestUtils.setField(wsdlValidator, "wsdlValidatorCommand", MOCK_VALIDATOR);
         List<String> warnings = wsdlValidator.executeValidator("src/test/resources/wsdl/warning.wsdl");
         assertNotNull(warnings);
         assertEquals(1, warnings.size());
@@ -66,8 +81,7 @@ public class WsdlValidatorTest {
 
     @Test
     public void shouldFailValidation() throws Exception {
-        WsdlValidator wsdlValidator = new WsdlValidator();
-        wsdlValidator.setWsdlValidatorCommand("src/test/resources/validator/mock-wsdlvalidator.sh");
+        ReflectionTestUtils.setField(wsdlValidator, "wsdlValidatorCommand", MOCK_VALIDATOR);
         try {
             wsdlValidator.executeValidator("src/test/resources/wsdl/error.wsdl");
             fail("should have thrown WsdlValidationException");
@@ -77,11 +91,9 @@ public class WsdlValidatorTest {
         }
     }
 
-
     @Test
     public void shouldPassValidation() throws Exception {
-        WsdlValidator wsdlValidator = new WsdlValidator();
-        wsdlValidator.setWsdlValidatorCommand("src/test/resources/validator/mock-wsdlvalidator.sh");
+        ReflectionTestUtils.setField(wsdlValidator, "wsdlValidatorCommand", MOCK_VALIDATOR);
         List<String> warnings = wsdlValidator.executeValidator("src/test/resources/wsdl/testservice.wsdl");
         assertEquals(new ArrayList(), warnings);
     }

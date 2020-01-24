@@ -76,4 +76,10 @@ public class SystemApiController implements SystemApi {
         return new ResponseEntity<>(certificate, HttpStatus.OK);
     }
 
+    @Override
+    @PreAuthorize("hasAuthority('GENERATE_INTERNAL_SSL')")
+    public ResponseEntity<Void> generateSystemTlsKeyAndCertificate() {
+        internalTlsCertificateService.generateInternalTlsKeyAndCertificate();
+        return ApiUtil.createCreatedResponse("/api/system/certificate", null);
+    }
 }

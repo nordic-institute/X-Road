@@ -677,9 +677,8 @@ public class ServiceDescriptionService {
      * @throws WsdlValidator.WsdlValidatorNotExecutableException
      * @throws InvalidUrlException
      */
-    private List<String> validateWsdl(String url)
-            throws WsdlValidator.WsdlValidationFailedException,
-            WsdlValidator.WsdlValidatorNotExecutableException, InvalidUrlException {
+    private List<String> validateWsdl(String url) throws WsdlValidator.WsdlValidationFailedException,
+            WsdlValidator.WsdlValidatorNotExecutableException {
         return wsdlValidator.executeValidator(url);
     }
 

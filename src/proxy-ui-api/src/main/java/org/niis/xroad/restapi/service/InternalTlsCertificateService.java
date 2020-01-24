@@ -106,4 +106,9 @@ public class InternalTlsCertificateService {
         tarOutputStream.write(fileBytes);
         tarOutputStream.closeArchiveEntry();
     }
+
+    // TODO: throws only DeviationAwareRuntimeExceptions
+    public void generateInternalTlsKeyAndCertificate() {
+
+    }
 }
