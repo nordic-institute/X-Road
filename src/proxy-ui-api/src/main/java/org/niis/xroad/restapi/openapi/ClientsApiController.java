@@ -108,6 +108,7 @@ public class ClientsApiController implements ClientsApi {
 
     /**
      * ClientsApiController constructor
+     *
      * @param clientService
      * @param tokenService
      * @param clientConverter
@@ -142,6 +143,7 @@ public class ClientsApiController implements ClientsApi {
 
     /**
      * Finds clients matching search terms
+     *
      * @param name
      * @param instance
      * @param memberClass
@@ -172,6 +174,7 @@ public class ClientsApiController implements ClientsApi {
 
     /**
      * Read one client from DB
+     *
      * @param encodedId id that is encoded with the <INSTANCE>:<MEMBER_CLASS>:....
      * encoding
      * @return
@@ -198,6 +201,7 @@ public class ClientsApiController implements ClientsApi {
 
     /**
      * Update a client's connection type
+     *
      * @param encodedId
      * @param connectionTypeWrapper wrapper object containing the connection type to set
      * @return
@@ -362,6 +366,9 @@ public class ClientsApiController implements ClientsApi {
                 throw new ResourceNotFoundException(e);
             } catch (MissingParameterException e) {
                 throw new BadRequestException(e);
+            } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException
+                    | ServiceDescriptionService.UrlAlreadyExistsException e) {
+                throw new ConflictException(e);
             }
         }
         ServiceDescription addedServiceDescription = serviceDescriptionConverter.convert(

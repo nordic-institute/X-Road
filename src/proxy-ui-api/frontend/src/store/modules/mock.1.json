@@ -1,0 +1,74 @@
+[
+  {
+    "id": "CS:GOV:2000:FUU",
+    "member_name": null,
+    "member_class": "GOV",
+    "member_code": "2000",
+    "subsystem_code": "FUU",
+    "created": null,
+    "status": "global error"
+  },
+  {
+    "id": "CS:GOV:3000:POP1",
+    "member_name": null,
+    "member_class": "GOV",
+    "member_code": "3000",
+    "subsystem_code": "POP1",
+    "created": null,
+    "status": "global error"
+  },
+  {
+    "id": "CS:GOV:3000:POP2",
+    "member_name": null,
+    "member_class": "GOV",
+    "member_code": "3000",
+    "subsystem_code": "POP2",
+    "created": null,
+    "status": "global error"
+  },
+  {
+    "id": "CS:GOV:1234:JAU",
+    "member_name": "ACME",
+    "member_class": "GOV",
+    "member_code": "1234",
+    "subsystem_code": "JAU",
+    "created": null,
+    "status": "saved"
+  },
+  {
+    "id": "CS:GOV:1234:MANAGEMENT",
+    "member_name": "ACME",
+    "member_class": "GOV",
+    "member_code": "1234",
+    "subsystem_code": "MANAGEMENT",
+    "created": null,
+    "status": "saved"
+  },
+  {
+    "id": "CS:GOV:1234",
+    "member_name": "ACME",
+    "member_class": "GOV",
+    "member_code": "1234",
+    "subsystem_code": null,
+    "created": null,
+    "status": "saved"
+  },
+  {
+    "id": "CS:GOV:9000:FOOXX",
+    "member_name": "FAKE",
+    "member_class": "GOV",
+    "member_code": "9000",
+    "subsystem_code": "FOOX",
+    "created": null,
+    "status": "saved"
+  },
+  {
+    "id": "CS:GOV:6000:FOO2",
+    "member_name": "FAKEXX",
+    "member_class": "GOV",
+    "member_code": "6000",
+    "subsystem_code": "FOO2",
+    "created": null,
+    "status": "saved"
+  }
+]

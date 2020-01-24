@@ -74,7 +74,7 @@
       title="keys.deleteTitle"
       text="keys.deleteKeyText"
       @cancel="confirmDelete = false"
-      @accept="doDeleteKey()"
+      @accept="deleteKey()"
     />
   </div>
 </template>
@@ -133,7 +133,7 @@ export default Vue.extend({
         .patch(`/keys/${this.id}`, this.key)
         .then((res: any) => {
           this.saveBusy = false;
-          this.$bus.$emit('show-success', 'key saved');
+          this.$bus.$emit('show-success', 'keys.keySaved');
           this.close();
         })
         .catch((error: any) => {
@@ -152,9 +152,18 @@ export default Vue.extend({
           this.$bus.$emit('show-error', error.message);
         });
     },
-    doDeleteKey(): void {
+    deleteKey(): void {
       this.confirmDelete = false;
-      // TODO will be implemented on later task
+
+      api
+        .remove(`/keys/${this.id}`)
+        .then((res: any) => {
+          this.$bus.$emit('show-success', 'keys.keyDeleted');
+          this.close();
+        })
+        .catch((error: any) => {
+          this.$bus.$emit('show-error', error.message);
+        });
     },
   },
   created() {

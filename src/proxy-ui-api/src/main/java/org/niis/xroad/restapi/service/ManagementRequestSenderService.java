@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.request.ManagementRequestSender;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -62,7 +63,6 @@ public class ManagementRequestSenderService {
      *
      * Request is sent for this securityserver (ManagementRequestSender
      * call's SecurityServerId = this security server's id)
-     *
      * @param address the IP address of the security server
      * @param authCert the authentication certificate bytes
      * @return request ID in the central server database (e.g. for audit logs if wanted)
@@ -86,20 +86,16 @@ public class ManagementRequestSenderService {
      *
      * Request is sent for this securityserver (ManagementRequestSender
      * call's SecurityServerId = this security server's id)
-     *
      * @param authCert the authentication certificate bytes
      * @return request ID in the central server database (e.g. for audit logs if wanted)
      */
-    public Integer sendAuthCertDeletionRequest(byte[] authCert)
-            throws GlobalConfService.GlobalConfOutdatedException {
+    public Integer sendAuthCertDeletionRequest(byte[] authCert) throws
+            GlobalConfService.GlobalConfOutdatedException, ManagementRequestSendingFailedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
             return sender.sendAuthCertDeletionRequest(serverConfService.getSecurityServerId(), authCert);
         } catch (Exception e) {
-            if (e instanceof CodedException) {
-                throw (CodedException) e;
-            }
-            throw new RuntimeException(e);
+            throw new ManagementRequestSendingFailedException(e);
         }
     }
 
@@ -110,5 +106,20 @@ public class ManagementRequestSenderService {
         ClientId sender = serverConf.getOwner().getIdentifier();
         ClientId receiver = globalConfFacade.getManagementRequestService();
         return new ManagementRequestSender(sender, receiver);
+    }
+
+    /**
+     * Missing a valid auth cert
+     */
+    public static class ManagementRequestSendingFailedException extends ServiceException {
+        public static final String MANAGEMENT_REQUEST_SENDING_FAILED = "management_request_sending_failed";
+
+        public ManagementRequestSendingFailedException(Throwable t) {
+            super(t, createError(t));
+        }
+
+        private static ErrorDeviation createError(Throwable t) {
+            return new ErrorDeviation(MANAGEMENT_REQUEST_SENDING_FAILED, t.getMessage());
+        }
     }
 }
