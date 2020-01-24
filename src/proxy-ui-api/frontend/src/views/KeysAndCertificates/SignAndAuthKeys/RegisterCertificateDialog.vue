@@ -13,11 +13,11 @@
 
           <ValidationProvider
             rules="required"
-            name="serviceUrl"
+            name="dns"
             v-slot="{ errors }"
             class="validation-provider dlg-row-input"
           >
-            <v-text-field v-model="url" single-line name="serviceUrl" :error-messages="errors"></v-text-field>
+            <v-text-field v-model="url" single-line name="dns" :error-messages="errors"></v-text-field>
           </ValidationProvider>
         </div>
       </ValidationObserver>
@@ -42,12 +42,11 @@ export default Vue.extend({
   data() {
     return {
       url: '',
-      serviceCode: '',
     };
   },
   computed: {
     isValid(): boolean {
-      if (this.url && this.url.length > 4) {
+      if (this.url && this.url.length > 0) {
         return true;
       }
 
@@ -65,7 +64,6 @@ export default Vue.extend({
     },
     clear(): void {
       this.url = '';
-      this.serviceCode = '';
       (this.$refs.form as InstanceType<typeof ValidationObserver>).reset();
     },
   },

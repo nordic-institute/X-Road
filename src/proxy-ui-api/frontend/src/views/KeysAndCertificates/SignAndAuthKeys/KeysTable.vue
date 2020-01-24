@@ -72,12 +72,12 @@
               <SmallButton
                 class="table-button-fix test-register"
                 v-if="cert.possible_actions.includes('REGISTER') && hasPermission"
-                @click="showRegisterCert(cert)"
+                @click="showRegisterCertDialog(cert)"
               >{{$t('action.register')}}</SmallButton>
               <SmallButton
                 class="table-button-fix test-unregister"
                 v-if="cert.possible_actions.includes('UNREGISTER')  && hasPermission"
-                @click="unregisterCert(cert)"
+                @click="showUnregisterCertDialog(cert)"
               >{{$t('action.unregister')}}</SmallButton>
             </td>
           </tr>
@@ -167,10 +167,11 @@
 
     <ConfirmDialog
       :dialog="confirmUnregiseterCertificate"
+      :loading="unregisterLoading"
       title="keys.unregisterTitle"
       text="keys.unregisterText"
       @cancel="confirmUnregiseterCertificate = false"
-      @accept="doUnregisterCert()"
+      @accept="unregisterCert()"
     />
 
     <ConfirmDialog
@@ -179,6 +180,14 @@
       text="keys.deleteCsrText"
       @cancel="confirmDeleteCsr = false"
       @accept="deleteCsr()"
+    />
+
+    <UnregisterErrorDialog
+      v-if="unregisterErrorResponse"
+      :errorResponse="unregisterErrorResponse"
+      :dialog="confirmUnregisterError"
+      @cancel="confirmUnregisterError = false"
+      @accept="markForDeletion()"
     />
   </div>
 </template>
@@ -192,6 +201,7 @@ import CertificateStatus from './CertificateStatus.vue';
 import RegisterCertificateDialog from './RegisterCertificateDialog.vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import UnregisterErrorDialog from './UnregisterErrorDialog.vue';
 import { Key, TokenCertificate, TokenCertificateSigningRequest } from '@/types';
 import { Permissions, UsageTypes } from '@/global';
 import * as api from '@/util/api';
@@ -202,6 +212,7 @@ export default Vue.extend({
     SmallButton,
     RegisterCertificateDialog,
     ConfirmDialog,
+    UnregisterErrorDialog,
   },
   props: {
     keys: {
@@ -224,11 +235,14 @@ export default Vue.extend({
     return {
       registerDialog: false,
       confirmUnregiseterCertificate: false,
+      confirmUnregisterError: false,
       confirmDeleteCsr: false,
+      unregisterLoading: false,
       usageTypes: UsageTypes,
-      selectedCert: null as TokenCertificate | null,
-      selectedCsr: null as TokenCertificateSigningRequest | null,
-      selectedKey: null as Key | null,
+      selectedCert: undefined as TokenCertificate | undefined,
+      selectedCsr: undefined as TokenCertificateSigningRequest | undefined,
+      selectedKey: undefined as Key | undefined,
+      unregisterErrorResponse: undefined as undefined | object,
     };
   },
   computed: {
@@ -251,7 +265,7 @@ export default Vue.extend({
     importCert(hash: string): void {
       this.$emit('importCertByHash', hash);
     },
-    showRegisterCert(cert: TokenCertificate): void {
+    showRegisterCertDialog(cert: TokenCertificate): void {
       this.registerDialog = true;
       this.selectedCert = cert;
     },
@@ -271,20 +285,22 @@ export default Vue.extend({
         )
         .then((res) => {
           this.$bus.$emit('show-success', 'keys.certificateRegistered');
+          this.$emit('refreshList');
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
         });
     },
-    unregisterCert(cert: TokenCertificate): void {
+    showUnregisterCertDialog(cert: TokenCertificate): void {
       this.confirmUnregiseterCertificate = true;
       this.selectedCert = cert;
     },
-    doUnregisterCert(): void {
+    unregisterCert(): void {
       if (!this.selectedCert) {
         return;
       }
 
+      this.unregisterLoading = true;
       api
         .put(
           `/token-certificates/${this.selectedCert.certificate_details.hash}/unregister`,
@@ -292,11 +308,42 @@ export default Vue.extend({
         )
         .then((res) => {
           this.$bus.$emit('show-success', 'keys.keyAdded');
+        })
+        .catch((error) => {
+          if (
+            error.response.data.error.code ===
+            'management_request_sending_failed'
+          ) {
+            this.unregisterErrorResponse = error.response;
+          } else {
+            this.$bus.$emit('show-error', error.message);
+          }
+
+          this.confirmUnregisterError = true;
+        })
+        .finally(() => {
           this.confirmUnregiseterCertificate = false;
+          this.unregisterLoading = false;
+        });
+    },
+    markForDeletion(): void {
+      if (!this.selectedCert) {
+        return;
+      }
+
+      api
+        .put(
+          `/token-certificates/${this.selectedCert.certificate_details.hash}/mark-for-deletion`,
+          {},
+        )
+        .then((res) => {
+          this.$bus.$emit('show-success', 'keys.certMarkedForDeletion');
+          this.confirmUnregisterError = false;
+          this.$emit('refreshList');
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
-          this.confirmUnregiseterCertificate = false;
+          this.confirmUnregisterError = false;
         });
     },
     showDeleteCsrDialog(req: TokenCertificateSigningRequest, key: Key): void {

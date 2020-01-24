@@ -1,21 +1,22 @@
 <template>
-  <simpleDialog
+  <SimpleDialog
     :dialog="dialog"
-    :title="title"
+    title="warning"
     @save="accept"
     @cancel="cancel"
     :cancelButtonText="cancelButtonText"
     :saveButtonText="acceptButtonText"
     :showClose="false"
-    :loading="loading"
   >
-    <div slot="content" data-test="dialog-content-text">{{$t(text)}}</div>
-  </simpleDialog>
+    <div slot="content" data-test="dialog-content-text">
+      <template v-if="errorResponse">{{$t( 'keys.unregisterError')}}</template>
+    </div>
+  </SimpleDialog>
 </template>
 
 <script lang="ts">
 /**
- * A dialog for simple "accept or cancel" functions
+ * A dialog for handling error in unregister auth certificate
  */
 
 import Vue from 'vue';
@@ -30,14 +31,12 @@ export default Vue.extend({
       type: Boolean,
       required: true,
     },
-    title: {
-      type: String,
+
+    errorResponse: {
+      type: Object,
       required: true,
     },
-    text: {
-      type: String,
-      required: true,
-    },
+
     cancelButtonText: {
       type: String,
       default: 'action.cancel',
@@ -63,4 +62,10 @@ export default Vue.extend({
   },
 });
 </script>
+
+
+
+<style lang="scss" scoped>
+@import '../../../assets/dialogs';
+</style>
 

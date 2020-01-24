@@ -219,6 +219,7 @@
     "tokenSaved": "Token saved",
     "logIn": "Log in",
     "logOut": "Log out",
+    "loggedIn": "Logged in token",
     "logOutTitle": "Log out",
     "logOutText": "Log out of the token?",
     "loggedOut": "Logged out of token",
@@ -251,6 +252,8 @@
     "unregisterText": "Do you want to unregister this certificate?",
     "keySaved": "Key saved",
     "keyDeleted": "Key deleted",
+    "certMarkedForDeletion": "Certificate marked for deletion",
+    "unregisterError": "Failed to unregister certificate. Continue with certificate deletion anyway?",
     "ocspStatus": {
       "disabled": "Disabled",
       "expired": "Expired",
@@ -317,6 +320,7 @@
     "serviceType": "Service Type",
     "url": "URL",
     "tokenPin": "Token PIN",
+    "dns": "DNS",
     "keys": {
       "friendlyName": "Friendly name"
     }
