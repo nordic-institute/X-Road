@@ -64,6 +64,12 @@ public class OpenApiParserTest {
         final OpenApiParser.Result result = new OpenApiParser().parse(url.toString());
     }
 
+    @Test(expected = OpenApiParser.ParsingException.class)
+    public void shouldFailIfDuplicateEndpoint() throws OpenApiParser.ParsingException {
+        URL url = getClass().getResource("/openapiparser/duplicateendpoint.yaml");
+        final OpenApiParser.Result result = new OpenApiParser().parse(url.toString());
+    }
+
     static class TestOpenApiParser extends OpenApiParser {
 
         TestOpenApiParser() throws ParsingException {

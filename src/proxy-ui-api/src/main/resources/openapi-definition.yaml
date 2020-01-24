@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.20"
+  version: "1.0.21"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -4500,6 +4500,9 @@ components:
     ServiceDescriptionUpdate:
       type: object
       description: request object for updating a service description url or service code
+      required:
+        - type
+        - url
       properties:
         url:
           type: string
@@ -4513,6 +4516,13 @@ components:
           format: text
           description: service code for REST service
           example: exampleServiceCode
+          minLength: 1
+          maxLength: 255
+        new_rest_service_code:
+          type: string
+          format: test
+          description: new service code for REST service
+          example: newExampleServiceCode
           minLength: 1
           maxLength: 255
         ignore_warnings:

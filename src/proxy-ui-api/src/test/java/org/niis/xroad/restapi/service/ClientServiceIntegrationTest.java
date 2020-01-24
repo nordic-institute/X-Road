@@ -227,14 +227,14 @@ public class ClientServiceIntegrationTest {
     public void findLocalClientsByInstanceIncludeMembers() {
         List<ClientType> clients = clientService.findLocalClients(null, TestUtils.INSTANCE_FI, null,
                 null, null, true);
-        assertEquals(4, clients.size());
+        assertEquals(5, clients.size());
     }
 
     @Test
     public void findLocalClientsByClassIncludeMembers() {
         List<ClientType> clients = clientService.findLocalClients(null, null, TestUtils.MEMBER_CLASS_GOV,
                 null, null, true);
-        assertEquals(4, clients.size());
+        assertEquals(5, clients.size());
     }
 
     @Test
@@ -264,14 +264,14 @@ public class ClientServiceIntegrationTest {
     public void findLocalClientsByInstanceExcludeMembers() {
         List<ClientType> clients = clientService.findLocalClients(null, TestUtils.INSTANCE_FI, null,
                 null, null, false);
-        assertEquals(3, clients.size());
+        assertEquals(4, clients.size());
     }
 
     @Test
     public void findLocalClientsByClassExcludeMembers() {
         List<ClientType> clients = clientService.findLocalClients(null, null, TestUtils.MEMBER_CLASS_GOV,
                 null, null, false);
-        assertEquals(3, clients.size());
+        assertEquals(4, clients.size());
     }
 
     @Test
