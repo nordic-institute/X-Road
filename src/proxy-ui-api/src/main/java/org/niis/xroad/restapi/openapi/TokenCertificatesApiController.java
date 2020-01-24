@@ -90,7 +90,7 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
 
     @Override
     @PreAuthorize("hasAnyAuthority('ACTIVATE_DISABLE_AUTH_CERT','ACTIVATE_DISABLE_SIGN_CERT')")
-    public ResponseEntity<Void> deactivateCertificate(String hash) {
+    public ResponseEntity<Void> disableCertificate(String hash) {
         try {
             tokenCertificateService.deactivateCertificate(hash);
         } catch (CertificateNotFoundException e) {
