@@ -1,6 +1,6 @@
 <template>
   <div class="status-wrapper">
-    <div :class="getStatusIconClass(status)"></div>
+    <StatusIcon :status="statusIconType" />
     <div class="status-text">{{getStatusText(status)}}</div>
   </div>
 </template>
@@ -8,36 +8,55 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Client, ClientStatus } from '@/types';
+import StatusIcon from '@/components/ui/StatusIcon.vue';
 
 export default Vue.extend({
+  components: {
+    StatusIcon,
+  },
   props: {
     status: {
       type: String,
     },
   },
-  data() {
-    return {
-      tab: null,
-    };
+
+  computed: {
+    statusIconType(): string {
+      switch (this.status.toLowerCase()) {
+        case 'registered':
+          return 'green';
+        case 'registration_in_progress':
+          return 'green-ring';
+        case 'saved':
+          return 'orange-ring';
+        case 'deletion_in_progress':
+          return 'red-ring';
+        case 'global_error':
+          return 'red';
+        default:
+          return 'red';
+      }
+    },
   },
+
   methods: {
-    getStatusIconClass(status: string): string {
+    getStatusIconType(status: string): string {
       if (!status) {
         return '';
       }
       switch (status.toLowerCase()) {
         case 'registered':
-          return 'status-green';
+          return 'green';
         case 'registration_in_progress':
-          return 'status-green-ring';
+          return 'green-ring';
         case 'saved':
-          return 'status-orange-ring';
+          return 'orange-ring';
         case 'deletion_in_progress':
-          return 'status-red-ring';
+          return 'red-ring';
         case 'global_error':
-          return 'status-red';
+          return 'red';
         default:
-          return '';
+          return 'red';
       }
     },
     getStatusText(status: string): string {
@@ -69,45 +88,5 @@ export default Vue.extend({
   display: flex;
   flex-direction: row;
   align-items: center;
-}
-
-%status-icon-shared {
-  height: 8px;
-  width: 8px;
-  border-radius: 50%;
-  margin-right: 16px;
-}
-
-%status-ring-icon-shared {
-  height: 10px;
-  width: 10px;
-  border-radius: 50%;
-  margin-right: 16px;
-  border: 2px solid;
-}
-
-.status-red {
-  @extend %status-icon-shared;
-  background: #d0021b;
-}
-
-.status-red-ring {
-  @extend %status-ring-icon-shared;
-  border-color: #d0021b;
-}
-
-.status-green {
-  @extend %status-icon-shared;
-  background: #7ed321;
-}
-
-.status-green-ring {
-  @extend %status-ring-icon-shared;
-  border-color: #7ed321;
-}
-
-.status-orange-ring {
-  @extend %status-ring-icon-shared;
-  border-color: #f5a623;
 }
 </style>
