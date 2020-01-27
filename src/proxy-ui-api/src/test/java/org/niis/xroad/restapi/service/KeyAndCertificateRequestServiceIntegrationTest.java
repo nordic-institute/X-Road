@@ -54,6 +54,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -171,6 +172,10 @@ public class KeyAndCertificateRequestServiceIntegrationTest {
                         ClientId.create("FI", "GOV", "M1"),
                         KeyUsageInfo.SIGNING, MOCK_CA, dnParams,
                         CertificateRequestFormat.PEM);
+        verify(signerProxyFacade, times(1))
+                .generateKey(SOFTWARE_TOKEN_ID, "keylabel");
+        verify(signerProxyFacade, times(1))
+                .generateCertRequest(any(), any(), any(), any(), any());
     }
 
     private HashMap<String, String> createCsrDnParams() {
@@ -191,6 +196,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest {
                         null,
                         KeyUsageInfo.AUTHENTICATION, MOCK_CA, dnParams,
                         CertificateRequestFormat.PEM);
+        assertNotNull(info);
     }
 
     @Test(expected = ActionNotPossibleException.class)
