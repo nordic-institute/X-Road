@@ -127,6 +127,15 @@ export enum PossibleActions {
   GENERATE_SIGN_CSR = 'GENERATE_SIGN_CSR',
 }
 
+
+export enum CertificateStatus {
+  SAVED = 'SAVED',
+  REGISTRATION_IN_PROGRESS = 'REGISTRATION_IN_PROGRESS',
+  REGISTERED = 'REGISTERED',
+  DELETION_IN_PROGRESS = 'DELETION_IN_PROGRESS',
+  GLOBAL_ERROR = 'GLOBAL_ERROR',
+}
+
 export const mainTabs = [
   {
     to: { name: RouteName.Clients },

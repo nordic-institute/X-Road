@@ -235,6 +235,12 @@ function migrate_conf_value {
 migrate_conf_value /etc/xroad/conf.d/local.ini proxy ocsp-cache-path signer ocsp-cache-path
 migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy signer enforce-token-pin-policy
 
+if [ $1 -eq 1 ] && [ -x %{_bindir}/systemctl ]; then
+    # initial installation
+    %{_bindir}/systemctl try-restart nginx.service
+    %{_bindir}/systemctl try-restart rsyslog.service
+fi
+
 %preun
 %systemd_preun xroad-proxy.service
 %systemd_preun xroad-confclient.service
@@ -244,5 +250,6 @@ migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy si
 %systemd_postun_with_restart xroad-confclient.service
 %systemd_postun_with_restart xroad-jetty9.service
 %systemd_postun_with_restart nginx.service
+%systemd_postun_with_restart rsyslogd.service
 
 %changelog
