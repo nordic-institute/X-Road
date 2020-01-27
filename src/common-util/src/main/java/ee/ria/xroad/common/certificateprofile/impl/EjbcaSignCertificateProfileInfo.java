@@ -47,17 +47,17 @@ public class EjbcaSignCertificateProfileInfo
     public EjbcaSignCertificateProfileInfo(Parameters params) {
         super(new DnFieldDescription[] {
                 // Instance identifier
-                new DnFieldDescriptionImpl("C", "Instance Identifier (C)",
+                new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.INSTANCE_IDENTIFIER,
                     params.getClientId().getXRoadInstance()
                 ).setReadOnly(true),
 
                 // Member class
-                new DnFieldDescriptionImpl("O", "Member Class (O)",
+                new EnumLocalizedFieldDescriptionImpl("O", DnFieldLabelLocalizationKey.MEMBER_CLASS,
                     params.getClientId().getMemberClass()
                 ).setReadOnly(true),
 
                 // Member code
-                new DnFieldDescriptionImpl("CN", "Member Code (CN)",
+                new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.MEMBER_CODE,
                     params.getClientId().getMemberCode()
                 ).setReadOnly(true) }
         );

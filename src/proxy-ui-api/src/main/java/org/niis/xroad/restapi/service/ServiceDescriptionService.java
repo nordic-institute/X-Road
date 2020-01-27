@@ -40,6 +40,7 @@ import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
+import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -59,12 +61,14 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.service.SecurityHelper.verifyAuthority;
+
 /**
  * ServiceDescription service
  */
 @Slf4j
 @Service
-@Transactional
+@Transactional(rollbackFor = ServiceException.class)
 @PreAuthorize("isAuthenticated()")
 public class ServiceDescriptionService {
 
@@ -75,15 +79,19 @@ public class ServiceDescriptionService {
     public static final String WARNING_DELETING_SERVICES = "deleting_services";
     public static final String WARNING_WSDL_VALIDATION_WARNINGS = "wsdl_validation_warnings";
 
+    public static final String CLIENT_WITH_ID = "Client with id";
+
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final ClientService clientService;
     private final ClientRepository clientRepository;
     private final ServiceChangeChecker serviceChangeChecker;
     private final WsdlValidator wsdlValidator;
     private final WsdlUrlValidator wsdlUrlValidator;
+    private final OpenApiParser openApiParser;
 
     /**
      * ServiceDescriptionService constructor
+     *
      * @param serviceDescriptionRepository
      * @param clientService
      * @param clientRepository
@@ -91,18 +99,22 @@ public class ServiceDescriptionService {
      */
     @Autowired
     public ServiceDescriptionService(ServiceDescriptionRepository serviceDescriptionRepository,
-            ClientService clientService, ClientRepository clientRepository, ServiceChangeChecker serviceChangeChecker,
-            WsdlValidator wsdlValidator, WsdlUrlValidator wsdlUrlValidator) {
+            ClientService clientService, ClientRepository clientRepository,
+            ServiceChangeChecker serviceChangeChecker,
+            WsdlValidator wsdlValidator, WsdlUrlValidator wsdlUrlValidator,
+            OpenApiParser openApiParser) {
         this.serviceDescriptionRepository = serviceDescriptionRepository;
         this.clientService = clientService;
         this.clientRepository = clientRepository;
         this.serviceChangeChecker = serviceChangeChecker;
         this.wsdlValidator = wsdlValidator;
         this.wsdlUrlValidator = wsdlUrlValidator;
+        this.openApiParser = openApiParser;
     }
 
     /**
      * Disable 1-n services
+     *
      * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given ids were not found
      */
     public void disableServices(Collection<Long> serviceDescriptionIds,
@@ -112,6 +124,7 @@ public class ServiceDescriptionService {
 
     /**
      * Enable 1-n services
+     *
      * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given ids were not found
      */
     public void enableServices(Collection<Long> serviceDescriptionIds) throws ServiceDescriptionNotFoundException {
@@ -120,6 +133,7 @@ public class ServiceDescriptionService {
 
     /**
      * Change 1-n services to enabled/disabled
+     *
      * @param serviceDescriptionIds
      * @param disabledNotice
      * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given ids were not found
@@ -155,6 +169,7 @@ public class ServiceDescriptionService {
 
     /**
      * Delete one ServiceDescription
+     *
      * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given id was not found
      */
     public void deleteServiceDescription(Long id) throws ServiceDescriptionNotFoundException {
@@ -188,29 +203,30 @@ public class ServiceDescriptionService {
 
     /**
      * Add a new WSDL ServiceDescription
+     *
      * @param clientId
      * @param url
      * @param ignoreWarnings
      * @return created {@link ServiceDescriptionType}, with id populated
-     * @throws ClientNotFoundException if client with id was not found
+     * @throws ClientNotFoundException          if client with id was not found
      * @throws WsdlParser.WsdlNotFoundException if a wsdl was not found at the url
-     * @throws InvalidWsdlException if WSDL at the url was invalid
-     * @throws UnhandledWarningsException if there were warnings that were not ignored
-     * @throws InvalidUrlException if url was empty or invalid
-     * @throws WsdlUrlAlreadyExistsException conflict: another service description has same url
-     * @throws ServiceAlreadyExistsException conflict: same service exists in another SD
+     * @throws InvalidWsdlException             if WSDL at the url was invalid
+     * @throws UnhandledWarningsException       if there were warnings that were not ignored
+     * @throws InvalidUrlException              if url was empty or invalid
+     * @throws WsdlUrlAlreadyExistsException    conflict: another service description has same url
+     * @throws ServiceAlreadyExistsException    conflict: same service exists in another SD
      */
     public ServiceDescriptionType addWsdlServiceDescription(ClientId clientId, String url, boolean ignoreWarnings)
             throws InvalidWsdlException,
-                           WsdlParser.WsdlNotFoundException,
-                           ClientNotFoundException,
-                           UnhandledWarningsException,
-                           ServiceAlreadyExistsException,
-                           InvalidUrlException,
-                           WsdlUrlAlreadyExistsException {
+            WsdlParser.WsdlNotFoundException,
+            ClientNotFoundException,
+            UnhandledWarningsException,
+            ServiceAlreadyExistsException,
+            InvalidUrlException,
+            WsdlUrlAlreadyExistsException {
         ClientType client = clientService.getClient(clientId);
         if (client == null) {
-            throw new ClientNotFoundException("Client with id " + clientId.toShortString() + " not found");
+            throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + " not found");
         }
 
         WsdlProcessingResult wsdlProcessingResult = processWsdl(client, url, null);
@@ -235,6 +251,7 @@ public class ServiceDescriptionService {
     /**
      * Create a new {@link EndpointType} for all Services in the provided {@link ServiceDescriptionType}.
      * If an equal EndpointType already exists for the provided {@link ClientType} it will not be returned
+     *
      * @param client
      * @param newServiceDescription
      * @return Only the newly created EndpointTypes
@@ -247,43 +264,234 @@ public class ServiceDescriptionService {
         newServiceDescription.getService().forEach(serviceType -> {
             EndpointType endpointType = new EndpointType(serviceType.getServiceCode(), EndpointType.ANY_METHOD,
                     EndpointType.ANY_PATH, true);
-            String endpointKey = endpointType.getServiceCode() + endpointType.getMethod() + endpointType.getPath()
-                    + endpointType.isGenerated();
+            String endpointKey = createEndpointKey(endpointType);
             endpointMap.put(endpointKey, endpointType);
         });
 
         // remove all existing endpoints with an equal combination key from the map
         client.getEndpoint().forEach(endpointType -> {
-            String endpointKey = endpointType.getServiceCode() + endpointType.getMethod() + endpointType.getPath()
-                    + endpointType.isGenerated();
+            String endpointKey = createEndpointKey(endpointType);
             endpointMap.remove(endpointKey);
         });
 
         return endpointMap.values();
     }
 
+    private String createEndpointKey(EndpointType endpointType) {
+        return endpointType.getServiceCode() + endpointType.getMethod() + endpointType.getPath()
+                + endpointType.isGenerated();
+    }
+
+
+    /**
+     * Add openapi3 ServiceDescription
+     *
+     * @param clientId
+     * @param url
+     * @param serviceCode
+     * @param ignoreWarnings
+     * @return
+     * @throws OpenApiParser.ParsingException    if parsing openapi3 description results in errors
+     * @throws ClientNotFoundException           if client is not found with given id
+     * @throws UnhandledWarningsException        if ignoreWarnings is false and parsing openapi3 description results
+     *                                           in warnings
+     * @throws UrlAlreadyExistsException         if trying to add duplicate url
+     * @throws ServiceCodeAlreadyExistsException if trying to add duplicate ServiceCode
+     * @throws MissingParameterException         if given ServiceCode is null
+     */
+    public ServiceDescriptionType addOpenapi3ServiceDescription(ClientId clientId, String url,
+            String serviceCode, boolean ignoreWarnings)
+            throws OpenApiParser.ParsingException, ClientNotFoundException,
+            UnhandledWarningsException,
+            UrlAlreadyExistsException,
+            ServiceCodeAlreadyExistsException,
+            MissingParameterException {
+        verifyAuthority("ADD_OPENAPI3");
+
+        if (serviceCode == null) {
+            throw new MissingParameterException("Missing ServiceCode");
+        }
+
+        // Parse openapi definition
+        OpenApiParser.Result result = openApiParser.parse(url);
+
+        if (!ignoreWarnings && result.hasWarnings()) {
+            WarningDeviation openapiParserWarnings = new WarningDeviation("OpenapiParserWarnings",
+                    result.getWarnings());
+            throw new UnhandledWarningsException(Arrays.asList(openapiParserWarnings));
+        }
+
+        ClientType client = clientService.getClient(clientId);
+        if (client == null) {
+            throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + " not found");
+        }
+
+        ServiceDescriptionType serviceDescriptionType = getServiceDescriptionOfType(client, url,
+                DescriptionType.OPENAPI3);
+
+        // Initiate default service
+        ServiceType serviceType = new ServiceType();
+        serviceType.setServiceCode(serviceCode);
+        serviceType.setTimeout(DEFAULT_SERVICE_TIMEOUT);
+        serviceType.setUrl(url);
+        serviceType.setServiceDescription(serviceDescriptionType);
+
+        // Populate ServiceDescription
+        serviceDescriptionType.getService().add(serviceType);
+
+        // Create endpoints
+        EndpointType endpointType = new EndpointType(serviceCode, EndpointType.ANY_METHOD, EndpointType.ANY_PATH, true);
+        List endpoints = new ArrayList<EndpointType>();
+        endpoints.add(endpointType);
+        endpoints.addAll(result.getOperations().stream()
+                .map(operation -> new EndpointType(serviceCode, operation.getMethod(), operation.getPath(), true))
+                .collect(Collectors.toList()));
+
+        checkDuplicateUrl(serviceDescriptionType);
+        checkDuplicateServiceCodes(serviceDescriptionType);
+
+        // Populate client with new servicedescription and endpoints
+        client.getEndpoint().addAll(endpoints);
+        client.getServiceDescription().add(serviceDescriptionType);
+        clientRepository.saveOrUpdateAndFlush(client);
+
+        return serviceDescriptionType;
+    }
+
+    /**
+     * Check whether the ServiceDescriptions url already exists in the linked Client
+     *
+     * @param serviceDescription
+     * @throws UrlAlreadyExistsException if trying to add duplicate url
+     */
+    private void checkDuplicateUrl(ServiceDescriptionType serviceDescription) throws UrlAlreadyExistsException {
+        Boolean hasDuplicates = serviceDescription.getClient().getServiceDescription().stream()
+                .anyMatch(other -> !serviceDescription.equals(other)
+                        && serviceDescription.getUrl().equals(other.getUrl()));
+
+        if (hasDuplicates) {
+            throw new UrlAlreadyExistsException(serviceDescription.getUrl());
+        }
+    }
+
+
+    /**
+     * Check whether the ServiceDescriptions ServiceCode already exists in the linked Client
+     *
+     * @param serviceDescription
+     * @throws ServiceCodeAlreadyExistsException if trying to add duplicate ServiceCode
+     */
+    private void checkDuplicateServiceCodes(ServiceDescriptionType serviceDescription)
+            throws ServiceCodeAlreadyExistsException {
+        List<String> existingServices = serviceDescription.getClient().getServiceDescription().stream()
+                .filter(s -> !s.equals(serviceDescription))
+                .flatMap(otherServiceDescription -> otherServiceDescription.getService().stream())
+                .map(otherService -> createServiceCodeAndVersionCombination(otherService))
+                .collect(Collectors.toList());
+
+        List<String> duplicateServiceCodes = serviceDescription.getService().stream()
+                .filter(candidate -> {
+                    String candidateCombination = createServiceCodeAndVersionCombination(candidate);
+                    return existingServices.contains(candidateCombination);
+                })
+                .map(duplicate -> duplicate.getServiceCode())
+                .collect(Collectors.toList());
+
+        if (duplicateServiceCodes.size() > 0) {
+            throw new ServiceCodeAlreadyExistsException(duplicateServiceCodes);
+        }
+    }
+
+    /**
+     * Creates combination of Services ServiceCode and version
+     *
+     * @param service
+     * @return String presentation
+     */
+    private String createServiceCodeAndVersionCombination(ServiceType service) {
+        String serviceCode = service.getServiceCode();
+        String serviceVersion = service.getServiceVersion() == null ? "" : service.getServiceVersion();
+        return serviceCode + serviceVersion;
+    }
+
+
+    /**
+     * Add a new REST ServiceDescription
+     *
+     * @param clientId
+     * @param url
+     * @param serviceCode
+     * @return
+     * @throws ClientNotFoundException           if client not found with given id
+     * @throws MissingParameterException         if given ServiceCode is null
+     * @throws ServiceCodeAlreadyExistsException if trying to add duplicate ServiceCode
+     * @throws UrlAlreadyExistsException         if trying to add duplicate url
+     */
+    public ServiceDescriptionType addRestEndpointServiceDescription(ClientId clientId, String url,
+            String serviceCode) throws
+            ClientNotFoundException, MissingParameterException, ServiceCodeAlreadyExistsException,
+            UrlAlreadyExistsException {
+        verifyAuthority("ADD_OPENAPI3");
+
+        if (serviceCode == null) {
+            throw new MissingParameterException("Missing ServiceCode");
+        }
+
+        ClientType client = clientService.getClient(clientId);
+        if (client == null) {
+            throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + " not found");
+        }
+
+        ServiceDescriptionType serviceDescriptionType = getServiceDescriptionOfType(client, url,
+                DescriptionType.REST);
+
+        // Populate service
+        ServiceType serviceType = new ServiceType();
+        serviceType.setServiceCode(serviceCode);
+        serviceType.setTimeout(DEFAULT_SERVICE_TIMEOUT);
+        serviceType.setUrl(url);
+        serviceType.setServiceDescription(serviceDescriptionType);
+
+        // Add created servicedescription to client
+        serviceDescriptionType.getService().add(serviceType);
+        client.getServiceDescription().add(serviceDescriptionType);
+
+        // Add created endpoint to client
+        EndpointType endpointType = new EndpointType(serviceCode, EndpointType.ANY_METHOD,
+                EndpointType.ANY_PATH, false);
+        client.getEndpoint().add(endpointType);
+
+        checkDuplicateServiceCodes(serviceDescriptionType);
+        checkDuplicateUrl(serviceDescriptionType);
+
+        clientRepository.saveOrUpdateAndFlush(client);
+
+        return serviceDescriptionType;
+    }
+
     /**
      * Update the WSDL url of the selected ServiceDescription
+     *
      * @param id
      * @param url the new url
      * @return ServiceDescriptionType
-     * @throws WsdlParser.WsdlNotFoundException if a wsdl was not found at the url
-     * @throws ServiceDescriptionNotFoundException if SD with given id was not found
+     * @throws WsdlParser.WsdlNotFoundException     if a wsdl was not found at the url
+     * @throws ServiceDescriptionNotFoundException  if SD with given id was not found
      * @throws WrongServiceDescriptionTypeException if SD with given id was not a WSDL based one
-     * @throws InvalidWsdlException if WSDL at the url was invalid
-     * @throws UnhandledWarningsException if there were warnings that were not ignored
-     * @throws InvalidUrlException if url was empty or invalid
-     * @throws WsdlUrlAlreadyExistsException conflict: another service description has same url
-     * @throws ServiceAlreadyExistsException conflict: same service exists in another SD
+     * @throws InvalidWsdlException                 if WSDL at the url was invalid
+     * @throws UnhandledWarningsException           if there were warnings that were not ignored
+     * @throws InvalidUrlException                  if url was empty or invalid
+     * @throws WsdlUrlAlreadyExistsException        conflict: another service description has same url
+     * @throws ServiceAlreadyExistsException        conflict: same service exists in another SD
      */
     public ServiceDescriptionType updateWsdlUrl(Long id, String url, boolean ignoreWarnings)
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
-                           ServiceDescriptionNotFoundException,
-                           WrongServiceDescriptionTypeException,
-                           UnhandledWarningsException,
-                           InvalidUrlException,
-                           ServiceAlreadyExistsException,
-                           WsdlUrlAlreadyExistsException {
+            ServiceDescriptionNotFoundException,
+            WrongServiceDescriptionTypeException,
+            UnhandledWarningsException,
+            InvalidUrlException,
+            ServiceAlreadyExistsException,
+            WsdlUrlAlreadyExistsException {
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptiontype(id);
         if (serviceDescriptionType == null) {
             throw new ServiceDescriptionNotFoundException("Service description with id " + id.toString());
@@ -293,23 +501,24 @@ public class ServiceDescriptionService {
 
     /**
      * Refresh a ServiceDescription
+     *
      * @param id
      * @param ignoreWarnings
      * @return {@link ServiceDescriptionType}
-     * @throws WsdlParser.WsdlNotFoundException if a wsdl was not found at the url
-     * @throws ServiceDescriptionNotFoundException if SD with given id was not found
+     * @throws WsdlParser.WsdlNotFoundException     if a wsdl was not found at the url
+     * @throws ServiceDescriptionNotFoundException  if SD with given id was not found
      * @throws WrongServiceDescriptionTypeException if SD with given id was not a WSDL based one
-     * @throws InvalidWsdlException if WSDL at the url was invalid
-     * @throws UnhandledWarningsException if there were warnings that were not ignored
-     * @throws InvalidUrlException if url was empty or invalid
-     * @throws WsdlUrlAlreadyExistsException conflict: another service description has same url
-     * @throws ServiceAlreadyExistsException conflict: same service exists in another SD
+     * @throws InvalidWsdlException                 if WSDL at the url was invalid
+     * @throws UnhandledWarningsException           if there were warnings that were not ignored
+     * @throws InvalidUrlException                  if url was empty or invalid
+     * @throws WsdlUrlAlreadyExistsException        conflict: another service description has same url
+     * @throws ServiceAlreadyExistsException        conflict: same service exists in another SD
      */
     public ServiceDescriptionType refreshServiceDescription(Long id, boolean ignoreWarnings)
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
-                           ServiceDescriptionNotFoundException, WrongServiceDescriptionTypeException,
-                           UnhandledWarningsException, InvalidUrlException, ServiceAlreadyExistsException,
-                           WsdlUrlAlreadyExistsException {
+            ServiceDescriptionNotFoundException, WrongServiceDescriptionTypeException,
+            UnhandledWarningsException, InvalidUrlException, ServiceAlreadyExistsException,
+            WsdlUrlAlreadyExistsException {
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptiontype(id);
         if (serviceDescriptionType == null) {
             throw new ServiceDescriptionNotFoundException("Service description with id " + id.toString()
@@ -326,7 +535,217 @@ public class ServiceDescriptionService {
     }
 
     /**
-     * Get one ServiceDescriptionType by id
+     * Update Rest service description
+     *
+     * @param id
+     * @param url
+     * @param restServiceCode
+     * @param newRestServiceCode
+     * @return {@link ServiceDescriptionType}
+     * @throws UrlAlreadyExistsException           if trying to add duplicate url
+     * @throws ServiceCodeAlreadyExistsException   if trying to add duplicate ServiceCode
+     * @throws ServiceDescriptionNotFoundException if ServiceDescription not found
+     * @throws ServiceNotFoundException            if Service not found
+     */
+    public ServiceDescriptionType updateRestServiceDescription(Long id, String url, String restServiceCode,
+            String newRestServiceCode)
+            throws UrlAlreadyExistsException, ServiceCodeAlreadyExistsException, ServiceDescriptionNotFoundException,
+            ServiceNotFoundException, WrongServiceDescriptionTypeException {
+        verifyAuthority("EDIT_REST");
+
+        if (newRestServiceCode == null) {
+            newRestServiceCode = restServiceCode;
+        }
+
+        ServiceDescriptionType serviceDescription = getServiceDescriptiontype(id);
+        if (!serviceDescription.getType().equals(DescriptionType.REST)) {
+            throw new WrongServiceDescriptionTypeException("Expected description type REST");
+        }
+
+        if (serviceDescription == null) {
+            throw new ServiceDescriptionNotFoundException("ServiceDescription with id: " + id + " wasn't found");
+        }
+
+        if (serviceDescription.getService().get(0) == null) {
+            throw new ServiceNotFoundException("Service not found from servicedescription with id "
+                    + serviceDescription.getId());
+        }
+        serviceDescription.setUrl(url);
+        serviceDescription.getService().get(0).setUrl(url);
+
+        updateServiceCodes(restServiceCode, newRestServiceCode, serviceDescription);
+
+        checkDuplicateServiceCodes(serviceDescription);
+        checkDuplicateUrl(serviceDescription);
+
+        clientRepository.saveOrUpdateAndFlush(serviceDescription.getClient());
+        return serviceDescription;
+    }
+
+    /**
+     * Update OpenApi3 ServiceDescription
+     *
+     * @param id
+     * @param url
+     * @param restServiceCode
+     * @param newRestServiceCode
+     * @param ignoreWarnings
+     * @return
+     * @throws UrlAlreadyExistsException         if trying to add duplicate url
+     * @throws ServiceCodeAlreadyExistsException if trying to add duplicate ServiceCode
+     * @throws UnhandledWarningsException        if ignoreWarnings false and warning-level issues in openapi3
+     *                                           description
+     * @throws OpenApiParser.ParsingException    if openapi3 parser finds errors in the parsed document
+     */
+    public ServiceDescriptionType updateOpenApi3ServiceDescription(Long id, String url, String restServiceCode,
+            String newRestServiceCode, Boolean ignoreWarnings) throws UrlAlreadyExistsException,
+            ServiceCodeAlreadyExistsException, UnhandledWarningsException, OpenApiParser.ParsingException,
+            ServiceNotFoundException, WrongServiceDescriptionTypeException, ServiceDescriptionNotFoundException {
+
+        verifyAuthority("EDIT_OPENAPI3");
+        ServiceDescriptionType serviceDescription = getServiceDescriptiontype(id);
+
+        if (serviceDescription == null) {
+            throw new ServiceDescriptionNotFoundException("ServiceDescription with id: " + id + " wasn't found");
+        }
+
+        if (!serviceDescription.getType().equals(DescriptionType.OPENAPI3)) {
+            throw new WrongServiceDescriptionTypeException("Expected description type OPENAPI3");
+        }
+
+        if (newRestServiceCode == null) {
+            newRestServiceCode = restServiceCode;
+        }
+
+        if (serviceDescription.getService().get(0) == null) {
+            throw new ServiceNotFoundException("Service not found from servicedescription with id "
+                    + serviceDescription.getId());
+        }
+
+        updateServiceCodes(restServiceCode, newRestServiceCode, serviceDescription);
+
+        // Parse openapi definition and handle updating endpoints and acls
+        if (!serviceDescription.getUrl().equals(url)) {
+            parseOpenapi3ToServiceDescription(url, newRestServiceCode, ignoreWarnings, serviceDescription);
+        }
+
+        serviceDescription.setUrl(url);
+        serviceDescription.getService().get(0).setUrl(url);
+
+        checkDuplicateServiceCodes(serviceDescription);
+        checkDuplicateUrl(serviceDescription);
+
+        clientRepository.saveOrUpdateAndFlush(serviceDescription.getClient());
+
+        return serviceDescription;
+    }
+
+    /**
+     * Parse OpenApi3 description and update endpoints and acls in ServiceDescription accordingly
+     *
+     * @param url
+     * @param serviceCode
+     * @param ignoreWarnings
+     * @param serviceDescription
+     * @throws OpenApiParser.ParsingException if there are errors in the openapi3 description document
+     * @throws UnhandledWarningsException     if ignoreWarnings is false and parser returns warnings from openapi
+     * @throws ServiceNotFoundException       if service can't be found from servicedescription
+     */
+    private void parseOpenapi3ToServiceDescription(String url, String serviceCode, boolean ignoreWarnings,
+            ServiceDescriptionType serviceDescription) throws
+            OpenApiParser.ParsingException, UnhandledWarningsException, ServiceNotFoundException {
+        OpenApiParser.Result result = openApiParser.parse(url);
+        if (!ignoreWarnings && result.hasWarnings()) {
+            WarningDeviation openapiParserWarnings = new WarningDeviation("OpenapiParserWarnings",
+                    result.getWarnings());
+            throw new UnhandledWarningsException(Arrays.asList(openapiParserWarnings));
+        }
+
+        // Update url
+        updateServiceDescriptionUrl(serviceDescription, serviceCode, url);
+
+        // Create endpoints from parsed results
+        List<EndpointType> parsedEndpoints = result.getOperations().stream()
+                .map(operation -> new EndpointType(serviceCode, operation.getMethod(), operation.getPath(),
+                        true))
+                .collect(Collectors.toList());
+        parsedEndpoints.add(new EndpointType(serviceCode, "*", "**", true));
+
+        // Change existing, manually added, endpoints to generated if they're found from parsedEndpoints
+        serviceDescription.getClient().getEndpoint().forEach(ep -> {
+            if (parsedEndpoints.stream().anyMatch(parsedEp -> parsedEp.isEquivalent(ep))) {
+                ep.setGenerated(true);
+            }
+        });
+
+        // Remove ACLs that don't exist in the parsed endpoints list
+        serviceDescription.getClient().getAcl().removeIf(acl ->
+                acl.getEndpoint().isGenerated()
+                        && parsedEndpoints.stream().noneMatch(endpoint -> acl.getEndpoint().isEquivalent(endpoint)));
+
+
+        // Remove generated endpoints that are not found from the parsed endpoints
+        serviceDescription.getClient().getEndpoint().removeIf(ep -> {
+            return ep.isGenerated() && parsedEndpoints.stream()
+                    .noneMatch(parsedEp -> parsedEp.isEquivalent(ep));
+        });
+
+        // Add parsed endpoints to endpoints list if it is not already there
+        serviceDescription.getClient().getEndpoint().addAll(
+                parsedEndpoints.stream()
+                        .filter(parsedEp -> serviceDescription.getClient().getEndpoint()
+                                .stream()
+                                .noneMatch(ep -> ep.isEquivalent(parsedEp)))
+                        .collect(Collectors.toList()));
+    }
+
+    /**
+     * Updates the ServiceCodes of Endpoints and Service linked to given ServiceDescription
+     *
+     * @param serviceCode
+     * @param newserviceCode
+     * @param serviceDescriptiontype
+     * @throws ServiceNotFoundException if service is not found in ServiceDescription
+     */
+    private void updateServiceCodes(String serviceCode, String newserviceCode,
+            ServiceDescriptionType serviceDescriptiontype) throws ServiceNotFoundException {
+        // Update endpoint service codes
+        ClientType client = serviceDescriptiontype.getClient();
+        client.getEndpoint().stream()
+                .filter(e -> e.getServiceCode().equals(serviceCode))
+                .forEach(e -> e.setServiceCode(newserviceCode));
+
+        // Update service service code
+        ServiceType service = serviceDescriptiontype.getService().stream()
+                .filter(s -> serviceCode.equals(s.getServiceCode()))
+                .findFirst()
+                .orElseThrow(() -> new ServiceNotFoundException("Service with servicecode: " + serviceCode
+                        + " wasn't found from servicedescription with id: " + serviceDescriptiontype.getId()));
+        service.setServiceCode(newserviceCode);
+    }
+
+    /**
+     * Updates the url of the given ServiceDescription and service attached to it with matching ServiceCode to one given
+     *
+     * @param serviceDescriptionType
+     * @param serviceCode
+     * @param url
+     * @throws ServiceNotFoundException if service is not found in ServiceDescription
+     */
+    private void updateServiceDescriptionUrl(ServiceDescriptionType serviceDescriptionType, String serviceCode,
+            String url) throws ServiceNotFoundException {
+        serviceDescriptionType.setUrl(url);
+        ServiceType service = serviceDescriptionType.getService().stream()
+                .filter(s -> serviceCode.equals(s.getServiceCode()))
+                .findFirst()
+                .orElseThrow(() -> new ServiceNotFoundException("Service with servicecode: " + serviceCode
+                        + " wasn't found from servicedescription with id: " + serviceDescriptionType.getId()));
+        service.setUrl(url);
+    }
+
+    /**
+     * Return matching ServiceDescription or null
+     *
      * @param id
      * @return ServiceDescriptionType
      */
@@ -338,15 +757,16 @@ public class ServiceDescriptionService {
      * Update the WSDL url of the selected ServiceDescription.
      * Refreshing a WSDL is also an update of wsdl,
      * it just updates to the same URL value
+     *
      * @param serviceDescriptionType
-     * @param url the new url
+     * @param url                    the new url
      * @return ServiceDescriptionType
      */
     private ServiceDescriptionType updateWsdlUrl(ServiceDescriptionType serviceDescriptionType, String url,
-                                                boolean ignoreWarnings)
+            boolean ignoreWarnings)
             throws InvalidWsdlException, WsdlParser.WsdlNotFoundException,
-                           WrongServiceDescriptionTypeException, UnhandledWarningsException,
-                           ServiceAlreadyExistsException, InvalidUrlException, WsdlUrlAlreadyExistsException {
+            WrongServiceDescriptionTypeException, UnhandledWarningsException,
+            ServiceAlreadyExistsException, InvalidUrlException, WsdlUrlAlreadyExistsException {
 
         // Shouldn't be able to edit e.g. REST service descriptions with a WSDL URL
         if (serviceDescriptionType.getType() != DescriptionType.WSDL) {
@@ -436,7 +856,7 @@ public class ServiceDescriptionService {
      * one we are updating now.
      */
     private void checkForExistingWsdl(ClientType client, String url,
-                                      Long updatedServiceDescriptionId) throws WsdlUrlAlreadyExistsException {
+            Long updatedServiceDescriptionId) throws WsdlUrlAlreadyExistsException {
         for (ServiceDescriptionType serviceDescription : client.getServiceDescription()) {
             if (!serviceDescription.getId().equals(updatedServiceDescriptionId)) {
                 if (serviceDescription.getUrl().equalsIgnoreCase(url)) {
@@ -447,7 +867,8 @@ public class ServiceDescriptionService {
     }
 
     private ServiceDescriptionType buildWsdlServiceDescription(ClientType client,
-            Collection<WsdlParser.ServiceInfo> parsedServices, String url) {
+            Collection<WsdlParser.ServiceInfo> parsedServices,
+            String url) {
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptionOfType(client, url, DescriptionType.WSDL);
 
         // create services
@@ -495,6 +916,7 @@ public class ServiceDescriptionService {
     /**
      * Validate a WSDL in given url. If fatal validation errors, throws exception.
      * If non-fatal warnings, return those.
+     *
      * @param url
      * @return list of validation warnings that can be ignored by choice
      * @throws WsdlValidator.WsdlValidationFailedException
@@ -554,25 +976,26 @@ public class ServiceDescriptionService {
      * Parse and validate a given wsdl and detect problems it may have.
      * Fatal problems result in thrown exception, warnings are returned in
      * WsdlProcessingResult
-     * @param client client who is associated with the wsdl
-     * @param url url of the wsdl
+     *
+     * @param client                      client who is associated with the wsdl
+     * @param url                         url of the wsdl
      * @param updatedServiceDescriptionId id of the service description we
-     * will update with this wsdl, or null
-     * if we're adding a new one
+     *                                    will update with this wsdl, or null
+     *                                    if we're adding a new one
      * @return parsed and validated wsdl and possible warnings
      * @throws WsdlParser.WsdlNotFoundException if a wsdl was not found at the url
-     * @throws InvalidUrlException if url was empty or invalid
-     * @throws InvalidWsdlException if wsdl was invalid (either parsing or validation)
-     * @throws WsdlUrlAlreadyExistsException conflict: another service description has same url
-     * @throws ServiceAlreadyExistsException conflict: same service exists in another SD
+     * @throws InvalidUrlException              if url was empty or invalid
+     * @throws InvalidWsdlException             if wsdl was invalid (either parsing or validation)
+     * @throws WsdlUrlAlreadyExistsException    conflict: another service description has same url
+     * @throws ServiceAlreadyExistsException    conflict: same service exists in another SD
      */
     private WsdlProcessingResult processWsdl(ClientType client, String url,
-                                             Long updatedServiceDescriptionId)
+            Long updatedServiceDescriptionId)
             throws WsdlParser.WsdlNotFoundException,
-                           InvalidWsdlException,
-                           InvalidUrlException,
-                           WsdlUrlAlreadyExistsException,
-                           ServiceAlreadyExistsException {
+            InvalidWsdlException,
+            InvalidUrlException,
+            WsdlUrlAlreadyExistsException,
+            ServiceAlreadyExistsException {
 
         WsdlProcessingResult result = new WsdlProcessingResult();
         // check for valid url (is this not enough??
@@ -635,6 +1058,24 @@ public class ServiceDescriptionService {
 
         public WsdlUrlAlreadyExistsException(String s) {
             super(s, new ErrorDeviation(ERROR_WSDL_EXISTS));
+        }
+    }
+
+    public static class UrlAlreadyExistsException extends ServiceException {
+
+        public static final String ERROR_EXISTING_URL = "url_already_exists";
+
+        public UrlAlreadyExistsException(String s) {
+            super(new ErrorDeviation(ERROR_EXISTING_URL, s));
+        }
+    }
+
+    public static class ServiceCodeAlreadyExistsException extends ServiceException {
+
+        public static final String ERROR_EXISTING_SERVICE_CODE = "service_code_already_exists";
+
+        public ServiceCodeAlreadyExistsException(List<String> metadata) {
+            super(new ErrorDeviation(ERROR_EXISTING_SERVICE_CODE, metadata));
         }
     }
 }

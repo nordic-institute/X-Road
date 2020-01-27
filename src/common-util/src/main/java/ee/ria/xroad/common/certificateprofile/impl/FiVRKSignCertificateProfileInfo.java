@@ -47,24 +47,24 @@ public class FiVRKSignCertificateProfileInfo
     public FiVRKSignCertificateProfileInfo(Parameters params) {
         super(new DnFieldDescription[] {
                 // Country Code
-                new DnFieldDescriptionImpl("C", "Country code (C)",
+                new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.COUNTRY_CODE,
                         "FI"
                 ).setReadOnly(true),
 
                 // Organization name
-                new DnFieldDescriptionImpl("O", "Organization name (O)",
+                new EnumLocalizedFieldDescriptionImpl("O", DnFieldLabelLocalizationKey.ORGANIZATION_NAME,
                         ""
                 ).setReadOnly(false),
 
                 // Serialnumber
-                new DnFieldDescriptionImpl("serialNumber", "Serial number",
+                new EnumLocalizedFieldDescriptionImpl("serialNumber", DnFieldLabelLocalizationKey.SERIAL_NUMBER,
                         params.getClientId().getXRoadInstance() + "/"
                         + params.getServerId().getServerCode() + "/"
                         + params.getClientId().getMemberClass()
                 ).setReadOnly(true),
 
                 // Member code
-                new DnFieldDescriptionImpl("CN", "Member code",
+                new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.MEMBER_CODE,
                         params.getClientId().getMemberCode()
                 ).setReadOnly(true) }
         );

@@ -75,6 +75,7 @@ public final class TestUtils {
     public static final String GROUP_DESC = "GROUP_DESC";
     public static final String NEW_GROUP_DESC = "NEW_GROUP_DESC";
     public static final String INVALID_GROUP_ID = "NOT_VALID";
+    public static final int CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT = 4;
     // values from initial test data: src/test/resources/data.sql
     public static final String DB_GLOBALGROUP_ID = "FI:security-server-owners";
     public static final String DB_GLOBALGROUP_CODE = "security-server-owners";

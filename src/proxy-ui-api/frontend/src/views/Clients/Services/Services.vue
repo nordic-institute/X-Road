@@ -106,7 +106,7 @@
     </template>
 
     <addWsdlDialog :dialog="addWsdlDialog" @save="wsdlSave" @cancel="cancelAddWsdl" />
-    <addRestDialog :dialog="addRestDialog" @save="restSave" @cancel="cancelAddRest" />
+    <addRestDialog :dialog="addRestDialog" @save="restSave" :clientId="this.id" @cancel="cancelAddRest" />
     <disableServiceDescDialog
       :dialog="disableDescDialog"
       @cancel="disableDescCancel"
@@ -385,23 +385,8 @@ export default Vue.extend({
       this.addWsdlDialog = false;
     },
 
-    restSave(rest: any): void {
-      api
-        .post(`/clients/${this.id}/service-descriptions`, {
-          url: rest.url,
-          rest_service_code: rest.serviceCode,
-          type: 'REST',
-        })
-        .then((res) => {
-          this.$bus.$emit('show-success', 'services.restAdded');
-        })
-        .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
-        })
-        .finally(() => {
-          this.fetchData();
-        });
-
+    restSave(): void {
+      this.fetchData();
       this.addRestDialog = false;
     },
 

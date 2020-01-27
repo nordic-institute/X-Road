@@ -24,37 +24,45 @@
         :isOpen="isExpanded(token.id)"
       >
         <template v-slot:action>
-          <large-button
-            @click="login(token, index)"
-            v-if="!token.logged_in"
-            :disabled="!token.available"
-          >{{$t('keys.logIn')}}</large-button>
-          <large-button
-            @click="logout(token, index)"
-            v-if="token.logged_in"
-            outlined
-          >{{$t('keys.logOut')}}</large-button>
+          <template v-if="canActivateToken">
+            <large-button
+              @click="login(token, index)"
+              v-if="!token.logged_in"
+              :disabled="!token.available"
+            >{{$t('keys.logIn')}}</large-button>
+            <large-button
+              @click="logout(token, index)"
+              v-if="token.logged_in"
+              outlined
+            >{{$t('keys.logOut')}}</large-button>
+          </template>
         </template>
 
         <template v-slot:link>
-          <div
-            class="clickable-link"
-            v-if="canEditServiceDesc"
-            @click="tokenClick(token)"
-          >{{$t('keys.token')}} {{token.name}}</div>
-          <div v-else>{{token.type}} ({{token.url}})</div>
+          <div class="clickable-link" @click="tokenClick(token)">{{$t('keys.token')}} {{token.name}}</div>
         </template>
 
         <template v-slot:content>
           <div>
-            <div class="button-wrap">
+            <div class="button-wrap" v-if="canActivateToken">
               <large-button
                 outlined
-                class="button-spacing"
                 @click="addKey(token, index)"
                 :disabled="!token.logged_in"
               >{{$t('keys.addKey')}}</large-button>
-              <large-button outlined :disabled="!token.logged_in">{{$t('keys.importCert')}}</large-button>
+              <large-button
+                outlined
+                class="button-spacing"
+                :disabled="!token.logged_in"
+                @click="$refs.certUpload[0].click()"
+              >{{$t('keys.importCert')}}</large-button>
+              <input
+                v-show="false"
+                ref="certUpload"
+                type="file"
+                accept=".pem, .cer, .der"
+                @change="importCert"
+              />
             </div>
 
             <!-- AUTH table -->
@@ -63,9 +71,11 @@
               :keys="getAuthKeys(token.keys)"
               title="keys.authKeyCert"
               :disableGenerateCsr="!token.logged_in"
+              :tokenType="token.type"
               @keyClick="keyClick"
               @generateCsr="generateCsr"
               @certificateClick="certificateClick"
+              @importCertByHash="importCertByHash"
             />
 
             <!-- SIGN table -->
@@ -74,19 +84,24 @@
               :keys="getSignKeys(token.keys)"
               title="keys.signKeyCert"
               :disableGenerateCsr="!token.logged_in"
+              :tokenType="token.type"
               @keyClick="keyClick"
               @generateCsr="generateCsr"
               @certificateClick="certificateClick"
+              @importCertByHash="importCertByHash"
+              @refreshList="fetchData"
             />
+
             <!-- Keys with unknown type -->
             <unknown-keys-table
               v-if="getOtherKeys(token.keys).length > 0"
               :keys="getOtherKeys(token.keys)"
               title="keys.unknown"
               :disableGenerateCsr="!token.logged_in"
+              :tokenType="token.type"
               @keyClick="keyClick"
               @generateCsr="generateCsr"
-              @certificateClick="certificateClick"
+              @importCertByHash="importCertByHash"
             />
           </div>
         </template>
@@ -117,7 +132,7 @@
 <script lang="ts">
 // View for services tab
 import Vue from 'vue';
-import { Permissions, RouteName } from '@/global';
+import { Permissions, RouteName, UsageTypes } from '@/global';
 import Expandable from '@/components/ui/Expandable.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
@@ -128,7 +143,7 @@ import KeysTable from './KeysTable.vue';
 import UnknownKeysTable from './UnknownKeysTable.vue';
 import KeyLabelDialog from './KeyLabelDialog.vue';
 import { mapGetters } from 'vuex';
-import { Key, Token, Certificate } from '@/types';
+import { Key, Token, TokenType, TokenCertificate } from '@/types';
 import * as api from '@/util/api';
 
 import _ from 'lodash';
@@ -157,14 +172,16 @@ export default Vue.extend({
       search: '',
       logoutDialog: false,
       loginDialog: false,
-      tokens: [],
+      tokens: [] as Token[],
       selected: undefined as SelectedObject,
       keyLabelDialog: false,
     };
   },
   computed: {
-    canEditServiceDesc(): boolean {
-      return this.$store.getters.hasPermission(Permissions.EDIT_WSDL);
+    canActivateToken(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.ACTIVATE_DEACTIVATE_TOKEN,
+      );
     },
     filtered(): Token[] {
       if (!this.tokens || this.tokens.length === 0) {
@@ -196,7 +213,7 @@ export default Vue.extend({
 
       arr.forEach((token: Token) => {
         token.keys.forEach((key: Key) => {
-          const certs = key.certificates.filter((cert: Certificate) => {
+          const certs = key.certificates.filter((cert: TokenCertificate) => {
             if (cert.owner_id) {
               return cert.owner_id.toLowerCase().includes(mysearch);
             }
@@ -246,10 +263,13 @@ export default Vue.extend({
       });
     },
 
-    certificateClick(cert: Certificate): void {
+    certificateClick(payload: { cert: TokenCertificate; key: Key }): void {
       this.$router.push({
         name: RouteName.Certificate,
-        params: { hash: cert.certificate_details.hash },
+        params: {
+          hash: payload.cert.certificate_details.hash,
+          usage: payload.key.usage,
+        },
       });
     },
 
@@ -302,7 +322,7 @@ export default Vue.extend({
     getSignKeys(keys: Key[]): Key[] {
       // Filter out service descriptions that don't include search term
       const filtered = keys.filter((key: Key) => {
-        return key.usage === 'SIGNING';
+        return key.usage === UsageTypes.SIGNING;
       });
 
       return filtered;
@@ -311,7 +331,7 @@ export default Vue.extend({
     getOtherKeys(keys: Key[]): Key[] {
       // Filter out service descriptions that don't include search term
       const filtered = keys.filter((key: Key) => {
-        return key.usage !== 'SIGNING' && key.usage !== 'AUTHENTICATION';
+        return key.usage !== UsageTypes.SIGNING && key.usage !== UsageTypes.AUTHENTICATION;
       });
 
       return filtered;
@@ -352,9 +372,54 @@ export default Vue.extend({
           this.$bus.$emit('show-error', error.message);
         });
     },
+    importCert(event: any) {
+      const fileList =
+        (event && event.target && event.target.files) ||
+        (event && event.dataTransfer && event.dataTransfer.files);
+      if (!fileList.length) {
+        return;
+      }
 
+      const reader = new FileReader();
+
+      // Upload file when it's loaded in FileReader
+      reader.onload = (e: any) => {
+        if (!e || !e.target || !e.target.result) {
+          return;
+        }
+
+        this.$store
+          .dispatch('uploadCertificate', {
+            fileData: e.target.result,
+          })
+          .then(
+            () => {
+              this.$bus.$emit('show-success', 'keys.importCertSuccess');
+              this.fetchData();
+            },
+            (error) => {
+              this.$bus.$emit('show-error', error.message);
+            },
+          );
+      };
+      reader.readAsArrayBuffer(fileList[0]);
+    },
+    importCertByHash(hash: string) {
+      api.post(`/token-certificates/${hash}/import`, {}).then(
+        () => {
+          this.$bus.$emit('show-success', 'keys.importCertSuccess');
+          this.fetchData();
+        },
+        (error) => {
+          this.$bus.$emit('show-error', error.message);
+        },
+      );
+    },
     generateCsr(key: Key) {
-      // TODO will be implemented later
+      this.$router.push({
+        name: RouteName.GenerateCertificateSignRequest,
+        params: { keyId: key.id },
+      });
     },
     fetchData(): void {
       // Fetch tokens from backend
@@ -368,7 +433,6 @@ export default Vue.extend({
         });
     },
   },
-
   created() {
     this.fetchData();
   },
@@ -414,7 +478,7 @@ export default Vue.extend({
 }
 
 .button-spacing {
-  margin-right: 20px;
+  margin-left: 20px;
 }
 </style>
 

@@ -29,6 +29,7 @@ import TokenDetails from '@/views/TokenDetails/TokenDetails.vue';
 import KeyDetails from '@/views/KeyDetails/KeyDetails.vue';
 import CertificateDetails from '@/views/CertificateDetails/CertificateDetails.vue';
 import Service from '@/views/Service/Service.vue';
+import GenerateCertificateSignRequest from '@/views/GenerateCertificateSignRequest/GenerateCertificateSignRequest.vue';
 import store from '@/store';
 import { RouteName, Permissions } from '@/global';
 
@@ -202,7 +203,7 @@ const router = new Router({
         },
         {
           name: RouteName.Certificate,
-          path: '/certificate/:hash',
+          path: '/certificate/:hash/:usage',
           components: {
             default: CertificateDetails,
           },
@@ -254,6 +255,14 @@ const router = new Router({
           path: '/service/:clientId/:serviceId',
           components: {
             default: Service,
+          },
+          props: { default: true },
+        },
+        {
+          name: RouteName.GenerateCertificateSignRequest,
+          path: '/generate-csr/:keyId',
+          components: {
+            default: GenerateCertificateSignRequest,
           },
           props: { default: true },
         },

@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.19"
+  version: "1.0.21"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -420,6 +420,42 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
+  /token-certificates/{hash}/possible-actions:
+    get: # ok
+      tags:
+        - security server
+      summary: get possible actions for one certificate
+      operationId: getPossibleActionsForCertificate
+      description: UI needs to know which actions can be done on one certificate
+      parameters:
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '200':
+          description: possible actions that can be done on the certificate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PossibleActions'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /token-certificates/{hash}/register:
     put: # ok
       tags:
@@ -427,6 +463,55 @@ paths:
       summary: register certificate
       operationId: registerCertificate
       description: Administrator registers selected certificate.
+      parameters:
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: SecurityServerAddress
+              type: object
+              required:
+                - address
+              properties:
+                address:
+                  type: string
+                  description: Security server's IP address or DNS name
+                  format: text
+                  minLength: 1
+                  maxLength: 255
+              example:
+                address: 127.0.0.1
+      responses:
+        '200':
+          description: request was successful
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /token-certificates/{hash}/unregister:
+    put: # ok
+      tags:
+        - security server
+      summary: unregister authentication certificate
+      operationId: unregisterAuthCertificate
+      description: Administrator unregisters selected authentication certificate.
       parameters:
         - in: path
           name: hash
@@ -452,13 +537,13 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /token-certificates/{hash}/unregister:
+  /token-certificates/{hash}/mark-for-deletion:
     put: # ok
       tags:
         - security server
-      summary: unregister certificate
-      operationId: unregisterCertificate
-      description: Administrator unregisters selected certificate.
+      summary: marks an auth certificate for deletion
+      operationId: markAuthCertForDeletion
+      description: Administrator marks an auth certificate for deletion.
       parameters:
         - in: path
           name: hash
@@ -1564,7 +1649,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '200':
           description: key object
@@ -1599,7 +1683,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       requestBody:
         content:
           application/json:
@@ -1651,7 +1734,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '204':
           description: key deletion was successful
@@ -1670,7 +1752,7 @@ paths:
       tags:
         - security server
       summary: generate csr for the selected key
-      operationId: genrerateCsr
+      operationId: generateCsr
       description: Administrator generates csr for the key.
       parameters:
         - in: path
@@ -1681,42 +1763,17 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
-        - in: query
-          name: key_usage
-          description: inteded usage for the key (signing or authentication)
-          required: false
-          schema:
-            $ref: '#/components/schemas/KeyUsageType'
-        - in: query
-          name: approved_ca
-          description: approved certification service
-          required: false
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-        - in: query
-          name: csr_format
-          description: format of the certificate signing request (PEM or DER)
-          required: false
-          schema:
-            $ref: '#/components/schemas/CsrFormat'
-        - in: query
-          name: member_id
-          description: security server client the certificate will be issued for (only for signing certificates)
-          required: false
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
+      requestBody:
+        description: request to generate csr
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CsrGenerate'
       responses:
         '201':
-          description: CSR created
+          description: created CSR
           content:
-            application/pkcs10:
+            application/octet-stream:
               schema:
                 type: string
                 format: binary
@@ -1773,6 +1830,50 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /keys/{id}/csrs/{csr_id}/possible-actions:
+    get: # ok
+      tags:
+        - security server
+      summary: get possible actions for one csr
+      operationId: getPossibleActionsForCsr
+      description: UI needs to know which actions can be done on one csr
+      parameters:
+        - in: path
+          name: id
+          description: id of the key
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+        - in: path
+          name: csr_id
+          description: id of the csr
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '200':
+          description: possible actions that can be done on the certificate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PossibleActions'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /member-classes:
     get: # ok
       tags:
@@ -1791,7 +1892,7 @@ paths:
             type: boolean
       responses:
         '200':
-          description: key object
+          description: array of member classes
           content:
             application/json:
               schema:
@@ -1834,7 +1935,7 @@ paths:
             maxLength: 255
       responses:
         '200':
-          description: key object
+          description: array of member classes
           content:
             application/json:
               schema:
@@ -2818,6 +2919,107 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
+  /certificate-authorities:
+    get: # ok
+      tags:
+        - security server
+      summary: view the approved certificate authorities
+      operationId: getApprovedCertificateAuthorities
+      description: Administrator views the approved certificate authorities.
+      parameters:
+        - in: query
+          name: key_usage_type
+          description: return only CAs suitable for this type of key usage
+          required: false
+          schema:
+            $ref: '#/components/schemas/KeyUsageType'
+      responses:
+        '200':
+          description: list of approved certificate authorities
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of certificate authority objects
+                items:
+                  $ref: '#/components/schemas/CertificateAuthority'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /certificate-authorities/{ca_name}/csr-subject-fields:
+    get: # ok
+      tags:
+        - security server
+      summary: get description of subject DN fields for CSR
+      operationId: getSubjectFieldDescriptions
+      description: list DN field descriptions to collect CSR parameters
+      parameters:
+        - in: path
+          name: ca_name
+          description: common name of the CA
+          example: X-Road Test CA CN
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: key_id
+          description: id of the key. If provided, used only for validating correct key usage
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+        - in: query
+          name: key_usage_type
+          description: which usage type this CSR is for
+          required: true
+          schema:
+            $ref: '#/components/schemas/KeyUsageType'
+        - in: query
+          name: member_id
+          description: member client id for signing CSRs. <instance_id>:<member_class>:<member_code>
+          example: FI:GOV:123
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 767
+      responses:
+        '200':
+          description: csr subject field objects
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of CsrSubjectFieldDescription objects
+                items:
+                  $ref: '#/components/schemas/CsrSubjectFieldDescription'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+
   /system/timestamping-services:
     get: # ok
       tags:
@@ -3320,6 +3522,7 @@ components:
       required:
         - id
         - owner_id
+        - possible_actions
       properties:
         id:
           type: string
@@ -3335,6 +3538,11 @@ components:
           minLength: 1
           maxLength: 767
           readOnly: true
+        possible_actions:
+          $ref: '#/components/schemas/PossibleActions'
+          description: possible actions that can be done to this object, e.g DELETE.
+            Has value only for operationIds getToken and getTokens.
+            Does not consider user authorization.
     TokenCertificate: # ok
       type: object
       description: certificate that is stored in a Token (auth or sign cert)
@@ -3368,6 +3576,11 @@ components:
           $ref: '#/components/schemas/CertificateDetails'
         status:
           $ref: '#/components/schemas/CertificateStatus'
+        possible_actions:
+          $ref: '#/components/schemas/PossibleActions'
+          description: possible actions that can be done to this object, e.g DELETE.
+            Has value only for operationIds getToken and getTokens.
+            Does not consider user authorization.
     CertificateDetails: # ok
       type: object
       description: certificate details for any kind of certificate (TLS, auth, sign)
@@ -3490,13 +3703,22 @@ components:
             $ref: '#/components/schemas/KeyUsage'
     CertificateAuthority: # ok
       type: object
-      description: certificate authority
+      description: approved certificate authority information
       required:
         - name
+        - distinguished_name
         - response
         - expires_at
+        - authentication_only
       properties:
         name:
+          type: string
+          format: text
+          description: common name of the CA, used also as an identifier
+          example: X-Road Test CA CN
+          minLength: 1
+          maxLength: 255
+        distinguished_name:
           type: string
           format: text
           description: distinguished name
@@ -3517,6 +3739,9 @@ components:
           example: '2099-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
+        authentication_only:
+          type: boolean
+          description: if certificate authority is limited for authentication use only
     CertificateStatus: # ok
       type: string
       format: enum
@@ -3540,6 +3765,29 @@ components:
         - OCSP_RESPONSE_GOOD
         - OCSP_RESPONSE_SUSPENDED
         - OCSP_RESPONSE_REVOKED
+    PossibleActions: # ok
+      type: array
+      description: array containing the possible actions that can be done for this item
+      items:
+        $ref: '#/components/schemas/PossibleAction'
+    PossibleAction: # ok
+      type: string
+      format: enum
+      description: an action to change state or edit token, key, cert or csr
+      example: DELETE
+      enum:
+        - DELETE
+        - ACTIVATE
+        - DISABLE
+        - LOGIN
+        - LOGOUT
+        - REGISTER
+        - UNREGISTER
+        - IMPORT_FROM_TOKEN
+        - GENERATE_KEY
+        - EDIT_FRIENDLY_NAME
+        - GENERATE_AUTH_CSR
+        - GENERATE_SIGN_CSR
     Client: # ok
       type: object
       description: x-road client
@@ -3664,6 +3912,92 @@ components:
       enum:
         - PEM
         - DER
+    CsrGenerate:
+      type: object
+      description: request to generate a CSR
+      required:
+        - key_usage_type
+        - ca_name
+        - csr_format
+        - subject_field_values
+      properties:
+        key_usage_type:
+          description: which usage type this CSR is for (signing or authentication)
+          $ref: '#/components/schemas/KeyUsageType'
+        ca_name:
+          type: string
+          format: text
+          description: common name of the CA
+          example: X-Road Test CA CN
+          minLength: 1
+          maxLength: 255
+        csr_format:
+          description: format of the certificate signing request (PEM or DER)
+          $ref: '#/components/schemas/CsrFormat'
+        member_id:
+          type: string
+          format: text
+          description: member client id for signing CSRs. <instance_id>:<member_class>:<member_code>
+          example: FI:GOV:123
+          minLength: 1
+          maxLength: 767
+        subject_field_values:
+          type: object
+          description: user-provided values for subject DN parameters
+          additionalProperties:
+            type: string
+    CsrSubjectFieldDescription:
+      type: object
+      description: object describing input fields for CSR subject DN info
+      required:
+        - id
+        - localized
+        - read_only
+        - required
+      properties:
+        id:
+          type: string
+          format: text
+          description: the identifier of the field (such as 'O', 'OU' etc)
+          example: O
+          minLength: 1
+          readOnly: true
+        label:
+          type: string
+          format: text
+          description: label of the field, used to display the field in the user interface
+          example: ORGANIZATION_NAME
+          minLength: 1
+          readOnly: true
+        label_key:
+          type: string
+          format: text
+          description: localization key for label of the field, used to display the field in the user interface
+          example: Organization name (O)
+          minLength: 1
+          readOnly: true
+        default_value:
+          type: string
+          format: text
+          description: the default value of the field. Can be empty.
+          example: 1234
+          minLength: 0
+          readOnly: true
+        read_only:
+          type: boolean
+          description: if this field is read-only
+          example: true
+          readOnly: true
+        required:
+          type: boolean
+          description: if this field is required to be filled
+          example: true
+          readOnly: true
+        localized:
+          type: boolean
+          description: if true, label key is in property "label_key". If false, actual label is in property "label"
+          example: true
+          readOnly: true
     ErrorInfo:
       type: object
       description: object returned in error cases
@@ -3800,7 +4134,6 @@ components:
           description: key id
           example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
           minLength: 1
-          maxLength: 40
           readOnly: true
         name:
           type: string
@@ -3836,6 +4169,11 @@ components:
           type: boolean
           description: if the key is saved to configuration
           example: true
+        possible_actions:
+          $ref: '#/components/schemas/PossibleActions'
+          description: possible actions that can be done to this object, e.g DELETE.
+            Has value only for operationIds getToken and getTokens.
+            Does not consider user authorization.
     KeyUsage: # ok
       type: string
       format: enum
@@ -4076,7 +4414,7 @@ components:
             $ref: '#/components/schemas/AccessRight'
     ServiceDescription: # ok
       type: object
-      description: WSDL/REST service
+      description: WSDL/OPENAPI3/REST service
       required:
         - id
         - url
@@ -4162,6 +4500,9 @@ components:
     ServiceDescriptionUpdate:
       type: object
       description: request object for updating a service description url or service code
+      required:
+        - type
+        - url
       properties:
         url:
           type: string
@@ -4175,6 +4516,13 @@ components:
           format: text
           description: service code for REST service
           example: exampleServiceCode
+          minLength: 1
+          maxLength: 255
+        new_rest_service_code:
+          type: string
+          format: test
+          description: new service code for REST service
+          example: newExampleServiceCode
           minLength: 1
           maxLength: 255
         ignore_warnings:
@@ -4192,6 +4540,7 @@ components:
       enum:
         - WSDL
         - REST
+        - OPENAPI3
     Subject: # ok
       type: object
       description: subject
@@ -4393,6 +4742,11 @@ components:
           description: Contains label-value pairs of information
           items:
             $ref: '#/components/schemas/KeyValuePair'
+        possible_actions:
+          $ref: '#/components/schemas/PossibleActions'
+          description: possible actions that can be done to this object, e.g DELETE.
+            Has value only for operationIds getToken and getTokens.
+            Does not consider user authorization.
     TokenStatus: # ok
       type: string
       format: text

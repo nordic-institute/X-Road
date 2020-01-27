@@ -187,22 +187,17 @@
 import Vue from 'vue';
 import _ from 'lodash';
 import { mapGetters } from 'vuex';
-import { Permissions } from '@/global';
 import * as api from '@/util/api';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import AccessRightsDialog from './AccessRightsDialog.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import HelpIcon from '@/components/ui/HelpIcon.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import { Service, AccessRightSubject } from '@/types.ts';
+import { Service, ServiceClient } from '@/types';
 import { isValidWsdlURL } from '@/util/helpers';
-import {
-  ValidationObserver,
-  ValidationProvider,
-  withValidation,
-} from 'vee-validate';
+import { ValidationObserver, ValidationProvider } from 'vee-validate';
 
-type NullableSubject = undefined | AccessRightSubject;
+type NullableSubject = undefined | ServiceClient;
 
 export default Vue.extend({
   components: {
@@ -370,8 +365,7 @@ export default Vue.extend({
       this.selectedMember = member;
     },
     doRemoveSubject() {
-      const subject: AccessRightSubject = this
-        .selectedMember as AccessRightSubject;
+      const subject: ServiceClient = this.selectedMember as ServiceClient;
 
       if (subject && subject.subject.id) {
         this.removeArrayOfSubjects([

@@ -29,6 +29,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -42,6 +43,9 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_LOGIN_FAILED;
 import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_ACTIVE;
@@ -58,14 +62,16 @@ import static java.util.stream.Collectors.toList;
 public class TokenService {
 
     private final SignerProxyFacade signerProxyFacade;
+    private final PossibleActionsRuleEngine possibleActionsRuleEngine;
 
     /**
      * TokenService constructor
-     * @param signerProxyFacade
      */
     @Autowired
-    public TokenService(SignerProxyFacade signerProxyFacade) {
+    public TokenService(SignerProxyFacade signerProxyFacade,
+            PossibleActionsRuleEngine possibleActionsRuleEngine) {
         this.signerProxyFacade = signerProxyFacade;
+        this.possibleActionsRuleEngine = possibleActionsRuleEngine;
     }
 
     /**
@@ -128,9 +134,16 @@ public class TokenService {
      * @param password password for token
      * @throws TokenNotFoundException if token was not found
      * @throws PinIncorrectException if token login failed due to wrong ping
+     * @throws ActionNotPossibleException if token activation was not possible
      */
     public void activateToken(String id, char[] password) throws
-            TokenNotFoundException, PinIncorrectException {
+            TokenNotFoundException, PinIncorrectException, ActionNotPossibleException {
+
+        // check that action is possible
+        TokenInfo tokenInfo = getToken(id);
+        possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.TOKEN_ACTIVATE,
+                tokenInfo);
+
         try {
             signerProxyFacade.activateToken(id, password);
         } catch (CodedException e) {
@@ -150,8 +163,15 @@ public class TokenService {
      * Deactivate a token
      * @param id id of token
      * @throws TokenNotFoundException if token was not found
+     * @throws ActionNotPossibleException if deactivation was not possible
      */
-    public void deactivateToken(String id) throws TokenNotFoundException {
+    public void deactivateToken(String id) throws TokenNotFoundException, ActionNotPossibleException {
+
+        // check that action is possible
+        TokenInfo tokenInfo = getToken(id);
+        possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.TOKEN_DEACTIVATE,
+                tokenInfo);
+
         try {
             signerProxyFacade.deactivateToken(id);
         } catch (CodedException e) {
@@ -190,8 +210,14 @@ public class TokenService {
      * @param friendlyName
      * @throws TokenNotFoundException if token was not found
      */
-    public TokenInfo updateTokenFriendlyName(String tokenId, String friendlyName) throws TokenNotFoundException {
-        TokenInfo tokenInfo = null;
+    public TokenInfo updateTokenFriendlyName(String tokenId, String friendlyName) throws TokenNotFoundException,
+            ActionNotPossibleException {
+
+        // check that updating friendly name is possible
+        TokenInfo tokenInfo = getToken(tokenId);
+        possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.EDIT_FRIENDLY_NAME,
+                tokenInfo);
+
         try {
             signerProxyFacade.setTokenFriendlyName(tokenId, friendlyName);
             tokenInfo = signerProxyFacade.getToken(tokenId);
@@ -224,6 +250,18 @@ public class TokenService {
         return TOKEN_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
     }
 
+    static boolean isCausedByKeyNotFound(CodedException e) {
+        return KEY_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
+    }
+
+    static boolean isCausedByCertNotFound(CodedException e) {
+        return CERT_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
+    }
+
+    static boolean isCausedByCsrNotFound(CodedException e) {
+        return CSR_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
+    }
+
     static boolean isCausedByTokenNotActive(CodedException e) {
         return TOKEN_NOT_ACTIVE_FAULT_CODE.equals(e.getFaultCode());
     }
@@ -231,9 +269,70 @@ public class TokenService {
     // detect a couple of CodedException error codes from core
     static final String PIN_INCORRECT_FAULT_CODE = SIGNER_X + "." + X_PIN_INCORRECT;
     static final String TOKEN_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_TOKEN_NOT_FOUND;
+    static final String KEY_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_KEY_NOT_FOUND;
+    static final String CERT_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_CERT_NOT_FOUND;
+    static final String CSR_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_CSR_NOT_FOUND;
     static final String LOGIN_FAILED_FAULT_CODE = SIGNER_X + "." + X_LOGIN_FAILED;
     static final String TOKEN_NOT_ACTIVE_FAULT_CODE = SIGNER_X + "." + X_TOKEN_NOT_ACTIVE;
     static final String CKR_PIN_INCORRECT_MESSAGE = "Login failed: CKR_PIN_INCORRECT";
+
+
+    /**
+     * Get TokenInfo for key id
+     */
+    public TokenInfo getTokenForKeyId(String keyId) throws KeyNotFoundException {
+        try {
+            return signerProxyFacade.getTokenForKeyId(keyId);
+        } catch (CodedException e) {
+            if (isCausedByKeyNotFound(e)) {
+                throw new KeyNotFoundException(e);
+            } else {
+                throw e;
+            }
+        } catch (Exception other) {
+            throw new RuntimeException("getTokenForKeyId failed", other);
+        }
+    }
+
+    /**
+     * Get TokenInfoAndKeyId for certificate hash
+     */
+    public TokenInfoAndKeyId getTokenAndKeyIdForCertificateHash(String hash) throws KeyNotFoundException,
+            CertificateNotFoundException {
+        try {
+            return signerProxyFacade.getTokenAndKeyIdForCertHash(hash);
+        } catch (CodedException e) {
+            if (isCausedByKeyNotFound(e)) {
+                throw new KeyNotFoundException(e);
+            } else if (isCausedByCertNotFound(e)) {
+                throw new CertificateNotFoundException(e);
+            } else {
+                throw e;
+            }
+        } catch (Exception other) {
+            throw new RuntimeException("getTokenAndKeyIdForCertHash failed", other);
+        }
+    }
+
+    /**
+     * Get TokenInfoAndKeyId for csr id
+     */
+    public TokenInfoAndKeyId getTokenAndKeyIdForCertificateRequestId(String csrId) throws KeyNotFoundException,
+            CsrNotFoundException {
+        try {
+            return signerProxyFacade.getTokenAndKeyIdForCertRequestId(csrId);
+        } catch (CodedException e) {
+            if (isCausedByKeyNotFound(e)) {
+                throw new KeyNotFoundException(e);
+            } else if (isCausedByCsrNotFound(e)) {
+                throw new CsrNotFoundException(e);
+            } else {
+                throw e;
+            }
+        } catch (Exception other) {
+            throw new RuntimeException("getTokenAndKeyIdForCertHash failed", other);
+        }
+    }
 
     public static class PinIncorrectException extends ServiceException {
 

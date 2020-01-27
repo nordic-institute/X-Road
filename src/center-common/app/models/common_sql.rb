@@ -22,8 +22,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-
 # Static helper methods for common raw SQL
+
+require 'java'
+
 class CommonSql
 
   @@is_postgres = nil
@@ -59,24 +61,12 @@ class CommonSql
       return
     end
 
-    bdr_extension_result = ActiveRecord::Base.connection.execute(
-      "SELECT exists(SELECT 1 FROM pg_extension WHERE extname='bdr')")
-    # The result will be a list in the format [{"exists"=>"t"}]
-    if !bdr_extension_result.empty? &&
-        bdr_extension_result.first["exists"].eql?("t")
-      node_name_result = ActiveRecord::Base.connection.execute(
-        "SELECT bdr.bdr_get_local_node_name()")
-      # The result will be an array in the format
-      # [{"bdr_get_local_node_name"=>"xroad_node_0"}]
-      if !node_name_result.empty?
-        node_name = node_name_result.first["bdr_get_local_node_name"]
-        if !node_name.empty?
-          @@ha_node_name = node_name
-          @@ha_configured = true
-        end
-      end
-    end
-    if @@ha_configured == nil
+    node_name = java.lang.System.get_property("xroad.center.ha-node-name")
+
+    if node_name && !node_name.empty?
+      @@ha_node_name = node_name
+      @@ha_configured = true
+    else
       @@ha_configured = false
     end
   end
@@ -102,7 +92,7 @@ class CommonSql
     return @@ha_node_name
   end
 
-  # Return the names of all the available BDR nodes or an empty list.
+  # Return the names of all the known HA nodes or an empty list.
   def self.available_ha_nodes
     if @@ha_configured == nil
       CommonSql.detect_ha_support
@@ -111,12 +101,7 @@ class CommonSql
     if !@@ha_configured
       return []
     end
-
-    all_nodes_result = ActiveRecord::Base.connection.execute(
-      "SELECT node_name FROM bdr.bdr_nodes")
-    # The result will be a list in the format
-    # [{"node_name"=>"node_0"}, {"node_name"=>"node_1"}]
-    return all_nodes_result.map{|x| x["node_name"]}
+    return SystemParameter.where(key: SystemParameter::CENTRAL_SERVER_ADDRESS).map { |x| x.node_name }
   end
 
 end

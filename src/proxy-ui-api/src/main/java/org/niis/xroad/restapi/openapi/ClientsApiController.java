@@ -61,11 +61,13 @@ import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.LocalGroupService;
+import org.niis.xroad.restapi.service.MissingParameterException;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.ResourceUtils;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
+import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -106,6 +108,7 @@ public class ClientsApiController implements ClientsApi {
 
     /**
      * ClientsApiController constructor
+     *
      * @param clientService
      * @param tokenService
      * @param clientConverter
@@ -140,6 +143,7 @@ public class ClientsApiController implements ClientsApi {
 
     /**
      * Finds clients matching search terms
+     *
      * @param name
      * @param instance
      * @param memberClass
@@ -170,6 +174,7 @@ public class ClientsApiController implements ClientsApi {
 
     /**
      * Read one client from DB
+     *
      * @param encodedId id that is encoded with the <INSTANCE>:<MEMBER_CLASS>:....
      * encoding
      * @return
@@ -196,6 +201,7 @@ public class ClientsApiController implements ClientsApi {
 
     /**
      * Update a client's connection type
+     *
      * @param encodedId
      * @param connectionTypeWrapper wrapper object containing the connection type to set
      * @return
@@ -315,15 +321,19 @@ public class ClientsApiController implements ClientsApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('ADD_WSDL')")
+    @PreAuthorize("hasAnyAuthority('ADD_WSDL', 'ADD_OPENAPI3')")
     public ResponseEntity<ServiceDescription> addClientServiceDescription(String id,
             ServiceDescriptionAdd serviceDescription) {
+        ClientId clientId = clientConverter.convertId(id);
+        String url = serviceDescription.getUrl();
+        boolean ignoreWarnings = serviceDescription.getIgnoreWarnings();
+        String restServiceCode = serviceDescription.getRestServiceCode();
+
         ServiceDescriptionType addedServiceDescriptionType = null;
         if (serviceDescription.getType() == ServiceType.WSDL) {
             try {
                 addedServiceDescriptionType = serviceDescriptionService.addWsdlServiceDescription(
-                        clientConverter.convertId(id),
-                        serviceDescription.getUrl(), serviceDescription.getIgnoreWarnings());
+                        clientId, url, ignoreWarnings);
             } catch (WsdlParser.WsdlNotFoundException | UnhandledWarningsException
                     | InvalidUrlException | InvalidWsdlException e) {
                 // deviation data (errorcode + warnings) copied
@@ -336,9 +346,30 @@ public class ClientsApiController implements ClientsApi {
                 // deviation data (errorcode + warnings) copied
                 throw new ConflictException(e);
             }
-
+        } else if (serviceDescription.getType() == ServiceType.OPENAPI3) {
+            try {
+                addedServiceDescriptionType = serviceDescriptionService.addOpenapi3ServiceDescription(clientId, url,
+                        restServiceCode, ignoreWarnings);
+            } catch (OpenApiParser.ParsingException | UnhandledWarningsException | MissingParameterException e) {
+                throw new BadRequestException(e);
+            } catch (ClientNotFoundException e) {
+                throw new ResourceNotFoundException(e);
+            } catch (ServiceDescriptionService.UrlAlreadyExistsException
+                    | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
+                throw new ConflictException(e);
+            }
         } else if (serviceDescription.getType() == ServiceType.REST) {
-            return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+            try {
+                addedServiceDescriptionType = serviceDescriptionService.addRestEndpointServiceDescription(clientId,
+                        url, restServiceCode);
+            } catch (ClientNotFoundException e) {
+                throw new ResourceNotFoundException(e);
+            } catch (MissingParameterException e) {
+                throw new BadRequestException(e);
+            } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException
+                    | ServiceDescriptionService.UrlAlreadyExistsException e) {
+                throw new ConflictException(e);
+            }
         }
         ServiceDescription addedServiceDescription = serviceDescriptionConverter.convert(
                 addedServiceDescriptionType);

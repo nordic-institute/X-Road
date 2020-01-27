@@ -45,6 +45,7 @@ import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.IdentifierNotFoundException;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
+import org.niis.xroad.restapi.service.ServiceNotFoundException;
 import org.niis.xroad.restapi.service.ServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -108,7 +109,7 @@ public class ServicesApiController implements ServicesApi {
                     clientId);
         } catch (InvalidUrlException e) {
             throw new BadRequestException(e);
-        } catch (ClientNotFoundException | ServiceService.ServiceNotFoundException e) {
+        } catch (ClientNotFoundException | ServiceNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
         return new ResponseEntity<>(updatedService, HttpStatus.OK);
@@ -119,7 +120,7 @@ public class ServicesApiController implements ServicesApi {
         String fullServiceCode = serviceConverter.parseFullServiceCode(id);
         try {
             return serviceService.getService(clientId, fullServiceCode);
-        } catch (ServiceService.ServiceNotFoundException | ClientNotFoundException e) {
+        } catch (ServiceNotFoundException | ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
     }
@@ -132,7 +133,7 @@ public class ServicesApiController implements ServicesApi {
         List<AccessRightHolderDto> accessRightHolderDtos = null;
         try {
             accessRightHolderDtos = accessRightService.getAccessRightHoldersByService(clientId, fullServiceCode);
-        } catch (ClientNotFoundException | ServiceService.ServiceNotFoundException e) {
+        } catch (ClientNotFoundException | ServiceNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
         List<ServiceClient> serviceClients = serviceClientConverter.convertAccessRightHolderDtos(accessRightHolderDtos);
@@ -150,7 +151,7 @@ public class ServicesApiController implements ServicesApi {
         try {
             accessRightService.deleteSoapServiceAccessRights(clientId, fullServiceCode, new HashSet<>(xRoadIds),
                     localGroupIds);
-        } catch (ServiceService.ServiceNotFoundException | ClientNotFoundException e) {
+        } catch (ServiceNotFoundException | ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (LocalGroupNotFoundException | AccessRightService.AccessRightNotFoundException e) {
             throw new BadRequestException(e);
@@ -169,7 +170,7 @@ public class ServicesApiController implements ServicesApi {
         try {
             accessRightHolderDtos = accessRightService.addSoapServiceAccessRights(clientId, fullServiceCode,
                     new HashSet<>(xRoadIds), localGroupIds);
-        } catch (ClientNotFoundException | ServiceService.ServiceNotFoundException
+        } catch (ClientNotFoundException | ServiceNotFoundException
                 | AccessRightService.EndpointNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (LocalGroupNotFoundException | IdentifierNotFoundException e) {
