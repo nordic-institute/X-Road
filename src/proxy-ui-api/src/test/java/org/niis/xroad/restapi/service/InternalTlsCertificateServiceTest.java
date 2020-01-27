@@ -32,6 +32,7 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
 
 import java.io.ByteArrayInputStream;
@@ -44,17 +45,25 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * test InternalTlsCertificateService
  */
 public class InternalTlsCertificateServiceTest {
 
-    InternalTlsCertificateService internalTlsCertificateService;
+    public static final String MOCK_SUCCESS_SCRIPT = "src/test/resources/script/success.sh";
+    public static final String MOCK_FAIL_SCRIPT = "src/test/resources/script/fail.sh";
+    public static final String SCRIPT_ARGS = "args";
+
+    private InternalTlsCertificateService internalTlsCertificateService = new InternalTlsCertificateService(
+            new InternalTlsCertificateRepository(),
+            new ExternalProcessRunner(),
+            MOCK_SUCCESS_SCRIPT,
+            SCRIPT_ARGS);
 
     @Before
     public void setup() throws Exception {
-        internalTlsCertificateService = new InternalTlsCertificateService();
         internalTlsCertificateService.setInternalTlsCertificateRepository(new InternalTlsCertificateRepository() {
             @Override
             public X509Certificate getInternalTlsCertificate() {
@@ -80,7 +89,7 @@ public class InternalTlsCertificateServiceTest {
                 internalTlsCertificateService.exportInternalTlsCertificate());
         assertEquals(exportedExampleFiles.size(), filesFromService.size());
         // check that we have same file names, and file bytes
-        for (String fileName: exportedExampleFiles.keySet()) {
+        for (String fileName : exportedExampleFiles.keySet()) {
             assertTrue(filesFromService.containsKey(fileName));
             assertTrue(Arrays.equals(exportedExampleFiles.get(fileName), filesFromService.get(fileName)));
         }
@@ -94,8 +103,8 @@ public class InternalTlsCertificateServiceTest {
     private Map<String, byte[]> extractTarGZ(byte[] tarBytes) throws IOException {
         Map<String, byte[]> files = new HashMap<>();
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(tarBytes);
-                GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(byteArrayInputStream);
-                TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)) {
+             GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(byteArrayInputStream);
+             TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)) {
             TarArchiveEntry entry;
             while ((entry = (TarArchiveEntry) tarIn.getNextEntry()) != null) {
                 if (entry.isFile()) {
@@ -109,5 +118,28 @@ public class InternalTlsCertificateServiceTest {
             }
         }
         return files;
+    }
+
+    @Test
+    public void generateInternalTlsKeyAndCertificate() {
+        try {
+            internalTlsCertificateService.generateInternalTlsKeyAndCertificate();
+        } catch (Exception e) {
+            fail("should not throw exceptions");
+        }
+    }
+
+    @Test
+    public void generateInternalTlsKeyAndCertificateFail() {
+        internalTlsCertificateService = new InternalTlsCertificateService(
+                new InternalTlsCertificateRepository(),
+                new ExternalProcessRunner(),
+                MOCK_FAIL_SCRIPT,
+                SCRIPT_ARGS);
+        try {
+            internalTlsCertificateService.generateInternalTlsKeyAndCertificate();
+        } catch (DeviationAwareRuntimeException e) {
+            assertEquals("FAIL", e.getErrorDeviation().getMetadata().get(0));
+        }
     }
 }

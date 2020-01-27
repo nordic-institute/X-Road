@@ -33,6 +33,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,10 +55,25 @@ public class InternalTlsCertificateService {
 
     private static final String CERT_PEM_FILENAME = "./cert.pem";
     private static final String CERT_CER_FILENAME = "./cert.cer";
+    private static final String KEY_CERT_GENERATION_FAILED = "key_and_cert_generation_failed";
 
-    @Autowired
+    private final ExternalProcessRunner externalProcessRunner;
+    private final String generateCertScriptPath;
+    private final String generateCertScriptArgs;
+
     @Setter
     private InternalTlsCertificateRepository internalTlsCertificateRepository;
+
+    @Autowired
+    public InternalTlsCertificateService(InternalTlsCertificateRepository internalTlsCertificateRepository,
+            ExternalProcessRunner externalProcessRunner,
+            @Value("${script.generate-certificate.path}") String generateCertScriptPath,
+            @Value("${script.generate-certificate.args}") String generateCertScriptArgs) {
+        this.internalTlsCertificateRepository = internalTlsCertificateRepository;
+        this.externalProcessRunner = externalProcessRunner;
+        this.generateCertScriptPath = generateCertScriptPath;
+        this.generateCertScriptArgs = generateCertScriptArgs;
+    }
 
     public X509Certificate getInternalTlsCertificate() {
         return internalTlsCertificateRepository.getInternalTlsCertificate();
@@ -68,7 +84,6 @@ public class InternalTlsCertificateService {
      * two files:
      * - cert.pem PEM encoded certificate
      * - cert.cer DER encoded certificate
-     *
      * @return byte array that contains the exported certs.tar.gz
      */
     public byte[] exportInternalTlsCertificate() {
@@ -107,8 +122,11 @@ public class InternalTlsCertificateService {
         tarOutputStream.closeArchiveEntry();
     }
 
-    // TODO: throws only DeviationAwareRuntimeExceptions
     public void generateInternalTlsKeyAndCertificate() {
-
+        try {
+            externalProcessRunner.execute(generateCertScriptPath, generateCertScriptArgs);
+        } catch (ProcessNotExecutableException | ProcessFailedException e) {
+            e.throwAsDeviationAwareRuntimeException(KEY_CERT_GENERATION_FAILED);
+        }
     }
 }

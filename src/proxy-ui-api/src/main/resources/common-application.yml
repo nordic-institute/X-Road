@@ -49,3 +49,8 @@ ratelimit:
     per:
       second: 20
       minute: 600
+
+script:
+  generate-certificate:
+    path: /usr/share/xroad/scripts/generate_certificate.sh
+    args: -n internal -f -S -p 2>&1

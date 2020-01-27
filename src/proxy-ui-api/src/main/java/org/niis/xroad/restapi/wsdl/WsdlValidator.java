@@ -30,6 +30,8 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.service.ExternalProcessRunner;
+import org.niis.xroad.restapi.service.ProcessFailedException;
+import org.niis.xroad.restapi.service.ProcessNotExecutableException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -65,7 +67,7 @@ public class WsdlValidator {
             WsdlValidationFailedException {
         List<String> warnings = new ArrayList<>();
         // validator not set - this is ok since validator is optional
-        if (StringUtils.isEmpty(wsdlValidatorCommand)) {
+        if (StringUtils.isEmpty(getWsdlValidatorCommand())) {
             return warnings;
         }
 
@@ -74,10 +76,10 @@ public class WsdlValidator {
         }
 
         try {
-            return externalProcessRunner.execute(wsdlValidatorCommand, wsdlUrl);
-        } catch (ExternalProcessRunner.ProcessNotExecutableException e) {
+            return externalProcessRunner.execute(getWsdlValidatorCommand(), wsdlUrl);
+        } catch (ProcessNotExecutableException e) {
             throw new WsdlValidatorNotExecutableException(e);
-        } catch (ExternalProcessRunner.ProcessFailedException e) {
+        } catch (ProcessFailedException e) {
             throw new WsdlValidationFailedException(e.getErrorDeviation().getMetadata());
         }
     }

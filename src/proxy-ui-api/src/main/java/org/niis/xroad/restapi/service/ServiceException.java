@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.DeviationAwareException;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 
@@ -65,6 +66,14 @@ public abstract class ServiceException extends DeviationAwareException {
         super(msg, errorDeviation);
     }
 
-
-
+    /**
+     * Throws the caught ServiceException as a {@link DeviationAwareRuntimeException}. The cause and
+     * {@link ErrorDeviation#metadata ErrorDeviation metadata} will be transferred from the original exception
+     * but a new error code must be provided.
+     * @param newErrorCode the new error code of the exception
+     */
+    public void throwAsDeviationAwareRuntimeException(String newErrorCode) {
+        throw new DeviationAwareRuntimeException(this.getCause(),
+                new ErrorDeviation(newErrorCode, this.getErrorDeviation().getMetadata()));
+    }
 }
