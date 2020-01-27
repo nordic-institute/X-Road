@@ -71,14 +71,9 @@
             <td class="td-align-right">
               <SmallButton
                 class="table-button-fix test-register"
-                v-if="cert.possible_actions.includes('REGISTER') && hasPermission"
+                v-if="showRegisterCertButton && cert.possible_actions.includes('REGISTER')"
                 @click="showRegisterCertDialog(cert)"
               >{{$t('action.register')}}</SmallButton>
-              <SmallButton
-                class="table-button-fix test-unregister"
-                v-if="cert.possible_actions.includes('UNREGISTER')  && hasPermission"
-                @click="showUnregisterCertDialog(cert)"
-              >{{$t('action.unregister')}}</SmallButton>
             </td>
           </tr>
         </template>
@@ -166,28 +161,11 @@
     />
 
     <ConfirmDialog
-      :dialog="confirmUnregiseterCertificate"
-      :loading="unregisterLoading"
-      title="keys.unregisterTitle"
-      text="keys.unregisterText"
-      @cancel="confirmUnregiseterCertificate = false"
-      @accept="unregisterCert()"
-    />
-
-    <ConfirmDialog
       :dialog="confirmDeleteCsr"
       title="keys.deleteCsrTitle"
       text="keys.deleteCsrText"
       @cancel="confirmDeleteCsr = false"
       @accept="deleteCsr()"
-    />
-
-    <UnregisterErrorDialog
-      v-if="unregisterErrorResponse"
-      :errorResponse="unregisterErrorResponse"
-      :dialog="confirmUnregisterError"
-      @cancel="confirmUnregisterError = false"
-      @accept="markForDeletion()"
     />
   </div>
 </template>
@@ -201,7 +179,6 @@ import CertificateStatus from './CertificateStatus.vue';
 import RegisterCertificateDialog from './RegisterCertificateDialog.vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-import UnregisterErrorDialog from './UnregisterErrorDialog.vue';
 import { Key, TokenCertificate, TokenCertificateSigningRequest } from '@/types';
 import { Permissions, UsageTypes } from '@/global';
 import * as api from '@/util/api';
@@ -212,7 +189,6 @@ export default Vue.extend({
     SmallButton,
     RegisterCertificateDialog,
     ConfirmDialog,
-    UnregisterErrorDialog,
   },
   props: {
     keys: {
@@ -250,6 +226,15 @@ export default Vue.extend({
       return this.$store.getters.hasPermission(
         Permissions.ACTIVATE_DEACTIVATE_TOKEN,
       );
+    },
+    showRegisterCertButton(): boolean {
+      if (
+        this.hasPermission &&
+        this.$store.getters.hasPermission(Permissions.SEND_AUTH_CERT_REG_REQ)
+      ) {
+        return true;
+      }
+      return false;
     },
   },
   methods: {
@@ -289,61 +274,6 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
-        });
-    },
-    showUnregisterCertDialog(cert: TokenCertificate): void {
-      this.confirmUnregiseterCertificate = true;
-      this.selectedCert = cert;
-    },
-    unregisterCert(): void {
-      if (!this.selectedCert) {
-        return;
-      }
-
-      this.unregisterLoading = true;
-      api
-        .put(
-          `/token-certificates/${this.selectedCert.certificate_details.hash}/unregister`,
-          {},
-        )
-        .then((res) => {
-          this.$bus.$emit('show-success', 'keys.keyAdded');
-        })
-        .catch((error) => {
-          if (
-            error.response.data.error.code ===
-            'management_request_sending_failed'
-          ) {
-            this.unregisterErrorResponse = error.response;
-          } else {
-            this.$bus.$emit('show-error', error.message);
-          }
-
-          this.confirmUnregisterError = true;
-        })
-        .finally(() => {
-          this.confirmUnregiseterCertificate = false;
-          this.unregisterLoading = false;
-        });
-    },
-    markForDeletion(): void {
-      if (!this.selectedCert) {
-        return;
-      }
-
-      api
-        .put(
-          `/token-certificates/${this.selectedCert.certificate_details.hash}/mark-for-deletion`,
-          {},
-        )
-        .then((res) => {
-          this.$bus.$emit('show-success', 'keys.certMarkedForDeletion');
-          this.confirmUnregisterError = false;
-          this.$emit('refreshList');
-        })
-        .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
-          this.confirmUnregisterError = false;
         });
     },
     showDeleteCsrDialog(req: TokenCertificateSigningRequest, key: Key): void {

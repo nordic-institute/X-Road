@@ -26,7 +26,7 @@ export const getters: GetterTree<KeysState, RootState> = {
   },
   selectedToken(state): Token | undefined {
     return state.selectedToken;
-  }
+  },
 };
 
 export const mutations: MutationTree<KeysState> = {
