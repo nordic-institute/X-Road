@@ -53,9 +53,10 @@ import java.security.cert.X509Certificate;
 @PreAuthorize("isAuthenticated()")
 public class InternalTlsCertificateService {
 
+    public static final String KEY_CERT_GENERATION_FAILED = "key_and_cert_generation_failed";
+
     private static final String CERT_PEM_FILENAME = "./cert.pem";
     private static final String CERT_CER_FILENAME = "./cert.cer";
-    private static final String KEY_CERT_GENERATION_FAILED = "key_and_cert_generation_failed";
 
     private final ExternalProcessRunner externalProcessRunner;
     private final String generateCertScriptPath;

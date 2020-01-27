@@ -64,7 +64,7 @@ public class ExternalProcessRunner {
         try {
             process = pb.start();
         } catch (IOException e) {
-            throw new ProcessNotExecutableException(e, commandWithArgs);
+            throw new ProcessNotExecutableException(e);
         }
 
         // gather output into a list of string for returning
@@ -73,7 +73,7 @@ public class ExternalProcessRunner {
             br.lines().forEach(processOutput::add);
         } catch (IOException e) {
             process.destroy();
-            throw new ProcessNotExecutableException(e, commandWithArgs);
+            throw new ProcessNotExecutableException(e);
         }
 
         int exitCode;
@@ -83,7 +83,7 @@ public class ExternalProcessRunner {
         } catch (InterruptedException e) {
             // we don't want to throw the InterruptedException from here but we want to retain the interrupted status
             Thread.currentThread().interrupt();
-            throw new ProcessNotExecutableException(e, commandWithArgs);
+            throw new ProcessNotExecutableException(e);
         } finally {
             // always destroy the process
             process.destroy();

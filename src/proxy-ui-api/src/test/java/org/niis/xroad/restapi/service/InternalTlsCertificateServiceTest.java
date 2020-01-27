@@ -44,8 +44,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.niis.xroad.restapi.service.InternalTlsCertificateService.KEY_CERT_GENERATION_FAILED;
 
 /**
  * test InternalTlsCertificateService
@@ -54,6 +56,7 @@ public class InternalTlsCertificateServiceTest {
 
     public static final String MOCK_SUCCESS_SCRIPT = "src/test/resources/script/success.sh";
     public static final String MOCK_FAIL_SCRIPT = "src/test/resources/script/fail.sh";
+    public static final String NON_EXISTING_SCRIPT = "/path/to/non/existing/script.sh";
     public static final String SCRIPT_ARGS = "args";
 
     private InternalTlsCertificateService internalTlsCertificateService = new InternalTlsCertificateService(
@@ -139,7 +142,23 @@ public class InternalTlsCertificateServiceTest {
         try {
             internalTlsCertificateService.generateInternalTlsKeyAndCertificate();
         } catch (DeviationAwareRuntimeException e) {
-            assertEquals("FAIL", e.getErrorDeviation().getMetadata().get(0));
+            assertEquals(KEY_CERT_GENERATION_FAILED, e.getErrorDeviation().getCode());
+            assertEquals("FAIL", e.getErrorDeviation().getMetadata().get(0)); // has the output of the script
+        }
+    }
+
+    @Test
+    public void generateInternalTlsKeyAndCertificateNotExecutable() {
+        internalTlsCertificateService = new InternalTlsCertificateService(
+                new InternalTlsCertificateRepository(),
+                new ExternalProcessRunner(),
+                NON_EXISTING_SCRIPT,
+                SCRIPT_ARGS);
+        try {
+            internalTlsCertificateService.generateInternalTlsKeyAndCertificate();
+        } catch (DeviationAwareRuntimeException e) {
+            assertEquals(KEY_CERT_GENERATION_FAILED, e.getErrorDeviation().getCode());
+            assertNotNull(e.getErrorDeviation().getMetadata()); // includes message from IOException
         }
     }
 }

@@ -30,6 +30,8 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Root class for all checked service layer exceptions
@@ -69,11 +71,25 @@ public abstract class ServiceException extends DeviationAwareException {
     /**
      * Throws the caught ServiceException as a {@link DeviationAwareRuntimeException}. The cause and
      * {@link ErrorDeviation#metadata ErrorDeviation metadata} will be transferred from the original exception
-     * but a new error code must be provided.
+     * but a new error code must be provided. If the underlying exception does not have error metadata then the
+     * localized message of the underlying exception is used as metadata instead. If there is no underlying exception
+     * at all, then only the error code will be returned within the ErrorDeviation object.
      * @param newErrorCode the new error code of the exception
      */
     public void throwAsDeviationAwareRuntimeException(String newErrorCode) {
-        throw new DeviationAwareRuntimeException(this.getCause(),
-                new ErrorDeviation(newErrorCode, this.getErrorDeviation().getMetadata()));
+        Throwable t = null;
+        List<String> errorMetaData = null;
+        if (this.getErrorDeviation() != null
+                && this.getErrorDeviation().getMetadata() != null
+                && !this.getErrorDeviation().getMetadata().isEmpty()) {
+            errorMetaData = this.getErrorDeviation().getMetadata();
+        }
+        if (this.getCause() != null) {
+            t = this.getCause();
+            if (errorMetaData == null) {
+                errorMetaData = Collections.singletonList(t.getLocalizedMessage());
+            }
+        }
+        throw new DeviationAwareRuntimeException(t, new ErrorDeviation(newErrorCode, errorMetaData));
     }
 }
