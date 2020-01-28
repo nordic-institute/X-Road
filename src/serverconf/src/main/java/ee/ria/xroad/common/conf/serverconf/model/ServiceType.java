@@ -58,6 +58,4 @@ public class ServiceType {
 
     private int timeout;
 
-    private final List<EndpointType> endpoint = new ArrayList<>();
-
 }
