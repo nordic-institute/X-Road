@@ -21,6 +21,10 @@
     "settings": {
       "systemParameters": "System Parameters",
       "backupAndRestore": "Backup And Restore"
+    },
+    "services": {
+      "endpoints": "Endpoints",
+      "parameters": "Service Parameters"
     }
   },
   "client": {
@@ -164,6 +168,11 @@
     "memberNameGroupDesc": "Member name / Group description",
     "idGroupCode": "ID / Group code"
   },
+  "endpoints": {
+    "addEndpoint": "Add Endpoint",
+    "path": "Path",
+    "httpRequestMethod": "HTTP Request Method"
+  },
   "access": {
     "accessRights": "Access Rights",
     "addSubjects": "Add subjects",
@@ -181,6 +190,7 @@
     "close": "Close",
     "cancel": "Cancel",
     "yes": "Yes",
+    "edit": "Edit",
     "refresh": "Refresh",
     "delete": "Delete",
     "remove": "Remove",

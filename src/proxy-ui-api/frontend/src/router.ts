@@ -1,5 +1,5 @@
-import Router, { Route } from 'vue-router';
-import { sync } from 'vuex-router-sync';
+import Router, {Route} from 'vue-router';
+import {sync} from 'vuex-router-sync';
 import TabsBase from '@/components/layout/TabsBase.vue';
 import AppLogin from '@/views/AppLogin.vue';
 import AppBase from '@/views/AppBase.vue';
@@ -31,7 +31,9 @@ import CertificateDetails from '@/views/CertificateDetails/CertificateDetails.vu
 import Service from '@/views/Service/Service.vue';
 import GenerateCertificateSignRequest from '@/views/GenerateCertificateSignRequest/GenerateCertificateSignRequest.vue';
 import store from '@/store';
-import { RouteName, Permissions } from '@/global';
+import {Permissions, RouteName} from '@/global';
+import ServiceEndpoints from '@/views/Service/Endpoints/Endpoints.vue';
+import ServiceParameters from '@/views/Service/Parameters/ServiceParameters.vue';
 
 
 const router = new Router({
@@ -252,11 +254,29 @@ const router = new Router({
         },
         {
           name: RouteName.Service,
-          path: '/service/:clientId/:serviceId',
+          path: '/service',
           components: {
             default: Service,
           },
+          redirect: '/service/:clientId/:serviceId/parameters',
           props: { default: true },
+          children: [
+            {
+              name: RouteName.ServiceParameters,
+              path: '/service/:clientId/:serviceId/parameters',
+              components: {
+                default: ServiceParameters,
+              },
+              props: { default: true },
+            },
+            {
+              name: RouteName.ServiceEndpoints,
+              path: '/service/:clientId/:serviceId/endpoints',
+              components: {
+                default: ServiceEndpoints,
+              },
+            },
+          ],
         },
         {
           name: RouteName.GenerateCertificateSignRequest,

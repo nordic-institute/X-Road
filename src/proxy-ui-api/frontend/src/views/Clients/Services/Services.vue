@@ -56,7 +56,7 @@
 
         <template v-slot:link>
           <div
-            class="clickable-link"
+            class="clickable-link service-description-header"
             v-if="canEditServiceDesc"
             @click="descriptionClick(serviceDesc)"
           >{{serviceDesc.type}} ({{serviceDesc.url}})</div>
@@ -92,7 +92,7 @@
               <tbody>
                 <tr v-for="service in serviceDesc.services" v-bind:key="service.id">
                   <td class="service-code" @click="serviceClick(service)">{{service.service_code}}</td>
-                  <td>
+                  <td class="service-url">
                     <serviceIcon :service="service" />
                     {{service.url}}
                   </td>
@@ -520,5 +520,20 @@ export default Vue.extend({
   cursor: pointer;
   text-decoration: underline;
 }
+
+.service-url {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 400px;
+}
+
+.service-description-header {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 700px;
+}
+
 </style>
 

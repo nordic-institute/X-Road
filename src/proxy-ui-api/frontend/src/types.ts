@@ -680,6 +680,7 @@ export interface Service {
    * https://domain.com/service
    */
   url: string; // url
+  endpoints: Endpoint[];
 }
 /**
  * service client
@@ -1060,4 +1061,11 @@ export interface Version {
    * Security Server version 6.21.0-SNAPSHOT-20190411git32add470
    */
   info: string; // text
+}
+
+export interface Endpoint {
+  readonly id: string;
+  method: string;
+  path: string;
+  generated: boolean;
 }

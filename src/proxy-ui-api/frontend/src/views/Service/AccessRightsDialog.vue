@@ -176,7 +176,7 @@ export default Vue.extend({
     return initialState();
   },
   computed: {
-    ...mapGetters(['xroadInstances', 'memberClasses']),
+    ...mapGetters(['xroadInstances', 'memberClasses', 'accessRightsSubjects']),
     canSave(): boolean {
       if (this.selectedIds.length > 0) {
         return true;
@@ -269,6 +269,7 @@ export default Vue.extend({
       // Reset initial state
       Object.assign(this.$data, initialState());
     },
+
   },
   created() {
     this.$store.dispatch('fetchXroadInstances');
