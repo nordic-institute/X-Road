@@ -62,7 +62,7 @@ export const userGetters: GetterTree<UserState, RootState> = {
   },
   username(state) {
     return state.username;
-  }
+  },
 };
 
 export const mutations: MutationTree<UserState> = {
