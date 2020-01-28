@@ -18,7 +18,7 @@ Index of X-Road Documentation
 ### Protocols
 - [\[PR-REST\] Message Protocol for REST](Protocols/pr-rest_x-road_message_protocol_for_rest.md)
 - [\[PR-MESS\] Message Protocol](Protocols/pr-mess_x-road_message_protocol.md)
-- [\[PR-MESSTRANSP\] Message Transport Protocol](Protocols/pr-messtransp_x-road_message_transport_protocol_2.2_Y-743-4.docx)
+- [\[PR-MESSTRANSP\] Message Transport Protocol](Protocols/pr-messtransp_x-road_message_transport_protocol.md)
 - [\[PR-MSERV\] Protocol for Management Services](Protocols/pr-mserv_x-road_protocol_for_management_services.md)
 - [\[PR-META\] Service Metadata Protocol](Protocols/pr-meta_x-road_service_metadata_protocol.md)
 - [\[PR-GCONF\] Protocol for Downloading Configuration](Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md)
