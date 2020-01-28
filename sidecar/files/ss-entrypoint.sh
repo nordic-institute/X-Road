@@ -10,7 +10,7 @@ then
     unset XROAD_TOKEN_PIN
 fi
 
-# Generate internal and admin UI TLS certificates on the first run
+# Generate internal and admin UI TLS keys and certificates on the first run
 if [ ! -f /etc/xroad/ssl/internal.crt ];
 then
     echo "Generating new internal TLS key and certificate"
