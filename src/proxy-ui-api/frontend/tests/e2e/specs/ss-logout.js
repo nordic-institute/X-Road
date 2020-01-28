@@ -7,7 +7,7 @@ module.exports = {
 
     // Navigate to app and check that the browser has loaded the page
     frontPage.navigate();
-    browser.waitForElementVisible('#app');
+    browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
     frontPage
@@ -18,11 +18,11 @@ module.exports = {
       .signin();
 
     // Verify successful login    
-    browser.waitForElementVisible('div.server-name');
+    browser.waitForElementVisible('//div[contains(@class, "server-name")]');
 
     // Logout and verify
     mainPage.logout();
-    browser.waitForElementVisible('#username');
+    browser.waitForElementVisible('//*[@id="username"]');
 
     browser.end();
 
@@ -32,7 +32,7 @@ module.exports = {
     const mainPage = browser.page.ssMainPage();
 
     frontPage.navigate();
-    browser.waitForElementVisible('#app');
+    browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
     frontPage
@@ -43,14 +43,14 @@ module.exports = {
       .signin();
 
     // Verify successful login    
-    browser.waitForElementVisible('div.server-name');
+    browser.waitForElementVisible('//div[contains(@class, "server-name")]');
 
     // Wait for the timeout message to appear
-    browser.useXpath().waitForElementVisible('//span[contains(@class, "headline") and contains(text(), "Session expired")]', browser.globals.logout_timeout_ms + 60000, 1000).useCss();
+    browser.waitForElementVisible('//span[contains(@class, "headline") and contains(text(), "Session expired")]', browser.globals.logout_timeout_ms + 60000, 1000);
 
     // Accept timeout logout and verify
     mainPage.acceptLogout();
-    browser.waitForElementVisible('#username');
+    browser.waitForElementVisible('//*[@id="username"]');
 
     browser.end();
   }

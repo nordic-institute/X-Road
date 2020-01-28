@@ -10,9 +10,8 @@ module.exports = {
     const certificatePopup = mainPage.section.certificatePopup;
 
     // Open SUT and check that page is loaded
-    frontPage
-      .navigate();
-    browser.waitForElementVisible('#app');
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
     frontPage
@@ -33,7 +32,7 @@ module.exports = {
     browser.waitForElementVisible(clientDetails);
 
     // Verify info
-    browser.useXpath()
+    browser
       .waitForElementVisible('//h1[contains(text(),"TestGov")]')
       .waitForElementVisible('//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]')
       .waitForElementVisible('//tr[td[contains(text(),"Member Class")] and td[contains(text(),"GOV")]]')
@@ -60,7 +59,7 @@ module.exports = {
     clientInfo.openDetailsTab();
 
     // Verify info
-    browser.useXpath()
+    browser
       .waitForElementVisible('//h1[contains(text(),"TestService")]')
       .waitForElementVisible('//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]')
       .waitForElementVisible('//tr[td[contains(text(),"Member Class")] and td[contains(text(),"GOV")]]')
@@ -81,7 +80,7 @@ module.exports = {
      
     // Close sign certificate popup
     certificatePopup.close();
-    browser
-      .end();
+
+    browser.end();
   }
 };

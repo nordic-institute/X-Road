@@ -70,21 +70,57 @@ var clientInfoCommands = {
     this.click('@localGroupsTab');
     return this;
   }
-}
+};
 
 var clientDetailsCommands = {
   openSignCertificateInfo: function() {
     this.click('@clientSignCertificate');
     return this;
   }
-}
+};
 
 var certificatePopupCommands = {
   close: function() {
     this.click('@certificateInfoOKButton');
     return this;
   }
-}
+};
+
+
+var clientLocalGroupsCommands = {
+  openAddLocalGroupDialog: function() {
+    this.click('@addGroupButton');
+    return this;
+  },
+  filterBy: function(filter) {
+    this.clearValue2('@filterInput');
+    this.setValue('@filterInput', filter);
+    return this;
+  },
+  openAddDialog: function() {
+    this.click('@addGroupButton');
+    return this;
+  },
+  confirmAddDialog: function() {
+    this.click('@confirmAddButton');
+    return this;
+  },
+  cancelAddDialog: function() {
+    this.click('@cancelAddButton');
+    return this;
+  },
+  enterCode: function(code) {
+    this.clearValue2('@groupCode');
+    this.setValue('@groupCode', code);
+    return this;
+  },
+  enterDescription: function(description) {
+    this.clearValue2('@groupDescription');
+    this.setValue('@groupDescription', description);
+    return this;
+  }
+};
+
 
 module.exports = {
   url: process.env.VUE_DEV_SERVER_URL,
@@ -168,6 +204,31 @@ module.exports = {
             clientSignCertificate: { 
               selector: 'span.cert-name',
               locateStrategy: 'css selector' }
+          }      
+        },
+        localGroups: {
+          selector: '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "v-tab--active") and contains(text(), "local groups")]]',
+          locateStrategy: 'xpath',
+          commands: [clientLocalGroupsCommands],
+          elements: {
+            filterInput: { 
+              selector: '//input',
+              locateStrategy: 'xpath' },
+            addGroupButton: { 
+              selector: '//button[.//*[contains(text(), "Add group")]]',
+              locateStrategy: 'xpath' },
+            confirmAddButton: { 
+              selector: '//button[.//*[contains(text(), "Add")]]',
+              locateStrategy: 'xpath' },
+            cancelAddButton: { 
+              selector: '//button[.//*[contains(text(), "Cancel")]]',
+              locateStrategy: 'xpath' },
+            groupCode: { 
+              selector: '//div[contains(@class, "dlg-edit-row") and .//*[contains(text(), "Code")]]//input',
+              locateStrategy: 'xpath' },
+            groupDescription: { 
+              selector: '//div[contains(@class, "dlg-edit-row") and .//*[contains(text(), "Description")]]//input',
+              locateStrategy: 'xpath' }
           }      
         }
       }     
