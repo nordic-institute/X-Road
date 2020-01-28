@@ -19,7 +19,7 @@
           v-if="showUnregister"
           class="button-spacing"
           outlined
-          @click="confirmUnregiseterCertificate = true"
+          @click="confirmUnregisterCertificate = true"
         >{{$t('action.unregister')}}</large-button>
         <large-button
           v-if="showDelete"
@@ -47,11 +47,11 @@
 
     <!-- Confirm dialog for unregister certificate -->
     <ConfirmDialog
-      :dialog="confirmUnregiseterCertificate"
+      :dialog="confirmUnregisterCertificate"
       :loading="unregisterLoading"
       title="keys.unregisterTitle"
       text="keys.unregisterText"
-      @cancel="confirmUnregiseterCertificate = false"
+      @cancel="confirmUnregisterCertificate = false"
       @accept="unregisterCert()"
     />
 
@@ -102,7 +102,7 @@ export default Vue.extend({
       confirm: false,
       certificate: undefined as TokenCertificate | undefined,
       possibleActions: [] as string[],
-      confirmUnregiseterCertificate: false,
+      confirmUnregisterCertificate: false,
       confirmUnregisterError: false,
       unregisterLoading: false,
       unregisterErrorResponse: undefined as undefined | object,
@@ -265,7 +265,7 @@ export default Vue.extend({
           this.confirmUnregisterError = true;
         })
         .finally(() => {
-          this.confirmUnregiseterCertificate = false;
+          this.confirmUnregisterCertificate = false;
           this.unregisterLoading = false;
         });
     },

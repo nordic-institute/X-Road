@@ -248,7 +248,7 @@
     "certRegistrationInfo": "Security server DNS name or IP address",
     "importCertSuccess": "Uploading certificate succeeded",
     "certificateRegistered": "Certificate registered",
-    "unregisterTitle": "Unregister certitficate",
+    "unregisterTitle": "Unregister certificate",
     "unregisterText": "Do you want to unregister this certificate?",
     "keySaved": "Key saved",
     "keyDeleted": "Key deleted",

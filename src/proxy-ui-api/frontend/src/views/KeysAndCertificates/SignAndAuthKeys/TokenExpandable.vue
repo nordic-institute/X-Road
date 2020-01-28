@@ -11,13 +11,23 @@
           @click="confirmLogin()"
           v-if="!token.logged_in"
           :disabled="!token.available"
+          data-test="token-login-button"
         >{{$t('keys.logIn')}}</large-button>
-        <large-button @click="confirmLogout()" v-if="token.logged_in" outlined>{{$t('keys.logOut')}}</large-button>
+        <large-button
+          @click="confirmLogout()"
+          v-if="token.logged_in"
+          outlined
+          data-test="token-logout-button"
+        >{{$t('keys.logOut')}}</large-button>
       </template>
     </template>
 
     <template v-slot:link>
-      <div class="clickable-link" @click="tokenClick(token)">{{$t('keys.token')}} {{token.name}}</div>
+      <div
+        class="clickable-link"
+        @click="tokenClick(token)"
+        data-test="token-name"
+      >{{$t('keys.token')}} {{token.name}}</div>
     </template>
 
     <template v-slot:content>
@@ -27,12 +37,14 @@
             outlined
             @click="addKey()"
             :disabled="!token.logged_in"
+            data-test="token-add-key-button"
           >{{$t('keys.addKey')}}</large-button>
           <large-button
             outlined
             class="button-spacing"
             :disabled="!token.logged_in"
             @click="$refs.certUpload.click()"
+            data-test="token-import-cert-button"
           >{{$t('keys.importCert')}}</large-button>
           <input
             v-show="false"
