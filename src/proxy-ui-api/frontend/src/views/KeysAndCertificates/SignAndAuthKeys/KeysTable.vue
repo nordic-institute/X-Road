@@ -210,15 +210,11 @@ export default Vue.extend({
   data() {
     return {
       registerDialog: false,
-      confirmUnregiseterCertificate: false,
-      confirmUnregisterError: false,
       confirmDeleteCsr: false,
-      unregisterLoading: false,
       usageTypes: UsageTypes,
       selectedCert: undefined as TokenCertificate | undefined,
       selectedCsr: undefined as TokenCertificateSigningRequest | undefined,
       selectedKey: undefined as Key | undefined,
-      unregisterErrorResponse: undefined as undefined | object,
     };
   },
   computed: {
