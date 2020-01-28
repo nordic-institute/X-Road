@@ -31,11 +31,11 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
 RUN pg_ctlcluster 10 main start \
 && apt-get -qq update \
 && apt-get -qq install xroad-proxy xroad-addon-metaservices xroad-addon-wsdlvalidator xroad-autologin \
-&& rm -f {CERTS_PATH}/internal.crt {CERTS_PATH}/internal.key {CERTS_PATH}/nginx.crt {CERTS_PATH}/nginx.key \
 && apt-get -qq clean \
 && pg_ctlcluster 10 main stop \
 && nginx -s stop \
 && rm -f /var/run/nginx.pid \
+&& rm -f $CERTS_PATH/internal.crt $CERTS_PATH/internal.key $CERTS_PATH/nginx.crt $CERTS_PATH/nginx.key \
 && sed -i 's/proxy_set_header Host $host:$server_port;/proxy_set_header Host $http_host;/' /etc/xroad/nginx/default-xroad.conf
 
 COPY files/ss-entrypoint.sh /root/entrypoint.sh
