@@ -179,8 +179,7 @@ public class KeyService {
      * @param keyId
      * @throws ActionNotPossibleException if delete was not possible for the key
      * @throws KeyNotFoundException if key with given id was not found
-     * @throws org.niis.xroad.restapi.service.GlobalConfService.GlobalConfOutdatedException
-     * if global conf was outdated
+     * @throws org.niis.xroad.restapi.service.GlobalConfService.GlobalConfOutdatedException if global conf was outdated
      */
     public void deleteKey(String keyId) throws KeyNotFoundException, ActionNotPossibleException,
             GlobalConfService.GlobalConfOutdatedException {
@@ -202,9 +201,9 @@ public class KeyService {
 
         // unregister possible auth certs
         if (keyInfo.getUsage() == KeyUsageInfo.AUTHENTICATION) {
-            for (CertificateInfo certificateInfo: keyInfo.getCerts()) {
+            for (CertificateInfo certificateInfo : keyInfo.getCerts()) {
                 if (certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGINPROG)
-                    || certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED)) {
+                        || certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED)) {
                     unregisterAuthCert(certificateInfo);
                 }
             }

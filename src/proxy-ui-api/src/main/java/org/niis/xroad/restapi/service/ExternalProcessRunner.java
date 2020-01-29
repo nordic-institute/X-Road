@@ -39,8 +39,8 @@ public class ExternalProcessRunner {
     /**
      * Executes the given command with given arguments.
      * @param command the command to execute
-     * @param args arguments to be appended to the command. If your command has a target (e.g. a file name), make sure
-     * to pass it as the last argument
+     * @param args arguments to be appended to the command. Make sure to pass your arguments in the correct order
+     * (e.g. if your options have values enter them as separate consecutive args).
      * @return the output of the executed process as a List of Strings
      * @throws ProcessNotExecutableException in the case of IOException or if the process is interrupted
      * @throws ProcessFailedException if the process' exit code is not 0

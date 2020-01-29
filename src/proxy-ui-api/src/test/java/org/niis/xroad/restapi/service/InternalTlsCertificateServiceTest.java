@@ -39,12 +39,14 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.niis.xroad.restapi.service.InternalTlsCertificateService.KEY_CERT_GENERATION_FAILED;
@@ -54,6 +56,10 @@ import static org.niis.xroad.restapi.service.InternalTlsCertificateService.KEY_C
  */
 public class InternalTlsCertificateServiceTest {
 
+    public static final String SUCCESS = "SUCCESS";
+    public static final String FAIL = "FAIL";
+    public static final String ERROR = "ERROR";
+
     public static final String MOCK_SUCCESS_SCRIPT = "src/test/resources/script/success.sh";
     public static final String MOCK_FAIL_SCRIPT = "src/test/resources/script/fail.sh";
     public static final String NON_EXISTING_SCRIPT = "/path/to/non/existing/script.sh";
@@ -61,9 +67,22 @@ public class InternalTlsCertificateServiceTest {
 
     private InternalTlsCertificateService internalTlsCertificateService = new InternalTlsCertificateService(
             new InternalTlsCertificateRepository(),
-            new ExternalProcessRunner(),
-            MOCK_SUCCESS_SCRIPT,
-            SCRIPT_ARGS);
+            new ExternalProcessRunner() {
+                @Override
+                public List<String> execute(String command, String... args) throws ProcessNotExecutableException,
+                        ProcessFailedException {
+                    if (command.equals(MOCK_SUCCESS_SCRIPT)) {
+                        return Collections.singletonList(SUCCESS);
+                    }
+                    if (command.equals(MOCK_FAIL_SCRIPT)) {
+                        throw new ProcessFailedException(Collections.singletonList(FAIL));
+                    }
+                    if (command.equals(NON_EXISTING_SCRIPT)) {
+                        throw new ProcessNotExecutableException(new IOException(ERROR));
+                    }
+                    return new ArrayList<>();
+                }
+            }, null, SCRIPT_ARGS);
 
     @Before
     public void setup() throws Exception {
@@ -106,8 +125,8 @@ public class InternalTlsCertificateServiceTest {
     private Map<String, byte[]> extractTarGZ(byte[] tarBytes) throws IOException {
         Map<String, byte[]> files = new HashMap<>();
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(tarBytes);
-             GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(byteArrayInputStream);
-             TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)) {
+                GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(byteArrayInputStream);
+                TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)) {
             TarArchiveEntry entry;
             while ((entry = (TarArchiveEntry) tarIn.getNextEntry()) != null) {
                 if (entry.isFile()) {
@@ -125,6 +144,7 @@ public class InternalTlsCertificateServiceTest {
 
     @Test
     public void generateInternalTlsKeyAndCertificate() {
+        internalTlsCertificateService.setGenerateCertScriptPath(MOCK_SUCCESS_SCRIPT);
         try {
             internalTlsCertificateService.generateInternalTlsKeyAndCertificate();
         } catch (Exception e) {
@@ -134,31 +154,23 @@ public class InternalTlsCertificateServiceTest {
 
     @Test
     public void generateInternalTlsKeyAndCertificateFail() {
-        internalTlsCertificateService = new InternalTlsCertificateService(
-                new InternalTlsCertificateRepository(),
-                new ExternalProcessRunner(),
-                MOCK_FAIL_SCRIPT,
-                SCRIPT_ARGS);
+        internalTlsCertificateService.setGenerateCertScriptPath(MOCK_FAIL_SCRIPT);
         try {
             internalTlsCertificateService.generateInternalTlsKeyAndCertificate();
         } catch (DeviationAwareRuntimeException e) {
             assertEquals(KEY_CERT_GENERATION_FAILED, e.getErrorDeviation().getCode());
-            assertEquals("FAIL", e.getErrorDeviation().getMetadata().get(0)); // has the output of the script
+            assertEquals(FAIL, e.getErrorDeviation().getMetadata().get(0)); // has the output of the script
         }
     }
 
     @Test
     public void generateInternalTlsKeyAndCertificateNotExecutable() {
-        internalTlsCertificateService = new InternalTlsCertificateService(
-                new InternalTlsCertificateRepository(),
-                new ExternalProcessRunner(),
-                NON_EXISTING_SCRIPT,
-                SCRIPT_ARGS);
+        internalTlsCertificateService.setGenerateCertScriptPath(NON_EXISTING_SCRIPT);
         try {
             internalTlsCertificateService.generateInternalTlsKeyAndCertificate();
         } catch (DeviationAwareRuntimeException e) {
             assertEquals(KEY_CERT_GENERATION_FAILED, e.getErrorDeviation().getCode());
-            assertNotNull(e.getErrorDeviation().getMetadata()); // includes message from IOException
+            assertEquals(ERROR, e.getErrorDeviation().getMetadata().get(0)); // includes message from IOException
         }
     }
 }
