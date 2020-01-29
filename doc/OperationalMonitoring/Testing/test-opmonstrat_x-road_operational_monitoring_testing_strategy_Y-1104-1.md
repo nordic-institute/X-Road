@@ -2,7 +2,7 @@
 | ![European Union / European Regional Development Fund / Investing in your future](../img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
 | -------------------------: |
 
-# X-Road: Operational Monitoring Testing Strategy
+# X-Road: Operational Monitoring Testing Strategy <!-- omit in toc -->
 
 Version: 0.7  
 Doc. ID: TEST-OPMONSTRAT
@@ -13,31 +13,31 @@ Doc. ID: TEST-OPMONSTRAT
 | 23.01.2017 | 0.6       | Added license text, table of contents and version history | Sami Kallio |
 | 05.03.2018 | 0.7       | Added terms and abbreviations reference and moved terms to term doc | Tatu Repo | 
 
-## Table of Contents
+## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
 
 - [License](#license)
 - [1 Introduction](#1-introduction)
-  * [1.1 Purpose](#11-purpose)
-  * [1.2 Terms and Abbreviations](#12-terms-and-abbreviations)
-  * [1.3 References](#13-references)
+  - [1.1 Purpose](#11-purpose)
+  - [1.2 Terms and Abbreviations](#12-terms-and-abbreviations)
+  - [1.3 References](#13-references)
 - [2 Requirements Relevant to Testing](#2-requirements-relevant-to-testing)
 - [3 Testability of the System](#3-testability-of-the-system)
 - [4. Types of Testing Used](#4-types-of-testing-used)
-  * [4.1 Integration Testing](#41-integration-testing)
-  * [4.2 Load Requirements and the Scope of Load Tests](#42-load-requirements-and-the-scope-of-load-tests)
-    + [4.2.1 Initial Requirements](#421-initial-requirements)
-    + [4.2.2 Load Testing in the Context of the Implementation](#422-load-testing-in-the-context-of-the-implementation)
-  * [4.3 Unit Testing](#43-unit-testing)
+  - [4.1 Integration Testing](#41-integration-testing)
+  - [4.2 Load Requirements and the Scope of Load Tests](#42-load-requirements-and-the-scope-of-load-tests)
+    - [4.2.1 Initial Requirements](#421-initial-requirements)
+    - [4.2.2 Load Testing in the Context of the Implementation](#422-load-testing-in-the-context-of-the-implementation)
+  - [4.3 Unit Testing](#43-unit-testing)
 - [5 The Team and the Workflow](#5-the-team-and-the-workflow)
 - [6 Tools, Languages and Libraries](#6-tools-languages-and-libraries)
 - [7 Management and Source Control of Automated Tests](#7-management-and-source-control-of-automated-tests)
 - [8 Setup and Management of the Testing Environment. Continuous Integration](#8-setup-and-management-of-the-testing-environment-continuous-integration)
 - [8.1 The Servers Used for Automated Testing](#81-the-servers-used-for-automated-testing)
 - [8.2 The X-Road Configuration Used for Automated Testing](#82-the-x-road-configuration-used-for-automated-testing)
-  * [8.2.1 X-Road Members](#821-x-road-members)
-  * [8.2.2 Security Servers, Clients and Services](#822-security-servers-clients-and-services)
+  - [8.2.1 X-Road Members](#821-x-road-members)
+  - [8.2.2 Security Servers, Clients and Services](#822-security-servers-clients-and-services)
 - [8.3 The Results of the Tests](#83-the-results-of-the-tests)
 
 <!-- tocstop -->
@@ -198,15 +198,18 @@ The management service provider must be `SUBSYSTEM:XTEE-CI-XM/GOV/00000000/Cente
 In the central server, the central monitoring client must be configured with the following contents of `monitoring-params.xml`:
 
 ```xml
-<tns:conf xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd">
-  <monitoringClient>
-    <monitoringClientId id:objectType="SUBSYSTEM">
-      <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
-      <id:memberClass>GOV</id:memberClass>
-      <id:memberCode>00000001</id:memberCode>
-      <id:subsystemCode>Central monitoring client</id:subsystemCode>
-    </monitoringClientId>
-  </monitoringClient>
+<tns:conf xmlns:id="http://x-road.eu/xsd/identifiers"
+          xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd">
+    <monitoringClient>
+        <monitoringClientId id:objectType="SUBSYSTEM">
+            <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>00000001</id:memberCode>
+            <id:subsystemCode>Central monitoring client</id:subsystemCode>
+        </monitoringClientId>
+    </monitoringClient>
 </tns:conf>
 ```
 
