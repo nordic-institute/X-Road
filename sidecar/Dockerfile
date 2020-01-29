@@ -21,6 +21,7 @@ ARG DIST=bionic-current
 ARG REPO=https://artifactory.niis.org/xroad-release-deb
 ARG REPO_KEY=https://artifactory.niis.org/api/gpg/key/public
 ARG COMPONENT=main
+ARG CERTS_PATH=/etc/xroad/ssl
 
 ADD ["$REPO_KEY","/tmp/repokey.gpg"]
 ADD ["${REPO}/dists/${DIST}/Release","/tmp/Release"]
@@ -34,6 +35,7 @@ RUN pg_ctlcluster 10 main start \
 && pg_ctlcluster 10 main stop \
 && nginx -s stop \
 && rm -f /var/run/nginx.pid \
+&& rm -f $CERTS_PATH/internal.crt $CERTS_PATH/internal.key $CERTS_PATH/nginx.crt $CERTS_PATH/nginx.key \
 && sed -i 's/proxy_set_header Host $host:$server_port;/proxy_set_header Host $http_host;/' /etc/xroad/nginx/default-xroad.conf
 
 COPY files/ss-entrypoint.sh /root/entrypoint.sh
