@@ -4327,7 +4327,7 @@ components:
         server_address:
           type: string
           format: text
-          description: security server ip address
+          description: security server address (ip or name)
           example: 192.168.1.100
           maxLength: 255
     Service: # ok
