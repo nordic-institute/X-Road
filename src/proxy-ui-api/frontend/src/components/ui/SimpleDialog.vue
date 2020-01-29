@@ -1,8 +1,8 @@
 <template>
   <v-dialog :value="dialog" :width="width" persistent>
-    <v-card class="xrd-card">
+    <v-card class="xrd-card" data-test="dialog-simple">
       <v-card-title>
-        <span class="headline">{{$t(title)}}</span>
+        <span data-test="dialog-title" class="headline">{{$t(title)}}</span>
         <v-spacer />
         <i v-if="showClose" @click="cancel()" id="dlg-close-x"></i>
       </v-card-title>
@@ -11,8 +11,13 @@
       </v-card-text>
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
-        <large-button outlined @click="cancel()">{{$t(cancelButtonText)}}</large-button>
         <large-button
+          data-test="dialog-cancel-button"
+          outlined
+          @click="cancel()"
+        >{{$t(cancelButtonText)}}</large-button>
+        <large-button
+          data-test="dialog-save-button"
           :disabled="disableSaveButton"
           :loading="loading"
           @click="save()"

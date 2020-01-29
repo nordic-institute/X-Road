@@ -48,10 +48,10 @@
 import Vue from 'vue';
 import * as api from '@/util/api';
 import NewGroupDialog from './NewGroupDialog.vue';
-
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
 import { selectedFilter } from '@/util/helpers';
+import { LocalGroup } from '@/types';
 
 export default Vue.extend({
   components: {
@@ -67,7 +67,7 @@ export default Vue.extend({
     return {
       search: '',
       dialog: false,
-      groups: [],
+      groups: [] as LocalGroup[],
       addGroupDialog: false,
     };
   },
@@ -94,11 +94,14 @@ export default Vue.extend({
       this.addGroupDialog = false;
     },
 
-    filtered(): any[] {
+    filtered(): LocalGroup[] {
       return selectedFilter(this.groups, this.search, 'id');
     },
 
-    viewGroup(group: any): void {
+    viewGroup(group: LocalGroup): void {
+      if (!group.id) {
+        return;
+      }
       this.$router.push({
         name: RouteName.LocalGroup,
         params: { clientId: this.id, groupId: group.id.toString() },
@@ -109,7 +112,16 @@ export default Vue.extend({
       api
         .get(`/clients/${id}/local-groups`)
         .then((res) => {
-          this.groups = res.data;
+          this.groups = res.data.sort((a: LocalGroup, b: LocalGroup) => {
+            if (a.code < b.code) {
+              return -1;
+            }
+            if (a.code > b.code) {
+              return 1;
+            }
+
+            return 0;
+          });
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
