@@ -30,7 +30,7 @@
       </div>
       <div class="button-footer">
         <div class="button-group">
-          <large-button outlined @click="cancel">{{$t('action.cancel')}}</large-button>
+          <large-button outlined @click="cancel" :disabled="!disableDone">{{$t('action.cancel')}}</large-button>
         </div>
         <large-button @click="done" :disabled="disableDone">{{$t('action.done')}}</large-button>
       </div>
