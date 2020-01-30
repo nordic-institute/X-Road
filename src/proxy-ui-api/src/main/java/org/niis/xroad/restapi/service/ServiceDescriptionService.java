@@ -34,6 +34,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
+import org.hibernate.Hibernate;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.repository.ClientRepository;
@@ -750,7 +751,13 @@ public class ServiceDescriptionService {
      * @return ServiceDescriptionType
      */
     public ServiceDescriptionType getServiceDescriptiontype(Long id) {
-        return serviceDescriptionRepository.getServiceDescription(id);
+        ServiceDescriptionType serviceDescriptionType = serviceDescriptionRepository.getServiceDescription(id);
+        if (serviceDescriptionType != null) {
+            // TO DO: consider optimize?
+            Hibernate.initialize(serviceDescriptionType.getService());
+            Hibernate.initialize(serviceDescriptionType.getClient());
+        }
+        return serviceDescriptionType;
     }
 
     /**
