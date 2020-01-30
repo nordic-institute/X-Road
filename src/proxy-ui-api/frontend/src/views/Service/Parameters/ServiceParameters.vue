@@ -386,9 +386,6 @@ export default Vue.extend({
       }
     },
   },
-  created() {
-    // NOOP
-  },
 });
 </script>
 
