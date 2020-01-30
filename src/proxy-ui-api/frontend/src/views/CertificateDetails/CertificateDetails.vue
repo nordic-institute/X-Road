@@ -8,24 +8,28 @@
           class="button-spacing"
           outlined
           @click="activateCertificate(certificate.certificate_details.hash)"
+          data-test="activate-button"
         >{{$t('action.activate')}}</large-button>
         <large-button
           v-if="showDisable"
           class="button-spacing"
           outlined
           @click="deactivateCertificate(certificate.certificate_details.hash)"
+          data-test="deactivate-button"
         >{{$t('action.deactivate')}}</large-button>
         <large-button
           v-if="showUnregister"
           class="button-spacing"
           outlined
           @click="confirmUnregisterCertificate = true"
+          data-test="unregister-button"
         >{{$t('action.unregister')}}</large-button>
         <large-button
           v-if="showDelete"
           class="button-spacing"
           outlined
-          @click="deleteCertificate()"
+          @click="showConfirmDelete()"
+          data-test="delete-button"
         >{{$t('action.delete')}}</large-button>
       </div>
       <template v-if="certificate && certificate.certificate_details">
@@ -42,7 +46,7 @@
       title="cert.deleteCertTitle"
       text="cert.deleteCertConfirm"
       @cancel="confirm = false"
-      @accept="doDeleteCertificate()"
+      @accept="deleteCertificate()"
     />
 
     <!-- Confirm dialog for unregister certificate -->
@@ -202,10 +206,10 @@ export default Vue.extend({
           this.$bus.$emit('show-error', error.message);
         });
     },
-    deleteCertificate(): void {
+    showConfirmDelete(): void {
       this.confirm = true;
     },
-    doDeleteCertificate(): void {
+    deleteCertificate(): void {
       this.confirm = false;
 
       api
