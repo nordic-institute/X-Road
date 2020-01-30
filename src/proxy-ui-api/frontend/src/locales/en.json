@@ -280,6 +280,13 @@
       "globalError": "Global error"
     }
   },
+  "ssTlsCertificate": {
+    "generateKey": "Generate key",
+    "importCertificate": "Import cert.",
+    "exportCertificate": "Export cert.",
+    "keyCertTitle": "TLS Key and Certificate",
+    "keyText": "Internal TLS Key"
+  },
   "csr": {
     "usage": "Usage",
     "client": "Client",
