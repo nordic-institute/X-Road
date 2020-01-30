@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.LocalGroupRepository;
@@ -77,7 +78,12 @@ public class LocalGroupService {
      * @return the LocalGroupType, or null if not found
      */
     public LocalGroupType getLocalGroup(Long groupId) {
-        return localGroupRepository.getLocalGroup(groupId);
+        LocalGroupType localGroupType = localGroupRepository.getLocalGroup(groupId);
+        // TO DO: consider optimizing?
+        if (localGroupType != null) {
+            Hibernate.initialize(localGroupType.getGroupMember());
+        }
+        return localGroupType;
     }
 
     /**
@@ -174,13 +180,14 @@ public class LocalGroupService {
 
     /**
      * deletes a member from given local group
-     * @param localGroupType
+     * @param detachedGroup a DETACHED local group type TO DO: refactor, use ID instead
      * @param items
      * @throws LocalGroupMemberNotFoundException if local group member was not found in the group
      */
-    public void deleteGroupMember(LocalGroupType localGroupType, List<ClientId> items)
+    public void deleteGroupMember(LocalGroupType detachedGroup, List<ClientId> items)
             throws LocalGroupMemberNotFoundException {
-        List<GroupMemberType> membersToBeRemoved = localGroupType.getGroupMember().stream()
+        LocalGroupType managedLocalGroup = getLocalGroup(detachedGroup.getId());
+        List<GroupMemberType> membersToBeRemoved = managedLocalGroup.getGroupMember().stream()
                 .filter(member -> items.stream()
                         .anyMatch(item -> item.toShortString().trim()
                                 .equals(member.getGroupMemberId().toShortString().trim())))
@@ -188,8 +195,8 @@ public class LocalGroupService {
         if (membersToBeRemoved.isEmpty()) {
             throw new LocalGroupMemberNotFoundException("the requested group member was not found in local group");
         }
-        localGroupType.getGroupMember().removeAll(membersToBeRemoved);
-        localGroupRepository.saveOrUpdate(localGroupType);
+        managedLocalGroup.getGroupMember().removeAll(membersToBeRemoved);
+        localGroupRepository.saveOrUpdate(managedLocalGroup);
     }
 
     /**

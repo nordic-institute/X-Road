@@ -28,6 +28,7 @@ import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
@@ -138,6 +139,10 @@ public class ClientService {
             for (LocalGroupType localGroupType: clientType.getLocalGroup()) {
                 Hibernate.initialize(localGroupType.getGroupMember());
             }
+            for (ServiceDescriptionType serviceDescriptionType: clientType.getServiceDescription()) {
+                Hibernate.initialize(serviceDescriptionType.getService());
+            }
+            Hibernate.initialize(clientType.getServiceDescription());
         }
         return clientType;
     }
