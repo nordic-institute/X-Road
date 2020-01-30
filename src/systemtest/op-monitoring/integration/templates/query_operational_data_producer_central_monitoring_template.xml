@@ -22,7 +22,7 @@
             <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
             <id:memberClass>GOV</id:memberClass>
             <id:memberCode>00000000</id:memberCode>
-            <id:serverCode>00000000_1</id:serverCode>
+            <id:serverCode>00000000</id:serverCode>
         </xroad:securityServer>
         <xroad:id>{message_id_placeholder}</xroad:id>
         <xroad:protocolVersion>4.0</xroad:protocolVersion>

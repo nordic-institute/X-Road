@@ -18,7 +18,7 @@
          <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
          <id:memberClass>COM</id:memberClass>
          <id:memberCode>00000002</id:memberCode>
-         <id:serverCode>00000002_1</id:serverCode>
+         <id:serverCode>00000002</id:serverCode>
       </xroad:securityServer>
       <xroad:id>{message_id_placeholder}</xroad:id>
       <xroad:protocolVersion>4.0</xroad:protocolVersion>

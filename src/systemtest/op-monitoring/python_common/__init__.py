@@ -284,6 +284,8 @@ def assert_present_in_json(json_payload: dict, fields_and_values: list):
         print(json.dumps(json_payload, indent=4, sort_keys=True))
         print("The following fields and values were expected:")
         print(fields_and_values)
+        print("Some fields were not found in the response:")
+        print(fields_found)
         raise Exception(
             "No record was found where all the expected fields and values matched")
 

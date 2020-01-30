@@ -58,7 +58,7 @@ def run(client_security_server_address, producer_security_server_address,
     ### Regular and operational data requests and the relevant checks
 
     print("\n---- Sending an X-Road request to the service provider in " \
-          "security server 00000000_1 ----\n")
+          "security server 00000000 ----\n")
 
     request_contents = common.format_xroad_request_template(
             xroad_query_to_ss0_service_template_filename, message_id_ss0)
@@ -78,7 +78,7 @@ def run(client_security_server_address, producer_security_server_address,
     print("\nGenerated message ID %s for X-Road request" % (message_id_ss2, ))
 
     print("\n---- Sending an X-Road request to the service provider in " \
-          "security server 00000002_1 ----\n")
+          "security server 00000002 ----\n")
 
     request_contents = common.format_xroad_request_template(
             xroad_query_to_ss2_service_template_filename, message_id_ss2)
@@ -128,13 +128,13 @@ def run(client_security_server_address, producer_security_server_address,
         # Check the presence of the required fields in at least one JSON structure.
 
         # The record describing the X-Road request to service provider in 
-        # security server 00000000_1
+        # security server 00000000
         common.assert_present_in_json(
                 json_payload, _expected_keys_and_values_of_cluster_query_rec(
                     message_id_ss0, "xtee8.ci.kit"))
 
         # The record describing the X-Road request to service provider in 
-        # security server 00000002_1
+        # security server 00000002
         common.assert_present_in_json(
                 json_payload, _expected_keys_and_values_of_cluster_query_rec(
                     message_id_ss2, "xtee10.ci.kit"))
