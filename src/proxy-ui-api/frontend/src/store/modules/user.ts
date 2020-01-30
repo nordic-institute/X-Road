@@ -8,13 +8,13 @@ import { mainTabs } from '@/global';
 export interface UserState {
   authenticated: boolean;
   permissions: string[];
-  userName: string;
+  username: string;
 }
 
 export const userState: UserState = {
   authenticated: false,
   permissions: [],
-  userName: '',
+  username: '',
 };
 
 export const userGetters: GetterTree<UserState, RootState> = {
@@ -60,6 +60,9 @@ export const userGetters: GetterTree<UserState, RootState> = {
 
     return filteredTabs;
   },
+  username(state) {
+    return state.username;
+  },
 };
 
 export const mutations: MutationTree<UserState> = {
@@ -71,12 +74,13 @@ export const mutations: MutationTree<UserState> = {
     state.authenticated = false;
     // Clear the permissions
     state.permissions = [];
+    state.username = '';
   },
   setPermissions: (state, permissions: string[]) => {
     state.permissions = permissions;
   },
-  setUsername: (state, userName: string) => {
-    state.userName = userName;
+  setUsername: (state, username: string) => {
+    state.username = username;
   },
 };
 
@@ -107,7 +111,7 @@ export const actions: ActionTree<UserState, RootState> = {
     return axios.get('/user')
       .then((res) => {
         console.log(res);
-        // commit('storeClients', res.data);
+        commit('setUsername', res.data.username);
         commit('setPermissions', res.data.permissions);
 
       })
