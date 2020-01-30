@@ -8,6 +8,7 @@
                 outlined
                 rounded
                 class="rounded-button elevation-0 rest-button"
+                data-test="endpoint-add"
             >{{$t('endpoints.addEndpoint')}}
             </v-btn>
         </div>
@@ -41,6 +42,7 @@
                                     rounded
                                     color="primary"
                                     class="xrd-small-button xrd-table-button"
+                                    data-test="endpoint-delete"
                                     @click="deleteEndpoint(endpoint)">{{$t('action.remove')}}
                                 </v-btn>
                                 <v-btn
@@ -50,6 +52,7 @@
                                     rounded
                                     color="primary"
                                     class="xrd-small-button xrd-table-button"
+                                    data-test="endpoint-edit"
                                     @click="editEndpoint(endpoint)">{{$t('action.edit')}}
                                 </v-btn>
                                 <v-btn
@@ -58,6 +61,7 @@
                                     rounded
                                     color="primary"
                                     class="xrd-small-button xrd-table-button"
+                                    data-test="endpoint-edit-accessrights"
                                     @click="editAccessRights(endpoint)">{{$t('access.accessRights')}}
                                 </v-btn>
                             </td>
@@ -72,33 +76,33 @@
 </template>
 
 <script lang="ts">
-  import Vue from 'vue';
-  import {mapGetters} from 'vuex';
-  import {Endpoint} from '@/types';
+import Vue from 'vue';
+import {mapGetters} from 'vuex';
+import {Endpoint} from '@/types';
 
-  export default Vue.extend({
-    computed: {
-      ...mapGetters(['service']),
+export default Vue.extend({
+  computed: {
+    ...mapGetters(['service']),
+  },
+  methods: {
+    addEndpoint(): void {
+        // NOOP
     },
-    methods: {
-      addEndpoint(): void {
+    isBaseEndpoint(endpoint: Endpoint): boolean {
+      return endpoint.method === '*' && endpoint.path === '**';
+    },
+    deleteEndpoint(endpoint: Endpoint): void {
+      // NOOP
+    },
+    editEndpoint(endpoint: Endpoint): void {
+      // NOOP
+    },
+    editAccessRights(endpoint: Endpoint): void {
+      // NOOP
+    },
+  },
 
-      },
-      isBaseEndpoint(endpoint: Endpoint): boolean {
-        return endpoint.method === '*' && endpoint.path === '**';
-      },
-      deleteEndpoint(endpoint: Endpoint): void {
-        // NOOP
-      },
-      editEndpoint(endpoint: Endpoint): void {
-        // NOOP
-      },
-      editAccessRights(endpoint: Endpoint): void {
-        // NOOP
-      }
-    }
-
-  });
+});
 </script>
 
 <style lang="scss" scoped>

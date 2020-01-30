@@ -25,12 +25,14 @@
                                 class="description-input"
                                 name="serviceUrl"
                                 :error-messages="errors"
+                                data-test="service-url"
                         ></v-text-field>
                     </ValidationProvider>
                 </div>
 
                 <v-checkbox @change="setTouched()" v-model="url_all" color="primary"
-                            class="table-checkbox"></v-checkbox>
+                            class="table-checkbox"
+                            data-test="url-all"></v-checkbox>
             </div>
 
             <div class="edit-row">
@@ -53,6 +55,7 @@
                                 style="max-width: 200px;"
                                 name="serviceTimeout"
                                 :error-messages="errors"
+                                data-test="service-timeout"
                         ></v-text-field>
                     </ValidationProvider>
                     <!-- 0 - 1000 -->
@@ -63,6 +66,7 @@
                         v-model="timeout_all"
                         color="primary"
                         class="table-checkbox"
+                        data-test="timeout-all"
                 ></v-checkbox>
             </div>
 
@@ -78,6 +82,7 @@
                             v-model="service.ssl_auth"
                             color="primary"
                             class="table-checkbox"
+                            data-test="ssl-auth"
                     ></v-checkbox>
                 </div>
 
@@ -86,11 +91,13 @@
                         v-model="ssl_auth_all"
                         color="primary"
                         class="table-checkbox"
+                        data-test="ssl-auth-all"
                 ></v-checkbox>
             </div>
 
             <div class="button-wrap">
-                <large-button :disabled="invalid || disableSave" @click="save()">{{$t('action.save')}}</large-button>
+                <large-button :disabled="invalid || disableSave"
+                              @click="save()" data-test="save-service-parameters">{{$t('action.save')}}</large-button>
             </div>
         </ValidationObserver>
 
@@ -101,12 +108,14 @@
                         :disabled="!hasSubjects"
                         outlined
                         @click="removeAllSubjects()"
+                        data-test="remove-subjects"
                 >{{$t('action.removeAll')}}
                 </large-button>
                 <large-button
                         outlined
                         class="add-members-button"
                         @click="showAddSubjectsDialog()"
+                        data-test="show-add-subjects"
                 >{{$t('access.addSubjects')}}
                 </large-button>
             </div>
@@ -134,6 +143,7 @@
                                         color="primary"
                                         class="xrd-small-button"
                                         @click="removeSubject(subject)"
+                                        data-test="remove-subject"
                                 >{{$t('action.remove')}}
                                 </v-btn>
                             </div>
@@ -143,7 +153,7 @@
             </table>
 
             <div class="footer-buttons-wrap">
-                <large-button @click="close()">{{$t('action.close')}}</large-button>
+                <large-button @click="close()" data-test="close">{{$t('action.close')}}</large-button>
             </div>
         </v-card>
 
@@ -179,207 +189,207 @@
 
 
 <script lang="ts">
-  import Vue from 'vue';
-  import * as api from '@/util/api';
-  import AccessRightsDialog from '../AccessRightsDialog.vue';
-  import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-  import HelpIcon from '@/components/ui/HelpIcon.vue';
-  import LargeButton from '@/components/ui/LargeButton.vue';
-  import {ServiceClient} from '@/types';
-  import {ValidationObserver, ValidationProvider} from 'vee-validate';
-  import {mapGetters} from 'vuex';
-  import {RouteName} from '@/global';
+import Vue from 'vue';
+import * as api from '@/util/api';
+import AccessRightsDialog from '../AccessRightsDialog.vue';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import HelpIcon from '@/components/ui/HelpIcon.vue';
+import LargeButton from '@/components/ui/LargeButton.vue';
+import {ServiceClient} from '@/types';
+import {ValidationObserver, ValidationProvider} from 'vee-validate';
+import {mapGetters} from 'vuex';
+import {RouteName} from '@/global';
 
-  type NullableSubject = undefined | ServiceClient;
+type NullableSubject = undefined | ServiceClient;
 
-  export default Vue.extend({
-    components: {
-      AccessRightsDialog,
-      ConfirmDialog,
-      HelpIcon,
-      LargeButton,
-      ValidationProvider,
-      ValidationObserver,
+export default Vue.extend({
+  components: {
+    AccessRightsDialog,
+    ConfirmDialog,
+    HelpIcon,
+    LargeButton,
+    ValidationProvider,
+    ValidationObserver,
+  },
+  props: {
+    serviceId: {
+      type: String,
+      required: true,
     },
-    props: {
-      serviceId: {
-        type: String,
-        required: true,
-      },
-      clientId: {
-        type: String,
-        required: true,
-      },
+    clientId: {
+      type: String,
+      required: true,
     },
-    data() {
-      return {
-        touched: false,
-        confirmGroup: false,
-        confirmMember: false,
-        confirmAllSubjects: false,
-        selectedMember: undefined as NullableSubject,
-        description: undefined,
-        url: '',
-        addSubjectsDialogVisible: false,
-        timeout: 23,
-        url_all: false,
-        timeout_all: false,
-        ssl_auth_all: false,
-      };
+  },
+  data() {
+    return {
+      touched: false,
+      confirmGroup: false,
+      confirmMember: false,
+      confirmAllSubjects: false,
+      selectedMember: undefined as NullableSubject,
+      description: undefined,
+      url: '',
+      addSubjectsDialogVisible: false,
+      timeout: 23,
+      url_all: false,
+      timeout_all: false,
+      ssl_auth_all: false,
+    };
+  },
+  computed: {
+    ...mapGetters(['service', 'accessRightsSubjects']),
+    isHttps(): boolean {
+      if (this.service.url.startsWith('https')) {
+        return true;
+      }
+      return false;
     },
-    computed: {
-      ...mapGetters(['service', 'accessRightsSubjects']),
-      isHttps(): boolean {
-        if (this.service.url.startsWith('https')) {
-          return true;
-        }
-        return false;
-      },
-      hasSubjects(): boolean {
-        if (this.accessRightsSubjects && this.accessRightsSubjects.length > 0) {
-          return true;
-        }
-        return false;
-      },
-
-      disableSave(): boolean {
-        // service is undefined --> can't save
-        if (!this.service) {
-          return true;
-        }
-
-        // inputs are not touched
-        if (!this.touched) {
-          return true;
-        }
-
-        return false;
-      },
+    hasSubjects(): boolean {
+      if (this.accessRightsSubjects && this.accessRightsSubjects.length > 0) {
+        return true;
+      }
+      return false;
     },
 
-    methods: {
+    disableSave(): boolean {
+      // service is undefined --> can't save
+      if (!this.service) {
+        return true;
+      }
 
-      save(): void {
-        api
-          .patch(`/services/${this.serviceId}`, {
-            service: this.service,
-            timeout_all: this.timeout_all,
-            url_all: this.url_all,
-            ssl_auth_all: this.ssl_auth_all,
-          })
-          .then((res) => {
-            this.$bus.$emit('saveService', res.data);
-            this.$bus.$emit('show-success', 'Service saved');
-          })
-          .catch((error) => {
-            this.$bus.$emit('show-error', error.message);
-          });
-      },
+      // inputs are not touched
+      if (!this.touched) {
+        return true;
+      }
 
-      setTouched(): void {
-        this.touched = true;
-      },
+      return false;
+    },
+  },
 
-      fetchData(serviceId: string): void {
+  methods: {
 
-        api
-          .get(`/services/${serviceId}/access-rights`)
-          .then((res) => {
-            this.accessRightsSubjects = res.data;
-          })
-          .catch((error) => {
-            this.$bus.$emit('show-error', error.message);
-          });
-      },
+    save(): void {
+      api
+        .patch(`/services/${this.serviceId}`, {
+          service: this.service,
+          timeout_all: this.timeout_all,
+          url_all: this.url_all,
+          ssl_auth_all: this.ssl_auth_all,
+        })
+        .then((res) => {
+          this.$bus.$emit('saveService', res.data);
+          this.$bus.$emit('show-success', 'Service saved');
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
+    },
 
-      showAddSubjectsDialog(): void {
-        this.addSubjectsDialogVisible = true;
-      },
+    setTouched(): void {
+      this.touched = true;
+    },
 
-      doAddSubjects(selected: any[]): void {
-        this.addSubjectsDialogVisible = false;
+    fetchData(serviceId: string): void {
 
-        api
-          .post(`/services/${this.serviceId}/access-rights`, {
-            items: selected,
-          })
-          .then((res) => {
-            this.fetchData(this.serviceId);
-          })
-          .catch((error) => {
-            this.$bus.$emit('show-error', error.message);
-          });
-      },
+      api
+        .get(`/services/${serviceId}/access-rights`)
+        .then((res) => {
+          this.accessRightsSubjects = res.data;
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
+    },
 
-      closeAccessRightsDialog(): void {
-        this.addSubjectsDialogVisible = false;
-      },
+    showAddSubjectsDialog(): void {
+      this.addSubjectsDialogVisible = true;
+    },
 
-      removeAllSubjects(): void {
-        this.confirmAllSubjects = true;
-      },
+    doAddSubjects(selected: any[]): void {
+      this.addSubjectsDialogVisible = false;
 
-      doRemoveAllSubjects(): void {
-        const subjects: any = [];
-        this.accessRightsSubjects.forEach((subject: any) => {
-          subjects.push({
+      api
+        .post(`/services/${this.serviceId}/access-rights`, {
+          items: selected,
+        })
+        .then((res) => {
+          this.fetchData(this.serviceId);
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        });
+    },
+
+    closeAccessRightsDialog(): void {
+      this.addSubjectsDialogVisible = false;
+    },
+
+    removeAllSubjects(): void {
+      this.confirmAllSubjects = true;
+    },
+
+    doRemoveAllSubjects(): void {
+      const subjects: any = [];
+      this.accessRightsSubjects.forEach((subject: any) => {
+        subjects.push({
+          id: subject.subject.id,
+          subject_type: subject.subject.subject_type,
+        });
+      });
+
+      this.removeArrayOfSubjects(subjects);
+      this.confirmAllSubjects = false;
+    },
+
+    removeSubject(member: any): void {
+      this.confirmMember = true;
+      this.selectedMember = member;
+    },
+    doRemoveSubject() {
+      const subject: ServiceClient = this.selectedMember as ServiceClient;
+
+      if (subject && subject.subject.id) {
+        this.removeArrayOfSubjects([
+          {
             id: subject.subject.id,
             subject_type: subject.subject.subject_type,
-          });
+          },
+        ]);
+      }
+
+      this.confirmMember = false;
+      this.selectedMember = undefined;
+    },
+
+    removeArrayOfSubjects(subjects: any) {
+      api
+        .post(`/services/${this.serviceId}/access-rights/delete`, {
+          items: subjects,
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+        })
+        .finally(() => {
+          this.fetchData(this.serviceId);
         });
-
-        this.removeArrayOfSubjects(subjects);
-        this.confirmAllSubjects = false;
-      },
-
-      removeSubject(member: any): void {
-        this.confirmMember = true;
-        this.selectedMember = member;
-      },
-      doRemoveSubject() {
-        const subject: ServiceClient = this.selectedMember as ServiceClient;
-
-        if (subject && subject.subject.id) {
-          this.removeArrayOfSubjects([
-            {
-              id: subject.subject.id,
-              subject_type: subject.subject.subject_type,
-            },
-          ]);
-        }
-
-        this.confirmMember = false;
-        this.selectedMember = undefined;
-      },
-
-      removeArrayOfSubjects(subjects: any) {
-        api
-          .post(`/services/${this.serviceId}/access-rights/delete`, {
-            items: subjects,
-          })
-          .catch((error) => {
-            this.$bus.$emit('show-error', error.message);
-          })
-          .finally(() => {
-            this.fetchData(this.serviceId);
-          });
-      },
-      close() {
-        this.$router.push({name: RouteName.SubsystemServices, params: {id: this.clientId}});
+    },
+    close() {
+      this.$router.push({name: RouteName.SubsystemServices, params: {id: this.clientId}});
+    },
+  },
+  watch: {
+    isHttps(val) {
+      // If user edits http to https --> change "ssl auth" to true
+      if (val === true) {
+        this.service.ssl_auth = true;
       }
     },
-    watch: {
-      isHttps(val) {
-        // If user edits http to https --> change "ssl auth" to true
-        if (val === true) {
-          this.service.ssl_auth = true;
-        }
-      },
-    },
-    created() {
-
-    },
-  });
+  },
+  created() {
+    // NOOP
+  },
+});
 </script>
 
 <style lang="scss" scoped>

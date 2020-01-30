@@ -59,6 +59,7 @@
             class="clickable-link service-description-header"
             v-if="canEditServiceDesc"
             @click="descriptionClick(serviceDesc)"
+            data-test="service-description-header"
           >{{serviceDesc.type}} ({{serviceDesc.url}})</div>
           <div v-else>{{serviceDesc.type}} ({{serviceDesc.url}})</div>
         </template>
@@ -91,8 +92,8 @@
               </thead>
               <tbody>
                 <tr v-for="service in serviceDesc.services" v-bind:key="service.id">
-                  <td class="service-code" @click="serviceClick(service)">{{service.service_code}}</td>
-                  <td class="service-url">
+                  <td class="service-code" @click="serviceClick(service)" data-test="service-link">{{service.service_code}}</td>
+                  <td class="service-url" data-test="service-url">
                     <serviceIcon :service="service" />
                     {{service.url}}
                   </td>
