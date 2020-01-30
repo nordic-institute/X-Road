@@ -27,10 +27,12 @@ package org.niis.xroad.restapi.service;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -126,7 +128,18 @@ public class ClientService {
      * @return the client, or null if matching client was not found
      */
     public ClientType getClient(ClientId id) {
-        return clientRepository.getClient(id);
+        ClientType clientType = clientRepository.getClient(id);
+        // TO DO: consider optimizing
+        // option 1: getClient(id, boolean loadLazies)
+        // option 2: localGroupService.getGroups(clientId) or .getGroups(ClientType)
+        if (clientType != null) {
+            Hibernate.initialize(clientType.getIsCert());
+            Hibernate.initialize(clientType.getLocalGroup());
+            for (LocalGroupType localGroupType: clientType.getLocalGroup()) {
+                Hibernate.initialize(localGroupType.getGroupMember());
+            }
+        }
+        return clientType;
     }
 
     /**
