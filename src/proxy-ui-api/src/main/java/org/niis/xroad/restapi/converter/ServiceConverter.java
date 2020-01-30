@@ -92,7 +92,8 @@ public class ServiceConverter {
         service.setTimeout(serviceType.getTimeout());
         service.setUrl(serviceType.getUrl());
 
-        List<EndpointType> endpoints = endpointHelper.getEndpoints(serviceType, serviceType.getServiceDescription().getClient());
+        List<EndpointType> endpoints = endpointHelper.getEndpoints(serviceType,
+                serviceType.getServiceDescription().getClient());
         service.setEndpoints(this.endpointConverter.convert(endpoints));
 
         return service;
