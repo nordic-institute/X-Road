@@ -21,6 +21,8 @@ export enum RouteName {
   SubsystemServices = 'subs-services',
   ServiceDescriptionDetails = 'service-description-details',
   Service = 'service',
+  ServiceParameters = 'service-parameters',
+  ServiceEndpoints = 'service-endpoints',
   SignAndAuthKeys = 'sign-and-auth-keys',
   ApiKey = 'api-key',
   SSTlsCertificate = 'ss-tls-certificate',
