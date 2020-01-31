@@ -124,27 +124,67 @@ public class ClientService {
     }
 
     /**
-     * Return one client, or null if not found
+     * Return one client, or null if not found.
+     * This method does NOT trigger load of lazy loaded properties.
+     * Use {@code getClientIsCerts}, {@code getClientLocalGroups}, and
+     * {@code getClientServiceDescriptions} for that
      * @param id
      * @return the client, or null if matching client was not found
      */
     public ClientType getClient(ClientId id) {
         ClientType clientType = clientRepository.getClient(id);
-        // TO DO: consider optimizing
-        // option 1: getClient(id, boolean loadLazies)
-        // option 2: localGroupService.getGroups(clientId) or .getGroups(ClientType)
+        return clientType;
+    }
+
+    /**
+     * Returns clientType.getIsCert() that has been loaded with Hibernate.init.
+     *
+     * @param id
+     * @return list of CertificateTypes, or null if client does not exist
+     */
+    public List<CertificateType> getClientIsCerts(ClientId id) {
+        ClientType clientType = getClient(id);
         if (clientType != null) {
             Hibernate.initialize(clientType.getIsCert());
-            Hibernate.initialize(clientType.getLocalGroup());
-            for (LocalGroupType localGroupType: clientType.getLocalGroup()) {
-                Hibernate.initialize(localGroupType.getGroupMember());
-            }
+            return clientType.getIsCert();
+        }
+        return null;
+    }
+
+    /**
+     * Returns clientType.getServiceDescription() that has been loaded with Hibernate.init.
+     * Also serviceDescription.services have been loaded.
+     *
+     * @param id
+     * @return list of ServiceDescriptionTypes, or null if client does not exist
+     */
+    public List<ServiceDescriptionType> getClientServiceDescriptions(ClientId id) {
+        ClientType clientType = getClient(id);
+        if (clientType != null) {
             for (ServiceDescriptionType serviceDescriptionType: clientType.getServiceDescription()) {
                 Hibernate.initialize(serviceDescriptionType.getService());
             }
-            Hibernate.initialize(clientType.getServiceDescription());
+            return clientType.getServiceDescription();
         }
-        return clientType;
+        return null;
+    }
+
+    /**
+     * Returns clientType.getLocalGroup() that has been loaded with Hibernate.init.
+     * Also localGroup.groupMembers have been loaded.
+     *
+     * @param id
+     * @return list of LocalGroupTypes, or null if client does not exist
+     */
+    public List<LocalGroupType> getClientLocalGroups(ClientId id) {
+        ClientType clientType = getClient(id);
+        if (clientType != null) {
+            for (LocalGroupType localGroupType: clientType.getLocalGroup()) {
+                Hibernate.initialize(localGroupType.getGroupMember());
+            }
+            return clientType.getLocalGroup();
+        }
+        return null;
     }
 
     /**

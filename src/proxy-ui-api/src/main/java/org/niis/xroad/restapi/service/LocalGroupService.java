@@ -73,13 +73,13 @@ public class LocalGroupService {
     }
 
     /**
-     * Return local group
+     * Return local group.
+     * Local group members are always loaded with Hibernate.init()
      * @param groupId
      * @return the LocalGroupType, or null if not found
      */
     public LocalGroupType getLocalGroup(Long groupId) {
         LocalGroupType localGroupType = localGroupRepository.getLocalGroup(groupId);
-        // TO DO: consider optimizing?
         if (localGroupType != null) {
             Hibernate.initialize(localGroupType.getGroupMember());
         }

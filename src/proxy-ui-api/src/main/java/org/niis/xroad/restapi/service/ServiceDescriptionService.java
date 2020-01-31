@@ -745,7 +745,9 @@ public class ServiceDescriptionService {
     }
 
     /**
-     * Return matching ServiceDescription or null
+     * Return matching ServiceDescription or null.
+     * serviceDescription.services and serviceDescription.client are always loaded
+     * with Hibernate.init()
      *
      * @param id
      * @return ServiceDescriptionType
@@ -753,7 +755,6 @@ public class ServiceDescriptionService {
     public ServiceDescriptionType getServiceDescriptiontype(Long id) {
         ServiceDescriptionType serviceDescriptionType = serviceDescriptionRepository.getServiceDescription(id);
         if (serviceDescriptionType != null) {
-            // TO DO: consider optimize?
             Hibernate.initialize(serviceDescriptionType.getService());
             Hibernate.initialize(serviceDescriptionType.getClient());
         }

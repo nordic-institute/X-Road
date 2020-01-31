@@ -279,7 +279,7 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('VIEW_CLIENT_INTERNAL_CERTS')")
     public ResponseEntity<List<CertificateDetails>> getClientTlsCertificates(String encodedId) {
         ClientType clientType = getClientType(encodedId);
-        List<CertificateDetails> certificates = clientType.getIsCert()
+        List<CertificateDetails> certificates = clientService.getClientIsCerts(clientType.getIdentifier())
                 .stream()
                 .map(certificateDetailsConverter::convert)
                 .collect(toList());
@@ -305,9 +305,9 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
-    public ResponseEntity<List<LocalGroup>> getClientGroups(String id) {
-        ClientType clientType = getClientType(id);
-        List<LocalGroupType> localGroupTypes = clientType.getLocalGroup();
+    public ResponseEntity<List<LocalGroup>> getClientGroups(String encodedId) {
+        ClientType clientType = getClientType(encodedId);
+        List<LocalGroupType> localGroupTypes = clientService.getClientLocalGroups(clientType.getIdentifier());
         return new ResponseEntity<>(localGroupConverter.convert(localGroupTypes), HttpStatus.OK);
     }
 
@@ -316,7 +316,8 @@ public class ClientsApiController implements ClientsApi {
     public ResponseEntity<List<ServiceDescription>> getClientServiceDescriptions(String encodedId) {
         ClientType clientType = getClientType(encodedId);
         List<ServiceDescription> serviceDescriptions = serviceDescriptionConverter.convert(
-                clientType.getServiceDescription());
+                clientService.getClientServiceDescriptions(clientType.getIdentifier()));
+
         return new ResponseEntity<>(serviceDescriptions, HttpStatus.OK);
     }
 
