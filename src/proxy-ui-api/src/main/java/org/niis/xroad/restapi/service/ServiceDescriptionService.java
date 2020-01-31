@@ -298,6 +298,7 @@ public class ServiceDescriptionService {
      * @throws UrlAlreadyExistsException         if trying to add duplicate url
      * @throws ServiceCodeAlreadyExistsException if trying to add duplicate ServiceCode
      * @throws MissingParameterException         if given ServiceCode is null
+     * @throws InvalidUrlException               if url is invalid
      */
     public ServiceDescriptionType addOpenapi3ServiceDescription(ClientId clientId, String url,
             String serviceCode, boolean ignoreWarnings)
@@ -305,12 +306,14 @@ public class ServiceDescriptionService {
             UnhandledWarningsException,
             UrlAlreadyExistsException,
             ServiceCodeAlreadyExistsException,
-            MissingParameterException {
+            MissingParameterException, InvalidUrlException {
         verifyAuthority("ADD_OPENAPI3");
 
         if (serviceCode == null) {
             throw new MissingParameterException("Missing ServiceCode");
         }
+
+        validateUrl(url);
 
         // Parse openapi definition
         OpenApiParser.Result result = openApiParser.parse(url);
@@ -426,16 +429,19 @@ public class ServiceDescriptionService {
      * @throws MissingParameterException         if given ServiceCode is null
      * @throws ServiceCodeAlreadyExistsException if trying to add duplicate ServiceCode
      * @throws UrlAlreadyExistsException         if trying to add duplicate url
+     * @throws InvalidUrlException               if url is invalid
      */
     public ServiceDescriptionType addRestEndpointServiceDescription(ClientId clientId, String url,
             String serviceCode) throws
             ClientNotFoundException, MissingParameterException, ServiceCodeAlreadyExistsException,
-            UrlAlreadyExistsException {
+            UrlAlreadyExistsException, InvalidUrlException {
         verifyAuthority("ADD_OPENAPI3");
 
         if (serviceCode == null) {
             throw new MissingParameterException("Missing ServiceCode");
         }
+
+        validateUrl(url);
 
         ClientType client = clientService.getClient(clientId);
         if (client == null) {
@@ -528,10 +534,6 @@ public class ServiceDescriptionService {
                     + serviceDescriptionType.toString() + " not found");
         }
 
-        if (!urlValidator.isValidUrl(serviceDescriptionType.getUrl())) {
-            throw new InvalidUrlException("Malformed URL");
-        }
-
         if (serviceDescriptionType.getType().equals(DescriptionType.WSDL)) {
             serviceDescriptionType = refreshWSDLServiceDescription(serviceDescriptionType, ignoreWarnings);
         } else if (serviceDescriptionType.getType().equals(DescriptionType.REST)) {
@@ -583,16 +585,22 @@ public class ServiceDescriptionService {
      * Refresh REST service description
      *
      * @param serviceDescriptionType
-     * @return
+     * @return {@link ServiceDescriptionType}
      * @throws WrongServiceDescriptionTypeException if service type is not REST
+     * @throws ServiceNotFoundException             if there is no service linked to service description
+     * @throws InvalidUrlException                  if url is invalid
      */
     private ServiceDescriptionType refreshRESTServiceDescription(ServiceDescriptionType serviceDescriptionType)
-            throws WrongServiceDescriptionTypeException {
+            throws WrongServiceDescriptionTypeException, ServiceNotFoundException, InvalidUrlException {
         verifyAuthority("REFRESH_REST");
 
         if (!serviceDescriptionType.getType().equals(DescriptionType.REST)) {
             throw new WrongServiceDescriptionTypeException("Expected description type REST");
         }
+
+        validateUrl(serviceDescriptionType.getUrl());
+
+        serviceDescriptionType.setRefreshedDate(new Date());
 
         return serviceDescriptionType;
     }
@@ -602,15 +610,16 @@ public class ServiceDescriptionService {
      *
      * @param serviceDescriptionType
      * @param ignoreWarnings
-     * @return
+     * @return {@link ServiceDescriptionType}
      * @throws WrongServiceDescriptionTypeException if service type is not openapi3
      * @throws ServiceNotFoundException             if there is no service linked to given service description
      * @throws UnhandledWarningsException           if unhandled warnings are found and ignoreWarnings if false
      * @throws OpenApiParser.ParsingException       if parsing openapi3 description fails
+     * @throws InvalidUrlException                  if url is invalid
      */
     private ServiceDescriptionType refreshOPENAPI3ServiceDescription(ServiceDescriptionType serviceDescriptionType,
             boolean ignoreWarnings) throws WrongServiceDescriptionTypeException, ServiceNotFoundException,
-            UnhandledWarningsException, OpenApiParser.ParsingException {
+            UnhandledWarningsException, OpenApiParser.ParsingException, InvalidUrlException {
 
         verifyAuthority("REFRESH_OPENAPI3");
 
@@ -622,6 +631,10 @@ public class ServiceDescriptionService {
             throw new ServiceNotFoundException("Service not found from servicedescription with id "
                     + serviceDescriptionType.getId());
         }
+
+        validateUrl(serviceDescriptionType.getUrl());
+
+        serviceDescriptionType.setRefreshedDate(new Date());
 
         parseOpenapi3ToServiceDescription(serviceDescriptionType.getUrl(),
                 serviceDescriptionType.getService().get(0).getServiceCode(),
@@ -643,11 +656,12 @@ public class ServiceDescriptionService {
      * @throws ServiceCodeAlreadyExistsException   if trying to add duplicate ServiceCode
      * @throws ServiceDescriptionNotFoundException if ServiceDescription not found
      * @throws ServiceNotFoundException            if Service not found
+     * @throws InvalidUrlException                 if url is invalid
      */
     public ServiceDescriptionType updateRestServiceDescription(Long id, String url, String restServiceCode,
             String newRestServiceCode)
             throws UrlAlreadyExistsException, ServiceCodeAlreadyExistsException, ServiceDescriptionNotFoundException,
-            ServiceNotFoundException, WrongServiceDescriptionTypeException {
+            ServiceNotFoundException, WrongServiceDescriptionTypeException, InvalidUrlException {
         verifyAuthority("EDIT_REST");
 
         if (newRestServiceCode == null) {
@@ -659,6 +673,8 @@ public class ServiceDescriptionService {
             throw new WrongServiceDescriptionTypeException("Expected description type REST");
         }
 
+        validateUrl(serviceDescription.getUrl());
+
         if (serviceDescription == null) {
             throw new ServiceDescriptionNotFoundException("ServiceDescription with id: " + id + " wasn't found");
         }
@@ -667,6 +683,8 @@ public class ServiceDescriptionService {
             throw new ServiceNotFoundException("Service not found from servicedescription with id "
                     + serviceDescription.getId());
         }
+
+        serviceDescription.setRefreshedDate(new Date());
         serviceDescription.setUrl(url);
         serviceDescription.getService().get(0).setUrl(url);
 
@@ -693,11 +711,13 @@ public class ServiceDescriptionService {
      * @throws UnhandledWarningsException        if ignoreWarnings false and warning-level issues in openapi3
      *                                           description
      * @throws OpenApiParser.ParsingException    if openapi3 parser finds errors in the parsed document
+     * @throws InvalidUrlException               if url is invalid
      */
     public ServiceDescriptionType updateOpenApi3ServiceDescription(Long id, String url, String restServiceCode,
             String newRestServiceCode, Boolean ignoreWarnings) throws UrlAlreadyExistsException,
             ServiceCodeAlreadyExistsException, UnhandledWarningsException, OpenApiParser.ParsingException,
-            ServiceNotFoundException, WrongServiceDescriptionTypeException, ServiceDescriptionNotFoundException {
+            ServiceNotFoundException, WrongServiceDescriptionTypeException, ServiceDescriptionNotFoundException,
+            InvalidUrlException {
 
         verifyAuthority("EDIT_OPENAPI3");
         ServiceDescriptionType serviceDescription = getServiceDescriptiontype(id);
@@ -709,6 +729,8 @@ public class ServiceDescriptionService {
         if (!serviceDescription.getType().equals(DescriptionType.OPENAPI3)) {
             throw new WrongServiceDescriptionTypeException("Expected description type OPENAPI3");
         }
+
+        validateUrl(url);
 
         if (newRestServiceCode == null) {
             newRestServiceCode = restServiceCode;
@@ -726,6 +748,7 @@ public class ServiceDescriptionService {
             parseOpenapi3ToServiceDescription(url, newRestServiceCode, ignoreWarnings, serviceDescription);
         }
 
+        serviceDescription.setRefreshedDate(new Date());
         serviceDescription.setUrl(url);
         serviceDescription.getService().get(0).setUrl(url);
 
@@ -1069,6 +1092,13 @@ public class ServiceDescriptionService {
         private List<WarningDeviation> warnings = new ArrayList<>();
     }
 
+    // check for valid url (is this not enough??
+    private void validateUrl(String url) throws InvalidUrlException {
+        if (!urlValidator.isValidUrl(url)) {
+            throw new InvalidUrlException("Malformed URL");
+        }
+    }
+
     /**
      * Parse and validate a given wsdl and detect problems it may have.
      * Fatal problems result in thrown exception, warnings are returned in
@@ -1095,10 +1125,8 @@ public class ServiceDescriptionService {
             ServiceAlreadyExistsException {
 
         WsdlProcessingResult result = new WsdlProcessingResult();
-        // check for valid url (is this not enough??
-        if (!urlValidator.isValidUrl(url)) {
-            throw new InvalidUrlException("Malformed URL");
-        }
+
+        validateUrl(url);
 
         // check if wsdl already exists
         checkForExistingWsdl(client, url, updatedServiceDescriptionId);
