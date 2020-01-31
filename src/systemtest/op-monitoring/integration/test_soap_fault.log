@@ -1,0 +1,352 @@
+No existing value was found for the parameter 'op-monitor.records-available-timestamp-offset-seconds' in security server 10.104.141.100 
+
+No existing value was found for the parameter 'op-monitor.max-records-in-payload' in security server 10.104.141.100 
+
+
+Editing the configuration parameters of the operational monitoring daemon in security server 10.104.141.100
+Setting 'op-monitor.records-available-timestamp-offset-seconds' to '0'
+
+Editing the configuration parameters of the operational monitoring daemon in security server 10.104.141.100
+Setting 'op-monitor.max-records-in-payload' to '100'
+
+Restarting the operational monitoring daemon in security server 10.104.141.100
+Sleeping for 2 seconds after the restart of services
+
+Generated message ID NxDAiyy0STRRrHwL7DY8J5AQYnSSFVI8 for X-Road request to unknown service
+
+---- Sending an X-Road request to an unknown service to the client's security server ----
+
+Generated the following X-Road request: 
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:repr="http://x-road.eu/xsd/representation.xsd">
+   <SOAP-ENV:Header>
+      <xroad:client id:objectType="SUBSYSTEM">
+         <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+         <id:memberClass>GOV</id:memberClass>
+         <id:memberCode>00000001</id:memberCode>
+         <id:subsystemCode>System1</id:subsystemCode>
+      </xroad:client>
+      <xroad:service id:objectType="SERVICE">
+         <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+         <id:memberClass>GOV</id:memberClass>
+         <id:memberCode>00000000</id:memberCode>
+         <id:subsystemCode>Center</id:subsystemCode>
+         <id:serviceCode>xroadGetDate</id:serviceCode>
+         <id:serviceVersion>v1</id:serviceVersion>
+      </xroad:service>
+      <xroad:protocolVersion>4.0</xroad:protocolVersion>
+      <xroad:id>NxDAiyy0STRRrHwL7DY8J5AQYnSSFVI8</xroad:id>
+   </SOAP-ENV:Header>
+   <SOAP-ENV:Body>
+      <xroad:xroadGetDate>
+         <xroad:request>
+         </xroad:request>
+      </xroad:xroadGetDate>
+   </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+
+Received the following X-Road response: 
+
+<?xml version="1.0" ?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+	<SOAP-ENV:Body>
+		<SOAP-ENV:Fault>
+			<faultcode>Server.ServerProxy.UnknownService</faultcode>
+			<faultstring>Unknown service: SERVICE:XTEE-CI-XM/GOV/00000000/Center/xroadGetDate/v1</faultstring>
+			<faultactor/>
+			<detail>
+				<faultDetail xmlns="">e01c3fa4-645b-4fb2-9308-5b91d473aee2</faultDetail>
+			</detail>
+		</SOAP-ENV:Fault>
+	</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+
+Generated message ID FxewZamNBKYAXoHL75XzaNILa3bLkD4S for X-Road request from unknown member
+
+---- Sending an X-Road request from an unknown member to the client's security server ----
+
+Generated the following X-Road request: 
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:repr="http://x-road.eu/xsd/representation.xsd">
+   <SOAP-ENV:Header>
+      <xroad:client id:objectType="SUBSYSTEM">
+         <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+         <id:memberClass>GOV</id:memberClass>
+         <id:memberCode>00000001</id:memberCode>
+         <id:subsystemCode>System666</id:subsystemCode>
+      </xroad:client>
+      <xroad:service id:objectType="SERVICE">
+         <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+         <id:memberClass>GOV</id:memberClass>
+         <id:memberCode>00000000</id:memberCode>
+         <id:subsystemCode>Center</id:subsystemCode>
+         <id:serviceCode>xroadGetRandom</id:serviceCode>
+         <id:serviceVersion>v1</id:serviceVersion>
+      </xroad:service>
+      <xroad:id>FxewZamNBKYAXoHL75XzaNILa3bLkD4S</xroad:id>
+      <xroad:protocolVersion>4.0</xroad:protocolVersion>
+   </SOAP-ENV:Header>
+   <SOAP-ENV:Body>
+      <xroad:xroadGetRandom>
+         <xroad:request>
+            <xroad:seed>10</xroad:seed>
+         </xroad:request>
+      </xroad:xroadGetRandom>
+   </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+
+Received the following X-Road response: 
+
+<?xml version="1.0" ?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+	<SOAP-ENV:Body>
+		<SOAP-ENV:Fault>
+			<faultcode>Server.ClientProxy.UnknownMember</faultcode>
+			<faultstring>Client 'SUBSYSTEM:XTEE-CI-XM/GOV/00000001/System666' not found</faultstring>
+			<faultactor/>
+			<detail>
+				<faultDetail xmlns="">0eebd911-3e91-4c0e-af20-c3c847e71329</faultDetail>
+			</detail>
+		</SOAP-ENV:Fault>
+	</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+
+Generated message ID SzFtw00jC8jizsjdPsFswRg47EPFsIcM for X-Road request that will cause a SOAP fault
+
+---- Sending an X-Road request that will cause a SOAP fault to the client's security server ----
+
+Generated the following X-Road request: 
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:repr="http://x-road.eu/xsd/representation.xsd">
+   <SOAP-ENV:Header>
+      <xroad:client id:objectType="SUBSYSTEM">
+         <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+         <id:memberClass>GOV</id:memberClass>
+         <id:memberCode>00000001</id:memberCode>
+         <id:subsystemCode>System1</id:subsystemCode>
+      </xroad:client>
+      <xroad:service id:objectType="SERVICE">
+         <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+         <id:memberClass>GOV</id:memberClass>
+         <id:memberCode>00000000</id:memberCode>
+         <id:subsystemCode>Center</id:subsystemCode>
+         <id:serviceCode>xroadGetRandom</id:serviceCode>
+         <id:serviceVersion>v1</id:serviceVersion>
+      </xroad:service>
+     <xroad:protocolVersion>4.0</xroad:protocolVersion>
+     <xroad:id>SzFtw00jC8jizsjdPsFswRg47EPFsIcM</xroad:id>
+     <xroad:issue>faultPlease</xroad:issue>
+   </SOAP-ENV:Header>
+   <SOAP-ENV:Body>
+      <xroad:xroadGetRandom>
+         <xroad:request>
+            <xroad:seed>100</xroad:seed>
+         </xroad:request>
+      </xroad:xroadGetRandom>
+   </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+
+Received the following X-Road response: 
+
+<?xml version="1.0" ?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+	<SOAP-ENV:Body>
+		<SOAP-ENV:Fault>
+			<faultcode>foo.bar.testFault</faultcode>
+			<faultstring>Anything can happen in life, especially faults</faultstring>
+			<faultactor/>
+			<detail>
+				<faultDetail>foo.bar.baz</faultDetail>
+			</detail>
+		</SOAP-ENV:Fault>
+	</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+
+---- Sending an operational data request to the client's security server ----
+
+Generated message ID RQrZIGxuzlzRHXUA6zAwC2Ie9ehSMENC for query data request
+Generated the following query data request for the client's security server: 
+
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope
+        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+        xmlns:om="http://x-road.eu/xsd/op-monitoring.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers">
+    <SOAP-ENV:Header>
+        <xroad:client id:objectType="MEMBER">
+           <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+           <id:memberClass>GOV</id:memberClass>
+           <id:memberCode>00000001</id:memberCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+           <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+           <id:memberClass>GOV</id:memberClass>
+           <id:memberCode>00000001</id:memberCode>
+           <id:serviceCode>getSecurityServerOperationalData</id:serviceCode>
+           <id:serviceVersion>красивая родина</id:serviceVersion>
+        </xroad:service>
+        <xroad:securityServer id:objectType="SERVER">
+            <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>00000001</id:memberCode>
+            <id:serverCode>00000001</id:serverCode>
+        </xroad:securityServer>
+        <xroad:id>RQrZIGxuzlzRHXUA6zAwC2Ie9ehSMENC</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <om:getSecurityServerOperationalData>
+            <om:searchCriteria>
+                <om:recordsFrom>1580482087</om:recordsFrom>
+                <om:recordsTo>1580482090</om:recordsTo>
+            </om:searchCriteria>
+        </om:getSecurityServerOperationalData>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+Received the following SOAP response from the security server of the client: 
+
+<?xml version="1.0" ?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:om="http://x-road.eu/xsd/op-monitoring.xsd" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
+	<SOAP-ENV:Header>
+		<xroad:client id:objectType="MEMBER">
+			<id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+			<id:memberClass>GOV</id:memberClass>
+			<id:memberCode>00000001</id:memberCode>
+		</xroad:client>
+		<xroad:service id:objectType="SERVICE">
+			<id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+			<id:memberClass>GOV</id:memberClass>
+			<id:memberCode>00000001</id:memberCode>
+			<id:serviceCode>getSecurityServerOperationalData</id:serviceCode>
+			<id:serviceVersion>красивая родина</id:serviceVersion>
+		</xroad:service>
+		<xroad:securityServer id:objectType="SERVER">
+			<id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+			<id:memberClass>GOV</id:memberClass>
+			<id:memberCode>00000001</id:memberCode>
+			<id:serverCode>00000001</id:serverCode>
+		</xroad:securityServer>
+		<xroad:id>RQrZIGxuzlzRHXUA6zAwC2Ie9ehSMENC</xroad:id>
+		<xroad:requestHash algorithmId="http://www.w3.org/2001/04/xmlenc#sha512">q2on0G8v/V6s+Q6K3eT1lHNgorF2B2J0OuLzLvAlDXFoo6tg4SEadyALqN3syuiW5UEaK/tyl/qO3QBLHmlaaQ==</xroad:requestHash>
+		<xroad:protocolVersion>4.0</xroad:protocolVersion>
+	</SOAP-ENV:Header>
+	<SOAP-ENV:Body>
+		<om:getSecurityServerOperationalDataResponse>
+			<om:recordsCount>3</om:recordsCount>
+			<om:records>cid:operational-monitoring-data.json.gz</om:records>
+		</om:getSecurityServerOperationalDataResponse>
+	</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+The expected number of JSON records in the response payload: 3
+The following JSON was received in the response:
+{
+    "records": [
+        {
+            "clientMemberClass": "GOV",
+            "clientMemberCode": "00000001",
+            "clientSecurityServerAddress": "xtee9.ci.kit",
+            "clientSubsystemCode": "System1",
+            "clientXRoadInstance": "XTEE-CI-XM",
+            "messageId": "SzFtw00jC8jizsjdPsFswRg47EPFsIcM",
+            "messageIssue": "faultPlease",
+            "messageProtocolVersion": "4.0",
+            "monitoringDataTs": 1580482087,
+            "requestAttachmentCount": 0,
+            "requestInTs": 1580482087771,
+            "requestOutTs": 1580482087774,
+            "requestSoapSize": 1291,
+            "responseInTs": 1580482087873,
+            "responseOutTs": 1580482087875,
+            "securityServerInternalIp": "fd42:2642:2cb3:31ac:216:3eff:fec0:c149%eth0",
+            "securityServerType": "Client",
+            "serviceCode": "xroadGetRandom",
+            "serviceMemberClass": "GOV",
+            "serviceMemberCode": "00000000",
+            "serviceSecurityServerAddress": "xtee8.ci.kit",
+            "serviceSubsystemCode": "Center",
+            "serviceVersion": "v1",
+            "serviceXRoadInstance": "XTEE-CI-XM",
+            "soapFaultCode": "foo.bar.testFault",
+            "soapFaultString": "Anything can happen in life, especially faults",
+            "succeeded": false,
+            "xRequestId": "9a5450d9-2178-4388-bbff-fefe39824419"
+        },
+        {
+            "clientMemberClass": "GOV",
+            "clientMemberCode": "00000001",
+            "clientSecurityServerAddress": "xtee9.ci.kit",
+            "clientSubsystemCode": "System666",
+            "clientXRoadInstance": "XTEE-CI-XM",
+            "messageId": "FxewZamNBKYAXoHL75XzaNILa3bLkD4S",
+            "messageProtocolVersion": "4.0",
+            "monitoringDataTs": 1580482087,
+            "requestInTs": 1580482087761,
+            "requestSoapSize": 1250,
+            "responseOutTs": 1580482087766,
+            "securityServerInternalIp": "fd42:2642:2cb3:31ac:216:3eff:fec0:c149%eth0",
+            "securityServerType": "Client",
+            "serviceCode": "xroadGetRandom",
+            "serviceMemberClass": "GOV",
+            "serviceMemberCode": "00000000",
+            "serviceSubsystemCode": "Center",
+            "serviceVersion": "v1",
+            "serviceXRoadInstance": "XTEE-CI-XM",
+            "soapFaultCode": "Server.ClientProxy.UnknownMember",
+            "soapFaultString": "Client 'SUBSYSTEM:XTEE-CI-XM/GOV/00000001/System666' not found",
+            "succeeded": false,
+            "xRequestId": "bfafcdc5-a5b0-4b93-82a1-73d5c78425bb"
+        },
+        {
+            "clientMemberClass": "GOV",
+            "clientMemberCode": "00000001",
+            "clientSecurityServerAddress": "xtee9.ci.kit",
+            "clientSubsystemCode": "System1",
+            "clientXRoadInstance": "XTEE-CI-XM",
+            "messageId": "NxDAiyy0STRRrHwL7DY8J5AQYnSSFVI8",
+            "messageProtocolVersion": "4.0",
+            "monitoringDataTs": 1580482087,
+            "requestAttachmentCount": 0,
+            "requestInTs": 1580482087669,
+            "requestOutTs": 1580482087695,
+            "requestSoapSize": 1202,
+            "responseInTs": 1580482087752,
+            "responseOutTs": 1580482087753,
+            "securityServerInternalIp": "fd42:2642:2cb3:31ac:216:3eff:fec0:c149%eth0",
+            "securityServerType": "Client",
+            "serviceCode": "xroadGetDate",
+            "serviceMemberClass": "GOV",
+            "serviceMemberCode": "00000000",
+            "serviceSecurityServerAddress": "xtee8.ci.kit",
+            "serviceSubsystemCode": "Center",
+            "serviceVersion": "v1",
+            "serviceXRoadInstance": "XTEE-CI-XM",
+            "soapFaultCode": "Server.ServerProxy.UnknownService",
+            "soapFaultString": "Unknown service: SERVICE:XTEE-CI-XM/GOV/00000000/Center/xroadGetDate/v1",
+            "succeeded": false,
+            "xRequestId": "1a823977-e9cb-48b2-873b-29386c517dca"
+        }
+    ]
+}
+The following fields and values were expected:
+[('clientMemberClass', 'GOV'), ('clientMemberCode', '00000001'), ('clientSecurityServerAddress', 'xtee9.ci.kit'), ('clientSubsystemCode', 'System1'), ('clientXRoadInstance', 'XTEE-CI-XM'), ('messageId', 'NxDAiyy0STRRrHwL7DY8J5AQYnSSFVI8'), ('messageProtocolVersion', '4.0'), ('requestAttachmentCount', 0), ('requestSoapSize', 1202), ('securityServerInternalIp', '10.104.141.230'), ('securityServerType', 'Client'), ('serviceCode', 'xroadGetDate'), ('serviceMemberClass', 'GOV'), ('serviceMemberCode', '00000000'), ('serviceSecurityServerAddress', 'xtee8.ci.kit'), ('serviceSubsystemCode', 'Center'), ('serviceVersion', 'v1'), ('serviceXRoadInstance', 'XTEE-CI-XM'), ('soapFaultCode', 'Server.ServerProxy.UnknownService'), ('soapFaultString', 'Unknown service: SERVICE:XTEE-CI-XM/GOV/00000000/Center/xroadGetDate/v1'), ('succeeded', False)]
+Some fields were not found in the response:
+{'clientMemberClass': True, 'clientMemberCode': True, 'clientSecurityServerAddress': True, 'clientSubsystemCode': True, 'clientXRoadInstance': True, 'messageId': True, 'messageProtocolVersion': True, 'requestAttachmentCount': True, 'requestSoapSize': True, 'securityServerInternalIp': False, 'securityServerType': True, 'serviceCode': True, 'serviceMemberClass': True, 'serviceMemberCode': True, 'serviceSecurityServerAddress': True, 'serviceSubsystemCode': True, 'serviceVersion': True, 'serviceXRoadInstance': True, 'soapFaultCode': True, 'soapFaultString': True, 'succeeded': True}
+An exception occurred: No record was found where all the expected fields and values matched
+
+Restoring the configuration parameters of the operational monitoring daemon in security server 10.104.141.100
+Removing 'op-monitor.records-available-timestamp-offset-seconds'
+
+Restoring the configuration parameters of the operational monitoring daemon in security server 10.104.141.100
+Removing 'op-monitor.max-records-in-payload'
+
+Restarting the operational monitoring daemon in security server 10.104.141.100
+Sleeping for 2 seconds after the restart of services

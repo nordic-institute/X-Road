@@ -1,0 +1,196 @@
+No existing value was found for the parameter 'op-monitor.records-available-timestamp-offset-seconds' in security server 10.104.141.100 
+
+No existing value was found for the parameter 'op-monitor.max-records-in-payload' in security server 10.104.141.100 
+
+No existing value was found for the parameter 'op-monitor.health-statistics-period-seconds' in security server 10.104.141.230 
+
+No existing value was found for the parameter 'op-monitor.health-statistics-period-seconds' in security server 10.104.141.100 
+
+
+Editing the configuration parameters of the operational monitoring daemon in security server 10.104.141.230
+Setting 'op-monitor.health-statistics-period-seconds' to '10'
+
+Restarting the operational monitoring daemon in security server 10.104.141.230
+
+Editing the configuration parameters of the operational monitoring daemon in security server 10.104.141.100
+Setting 'op-monitor.records-available-timestamp-offset-seconds' to '0'
+
+Editing the configuration parameters of the operational monitoring daemon in security server 10.104.141.100
+Setting 'op-monitor.max-records-in-payload' to '100'
+
+Editing the configuration parameters of the operational monitoring daemon in security server 10.104.141.100
+Setting 'op-monitor.health-statistics-period-seconds' to '10'
+
+Restarting the operational monitoring daemon in security server 10.104.141.100
+Sleeping for 2 seconds after the restart of services
+
+Generated message ID tBeiE66W8KKa8vvfdDgKydl8jqo6it2o for X-Road request
+
+---- Sending an X-Road request to the client's security server ----
+
+Generated the following X-Road request: 
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:swi="http://ws-i.org/profiles/basic/1.1/xsd" xmlns:repr="http://x-road.eu/xsd/representation.xsd">
+    <SOAP-ENV:Header>
+        <xroad:client id:objectType="SUBSYSTEM">
+            <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>00000001</id:memberCode>
+            <id:subsystemCode>System1</id:subsystemCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>00000000</id:memberCode>
+            <id:subsystemCode>Center</id:subsystemCode>
+            <id:serviceCode>xroadGetRandom</id:serviceCode>
+            <id:serviceVersion>v1</id:serviceVersion>
+        </xroad:service>
+        <repr:representedParty>
+            <repr:partyClass>COM</repr:partyClass>
+            <repr:partyCode>UNKNOWN_MEMBER</repr:partyCode>
+        </repr:representedParty>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+        <xroad:id>tBeiE66W8KKa8vvfdDgKydl8jqo6it2o</xroad:id>
+        <xroad:userId>EE37702211230</xroad:userId>
+        <xroad:issue>453465</xroad:issue>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <xroad:xroadGetRandom>
+            <xroad:request>
+                <xroad:seed>100</xroad:seed>
+            </xroad:request>
+        </xroad:xroadGetRandom>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+Received the following X-Road response: 
+
+<?xml version="1.0" ?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:repr="http://x-road.eu/xsd/representation.xsd" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
+	<SOAP-ENV:Header>
+		<xroad:client id:objectType="SUBSYSTEM">
+			<id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+			<id:memberClass>GOV</id:memberClass>
+			<id:memberCode>00000001</id:memberCode>
+			<id:subsystemCode>System1</id:subsystemCode>
+		</xroad:client>
+		<xroad:service id:objectType="SERVICE">
+			<id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+			<id:memberClass>GOV</id:memberClass>
+			<id:memberCode>00000000</id:memberCode>
+			<id:subsystemCode>Center</id:subsystemCode>
+			<id:serviceCode>xroadGetRandom</id:serviceCode>
+			<id:serviceVersion>v1</id:serviceVersion>
+		</xroad:service>
+		<repr:representedParty>
+			<repr:partyClass>COM</repr:partyClass>
+			<repr:partyCode>UNKNOWN_MEMBER</repr:partyCode>
+		</repr:representedParty>
+		<xroad:userId>EE37702211230</xroad:userId>
+		<xroad:id>tBeiE66W8KKa8vvfdDgKydl8jqo6it2o</xroad:id>
+		<xroad:requestHash algorithmId="http://www.w3.org/2001/04/xmlenc#sha512">9GVkOqozl2wa+wi6jH54uAvwdu1/gHIApif5YaHIneYMuyLVyyTtMrZq3rdM9U9Eh2+xuqeBcgD8A1B7Z7hnrA==</xroad:requestHash>
+		<xroad:protocolVersion>4.0</xroad:protocolVersion>
+		<xroad:issue>453465</xroad:issue>
+	</SOAP-ENV:Header>
+	<SOAP-ENV:Body>
+		<xxprod:xroadGetRandomResponse xmlns:xxprod="http://CLIENT1.x-road.ee/producer">
+			<response>
+				<content>4</content>
+			</response>
+		</xxprod:xroadGetRandomResponse>
+	</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+
+---- Sending a health data request to the producer's security server ----
+
+Generated message ID gS8lvimiIyG8CwFTRphvIlSbEhOyaFa0 for health data request
+Generated the following health data request for the producer's security server: 
+
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope
+        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+        xmlns:om="http://x-road.eu/xsd/op-monitoring.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers">
+    <SOAP-ENV:Header>
+        <xroad:client id:objectType="SUBSYSTEM">
+           <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+           <id:memberClass>GOV</id:memberClass>
+           <id:memberCode>00000000</id:memberCode>
+           <id:subsystemCode>Center</id:subsystemCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+           <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+           <id:memberClass>GOV</id:memberClass>
+           <id:memberCode>00000000</id:memberCode>
+           <id:serviceCode>getSecurityServerHealthData</id:serviceCode>
+        </xroad:service>
+        <xroad:id>gS8lvimiIyG8CwFTRphvIlSbEhOyaFa0</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+       <om:getSecurityServerHealthData>
+            <om:filterCriteria>
+                <om:client id:objectType="SUBSYSTEM">
+                   <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+                   <id:memberClass>GOV</id:memberClass>
+                   <id:memberCode>00000000</id:memberCode>
+                   <id:subsystemCode>Center</id:subsystemCode>
+                </om:client>
+            </om:filterCriteria>
+        </om:getSecurityServerHealthData>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+Received the following health data response:
+
+<?xml version="1.0" ?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:om="http://x-road.eu/xsd/op-monitoring.xsd" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
+	<SOAP-ENV:Header>
+		<xroad:client id:objectType="SUBSYSTEM">
+			<id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+			<id:memberClass>GOV</id:memberClass>
+			<id:memberCode>00000000</id:memberCode>
+			<id:subsystemCode>Center</id:subsystemCode>
+		</xroad:client>
+		<xroad:service id:objectType="SERVICE">
+			<id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+			<id:memberClass>GOV</id:memberClass>
+			<id:memberCode>00000000</id:memberCode>
+			<id:serviceCode>getSecurityServerHealthData</id:serviceCode>
+		</xroad:service>
+		<xroad:id>gS8lvimiIyG8CwFTRphvIlSbEhOyaFa0</xroad:id>
+		<xroad:requestHash algorithmId="http://www.w3.org/2001/04/xmlenc#sha512">UEeE25MbFYGM79a8/tJp7/JH49HjZKRhqUTaztzyPsvTxCIfeWxDHWJhR4ES9BMUv2/DiWLD8fdh9wmpKVKJqw==</xroad:requestHash>
+		<xroad:protocolVersion>4.0</xroad:protocolVersion>
+	</SOAP-ENV:Header>
+	<SOAP-ENV:Body>
+		<om:getSecurityServerHealthDataResponse>
+			<om:monitoringStartupTimestamp>1580481775197</om:monitoringStartupTimestamp>
+			<om:statisticsPeriodSeconds>10</om:statisticsPeriodSeconds>
+			<om:servicesEvents/>
+		</om:getSecurityServerHealthDataResponse>
+	</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+Reported monitoring startup time in seconds: 1580481775
+Startup time of xroad-opmonitor: 1580454469
+An exception occurred: Expecting the reported monitoring startup timestamp to be not more than 10 seconds later than the service startup timestamp 
+
+Restoring the configuration parameters of the operational monitoring daemon in security server 10.104.141.230
+Removing 'op-monitor.health-statistics-period-seconds'
+
+Restarting the operational monitoring daemon in security server 10.104.141.230
+
+Restoring the configuration parameters of the operational monitoring daemon in security server 10.104.141.100
+Removing 'op-monitor.records-available-timestamp-offset-seconds'
+
+Restoring the configuration parameters of the operational monitoring daemon in security server 10.104.141.100
+Removing 'op-monitor.max-records-in-payload'
+
+Restoring the configuration parameters of the operational monitoring daemon in security server 10.104.141.100
+Removing 'op-monitor.health-statistics-period-seconds'
+
+Restarting the operational monitoring daemon in security server 10.104.141.100
+Sleeping for 2 seconds after the restart of services
