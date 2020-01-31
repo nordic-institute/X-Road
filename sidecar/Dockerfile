@@ -41,7 +41,6 @@ RUN pg_ctlcluster 10 main start \
 && rm -f /var/run/nginx.pid \
 && rm -f $CERTS_PATH/internal.crt $CERTS_PATH/internal.key $CERTS_PATH/nginx.crt $CERTS_PATH/nginx.key \
 && sed -i 's/proxy_set_header Host $host:$server_port;/proxy_set_header Host $http_host;/' /etc/xroad/nginx/default-xroad.conf \
-&& sed -i 's/\(local *all *all *\)peer/\1md5/' /etc/postgresql/10/main/pg_hba.conf \
 && sed -i 's:\(serverconf.hibernate.connection.username = \)\(.*\):\1'"${XROAD_DB_USER}"':' /etc/xroad/db.properties \
 && sed -i 's:\(serverconf.hibernate.connection.password = \)\(.*\):\1'"${XROAD_DB_PASSWD}"':' /etc/xroad/db.properties
 
