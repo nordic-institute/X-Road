@@ -86,7 +86,7 @@ public class ServiceDescriptionService {
     private final ClientRepository clientRepository;
     private final ServiceChangeChecker serviceChangeChecker;
     private final WsdlValidator wsdlValidator;
-    private final WsdlUrlValidator wsdlUrlValidator;
+    private final UrlValidator urlValidator;
     private final OpenApiParser openApiParser;
 
     /**
@@ -95,20 +95,20 @@ public class ServiceDescriptionService {
      * @param serviceDescriptionRepository
      * @param clientService
      * @param clientRepository
-     * @param wsdlUrlValidator
+     * @param urlValidator
      */
     @Autowired
     public ServiceDescriptionService(ServiceDescriptionRepository serviceDescriptionRepository,
             ClientService clientService, ClientRepository clientRepository,
             ServiceChangeChecker serviceChangeChecker,
-            WsdlValidator wsdlValidator, WsdlUrlValidator wsdlUrlValidator,
+            WsdlValidator wsdlValidator, UrlValidator urlValidator,
             OpenApiParser openApiParser) {
         this.serviceDescriptionRepository = serviceDescriptionRepository;
         this.clientService = clientService;
         this.clientRepository = clientRepository;
         this.serviceChangeChecker = serviceChangeChecker;
         this.wsdlValidator = wsdlValidator;
-        this.wsdlUrlValidator = wsdlUrlValidator;
+        this.urlValidator = urlValidator;
         this.openApiParser = openApiParser;
     }
 
@@ -500,9 +500,53 @@ public class ServiceDescriptionService {
     }
 
     /**
-     * Refresh a ServiceDescription
+     * Refresh Service Description
      *
      * @param id
+     * @param ignoreWarnings
+     * @return
+     * @throws WsdlParser.WsdlNotFoundException     WSDL not found
+     * @throws InvalidWsdlException                 Invalid wsdl
+     * @throws ServiceDescriptionNotFoundException  service description is not found
+     * @throws WrongServiceDescriptionTypeException wrong type of service description
+     * @throws UnhandledWarningsException           Unhandledwarnings in openapi3 or wsdl description
+     * @throws InvalidUrlException                  invalid url
+     * @throws ServiceAlreadyExistsException        service code already exists if refreshing wsdl
+     * @throws WsdlUrlAlreadyExistsException        url is already in use by this client
+     * @throws ServiceNotFoundException             if there are no Services linked to Service Description
+     * @throws OpenApiParser.ParsingException       openapi3 description parsing fails
+     */
+    public ServiceDescriptionType refreshServiceDescription(Long id, boolean ignoreWarnings)
+            throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
+            ServiceDescriptionNotFoundException, WrongServiceDescriptionTypeException,
+            UnhandledWarningsException, InvalidUrlException, ServiceAlreadyExistsException,
+            WsdlUrlAlreadyExistsException, ServiceNotFoundException, OpenApiParser.ParsingException {
+
+        ServiceDescriptionType serviceDescriptionType = getServiceDescriptiontype(id);
+        if (serviceDescriptionType == null) {
+            throw new ServiceDescriptionNotFoundException("Service description with id "
+                    + serviceDescriptionType.toString() + " not found");
+        }
+
+        if (!urlValidator.isValidUrl(serviceDescriptionType.getUrl())) {
+            throw new InvalidUrlException("Malformed URL");
+        }
+
+        if (serviceDescriptionType.getType().equals(DescriptionType.WSDL)) {
+            serviceDescriptionType = refreshWSDLServiceDescription(serviceDescriptionType, ignoreWarnings);
+        } else if (serviceDescriptionType.getType().equals(DescriptionType.REST)) {
+            serviceDescriptionType = refreshRESTServiceDescription(serviceDescriptionType);
+        } else if (serviceDescriptionType.getType().equals(DescriptionType.OPENAPI3)) {
+            serviceDescriptionType = refreshOPENAPI3ServiceDescription(serviceDescriptionType, ignoreWarnings);
+        }
+
+        return serviceDescriptionType;
+    }
+
+    /**
+     * Refresh a ServiceDescription
+     *
+     * @param serviceDescriptionType
      * @param ignoreWarnings
      * @return {@link ServiceDescriptionType}
      * @throws WsdlParser.WsdlNotFoundException     if a wsdl was not found at the url
@@ -514,15 +558,16 @@ public class ServiceDescriptionService {
      * @throws WsdlUrlAlreadyExistsException        conflict: another service description has same url
      * @throws ServiceAlreadyExistsException        conflict: same service exists in another SD
      */
-    public ServiceDescriptionType refreshServiceDescription(Long id, boolean ignoreWarnings)
+    private ServiceDescriptionType refreshWSDLServiceDescription(ServiceDescriptionType serviceDescriptionType,
+            boolean ignoreWarnings)
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
-            ServiceDescriptionNotFoundException, WrongServiceDescriptionTypeException,
+            WrongServiceDescriptionTypeException,
             UnhandledWarningsException, InvalidUrlException, ServiceAlreadyExistsException,
             WsdlUrlAlreadyExistsException {
-        ServiceDescriptionType serviceDescriptionType = getServiceDescriptiontype(id);
-        if (serviceDescriptionType == null) {
-            throw new ServiceDescriptionNotFoundException("Service description with id " + id.toString()
-                    + " not found");
+        verifyAuthority("REFRESH_WSDL");
+
+        if (!serviceDescriptionType.getType().equals(DescriptionType.WSDL)) {
+            throw new WrongServiceDescriptionTypeException("Expected description type WSDL");
         }
 
         if (serviceDescriptionType.getType() == DescriptionType.WSDL) {
@@ -532,6 +577,58 @@ public class ServiceDescriptionService {
 
         // we only have two types at the moment so the type must be OPENAPI3 if we end up this far
         throw new NotImplementedException("REST ServiceDescription refresh not implemented yet");
+    }
+
+    /**
+     * Refresh REST service description
+     *
+     * @param serviceDescriptionType
+     * @return
+     * @throws WrongServiceDescriptionTypeException if service type is not REST
+     */
+    private ServiceDescriptionType refreshRESTServiceDescription(ServiceDescriptionType serviceDescriptionType)
+            throws WrongServiceDescriptionTypeException {
+        verifyAuthority("REFRESH_REST");
+
+        if (!serviceDescriptionType.getType().equals(DescriptionType.REST)) {
+            throw new WrongServiceDescriptionTypeException("Expected description type REST");
+        }
+
+        return serviceDescriptionType;
+    }
+
+    /**
+     * Refresh OPENAPI3 ServiceDescription
+     *
+     * @param serviceDescriptionType
+     * @param ignoreWarnings
+     * @return
+     * @throws WrongServiceDescriptionTypeException if service type is not openapi3
+     * @throws ServiceNotFoundException             if there is no service linked to given service description
+     * @throws UnhandledWarningsException           if unhandled warnings are found and ignoreWarnings if false
+     * @throws OpenApiParser.ParsingException       if parsing openapi3 description fails
+     */
+    private ServiceDescriptionType refreshOPENAPI3ServiceDescription(ServiceDescriptionType serviceDescriptionType,
+            boolean ignoreWarnings) throws WrongServiceDescriptionTypeException, ServiceNotFoundException,
+            UnhandledWarningsException, OpenApiParser.ParsingException {
+
+        verifyAuthority("REFRESH_OPENAPI3");
+
+        if (!serviceDescriptionType.getType().equals(DescriptionType.OPENAPI3)) {
+            throw new WrongServiceDescriptionTypeException("Expected description type OPENAPI3");
+        }
+
+        if (serviceDescriptionType.getService().get(0) == null) {
+            throw new ServiceNotFoundException("Service not found from servicedescription with id "
+                    + serviceDescriptionType.getId());
+        }
+
+        parseOpenapi3ToServiceDescription(serviceDescriptionType.getUrl(),
+                serviceDescriptionType.getService().get(0).getServiceCode(),
+                ignoreWarnings,
+                serviceDescriptionType);
+
+        return serviceDescriptionType;
     }
 
     /**
@@ -999,7 +1096,7 @@ public class ServiceDescriptionService {
 
         WsdlProcessingResult result = new WsdlProcessingResult();
         // check for valid url (is this not enough??
-        if (!wsdlUrlValidator.isValidWsdlUrl(url)) {
+        if (!urlValidator.isValidUrl(url)) {
             throw new InvalidUrlException("Malformed URL");
         }
 

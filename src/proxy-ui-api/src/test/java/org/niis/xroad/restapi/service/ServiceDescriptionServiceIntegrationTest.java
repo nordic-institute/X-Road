@@ -104,18 +104,19 @@ public class ServiceDescriptionServiceIntegrationTest {
     private WsdlValidator wsdlValidator;
 
     @MockBean
-    private WsdlUrlValidator wsdlUrlValidator;
+    private UrlValidator urlValidator;
 
     @SpyBean
     private OpenApiParser openApiParser;
 
     @Before
     public void setup() {
-        when(wsdlUrlValidator.isValidWsdlUrl(any())).thenReturn(true);
+        when(urlValidator.isValidUrl(any())).thenReturn(true);
         when(openApiParser.allowProtocol(any())).thenReturn(true);
     }
 
     @Test
+    @WithMockUser(authorities = "REFRESH_WSDL")
     public void refreshServiceDetectsAddedService() throws Exception {
         File testServiceWsdl = tempFolder.newFile("test.wsdl");
         File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
@@ -148,6 +149,7 @@ public class ServiceDescriptionServiceIntegrationTest {
     }
 
     @Test
+    @WithMockUser(authorities = "REFRESH_WSDL")
     public void refreshServiceDetectsRemovedService() throws Exception {
         File testServiceWsdl = tempFolder.newFile("test.wsdl");
         File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
@@ -182,6 +184,7 @@ public class ServiceDescriptionServiceIntegrationTest {
     }
 
     @Test
+    @WithMockUser(authorities = "REFRESH_WSDL")
     public void refreshServiceDetectsAllWarnings() throws Exception {
         // show warningDeviations about
         // - add service
@@ -441,6 +444,7 @@ public class ServiceDescriptionServiceIntegrationTest {
     }
 
     @Test
+    @WithMockUser(authorities = "REFRESH_WSDL")
     public void refreshWsdlServiceDescriptionAndCheckEndpoints() throws Exception {
         ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
 

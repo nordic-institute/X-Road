@@ -181,7 +181,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     }
 
     @Override
-    @PreAuthorize("hasAuthority('REFRESH_WSDL')")
+    @PreAuthorize("hasAnyAuthority('REFRESH_WSDL', 'REFRESH_REST', 'REFRESH_OPENAPI3')")
     public ResponseEntity<ServiceDescription> refreshServiceDescription(String id, IgnoreWarnings ignoreWarnings) {
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
         ServiceDescription serviceDescription = null;
@@ -191,12 +191,13 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
                             ignoreWarnings.getIgnoreWarnings()));
         } catch (WsdlParser.WsdlNotFoundException | UnhandledWarningsException
                 | InvalidUrlException | InvalidWsdlException
-                | ServiceDescriptionService.WrongServiceDescriptionTypeException e) {
+                | ServiceDescriptionService.WrongServiceDescriptionTypeException
+                | OpenApiParser.ParsingException e) {
             throw new BadRequestException(e);
         } catch (ServiceDescriptionService.ServiceAlreadyExistsException
                 | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
             throw new ConflictException(e);
-        } catch (ServiceDescriptionNotFoundException e) {
+        } catch (ServiceNotFoundException | ServiceDescriptionNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
         return new ResponseEntity<>(serviceDescription, HttpStatus.OK);
