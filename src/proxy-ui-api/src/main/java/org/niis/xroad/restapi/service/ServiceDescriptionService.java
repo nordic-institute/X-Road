@@ -99,10 +99,10 @@ public class ServiceDescriptionService {
      */
     @Autowired
     public ServiceDescriptionService(ServiceDescriptionRepository serviceDescriptionRepository,
-                                     ClientService clientService, ClientRepository clientRepository,
-                                     ServiceChangeChecker serviceChangeChecker,
-                                     WsdlValidator wsdlValidator, WsdlUrlValidator wsdlUrlValidator,
-                                     OpenApiParser openApiParser) {
+            ClientService clientService, ClientRepository clientRepository,
+            ServiceChangeChecker serviceChangeChecker,
+            WsdlValidator wsdlValidator, WsdlUrlValidator wsdlUrlValidator,
+            OpenApiParser openApiParser) {
 
         this.serviceDescriptionRepository = serviceDescriptionRepository;
         this.clientService = clientService;

@@ -319,8 +319,8 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
     public ResponseEntity<List<ServiceDescription>> getClientServiceDescriptions(String encodedId) {
         ClientType clientType = getClientType(encodedId);
-        List<ServiceDescription> serviceDescriptions =
-                serviceDescriptionConverter.convert(clientType.getServiceDescription());
+        List<ServiceDescription> serviceDescriptions = serviceDescriptionConverter.convert(
+                clientType.getServiceDescription());
         return new ResponseEntity<>(serviceDescriptions, HttpStatus.OK);
     }
 
