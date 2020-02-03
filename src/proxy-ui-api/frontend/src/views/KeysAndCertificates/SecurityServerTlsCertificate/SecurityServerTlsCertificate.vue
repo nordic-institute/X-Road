@@ -93,7 +93,7 @@ export default Vue.extend({
   methods: {
     certificateClick(): void {
       this.$router.push({
-        name: RouteName.TlsCertificate,
+        name: RouteName.InternalTlsCertificate,
       });
     },
     generateCsr(): void {
