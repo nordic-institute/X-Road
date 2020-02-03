@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -66,7 +67,8 @@ public class ServiceService {
 
     /**
      * get ServiceType by ClientId and service code that includes service version
-     * see {@link FormatUtils#getServiceFullName(ServiceType)}
+     * see {@link FormatUtils#getServiceFullName(ServiceType)}.
+     * ServiceType has serviceType.serviceDescription.client.endpoints lazy field fetched.
      * @param clientId
      * @param fullServiceCode
      * @return
@@ -79,7 +81,10 @@ public class ServiceService {
         if (client == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
         }
-        return getServiceFromClient(client, fullServiceCode);
+
+        ServiceType serviceType = getServiceFromClient(client, fullServiceCode);
+        Hibernate.initialize(serviceType.getServiceDescription().getClient().getEndpoint());
+        return serviceType;
     }
 
     /**

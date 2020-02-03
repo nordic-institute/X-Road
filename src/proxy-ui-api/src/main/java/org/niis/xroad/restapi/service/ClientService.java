@@ -137,7 +137,7 @@ public class ClientService {
     }
 
     /**
-     * Returns clientType.getIsCert() that has been loaded with Hibernate.init.
+     * Returns clientType.getIsCert() that has been fetched with Hibernate.init.
      *
      * @param id
      * @return list of CertificateTypes, or null if client does not exist
@@ -152,8 +152,8 @@ public class ClientService {
     }
 
     /**
-     * Returns clientType.getServiceDescription() that has been loaded with Hibernate.init.
-     * Also serviceDescription.services have been loaded.
+     * Returns clientType.getServiceDescription() that has been fetched with Hibernate.init.
+     * Also serviceDescription.services and serviceDescription.client.endpoints have been fetched.
      *
      * @param id
      * @return list of ServiceDescriptionTypes, or null if client does not exist
@@ -164,14 +164,15 @@ public class ClientService {
             for (ServiceDescriptionType serviceDescriptionType: clientType.getServiceDescription()) {
                 Hibernate.initialize(serviceDescriptionType.getService());
             }
+            Hibernate.initialize(clientType.getEndpoint());
             return clientType.getServiceDescription();
         }
         return null;
     }
 
     /**
-     * Returns clientType.getLocalGroup() that has been loaded with Hibernate.init.
-     * Also localGroup.groupMembers have been loaded.
+     * Returns clientType.getLocalGroup() that has been fetched with Hibernate.init.
+     * Also localGroup.groupMembers have been fetched.
      *
      * @param id
      * @return list of LocalGroupTypes, or null if client does not exist
