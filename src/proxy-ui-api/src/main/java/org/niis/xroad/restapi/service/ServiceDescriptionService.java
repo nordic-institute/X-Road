@@ -757,7 +757,7 @@ public class ServiceDescriptionService {
         ServiceDescriptionType serviceDescriptionType = serviceDescriptionRepository.getServiceDescription(id);
         if (serviceDescriptionType != null) {
             Hibernate.initialize(serviceDescriptionType.getService());
-            Hibernate.initialize(serviceDescriptionType.getClient());
+            Hibernate.initialize(serviceDescriptionType.getClient().getEndpoint());
         }
         return serviceDescriptionType;
     }
