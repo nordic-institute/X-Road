@@ -27,10 +27,13 @@ package org.niis.xroad.restapi.service;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,12 +124,67 @@ public class ClientService {
     }
 
     /**
-     * Return one client, or null if not found
+     * Return one client, or null if not found.
+     * This method does NOT trigger load of lazy loaded properties.
+     * Use {@code getClientIsCerts}, {@code getClientLocalGroups}, and
+     * {@code getClientServiceDescriptions} for that
      * @param id
      * @return the client, or null if matching client was not found
      */
     public ClientType getClient(ClientId id) {
-        return clientRepository.getClient(id);
+        ClientType clientType = clientRepository.getClient(id);
+        return clientType;
+    }
+
+    /**
+     * Returns clientType.getIsCert() that has been loaded with Hibernate.init.
+     *
+     * @param id
+     * @return list of CertificateTypes, or null if client does not exist
+     */
+    public List<CertificateType> getClientIsCerts(ClientId id) {
+        ClientType clientType = getClient(id);
+        if (clientType != null) {
+            Hibernate.initialize(clientType.getIsCert());
+            return clientType.getIsCert();
+        }
+        return null;
+    }
+
+    /**
+     * Returns clientType.getServiceDescription() that has been loaded with Hibernate.init.
+     * Also serviceDescription.services have been loaded.
+     *
+     * @param id
+     * @return list of ServiceDescriptionTypes, or null if client does not exist
+     */
+    public List<ServiceDescriptionType> getClientServiceDescriptions(ClientId id) {
+        ClientType clientType = getClient(id);
+        if (clientType != null) {
+            for (ServiceDescriptionType serviceDescriptionType: clientType.getServiceDescription()) {
+                Hibernate.initialize(serviceDescriptionType.getService());
+            }
+            return clientType.getServiceDescription();
+        }
+        return null;
+    }
+
+    /**
+     * Returns clientType.getLocalGroup() that has been loaded with Hibernate.init.
+     * Also localGroup.groupMembers have been loaded.
+     *
+     * @param id
+     * @return list of LocalGroupTypes, or null if client does not exist
+     */
+    public List<LocalGroupType> getClientLocalGroups(ClientId id) {
+        ClientType clientType = getClient(id);
+        if (clientType != null) {
+            for (LocalGroupType localGroupType: clientType.getLocalGroup()) {
+                Hibernate.initialize(localGroupType.getGroupMember());
+            }
+            return clientType.getLocalGroup();
+        }
+        return null;
     }
 
     /**

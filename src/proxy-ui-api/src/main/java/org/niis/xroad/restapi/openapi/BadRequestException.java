@@ -24,7 +24,7 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import org.niis.xroad.restapi.exceptions.DeviationAware;
+import org.niis.xroad.restapi.exceptions.DeviationAwareException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.springframework.http.HttpStatus;
@@ -39,8 +39,8 @@ import java.util.Collection;
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
 public class BadRequestException extends OpenApiException {
 
-    public BadRequestException(DeviationAware deviations) {
-        super(deviations.getErrorDeviation(), deviations.getWarningDeviations());
+    public BadRequestException(DeviationAwareException e) {
+        super(e, e.getErrorDeviation(), e.getWarningDeviations());
     }
 
     public BadRequestException() {
