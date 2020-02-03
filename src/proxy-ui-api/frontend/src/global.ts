@@ -32,6 +32,7 @@ export enum RouteName {
   BackupAndRestore = 'backup-and-restore',
   AddKey = 'add-key',
   GenerateCertificateSignRequest = 'generate-csr',
+  InternalTlsCertificate = 'internal-tls-certificate',
 }
 
 // A "single source of truth" for permission strings
