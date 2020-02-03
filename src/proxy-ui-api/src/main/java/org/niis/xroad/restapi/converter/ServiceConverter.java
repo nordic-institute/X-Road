@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.converter;
 
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
@@ -54,10 +55,15 @@ public class ServiceConverter {
     public static final int FULL_SERVICE_CODE_INDEX = 4;
 
     private ClientConverter clientConverter;
+    private EndpointConverter endpointConverter;
+    private EndpointHelper endpointHelper;
 
     @Autowired
-    public ServiceConverter(ClientConverter clientConverter) {
+    public ServiceConverter(ClientConverter clientConverter, EndpointConverter endpointConverter,
+            EndpointHelper endpointHelper) {
         this.clientConverter = clientConverter;
+        this.endpointConverter = endpointConverter;
+        this.endpointHelper = endpointHelper;
     }
 
     /**
@@ -85,6 +91,10 @@ public class ServiceConverter {
         service.setSslAuth(serviceType.getSslAuthentication());
         service.setTimeout(serviceType.getTimeout());
         service.setUrl(serviceType.getUrl());
+
+        List<EndpointType> endpoints = endpointHelper.getEndpoints(serviceType,
+                serviceType.getServiceDescription().getClient());
+        service.setEndpoints(this.endpointConverter.convert(endpoints));
 
         return service;
     }

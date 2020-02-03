@@ -103,6 +103,7 @@ public class ServiceDescriptionService {
             ServiceChangeChecker serviceChangeChecker,
             WsdlValidator wsdlValidator, WsdlUrlValidator wsdlUrlValidator,
             OpenApiParser openApiParser) {
+
         this.serviceDescriptionRepository = serviceDescriptionRepository;
         this.clientService = clientService;
         this.clientRepository = clientRepository;
