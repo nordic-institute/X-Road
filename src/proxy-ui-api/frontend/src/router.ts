@@ -1,4 +1,4 @@
-import Router, { Route } from 'vue-router';
+import Router, { Route, NavigationGuard } from 'vue-router';
 import { sync } from 'vuex-router-sync';
 import TabsBase from '@/components/layout/TabsBase.vue';
 import AppLogin from '@/views/AppLogin.vue';
@@ -36,6 +36,7 @@ import ServiceEndpoints from '@/views/Service/Endpoints/Endpoints.vue';
 import ServiceParameters from '@/views/Service/Parameters/ServiceParameters.vue';
 import InternalCertificateDetails from '@/views/InternalCertificateDetails/InternalCertificateDetails.vue';
 
+type Next = Parameters<NavigationGuard>[2];
 
 const router = new Router({
   routes: [
@@ -309,7 +310,7 @@ const router = new Router({
   ],
 });
 
-router.beforeEach((to: Route, from: Route, next: Function) => {
+router.beforeEach((to: Route, from: Route, next: Next) => {
 
   // Going to login
   if (to.name === 'login') {
