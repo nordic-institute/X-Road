@@ -53,6 +53,8 @@ public class ServiceDescriptionConverter {
 
     /**
      * Converts a group of ServiceDescriptionTypes to a list of ServiceDescriptions
+     * Does a deep conversion, converts ServiceDescriptionType.ServiceTypes.
+     * This expects that serviceDescription.client.endpoints have been fetched
      * @param serviceDescriptionTypes
      * @return
      */
@@ -65,7 +67,8 @@ public class ServiceDescriptionConverter {
 
     /**
      * Convert a ServiceDescriptionType into ServiceDescription.
-     * Does a deep conversion, converts ServiceDescriptionType.ServiceTypes
+     * Does a deep conversion, converts ServiceDescriptionType.ServiceTypes.
+     * This expects that serviceDescription.client.endpoints have been fetched
      * @param serviceDescriptionType
      * @return
      */
