@@ -44,11 +44,11 @@ module.exports = {
     browser.waitForElementVisible(certificatePopup); 
 
     // Verify sign certificate info 
-    browser.assert.containsText(certificatePopup, "Name: X-Road Test CA CN");
-    browser.assert.containsText(certificatePopup, "OCSP status: Good");
-    browser.assert.containsText(certificatePopup, "Hash: 937F8909B08FB3DA4096508A248A0CE2F877ACA7");
-    browser.assert.containsText(certificatePopup, "State: in use");
-    browser.assert.containsText(certificatePopup, "Expires: 2039-09-11T18:53:53Z");
+    browser.assert.containsText(certificatePopup, "X-Road Test CA CN");
+    browser.assert.containsText(certificatePopup, "SHA256withRSA");
+    browser.assert.containsText(certificatePopup, "93:7F:89:09:B0:8F:B3:DA:40:96:50:8A:24:8A:0C:E2:F8:77:AC:A7");
+    browser.assert.containsText(certificatePopup, "SERIALNUMBER=REST-UI-TEST/ss1-vrk/GOV, CN=0245437-2, O=VRK, C=FI");     
+ 
      
     // Close sign certificate popup
     certificatePopup.close();
@@ -72,11 +72,10 @@ module.exports = {
     browser.waitForElementVisible(certificatePopup); 
 
     // Verify sign certificate info 
-    browser.assert.containsText(certificatePopup, "Name: X-Road Test CA CN");
-    browser.assert.containsText(certificatePopup, "OCSP status: Good");
-    browser.assert.containsText(certificatePopup, "Hash: 937F8909B08FB3DA4096508A248A0CE2F877ACA7");
-    browser.assert.containsText(certificatePopup, "State: in use");
-    browser.assert.containsText(certificatePopup, "Expires: 2039-09-11T18:53:53Z");
+    browser.assert.containsText(certificatePopup, "X-Road Test CA CN");
+    browser.assert.containsText(certificatePopup, "SHA256withRSA");
+    browser.assert.containsText(certificatePopup, "93:7F:89:09:B0:8F:B3:DA:40:96:50:8A:24:8A:0C:E2:F8:77:AC:A7");
+    browser.assert.containsText(certificatePopup, "SERIALNUMBER=REST-UI-TEST/ss1-vrk/GOV, CN=0245437-2, O=VRK, C=FI");
      
     // Close sign certificate popup
     certificatePopup.close();

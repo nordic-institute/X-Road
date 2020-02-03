@@ -81,7 +81,7 @@ var clientDetailsCommands = {
 
 var certificatePopupCommands = {
   close: function() {
-    this.click('@certificateInfoOKButton');
+    this.click('@certificateInfoCloseButton');
     return this;
   }
 };
@@ -218,10 +218,10 @@ module.exports = {
               selector: '//button[.//*[contains(text(), "Add group")]]',
               locateStrategy: 'xpath' },
             confirmAddButton: { 
-              selector: '//button[.//*[contains(text(), "Add")]]',
+              selector: '//button[contains(@data-test, "dialog-save-button")]',
               locateStrategy: 'xpath' },
-            cancelAddButton: { 
-              selector: '//button[.//*[contains(text(), "Cancel")]]',
+            cancelAddButton: {
+              selector: '//button[contains(@data-test, "dialog-cancel-button")]',
               locateStrategy: 'xpath' },
             groupCode: { 
               selector: '//div[contains(@class, "dlg-edit-row") and .//*[contains(text(), "Code")]]//input',
@@ -234,12 +234,12 @@ module.exports = {
       }     
     },
     certificatePopup: {
-      selector: '//*[contains(@class,"v-dialog--active") and .//*[contains(@class, "headline") and contains(text(),"Certificate")]]',
+      selector: '//div[contains(@class, "xrd-view-common") and .//span[contains(@class, "cert-headline") and contains(text(),"Certificate")]]',
       locateStrategy: 'xpath',
       commands: [certificatePopupCommands],
       elements: {
-        certificateInfoOKButton: { 
-          selector: '.v-dialog--active button',
+        certificateInfoCloseButton: { 
+          selector: 'div.cert-dialog-header #close-x',
           locateStrategy: 'css selector' }
       }
     }
