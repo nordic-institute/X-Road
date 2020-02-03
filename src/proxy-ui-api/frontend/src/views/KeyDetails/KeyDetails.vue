@@ -12,7 +12,11 @@
         @close="close"
       />
       <div class="details-view-tools">
-        <large-button @click="confirmDelete = true" outlined>{{$t('action.delete')}}</large-button>
+        <large-button
+          v-if="canDelete"
+          @click="confirmDelete = true"
+          outlined
+        >{{$t('action.delete')}}</large-button>
       </div>
     </div>
 
@@ -87,7 +91,8 @@ import Vue from 'vue';
 import _ from 'lodash';
 import * as api from '@/util/api';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import { Permissions } from '@/global';
+import { Permissions, UsageTypes } from '@/global';
+import { Key } from '@/types';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
@@ -111,7 +116,7 @@ export default Vue.extend({
       confirmDelete: false,
       touched: false,
       saveBusy: false,
-      key: {},
+      key: {} as Key,
     };
   },
   computed: {
@@ -119,6 +124,17 @@ export default Vue.extend({
       return this.$store.getters.hasPermission(
         Permissions.EDIT_KEY_FRIENDLY_NAME,
       );
+    },
+    canDelete(): boolean {
+      if (this.key.usage == UsageTypes.SIGNING) {
+        return this.$store.getters.hasPermission(Permissions.DELETE_SIGN_KEY);
+      }
+
+      if (this.key.usage == UsageTypes.AUTHENTICATION) {
+        return this.$store.getters.hasPermission(Permissions.DELETE_AUTH_KEY);
+      }
+
+      return this.$store.getters.hasPermission(Permissions.DELETE_KEY);
     },
   },
   methods: {
