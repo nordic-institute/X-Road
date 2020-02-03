@@ -309,7 +309,7 @@ const router = new Router({
   ],
 });
 
-router.beforeEach((to: Route, from: Route, next) => {
+router.beforeEach((to: Route, from: Route, next: Route) => {
 
   // Going to login
   if (to.name === 'login') {
