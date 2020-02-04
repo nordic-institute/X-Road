@@ -1,0 +1,26 @@
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers">
+    <SOAP-ENV:Header>
+        <xrd:client id:objectType="SUBSYSTEM">
+            <id:xRoadInstance>{params[client_instance]}</id:xRoadInstance>
+            <id:memberClass>{params[client_class]}</id:memberClass>
+            <id:memberCode>{params[client_code]}</id:memberCode>
+            <id:subsystemCode>{params[client_system]}</id:subsystemCode>
+        </xrd:client>
+        <xrd:service id:objectType="SERVICE">
+            <id:xRoadInstance>{params[producer_instance]}</id:xRoadInstance>
+            <id:memberClass>{params[producer_class]}</id:memberClass>
+            <id:memberCode>{params[producer_code]}</id:memberCode>
+            <id:subsystemCode>{params[producer_system]}</id:subsystemCode>
+            <id:serviceCode>xroadGetDate</id:serviceCode>
+            <id:serviceVersion>v1</id:serviceVersion>
+        </xrd:service>
+        <xrd:protocolVersion>4.0</xrd:protocolVersion>
+        <xrd:id>{message_id_placeholder}</xrd:id>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <xrd:xroadGetDate>
+            <xrd:request>
+            </xrd:request>
+        </xrd:xroadGetDate>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
