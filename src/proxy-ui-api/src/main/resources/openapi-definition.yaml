@@ -4410,6 +4410,41 @@ components:
           example: https://domain.com/service
           minLength: 1
           maxLength: 255
+        endpoints:
+          type: array
+          description: list of endpoints linked to this service
+          items:
+            $ref: '#/components/schemas/Endpoint'
+    Endpoint:
+      type: object
+      description: Endpoint for a service
+      required:
+        - id
+        - service_code
+        - method
+        - path
+      properties:
+        id:
+          type: string
+          description: unique identifier
+          example: 15
+        service_code:
+          type: string
+          example: example_service_code
+        method:
+          type: string
+          description: http method mapeed to this endpoint
+          example: 'GET'
+          default: '*'
+        path:
+          type: string
+          description: relative path where this endpoint is mapped to
+          example: '/foo'
+          default: '**'
+        generated:
+          type: boolean
+          description: has endpoint been generated from openapi3 description
+          example: true
     ServiceUpdate: # ok
       type: object
       description: object for updating a service or all services within service description
