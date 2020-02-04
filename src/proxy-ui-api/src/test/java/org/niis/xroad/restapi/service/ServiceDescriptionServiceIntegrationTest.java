@@ -37,6 +37,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.repository.ClientRepository;
+import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.DeviationTestUtils;
 import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
@@ -107,6 +108,9 @@ public class ServiceDescriptionServiceIntegrationTest {
 
     @MockBean
     private WsdlValidator wsdlValidator;
+
+    @Autowired
+    private ServiceDescriptionRepository serviceDescriptionRepository;
 
     @MockBean
     private UrlValidator urlValidator;
@@ -496,22 +500,15 @@ public class ServiceDescriptionServiceIntegrationTest {
     @WithMockUser(authorities = { "REFRESH_OPENAPI3" })
     public void refreshOpenapi3ServiceDescription() throws Exception {
         ServiceDescriptionType serviceDescriptiontype = serviceDescriptionService.getServiceDescriptiontype(6L);
+
         ClientType client = serviceDescriptiontype.getClient();
 
         assertEquals(5, getEndpointCountByServiceCode(client, "openapi3-test"));
         assertEquals(4, client.getAcl().size());
         assertTrue(client.getEndpoint().stream().filter(ep -> ep.getMethod().equals("POST")).count() == 1);
 
-        // change url of the servicedescription so that on refresh there will be changes in endpoints list
-        client.getServiceDescription().stream().map(sd -> {
-            if (sd.getUrl().equals("file:src/test/resources/openapiparser/valid.yaml")) {
-                sd.setUrl("file:src/test/resources/openapiparser/valid_modified.yaml");
-            }
-            return sd;
-        });
-
-        clientRepository.saveOrUpdateAndFlush(client);
-
+        serviceDescriptiontype.setUrl("file:src/test/resources/openapiparser/valid_modified.yaml");
+        serviceDescriptionRepository.saveOrUpdate(serviceDescriptiontype);
         serviceDescriptionService.refreshServiceDescription(6L, false);
 
         List<EndpointType> endpoints = client.getEndpoint();
