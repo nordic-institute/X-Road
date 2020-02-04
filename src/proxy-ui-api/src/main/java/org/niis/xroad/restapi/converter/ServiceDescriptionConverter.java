@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 
 import com.google.common.collect.Streams;
+import org.niis.xroad.restapi.cache.SecurityServerOwnerCache;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,12 +44,15 @@ public class ServiceDescriptionConverter {
 
     private final ClientConverter clientConverter;
     private final ServiceConverter serviceConverter;
+    private final SecurityServerOwnerCache cache;
 
     @Autowired
     public ServiceDescriptionConverter(ClientConverter clientConverter,
-            ServiceConverter serviceConverter) {
+            ServiceConverter serviceConverter,
+            SecurityServerOwnerCache securityServerOwnerCache) {
         this.clientConverter = clientConverter;
         this.serviceConverter = serviceConverter;
+        this.cache = securityServerOwnerCache;
     }
 
     /**
@@ -79,7 +83,9 @@ public class ServiceDescriptionConverter {
         serviceDescription.setClientId(clientConverter.convertId(
                 serviceDescriptionType.getClient().getIdentifier()));
         serviceDescription.setDisabled(serviceDescriptionType.isDisabled());
-        serviceDescription.setDisabledNotice(serviceDescriptionType.getDisabledNotice());
+//        serviceDescription.setDisabledNotice(serviceDescriptionType.getDisabledNotice());
+        serviceDescription.setDisabledNotice("from cache: " + cache.getSecurityServerOwner());
+
         serviceDescription.setRefreshedAt(FormatUtils.fromDateToOffsetDateTime(
                 serviceDescriptionType.getRefreshedDate()));
         serviceDescription.setServices(serviceConverter.convertServices(serviceDescriptionType.getService(),

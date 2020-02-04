@@ -26,7 +26,9 @@ package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 
+import org.niis.xroad.restapi.cache.SecurityServerOwnerCache;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -35,11 +37,19 @@ import java.util.stream.Collectors;
 @Component
 public class EndpointConverter {
 
+    private final SecurityServerOwnerCache cache;
+
+    @Autowired
+    public EndpointConverter(SecurityServerOwnerCache securityServerOwnerCache) {
+        this.cache = securityServerOwnerCache;
+    }
+
     public Endpoint convert(EndpointType endpointType) {
         Endpoint endpoint = new Endpoint();
 
         endpoint.setId(String.valueOf(endpointType.getId()));
-        endpoint.setServiceCode(endpointType.getServiceCode());
+        endpoint.setServiceCode(endpointType.getServiceCode()
+                + "from-cache: " + cache.getSecurityServerOwner());
         endpoint.setMethod(endpointType.getMethod());
         endpoint.setPath(endpointType.getPath());
         endpoint.setGenerated(endpointType.isGenerated());

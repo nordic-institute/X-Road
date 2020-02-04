@@ -29,6 +29,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.common.collect.Streams;
+import org.niis.xroad.restapi.cache.SecurityServerOwnerCache;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -57,13 +58,17 @@ public class ServiceConverter {
     private ClientConverter clientConverter;
     private EndpointConverter endpointConverter;
     private EndpointHelper endpointHelper;
+    private final SecurityServerOwnerCache cache;
+
 
     @Autowired
     public ServiceConverter(ClientConverter clientConverter, EndpointConverter endpointConverter,
-            EndpointHelper endpointHelper) {
+            EndpointHelper endpointHelper,
+            SecurityServerOwnerCache securityServerOwnerCache) {
         this.clientConverter = clientConverter;
         this.endpointConverter = endpointConverter;
         this.endpointHelper = endpointHelper;
+        this.cache = securityServerOwnerCache;
     }
 
     /**
@@ -89,7 +94,8 @@ public class ServiceConverter {
         Service service = new Service();
 
         service.setId(convertId(serviceType, clientId));
-        service.setServiceCode(FormatUtils.getServiceFullName(serviceType));
+        service.setServiceCode(FormatUtils.getServiceFullName(serviceType)
+        + "-from cache: " + cache.getSecurityServerOwner());
         service.setSslAuth(serviceType.getSslAuthentication());
         service.setTimeout(serviceType.getTimeout());
         service.setUrl(serviceType.getUrl());
