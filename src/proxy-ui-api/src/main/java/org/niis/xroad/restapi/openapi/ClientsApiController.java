@@ -350,7 +350,8 @@ public class ClientsApiController implements ClientsApi {
             try {
                 addedServiceDescriptionType = serviceDescriptionService.addOpenapi3ServiceDescription(clientId, url,
                         restServiceCode, ignoreWarnings);
-            } catch (OpenApiParser.ParsingException | UnhandledWarningsException | MissingParameterException e) {
+            } catch (OpenApiParser.ParsingException | UnhandledWarningsException | MissingParameterException
+                    | InvalidUrlException e) {
                 throw new BadRequestException(e);
             } catch (ClientNotFoundException e) {
                 throw new ResourceNotFoundException(e);
@@ -364,7 +365,7 @@ public class ClientsApiController implements ClientsApi {
                         url, restServiceCode);
             } catch (ClientNotFoundException e) {
                 throw new ResourceNotFoundException(e);
-            } catch (MissingParameterException e) {
+            } catch (MissingParameterException | InvalidUrlException e) {
                 throw new BadRequestException(e);
             } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException
                     | ServiceDescriptionService.UrlAlreadyExistsException e) {

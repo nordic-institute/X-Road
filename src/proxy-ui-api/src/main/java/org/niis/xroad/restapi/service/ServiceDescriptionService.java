@@ -641,6 +641,8 @@ public class ServiceDescriptionService {
                 ignoreWarnings,
                 serviceDescriptionType);
 
+        clientRepository.saveOrUpdateAndFlush(serviceDescriptionType.getClient());
+
         return serviceDescriptionType;
     }
 

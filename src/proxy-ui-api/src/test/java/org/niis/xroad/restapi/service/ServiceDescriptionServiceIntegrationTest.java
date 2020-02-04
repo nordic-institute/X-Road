@@ -36,6 +36,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.util.DeviationTestUtils;
 import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
@@ -51,6 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.File;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -99,6 +101,9 @@ public class ServiceDescriptionServiceIntegrationTest {
 
     @Autowired
     private ClientService clientService;
+
+    @Autowired
+    private ClientRepository clientRepository;
 
     @MockBean
     private WsdlValidator wsdlValidator;
@@ -477,6 +482,62 @@ public class ServiceDescriptionServiceIntegrationTest {
                 .collect(Collectors.toList())
                 .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME, XROAD_GET_RANDOM_SERVICECODE,
                         BMI_SERVICE)));
+    }
+
+    @Test
+    @WithMockUser(authorities = { "REFRESH_REST" })
+    public void refreshRestServiceDescription() throws Exception {
+        Date initialDate = serviceDescriptionService.getServiceDescriptiontype(5L).getRefreshedDate();
+        Date refreshedDate = serviceDescriptionService.refreshServiceDescription(5L, true).getRefreshedDate();
+        assertTrue(initialDate.compareTo(refreshedDate) < 0);
+    }
+
+    @Test
+    @WithMockUser(authorities = { "REFRESH_OPENAPI3" })
+    public void refreshOpenapi3ServiceDescription() throws Exception {
+        ServiceDescriptionType serviceDescriptiontype = serviceDescriptionService.getServiceDescriptiontype(6L);
+        ClientType client = serviceDescriptiontype.getClient();
+
+        assertEquals(5, getEndpointCountByServiceCode(client, "openapi3-test"));
+        assertEquals(4, client.getAcl().size());
+        assertTrue(client.getEndpoint().stream().filter(ep -> ep.getMethod().equals("POST")).count() == 1);
+
+        // change url of the servicedescription so that on refresh there will be changes in endpoints list
+        client.getServiceDescription().stream().map(sd -> {
+            if (sd.getUrl().equals("file:src/test/resources/openapiparser/valid.yaml")) {
+                sd.setUrl("file:src/test/resources/openapiparser/valid_modified.yaml");
+            }
+            return sd;
+        });
+
+        clientRepository.saveOrUpdateAndFlush(client);
+
+        serviceDescriptionService.refreshServiceDescription(6L, false);
+
+        List<EndpointType> endpoints = client.getEndpoint();
+        assertEquals(5, getEndpointCountByServiceCode(client, "openapi3-test"));
+        assertEquals(3, client.getAcl().size());
+        assertFalse(endpoints.stream().anyMatch(ep -> ep.getMethod().equals("POST")));
+        assertTrue(endpoints.stream().anyMatch(ep -> ep.getMethod().equals("PATCH")));
+
+        // Assert that the pre-existing, manually added, endpoint is transformed to generated during update
+        assertTrue(endpoints.stream()
+                .anyMatch(ep -> ep.getServiceCode().equals("openapi3-test")
+                        && ep.getMethod().equals("GET")
+                        && ep.getPath().equals("/foo")
+                        && ep.isGenerated()));
+
+        assertTrue(endpoints.stream()
+                .anyMatch(ep -> ep.getServiceCode().equals("openapi3-test")
+                        && ep.getMethod().equals("*")
+                        && ep.getPath().equals("**")));
+
+        assertTrue(endpoints.stream()
+                .anyMatch(ep -> ep.getServiceCode().equals("openapi3-test")
+                        && ep.getMethod().equals("PUT")
+                        && ep.getPath().equals("/foo")));
+
+
     }
 
     @WithMockUser(authorities = "ADD_OPENAPI3")
