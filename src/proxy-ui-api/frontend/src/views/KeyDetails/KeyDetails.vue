@@ -126,11 +126,11 @@ export default Vue.extend({
       );
     },
     canDelete(): boolean {
-      if (this.key.usage == UsageTypes.SIGNING) {
+      if (this.key.usage === UsageTypes.SIGNING) {
         return this.$store.getters.hasPermission(Permissions.DELETE_SIGN_KEY);
       }
 
-      if (this.key.usage == UsageTypes.AUTHENTICATION) {
+      if (this.key.usage === UsageTypes.AUTHENTICATION) {
         return this.$store.getters.hasPermission(Permissions.DELETE_AUTH_KEY);
       }
 
