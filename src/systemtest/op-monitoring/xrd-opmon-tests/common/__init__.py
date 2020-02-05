@@ -436,7 +436,7 @@ def assert_expected_timestamp_values(
                             "requestOutTs", "responseInTs", "responseOutTs"]
         # If proxy responds with a fault, requestOutTs and responseInTs
         # fields are not required
-        if (rec.get("soapFaultCode") in ["Server.ServerProxy.UnknownService",
+        if (rec.get("faultCode") in ["Server.ServerProxy.UnknownService",
                                          "Server.ClientProxy.UnknownMember"]):
             timestamp_fields.remove("requestOutTs")
             timestamp_fields.remove("responseInTs")

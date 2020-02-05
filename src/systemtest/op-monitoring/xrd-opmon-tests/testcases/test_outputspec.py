@@ -257,7 +257,7 @@ def run(request_template_dir, query_parameters):
         common.parse_and_check_soap_response(raw_response)
 
     print("\n---- Sending an operational data request with an outputspec "
-          "that contains only soapFaultCode to the producer's security server ----\n")
+          "that contains only faultCode to the producer's security server ----\n")
 
     message_id = common.generate_message_id()
     print("Generated message ID {} for query data request".format(message_id))
