@@ -97,13 +97,12 @@ public class ClientService {
     public Set<ClientId> getLocalClientMemberIds() {
         List<ClientType> allClients = getAllLocalClients();
         Set<ClientId> members = new HashSet<>();
-        for (ClientType client: allClients) {
+        for (ClientType client : allClients) {
             ClientId id = client.getIdentifier();
             members.add(ClientId.create(id.getXRoadInstance(), id.getMemberClass(), id.getMemberCode()));
         }
         return members;
     }
-
 
     /**
      * return all global clients as ClientTypes
@@ -303,8 +302,10 @@ public class ClientService {
      * @return
      */
     public Optional<ClientType> findByClientId(ClientId clientId) {
-        return getAllGlobalClients()
-                .stream()
+        List<ClientType> localClients = getAllLocalClients();
+        List<ClientType> globalClients = getAllGlobalClients();
+        List<ClientType> distinctClients = mergeClientListsDistinctively(globalClients, localClients);
+        return distinctClients.stream()
                 .filter(clientType -> clientType.getIdentifier().toShortString().trim()
                         .equals(clientId.toShortString().trim()))
                 .findFirst();
@@ -323,20 +324,32 @@ public class ClientService {
      */
     public List<ClientType> findClients(String name, String instance, String memberClass, String memberCode,
             String subsystemCode, boolean showMembers, boolean internalSearch) {
-        List<ClientType> clients = findLocalClients(name, instance, memberClass, memberCode, subsystemCode,
+        List<ClientType> localClients = findLocalClients(name, instance, memberClass, memberCode, subsystemCode,
                 showMembers);
         if (internalSearch) {
-            return clients;
+            return localClients;
         }
+        List<ClientType> globalClients = findGlobalClients(name, instance, memberClass, memberCode, subsystemCode,
+                showMembers);
+        return mergeClientListsDistinctively(globalClients, localClients);
+    }
+
+    /**
+     * Merge two client lists into one with only unique clients. The distinct clients in the latter list
+     * {@code moreClients} are favoured in the case of duplicates.
+     * @param clients list of clients
+     * @param moreClients list of clients (these will override the ones in {@code clients} in the case of duplicates)
+     * @return
+     */
+    private List<ClientType> mergeClientListsDistinctively(List<ClientType> clients, List<ClientType> moreClients) {
         Map<String, ClientType> uniqueClientMap = new HashMap<>();
-        // add global clients into the HashMap with client identifier string as the key
-        findGlobalClients(name, instance, memberClass, memberCode, subsystemCode, showMembers)
-                .forEach(clientType -> uniqueClientMap.put(clientType.getIdentifier().toShortString(), clientType));
+        // add clients into the HashMap with client identifier string as the key
+        clients.forEach(clientType -> uniqueClientMap.put(clientType.getIdentifier().toShortString(), clientType));
         /*
-          add local clients into the HashMap with client identifier string as the key
+          add other clients into the HashMap with client identifier string as the key
           this conveniently overwrites all duplicate keys
          */
-        clients.forEach(clientType -> uniqueClientMap.put(clientType.getIdentifier().toShortString(), clientType));
+        moreClients.forEach(clientType -> uniqueClientMap.put(clientType.getIdentifier().toShortString(), clientType));
         return new ArrayList<>(uniqueClientMap.values());
     }
 
