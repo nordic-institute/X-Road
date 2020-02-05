@@ -181,7 +181,7 @@ export default Vue.extend({
       refreshId: '',
       addBusy: false,
       refreshBusy: {} as any,
-      refreshButtonComponentKey: 0
+      refreshButtonComponentKey: 0,
     };
   },
   computed: {
