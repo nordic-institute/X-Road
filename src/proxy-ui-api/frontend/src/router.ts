@@ -36,6 +36,9 @@ import ServiceEndpoints from '@/views/Service/Endpoints/Endpoints.vue';
 import ServiceParameters from '@/views/Service/Parameters/ServiceParameters.vue';
 import InternalCertificateDetails from '@/views/InternalCertificateDetails/InternalCertificateDetails.vue';
 
+// At the moment the vue router does not have a type for Next.
+// Using this solution was recommended in a github comment:
+// https://github.com/vuejs/vue-router/pull/2497#issuecomment-474010032
 type Next = Parameters<NavigationGuard>[2];
 
 const router = new Router({
