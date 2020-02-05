@@ -34,7 +34,7 @@
                 <om:recordsTo>{records_to_placeholder}</om:recordsTo>
             </om:searchCriteria>
             <om:outputSpec>
-                <om:outputField>soapFaultCode</om:outputField>
+                <om:outputField>faultCode</om:outputField>
             </om:outputSpec>
         </om:getSecurityServerOperationalData>
     </SOAP-ENV:Body>
