@@ -26,12 +26,13 @@ package org.niis.xroad.restapi.facade;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.commonui.SignerProxy;
+import ee.ria.xroad.commonui.SignerProxy.GeneratedCertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
-import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
+import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -142,11 +143,19 @@ public class SignerProxyFacade {
 
     /**
      * {@link SignerProxy#generateCertRequest(String, ClientId, KeyUsageInfo,
-     * String, GenerateCertRequest.RequestFormat)}
+     * String, CertificateRequestFormat)}
      */
-    public byte[] generateCertRequest(String keyId, ClientId memberId, KeyUsageInfo keyUsage, String subjectName,
-            GenerateCertRequest.RequestFormat format) throws Exception {
+    public GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId memberId, KeyUsageInfo keyUsage,
+            String subjectName, CertificateRequestFormat format) throws Exception {
         return SignerProxy.generateCertRequest(keyId, memberId, keyUsage, subjectName, format);
+    }
+
+    /**
+     * {@link SignerProxy#regenerateCertRequest(String, CertificateRequestFormat)}
+     */
+    public GeneratedCertRequestInfo regenerateCertRequest(String certRequestId, CertificateRequestFormat format)
+            throws Exception {
+        return SignerProxy.regenerateCertRequest(certRequestId, format);
     }
 
     /**

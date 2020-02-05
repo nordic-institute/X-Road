@@ -24,26 +24,10 @@
  */
 package ee.ria.xroad.signer.protocol.message;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-
-import lombok.Value;
-
-import java.io.Serializable;
-
 /**
- * Signer API message.
+ * Specifies the cert request format to return.
  */
-@Value
-public class GenerateCertRequest implements Serializable {
-
-    private final String keyId;
-
-    private final ClientId memberId;
-
-    private final KeyUsageInfo keyUsage;
-
-    private final String subjectName;
-
-    private final CertificateRequestFormat format;
+public enum CertificateRequestFormat {
+    PEM,
+    DER
 }

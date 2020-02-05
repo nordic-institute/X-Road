@@ -69,9 +69,10 @@ public final class TokenTestUtils {
         private boolean readOnly = false;
         private boolean available = true;
         private boolean active = true;
+        private String type = TokenInfo.SOFTWARE_MODULE_TYPE;
 
         public TokenInfo build() {
-            return new TokenInfo(TokenInfo.SOFTWARE_MODULE_TYPE,
+            return new TokenInfo(type,
                     friendlyName,
                     id,
                     readOnly,
@@ -97,6 +98,11 @@ public final class TokenTestUtils {
 
         public TokenInfoBuilder readOnly(boolean readOnlyParam) {
             this.readOnly = readOnlyParam;
+            return this;
+        }
+
+        public TokenInfoBuilder type(String typeParam) {
+            this.type = typeParam;
             return this;
         }
 
@@ -151,6 +157,16 @@ public final class TokenTestUtils {
                     certificates,
                     certRequests,
                     "sign-mechanism-name");
+        }
+
+        public KeyInfoBuilder keyInfo(KeyInfo info) {
+            id(info.getId());
+            friendlyName(info.getFriendlyName());
+            keyUsageInfo(info.getUsage());
+            info.getCerts().stream().map(this::cert);
+            info.getCertRequests().stream().map(this::csr);
+            available(info.isAvailable());
+            return this;
         }
 
         public KeyInfoBuilder id(String idParam) {

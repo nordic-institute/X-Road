@@ -1791,6 +1791,57 @@ paths:
         '500':
           description: internal server error
   /keys/{id}/csrs/{csr_id}:
+    get: # ok
+      tags:
+        - security server
+      summary: download a CSR binary
+      operationId: downloadCsr
+      description: Administrator downloads a csr that has been created earlier
+      parameters:
+        - in: path
+          name: id
+          description: id of the key
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+        - in: path
+          name: csr_id
+          description: id of the csr
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+        - in: query
+          name: csr_format
+          description: format of the certificate signing request (PEM or DER)
+          required: false
+          schema:
+            $ref: '#/components/schemas/CsrFormat'
+      responses:
+        '201':
+          description: CSR binary
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+                description: csr file
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
     delete: # ok
       tags:
         - security server
@@ -3295,6 +3346,63 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /tokens/{id}/keys-with-csrs:
+    post: # ok
+      tags:
+        - security server
+      summary: add a new key and generate a csr for it
+      operationId: addKeyAndCsr
+      description: Administrator adds a new key and generates a csr for it.
+      parameters:
+        - in: path
+          name: id
+          description: id of the token
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: KeyLabelWithCsrGenerate
+              type: object
+              required:
+                - key_label
+                - csr_generate_request
+              properties:
+                key_label:
+                  type: string
+                  format: text
+                  description: label for the new key
+                  minLength: 1
+                  maxLength: 255
+                  example: My new key
+                csr_generate_request:
+                  $ref: '#/components/schemas/CsrGenerate'
+      responses:
+        '201':
+          description: key created for the token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeyWithCertificateSigningRequestId'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists or token not logged in
+        '500':
+          description: internal server error
   /tokens/{id}/keys:
     post: # ok
       tags:
@@ -4155,6 +4263,20 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
+    KeyWithCertificateSigningRequestId: # ok
+      type: object
+      description: Key and TokenCertificateSigningRequest id
+      required:
+        - key
+        - csr_id
+      properties:
+        key:
+          $ref: '#/components/schemas/Key'
+        csr_id:
+          type: string
+          format: text
+          description: CSR id
+          example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
     Key: # ok
       type: object
       description: key for the certificate

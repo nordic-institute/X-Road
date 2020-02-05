@@ -38,5 +38,5 @@ public class GenerateCertRequestResponse implements Serializable {
 
     private final byte[] certRequest;
 
-    private GenerateCertRequest.RequestFormat format;
+    private CertificateRequestFormat format;
 }

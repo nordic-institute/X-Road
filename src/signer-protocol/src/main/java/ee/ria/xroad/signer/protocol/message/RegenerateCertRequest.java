@@ -22,31 +22,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi;
+package ee.ria.xroad.signer.protocol.message;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import lombok.Value;
+
+import java.io.Serializable;
 
 /**
- * Thrown if parameters were invalid.
- * Results in http 400 BAD_REQUEST
- * to do: replace with BadRequestException and ServiceExceptions
+ * Signer API message.
  */
-@ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class InvalidParametersException extends OpenApiException {
-    public InvalidParametersException() {
-    }
+@Value
+public class RegenerateCertRequest implements Serializable {
 
-    public InvalidParametersException(String msg) {
-        super(msg);
-    }
+    private final String certRequestId;
 
-    public InvalidParametersException(String msg, Throwable t) {
-        super(msg, t);
-    }
-
-    public InvalidParametersException(Throwable t) {
-        super(t);
-    }
+    private final CertificateRequestFormat format;
 
 }

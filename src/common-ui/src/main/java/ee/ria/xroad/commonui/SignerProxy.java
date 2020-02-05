@@ -34,6 +34,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import ee.ria.xroad.signer.protocol.message.ActivateCert;
 import ee.ria.xroad.signer.protocol.message.ActivateToken;
+import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 import ee.ria.xroad.signer.protocol.message.DeleteCert;
 import ee.ria.xroad.signer.protocol.message.DeleteCertRequest;
 import ee.ria.xroad.signer.protocol.message.DeleteKey;
@@ -54,10 +55,13 @@ import ee.ria.xroad.signer.protocol.message.ImportCert;
 import ee.ria.xroad.signer.protocol.message.ImportCertResponse;
 import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
 import ee.ria.xroad.signer.protocol.message.ListTokens;
+import ee.ria.xroad.signer.protocol.message.RegenerateCertRequest;
+import ee.ria.xroad.signer.protocol.message.RegenerateCertRequestResponse;
 import ee.ria.xroad.signer.protocol.message.SetCertStatus;
 import ee.ria.xroad.signer.protocol.message.SetKeyFriendlyName;
 import ee.ria.xroad.signer.protocol.message.SetTokenFriendlyName;
 
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
@@ -255,11 +259,13 @@ public final class SignerProxy {
      * @param keyUsage specifies whether the certificate is for signing or authentication
      * @param subjectName subject name of the certificate
      * @param format the format of the request
-     * @return byte content of the certificate request
+     * @return GeneratedCertRequestInfo containing details and content of the certificate request
      * @throws Exception if any errors occur
      */
-    public static byte[] generateCertRequest(String keyId, ClientId memberId, KeyUsageInfo keyUsage, String subjectName,
-            GenerateCertRequest.RequestFormat format) throws Exception {
+    public static GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId memberId,
+            KeyUsageInfo keyUsage, String subjectName,
+            CertificateRequestFormat format) throws Exception {
+
         GenerateCertRequestResponse response = execute(new GenerateCertRequest(keyId, memberId, keyUsage, subjectName,
                 format));
 
@@ -267,7 +273,45 @@ public final class SignerProxy {
 
         log.trace("Cert request with length of {} bytes generated", certRequestBytes.length);
 
-        return certRequestBytes;
+        return new GeneratedCertRequestInfo(
+                response.getCertReqId(),
+                response.getCertRequest(),
+                response.getFormat(),
+                memberId,
+                keyUsage);
+    }
+
+    /**
+     * Regenerates a certificate request for the given csr id
+     * @param certRequestId csr ID
+     * @param format the format of the request
+     * @return GeneratedCertRequestInfo containing details and content of the certificate request
+     * @throws Exception if any errors occur
+     */
+    public static GeneratedCertRequestInfo regenerateCertRequest(String certRequestId,
+            CertificateRequestFormat format) throws Exception {
+        RegenerateCertRequestResponse response = execute(new RegenerateCertRequest(certRequestId, format));
+
+        log.trace("Cert request with length of {} bytes generated", response.getCertRequest().length);
+
+        return new GeneratedCertRequestInfo(
+                response.getCertReqId(),
+                response.getCertRequest(),
+                response.getFormat(),
+                response.getMemberId(),
+                response.getKeyUsage());
+    }
+
+    /**
+     * DTO since we don't want to leak signer message objects out
+     */
+    @Value
+    public static class GeneratedCertRequestInfo {
+        private final String certReqId;
+        private final byte[] certRequest;
+        private final CertificateRequestFormat format;
+        private final ClientId memberId;
+        private final KeyUsageInfo keyUsage;
     }
 
     /**

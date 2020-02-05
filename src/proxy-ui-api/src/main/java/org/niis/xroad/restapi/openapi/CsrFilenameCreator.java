@@ -27,7 +27,7 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
+import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -50,7 +50,7 @@ public class CsrFilenameCreator {
      * @param securityServerId
      * @return
      */
-    public String createCsrFilename(KeyUsageInfo keyUsageInfo, GenerateCertRequest.RequestFormat csrFormat,
+    public String createCsrFilename(KeyUsageInfo keyUsageInfo, CertificateRequestFormat csrFormat,
             ClientId memberId, SecurityServerId securityServerId) {
         StringBuilder builder = new StringBuilder();
         if (KeyUsageInfo.AUTHENTICATION == keyUsageInfo) {

@@ -164,9 +164,6 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
             tokenCertificateService.deleteCertificate(hash);
         } catch (CertificateNotFoundException | KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (TokenCertificateService.KeyNotOperationalException
-                | TokenCertificateService.SignerOperationFailedException e) {
-            throw new InternalServerErrorException(e);
         } catch (ActionNotPossibleException e) {
             throw new ConflictException(e);
         }
