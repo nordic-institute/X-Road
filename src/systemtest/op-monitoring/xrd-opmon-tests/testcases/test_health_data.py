@@ -74,14 +74,14 @@ SAMPLE_PRODUCER_MOCK_STATS = {
     "om:requestAverageDuration": 78.8,
     "om:requestMaxDuration": 82,
     "om:requestDurationStdDev": 5.65685,
-    "om:requestMinSoapSize": 1629,
-    "om:requestAverageSoapSize": 1629.0,
-    "om:requestMaxSoapSize": 1629,
-    "om:requestSoapSizeStdDev": 0.0,
-    "om:responseMinSoapSize": 1519,
-    "om:responseAverageSoapSize": 1519.0,
-    "om:responseMaxSoapSize": 1519,
-    "om:responseSoapSizeStdDev": 0.0,
+    "om:requestMinSize": 1629,
+    "om:requestAverageSize": 1629.0,
+    "om:requestMaxSize": 1629,
+    "om:requestSizeStdDev": 0.0,
+    "om:responseMinSize": 1519,
+    "om:responseAverageSize": 1519.0,
+    "om:responseMaxSize": 1519,
+    "om:responseSizeStdDev": 0.0,
 }
 
 SAMPLE_CLIENT_LISTMETHODS_STATS = {
@@ -91,34 +91,34 @@ SAMPLE_CLIENT_LISTMETHODS_STATS = {
     "om:requestAverageDuration": 110.0,
     "om:requestMaxDuration": 110,
     "om:requestDurationStdDev": 0.0,
-    "om:requestMinSoapSize": 1118,
-    "om:requestAverageSoapSize": 1118.0,
-    "om:requestMaxSoapSize": 1118,
-    "om:requestSoapSizeStdDev": 0.0,
-    "om:responseMinSoapSize": 2305,
-    "om:responseAverageSoapSize": 2305.0,
-    "om:responseMaxSoapSize": 2305,
-    "om:responseSoapSizeStdDev": 0.0,
+    "om:requestMinSize": 1118,
+    "om:requestAverageSize": 1118.0,
+    "om:requestMaxSize": 1118,
+    "om:requestSizeStdDev": 0.0,
+    "om:responseMinSize": 2305,
+    "om:responseAverageSize": 2305.0,
+    "om:responseMaxSize": 2305,
+    "om:responseSizeStdDev": 0.0,
 }
 
 PREDICTABLE_FIELDS_MOCK = (
-    "om:requestMinSoapSize",
-    "om:requestMaxSoapSize",
-    "om:requestAverageSoapSize",
-    "om:requestSoapSizeStdDev",
-    "om:responseMinSoapSize",
-    "om:responseAverageSoapSize",
-    "om:responseMaxSoapSize",
-    "om:responseSoapSizeStdDev",
+    "om:requestMinSize",
+    "om:requestMaxSize",
+    "om:requestAverageSize",
+    "om:requestSizeStdDev",
+    "om:responseMinSize",
+    "om:responseAverageSize",
+    "om:responseMaxSize",
+    "om:responseSizeStdDev",
 )
 
 # Cannot predict listmethods response size, because subsystem might have
 # additional services configured.
 PREDICTABLE_FIELDS_LISTMETHODS = (
-    "om:requestMinSoapSize",
-    "om:requestMaxSoapSize",
-    "om:requestAverageSoapSize",
-    "om:requestSoapSizeStdDev",
+    "om:requestMinSize",
+    "om:requestMaxSize",
+    "om:requestAverageSize",
+    "om:requestSizeStdDev",
 )
 
 # All these fields must be missing in the lastPeriodStatistics element
@@ -128,14 +128,14 @@ STATISTICS_FIELDS = (
     "om:requestAverageDuration",
     "om:requestMaxDuration",
     "om:requestDurationStdDev",
-    "om:requestMinSoapSize",
-    "om:requestAverageSoapSize",
-    "om:requestMaxSoapSize",
-    "om:requestSoapSizeStdDev",
-    "om:responseMinSoapSize",
-    "om:responseAverageSoapSize",
-    "om:responseMaxSoapSize",
-    "om:responseSoapSizeStdDev",
+    "om:requestMinSize",
+    "om:requestAverageSize",
+    "om:requestMaxSize",
+    "om:requestSizeStdDev",
+    "om:responseMinSize",
+    "om:responseAverageSize",
+    "om:responseMaxSize",
+    "om:responseSizeStdDev",
 )
 
 # Base sizes of request and responses.
@@ -163,17 +163,17 @@ def _get_producer_mock_stats(query_parameters):
     request_parameters_size = _simple_query_request_parameters_size(query_parameters)
     print("Size of simple query request parameters: {}".format(request_parameters_size))
     updated_stats = SAMPLE_PRODUCER_MOCK_STATS.copy()
-    updated_stats["om:requestMinSoapSize"] = \
+    updated_stats["om:requestMinSize"] = \
         SIMPLE_QUERY_REQUEST_SOAP_BASE_SIZE + request_parameters_size
-    updated_stats["om:requestAverageSoapSize"] = \
+    updated_stats["om:requestAverageSize"] = \
         0.0 + SIMPLE_QUERY_REQUEST_SOAP_BASE_SIZE + request_parameters_size
-    updated_stats["om:requestMaxSoapSize"] = \
+    updated_stats["om:requestMaxSize"] = \
         SIMPLE_QUERY_REQUEST_SOAP_BASE_SIZE + request_parameters_size
-    updated_stats["om:responseMinSoapSize"] = \
+    updated_stats["om:responseMinSize"] = \
         SIMPLE_QUERY_RESPONSE_SOAP_BASE_SIZE + request_parameters_size
-    updated_stats["om:responseAverageSoapSize"] = \
+    updated_stats["om:responseAverageSize"] = \
         0.0 + SIMPLE_QUERY_RESPONSE_SOAP_BASE_SIZE + request_parameters_size
-    updated_stats["om:responseMaxSoapSize"] = \
+    updated_stats["om:responseMaxSize"] = \
         SIMPLE_QUERY_RESPONSE_SOAP_BASE_SIZE + request_parameters_size
     return updated_stats
 
@@ -192,11 +192,11 @@ def _get_client_listmethods_stats(query_parameters):
     request_parameters_size = _listmethods_client_query_request_parameters_size(query_parameters)
     print("Size of listmethods request parameters: {}".format(request_parameters_size))
     updated_stats = SAMPLE_PRODUCER_MOCK_STATS.copy()
-    updated_stats["om:requestMinSoapSize"] = \
+    updated_stats["om:requestMinSize"] = \
         LISTMETHODS_CLIENT_QUERY_REQUEST_SOAP_BASE_SIZE + request_parameters_size
-    updated_stats["om:requestAverageSoapSize"] = \
+    updated_stats["om:requestAverageSize"] = \
         0.0 + LISTMETHODS_CLIENT_QUERY_REQUEST_SOAP_BASE_SIZE + request_parameters_size
-    updated_stats["om:requestMaxSoapSize"] = \
+    updated_stats["om:requestMaxSize"] = \
         LISTMETHODS_CLIENT_QUERY_REQUEST_SOAP_BASE_SIZE + request_parameters_size
     return updated_stats
 
@@ -622,14 +622,14 @@ def _find_health_data_events_for_service(
             <om:requestAverageDuration>78.0</om:requestAverageDuration>
             <om:requestMaxDuration>78</om:requestMaxDuration>
             <om:requestDurationStdDev>0.0</om:requestDurationStdDev>
-            <om:requestMinSoapSize>1629</om:requestMinSoapSize>
-            <om:requestAverageSoapSize>1629.0</om:requestAverageSoapSize>
-            <om:requestMaxSoapSize>1629</om:requestMaxSoapSize>
-            <om:requestSoapSizeStdDev>0.0</om:requestSoapSizeStdDev>
-            <om:responseMinSoapSize>1519</om:responseMinSoapSize>
-            <om:responseAverageSoapSize>1519.0</om:responseAverageSoapSize>
-            <om:responseMaxSoapSize>1519</om:responseMaxSoapSize>
-            <om:responseSoapSizeStdDev>0.0</om:responseSoapSizeStdDev>
+            <om:requestMinSize>1629</om:requestMinSize>
+            <om:requestAverageSize>1629.0</om:requestAverageSize>
+            <om:requestMaxSize>1629</om:requestMaxSize>
+            <om:requestSizeStdDev>0.0</om:requestSizeStdDev>
+            <om:responseMinSize>1519</om:responseMinSize>
+            <om:responseAverageSize>1519.0</om:responseAverageSize>
+            <om:responseMaxSize>1519</om:responseMaxSize>
+            <om:responseSizeStdDev>0.0</om:responseSizeStdDev>
           </om:lastPeriodStatistics>
         </om:serviceEvents>
         <om:serviceEvents>
