@@ -49,3 +49,18 @@ ratelimit:
     per:
       second: 20
       minute: 600
+
+file-upload-endpoints:
+  endpointDefinitions:
+    -
+      httpMethod: POST
+      pathEnding: /backups/upload
+    -
+      httpMethod: POST
+      pathEnding: /tls-certificates
+    -
+      httpMethod: POST
+      pathEnding: /certificates
+    -
+      httpMethod: POST
+      pathEnding: /certificate/import
