@@ -72,9 +72,9 @@ def _expected_keys_and_values_of_simple_query_rec(
         ("representedPartyClass", "COM"),
         ("representedPartyCode", "UNKNOWN_MEMBER"),
         ("requestAttachmentCount", 0),
-        ("requestSoapSize", SIMPLE_QUERY_REQUEST_SOAP_BASE_SIZE + request_parameters_size),
+        ("requestSize", SIMPLE_QUERY_REQUEST_SOAP_BASE_SIZE + request_parameters_size),
         ("responseAttachmentCount", 0),
-        ("responseSoapSize", SIMPLE_QUERY_RESPONSE_SOAP_BASE_SIZE + request_parameters_size),
+        ("responseSize", SIMPLE_QUERY_RESPONSE_SOAP_BASE_SIZE + request_parameters_size),
         ("securityServerType", security_server_type),
         ("serviceCode", "mock"),
         ("serviceMemberClass", query_parameters["producer_class"]),
@@ -111,7 +111,7 @@ def _expected_keys_and_values_of_query_data_client_rec(
         ("messageId", xroad_message_id),
         ("messageProtocolVersion", "4.0"),
         ("requestAttachmentCount", 0),
-        ("requestSoapSize", QUERY_DATA_CLIENT_REQUEST_SOAP_BASE_SIZE + request_parameters_size),
+        ("requestSize", QUERY_DATA_CLIENT_REQUEST_SOAP_BASE_SIZE + request_parameters_size),
         ("responseAttachmentCount", 1),
         ("securityServerType", security_server_type),
         ("serviceCode", "getSecurityServerOperationalData"),
@@ -149,7 +149,7 @@ def _expected_keys_and_values_of_query_data_producer_rec(
         ("messageId", xroad_message_id),
         ("messageProtocolVersion", "4.0"),
         ("requestAttachmentCount", 0),
-        ("requestSoapSize", QUERY_DATA_PRODUCER_REQUEST_SOAP_BASE_SIZE + request_parameters_size),
+        ("requestSize", QUERY_DATA_PRODUCER_REQUEST_SOAP_BASE_SIZE + request_parameters_size),
         ("responseAttachmentCount", 1),
         ("securityServerType", security_server_type),
         ("serviceCode", "getSecurityServerOperationalData"),
@@ -366,7 +366,7 @@ def run(request_template_dir, query_parameters):
             json_payload, _expected_keys_and_values_of_query_data_client_rec(
                 message_id_client, "Producer", query_parameters))
 
-        # Check if the value of "responseSoapSize" is in the expected
+        # Check if the value of "responseSize" is in the expected
         # range.
         common.assert_response_soap_size_in_range(
             json_payload, message_id_client, (
@@ -439,7 +439,7 @@ def run(request_template_dir, query_parameters):
             json_payload, _expected_keys_and_values_of_query_data_producer_rec(
                 message_id_producer, "Producer", query_parameters))
 
-        # Check if the value of "responseSoapSize" is in the expected
+        # Check if the value of "responseSize" is in the expected
         # range.
         common.assert_response_soap_size_in_range(
             json_payload, message_id_producer, (

@@ -413,7 +413,7 @@ def assert_response_soap_size_in_range(
     the number of matches.
     """
     _assert_operational_data_response_value_in_range(
-        json_payload, message_id, "responseSoapSize", expected_size,
+        json_payload, message_id, "responseSize", expected_size,
         # Allow the response SOAP size to vary by 55 bytes
         # -- the nextRecordsFrom element may be present or not.
         expected_variation=55,
