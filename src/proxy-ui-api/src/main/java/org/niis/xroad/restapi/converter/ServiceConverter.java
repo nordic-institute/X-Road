@@ -67,7 +67,8 @@ public class ServiceConverter {
     }
 
     /**
-     * Converts a group of ServiceTypes to a list of Services
+     * Converts a group of ServiceTypes to a list of Services.
+     * This expects that serviceType.serviceDescription.client.endpoints have been fetched
      * @param serviceTypes
      * @return
      */
@@ -79,6 +80,7 @@ public class ServiceConverter {
 
     /**
      * Convert a ServiceType into Service.
+     * This expects that serviceType.serviceDescription.client.endpoints has been fetched
      * @param serviceType
      * @param clientId
      * @return
