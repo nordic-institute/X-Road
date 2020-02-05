@@ -524,13 +524,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
     }
 
     private void handleException(Exception ex) throws Exception {
-
-        log.info("encoder: {}", encoder);
-
         if (encoder != null) {
-
-            log.info("encoder is set");
-
             CodedException exception;
 
             if (ex instanceof CodedException.Fault) {
@@ -539,21 +533,14 @@ class ServerMessageProcessor extends MessageProcessorBase {
                 exception = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
             }
 
-            log.info("monitorAgentNotifyFailure");
-
             monitorAgentNotifyFailure(exception);
-
-            log.info("setting opMonitoringData");
 
             opMonitoringData.setSoapFault(exception);
             opMonitoringData.setResponseOutTs(getEpochMillisecond(), false);
 
-            log.info("opMonitoringData={}", opMonitoringData);
-
             encoder.fault(SoapFault.createFaultXml(exception));
             encoder.close();
         } else {
-            log.info("encoder is not set");
             throw ex;
         }
     }
