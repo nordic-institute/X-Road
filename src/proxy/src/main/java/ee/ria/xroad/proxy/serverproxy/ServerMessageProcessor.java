@@ -535,7 +535,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
             monitorAgentNotifyFailure(exception);
 
-            opMonitoringData.setSoapFault(exception);
+            opMonitoringData.setFaultCodeAndString(exception);
             opMonitoringData.setResponseOutTs(getEpochMillisecond(), false);
 
             encoder.fault(SoapFault.createFaultXml(exception));
