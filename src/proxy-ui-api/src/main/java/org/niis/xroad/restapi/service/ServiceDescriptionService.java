@@ -79,6 +79,8 @@ public class ServiceDescriptionService {
     public static final String WARNING_DELETING_SERVICES = "deleting_services";
     public static final String WARNING_WSDL_VALIDATION_WARNINGS = "wsdl_validation_warnings";
 
+    public static final String SERVICE_NOT_FOUND_ERROR_MSG = "Service not found from servicedescription with id ";
+
     public static final String CLIENT_WITH_ID = "Client with id";
 
     private final ServiceDescriptionRepository serviceDescriptionRepository;
@@ -628,8 +630,7 @@ public class ServiceDescriptionService {
         }
 
         if (serviceDescriptionType.getService().get(0) == null) {
-            throw new ServiceNotFoundException("Service not found from servicedescription with id "
-                    + serviceDescriptionType.getId());
+            throw new ServiceNotFoundException(SERVICE_NOT_FOUND_ERROR_MSG + serviceDescriptionType.getId());
         }
 
         validateUrl(serviceDescriptionType.getUrl());
@@ -682,8 +683,7 @@ public class ServiceDescriptionService {
         }
 
         if (serviceDescription.getService().get(0) == null) {
-            throw new ServiceNotFoundException("Service not found from servicedescription with id "
-                    + serviceDescription.getId());
+            throw new ServiceNotFoundException(SERVICE_NOT_FOUND_ERROR_MSG + serviceDescription.getId());
         }
 
         serviceDescription.setRefreshedDate(new Date());
@@ -739,8 +739,7 @@ public class ServiceDescriptionService {
         }
 
         if (serviceDescription.getService().get(0) == null) {
-            throw new ServiceNotFoundException("Service not found from servicedescription with id "
-                    + serviceDescription.getId());
+            throw new ServiceNotFoundException(SERVICE_NOT_FOUND_ERROR_MSG + serviceDescription.getId());
         }
 
         updateServiceCodes(restServiceCode, newRestServiceCode, serviceDescription);
