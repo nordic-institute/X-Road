@@ -43,11 +43,13 @@ import java.lang.reflect.AnnotatedElement;
 @Configuration
 public class RollbackCheckedTransactionManagementConfiguration extends ProxyTransactionManagementConfiguration {
 
+    @Override
     @Bean
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
     public TransactionAttributeSource transactionAttributeSource() {
         return new AnnotationTransactionAttributeSource() {
 
+            @Override
             @Nullable
             protected TransactionAttribute determineTransactionAttribute(AnnotatedElement element) {
                 TransactionAttribute ta = super.determineTransactionAttribute(element);
