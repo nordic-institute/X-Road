@@ -29,7 +29,11 @@
         </div>
         <div class="cert-wrap">
           <i class="icon-xrd_certificate icon clickable" @click="certificateClick()"></i>
-          <div class="clickable-link" v-if="certificate">{{certificate.hash | colonize}}</div>
+          <div
+            class="clickable-link"
+            v-if="certificate"
+            @click="certificateClick()"
+          >{{certificate.hash | colonize}}</div>
         </div>
       </div>
 
@@ -48,7 +52,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Permissions } from '@/global';
+import { Permissions, RouteName } from '@/global';
 import { Key, CertificateDetails } from '@/types';
 import * as api from '@/util/api';
 import LargeButton from '@/components/ui/LargeButton.vue';
@@ -88,7 +92,9 @@ export default Vue.extend({
   },
   methods: {
     certificateClick(): void {
-      // TODO: will be implemented in another task
+      this.$router.push({
+        name: RouteName.InternalTlsCertificate,
+      });
     },
     generateCsr(): void {
       // TODO: will be implemented in another task
