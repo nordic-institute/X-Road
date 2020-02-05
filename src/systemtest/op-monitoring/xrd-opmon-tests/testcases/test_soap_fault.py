@@ -62,7 +62,7 @@ def _expected_keys_and_values_of_unknown_service_query_rec(
         ("messageId", xroad_message_id),
         ("messageProtocolVersion", "4.0"),
         ("requestAttachmentCount", 0),
-        ("requestSoapSize", (UNKNOWN_SERVICE_QUERY_REQUEST_SOAP_BASE_SIZE
+        ("requestSize", (UNKNOWN_SERVICE_QUERY_REQUEST_SOAP_BASE_SIZE
                              + request_parameters_size)),
         ("securityServerInternalIp", security_server_address),
         ("securityServerType", security_server_type),
@@ -73,8 +73,8 @@ def _expected_keys_and_values_of_unknown_service_query_rec(
         ("serviceSubsystemCode", query_parameters["producer_system"]),
         ("serviceVersion", "v1"),
         ("serviceXRoadInstance", query_parameters["producer_instance"]),
-        ("soapFaultCode", "Server.ServerProxy.UnknownService"),
-        ("soapFaultString", "Unknown service: SERVICE:{}/{}/{}/{}/xroadGetDate/v1".format(
+        ("faultCode", "Server.ServerProxy.UnknownService"),
+        ("faultString", "Unknown service: SERVICE:{}/{}/{}/{}/xroadGetDate/v1".format(
             query_parameters["producer_instance"], query_parameters["producer_class"],
             query_parameters["producer_code"], query_parameters["producer_system"])),
         ("succeeded", False),
@@ -106,7 +106,7 @@ def _expected_keys_and_values_of_unknown_member_query_rec(
         ("clientXRoadInstance", query_parameters["client_instance"]),
         ("messageId", xroad_message_id),
         ("messageProtocolVersion", "4.0"),
-        ("requestSoapSize", (UNKNOWN_MEMBER_QUERY_REQUEST_SOAP_BASE_SIZE
+        ("requestSize", (UNKNOWN_MEMBER_QUERY_REQUEST_SOAP_BASE_SIZE
                              + request_parameters_size)),
         ("securityServerInternalIp", security_server_address),
         ("securityServerType", security_server_type),
@@ -116,8 +116,8 @@ def _expected_keys_and_values_of_unknown_member_query_rec(
         ("serviceSubsystemCode", query_parameters["producer_system"]),
         ("serviceVersion", "v1"),
         ("serviceXRoadInstance", query_parameters["producer_instance"]),
-        ("soapFaultCode", "Server.ClientProxy.UnknownMember"),
-        ("soapFaultString", "Client 'SUBSYSTEM:{}/{}/{}/System666' not found".format(
+        ("faultCode", "Server.ClientProxy.UnknownMember"),
+        ("faultString", "Client 'SUBSYSTEM:{}/{}/{}/System666' not found".format(
             query_parameters["client_instance"], query_parameters["client_class"],
             query_parameters["client_code"])),
         ("succeeded", False),
@@ -152,7 +152,7 @@ def _expected_keys_and_values_of_soap_fault_query_rec(
         ("messageIssue", "faultPlease"),
         ("messageProtocolVersion", "4.0"),
         ("requestAttachmentCount", 0),
-        ("requestSoapSize", SOAP_FAULT_QUERY_REQUEST_SOAP_BASE_SIZE + request_parameters_size),
+        ("requestSize", SOAP_FAULT_QUERY_REQUEST_SOAP_BASE_SIZE + request_parameters_size),
         ("securityServerInternalIp", security_server_address),
         ("securityServerType", security_server_type),
         ("serviceCode", "mock"),
@@ -162,8 +162,8 @@ def _expected_keys_and_values_of_soap_fault_query_rec(
         ("serviceSubsystemCode", query_parameters["producer_system"]),
         ("serviceVersion", "v1"),
         ("serviceXRoadInstance", query_parameters["producer_instance"]),
-        ("soapFaultCode", "Mock.Fault"),
-        ("soapFaultString", "Response was not found"),
+        ("faultCode", "Mock.Fault"),
+        ("faultString", "Response was not found"),
         ("succeeded", False),
     ]
 

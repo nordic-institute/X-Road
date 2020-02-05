@@ -4,7 +4,7 @@
 
 The integration test suite has the following dependencies:
 
-Python 3.4 under Ubuntu 14.04
+Python 3.x under Ubuntu 18.04
 
 Additional dependencies:
 ```
@@ -72,6 +72,8 @@ Central monitoring collector subsystem (CentralMonitoringSystem) must
 be configured in central server.
 
 It is required to allow /wsdl service in Security Server configuration.
+
+IPv6 must be disabled on the Security Servers.
 
 ## Running tests
 
