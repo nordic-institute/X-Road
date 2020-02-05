@@ -84,9 +84,9 @@ def _expected_keys_and_values_of_simple_query_rec(
         ("representedPartyClass", "COM"),
         ("representedPartyCode", "UNKNOWN_MEMBER"),
         ("requestAttachmentCount", 0),
-        ("requestSoapSize", SIMPLE_QUERY_REQUEST_SOAP_BASE_SIZE + request_parameters_size),
+        ("requestSize", SIMPLE_QUERY_REQUEST_SOAP_BASE_SIZE + request_parameters_size),
         ("responseAttachmentCount", 0),
-        ("responseSoapSize", SIMPLE_QUERY_RESPONSE_SOAP_BASE_SIZE + request_parameters_size),
+        ("responseSize", SIMPLE_QUERY_RESPONSE_SOAP_BASE_SIZE + request_parameters_size),
         ("securityServerInternalIp", security_server_address),
         ("securityServerType", security_server_type),
         ("serviceCode", "mock"),
@@ -129,14 +129,14 @@ def _expected_keys_and_values_of_query_data_client_proxy_rec(
         ("messageProtocolVersion", "4.0"),
         ("requestAttachmentCount", 0),
         (
-            "requestSoapSize",
+            "requestSize",
             QUERY_DATA_CLIENT_PROXY_REQUEST_SOAP_BASE_SIZE + request_parameters_size),
         ("responseAttachmentCount", 1),
         (
             "responseMimeSize",
             QUERY_DATA_CLIENT_PROXY_RESPONSE_SOAP_BASE_SIZE + request_parameters_size),
         (
-            "responseSoapSize",
+            "responseSize",
             QUERY_DATA_CLIENT_PROXY_RESPONSE_MIME_BASE_SIZE + request_parameters_size),
         ("securityServerInternalIp", security_server_address),
         ("securityServerType", security_server_type),
@@ -176,14 +176,14 @@ def _expected_keys_and_values_of_query_data_server_proxy_rec(
         ("messageProtocolVersion", "4.0"),
         ("requestAttachmentCount", 0),
         (
-            "requestSoapSize",
+            "requestSize",
             QUERY_DATA_SERVER_PROXY_REQUEST_SOAP_BASE_SIZE + request_parameters_size),
         ("responseAttachmentCount", 1),
         (
             "responseMimeSize",
             QUERY_DATA_SERVER_PROXY_RESPONSE_SOAP_BASE_SIZE + request_parameters_size),
         (
-            "responseSoapSize",
+            "responseSize",
             QUERY_DATA_SERVER_PROXY_RESPONSE_MIME_BASE_SIZE + request_parameters_size),
         ("securityServerInternalIp", security_server_address),
         ("securityServerType", security_server_type),
