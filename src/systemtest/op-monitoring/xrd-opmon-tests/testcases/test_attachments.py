@@ -69,12 +69,12 @@ def _expected_keys_and_values_of_one_attachment_query_rec(
         ("requestAttachmentCount", 1),
         ("requestMimeSize", (ONE_ATTACHMENT_QUERY_REQUEST_MIME_BASE_SIZE
                              + request_parameters_size)),
-        ("requestSoapSize", (ONE_ATTACHMENT_QUERY_REQUEST_SOAP_BASE_SIZE
+        ("requestSize", (ONE_ATTACHMENT_QUERY_REQUEST_SOAP_BASE_SIZE
                              + request_parameters_size)),
         ("responseAttachmentCount", 3),
         ("responseMimeSize", (ONE_ATTACHMENT_QUERY_RESPONSE_MIME_BASE_SIZE
                               + request_parameters_size)),
-        ("responseSoapSize", (ONE_ATTACHMENT_QUERY_RESPONSE_SOAP_BASE_SIZE
+        ("responseSize", (ONE_ATTACHMENT_QUERY_RESPONSE_SOAP_BASE_SIZE
                               + request_parameters_size)),
         ("securityServerType", security_server_type),
         ("serviceCode", "mockSwaRef"),
@@ -120,10 +120,10 @@ def _expected_keys_and_values_of_five_attachments_query_rec(
         ("requestAttachmentCount", 5),
         ("requestMimeSize", (FIVE_ATTACHMENTS_QUERY_REQUEST_MIME_BASE_SIZE
                              + request_parameters_size)),
-        ("requestSoapSize", (FIVE_ATTACHMENTS_QUERY_REQUEST_SOAP_BASE_SIZE
+        ("requestSize", (FIVE_ATTACHMENTS_QUERY_REQUEST_SOAP_BASE_SIZE
                              + request_parameters_size)),
         ("responseAttachmentCount", 0),
-        ("responseSoapSize", (FIVE_ATTACHMENTS_QUERY_RESPONSE_SOAP_BASE_SIZE
+        ("responseSize", (FIVE_ATTACHMENTS_QUERY_RESPONSE_SOAP_BASE_SIZE
                               + request_parameters_size)),
         ("securityServerType", security_server_type),
         ("serviceCode", "mock"),
