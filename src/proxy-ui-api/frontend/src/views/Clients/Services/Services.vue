@@ -6,6 +6,7 @@
         :label="$t('services.service')"
         single-line
         hide-details
+        data-test="search-service"
         class="search-input"
       >
         <v-icon slot="append">mdi-magnify</v-icon>
@@ -18,6 +19,7 @@
           @click="showAddRestDialog"
           outlined
           rounded
+          data-test="add-rest-button"
           class="rounded-button elevation-0 rest-button"
         >{{$t('services.addRest')}}</v-btn>
 
@@ -28,6 +30,7 @@
           @click="showAddWsdlDialog"
           outlined
           rounded
+          data-test="add-wsdl-button"
           class="ma-0 rounded-button elevation-0"
         >{{$t('services.addWsdl')}}</v-btn>
       </div>
@@ -43,6 +46,7 @@
         @open="descOpen(serviceDesc.id)"
         @close="descClose(serviceDesc.id)"
         :isOpen="isExpanded(serviceDesc.id)"
+        data-test="service-description-accordion"
       >
         <template v-slot:action>
           <v-switch
@@ -51,6 +55,7 @@
             @change="switchChanged($event, serviceDesc, index)"
             :key="componentKey"
             :disabled="!canDisable"
+            data-test="service-description-enable-disable"
           ></v-switch>
         </template>
 
@@ -80,6 +85,7 @@
                 color="primary"
                 class="xrd-small-button xrd-table-button"
                 @click="refresh(serviceDesc)"
+                data-test="refresh-button"
               >{{$t('action.refresh')}}</v-btn>
             </div>
 

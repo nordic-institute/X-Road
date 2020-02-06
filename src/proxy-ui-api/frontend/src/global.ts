@@ -78,9 +78,9 @@ export enum Permissions {
   IMPORT_INTERNAL_SSL_CERT = 'IMPORT_INTERNAL_SSL_CERT', // Security server TLS certificate
   IMPORT_SIGN_CERT = 'IMPORT_SIGN_CERT',
   INIT_CONFIG = 'INIT_CONFIG',
-  REFRESH_WSDL = 'REFRESH_WSDL', // client > services > refresh
-  REFRESH_REST = 'REFRESH_REST',
-  REFRESH_OPENAPI3 = 'REFRESH_OPENAPI3',
+  REFRESH_WSDL = 'REFRESH_WSDL', // client > services > refresh wsdl
+  REFRESH_REST = 'REFRESH_REST', // client > services > refresh rest
+  REFRESH_OPENAPI3 = 'REFRESH_OPENAPI3', // client > services > refresh openapi3
   RESTORE_CONFIGURATION = 'RESTORE_CONFIGURATION',
   SEND_AUTH_CERT_DEL_REQ = 'SEND_AUTH_CERT_DEL_REQ', // auth cert details > unregister
   SEND_AUTH_CERT_REG_REQ = 'SEND_AUTH_CERT_REG_REQ', // sign and keys > register
