@@ -39,7 +39,6 @@ import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.ServiceDescriptionNotFoundException;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
-import org.niis.xroad.restapi.service.ServiceNotFoundException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
@@ -172,7 +171,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         } catch (ServiceDescriptionService.UrlAlreadyExistsException
                     | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
             throw new ConflictException(e);
-        } catch (ServiceNotFoundException | ServiceDescriptionNotFoundException e) {
+        } catch (ServiceDescriptionNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
 
@@ -197,7 +196,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         } catch (ServiceDescriptionService.ServiceAlreadyExistsException
                 | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
             throw new ConflictException(e);
-        } catch (ServiceNotFoundException | ServiceDescriptionNotFoundException e) {
+        } catch (ServiceDescriptionNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
         return new ResponseEntity<>(serviceDescription, HttpStatus.OK);
