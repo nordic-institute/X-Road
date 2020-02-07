@@ -1,6 +1,6 @@
 module.exports = {
   devServer: {
-    proxy: process.env.PROXY_ADDRESS || 'https://localhost:4100',
+    proxy: process.env.PROXY_ADDRESS || 'https://localhost:4000',
     https: true
   },
 

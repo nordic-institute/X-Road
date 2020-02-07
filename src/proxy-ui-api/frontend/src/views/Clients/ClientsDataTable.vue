@@ -24,7 +24,8 @@
         rounded
         dark
         class="ma-0 rounded-button elevation-0"
-      >{{$t('action.addClient')}}</v-btn>
+      >{{$t('action.addClient')}}
+      </v-btn>
     </div>
 
     <v-data-table
@@ -64,7 +65,8 @@
             color="grey darken-2"
             class="icon-member icon-size"
             :class="{ 'icon-subsystem': treeMode }"
-          >mdi-card-bulleted-outline</v-icon>
+          >mdi-card-bulleted-outline
+          </v-icon>
           <span
             v-if="canOpenClient()"
             class="font-weight-bold name clickable"
@@ -75,7 +77,7 @@
       </template>
 
       <template v-slot:item.status="{ item }">
-        <client-status :status="item.status" />
+        <client-status :status="item.status"/>
       </template>
 
       <template v-slot:item.button="{ item }">
@@ -88,7 +90,8 @@
             color="primary"
             class="xrd-small-button xrd-table-button"
             @click="addSubsystem(item)"
-          >{{$t('action.addSubsystem')}}</v-btn>
+          >{{$t('action.addSubsystem')}}
+          </v-btn>
         </div>
       </template>
 
@@ -97,221 +100,249 @@
         slot="no-results"
         :value="true"
         color="error"
-      >{{ $t('action.emptySearch', { msg: search }) }}</v-alert>
+      >{{ $t('action.emptySearch', { msg: search }) }}
+      </v-alert>
     </v-data-table>
   </v-layout>
 </template>
 
 <script lang="ts">
-/**
- * This component renders the Clients data table.
- * Default sort and filter functions are replaced to achieve the end result where
- */
-import Vue from 'vue';
-import ClientStatus from './ClientStatus.vue';
-import { mapGetters } from 'vuex';
-import { Permissions, RouteName } from '@/global';
+  /**
+   * This component renders the Clients data table.
+   * Default sort and filter functions are replaced to achieve the end result where
+   */
+  import Vue from 'vue';
+  import ClientStatus from './ClientStatus.vue';
+  import {mapGetters} from 'vuex';
+  import {Permissions, RouteName} from '@/global';
+  import SockJS from 'sockjs-client';
+  import Stomp from 'stompjs';
 
-export default Vue.extend({
-  components: {
-    ClientStatus,
-  },
+  // TODO: The WebSocket could be moved to vuex
+  let ws: any;
+  let sock: any;
 
-  data: () => ({
-    search: '',
-    pagination: {
-      sortBy: 'sortNameAsc',
-    },
-  }),
-
-  computed: {
-    ...mapGetters(['clients', 'loading']),
-    treeMode(): boolean {
-      // Switch between the "tree" view and the "flat" view
-      if (this.search) {
-        return false;
-      } else if (this.pagination.sortBy === 'status') {
-        return false;
-      }
-      return true;
-    },
-    headers(): any[] {
-      return [
-        {
-          text: this.$t('client.name'),
-          align: 'left',
-          value: 'sortNameAsc',
-          class: 'xrd-table-header',
-        },
-        {
-          text: this.$t('client.id'),
-          align: 'left',
-          value: 'id',
-          class: 'xrd-table-header',
-        },
-        {
-          text: this.$t('client.status'),
-          align: 'left',
-          value: 'status',
-          class: 'xrd-table-header',
-        },
-        {
-          text: '',
-          value: 'button',
-          sortable: false,
-          class: 'xrd-table-header',
-        },
-      ];
-    },
-  },
-
-  methods: {
-    showAddClient(): boolean {
-      return this.$store.getters.hasPermission(Permissions.ADD_CLIENT);
-    },
-    canOpenClient(): boolean {
-      return this.$store.getters.hasPermission(Permissions.VIEW_CLIENT_DETAILS);
+  export default Vue.extend({
+    components: {
+      ClientStatus,
     },
 
-    openClient(item: any): void {
-      this.$router.push({
-        name: RouteName.Client,
-        params: { id: item.id },
-      });
-    },
+    data: () => ({
+      search: '',
+      pagination: {
+        sortBy: 'sortNameAsc',
+      },
+    }),
 
-    openSubsystem(item: any): void {
-      this.$router.push({
-        name: RouteName.Subsystem,
-        params: { id: item.id },
-      });
-    },
-
-    addClient(): void {
-      this.$router.push({
-        name: RouteName.AddClient,
-      });
-    },
-
-    addSubsystem(item: any): void {
-      this.$router.push({
-        name: RouteName.AddSubsystem,
-      });
-    },
-
-    customFilter: (value: any, search: string | null, item: any): boolean => {
-      // Override for the default filter function.
-      // This is done to filter by the name (that is visible to user) instead of sortNameAsc or sortNameDesc.
-      if (search === null) {
-        return true;
-      }
-
-      search = search.toString().toLowerCase();
-      if (search.trim() === '') {
-        return true;
-      }
-
-      if (
-        item.name.toLowerCase().includes(search) ||
-        item.id.toLowerCase().includes(search)
-      ) {
-        return true;
-      }
-
-      return false;
-    },
-
-    customSort(items: any[], sortBy: string[], sortDesc: boolean[]): any[] {
-      // Override of the default sorting function for the Name column to use sortNameAsc or sortNameDesc instead.
-      // This is needed to achieve the order where member is always over the subsystem regardless of the sort direction.
-      const index = sortBy[0];
-      const isDesc = sortDesc[0];
-
-      items.sort((a, b) => {
-        if (index === 'sortNameAsc') {
-          if (!isDesc) {
-            return a[index] < b[index] ? -1 : 1;
-          } else {
-            // When sorting descending by name, replace the sort data
-            return b.sortNameDesc < a.sortNameDesc ? -1 : 1;
-          }
-        } else {
-          if (!isDesc) {
-            return a[index] < b[index] ? -1 : 1;
-          } else {
-            return b[index] < a[index] ? -1 : 1;
-          }
+    computed: {
+      ...mapGetters(['clients', 'loading']),
+      treeMode(): boolean {
+        // Switch between the "tree" view and the "flat" view
+        if (this.search) {
+          return false;
+        } else if (this.pagination.sortBy === 'status') {
+          return false;
         }
-      });
-      return items;
+        return true;
+      },
+      headers(): any[] {
+        return [
+          {
+            text: this.$t('client.name'),
+            align: 'left',
+            value: 'sortNameAsc',
+            class: 'xrd-table-header',
+          },
+          {
+            text: this.$t('client.id'),
+            align: 'left',
+            value: 'id',
+            class: 'xrd-table-header',
+          },
+          {
+            text: this.$t('client.status'),
+            align: 'left',
+            value: 'status',
+            class: 'xrd-table-header',
+          },
+          {
+            text: '',
+            value: 'button',
+            sortable: false,
+            class: 'xrd-table-header',
+          },
+        ];
+      },
     },
-  },
-});
+
+    methods: {
+      connectSock() {
+        sock = new SockJS('/ws');
+        ws = Stomp.over(sock);
+
+        ws.connect({}, (frame: any): any => {
+          ws.subscribe('/topic/public', (message: any): any => {
+            console.log(message);
+            this.$store.dispatch('fetchClients').catch((error) => {
+              this.$bus.$emit('show-error', error.message);
+            });
+          });
+        }, (error: any): any => {
+          console.log(error);
+        });
+      },
+      showAddClient(): boolean {
+        return this.$store.getters.hasPermission(Permissions.ADD_CLIENT);
+      },
+      canOpenClient(): boolean {
+        return this.$store.getters.hasPermission(Permissions.VIEW_CLIENT_DETAILS);
+      },
+
+      openClient(item: any): void {
+        this.$router.push({
+          name: RouteName.Client,
+          params: {id: item.id},
+        });
+      },
+
+      openSubsystem(item: any): void {
+        this.$router.push({
+          name: RouteName.Subsystem,
+          params: {id: item.id},
+        });
+      },
+
+      addClient(): void {
+        this.$router.push({
+          name: RouteName.AddClient,
+        });
+      },
+
+      addSubsystem(item: any): void {
+        this.$router.push({
+          name: RouteName.AddSubsystem,
+        });
+      },
+
+      customFilter: (value: any, search: string | null, item: any): boolean => {
+        // Override for the default filter function.
+        // This is done to filter by the name (that is visible to user) instead of sortNameAsc or sortNameDesc.
+        if (search === null) {
+          return true;
+        }
+
+        search = search.toString().toLowerCase();
+        if (search.trim() === '') {
+          return true;
+        }
+
+        if (
+          item.name.toLowerCase().includes(search) ||
+          item.id.toLowerCase().includes(search)
+        ) {
+          return true;
+        }
+
+        return false;
+      },
+
+      customSort(items: any[], sortBy: string[], sortDesc: boolean[]): any[] {
+        // Override of the default sorting function for the Name column to use sortNameAsc or sortNameDesc instead.
+        // This is needed to achieve the order where member is always over the subsystem regardless of the sort direction.
+        const index = sortBy[0];
+        const isDesc = sortDesc[0];
+
+        items.sort((a, b) => {
+          if (index === 'sortNameAsc') {
+            if (!isDesc) {
+              return a[index] < b[index] ? -1 : 1;
+            } else {
+              // When sorting descending by name, replace the sort data
+              return b.sortNameDesc < a.sortNameDesc ? -1 : 1;
+            }
+          } else {
+            if (!isDesc) {
+              return a[index] < b[index] ? -1 : 1;
+            } else {
+              return b[index] < a[index] ? -1 : 1;
+            }
+          }
+        });
+        return items;
+      },
+    },
+    created() {
+      this.connectSock();
+    },
+    beforeDestroy(): void {
+      sock.close();
+    },
+  });
 </script>
 
 <style lang="scss">
-.xrd-table-header {
-  border-bottom: 1px solid #9c9c9c !important;
-}
+  .xrd-table-header {
+    border-bottom: 1px solid #9c9c9c !important;
+  }
 </style>
 
 <style lang="scss" scoped>
-.icon-member {
-  padding-left: 0;
-}
-
-.icon-subsystem {
-  padding-left: 40px;
-}
-
-.icon-size {
-  font-size: 20px;
-}
-
-.table-toolbar {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-end;
-  width: 100%;
-  padding-left: 24px;
-  margin-bottom: 24px;
-}
-
-.search-input {
-  max-width: 300px;
-}
-
-.data-table-wrapper {
-  width: 100%;
-}
-
-.data-table {
-  width: 100%;
-}
-
-.name {
-  margin-left: 14px;
-  margin-top: auto;
-  margin-bottom: auto;
-  text-align: center;
-
-  &.clickable {
-    text-decoration: underline;
-    cursor: pointer;
+  .icon-member {
+    padding-left: 0;
   }
-}
 
-.name-member {
-  margin-left: 14px;
-  margin-top: auto;
-  margin-bottom: auto;
-  text-align: center;
-}
+  .icon-subsystem {
+    padding-left: 40px;
+  }
 
-.button-wrap {
-  width: 100%;
-  display: flex;
-  justify-content: flex-end;
-}
+  .icon-size {
+    font-size: 20px;
+  }
+
+  .table-toolbar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+    width: 100%;
+    padding-left: 24px;
+    margin-bottom: 24px;
+  }
+
+  .search-input {
+    max-width: 300px;
+  }
+
+  .data-table-wrapper {
+    width: 100%;
+  }
+
+  .data-table {
+    width: 100%;
+  }
+
+  .name {
+    margin-left: 14px;
+    margin-top: auto;
+    margin-bottom: auto;
+    text-align: center;
+
+    &.clickable {
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  }
+
+  .name-member {
+    margin-left: 14px;
+    margin-top: auto;
+    margin-bottom: auto;
+    text-align: center;
+  }
+
+  .button-wrap {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+  }
 </style>

@@ -67,6 +67,8 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
                 .antMatchers("/login").permitAll()
                 .antMatchers("/logout").fullyAuthenticated()
                 .antMatchers("/api/**").denyAll()
+                .antMatchers(
+                        "/ws/**/**", "/ws").permitAll()
                 .anyRequest().denyAll()
                 .and()
               .csrf()

@@ -43,7 +43,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      interval: 0,
+      interval: 0 as any,
       logoutDialog: false,
     };
   },
