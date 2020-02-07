@@ -25,7 +25,6 @@
 package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
@@ -37,12 +36,12 @@ import org.niis.xroad.restapi.openapi.model.KeyValuePair;
 import org.niis.xroad.restapi.openapi.model.Token;
 import org.niis.xroad.restapi.openapi.model.TokenStatus;
 import org.niis.xroad.restapi.openapi.model.TokenType;
+import org.niis.xroad.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -74,8 +73,7 @@ public class TokenConverterTest {
         tokenInfos.put("key1", "value1");
         tokenInfos.put("key2", "value2");
         // keyinfo not used, keyConverter mocked
-        KeyInfo dummyKeyInfo = new KeyInfo(false, KeyUsageInfo.SIGNING,
-                null, null, null, null, new ArrayList<>(), new ArrayList<>(), null);
+        KeyInfo dummyKeyInfo = new TokenTestUtils.KeyInfoBuilder().build();
 
         TokenInfo tokenInfo = new TokenInfo(TokenInfo.SOFTWARE_MODULE_TYPE,
                 "friendly-name",
@@ -92,7 +90,7 @@ public class TokenConverterTest {
 
         Token token = tokenConverter.convert(tokenInfo);
 
-        assertEquals(true, token.getActive());
+        assertEquals(true, token.getLoggedIn());
         assertEquals(true, token.getAvailable());
         assertEquals("id", token.getId());
         assertNotNull(token.getKeys());
@@ -129,25 +127,8 @@ public class TokenConverterTest {
     @Test
     public void isSavedToConfiguration() throws Exception {
         // test different combinations of saved and unsaved keys and the logic for isSavedToConfiguration
-        KeyInfo savedKey = new KeyInfo(true,
-                KeyUsageInfo.SIGNING,
-                "friendly-name",
-                "id",
-                "label",
-                "public-key",
-                new ArrayList<>(),
-                new ArrayList<>(),
-                "sign-mechanism-name");
-
-        KeyInfo unsavedKey = new KeyInfo(true,
-                KeyUsageInfo.SIGNING,
-                "friendly-name",
-                "id",
-                "label",
-                "public-key",
-                new ArrayList<>(),
-                new ArrayList<>(),
-                "sign-mechanism-name");
+        KeyInfo savedKey = new TokenTestUtils.KeyInfoBuilder().build();
+        KeyInfo unsavedKey = new TokenTestUtils.KeyInfoBuilder().build();
 
         savedKey.getCerts().clear();
         savedKey.getCertRequests().clear();
@@ -156,18 +137,7 @@ public class TokenConverterTest {
         unsavedKey.getCerts().clear();
         unsavedKey.getCertRequests().clear();
 
-        TokenInfo tokenInfo = new TokenInfo(TokenInfo.SOFTWARE_MODULE_TYPE,
-                "friendly-name",
-                "id",
-                false,
-                true,
-                true,
-                "serial-number",
-                "label",
-                123,
-                TokenStatusInfo.OK,
-                new ArrayList<KeyInfo>(),
-                new HashMap<String, String>());
+        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder().build();
 
         tokenInfo.getKeyInfo().clear();
         assertEquals(false, tokenConverter.convert(tokenInfo).getSavedToConfiguration());

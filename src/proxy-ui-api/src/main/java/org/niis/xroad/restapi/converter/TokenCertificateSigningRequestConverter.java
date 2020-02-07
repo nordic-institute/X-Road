@@ -25,9 +25,12 @@
 package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.openapi.model.TokenCertificateSigningRequest;
+import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,12 +44,33 @@ import java.util.stream.Collectors;
 public class TokenCertificateSigningRequestConverter {
 
     private final ClientConverter clientConverter;
+    private final PossibleActionsRuleEngine possibleActionsRuleEngine;
+    private final PossibleActionConverter possibleActionConverter;
 
     @Autowired
-    public TokenCertificateSigningRequestConverter(ClientConverter clientConverter) {
+    public TokenCertificateSigningRequestConverter(ClientConverter clientConverter,
+            PossibleActionsRuleEngine possibleActionsRuleEngine,
+            PossibleActionConverter possibleActionConverter) {
         this.clientConverter = clientConverter;
+        this.possibleActionsRuleEngine = possibleActionsRuleEngine;
+        this.possibleActionConverter = possibleActionConverter;
     }
 
+    /**
+     * Convert {@link CertRequestInfo} to {@link TokenCertificateSigningRequest}
+     * and populate possibleActions
+     * @param csrInfo
+     * @return {@link TokenCertificateSigningRequest}
+     */
+    public TokenCertificateSigningRequest convert(CertRequestInfo csrInfo,
+            KeyInfo keyInfo,
+            TokenInfo tokenInfo) {
+        TokenCertificateSigningRequest request = convert(csrInfo);
+        request.setPossibleActions(possibleActionConverter.convert(
+                possibleActionsRuleEngine.getPossibleCsrActions(
+                        tokenInfo)));
+        return request;
+    }
     /**
      * Convert {@link CertRequestInfo} to {@link TokenCertificateSigningRequest}
      * @param csrInfo
@@ -69,7 +93,21 @@ public class TokenCertificateSigningRequestConverter {
      */
     public List<TokenCertificateSigningRequest> convert(Iterable<CertRequestInfo> csrInfos) {
         return Streams.stream(csrInfos)
-                .map(this::convert)
+                .map(c -> convert(c))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Convert a group of {@link CertRequestInfo certRequestInfos} to a list of
+     * {@link TokenCertificateSigningRequest token CSRs}, while populating possibleActions
+     * @param csrInfos
+     * @return List of {@link TokenCertificateSigningRequest token CSRs}
+     */
+    public List<TokenCertificateSigningRequest> convert(Iterable<CertRequestInfo> csrInfos,
+            KeyInfo keyInfo,
+            TokenInfo tokenInfo) {
+        return Streams.stream(csrInfos)
+                .map(c -> convert(c, keyInfo, tokenInfo))
                 .collect(Collectors.toList());
     }
 

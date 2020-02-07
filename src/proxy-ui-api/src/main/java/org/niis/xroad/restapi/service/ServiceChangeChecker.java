@@ -42,26 +42,24 @@ import java.util.stream.Collectors;
 public class ServiceChangeChecker {
     /**
      * Create lists of full service codes, ones that were added and ones that were removed,
-     * by comparing collections of ServiceTypes
+     * by comparing collections of ServiceTypes. Also retain the lists as List<ServiceType>
      * @param oldServices
      * @param newServices
      * @return
      */
     public ServiceChanges check(List<ServiceType> oldServices, List<ServiceType> newServices) {
-        List<String> oldServiceCodes = toFullServiceCodes(oldServices);
-        List<String> newServiceCodes = toFullServiceCodes(newServices);
+        List<String> oldFullServiceCodes = toFullServiceCodes(oldServices);
+        List<String> newFullServiceCodes = toFullServiceCodes(newServices);
 
-        List<String> addedCodes = new ArrayList<>();
-        List<String> removedCodes = new ArrayList<>();
-        addedCodes.addAll(newServiceCodes);
-        addedCodes.removeAll(oldServiceCodes);
-        removedCodes.addAll(oldServiceCodes);
-        removedCodes.removeAll(newServiceCodes);
+        List<ServiceType> addedServices = new ArrayList<>(newServices);
+        addedServices.removeIf(serviceType -> oldFullServiceCodes
+                .contains(FormatUtils.getServiceFullName(serviceType)));
 
-        ServiceChanges changes = new ServiceChanges();
-        changes.setAddedServices(addedCodes);
-        changes.setRemovedServices(removedCodes);
-        return changes;
+        List<ServiceType> removedServices = new ArrayList<>(oldServices);
+        removedServices.removeIf(serviceType -> newFullServiceCodes
+                .contains(FormatUtils.getServiceFullName(serviceType)));
+
+        return new ServiceChanges(addedServices, removedServices);
     }
 
     private List<String> toFullServiceCodes(List<ServiceType> newServices) {
@@ -71,16 +69,26 @@ public class ServiceChangeChecker {
     }
 
     /**
-     * List of service codes (full servicecode + version combination) of
+     * List of ServiceTypes and servicecodes as String (full servicecode + version combination) of
      * added and removed services
      */
     @Data
     public class ServiceChanges {
-        private List<String> addedServices;
-        private List<String> removedServices;
+        private List<String> addedFullServiceCodes;
+        private List<String> removedFullServiceCodes;
+        private List<ServiceType> addedServices;
+        private List<ServiceType> removedServices;
+
+        public ServiceChanges(List<ServiceType> addedServices, List<ServiceType> removedServices) {
+            this.addedServices = addedServices;
+            this.removedServices = removedServices;
+            this.addedFullServiceCodes = toFullServiceCodes(addedServices);
+            this.removedFullServiceCodes = toFullServiceCodes(removedServices);
+        }
 
         public boolean isEmpty() {
-            return CollectionUtils.isEmpty(addedServices) && CollectionUtils.isEmpty(removedServices);
+            return CollectionUtils.isEmpty(addedFullServiceCodes) && CollectionUtils.isEmpty(removedFullServiceCodes)
+                    && CollectionUtils.isEmpty(addedServices) && CollectionUtils.isEmpty(removedServices);
         }
     }
 }

@@ -122,6 +122,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
         result = queryRecords(1474968970L, 1474968990L);
         assertEquals(1, result.size());
+        assertNotNull(result.getRecords().get(0).getMessageId());
         assertEquals(1474968980L, result.getRecords().get(0)
                 .getMonitoringDataTs().longValue());
 
@@ -233,7 +234,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
         // The output spec has a single field that is null in DB.
         result = queryRecords(1474968960L, 1474968980L, client, null,
-                Sets.newHashSet("soapFaultCode"));
+                Sets.newHashSet("faultCode"));
         assertEquals(1, result.size());
 
         final OperationalDataRecord r = result.getRecords().get(0);
@@ -346,7 +347,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
                 formatFullOperationalDataAsJson(), OperationalDataRecord.class);
 
         record.setMessageIssue(LONG_STRING);
-        record.setSoapFaultString(LONG_STRING);
+        record.setFaultString(LONG_STRING);
 
         // test truncate on save
         storeRecords(Collections.singletonList(record), 1474968965L);
@@ -359,7 +360,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
         assertEquals(LONG_STRING.substring(0, 255),
                 resultRecord.getMessageIssue());
-        assertEquals(LONG_STRING, resultRecord.getSoapFaultString());
+        assertEquals(LONG_STRING, resultRecord.getFaultString());
 
         // test truncate on update
         resultRecord.setMessageIssue("2" + LONG_STRING);

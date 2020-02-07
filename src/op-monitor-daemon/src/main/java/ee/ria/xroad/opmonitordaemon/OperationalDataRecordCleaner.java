@@ -31,7 +31,7 @@ import ee.ria.xroad.common.util.MessageSendingJob;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.quartz.JobDataMap;
@@ -45,7 +45,7 @@ import static ee.ria.xroad.opmonitordaemon.OpMonitorDaemonDatabaseCtx.doInTransa
  * Deletes outdated operational data records from the database.
  */
 @Slf4j
-final class OperationalDataRecordCleaner extends UntypedActor {
+final class OperationalDataRecordCleaner extends UntypedAbstractActor {
 
     public static final String START_CLEANING = "doClean";
 

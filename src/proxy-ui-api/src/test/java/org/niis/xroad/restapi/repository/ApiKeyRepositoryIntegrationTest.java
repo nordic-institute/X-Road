@@ -27,10 +27,9 @@ package org.niis.xroad.restapi.repository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.domain.InvalidRoleNameException;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
-import org.niis.xroad.restapi.exceptions.InvalidParametersException;
-import org.niis.xroad.restapi.exceptions.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -58,39 +57,41 @@ public class ApiKeyRepositoryIntegrationTest {
     @Autowired
     private ApiKeyRepository apiKeyRepository;
 
+    private static final int KEYS_CREATED_ELSEWHERE = 1; // one key in data.sql
+
     @Test
-    public void testDelete() {
+    public void testDelete() throws Exception {
         String plainKey = apiKeyRepository.create(
                 Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"))
                 .getKey();
-        assertEquals(1, apiKeyRepository.listAll().size());
+        assertEquals(KEYS_CREATED_ELSEWHERE + 1, apiKeyRepository.listAll().size());
         PersistentApiKeyType apiKey = apiKeyRepository.get(plainKey);
         assertEquals(2, apiKey.getRoles().size());
 
-        // after remove, listall should be 0 and get(key) should fail
+        // after remove, listall should be reduced and get(key) should fail
         apiKeyRepository.remove(plainKey);
-        assertEquals(0, apiKeyRepository.listAll().size());
+        assertEquals(KEYS_CREATED_ELSEWHERE, apiKeyRepository.listAll().size());
         try {
             apiKey = apiKeyRepository.get(plainKey);
             fail("should throw exception");
-        } catch (NotFoundException expected) {
+        } catch (ApiKeyRepository.ApiKeyNotFoundException expected) {
         }
         try {
             apiKeyRepository.remove(plainKey);
             fail("should throw exception");
-        } catch (NotFoundException expected) {
+        } catch (ApiKeyRepository.ApiKeyNotFoundException expected) {
         }
     }
 
     @Test
-    public void testSaveAndLoad() {
+    public void testSaveAndLoad() throws Exception {
         String plainKey = apiKeyRepository.create(
                 Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"))
                 .getKey();
         PersistentApiKeyType loaded = apiKeyRepository.get(plainKey);
         assertNotNull(loaded);
         String encodedKey = loaded.getEncodedKey();
-        assertEquals(new Long(1), loaded.getId());
+        assertEquals(new Long(KEYS_CREATED_ELSEWHERE + 1), loaded.getId());
         assertTrue(!plainKey.equals(encodedKey));
         assertEquals(encodedKey, loaded.getEncodedKey());
         assertEquals(2, loaded.getRoles().size());
@@ -98,17 +99,17 @@ public class ApiKeyRepositoryIntegrationTest {
     }
 
     @Test
-    public void testDifferentRoles() {
+    public void testDifferentRoles() throws Exception {
         try {
             String key = apiKeyRepository.create(new ArrayList<>()).getKey();
             fail("should fail due to missing roles");
-        } catch (InvalidParametersException expected) { }
+        } catch (InvalidRoleNameException expected) { }
 
         try {
             String key = apiKeyRepository.create(Arrays.asList("XROAD_SECURITY_OFFICER",
                     "FOOBAR")).getKey();
             fail("should fail due to bad role");
-        } catch (InvalidParametersException expected) { }
+        } catch (InvalidRoleNameException expected) { }
 
         String key = apiKeyRepository.create(Arrays.asList("XROAD_SECURITY_OFFICER",
                 "XROAD_REGISTRATION_OFFICER")).getKey();

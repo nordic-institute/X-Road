@@ -69,7 +69,6 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.Writer;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -86,7 +85,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.SystemProperties.getServerProxyPort;
 import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
@@ -269,25 +267,6 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
-    private static URI getServiceAddress(URI[] addresses) {
-        if (addresses.length == 1 || !isSslEnabled()) {
-            return addresses[0];
-        }
-        //postpone actual name resolution to the fastest connection selector
-        return DUMMY_SERVICE_ADDRESS;
-    }
-
-    private static final URI DUMMY_SERVICE_ADDRESS;
-
-    static {
-        try {
-            DUMMY_SERVICE_ADDRESS = new URI("https", null, "localhost", getServerProxyPort(), "/", null, null);
-        } catch (URISyntaxException e) {
-            //can not happen
-            throw new IllegalStateException("Unexpected", e);
-        }
-    }
-
     private void parseResponse(HttpSender httpSender) throws Exception {
         log.trace("parseResponse()");
 
@@ -311,13 +290,13 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
 
     private void updateOpMonitoringDataByResponse(ProxyMessageDecoder decoder) {
         if (response.getSoap() != null) {
-            long responseSoapSize = response.getSoap().getBytes().length;
+            long responseSize = response.getSoap().getBytes().length;
 
-            opMonitoringData.setResponseSoapSize(responseSoapSize);
+            opMonitoringData.setResponseSize(responseSize);
             opMonitoringData.setResponseAttachmentCount(decoder.getAttachmentCount());
 
             if (decoder.getAttachmentCount() > 0) {
-                opMonitoringData.setResponseMimeSize(responseSoapSize + decoder.getAttachmentsByteCount());
+                opMonitoringData.setResponseMimeSize(responseSize + decoder.getAttachmentsByteCount());
             }
         }
     }

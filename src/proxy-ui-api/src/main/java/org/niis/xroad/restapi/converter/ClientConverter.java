@@ -30,11 +30,11 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.common.collect.Streams;
 import org.apache.commons.lang.StringUtils;
-import org.niis.xroad.restapi.exceptions.BadRequestException;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
-import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -47,12 +47,12 @@ import java.util.stream.Collectors;
 import static org.niis.xroad.restapi.converter.Converters.ENCODED_ID_SEPARATOR;
 
 /**
- * Converter Client related data between openapi and service domain classes
+ * Converter for Client related data between openapi and service domain classes
  */
 @Component
 public class ClientConverter {
 
-    private final GlobalConfService globalConfService;
+    private final GlobalConfFacade globalConfFacade;
 
     public static final int INSTANCE_INDEX = 0;
     public static final int MEMBER_CLASS_INDEX = 1;
@@ -60,8 +60,8 @@ public class ClientConverter {
     public static final int SUBSYSTEM_CODE_INDEX = 3;
 
     @Autowired
-    public ClientConverter(GlobalConfService globalConfService) {
-        this.globalConfService = globalConfService;
+    public ClientConverter(GlobalConfFacade globalConfFacade) {
+        this.globalConfFacade = globalConfFacade;
     }
 
     /**
@@ -75,7 +75,7 @@ public class ClientConverter {
         client.setMemberClass(clientType.getIdentifier().getMemberClass());
         client.setMemberCode(clientType.getIdentifier().getMemberCode());
         client.setSubsystemCode(clientType.getIdentifier().getSubsystemCode());
-        client.setMemberName(globalConfService.getMemberName(clientType.getIdentifier()));
+        client.setMemberName(globalConfFacade.getMemberName(clientType.getIdentifier()));
         Optional<ClientStatus> status = ClientStatusMapping.map(clientType.getClientStatus());
         client.setStatus(status.orElse(null));
         Optional<ConnectionType> connectionTypeEnum =

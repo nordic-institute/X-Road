@@ -48,7 +48,7 @@ public class MessageRecordingLogManager extends LogManager {
     }
 
     @Getter
-    private static List messages = Collections.synchronizedList(new ArrayList<Object>());
+    private static List<Object> messages = Collections.synchronizedList(new ArrayList<>());
 
     // continue processing messages when 1) first message has been sent 2) test signals that it
     // is ready to continue (it has sent the first message)

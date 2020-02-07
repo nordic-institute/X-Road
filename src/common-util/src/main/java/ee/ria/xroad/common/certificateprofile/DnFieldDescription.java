@@ -38,9 +38,32 @@ public interface DnFieldDescription {
     /**
      * Returns the label of the field, used to display the field in
      * the user interface.
+     * Should be used instead of {@link #getLabelKey()}
+     * when {@link #isLocalized()} = false
      * @return the label of the field
      */
     String getLabel();
+
+    /**
+     * Returns the localization key for the label of the field,
+     * used to display the field in the user interface.
+     * Should be used instead of {@link #getLabel()}
+     * when {@link #isLocalized()} = true
+     * @return the localization key label of the field
+     */
+    default String getLabelKey() {
+        return null;
+    }
+
+    /**
+     * True, if field labels should be formed using localization keys from
+     * ({@link #getLabelKey()}).
+     * False, if field labels should be formed using non-localized labels from
+     * ({@link #getLabel()}).
+     */
+    default boolean isLocalized() {
+        return false;
+    }
 
     /**
      * Returns the default value of the field. Can be empty or null.

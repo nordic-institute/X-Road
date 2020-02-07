@@ -32,8 +32,8 @@ import ee.ria.xroad.monitor.common.SystemMetricNames;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
-import akka.testkit.JavaTestKit;
 import akka.testkit.TestActorRef;
+import akka.testkit.javadsl.TestKit;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
 import com.typesafe.config.ConfigFactory;
@@ -59,15 +59,15 @@ public class SystemMetricsSensorTest {
 
     @AfterClass
     public static void tearDown() {
-        JavaTestKit.shutdownActorSystem(actorSystem);
+        TestKit.shutdownActorSystem(actorSystem);
     }
 
     @Test
-    public void testSystemMetricsSensor() throws InterruptedException {
+    public void testSystemMetricsSensor() {
         final MetricRegistry registry = new MetricRegistry();
         MetricRegistryHolder.getInstance().setMetrics(registry);
 
-        final JavaTestKit agent = new JavaTestKit(actorSystem);
+        final TestKit agent = new TestKit(actorSystem);
         final ActorRef sensor = TestActorRef.create(actorSystem, Props.create(SystemMetricsSensor.class,
                 agent.getRef().path().toString()));
         agent.expectMsgClass(StatsRequest.class);

@@ -25,35 +25,43 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.util.DeviationTestUtils;
+import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 /**
  * test ServiceDescription service.
@@ -65,6 +73,7 @@ import static org.mockito.Mockito.doReturn;
 @AutoConfigureTestDatabase
 @Slf4j
 @Transactional
+@WithMockUser
 public class ServiceDescriptionServiceIntegrationTest {
 
     public static final String BIG_ATTACHMENT_V1_SERVICECODE = "xroadBigAttachment.v1";
@@ -72,12 +81,18 @@ public class ServiceDescriptionServiceIntegrationTest {
     public static final String GET_RANDOM_V1_SERVICECODE = "xroadGetRandom.v1";
     public static final String BIG_ATTACHMENT_SERVICECODE = "xroadBigAttachment";
     public static final String SMALL_ATTACHMENT_SERVICECODE = "xroadSmallAttachment";
-    public static final String GET_RANDOM_SERVICECODE = "xroadGetRandom";
+    public static final String XROAD_GET_RANDOM_SERVICECODE = "xroadGetRandom";
+    public static final String GET_RANDOM_SERVICECODE = "getRandom";
+    public static final String CALCULATE_PRIME = "calculatePrime";
+    public static final String HELLO_SERVICE = "helloService";
+    public static final String BMI_SERVICE = "bodyMassIndex";
+    public static final String SOAPSERVICEDESCRIPTION_URL = "https://soapservice.com/v1/Endpoint?wsdl";
+
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
-    private static final ClientId CLIENT_ID_SS1 = ClientId.create(
-            "FI", "GOV", "M1", "SS1");
+    private static final ClientId CLIENT_ID_SS1 = ClientId.create("FI", "GOV", "M1", "SS1");
+    private static final ClientId CLIENT_ID_SS6 = ClientId.create("FI", "GOV", "M2", "SS6");
 
     @Autowired
     private ServiceDescriptionService serviceDescriptionService;
@@ -88,18 +103,26 @@ public class ServiceDescriptionServiceIntegrationTest {
     @MockBean
     private WsdlValidator wsdlValidator;
 
+    @MockBean
+    private WsdlUrlValidator wsdlUrlValidator;
+
+    @SpyBean
+    private OpenApiParser openApiParser;
+
+    @Before
+    public void setup() {
+        when(wsdlUrlValidator.isValidWsdlUrl(any())).thenReturn(true);
+        when(openApiParser.allowProtocol(any())).thenReturn(true);
+    }
+
     @Test
-    @WithMockUser(authorities = { "ADD_WSDL", "REFRESH_WSDL",
-            "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
     public void refreshServiceDetectsAddedService() throws Exception {
         File testServiceWsdl = tempFolder.newFile("test.wsdl");
         File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
         File threeServicesWsdl = getTestResouceFile("wsdl/valid.wsdl");
         FileUtils.copyFile(getRandomWsdl, testServiceWsdl);
         String url = testServiceWsdl.toURI().toURL().toString();
-        serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
-                url,
-                false);
+        serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1, url, false);
 
         // update wsdl to one with 3 services
         FileUtils.copyFile(threeServicesWsdl, testServiceWsdl);
@@ -110,9 +133,8 @@ public class ServiceDescriptionServiceIntegrationTest {
             serviceDescriptionService.refreshServiceDescription(serviceDescriptionType.getId(),
                     false);
             fail("should throw exception warning about service addition");
-        } catch (DeviationAwareRuntimeException expected) {
-            DeviationTestUtils.assertErrorWithoutMetadata(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected);
-            assertEquals(1, expected.getWarnings().size());
+        } catch (UnhandledWarningsException expected) {
+            assertEquals(1, expected.getWarningDeviations().size());
             DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_ADDING_SERVICES, expected,
                     BIG_ATTACHMENT_V1_SERVICECODE, SMALL_ATTACHMENT_V1_SERVICECODE);
         }
@@ -122,12 +144,10 @@ public class ServiceDescriptionServiceIntegrationTest {
                 true);
         serviceDescriptionType = getServiceDescription(url, clientType);
         assertServiceCodes(serviceDescriptionType,
-                BIG_ATTACHMENT_SERVICECODE, SMALL_ATTACHMENT_SERVICECODE, GET_RANDOM_SERVICECODE);
+                BIG_ATTACHMENT_SERVICECODE, SMALL_ATTACHMENT_SERVICECODE, XROAD_GET_RANDOM_SERVICECODE);
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_WSDL", "REFRESH_WSDL",
-            "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
     public void refreshServiceDetectsRemovedService() throws Exception {
         File testServiceWsdl = tempFolder.newFile("test.wsdl");
         File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
@@ -147,9 +167,8 @@ public class ServiceDescriptionServiceIntegrationTest {
             serviceDescriptionService.refreshServiceDescription(serviceDescriptionType.getId(),
                     false);
             fail("should throw exception warning about service addition");
-        } catch (DeviationAwareRuntimeException expected) {
-            DeviationTestUtils.assertErrorWithoutMetadata(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected);
-            assertEquals(1, expected.getWarnings().size());
+        } catch (UnhandledWarningsException expected) {
+            assertEquals(1, expected.getWarningDeviations().size());
             DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_DELETING_SERVICES, expected,
                     BIG_ATTACHMENT_V1_SERVICECODE, SMALL_ATTACHMENT_V1_SERVICECODE);
         }
@@ -159,28 +178,26 @@ public class ServiceDescriptionServiceIntegrationTest {
                 true);
         serviceDescriptionType = getServiceDescription(url, clientType);
         assertServiceCodes(serviceDescriptionType,
-                GET_RANDOM_SERVICECODE);
+                XROAD_GET_RANDOM_SERVICECODE);
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_WSDL", "REFRESH_WSDL",
-            "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
     public void refreshServiceDetectsAllWarnings() throws Exception {
-        // show warnings about
+        // show warningDeviations about
         // - add service
         // - remove service
-        // - validation warnings
+        // - validation warningDeviations
 
         // start with wsdl containing getrandom
         // then switch to one with smallattachment
-        // and mock some warnings
+        // and mock some warningDeviations
         File testServiceWsdl = tempFolder.newFile("test.wsdl");
         File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
         File smallWsdl = getTestResouceFile("wsdl/valid-smallattachment.wsdl");
         FileUtils.copyFile(getRandomWsdl, testServiceWsdl);
         String url = testServiceWsdl.toURI().toURL().toString();
         serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
-                    url, false);
+                url, false);
         ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
         ServiceDescriptionType serviceDescriptionType = getServiceDescription(url, clientType);
 
@@ -194,11 +211,10 @@ public class ServiceDescriptionServiceIntegrationTest {
         try {
             serviceDescriptionService.refreshServiceDescription(serviceDescriptionType.getId(),
                     false);
-            fail("should get warnings");
-        } catch (DeviationAwareRuntimeException expected) {
-            // we should get 3 warnings
-            DeviationTestUtils.assertErrorWithoutMetadata(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected);
-            assertEquals(3, expected.getWarnings().size());
+            fail("should get warningDeviations");
+        } catch (UnhandledWarningsException expected) {
+            // we should get 3 warningDeviations
+            assertEquals(3, expected.getWarningDeviations().size());
             DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_ADDING_SERVICES, expected,
                     SMALL_ATTACHMENT_V1_SERVICECODE);
             DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_DELETING_SERVICES, expected,
@@ -216,10 +232,8 @@ public class ServiceDescriptionServiceIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_WSDL", "REFRESH_WSDL",
-            "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
     public void addWsdlServiceDescription() throws Exception {
-        // check that validation warnings work for adding, too
+        // check that validation warningDeviations work for adding, too
         File testServiceWsdl = tempFolder.newFile("test.wsdl");
         File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
         FileUtils.copyFile(getRandomWsdl, testServiceWsdl);
@@ -232,11 +246,10 @@ public class ServiceDescriptionServiceIntegrationTest {
         try {
             serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
                     url, false);
-            fail("should get warnings");
-        } catch (DeviationAwareRuntimeException expected) {
+            fail("should get warningDeviations");
+        } catch (UnhandledWarningsException expected) {
             // we should get 1 warning
-            DeviationTestUtils.assertErrorWithoutMetadata(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected);
-            assertEquals(1, expected.getWarnings().size());
+            assertEquals(1, expected.getWarningDeviations().size());
             DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_WSDL_VALIDATION_WARNINGS, expected,
                     "mock warning", "mock warning 2");
         }
@@ -245,19 +258,17 @@ public class ServiceDescriptionServiceIntegrationTest {
                 url, true);
         ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
         ServiceDescriptionType serviceDescriptionType = getServiceDescription(url, clientType);
-        assertServiceCodes(serviceDescriptionType, GET_RANDOM_SERVICECODE);
+        assertServiceCodes(serviceDescriptionType, XROAD_GET_RANDOM_SERVICECODE);
     }
 
     /**
      * Same tests as {@link #refreshServiceDetectsAllWarnings()}, but triggered by update wsdl url
      */
     @Test
-    @WithMockUser(authorities = { "ADD_WSDL", "EDIT_WSDL",
-            "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
     public void updateWsdlUrlWithWarnings() throws Exception {
         // start with wsdl containing getrandom
         // then switch to one with smallattachment
-        // and mock some warnings
+        // and mock some warningDeviations
         File oldTestServiceWsdl = tempFolder.newFile("old-test.wsdl");
         File newTestServiceWsdl = tempFolder.newFile("new-test.wsdl");
         File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
@@ -279,11 +290,10 @@ public class ServiceDescriptionServiceIntegrationTest {
         try {
             serviceDescriptionService.updateWsdlUrl(serviceDescriptionType.getId(),
                     newUrl, false);
-            fail("should get warnings");
-        } catch (DeviationAwareRuntimeException expected) {
-            // we should get 3 warnings
-            DeviationTestUtils.assertErrorWithoutMetadata(ServiceDescriptionService.ERROR_WARNINGS_DETECTED, expected);
-            assertEquals(3, expected.getWarnings().size());
+            fail("should get warningDeviations");
+        } catch (UnhandledWarningsException expected) {
+            // we should get 3 warningDeviations
+            assertEquals(3, expected.getWarningDeviations().size());
             DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_ADDING_SERVICES, expected,
                     SMALL_ATTACHMENT_V1_SERVICECODE);
             DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_DELETING_SERVICES, expected,
@@ -292,7 +302,7 @@ public class ServiceDescriptionServiceIntegrationTest {
                     "mock warning", "mock warning 2");
         }
 
-        // ignore warnings is tested with updateWsdlUrlAndIgnoreWarnings
+        // ignore warningDeviations is tested with updateWsdlUrlAndIgnoreWarnings
     }
 
     /**
@@ -300,12 +310,10 @@ public class ServiceDescriptionServiceIntegrationTest {
      * next update (running inside same transaction, no rollback)
      */
     @Test
-    @WithMockUser(authorities = { "ADD_WSDL", "EDIT_WSDL",
-            "VIEW_CLIENT_SERVICES", "VIEW_CLIENT_DETAILS" })
     public void updateWsdlUrlAndIgnoreWarnings() throws Exception {
         // start with wsdl containing getrandom
         // then switch to one with smallattachment
-        // and mock some warnings
+        // and mock some warningDeviations
         File oldTestServiceWsdl = tempFolder.newFile("old-test.wsdl");
         File newTestServiceWsdl = tempFolder.newFile("new-test.wsdl");
         File getRandomWsdl = getTestResouceFile("wsdl/valid-getrandom.wsdl");
@@ -335,10 +343,10 @@ public class ServiceDescriptionServiceIntegrationTest {
 
     /**
      * Assert servicedescription contains the given codes. Checks codes only, no versions
+     *
      * @param serviceDescriptionType
      */
-    private void assertServiceCodes(ServiceDescriptionType serviceDescriptionType,
-                                    String...expectedCodes) {
+    private void assertServiceCodes(ServiceDescriptionType serviceDescriptionType, String... expectedCodes) {
         List<String> serviceCodes = serviceDescriptionType.getService()
                 .stream()
                 .map(service -> service.getServiceCode())
@@ -356,6 +364,266 @@ public class ServiceDescriptionServiceIntegrationTest {
     private File getTestResouceFile(String fileName) {
         return new File(this.getClass().getClassLoader().getResource(fileName)
                 .getFile());
+    }
+
+    @Test
+    public void addWsdlServiceDescriptionAndCheckEndpoints() throws Exception {
+        ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
+
+        // 2 as set in data.sql
+        assertEquals(6, clientType.getEndpoint().size());
+        assertTrue(clientType.getEndpoint()
+                .stream()
+                .map(EndpointType::getServiceCode)
+                .collect(Collectors.toList())
+                .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME)));
+
+        // add 3 more services
+        serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1, "file:src/test/resources/wsdl/valid.wsdl",
+                true);
+
+        clientType = clientService.getClient(CLIENT_ID_SS1);
+
+        // 3 new endpoints saved: xroadSmallAttachment and xroadBigAttachment and xroadGetRandom
+        assertEquals(9, clientType.getEndpoint().size());
+        assertTrue(clientType.getEndpoint()
+                .stream()
+                .map(EndpointType::getServiceCode)
+                .collect(Collectors.toList())
+                .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME, XROAD_GET_RANDOM_SERVICECODE,
+                        BIG_ATTACHMENT_SERVICECODE, SMALL_ATTACHMENT_SERVICECODE)));
+    }
+
+    @Test
+    public void updateWsdlServiceDescriptionAndCheckEndpoints() throws Exception {
+        ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
+
+        assertEquals(6, clientType.getEndpoint().size());
+        assertTrue(clientType.getEndpoint()
+                .stream()
+                .map(EndpointType::getServiceCode)
+                .collect(Collectors.toList())
+                .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME)));
+
+        ServiceDescriptionType serviceDescription = getServiceDescription(SOAPSERVICEDESCRIPTION_URL, clientType);
+
+        serviceDescriptionService.updateWsdlUrl(serviceDescription.getId(),
+                "file:src/test/resources/wsdl/valid-additional-services.wsdl", true);
+
+        clientType = clientService.getClient(CLIENT_ID_SS1);
+
+        assertEquals(6, clientType.getEndpoint().size());
+        assertTrue(clientType.getEndpoint()
+                .stream()
+                .map(EndpointType::getServiceCode)
+                .collect(Collectors.toList())
+                .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, HELLO_SERVICE)));
+    }
+
+    @Test
+    public void removeWsdlServiceDescriptionAndCheckEndpoints() throws Exception {
+        ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
+
+        assertEquals(6, clientType.getEndpoint().size());
+        assertTrue(clientType.getEndpoint()
+                .stream()
+                .map(EndpointType::getServiceCode)
+                .collect(Collectors.toList())
+                .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME)));
+
+        ServiceDescriptionType serviceDescription = getServiceDescription(SOAPSERVICEDESCRIPTION_URL, clientType);
+
+        serviceDescriptionService.deleteServiceDescription(serviceDescription.getId());
+
+        clientType = clientService.getClient(CLIENT_ID_SS1);
+
+        assertEquals(4, clientType.getEndpoint().size());
+    }
+
+    @Test
+    public void refreshWsdlServiceDescriptionAndCheckEndpoints() throws Exception {
+        ClientType clientType = clientService.getClient(CLIENT_ID_SS1);
+
+        assertEquals(6, clientType.getEndpoint().size());
+        assertTrue(clientType.getEndpoint()
+                .stream()
+                .map(EndpointType::getServiceCode)
+                .collect(Collectors.toList())
+                .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME)));
+
+        File testServiceWsdl = tempFolder.newFile("test.wsdl");
+        File getRandomWsdl = getTestResouceFile("wsdl/valid.wsdl");
+        File threeServicesWsdl = getTestResouceFile("wsdl/testservice.wsdl");
+        FileUtils.copyFile(getRandomWsdl, testServiceWsdl);
+        String url = testServiceWsdl.toURI().toURL().toString();
+        serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1, url, true);
+
+        FileUtils.copyFile(threeServicesWsdl, testServiceWsdl);
+        clientType = clientService.getClient(CLIENT_ID_SS1);
+        ServiceDescriptionType serviceDescription = getServiceDescription(url, clientType);
+
+        serviceDescriptionService.refreshServiceDescription(serviceDescription.getId(), true);
+
+        clientType = clientService.getClient(CLIENT_ID_SS1);
+
+        assertEquals(8, clientType.getEndpoint().size());
+        assertTrue(clientType.getEndpoint()
+                .stream()
+                .map(EndpointType::getServiceCode)
+                .collect(Collectors.toList())
+                .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME, XROAD_GET_RANDOM_SERVICECODE,
+                        BMI_SERVICE)));
+    }
+
+    @WithMockUser(authorities = "ADD_OPENAPI3")
+    public void addRestEndpointServiceDescriptionSuccess() throws Exception {
+        ClientType client = clientService.getClient(CLIENT_ID_SS1);
+        assertEquals(3, client.getEndpoint().size());
+        serviceDescriptionService.addRestEndpointServiceDescription(CLIENT_ID_SS1, "http://testurl.com", "testcode");
+        client = clientService.getClient(CLIENT_ID_SS1);
+        assertEquals(4, client.getEndpoint().size());
+        assertTrue(client.getEndpoint().stream()
+                .map(EndpointType::getServiceCode)
+                .collect(Collectors.toList())
+                .contains("testcode"));
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADD_OPENAPI3")
+    public void addOpenapi3ServiceDescriptionSuccess() throws Exception {
+        ClientType client = clientService.getClient(CLIENT_ID_SS1);
+        assertEquals(6, client.getEndpoint().size());
+        URL url = getClass().getResource("/openapiparser/valid.yaml");
+        serviceDescriptionService.addOpenapi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode", false);
+
+        client = clientService.getClient(CLIENT_ID_SS1);
+        assertEquals(9, client.getEndpoint().size());
+        assertTrue(client.getEndpoint().stream()
+                .map(EndpointType::getServiceCode)
+                .filter(s -> "testcode".equals(s))
+                .collect(Collectors.toList()).size() == 3);
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADD_OPENAPI3")
+    public void addOpenapi3ServiceDescriptionWithWarnings() throws Exception {
+        ClientType client = clientService.getClient(CLIENT_ID_SS1);
+        assertEquals(6, client.getEndpoint().size());
+        URL url = getClass().getResource("/openapiparser/warnings.yml");
+        boolean foundWarnings = false;
+        try {
+            serviceDescriptionService.addOpenapi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode", false);
+        } catch (UnhandledWarningsException e) {
+            foundWarnings = true;
+        }
+        assertTrue(foundWarnings);
+
+        try {
+            serviceDescriptionService.addOpenapi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode", true);
+        } catch (UnhandledWarningsException e) {
+            fail("Shouldn't throw warnings exception when ignorewarning is true");
+        }
+
+        client = clientService.getClient(CLIENT_ID_SS1);
+        assertEquals(9, client.getEndpoint().size());
+    }
+
+    @Test(expected = ServiceDescriptionService.ServiceCodeAlreadyExistsException.class)
+    @WithMockUser(authorities = "ADD_OPENAPI3")
+    public void addOpenapi3ServiceDescriptionWithDuplicateServiceCode() throws Exception {
+        URL url1 = getClass().getResource("/openapiparser/valid.yaml");
+        serviceDescriptionService.addOpenapi3ServiceDescription(CLIENT_ID_SS1, url1.toString(), "testcode", false);
+
+        // Should throw ServiceCodeAlreadyExistsException
+        URL url2 = getClass().getResource("/openapiparser/warnings.yml");
+        serviceDescriptionService.addOpenapi3ServiceDescription(CLIENT_ID_SS1, url2.toString(), "testcode", true);
+    }
+
+    @Test(expected = ServiceDescriptionService.UrlAlreadyExistsException.class)
+    @WithMockUser(authorities = "ADD_OPENAPI3")
+    public void addOpenapi3ServiceDescriptionWithDuplicateUrl() throws Exception {
+        URL url = getClass().getResource("/openapiparser/valid.yaml");
+        serviceDescriptionService.addOpenapi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode1", false);
+
+        // should throw UrlAlreadyExistsException
+        serviceDescriptionService.addOpenapi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode2", false);
+    }
+
+    @Test
+    @WithMockUser(authorities = "EDIT_REST")
+    public void updateRestServiceDescriptionSuccess() throws Exception {
+        final String serviceCode = "rest-servicecode";
+        final String newServiceCode = "new-rest-servicecode";
+
+        ClientType client = clientService.getClient(CLIENT_ID_SS1);
+        ServiceDescriptionType serviceDescription = serviceDescriptionService.getServiceDescriptiontype(5L);
+
+        assertEquals(3, getEndpointCountByServiceCode(client, serviceCode));
+        assertTrue(serviceDescriptionContainsServiceWithServiceCode(serviceDescription, serviceCode));
+
+        serviceDescriptionService.updateRestServiceDescription(5L, "https://restservice.com/api/v1/nosuchservice",
+                serviceCode, newServiceCode);
+
+        assertEquals(3, getEndpointCountByServiceCode(client, newServiceCode));
+        assertTrue(serviceDescriptionContainsServiceWithServiceCode(serviceDescription, newServiceCode));
+
+        assertEquals(0, getEndpointCountByServiceCode(client, serviceCode));
+        assertFalse(serviceDescriptionContainsServiceWithServiceCode(serviceDescription, serviceCode));
+    }
+
+    private boolean serviceDescriptionContainsServiceWithServiceCode(ServiceDescriptionType serviceDescription,
+                                                                     String serviceCode) {
+        return serviceDescription.getService().stream()
+                .map(s -> s.getServiceCode())
+                .collect(Collectors.toList())
+                .contains(serviceCode);
+    }
+
+    private int getEndpointCountByServiceCode(ClientType client, String serviceCode) {
+        return client.getEndpoint().stream()
+                .map(e -> e.getServiceCode())
+                .filter(sc -> serviceCode.equals(sc))
+                .collect(Collectors.toList())
+                .size();
+    }
+
+    @Test
+    @WithMockUser(authorities = "EDIT_OPENAPI3")
+    public void updateOpenapi3ServiceDescriptionSuccess() throws Exception {
+        URL url = getClass().getResource("/openapiparser/valid_modified.yaml");
+
+        ClientType client = clientService.getClient(CLIENT_ID_SS6);
+        assertEquals(5, getEndpointCountByServiceCode(client, "openapi3-test"));
+        assertEquals(4, client.getAcl().size());
+        assertTrue(client.getEndpoint().stream().filter(ep -> ep.getMethod().equals("POST")).count() == 1);
+
+        serviceDescriptionService.updateOpenApi3ServiceDescription(6L, url.toString(), "openapi3-test",
+                "openapi3-test", false);
+
+        List<EndpointType> endpoints = client.getEndpoint();
+        assertEquals(5, getEndpointCountByServiceCode(client, "openapi3-test"));
+        assertEquals(3, client.getAcl().size());
+        assertFalse(endpoints.stream().anyMatch(ep -> ep.getMethod().equals("POST")));
+        assertTrue(endpoints.stream().anyMatch(ep -> ep.getMethod().equals("PATCH")));
+
+        // Assert that the pre-existing, manually added, endpoint is transformed to generated during update
+        assertTrue(endpoints.stream()
+                .anyMatch(ep -> ep.getServiceCode().equals("openapi3-test")
+                    && ep.getMethod().equals("GET")
+                    && ep.getPath().equals("/foo")
+                    && ep.isGenerated()));
+
+        assertTrue(endpoints.stream()
+                .anyMatch(ep -> ep.getServiceCode().equals("openapi3-test")
+                        && ep.getMethod().equals("*")
+                        && ep.getPath().equals("**")));
+
+        assertTrue(endpoints.stream()
+                .anyMatch(ep -> ep.getServiceCode().equals("openapi3-test")
+                        && ep.getMethod().equals("PUT")
+                        && ep.getPath().equals("/foo")));
+
+
     }
 
 }

@@ -24,6 +24,8 @@
  */
 package ee.ria.xroad.common.conf.serverconf.model;
 
+import ee.ria.xroad.common.conf.serverconf.PathGlob;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -62,5 +64,16 @@ public class EndpointType {
         this.method = method;
         this.path = path;
         this.generated = generated;
+    }
+
+    public final boolean matches(String anotherMethod, String anotherPath) {
+        return (ANY_METHOD.equals(method) || method.equalsIgnoreCase(anotherMethod))
+                && (ANY_PATH.equals(path) || PathGlob.matches(path, anotherPath));
+    }
+
+    public final boolean isEquivalent(EndpointType other) {
+        return other.getServiceCode().equals(serviceCode)
+                && other.getMethod().equals(method)
+                && other.getPath().equals(path);
     }
 }

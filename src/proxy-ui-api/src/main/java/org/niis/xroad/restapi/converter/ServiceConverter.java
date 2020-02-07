@@ -24,11 +24,12 @@
  */
 package org.niis.xroad.restapi.converter;
 
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.common.collect.Streams;
-import org.niis.xroad.restapi.exceptions.BadRequestException;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,14 +55,20 @@ public class ServiceConverter {
     public static final int FULL_SERVICE_CODE_INDEX = 4;
 
     private ClientConverter clientConverter;
+    private EndpointConverter endpointConverter;
+    private EndpointHelper endpointHelper;
 
     @Autowired
-    public ServiceConverter(ClientConverter clientConverter) {
+    public ServiceConverter(ClientConverter clientConverter, EndpointConverter endpointConverter,
+            EndpointHelper endpointHelper) {
         this.clientConverter = clientConverter;
+        this.endpointConverter = endpointConverter;
+        this.endpointHelper = endpointHelper;
     }
 
     /**
-     * Converts a group of ServiceTypes to a list of Services
+     * Converts a group of ServiceTypes to a list of Services.
+     * This expects that serviceType.serviceDescription.client.endpoints have been fetched
      * @param serviceTypes
      * @return
      */
@@ -73,6 +80,7 @@ public class ServiceConverter {
 
     /**
      * Convert a ServiceType into Service.
+     * This expects that serviceType.serviceDescription.client.endpoints has been fetched
      * @param serviceType
      * @param clientId
      * @return
@@ -85,6 +93,10 @@ public class ServiceConverter {
         service.setSslAuth(serviceType.getSslAuthentication());
         service.setTimeout(serviceType.getTimeout());
         service.setUrl(serviceType.getUrl());
+
+        List<EndpointType> endpoints = endpointHelper.getEndpoints(serviceType,
+                serviceType.getServiceDescription().getClient());
+        service.setEndpoints(this.endpointConverter.convert(endpoints));
 
         return service;
     }

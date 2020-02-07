@@ -37,7 +37,7 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.DeadLetter;
 import akka.actor.Props;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import akka.testkit.TestActorRef;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
@@ -82,7 +82,7 @@ abstract class AbstractMessageLogTest {
         deadLetters.add(d);
     }
 
-    public static class DeadLetterActor extends UntypedActor {
+    public static class DeadLetterActor extends UntypedAbstractActor {
 
         private AbstractMessageLogTest test;
 

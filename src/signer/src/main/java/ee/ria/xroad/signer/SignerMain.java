@@ -185,7 +185,7 @@ public final class SignerMain {
     private static Config getConf(int signerPort) {
         Config conf = ConfigFactory.load().getConfig("signer-main")
                 .withFallback(ConfigFactory.load());
-        return conf.withValue("akka.remote.netty.tcp.port",
+        return conf.withValue("akka.remote.artery.canonical.port",
                 ConfigValueFactory.fromAnyRef(signerPort));
     }
 }

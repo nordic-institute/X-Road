@@ -28,19 +28,19 @@ import ee.ria.xroad.monitor.common.SystemMetricsRequest;
 import ee.ria.xroad.monitor.common.SystemMetricsResponse;
 
 import akka.actor.ActorSelection;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 
 /**
  * Test caller for monitoring service
  */
-public class ClientActor extends UntypedActor {
+public class ClientActor extends UntypedAbstractActor {
 
     private LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
     private ActorSelection selection =
-            getContext().actorSelection("akka.tcp://xroad-monitor@127.0.0.1:2552/user/MetricsProviderActor");
+            getContext().actorSelection("akka://xroad-monitor@127.0.0.1:2552/user/MetricsProviderActor");
 
     @Override
     public void preStart() throws Exception {

@@ -12,12 +12,32 @@
       "services": "services",
       "internalServers": "internal servers",
       "localGroups": "local groups"
+    },
+    "keys": {
+      "signAndAuthKeys": "SIGN and AUTH Keys",
+      "apiKey": "API Key",
+      "ssTlsCertificate": "Security Server TLS Certificate"
+    },
+    "settings": {
+      "systemParameters": "System Parameters",
+      "backupAndRestore": "Backup And Restore"
+    },
+    "services": {
+      "endpoints": "Endpoints",
+      "parameters": "Service Parameters"
     }
   },
   "client": {
     "name": "Name",
     "id": "ID",
     "status": "Status",
+    "statusText": {
+      "registered": "REGISTERED",
+      "globalError": "GLOBAL ERROR",
+      "deletionInProgress": "DELETION IN PROGRESS",
+      "saved": "SAVED",
+      "registrationInProgress": "REGISTRATION IN PROGRESS"
+    },
     "owner": "Owner",
     "memberName": "Member Name",
     "memberClass": "Member Class",
@@ -44,6 +64,8 @@
     "signCertificate": "Sign Certificate",
     "serialNumber": "Serial Number",
     "state": "State",
+    "inUse": "in use",
+    "disabled": "disabled",
     "expires": "Expires",
     "certificateHash": "Certificate Hash (SHA/1)",
     "infoSystem": "Information System TLS certificate",
@@ -60,14 +82,16 @@
     },
     "certificate": "Certificate",
     "name": "Name",
-    "csp": "csp",
-    "serial": "Serial",
+    "ocsp": "OCSP status",
+    "hash": "Hash",
     "hashInfo": "Hash (SHA-1)",
     "rsaModulus": "RSA Public Key Modulus",
     "rsaExp": "RSA Public Key Exponent",
     "deleteCertTitle": "Delete certificate?",
     "deleteCertConfirm": "Are you sure that you want to delete this certificate?",
-    "certDeleted": "Certificate deleted"
+    "certDeleted": "Certificate deleted",
+    "activateSuccess": "Certificate has been activated",
+    "deactivateSuccess": "Certificate has been disabled"
   },
   "localGroups": {
     "addGroup": "Add group",
@@ -107,22 +131,29 @@
     "disableTitle": "Disable?",
     "service": "Service",
     "serviceCode": "Service Code",
+    "serviceType": "URL type",
     "url": "URL",
+    "urlPlaceholder": "Insert URL",
+    "serviceCodePlaceholder": "Insert service code",
+    "restApiBasePath": "REST API Base Path",
+    "OpenApi3Description": "OpenApi 3 Description",
     "timeout": "Timeout",
     "deleteTitle": "Delete service description?",
     "deleteWsdlText": "Are you sure that you want to delete this WSDL?",
-    "deleteRestText": "Are you sure that you want to delete this REST?",
+    "deleteRestText": "Are you sure that you want to delete this REST Service?",
     "noMatches": "No matching records",
     "disableSuccess": "Service description disabled",
     "enableSuccess": "Service description enabled",
-    "restAdded": "REST added",
+    "openApi3ParsingFailed": "Parsing OpenApi3 description failed",
+    "openApi3Added": "OpenApi3 service added",
+    "restAdded": "REST service added",
     "wsdlAdded": "WSDL added",
     "deleted": "Service description deleted",
     "restDetails": "REST details",
     "wsdlDetails": "WSDL details",
     "wsdlRefreshed": "WSDL refreshed",
+    "lastRefreshed": "Last refreshed: ",
     "editUrl": "Edit URL",
-    "editServiceCode": "Edit service code",
     "serviceUrl": "Service URL",
     "applyToAll": "Apply to all in WSDL",
     "serviceParameters": "Service Parameters",
@@ -131,11 +162,16 @@
     "timeoutTooltip": "The maximum duration of a request to the service, in seconds",
     "verifyTls": "Verify TLS certificate",
     "tlsTooltip": "Verify TLS certificate when a secure connection is established",
-    "clients": {
-      "deleting_services": "Deleting services:",
-      "adding_services": "Adding services:",
-      "wsdl_validation_warnings": "Validation warnings:"
-    }
+    "deleting_services": "Deleting services:",
+    "adding_services": "Adding services:",
+    "wsdl_validation_warnings": "Validation warnings:",
+    "memberNameGroupDesc": "Member name / Group description",
+    "idGroupCode": "ID / Group code"
+  },
+  "endpoints": {
+    "addEndpoint": "Add Endpoint",
+    "path": "Path",
+    "httpRequestMethod": "HTTP Request Method"
   },
   "access": {
     "accessRights": "Access Rights",
@@ -154,16 +190,117 @@
     "close": "Close",
     "cancel": "Cancel",
     "yes": "Yes",
+    "edit": "Edit",
     "refresh": "Refresh",
     "delete": "Delete",
     "remove": "Remove",
     "removeAll": "Remove All",
+    "register": "Register",
+    "unregister": "Unregister",
     "save": "Save",
-    "continue": "Continue"
+    "continue": "Continue",
+    "activate": "Activate",
+    "deactivate": "Disable",
+    "previous": "Previous",
+    "done": "Done"
+  },
+  "keys": {
+    "token": "Token:",
+    "authKeyCert": "AUTH Key and Certificate",
+    "signKeyCert": "SIGN Key and Certificate",
+    "id": "ID",
+    "ocsp": "OCSP",
+    "expires": "Expires",
+    "status": "Status",
+    "signDetailsTitle": "SIGN Key details",
+    "authDetailsTitle": "AUTH Key details",
+    "friendlyName": "Friendly name",
+    "tokenDetails": "Token details",
+    "deleteTitle": "Delete key?",
+    "deleteKeyText": "Are you sure that you want to delete this key?",
+    "deleteCsr": "Delete CSR",
+    "deleteCsrTitle": "Delete CSR?",
+    "deleteCsrText": "Are you sure that you want to delete this CSR?",
+    "csrDeleted": "CSR deleted",
+    "tokenInfo": "Token information",
+    "gotIt": "Got it",
+    "tokenId": "Token ID:",
+    "tokenPin": "Token PIN",
+    "tokenSaved": "Token saved",
+    "logIn": "Log in",
+    "logOut": "Log out",
+    "loggedIn": "Logged in token",
+    "logOutTitle": "Log out",
+    "logOutText": "Log out of the token?",
+    "loggedOut": "Logged out of token",
+    "addKey": "Add key",
+    "importCert": "Import Cert.",
+    "type": "Type:",
+    "keyInfo": "Key information",
+    "keyId": "Key ID:",
+    "label": "Label:",
+    "unknown": "Key type not specified",
+    "incorrectPin": "Incorrect PIN",
+    "readOnly": "Read-only:",
+    "helpTitleKeys": "AUTH and SIGN Keys",
+    "helpTitleApi": "API Keys",
+    "keyAdded": "Key added",
+    "generateCsr": "Generate CSR",
+    "request": "Request",
+    "helpTitleSS": "Security Server TLS Certificate",
+    "helpTextKeys": "Authentication key and certificate certify authenticity of a Security Server. They are used for authentication in connections between Security Servers. Signature key and certificate certify authenticity of an X-Road member. They are used for signing and verifying the integrity of mediated messages.",
+    "helpTextApi": "API keys are used to authenticate API calls to Security Server’s management REST API. API keys are associated with roles that define the permissions granted to the API key.",
+    "helpTextSS": "Security Server’s TLS certificate is used in connections between the Security Server and an information system. The internal TLS certificate is used as both client and server certificate depending on the roles of the Security Server and information system.",
+    "keyLabelInput": "Key label",
+    "keyLabelTitle": "Generate a new key",
+    "keyLabelInfo": "You can define a label for the newly created Key (not mandatory)",
+    "registrationRequest": "Registration request",
+    "certRegistrationInfo": "Security server DNS name or IP address",
+    "importCertSuccess": "Uploading certificate succeeded",
+    "certificateRegistered": "Certificate registered",
+    "unregisterTitle": "Unregister certificate",
+    "unregisterText": "Do you want to unregister this certificate?",
+    "keySaved": "Key saved",
+    "keyDeleted": "Key deleted",
+    "certMarkedForDeletion": "Certificate marked for deletion",
+    "unregisterError": "Failed to unregister certificate. Continue with certificate deletion anyway?",
+    "ocspStatus": {
+      "disabled": "Disabled",
+      "expired": "Expired",
+      "unknown": "Unknown",
+      "good": "Good",
+      "suspended": "Suspended",
+      "revoked": "Revoked"
+    },
+    "certStatus": {
+      "saved": "Saved",
+      "registration": "Registration in progress",
+      "registered": "Registered",
+      "deletion": "Deletion in progress",
+      "globalError": "Global error"
+    }
+  },
+  "ssTlsCertificate": {
+    "generateKey": "Generate key",
+    "importCertificate": "Import cert.",
+    "exportCertificate": "Export cert.",
+    "keyCertTitle": "TLS Key and Certificate",
+    "keyText": "Internal TLS Key"
+  },
+  "csr": {
+    "usage": "Usage",
+    "client": "Client",
+    "certificationService": "Certification Service",
+    "csrFormat": "CSR Format",
+    "generateCsr": "Generate CSR",
+    "csrDetails": "CSR details",
+    "saveInfo": "Generate a new CSR and save it into a safe place",
+    "helpUsage": "Usage policy of the certificate: signing messages or authenticating Security Server.",
+    "helpClient": "X-Road member the certificate will be issued for.",
+    "helpCertificationService": "Certification Authority (CA) that will issue the certificate.",
+    "helpCsrFormat": "Format of the certificate signing request according to the CA’s requirements."
   },
   "login": {
-    "username": "Username",
-    "password": "Password",
     "logIn": "Log in",
     "logOut": "Log out",
     "errorMsg401": "Wrong username or password"
@@ -172,14 +309,49 @@
     "idleWarning": "You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.",
     "sessionExpired": "Session expired"
   },
-  "validation": {
+  "customValidation": {
     "invalidRest": "REST URL is not valid",
-    "invalidWsdl": "WSDL URL is not valid"
+    "invalidWsdl": "WSDL URL is not valid",
+    "invalidUrl": "URL is not valid"
+  },
+  "subjectType": {
+    "globalGroup": "GLOBALGROUP",
+    "localGroup": "LOCALGROUP",
+    "subsystem": "SUBSYSTEM"
   },
   "name": "Name",
   "member_class": "Member class",
   "member_name": "Member name",
   "member_code": "Member code",
+  "subsystem": "subsystem",
   "subsystem_code": "Subsystem code",
-  "warning": "Warning"
+  "instance": "Instance",
+  "type": "Type",
+  "warning": "Warning",
+  "fields": {
+    "password": "Password",
+    "username": "Username",
+    "serviceUrl": "URL",
+    "serviceTimeout": "Timeout",
+    "serviceCode": "Service Code",
+    "serviceType": "Service Type",
+    "url": "URL",
+    "tokenPin": "Token PIN",
+    "dns": "DNS",
+    "keys": {
+      "friendlyName": "Friendly name"
+    }
+  },
+  "certificateProfile": {
+    "COMMON_NAME": "Common Name (CN)",
+    "COUNTRY_CODE": "Country Code (C)",
+    "INSTANCE_IDENTIFIER": "Instance Identifier (C)",
+    "MEMBER_CLASS": "Member Class (O)",
+    "MEMBER_CODE": "Member Code (CN)",
+    "ORGANIZATION_NAME": "Organization Name (O)",
+    "SERIAL_NUMBER": "Serial Number",
+    "SERIAL_NUMBER_SN": "Serial Number (SN)",
+    "SERVER_CODE": "Server Code (CN)",
+    "SERVER_DNS_NAME": "Server DNS name (CN)"
+  }
 }

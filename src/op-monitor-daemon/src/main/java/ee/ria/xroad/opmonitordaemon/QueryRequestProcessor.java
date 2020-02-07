@@ -112,19 +112,19 @@ class QueryRequestProcessor {
             servletResponse.addHeader("Connection", "close");
 
             switch (requestSoap.getService().getServiceCode()) {
-            case GET_SECURITY_SERVER_OPERATIONAL_DATA:
-                operationalDataHandler.handle(requestSoap,
-                        servletResponse.getOutputStream(),
-                        responseContentTypeAssigner());
-                break;
-            case GET_SECURITY_SERVER_HEALTH_DATA:
-                healthDataHandler.handle(requestSoap,
-                        servletResponse.getOutputStream(),
-                        responseContentTypeAssigner());
-                break;
-            default:
-                throw new CodedException(ErrorCodes.X_INTERNAL_ERROR,
-                        "Unknown service: '%s'", requestSoap.getService());
+                case GET_SECURITY_SERVER_OPERATIONAL_DATA:
+                    operationalDataHandler.handle(requestSoap,
+                            servletResponse.getOutputStream(),
+                            responseContentTypeAssigner());
+                    break;
+                case GET_SECURITY_SERVER_HEALTH_DATA:
+                    healthDataHandler.handle(requestSoap,
+                            servletResponse.getOutputStream(),
+                            responseContentTypeAssigner());
+                    break;
+                default:
+                    throw new CodedException(ErrorCodes.X_INTERNAL_ERROR,
+                            "Unknown service: '%s'", requestSoap.getService());
             }
         }
 

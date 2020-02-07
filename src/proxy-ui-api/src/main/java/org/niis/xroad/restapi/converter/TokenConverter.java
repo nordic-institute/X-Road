@@ -31,6 +31,7 @@ import org.niis.xroad.restapi.openapi.model.KeyValuePair;
 import org.niis.xroad.restapi.openapi.model.Token;
 import org.niis.xroad.restapi.openapi.model.TokenStatus;
 import org.niis.xroad.restapi.openapi.model.TokenType;
+import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -46,10 +47,16 @@ import java.util.stream.Collectors;
 public class TokenConverter {
 
     private final KeyConverter keyConverter;
+    private final PossibleActionsRuleEngine possibleActionsRuleEngine;
+    private final PossibleActionConverter possibleActionConverter;
 
     @Autowired
-    public TokenConverter(KeyConverter keyConverter) {
+    public TokenConverter(KeyConverter keyConverter,
+            PossibleActionsRuleEngine possibleActionsRuleEngine,
+            PossibleActionConverter possibleActionConverter) {
         this.keyConverter = keyConverter;
+        this.possibleActionsRuleEngine = possibleActionsRuleEngine;
+        this.possibleActionConverter = possibleActionConverter;
     }
 
     /**
@@ -69,14 +76,14 @@ public class TokenConverter {
             token.setType(TokenType.HARDWARE);
         }
 
-        token.setKeys(keyConverter.convert(tokenInfo.getKeyInfo()));
+        token.setKeys(keyConverter.convert(tokenInfo.getKeyInfo(), tokenInfo));
 
         Optional<TokenStatus> status = TokenStatusMapping.map(tokenInfo.getStatus());
         token.setStatus(status.orElse(null));
 
-        token.setActive(tokenInfo.isActive());
+        token.setLoggedIn(tokenInfo.isActive());
         token.setAvailable(tokenInfo.isAvailable());
-        token.setSavedToConfiguration(isSavedToConfiguration(tokenInfo));
+        token.setSavedToConfiguration(tokenInfo.isSavedToConfiguration());
         token.setReadOnly(tokenInfo.isReadOnly());
         token.setSerialNumber(tokenInfo.getSerialNumber());
         token.setTokenInfos(new ArrayList<>());
@@ -88,20 +95,14 @@ public class TokenConverter {
             token.getTokenInfos().add(keyValuePair);
         }
 
+        token.setPossibleActions(possibleActionConverter.convert(
+                possibleActionsRuleEngine.getPossibleTokenActions(
+                        tokenInfo)));
+
         return token;
     }
 
-    /**
-     * Logic to determine if a token is saved to configuration,
-     * copied from token_renderer.rb#token_saved_to_configuration
-     * @param tokenInfo
-     */
-    private boolean isSavedToConfiguration(TokenInfo tokenInfo) {
-        return tokenInfo.getKeyInfo().stream()
-                .anyMatch(keyInfo -> keyConverter.isSavedToConfiguration(keyInfo));
-    }
-
-    /**
+   /**
      * Convert a group of {@link TokenInfo tokenInfos} to a list of {@link Token tokens}
      * @param tokenInfos
      * @return List of {@link TokenInfo tokenInfos}

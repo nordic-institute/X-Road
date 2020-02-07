@@ -1,47 +1,82 @@
-import Vue from 'vue';
-import Router, { Route } from 'vue-router';
+import Router, { Route, NavigationGuard } from 'vue-router';
 import { sync } from 'vuex-router-sync';
-import Login from './views/Login.vue';
-import Base from './views/Base.vue';
-import Clients from './views/Clients.vue';
-import Keys from './views/Keys.vue';
-import Settings from './views/Settings.vue';
-import Diagnostics from './views/Diagnostics.vue';
-import AddSubsystem from './views/AddSubsystem.vue';
-import AddClient from './views/AddClient.vue';
-import Subsystem from './views/Subsystem.vue';
-import Client from './views/Client.vue';
-import TabsBase from '@/views/TabsBase.vue';
-import Certificate from '@/views/Certificate.vue';
-import Error from '@/views/Error.vue';
-import ClientDetails from '@/components/ClientDetails.vue';
-import InternalServers from '@/components/InternalServers.vue';
-import LocalGroups from '@/components/LocalGroups.vue';
-import LocalGroup from '@/views/LocalGroup.vue';
-import Services from '@/components/Services.vue';
-import ServiceClients from '@/components/ServiceClients.vue';
-import ServiceDescriptionDetails from '@/views/ServiceDescriptionDetails.vue';
-import Service from '@/views/Service.vue';
-import store from './store';
-import { RouteName, Permissions } from '@/global';
+import TabsBase from '@/components/layout/TabsBase.vue';
+import AppLogin from '@/views/AppLogin.vue';
+import AppBase from '@/views/AppBase.vue';
+import Clients from '@/views/Clients/Clients.vue';
+import Client from '@/views/Clients/Client.vue';
+import KeysAndCertificates from '@/views/KeysAndCertificates/KeysAndCertificates.vue';
+import SignAndAuthKeys from '@/views/KeysAndCertificates/SignAndAuthKeys/SignAndAuthKeys.vue';
+import SSTlsCertificate from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/SecurityServerTlsCertificate.vue';
+import ApiKey from '@/views/KeysAndCertificates/ApiKey/ApiKey.vue';
+import Settings from '@/views/Settings/Settings.vue';
+import SystemParameters from '@/views/Settings/SystemParameters.vue';
+import BackupAndRestore from '@/views/Settings/BackupAndRestore.vue';
+import Diagnostics from '@/views/Diagnostics/Diagnostics.vue';
+import AddSubsystem from '@/views/AddSubsystem/AddSubsystem.vue';
+import AddClient from '@/views/AddClient/AddClient.vue';
+import Subsystem from '@/views/Clients/Subsystem.vue';
+import ClientDetails from '@/views/Clients/Details/ClientDetails.vue';
+import InternalServers from '@/views/Clients/InternalServers/InternalServers.vue';
+import Services from '@/views/Clients/Services/Services.vue';
+import ServiceClients from '@/views/Clients/ServiceClients/ServiceClients.vue';
+import LocalGroups from '@/views/Clients/LocalGroups/LocalGroups.vue';
+import ClientTlsCertificate from '@/views/ClientTlsCertificate/ClientTlsCertificate.vue';
+import AppError from '@/views/AppError.vue';
+import LocalGroup from '@/views/LocalGroup/LocalGroup.vue';
+import ServiceDescriptionDetails from '@/views/ServiceDescriptionDetails/ServiceDescriptionDetails.vue';
+import TokenDetails from '@/views/TokenDetails/TokenDetails.vue';
+import KeyDetails from '@/views/KeyDetails/KeyDetails.vue';
+import CertificateDetails from '@/views/CertificateDetails/CertificateDetails.vue';
+import Service from '@/views/Service/Service.vue';
+import GenerateCertificateSignRequest from '@/views/GenerateCertificateSignRequest/GenerateCertificateSignRequest.vue';
+import store from '@/store';
+import { Permissions, RouteName } from '@/global';
+import ServiceEndpoints from '@/views/Service/Endpoints/Endpoints.vue';
+import ServiceParameters from '@/views/Service/Parameters/ServiceParameters.vue';
+import InternalCertificateDetails from '@/views/InternalCertificateDetails/InternalCertificateDetails.vue';
 
-
+// At the moment the vue router does not have a type for Next.
+// Using this solution was recommended in a github comment:
+// https://github.com/vuejs/vue-router/pull/2497#issuecomment-474010032
+type Next = Parameters<NavigationGuard>[2];
 
 const router = new Router({
   routes: [
     {
       path: '/',
-      component: Base,
+      component: AppBase,
       children: [
         {
-          name: RouteName.Keys,
           path: '/keys',
           components: {
-            default: Keys,
+            default: KeysAndCertificates,
             top: TabsBase,
           },
-
           meta: { permission: Permissions.VIEW_KEYS },
+          children: [
+            {
+              name: RouteName.SignAndAuthKeys,
+              path: '',
+              component: SignAndAuthKeys,
+              props: true,
+              meta: { permission: Permissions.VIEW_CLIENT_DETAILS },
+            },
+            {
+              name: RouteName.ApiKey,
+              path: 'apikey',
+              component: ApiKey,
+              props: true,
+              meta: { permission: Permissions.VIEW_CLIENT_ACL_SUBJECTS },
+            },
+            {
+              name: RouteName.SSTlsCertificate,
+              path: 'tls-cert',
+              component: SSTlsCertificate,
+              props: true,
+              meta: { permission: Permissions.VIEW_CLIENT_ACL_SUBJECTS },
+            },
+          ],
         },
         {
           name: RouteName.Diagnostics,
@@ -53,12 +88,25 @@ const router = new Router({
           meta: { permission: Permissions.DIAGNOSTICS },
         },
         {
-          name: RouteName.Settings,
           path: '/settings',
           components: {
             default: Settings,
             top: TabsBase,
           },
+          children: [
+            {
+              name: RouteName.SystemParameters,
+              path: '',
+              component: SystemParameters,
+              props: true,
+            },
+            {
+              name: RouteName.BackupAndRestore,
+              path: 'backup',
+              component: BackupAndRestore,
+              props: true,
+            },
+          ],
         },
         {
           name: RouteName.AddSubsystem,
@@ -162,9 +210,33 @@ const router = new Router({
         },
         {
           name: RouteName.Certificate,
-          path: '/certificate/:id/:hash',
+          path: '/certificate/:hash/:usage',
           components: {
-            default: Certificate,
+            default: CertificateDetails,
+          },
+          props: { default: true },
+        },
+        {
+          name: RouteName.Token,
+          path: '/token/:id',
+          components: {
+            default: TokenDetails,
+          },
+          props: { default: true },
+        },
+        {
+          name: RouteName.Key,
+          path: '/key/:id',
+          components: {
+            default: KeyDetails,
+          },
+          props: { default: true },
+        },
+        {
+          name: RouteName.ClientTlsCertificate,
+          path: '/client-tls-certificate/:id/:hash',
+          components: {
+            default: ClientTlsCertificate,
           },
           props: { default: true },
           meta: { permission: Permissions.VIEW_CLIENT_INTERNAL_CERT_DETAILS },
@@ -179,7 +251,7 @@ const router = new Router({
         },
         {
           name: RouteName.ServiceDescriptionDetails,
-          path: '/services/details/:id',
+          path: '/service-description/:id',
           components: {
             default: ServiceDescriptionDetails,
           },
@@ -187,9 +259,43 @@ const router = new Router({
         },
         {
           name: RouteName.Service,
-          path: '/service/:serviceId',
+          path: '/service',
           components: {
             default: Service,
+          },
+          redirect: '/service/:clientId/:serviceId/parameters',
+          props: { default: true },
+          children: [
+            {
+              name: RouteName.ServiceParameters,
+              path: '/service/:clientId/:serviceId/parameters',
+              components: {
+                default: ServiceParameters,
+              },
+              props: { default: true },
+            },
+            {
+              name: RouteName.ServiceEndpoints,
+              path: '/service/:clientId/:serviceId/endpoints',
+              components: {
+                default: ServiceEndpoints,
+              },
+            },
+          ],
+        },
+        {
+          name: RouteName.GenerateCertificateSignRequest,
+          path: '/generate-csr/:keyId',
+          components: {
+            default: GenerateCertificateSignRequest,
+          },
+          props: { default: true },
+        },
+        {
+          name: RouteName.InternalTlsCertificate,
+          path: '/internal-tls-certificate',
+          components: {
+            default: InternalCertificateDetails,
           },
           props: { default: true },
         },
@@ -198,16 +304,16 @@ const router = new Router({
     {
       path: '/login',
       name: RouteName.Login,
-      component: Login,
+      component: AppLogin,
     },
     {
       path: '*',
-      component: Error,
+      component: AppError,
     },
   ],
 });
 
-router.beforeEach((to: Route, from: Route, next) => {
+router.beforeEach((to: Route, from: Route, next: Next) => {
 
   // Going to login
   if (to.name === 'login') {

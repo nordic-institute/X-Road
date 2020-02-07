@@ -24,11 +24,33 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.converter.ClientConverter;
+import org.niis.xroad.restapi.converter.CsrFormatMapping;
+import org.niis.xroad.restapi.converter.KeyConverter;
+import org.niis.xroad.restapi.converter.KeyUsageTypeMapping;
 import org.niis.xroad.restapi.converter.TokenConverter;
+import org.niis.xroad.restapi.openapi.model.CsrGenerate;
+import org.niis.xroad.restapi.openapi.model.Key;
+import org.niis.xroad.restapi.openapi.model.KeyLabel;
+import org.niis.xroad.restapi.openapi.model.KeyLabelWithCsrGenerate;
+import org.niis.xroad.restapi.openapi.model.KeyWithCertificateSigningRequestId;
 import org.niis.xroad.restapi.openapi.model.Token;
+import org.niis.xroad.restapi.openapi.model.TokenName;
+import org.niis.xroad.restapi.openapi.model.TokenPassword;
+import org.niis.xroad.restapi.service.ActionNotPossibleException;
+import org.niis.xroad.restapi.service.CertificateAuthorityNotFoundException;
+import org.niis.xroad.restapi.service.ClientNotFoundException;
+import org.niis.xroad.restapi.service.DnFieldHelper;
+import org.niis.xroad.restapi.service.KeyAndCertificateRequestService;
+import org.niis.xroad.restapi.service.KeyService;
+import org.niis.xroad.restapi.service.TokenNotFoundException;
 import org.niis.xroad.restapi.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -48,33 +70,163 @@ import java.util.List;
 @PreAuthorize("denyAll")
 public class TokensApiController implements TokensApi {
 
+    private final KeyConverter keyConverter;
+    private final KeyService keyService;
     private final TokenService tokenService;
     private final TokenConverter tokenConverter;
+    private final ClientConverter clientConverter;
+    private final KeyAndCertificateRequestService keyAndCertificateRequestService;
 
     /**
-     * TokensApiController constructor
-     * @param tokenService
-     * @param tokenConverter
+     * constructor
      */
-
     @Autowired
-    public TokensApiController(TokenService tokenService,
-            TokenConverter tokenConverter) {
+    public TokensApiController(KeyConverter keyConverter, KeyService keyService,
+            TokenService tokenService,
+            TokenConverter tokenConverter,
+            ClientConverter clientConverter,
+            KeyAndCertificateRequestService keyAndCertificateRequestService) {
+        this.keyConverter = keyConverter;
+        this.keyService = keyService;
         this.tokenService = tokenService;
         this.tokenConverter = tokenConverter;
+        this.clientConverter = clientConverter;
+        this.keyAndCertificateRequestService = keyAndCertificateRequestService;
     }
-
 
     @PreAuthorize("hasAuthority('VIEW_KEYS')")
     @Override
     public ResponseEntity<List<Token>> getTokens() {
-        List<TokenInfo> tokenInfos = null;
-        try {
-            tokenInfos = tokenService.getAllTokens();
-        } catch (Exception e) {
-            throw new RuntimeException("exception while reading tokens", e);
-        }
+        List<TokenInfo> tokenInfos = tokenService.getAllTokens();
         List<Token> tokens = tokenConverter.convert(tokenInfos);
         return new ResponseEntity<>(tokens, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_KEYS')")
+    public ResponseEntity<Token> getToken(String id) {
+        Token token = getTokenFromService(id);
+        return new ResponseEntity<>(token, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAuthority('ACTIVATE_DEACTIVATE_TOKEN')")
+    @Override
+    public ResponseEntity<Token> loginToken(String id, TokenPassword tokenPassword) {
+        if (tokenPassword == null
+                || tokenPassword.getPassword() == null
+                || tokenPassword.getPassword().isEmpty()) {
+            throw new BadRequestException("Missing token password");
+        }
+        char[] password = tokenPassword.getPassword().toCharArray();
+        try {
+            tokenService.activateToken(id, password);
+        } catch (TokenNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (TokenService.PinIncorrectException e) {
+            throw new BadRequestException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
+        }
+        Token token = getTokenFromService(id);
+        return new ResponseEntity<>(token, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAuthority('ACTIVATE_DEACTIVATE_TOKEN')")
+    @Override
+    public ResponseEntity<Token> logoutToken(String id) {
+        try {
+            tokenService.deactivateToken(id);
+        } catch (TokenNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
+        }
+        Token token = getTokenFromService(id);
+        return new ResponseEntity<>(token, HttpStatus.OK);
+    }
+
+    private Token getTokenFromService(String id) {
+        TokenInfo tokenInfo = null;
+        try {
+            tokenInfo = tokenService.getToken(id);
+        } catch (TokenNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+        return tokenConverter.convert(tokenInfo);
+    }
+
+    @PreAuthorize("hasAuthority('EDIT_TOKEN_FRIENDLY_NAME')")
+    @Override
+    public ResponseEntity<Token> updateToken(String id, TokenName tokenName) {
+        try {
+            TokenInfo tokenInfo = tokenService.updateTokenFriendlyName(id, tokenName.getName());
+            Token token = tokenConverter.convert(tokenInfo);
+            return new ResponseEntity<>(token, HttpStatus.OK);
+        } catch (TokenNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
+        }
+    }
+
+    @PreAuthorize("hasAuthority('GENERATE_KEY')")
+    @Override
+    public ResponseEntity<Key> addKey(String tokenId, KeyLabel keyLabel) {
+        try {
+            KeyInfo keyInfo = keyService.addKey(tokenId, keyLabel.getLabel());
+            Key key = keyConverter.convert(keyInfo);
+            return ApiUtil.createCreatedResponse("/api/keys/{keyId}", key, key.getId());
+        } catch (TokenNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
+        }
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('GENERATE_KEY') "
+            + " and (hasAuthority('GENERATE_AUTH_CERT_REQ') or hasAuthority('GENERATE_SIGN_CERT_REQ'))")
+    public ResponseEntity<KeyWithCertificateSigningRequestId> addKeyAndCsr(String tokenId,
+            KeyLabelWithCsrGenerate keyLabelWithCsrGenerate) {
+
+        // squid:S3655 throwing NoSuchElementException if there is no value present is
+        // fine since keyUsageInfo is mandatory parameter
+        CsrGenerate csrGenerate = keyLabelWithCsrGenerate.getCsrGenerateRequest();
+        KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(csrGenerate.getKeyUsageType()).get();
+        ClientId memberId = null;
+        if (KeyUsageInfo.SIGNING == keyUsageInfo) {
+            // memberId not used for authentication csrs
+            memberId = clientConverter.convertId(csrGenerate.getMemberId());
+        }
+
+        // squid:S3655 throwing NoSuchElementException if there is no value present is
+        // fine since csr format is mandatory parameter
+        CertificateRequestFormat csrFormat = CsrFormatMapping.map(csrGenerate.getCsrFormat()).get();
+
+        KeyAndCertificateRequestService.KeyAndCertRequestInfo keyAndCertRequest;
+        try {
+            keyAndCertRequest = keyAndCertificateRequestService.addKeyAndCertRequest(
+                    tokenId, keyLabelWithCsrGenerate.getKeyLabel(),
+                    memberId,
+                    keyUsageInfo,
+                    csrGenerate.getCaName(),
+                    csrGenerate.getSubjectFieldValues(),
+                    csrFormat);
+        } catch (ClientNotFoundException | CertificateAuthorityNotFoundException
+                | DnFieldHelper.InvalidDnParameterException e) {
+            throw new BadRequestException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
+        } catch (TokenNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+
+        KeyWithCertificateSigningRequestId result = new KeyWithCertificateSigningRequestId();
+        Key key = keyConverter.convert(keyAndCertRequest.getKeyInfo());
+        result.setKey(key);
+        result.setCsrId(keyAndCertRequest.getCertReqId());
+
+        return new ResponseEntity<>(result, HttpStatus.OK);
+
     }
 }

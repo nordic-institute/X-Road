@@ -3,9 +3,13 @@ import Vue from 'vue';
 import Vuex, { StoreOptions } from 'vuex';
 import VuexPersistence from 'vuex-persist';
 import { RootState } from './types';
+import { generalModule } from './modules/general';
 import { mockDataModule } from './modules/mockData';
 import { clientsModule } from './modules/clients';
 import { clientModule } from './modules/client';
+import { keysModule } from './modules/keys';
+import { servicesModule } from './modules/services';
+import { csrModule } from './modules/certificateSignRequest';
 import { user } from './modules/user';
 
 Vue.use(Vuex);
@@ -20,9 +24,13 @@ const store: StoreOptions<RootState> = {
   },
   modules: {
     user,
+    generalModule,
     mockDataModule,
     clientsModule,
     clientModule,
+    keysModule,
+    servicesModule,
+    csrModule,
   },
   // @ts-ignore
   plugins: [vuexLocal.plugin],

@@ -49,7 +49,7 @@ import java.security.cert.X509Certificate;
 @Slf4j
 @Service
 @Transactional
-@PreAuthorize("denyAll")
+@PreAuthorize("isAuthenticated()")
 public class InternalTlsCertificateService {
 
     private static final String CERT_PEM_FILENAME = "./cert.pem";
@@ -59,7 +59,6 @@ public class InternalTlsCertificateService {
     @Setter
     private InternalTlsCertificateRepository internalTlsCertificateRepository;
 
-    @PreAuthorize("hasAuthority('VIEW_PROXY_INTERNAL_CERT')")
     public X509Certificate getInternalTlsCertificate() {
         return internalTlsCertificateRepository.getInternalTlsCertificate();
     }
@@ -72,7 +71,6 @@ public class InternalTlsCertificateService {
      *
      * @return byte array that contains the exported certs.tar.gz
      */
-    @PreAuthorize("hasAuthority('EXPORT_PROXY_INTERNAL_CERT')")
     public byte[] exportInternalTlsCertificate() {
         X509Certificate certificate = internalTlsCertificateRepository.getInternalTlsCertificate();
 

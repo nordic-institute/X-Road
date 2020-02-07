@@ -288,7 +288,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     private void updateOpMonitoringDataByRequest() {
         updateOpMonitoringDataByRestRequest(opMonitoringData, requestMessage.getRest());
         opMonitoringData.setRequestAttachmentCount(0);
-        opMonitoringData.setRequestRestSize(requestMessage.getRest().getMessageBytes().length
+        opMonitoringData.setRequestSize(requestMessage.getRest().getMessageBytes().length
                 + decoder.getAttachmentsByteCount());
     }
 
@@ -343,8 +343,8 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
 
         DescriptionType descriptionType = ServerConf.getDescriptionType(requestServiceId);
-        if (descriptionType != null && descriptionType != DescriptionType.OPENAPI3
-            && descriptionType != DescriptionType.OPENAPI3_DESCRIPTION) {
+        if (descriptionType != null && descriptionType != DescriptionType.REST
+            && descriptionType != DescriptionType.OPENAPI3) {
             throw new CodedException(X_INVALID_SERVICE_TYPE,
                     "Service is a SOAP service and cannot be called using REST interface");
         }
@@ -591,7 +591,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             }
 
             monitoringData.setResponseAttachmentCount(0);
-            monitoringData.setResponseRestSize(restResponse.getMessageBytes().length
+            monitoringData.setResponseSize(restResponse.getMessageBytes().length
                     + messageEncoder.getAttachmentsByteCount());
         }
 

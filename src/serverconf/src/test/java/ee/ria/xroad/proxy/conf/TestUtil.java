@@ -243,7 +243,7 @@ public final class TestUtil {
             ServiceDescriptionType serviceDescription = new ServiceDescriptionType();
             serviceDescription.setClient(client);
             serviceDescription.setUrl(SERVICEDESCRIPTION_URL + "rest");
-            serviceDescription.setType(DescriptionType.OPENAPI3);
+            serviceDescription.setType(DescriptionType.REST);
 
             ServiceType service = new ServiceType();
             service.setServiceDescription(serviceDescription);

@@ -1,2 +1,1 @@
-etc/xroad/nginx/default-xroad.conf etc/nginx/sites-enabled/default-xroad
 etc/xroad/nginx/nginx-secure-addons.conf etc/nginx/conf.d/xroad-securing.conf

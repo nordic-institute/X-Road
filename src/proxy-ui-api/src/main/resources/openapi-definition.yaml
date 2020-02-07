@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.12"
+  version: "1.0.21"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -217,7 +217,43 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /certificates/{hash}:
+  /token-certificates:
+    post: # ok
+      tags:
+        - security server
+      summary: import new certificate
+      operationId: importCertificate
+      description: Imports certificate to the system
+      requestBody:
+        description: certificate to import
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+              description: certificate file
+      responses:
+        '201':
+          description: certificate created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenCertificate'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
+  /token-certificates/{hash}:
     get: # ok
       tags:
         - security server
@@ -233,14 +269,14 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '200':
-          description: certificate details
+          description: token certificate
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CertificateDetails'
+                $ref: '#/components/schemas/TokenCertificate'
         '400':
           description: request was invalid
         '401':
@@ -268,7 +304,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '204':
           description: deletion was successful
@@ -282,7 +318,7 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
-  /certificates/{hash}/activate:
+  /token-certificates/{hash}/activate:
     put: # ok
       tags:
         - security server
@@ -298,7 +334,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '204':
           description: request was successful
@@ -314,7 +350,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /certificates/{hash}/deactivate:
+  /token-certificates/{hash}/deactivate:
     put: # ok
       tags:
         - security server
@@ -330,7 +366,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '204':
           description: certificate was deactivated
@@ -346,7 +382,81 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /certificates/{hash}/register:
+  /token-certificates/{hash}/import:
+    post: # ok
+      tags:
+        - security server
+      summary: import an existing certificate from a token by cert hash
+      operationId: importCertificateFromToken
+      description: Imports certificate from a token to the system
+      parameters:
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '201':
+          description: the imported certificate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenCertificate'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
+  /token-certificates/{hash}/possible-actions:
+    get: # ok
+      tags:
+        - security server
+      summary: get possible actions for one certificate
+      operationId: getPossibleActionsForCertificate
+      description: UI needs to know which actions can be done on one certificate
+      parameters:
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '200':
+          description: possible actions that can be done on the certificate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PossibleActions'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /token-certificates/{hash}/register:
     put: # ok
       tags:
         - security server
@@ -362,7 +472,56 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: SecurityServerAddress
+              type: object
+              required:
+                - address
+              properties:
+                address:
+                  type: string
+                  description: Security server's IP address or DNS name
+                  format: text
+                  minLength: 1
+                  maxLength: 255
+              example:
+                address: 127.0.0.1
+      responses:
+        '200':
+          description: request was successful
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /token-certificates/{hash}/unregister:
+    put: # ok
+      tags:
+        - security server
+      summary: unregister authentication certificate
+      operationId: unregisterAuthCertificate
+      description: Administrator unregisters selected authentication certificate.
+      parameters:
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
       responses:
         '204':
           description: request was successful
@@ -378,13 +537,13 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /certificates/{hash}/unregister:
+  /token-certificates/{hash}/mark-for-deletion:
     put: # ok
       tags:
         - security server
-      summary: unregister certificate
-      operationId: unregisterCertificate
-      description: Administrator unregisters selected certificate.
+      summary: marks an auth certificate for deletion
+      operationId: markAuthCertForDeletion
+      description: Administrator marks an auth certificate for deletion.
       parameters:
         - in: path
           name: hash
@@ -394,7 +553,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '204':
           description: request was successful
@@ -503,9 +662,13 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: adds new client for the security server
+      summary: Add new client for the security server.
       operationId: addClient
-      description: Adds new client to the system
+      description: >
+        Adds new client to the system.
+        Note that with this endpoint it is possible to add an unregistered member as a client.
+        Attempt to add an unregistered member with ClientAdd.ignore_warnings = false causes the operation to fail with a warning in response's ErrorInfo object.
+        Attempt to add an unregistered member with ClientAdd.ignore_warnings = true succeeds.
       requestBody:
         description: client to add
         content:
@@ -860,7 +1023,7 @@ paths:
       tags:
         - security server
       summary: get security server client certificates information
-      operationId: getClientCertificates
+      operationId: getClientSignCertificates
       description: Administrator views the certificates for the client.
       parameters:
         - in: path
@@ -882,7 +1045,7 @@ paths:
                 uniqueItems: true
                 description: array of certificate (details) objects
                 items:
-                  $ref: '#/components/schemas/CertificateDetails'
+                  $ref: '#/components/schemas/TokenCertificate'
         '400':
           description: request was invalid
         '401':
@@ -1005,7 +1168,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '200':
           description: certificate details
@@ -1049,7 +1212,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '204':
           description: certificate deletion was successful
@@ -1204,7 +1367,7 @@ paths:
         - in: query
           name: member_name_group_description
           description: pass an optional search string (name) for looking up subjects - name of a member or description of a group
-          example: NIIS
+          example: NIIS | Some group description
           required: false
           schema:
             type: string
@@ -1239,7 +1402,7 @@ paths:
         - in: query
           name: member_group_code
           description: pass an optional search string (member_group_code) for looking up subjects - member_code of a member or group_code of a group
-          example: 1234 | Example group name
+          example: 1234 | Example group code
           required: false
           schema:
             type: string
@@ -1249,7 +1412,7 @@ paths:
         - in: query
           name: subsystem_code
           description: pass an optional search string (subsystem_code) for looking up subjects
-          example: Subsystem
+          example: Subsystem1
           required: false
           schema:
             type: string
@@ -1474,7 +1637,7 @@ paths:
     get: # ok
       tags:
         - security server
-      summary: get information for the selected key
+      summary: get information for the selected key in selected token
       operationId: getKey
       description: Administrator views key details.
       parameters:
@@ -1486,7 +1649,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '200':
           description: key object
@@ -1506,7 +1668,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    put: # ok
+    patch: # ok
       tags:
         - security server
       summary: update key information
@@ -1521,16 +1683,23 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
-        - in: query
-          name: name
-          description: friendly name of the key
-          required: false
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: KeyName
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: Friendly name of a key
+                  format: text
+                  minLength: 1
+                  maxLength: 255
+              example:
+                name: my-key-0
       responses:
         '200':
           description: key modified
@@ -1565,7 +1734,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '204':
           description: key deletion was successful
@@ -1579,58 +1747,12 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
-  /keys/{id}/certificates:
+  /keys/{id}/csrs:
     post: # ok
       tags:
         - security server
-      summary: adds new certificate for selected key
-      operationId: addCertificate
-      description: Adds certificate to the system
-      parameters:
-        - in: path
-          name: id
-          description: id of the key
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-      requestBody:
-        description: certificate to add
-        content:
-          application/octet-stream:
-            schema:
-              type: string
-              format: binary
-              description: certificate file
-      responses:
-        '201':
-          description: certificate created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CertificateDetails'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '409':
-          description: an existing item already exists
-        '500':
-          description: internal server error
-  /keys/{id}/generate-csr:
-    put: # ok
-      tags:
-        - security server
       summary: generate csr for the selected key
-      operationId: genrerateCsr
+      operationId: generateCsr
       description: Administrator generates csr for the key.
       parameters:
         - in: path
@@ -1641,42 +1763,17 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
-        - in: query
-          name: key_usage
-          description: inteded usage for the key (signing or authentication)
-          required: false
-          schema:
-            $ref: '#/components/schemas/KeyUsageType'
-        - in: query
-          name: approved_ca
-          description: approved certification service
-          required: false
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-        - in: query
-          name: csr_format
-          description: format of the certificate signing request (PEM or DER)
-          required: false
-          schema:
-            $ref: '#/components/schemas/CsrFormat'
-        - in: query
-          name: member_id
-          description: security server client the certificate will be issued for (only for signing certificates)
-          required: false
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
+      requestBody:
+        description: request to generate csr
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CsrGenerate'
       responses:
         '201':
-          description: CSR created
+          description: created CSR
           content:
-            application/pkcs10:
+            application/octet-stream:
               schema:
                 type: string
                 format: binary
@@ -1693,8 +1790,59 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /keys/{id}/delete-csr:
-    put: # ok
+  /keys/{id}/csrs/{csr_id}:
+    get: # ok
+      tags:
+        - security server
+      summary: download a CSR binary
+      operationId: downloadCsr
+      description: Administrator downloads a csr that has been created earlier
+      parameters:
+        - in: path
+          name: id
+          description: id of the key
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+        - in: path
+          name: csr_id
+          description: id of the csr
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+        - in: query
+          name: csr_format
+          description: format of the certificate signing request (PEM or DER)
+          required: false
+          schema:
+            $ref: '#/components/schemas/CsrFormat'
+      responses:
+        '201':
+          description: CSR binary
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+                description: csr file
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    delete: # ok
       tags:
         - security server
       summary: delete csr from the selected key
@@ -1709,8 +1857,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
-        - in: query
+        - in: path
           name: csr_id
           description: id of the csr
           required: true
@@ -1718,10 +1865,54 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+            maxLength: 40
       responses:
         '204':
           description: csr deletion was successful
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /keys/{id}/csrs/{csr_id}/possible-actions:
+    get: # ok
+      tags:
+        - security server
+      summary: get possible actions for one csr
+      operationId: getPossibleActionsForCsr
+      description: UI needs to know which actions can be done on one csr
+      parameters:
+        - in: path
+          name: id
+          description: id of the key
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+        - in: path
+          name: csr_id
+          description: id of the csr
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '200':
+          description: possible actions that can be done on the certificate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PossibleActions'
         '400':
           description: request was invalid
         '401':
@@ -1752,7 +1943,7 @@ paths:
             type: boolean
       responses:
         '200':
-          description: key object
+          description: array of member classes
           content:
             application/json:
               schema:
@@ -1795,7 +1986,7 @@ paths:
             maxLength: 255
       responses:
         '200':
-          description: key object
+          description: array of member classes
           content:
             application/json:
               schema:
@@ -1869,6 +2060,44 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /security-servers:
+    get: # ok
+      tags:
+        - security server
+      summary: get all security servers
+      operationId: getSecurityServers
+      description: SS administrator views the details of all security servers
+      parameters:
+        - in: query
+          name: current_server
+          description: whether to only get the current server's identifier
+          required: false
+          schema:
+            default: false
+            type: boolean
+      responses:
+        '200':
+          description: list of SecurityServer objects
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of SecurityServer objects
+                items:
+                  $ref: '#/components/schemas/SecurityServer'
         '400':
           description: request was invalid
         '401':
@@ -2039,7 +2268,7 @@ paths:
     post:
       tags:
         - security server
-      summary: adds new access right for the selected service
+      summary: add new access right for the selected service
       operationId: addServiceAccessRight
       description: Adds access right to the service
       parameters:
@@ -2160,7 +2389,7 @@ paths:
     post: # ok
       tags:
         - security server
-      summary: adds new access right for selected service client
+      summary: add new access right for selected service client
       operationId: addServiceClientAccessRight
       description: Adds access right to the service client.
       parameters:
@@ -2699,8 +2928,8 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /system/certificate/generate-tls-key:
-    put: # ok
+  /system/certificate/tls-key:
+    post: # ok
       tags:
         - security server
       summary: generate new TLS key
@@ -2721,8 +2950,8 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /system/certificate/generate-csr:
-    put: # ok
+  /system/certificate/csr:
+    post: # ok
       tags:
         - security server
       summary: generate new certificate request
@@ -2779,6 +3008,107 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
+  /certificate-authorities:
+    get: # ok
+      tags:
+        - security server
+      summary: view the approved certificate authorities
+      operationId: getApprovedCertificateAuthorities
+      description: Administrator views the approved certificate authorities.
+      parameters:
+        - in: query
+          name: key_usage_type
+          description: return only CAs suitable for this type of key usage
+          required: false
+          schema:
+            $ref: '#/components/schemas/KeyUsageType'
+      responses:
+        '200':
+          description: list of approved certificate authorities
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of certificate authority objects
+                items:
+                  $ref: '#/components/schemas/CertificateAuthority'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /certificate-authorities/{ca_name}/csr-subject-fields:
+    get: # ok
+      tags:
+        - security server
+      summary: get description of subject DN fields for CSR
+      operationId: getSubjectFieldDescriptions
+      description: list DN field descriptions to collect CSR parameters
+      parameters:
+        - in: path
+          name: ca_name
+          description: common name of the CA
+          example: X-Road Test CA CN
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: key_id
+          description: id of the key. If provided, used only for validating correct key usage
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+        - in: query
+          name: key_usage_type
+          description: which usage type this CSR is for
+          required: true
+          schema:
+            $ref: '#/components/schemas/KeyUsageType'
+        - in: query
+          name: member_id
+          description: member client id for signing CSRs. <instance_id>:<member_class>:<member_code>
+          example: FI:GOV:123
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 767
+      responses:
+        '200':
+          description: csr subject field objects
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of CsrSubjectFieldDescription objects
+                items:
+                  $ref: '#/components/schemas/CsrSubjectFieldDescription'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+
   /system/timestamping-services:
     get: # ok
       tags:
@@ -2964,7 +3294,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    put: # ok
+    patch: # ok
       tags:
         - security server
       summary: update security server token information
@@ -2980,15 +3310,23 @@ paths:
             format: text
             minLength: 1
             maxLength: 255
-        - in: query
-          name: name
-          description: friendly name of the token
-          required: false
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: TokenName
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: friendly name of the token
+                  format: text
+                  minLength: 1
+                  maxLength: 255
+              example:
+                name: my-token-0
       responses:
         '200':
           description: token modified
@@ -3008,11 +3346,68 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /tokens/{id}/keys-with-csrs:
+    post: # ok
+      tags:
+        - security server
+      summary: add a new key and generate a csr for it
+      operationId: addKeyAndCsr
+      description: Administrator adds a new key and generates a csr for it.
+      parameters:
+        - in: path
+          name: id
+          description: id of the token
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: KeyLabelWithCsrGenerate
+              type: object
+              required:
+                - key_label
+                - csr_generate_request
+              properties:
+                key_label:
+                  type: string
+                  format: text
+                  description: label for the new key
+                  minLength: 1
+                  maxLength: 255
+                  example: My new key
+                csr_generate_request:
+                  $ref: '#/components/schemas/CsrGenerate'
+      responses:
+        '201':
+          description: key created for the token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeyWithCertificateSigningRequestId'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists or token not logged in
+        '500':
+          description: internal server error
   /tokens/{id}/keys:
     post: # ok
       tags:
         - security server
-      summary: adds new key
+      summary: add new key
       operationId: addKey
       description: Adds key for selected token.
       parameters:
@@ -3058,14 +3453,14 @@ paths:
         '406':
           description: request specified an invalid format
         '409':
-          description: an existing item already exists
+          description: an existing item already exists or token not logged in
         '500':
           description: internal server error
   /tokens/{id}/login:
     put: # ok
       tags:
         - security server
-      summary: logins to token
+      summary: login to token
       operationId: loginToken
       description: Login to token
       parameters:
@@ -3077,7 +3472,20 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: TokenPassword
+              type: object
+              properties:
+                password:
+                  type: string
+                  format: text
+                  description: password for logging in to the token
+                  minLength: 1
+              example:
+                password: sm3!!ycat
       responses:
         '200':
           description: logged in
@@ -3113,7 +3521,6 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 255
       responses:
         '200':
           description: logged out
@@ -3261,6 +3668,7 @@ components:
       required:
         - id
         - owner_id
+        - possible_actions
       properties:
         id:
           type: string
@@ -3276,6 +3684,11 @@ components:
           minLength: 1
           maxLength: 767
           readOnly: true
+        possible_actions:
+          $ref: '#/components/schemas/PossibleActions'
+          description: possible actions that can be done to this object, e.g DELETE.
+            Has value only for operationIds getToken and getTokens.
+            Does not consider user authorization.
     TokenCertificate: # ok
       type: object
       description: certificate that is stored in a Token (auth or sign cert)
@@ -3309,6 +3722,11 @@ components:
           $ref: '#/components/schemas/CertificateDetails'
         status:
           $ref: '#/components/schemas/CertificateStatus'
+        possible_actions:
+          $ref: '#/components/schemas/PossibleActions'
+          description: possible actions that can be done to this object, e.g DELETE.
+            Has value only for operationIds getToken and getTokens.
+            Does not consider user authorization.
     CertificateDetails: # ok
       type: object
       description: certificate details for any kind of certificate (TLS, auth, sign)
@@ -3422,7 +3840,7 @@ components:
           description: certificate SHA-1 hash
           example: 1234567890ABCDEF
           minLength: 1
-          maxLength: 255
+          maxLength: 40
         key_usages:
           type: array
           description: certificate key usage array
@@ -3431,13 +3849,22 @@ components:
             $ref: '#/components/schemas/KeyUsage'
     CertificateAuthority: # ok
       type: object
-      description: certificate authority
+      description: approved certificate authority information
       required:
         - name
+        - distinguished_name
         - response
         - expires_at
+        - authentication_only
       properties:
         name:
+          type: string
+          format: text
+          description: common name of the CA, used also as an identifier
+          example: X-Road Test CA CN
+          minLength: 1
+          maxLength: 255
+        distinguished_name:
           type: string
           format: text
           description: distinguished name
@@ -3458,6 +3885,9 @@ components:
           example: '2099-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
+        authentication_only:
+          type: boolean
+          description: if certificate authority is limited for authentication use only
     CertificateStatus: # ok
       type: string
       format: enum
@@ -3481,6 +3911,29 @@ components:
         - OCSP_RESPONSE_GOOD
         - OCSP_RESPONSE_SUSPENDED
         - OCSP_RESPONSE_REVOKED
+    PossibleActions: # ok
+      type: array
+      description: array containing the possible actions that can be done for this item
+      items:
+        $ref: '#/components/schemas/PossibleAction'
+    PossibleAction: # ok
+      type: string
+      format: enum
+      description: an action to change state or edit token, key, cert or csr
+      example: DELETE
+      enum:
+        - DELETE
+        - ACTIVATE
+        - DISABLE
+        - LOGIN
+        - LOGOUT
+        - REGISTER
+        - UNREGISTER
+        - IMPORT_FROM_TOKEN
+        - GENERATE_KEY
+        - EDIT_FRIENDLY_NAME
+        - GENERATE_AUTH_CSR
+        - GENERATE_SIGN_CSR
     Client: # ok
       type: object
       description: x-road client
@@ -3605,6 +4058,92 @@ components:
       enum:
         - PEM
         - DER
+    CsrGenerate:
+      type: object
+      description: request to generate a CSR
+      required:
+        - key_usage_type
+        - ca_name
+        - csr_format
+        - subject_field_values
+      properties:
+        key_usage_type:
+          description: which usage type this CSR is for (signing or authentication)
+          $ref: '#/components/schemas/KeyUsageType'
+        ca_name:
+          type: string
+          format: text
+          description: common name of the CA
+          example: X-Road Test CA CN
+          minLength: 1
+          maxLength: 255
+        csr_format:
+          description: format of the certificate signing request (PEM or DER)
+          $ref: '#/components/schemas/CsrFormat'
+        member_id:
+          type: string
+          format: text
+          description: member client id for signing CSRs. <instance_id>:<member_class>:<member_code>
+          example: FI:GOV:123
+          minLength: 1
+          maxLength: 767
+        subject_field_values:
+          type: object
+          description: user-provided values for subject DN parameters
+          additionalProperties:
+            type: string
+    CsrSubjectFieldDescription:
+      type: object
+      description: object describing input fields for CSR subject DN info
+      required:
+        - id
+        - localized
+        - read_only
+        - required
+      properties:
+        id:
+          type: string
+          format: text
+          description: the identifier of the field (such as 'O', 'OU' etc)
+          example: O
+          minLength: 1
+          readOnly: true
+        label:
+          type: string
+          format: text
+          description: label of the field, used to display the field in the user interface
+          example: ORGANIZATION_NAME
+          minLength: 1
+          readOnly: true
+        label_key:
+          type: string
+          format: text
+          description: localization key for label of the field, used to display the field in the user interface
+          example: Organization name (O)
+          minLength: 1
+          readOnly: true
+        default_value:
+          type: string
+          format: text
+          description: the default value of the field. Can be empty.
+          example: 1234
+          minLength: 0
+          readOnly: true
+        read_only:
+          type: boolean
+          description: if this field is read-only
+          example: true
+          readOnly: true
+        required:
+          type: boolean
+          description: if this field is required to be filled
+          example: true
+          readOnly: true
+        localized:
+          type: boolean
+          description: if true, label key is in property "label_key". If false, actual label is in property "label"
+          example: true
+          readOnly: true
     ErrorInfo:
       type: object
       description: object returned in error cases
@@ -3724,6 +4263,20 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
+    KeyWithCertificateSigningRequestId: # ok
+      type: object
+      description: Key and TokenCertificateSigningRequest id
+      required:
+        - key
+        - csr_id
+      properties:
+        key:
+          $ref: '#/components/schemas/Key'
+        csr_id:
+          type: string
+          format: text
+          description: CSR id
+          example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
     Key: # ok
       type: object
       description: key for the certificate
@@ -3741,7 +4294,6 @@ components:
           description: key id
           example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
           minLength: 1
-          maxLength: 255
           readOnly: true
         name:
           type: string
@@ -3777,6 +4329,11 @@ components:
           type: boolean
           description: if the key is saved to configuration
           example: true
+        possible_actions:
+          $ref: '#/components/schemas/PossibleActions'
+          description: possible actions that can be done to this object, e.g DELETE.
+            Has value only for operationIds getToken and getTokens.
+            Does not consider user authorization.
     KeyUsage: # ok
       type: string
       format: enum
@@ -3921,6 +4478,12 @@ components:
           example: server123
           minLength: 1
           maxLength: 255
+        server_address:
+          type: string
+          format: text
+          description: security server address (ip or name)
+          example: 192.168.1.100
+          maxLength: 255
     Service: # ok
       type: object
       description: service for the service description
@@ -3969,6 +4532,41 @@ components:
           example: https://domain.com/service
           minLength: 1
           maxLength: 255
+        endpoints:
+          type: array
+          description: list of endpoints linked to this service
+          items:
+            $ref: '#/components/schemas/Endpoint'
+    Endpoint:
+      type: object
+      description: Endpoint for a service
+      required:
+        - id
+        - service_code
+        - method
+        - path
+      properties:
+        id:
+          type: string
+          description: unique identifier
+          example: 15
+        service_code:
+          type: string
+          example: example_service_code
+        method:
+          type: string
+          description: http method mapeed to this endpoint
+          example: 'GET'
+          default: '*'
+        path:
+          type: string
+          description: relative path where this endpoint is mapped to
+          example: '/foo'
+          default: '**'
+        generated:
+          type: boolean
+          description: has endpoint been generated from openapi3 description
+          example: true
     ServiceUpdate: # ok
       type: object
       description: object for updating a service or all services within service description
@@ -3996,35 +4594,12 @@ components:
       type: object
       description: service client
       required:
-        - id
-        - subject_type
-        - name
+        - subject
+        - rights_given_at
         - access_rights
       properties:
-        id:
-          type: string
-          format: text
-          description: a subsystem id <instance_id>:<member_class>:<member_code>:<subsystem> | globalgroup id <instance_id>:<group_code> | localgroup resource id in number format <id>
-          example: DEV:ORG:1234:Subsystem | DEV:security-server-owners | 123
-          minLength: 1
-          maxLength: 1279
-        subject_type:
-          $ref: '#/components/schemas/SubjectType'
-        name:
-          type: string
-          format: text
-          description: service client name
-          example: Security server owners
-          minLength: 1
-          maxLength: 255
-        local_group_code:
-          type: string
-          format: text
-          description: group code in case the object is a local group
-          example: My own Local group code
-          minLength: 1
-          maxLength: 255
-          readOnly: true
+        subject:
+          $ref: '#/components/schemas/Subject'
         rights_given_at:
           type: string
           format: date-time
@@ -4040,7 +4615,7 @@ components:
             $ref: '#/components/schemas/AccessRight'
     ServiceDescription: # ok
       type: object
-      description: WSDL/REST service
+      description: WSDL/OPENAPI3/REST service
       required:
         - id
         - url
@@ -4126,6 +4701,9 @@ components:
     ServiceDescriptionUpdate:
       type: object
       description: request object for updating a service description url or service code
+      required:
+        - type
+        - url
       properties:
         url:
           type: string
@@ -4139,6 +4717,13 @@ components:
           format: text
           description: service code for REST service
           example: exampleServiceCode
+          minLength: 1
+          maxLength: 255
+        new_rest_service_code:
+          type: string
+          format: test
+          description: new service code for REST service
+          example: newExampleServiceCode
           minLength: 1
           maxLength: 255
         ignore_warnings:
@@ -4156,6 +4741,7 @@ components:
       enum:
         - WSDL
         - REST
+        - OPENAPI3
     Subject: # ok
       type: object
       description: subject
@@ -4178,6 +4764,14 @@ components:
           readOnly: true
           minLength: 1
           maxLength: 255
+        local_group_code:
+          type: string
+          format: text
+          description: group code in case the object is a local group
+          example: My own Local group code
+          minLength: 1
+          maxLength: 255
+          readOnly: true
         subject_type:
           $ref: '#/components/schemas/SubjectType'
     SubjectType: # ok
@@ -4294,7 +4888,7 @@ components:
         - type
         - keys
         - status
-        - active
+        - logged_in
         - available
         - saved_to_configuration
         - read_only
@@ -4305,7 +4899,6 @@ components:
           description: token id
           example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
           minLength: 1
-          maxLength: 255
           readOnly: true
         name:
           type: string
@@ -4324,9 +4917,9 @@ components:
             $ref: '#/components/schemas/Key'
         status:
           $ref: '#/components/schemas/TokenStatus'
-        active:
+        logged_in:
           type: boolean
-          description: if the token is active
+          description: if the token has been logged in to
           example: true
         available:
           type: boolean
@@ -4350,6 +4943,11 @@ components:
           description: Contains label-value pairs of information
           items:
             $ref: '#/components/schemas/KeyValuePair'
+        possible_actions:
+          $ref: '#/components/schemas/PossibleActions'
+          description: possible actions that can be done to this object, e.g DELETE.
+            Has value only for operationIds getToken and getTokens.
+            Does not consider user authorization.
     TokenStatus: # ok
       type: string
       format: text
