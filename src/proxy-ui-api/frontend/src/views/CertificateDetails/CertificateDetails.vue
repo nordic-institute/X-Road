@@ -258,7 +258,7 @@ export default Vue.extend({
         })
         .catch((error) => {
           if (
-            error.response.data.error.code ===
+            error?.response?.data?.error?.code ===
             'management_request_sending_failed'
           ) {
             this.unregisterErrorResponse = error.response;
