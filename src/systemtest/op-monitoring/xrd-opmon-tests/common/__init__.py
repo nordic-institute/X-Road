@@ -406,7 +406,7 @@ def assert_response_mime_size_in_range(
 def assert_response_soap_size_in_range(
         json_payload: dict, message_id: str, expected_size: int,
         expected_number_of_matches: int):
-    """ Check if responseSoapSize is in the expected range for
+    """ Check if responseSize is in the expected range for
     the expected number of recs.
 
     Throw an exception if there are issues with the values or
