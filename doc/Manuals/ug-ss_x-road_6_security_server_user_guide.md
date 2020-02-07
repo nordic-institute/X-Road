@@ -518,7 +518,37 @@ After the X-Road governing authority has accepted the registration, the registra
 
 **Access rights:** [Registration Officer](#xroad-registration-officer)
 
-To change the security server owner the following actions must be completed.
+To change the security server owner, two registered Owner members must be available. If a registered member is already available, jump directly to step 3.
+
+To add a new member and change it to Owner member, the following actions must be completed.
+
+1.  Add a new Owner member to the security server
+
+    1.1 On the **Clients** view, select **Add Member**.
+    
+    1.2 In the opening wizard, Select the new Owner member from the list of security server clients
+    
+    1.3 Add the selected member
+    
+    Note: Signing Key and Certificate must be configured for the new Owner member. If needed, the wizard will automatically show the dedicated steps for Key and Certificate configuration to collect the needed information.
+    
+2.  Register the new member
+
+    2.1 On the **Clients** view, locate the new member in the Clients list and click **Register** in the corresponding row
+    
+    2.2 In the opening dialog, click **Register**. A registeration request is sent to the X-Road Governing Authority
+    
+    Note: Once the request is approved, the new member appears as "Registered" - it can be set as Owner member.
+
+3.  Request a change of the security server owner
+
+    3.1 On the **Clients** view, locate the new member and click its name to open the member's detail view
+    
+    3.2 In the detail view, click **Make owner**
+    
+    1.3 In the opening dialog, click **Make owner**. A owner change request is sent to the X-Road Governing Authority
+    
+Once the owner change request, the new member will be automatically shown as the security server Owner member.
 
 - A new member must be added to the security server (see [4.2](#42-adding-a-security-server-client)). If needed, specify the token on which the member is configured
 
