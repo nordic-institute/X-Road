@@ -38,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Module worker base class.
@@ -123,11 +124,11 @@ public abstract class AbstractModuleWorker extends AbstractUpdateableActor {
     }
 
     private boolean hasToken(TokenType tokenType) {
-        return getToken(tokenType) != null;
+        return getToken(tokenType).isPresent();
     }
 
-    private ActorRef getToken(TokenType tokenType) {
-        return getContext().getChild(tokenType.getId());
+    private Optional<ActorRef> getToken(TokenType tokenType) {
+        return getContext().findChild(tokenType.getId());
     }
 
     private ActorRef createToken(TokenInfo tokenInfo, TokenType tokenType) {

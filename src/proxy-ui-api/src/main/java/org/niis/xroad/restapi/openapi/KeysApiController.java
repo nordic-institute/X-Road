@@ -25,24 +25,31 @@
 package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.commonui.SignerProxy.GeneratedCertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
+import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.CsrFormatMapping;
 import org.niis.xroad.restapi.converter.KeyConverter;
 import org.niis.xroad.restapi.converter.KeyUsageTypeMapping;
+import org.niis.xroad.restapi.converter.PossibleActionConverter;
+import org.niis.xroad.restapi.openapi.model.CsrFormat;
 import org.niis.xroad.restapi.openapi.model.CsrGenerate;
 import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.KeyName;
+import org.niis.xroad.restapi.openapi.model.PossibleAction;
+import org.niis.xroad.restapi.service.ActionNotPossibleException;
 import org.niis.xroad.restapi.service.CertificateAuthorityNotFoundException;
-import org.niis.xroad.restapi.service.CertificateProfileInstantiationException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
+import org.niis.xroad.restapi.service.CsrNotFoundException;
 import org.niis.xroad.restapi.service.DnFieldHelper;
+import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.KeyService;
+import org.niis.xroad.restapi.service.PossibleActionEnum;
 import org.niis.xroad.restapi.service.ServerConfService;
 import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.service.WrongKeyUsageException;
@@ -53,6 +60,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.util.EnumSet;
+import java.util.List;
 
 /**
  * keys controller
@@ -69,7 +79,7 @@ public class KeysApiController implements KeysApi {
     private final TokenCertificateService tokenCertificateService;
     private final ServerConfService serverConfService;
     private final CsrFilenameCreator csrFilenameCreator;
-
+    private final PossibleActionConverter possibleActionConverter;
 
     /**
      * KeysApiController constructor
@@ -80,13 +90,15 @@ public class KeysApiController implements KeysApi {
             ClientConverter clientConverter,
             TokenCertificateService tokenCertificateService,
             ServerConfService serverConfService,
-            CsrFilenameCreator csrFilenameCreator) {
+            CsrFilenameCreator csrFilenameCreator,
+            PossibleActionConverter possibleActionConverter) {
         this.keyService = keyService;
         this.keyConverter = keyConverter;
         this.clientConverter = clientConverter;
         this.tokenCertificateService = tokenCertificateService;
         this.serverConfService = serverConfService;
         this.csrFilenameCreator = csrFilenameCreator;
+        this.possibleActionConverter = possibleActionConverter;
     }
 
     @Override
@@ -113,6 +125,8 @@ public class KeysApiController implements KeysApi {
             keyInfo = keyService.updateKeyFriendlyName(id, keyName.getName());
         } catch (KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
         }
         Key key = keyConverter.convert(keyInfo);
         return new ResponseEntity<>(key, HttpStatus.OK);
@@ -137,26 +151,23 @@ public class KeysApiController implements KeysApi {
 
         // squid:S3655 throwing NoSuchElementException if there is no value present is
         // fine since csr format is mandatory parameter
-        GenerateCertRequest.RequestFormat csrFormat = CsrFormatMapping.map(csrGenerate.getCsrFormat()).get();
+        CertificateRequestFormat csrFormat = CsrFormatMapping.map(csrGenerate.getCsrFormat()).get();
 
-        byte[] csr = null;
+        byte[] csr;
         try {
             csr = tokenCertificateService.generateCertRequest(keyId,
                     memberId,
                     keyUsageInfo,
                     csrGenerate.getCaName(),
                     csrGenerate.getSubjectFieldValues(),
-                    csrFormat);
+                    csrFormat).getCertRequest();
         } catch (WrongKeyUsageException | DnFieldHelper.InvalidDnParameterException
                 | ClientNotFoundException | CertificateAuthorityNotFoundException e) {
             throw new BadRequestException(e);
         } catch (KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (TokenCertificateService.KeyNotOperationalException e) {
+        } catch (ActionNotPossibleException e) {
             throw new ConflictException(e);
-        } catch (TokenCertificateService.CsrCreationFailureException
-                | CertificateProfileInstantiationException e) {
-            throw new InternalServerErrorException(e);
         }
 
         String filename = csrFilenameCreator.createCsrFilename(keyUsageInfo, csrFormat, memberId,
@@ -169,11 +180,63 @@ public class KeysApiController implements KeysApi {
     @PreAuthorize("hasAuthority('DELETE_AUTH_CERT') or hasAuthority('DELETE_SIGN_CERT')")
     public ResponseEntity<Void> deleteCsr(String keyId, String csrId) {
         try {
-            keyService.deleteCsr(keyId, csrId);
-        } catch (KeyNotFoundException | KeyService.CsrNotFoundException e) {
+            tokenCertificateService.deleteCsr(csrId);
+        } catch (KeyNotFoundException | CsrNotFoundException e) {
             throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_KEYS')")
+    public ResponseEntity<List<PossibleAction>> getPossibleActionsForCsr(String id, String csrId) {
+        try {
+            EnumSet<PossibleActionEnum> actions = tokenCertificateService
+                    .getPossibleActionsForCsr(csrId);
+            return new ResponseEntity<>(possibleActionConverter.convert(actions), HttpStatus.OK);
+        } catch (CsrNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+    }
+
+    @Override
+    @PreAuthorize("hasAnyAuthority('DELETE_KEY', 'DELETE_AUTH_KEY', 'DELETE_SIGN_KEY')")
+    public ResponseEntity<Void> deleteKey(String keyId) {
+        try {
+            keyService.deleteKey(keyId);
+        } catch (KeyNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
+        } catch (GlobalConfService.GlobalConfOutdatedException e) {
+            throw new BadRequestException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAnyAuthority('GENERATE_AUTH_CERT_REQ', 'GENERATE_SIGN_CERT_REQ')")
+    public ResponseEntity<Resource> downloadCsr(String keyId, String csrId, CsrFormat csrFormat) {
+
+        // squid:S3655 throwing NoSuchElementException if there is no value present is
+        // fine since csr format is mandatory parameter
+        CertificateRequestFormat certificateRequestFormat = CsrFormatMapping.map(csrFormat).get();
+        GeneratedCertRequestInfo csrInfo;
+        try {
+            csrInfo = tokenCertificateService.regenerateCertRequest(keyId, csrId, certificateRequestFormat);
+        } catch (KeyNotFoundException | CsrNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
+        }
+
+        String filename = csrFilenameCreator.createCsrFilename(csrInfo.getKeyUsage(),
+                certificateRequestFormat, csrInfo.getMemberId(),
+                serverConfService.getSecurityServerId());
+
+        return ApiUtil.createAttachmentResourceResponse(csrInfo.getCertRequest(), filename);
     }
 }
 

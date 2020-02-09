@@ -7,8 +7,9 @@
     :cancelButtonText="cancelButtonText"
     :saveButtonText="acceptButtonText"
     :showClose="false"
+    :loading="loading"
   >
-    <div slot="content">{{$t(text)}}</div>
+    <div slot="content" data-test="dialog-content-text">{{$t(text)}}</div>
   </simpleDialog>
 </template>
 
@@ -44,6 +45,11 @@ export default Vue.extend({
     acceptButtonText: {
       type: String,
       default: 'action.yes',
+    },
+    // Set save button loading spinner
+    loading: {
+      type: Boolean,
+      default: false,
     },
   },
 

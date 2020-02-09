@@ -25,6 +25,8 @@
 package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import com.google.common.collect.Streams;
 import org.bouncycastle.asn1.x509.CRLReason;
@@ -37,6 +39,7 @@ import org.bouncycastle.cert.ocsp.SingleResp;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.CertificateOcspStatus;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
+import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -53,12 +56,32 @@ public class TokenCertificateConverter {
 
     private final CertificateDetailsConverter certificateDetailsConverter;
     private final ClientConverter clientConverter;
+    private final PossibleActionsRuleEngine possibleActionsRuleEngine;
+    private final PossibleActionConverter possibleActionConverter;
 
     @Autowired
     public TokenCertificateConverter(CertificateDetailsConverter certificateDetailsConverter,
-            ClientConverter clientConverter) {
+            ClientConverter clientConverter,
+            PossibleActionsRuleEngine possibleActionsRuleEngine,
+            PossibleActionConverter possibleActionConverter) {
         this.certificateDetailsConverter = certificateDetailsConverter;
         this.clientConverter = clientConverter;
+        this.possibleActionsRuleEngine = possibleActionsRuleEngine;
+        this.possibleActionConverter = possibleActionConverter;
+    }
+
+    /**
+     * Convert {@link CertificateInfo} to {@link TokenCertificate}
+     * and populate possibleActions
+     */
+    public TokenCertificate convert(CertificateInfo certificateInfo,
+            KeyInfo keyInfo,
+            TokenInfo tokenInfo) {
+        TokenCertificate tokenCertificate = convert(certificateInfo);
+        tokenCertificate.setPossibleActions(possibleActionConverter.convert(
+                possibleActionsRuleEngine.getPossibleCertificateActions(
+                        tokenInfo, keyInfo, certificateInfo)));
+        return tokenCertificate;
     }
 
     /**
@@ -144,7 +167,23 @@ public class TokenCertificateConverter {
      */
     public List<TokenCertificate> convert(Iterable<CertificateInfo> certificateInfos) {
         return Streams.stream(certificateInfos)
-                .map(this::convert)
+                .map(c -> convert(c))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Convert a group of {@link CertificateInfo certificateInfos} to a list of
+     * {@link TokenCertificate token certificates}, while populating possibleActions.
+     * @param keyInfo all certificates need to belong to the same key
+     * @param tokenInfo all certificates need to belong to the same token
+     * @param certificateInfos
+     * @return List of {@link TokenCertificate token certificates}
+     */
+    public List<TokenCertificate> convert(Iterable<CertificateInfo> certificateInfos,
+            KeyInfo keyInfo,
+            TokenInfo tokenInfo) {
+        return Streams.stream(certificateInfos)
+                .map(c -> convert(c, keyInfo, tokenInfo))
                 .collect(Collectors.toList());
     }
 

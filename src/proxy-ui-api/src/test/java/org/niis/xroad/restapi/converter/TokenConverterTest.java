@@ -137,7 +137,7 @@ public class TokenConverterTest {
         unsavedKey.getCerts().clear();
         unsavedKey.getCertRequests().clear();
 
-        TokenInfo tokenInfo = TokenTestUtils.createTestTokenInfo("friendly-name");
+        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder().build();
 
         tokenInfo.getKeyInfo().clear();
         assertEquals(false, tokenConverter.convert(tokenInfo).getSavedToConfiguration());

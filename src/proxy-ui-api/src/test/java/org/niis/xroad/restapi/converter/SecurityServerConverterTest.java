@@ -26,15 +26,20 @@ package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.SecurityServer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 /**
  * test SecurityServerConverter
@@ -43,8 +48,18 @@ import static org.junit.Assert.assertEquals;
 @SpringBootTest
 public class SecurityServerConverterTest {
 
+    private static final String SERVER_ADDRESS = "foo.bar.baz";
+
     @Autowired
     private SecurityServerConverter securityServerConverter;
+
+    @MockBean
+    private GlobalConfFacade globalConfFacade;
+
+    @Before
+    public void setup() {
+        when(globalConfFacade.getSecurityServerAddress(any())).thenReturn(SERVER_ADDRESS);
+    }
 
     @Test
     public void convertEncodedId() {
@@ -101,6 +116,7 @@ public class SecurityServerConverterTest {
         assertEquals("GOV", converted.getMemberClass());
         assertEquals("M4", converted.getMemberCode());
         assertEquals("server1", converted.getServerCode());
+        assertEquals(SERVER_ADDRESS, converted.getServerAddress());
     }
     @Test
     public void convertSecurityServerId() {

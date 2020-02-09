@@ -10,6 +10,7 @@ spring:
   jpa:
     ## *.hbm.xml files are loaded from classpath
     mapping-resources: identifiers.hbm.xml,serverconf.hbm.xml,apikey.hbm.xml
+    open-in-view: false
     hibernate:
       ddl-auto: none
       show-sql: true
@@ -48,4 +49,19 @@ ratelimit:
   requests:
     per:
       second: 20
-      minute: 60
+      minute: 600
+
+file-upload-endpoints:
+  endpointDefinitions:
+    -
+      httpMethod: POST
+      pathEnding: /backups/upload
+    -
+      httpMethod: POST
+      pathEnding: /tls-certificates
+    -
+      httpMethod: POST
+      pathEnding: /certificates
+    -
+      httpMethod: POST
+      pathEnding: /certificate/import

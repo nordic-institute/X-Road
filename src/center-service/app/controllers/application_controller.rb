@@ -23,5 +23,7 @@
 # THE SOFTWARE.
 #
 
+require 'java'
+
 class ApplicationController < ActionController::Base
 end

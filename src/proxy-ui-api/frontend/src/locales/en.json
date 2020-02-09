@@ -21,6 +21,10 @@
     "settings": {
       "systemParameters": "System Parameters",
       "backupAndRestore": "Backup And Restore"
+    },
+    "services": {
+      "endpoints": "Endpoints",
+      "parameters": "Service Parameters"
     }
   },
   "client": {
@@ -85,7 +89,9 @@
     "rsaExp": "RSA Public Key Exponent",
     "deleteCertTitle": "Delete certificate?",
     "deleteCertConfirm": "Are you sure that you want to delete this certificate?",
-    "certDeleted": "Certificate deleted"
+    "certDeleted": "Certificate deleted",
+    "activateSuccess": "Certificate has been activated",
+    "deactivateSuccess": "Certificate has been disabled"
   },
   "localGroups": {
     "addGroup": "Add group",
@@ -125,15 +131,22 @@
     "disableTitle": "Disable?",
     "service": "Service",
     "serviceCode": "Service Code",
+    "serviceType": "URL type",
     "url": "URL",
+    "urlPlaceholder": "Insert URL",
+    "serviceCodePlaceholder": "Insert service code",
+    "restApiBasePath": "REST API Base Path",
+    "OpenApi3Description": "OpenApi 3 Description",
     "timeout": "Timeout",
     "deleteTitle": "Delete service description?",
     "deleteWsdlText": "Are you sure that you want to delete this WSDL?",
-    "deleteRestText": "Are you sure that you want to delete this REST?",
+    "deleteRestText": "Are you sure that you want to delete this REST Service?",
     "noMatches": "No matching records",
     "disableSuccess": "Service description disabled",
     "enableSuccess": "Service description enabled",
-    "restAdded": "REST added",
+    "openApi3ParsingFailed": "Parsing OpenApi3 description failed",
+    "openApi3Added": "OpenApi3 service added",
+    "restAdded": "REST service added",
     "wsdlAdded": "WSDL added",
     "deleted": "Service description deleted",
     "restDetails": "REST details",
@@ -141,7 +154,6 @@
     "wsdlRefreshed": "WSDL refreshed",
     "lastRefreshed": "Last refreshed: ",
     "editUrl": "Edit URL",
-    "editServiceCode": "Edit service code",
     "serviceUrl": "Service URL",
     "applyToAll": "Apply to all in WSDL",
     "serviceParameters": "Service Parameters",
@@ -155,6 +167,11 @@
     "wsdl_validation_warnings": "Validation warnings:",
     "memberNameGroupDesc": "Member name / Group description",
     "idGroupCode": "ID / Group code"
+  },
+  "endpoints": {
+    "addEndpoint": "Add Endpoint",
+    "path": "Path",
+    "httpRequestMethod": "HTTP Request Method"
   },
   "access": {
     "accessRights": "Access Rights",
@@ -173,12 +190,17 @@
     "close": "Close",
     "cancel": "Cancel",
     "yes": "Yes",
+    "edit": "Edit",
     "refresh": "Refresh",
     "delete": "Delete",
     "remove": "Remove",
     "removeAll": "Remove All",
+    "register": "Register",
+    "unregister": "Unregister",
     "save": "Save",
     "continue": "Continue",
+    "activate": "Activate",
+    "deactivate": "Disable",
     "previous": "Previous",
     "done": "Done"
   },
@@ -196,6 +218,10 @@
     "tokenDetails": "Token details",
     "deleteTitle": "Delete key?",
     "deleteKeyText": "Are you sure that you want to delete this key?",
+    "deleteCsr": "Delete CSR",
+    "deleteCsrTitle": "Delete CSR?",
+    "deleteCsrText": "Are you sure that you want to delete this CSR?",
+    "csrDeleted": "CSR deleted",
     "tokenInfo": "Token information",
     "gotIt": "Got it",
     "tokenId": "Token ID:",
@@ -203,6 +229,7 @@
     "tokenSaved": "Token saved",
     "logIn": "Log in",
     "logOut": "Log out",
+    "loggedIn": "Logged in token",
     "logOutTitle": "Log out",
     "logOutText": "Log out of the token?",
     "loggedOut": "Logged out of token",
@@ -227,7 +254,16 @@
     "keyLabelInput": "Key label",
     "keyLabelTitle": "Generate a new key",
     "keyLabelInfo": "You can define a label for the newly created Key (not mandatory)",
+    "registrationRequest": "Registration request",
+    "certRegistrationInfo": "Security server DNS name or IP address",
     "importCertSuccess": "Uploading certificate succeeded",
+    "certificateRegistered": "Certificate registered",
+    "unregisterTitle": "Unregister certificate",
+    "unregisterText": "Do you want to unregister this certificate?",
+    "keySaved": "Key saved",
+    "keyDeleted": "Key deleted",
+    "certMarkedForDeletion": "Certificate marked for deletion",
+    "unregisterError": "Failed to unregister certificate. Continue with certificate deletion anyway?",
     "ocspStatus": {
       "disabled": "Disabled",
       "expired": "Expired",
@@ -243,6 +279,13 @@
       "deletion": "Deletion in progress",
       "globalError": "Global error"
     }
+  },
+  "ssTlsCertificate": {
+    "generateKey": "Generate key",
+    "importCertificate": "Import cert.",
+    "exportCertificate": "Export cert.",
+    "keyCertTitle": "TLS Key and Certificate",
+    "keyText": "Internal TLS Key"
   },
   "csr": {
     "usage": "Usage",
@@ -268,7 +311,8 @@
   },
   "customValidation": {
     "invalidRest": "REST URL is not valid",
-    "invalidWsdl": "WSDL URL is not valid"
+    "invalidWsdl": "WSDL URL is not valid",
+    "invalidUrl": "URL is not valid"
   },
   "subjectType": {
     "globalGroup": "GLOBALGROUP",
@@ -290,8 +334,10 @@
     "serviceUrl": "URL",
     "serviceTimeout": "Timeout",
     "serviceCode": "Service Code",
+    "serviceType": "Service Type",
     "url": "URL",
     "tokenPin": "Token PIN",
+    "dns": "DNS",
     "keys": {
       "friendlyName": "Friendly name"
     }

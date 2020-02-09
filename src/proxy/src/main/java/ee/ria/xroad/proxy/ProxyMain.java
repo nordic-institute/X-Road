@@ -166,7 +166,7 @@ public final class ProxyMain {
         log.trace("startup()");
         actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy")
                 .withFallback(ConfigFactory.load())
-                .withValue("akka.remote.netty.tcp.port",
+                .withValue("akka.remote.artery.canonical.port",
                         ConfigValueFactory.fromAnyRef(PortNumbers.PROXY_ACTORSYSTEM_PORT)));
         log.info("Starting proxy ({})...", readProxyVersion());
     }

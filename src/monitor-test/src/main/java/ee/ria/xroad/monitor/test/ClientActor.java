@@ -40,7 +40,7 @@ public class ClientActor extends UntypedAbstractActor {
     private LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
     private ActorSelection selection =
-            getContext().actorSelection("akka.tcp://xroad-monitor@127.0.0.1:2552/user/MetricsProviderActor");
+            getContext().actorSelection("akka://xroad-monitor@127.0.0.1:2552/user/MetricsProviderActor");
 
     @Override
     public void preStart() throws Exception {

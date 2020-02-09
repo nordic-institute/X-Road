@@ -56,9 +56,10 @@
 
         <template v-slot:link>
           <div
-            class="clickable-link"
+            class="clickable-link service-description-header"
             v-if="canEditServiceDesc"
             @click="descriptionClick(serviceDesc)"
+            data-test="service-description-header"
           >{{serviceDesc.type}} ({{serviceDesc.url}})</div>
           <div v-else>{{serviceDesc.type}} ({{serviceDesc.url}})</div>
         </template>
@@ -91,8 +92,8 @@
               </thead>
               <tbody>
                 <tr v-for="service in serviceDesc.services" v-bind:key="service.id">
-                  <td class="service-code" @click="serviceClick(service)">{{service.service_code}}</td>
-                  <td>
+                  <td class="service-code" @click="serviceClick(service)" data-test="service-link">{{service.service_code}}</td>
+                  <td class="service-url" data-test="service-url">
                     <serviceIcon :service="service" />
                     {{service.url}}
                   </td>
@@ -106,7 +107,7 @@
     </template>
 
     <addWsdlDialog :dialog="addWsdlDialog" @save="wsdlSave" @cancel="cancelAddWsdl" />
-    <addRestDialog :dialog="addRestDialog" @save="restSave" @cancel="cancelAddRest" />
+    <addRestDialog :dialog="addRestDialog" @save="restSave" :clientId="this.id" @cancel="cancelAddRest" />
     <disableServiceDescDialog
       :dialog="disableDescDialog"
       @cancel="disableDescCancel"
@@ -385,23 +386,8 @@ export default Vue.extend({
       this.addWsdlDialog = false;
     },
 
-    restSave(rest: any): void {
-      api
-        .post(`/clients/${this.id}/service-descriptions`, {
-          url: rest.url,
-          rest_service_code: rest.serviceCode,
-          type: 'OPENAPI3',
-        })
-        .then((res) => {
-          this.$bus.$emit('show-success', 'services.restAdded');
-        })
-        .catch((error) => {
-          this.$bus.$emit('show-error', error.message);
-        })
-        .finally(() => {
-          this.fetchData();
-        });
-
+    restSave(): void {
+      this.fetchData();
       this.addRestDialog = false;
     },
 
@@ -535,5 +521,20 @@ export default Vue.extend({
   cursor: pointer;
   text-decoration: underline;
 }
+
+.service-url {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 400px;
+}
+
+.service-description-header {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 700px;
+}
+
 </style>
 

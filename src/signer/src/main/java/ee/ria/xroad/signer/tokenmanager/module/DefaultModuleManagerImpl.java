@@ -41,7 +41,7 @@ public class DefaultModuleManagerImpl extends AbstractModuleManager {
     }
 
     void initializeSoftwareModule(SoftwareModuleType softwareModule) {
-        if (getContext().getChild(softwareModule.getType()) != null) {
+        if (getContext().findChild(softwareModule.getType()).isPresent()) {
             // already initialized
             return;
         }

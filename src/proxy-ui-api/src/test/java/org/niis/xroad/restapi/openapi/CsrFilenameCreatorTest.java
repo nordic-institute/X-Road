@@ -27,7 +27,7 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
+import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -56,11 +56,11 @@ public class CsrFilenameCreatorTest {
         SecurityServerId securityServerId = SecurityServerId.create("I", "MEMCLASS",  "MEMCODE", "SERVERCODE");
         ClientId memberId = ClientId.create("I", "MEMCLASS",  "MEMCODE", null);
         String authFilename = csrFilenameCreator.createCsrFilename(KeyUsageInfo.AUTHENTICATION,
-                GenerateCertRequest.RequestFormat.PEM,
+                CertificateRequestFormat.PEM,
                 memberId, securityServerId);
         assertEquals("auth_csr_20190228_securityserver_I_MEMCLASS_MEMCODE_SERVERCODE.pem", authFilename);
         String signFilename = csrFilenameCreator.createCsrFilename(KeyUsageInfo.SIGNING,
-                GenerateCertRequest.RequestFormat.DER,
+                CertificateRequestFormat.DER,
                 memberId, securityServerId);
         assertEquals("sign_csr_20190228_member_I_MEMCLASS_MEMCODE.der", signFilename);
     }

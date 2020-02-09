@@ -12,7 +12,8 @@
     <div class="separator"></div>
     <div class="server-type">Security Server</div>
     <div class="white--text server-name">name of the server</div>
-    <v-spacer></v-spacer>Username?
+    <v-spacer></v-spacer>
+    {{username}}
     <v-menu bottom left>
       <template v-slot:activator="{ on }">
         <v-btn icon v-on="on">
@@ -31,10 +32,14 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { mapGetters } from 'vuex';
 import { RouteName } from '@/global';
 
 export default Vue.extend({
   name: 'toolbar',
+  computed: {
+    ...mapGetters(['username']),
+  },
   methods: {
     home(): void {
       this.$router.replace({ name: RouteName.Clients });

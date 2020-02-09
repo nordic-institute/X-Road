@@ -62,10 +62,28 @@
   }
 }
 
-// Vuetify overrides
-.v-tabs-slider-wrapper {
-  height: 4px !important;
+// Sub view header
+.sub-view-header {
+  margin-top: 50px;
+  display: flex;
+  justify-content: space-between;
+  color: $XRoad-Black;
+  font-family: Roboto;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  line-height: 30px;
 }
 
+// LAYOUT
 
+// Wrap subelements right
+.wrap-right {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
 
+.wrap-right * {
+  margin-left: auto;
+}
