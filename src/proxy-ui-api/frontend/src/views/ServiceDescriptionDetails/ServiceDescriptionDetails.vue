@@ -2,22 +2,28 @@
   <div class="xrd-tab-max-width">
     <div>
       <subViewTitle
-        v-if="serviceDesc && serviceDesc.type === 'WSDL'"
+        v-if="serviceDesc.type === 'WSDL'"
         :title="$t('services.wsdlDetails')"
         @close="close"
       />
       <subViewTitle
-        v-if="serviceDesc && serviceDesc.type === 'REST'"
+        v-if="serviceDesc.type === 'REST' || serviceDesc.type === 'OPENAPI3'"
         :title="$t('services.restDetails')"
         @close="close"
       />
       <div class="delete-wrap">
         <large-button
           v-if="showDelete"
-          @click="confirmDelete = true"
+          @click="showDeletePopup(serviceDesc.type)"
           outlined
         >{{$t('action.delete')}}</large-button>
       </div>
+    </div>
+
+    <div class="edit-row">
+      <div>{{$t('services.serviceType')}}</div>
+      <div class="code-input">{{serviceDesc.type === 'OPENAPI3'
+        ? $t('services.OpenApi3Description') : $t('services.restApiBasePath')}}</div>
     </div>
 
     <ValidationObserver ref="form" v-slot="{ validate, invalid }">
@@ -25,7 +31,6 @@
         <div>{{$t('services.editUrl')}}</div>
 
         <ValidationProvider
-          v-if="serviceDesc && serviceDesc.type === 'WSDL'"
           rules="required|wsdlUrl"
           name="url"
           v-slot="{ errors }"
@@ -44,8 +49,8 @@
       </div>
 
       <div class="edit-row">
-        <template v-if="serviceDesc && serviceDesc.type === 'REST'">
-          <div>{{$t('services.editServiceCode')}}</div>
+        <template v-if="serviceDesc.type === 'REST' || serviceDesc.type === 'OPENAPI3'">
+          <div>{{$t('services.serviceCode')}}</div>
 
           <ValidationProvider
             rules="required"
@@ -54,7 +59,9 @@
             class="validation-provider"
           >
             <v-text-field
-              v-model="serviceDesc.code"
+              v-model="serviceDesc.services
+              && serviceDesc.services[0]
+              && serviceDesc.services[0].service_code"
               single-line
               class="code-input"
               name="code_field"
@@ -82,10 +89,19 @@
 
     <!-- Confirm dialog delete WSDL -->
     <confirmDialog
-      :dialog="confirmDelete"
+      :dialog="confirmWSDLDelete"
       title="services.deleteTitle"
       text="services.deleteWsdlText"
-      @cancel="confirmDelete = false"
+      @cancel="confirmWSDLDelete = false"
+      @accept="doDeleteServiceDesc()"
+    />
+
+    <!-- Confirm dialog delete REST -->
+    <confirmDialog
+      :dialog="confirmRESTDelete"
+      title="services.deleteTitle"
+      text="services.deleteRestText"
+      @cancel="confirmRESTDelete = false"
       @accept="doDeleteServiceDesc()"
     />
     <!-- Confirm dialog for warnings when editing WSDL -->
@@ -95,6 +111,7 @@
       @cancel="cancelEditWarning()"
       @accept="acceptEditWarning()"
     ></warningDialog>
+
   </div>
 </template>
 
@@ -104,15 +121,14 @@
  * Both use the same api.
  */
 import Vue from 'vue';
-import _ from 'lodash';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import WarningDialog from '@/components/service/WarningDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
+import {ServiceDescription} from '@/types';
 
 export default Vue.extend({
   components: {
@@ -131,11 +147,13 @@ export default Vue.extend({
   },
   data() {
     return {
-      confirmDelete: false,
+      confirmWSDLDelete: false,
+      confirmRESTDelete: false,
       confirmEditWarning: false,
       warningInfo: [],
       touched: false,
-      serviceDesc: undefined,
+      serviceDesc: {} as ServiceDescription,
+      initialServiceCode: '',
       saveBusy: false,
     };
   },
@@ -151,8 +169,26 @@ export default Vue.extend({
 
     save(): void {
       this.saveBusy = true;
+
+      const serviceDescriptionUpdate = {
+        id: this.serviceDesc.id,
+        url: this.serviceDesc.url,
+        type: this.serviceDesc.type,
+      } as any;
+
+      if (serviceDescriptionUpdate.type === 'REST' || serviceDescriptionUpdate.type === 'OPENAPI3') {
+        serviceDescriptionUpdate.ignore_warnings = false;
+        serviceDescriptionUpdate.rest_service_code = this.initialServiceCode;
+        const currentServiceCode = this.serviceDesc.services && this.serviceDesc.services[0]
+          && this.serviceDesc.services[0].service_code;
+
+        serviceDescriptionUpdate.new_rest_service_code =
+                serviceDescriptionUpdate.rest_service_code !== currentServiceCode ? currentServiceCode :
+                serviceDescriptionUpdate.rest_service_code;
+      }
+
       api
-        .patch(`/service-descriptions/${this.id}`, this.serviceDesc)
+        .patch(`/service-descriptions/${this.id}`, serviceDescriptionUpdate)
         .then((res) => {
           this.$bus.$emit('show-success', 'localGroup.descSaved');
           this.saveBusy = false;
@@ -174,18 +210,28 @@ export default Vue.extend({
         .get(`/service-descriptions/${id}`)
         .then((res) => {
           this.serviceDesc = res.data;
+          this.initialServiceCode = this.serviceDesc.services && this.serviceDesc.services[0]
+                  && this.serviceDesc.services[0].service_code;
         })
         .catch((error) => {
           this.$bus.$emit('show-error', error.message);
         });
     },
-    doDeleteServiceDesc(): void {
-      this.confirmDelete = false;
 
+    showDeletePopup(serviceType: string): void {
+      if (serviceType === 'WSDL') {
+        this.confirmWSDLDelete = true;
+      } else {
+        this.confirmRESTDelete = true;
+      }
+    },
+    doDeleteServiceDesc(): void {
       api
         .remove(`/service-descriptions/${this.id}`)
         .then(() => {
           this.$bus.$emit('show-success', 'services.deleted');
+          this.confirmWSDLDelete = false;
+          this.confirmRESTDelete = false;
           this.$router.go(-1);
         })
         .catch((error) => {

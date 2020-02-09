@@ -22,31 +22,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi;
+package ee.ria.xroad.signer.protocol.handler;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
+import ee.ria.xroad.signer.protocol.message.GetTokenInfoAndKeyIdForCertRequestId;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
 /**
- * Thrown if parameters were invalid.
- * Results in http 400 BAD_REQUEST
- * to do: replace with BadRequestException and ServiceExceptions
+ * Handles requests for TokenInfo + key id based on certificate request ids.
  */
-@ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class InvalidParametersException extends OpenApiException {
-    public InvalidParametersException() {
-    }
+public class GetTokenInfoAndKeyIdForCertRequestIdRequestHandler
+        extends AbstractRequestHandler<GetTokenInfoAndKeyIdForCertRequestId> {
 
-    public InvalidParametersException(String msg) {
-        super(msg);
-    }
-
-    public InvalidParametersException(String msg, Throwable t) {
-        super(msg, t);
-    }
-
-    public InvalidParametersException(Throwable t) {
-        super(t);
+    @Override
+    protected Object handle(GetTokenInfoAndKeyIdForCertRequestId message) throws Exception {
+        TokenInfoAndKeyId tokenInfoAndKeyId = TokenManager.findTokenAndKeyIdForCertRequestId(
+                message.getCertRequestId());
+        return tokenInfoAndKeyId;
     }
 
 }

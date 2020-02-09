@@ -22,6 +22,7 @@
             :maxlength="255"
             :error-messages="errors"
             :loading="loading"
+            :disabled="!canEdit"
             @input="touched = true"
           ></v-text-field>
         </ValidationProvider>
@@ -78,6 +79,13 @@ export default Vue.extend({
     id: {
       type: String,
       required: true,
+    },
+  },
+  computed: {
+    canEdit(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.EDIT_TOKEN_FRIENDLY_NAME,
+      );
     },
   },
   data() {

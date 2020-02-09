@@ -167,7 +167,7 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
     }
 
     void deinitializeModuleWorker(String name) {
-        ActorRef worker = getContext().getChild(name);
+        ActorRef worker = getContext().findChild(name).orElse(null);
 
         if (worker != null) {
             log.trace("Stopping module worker for module '{}'", name);
@@ -180,7 +180,7 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
     }
 
     boolean isModuleInitialized(ModuleType module) {
-        return getContext().getChild(module.getType()) != null;
+        return getContext().findChild(module.getType()).isPresent();
     }
 
     private static boolean containsModule(String moduleId,

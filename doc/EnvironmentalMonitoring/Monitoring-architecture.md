@@ -1,17 +1,19 @@
 # X-Road: Environmental Monitoring Architecture
 
-Version: 1.6  
+Version: 1.7  
 Doc. ID: ARC-ENVMON
 
-| Date       | Version     | Description                                                                  | Author             |
-|------------|-------------|------------------------------------------------------------------------------|--------------------|
-| 15.12.2015 | 1.0       | Initial version               | Ilkka Seppälä         |
-| 04.01.2017 | 1.1       | Fix documentation links | Ilkka Seppälä         |
-| 20.01.2017 | 1.2       | Added license text, table of contents and version history | Sami Kallio |
-| 23.2.2017 | 1.3       | Added reference to the Security Server targeting extension and moved the modified X-Road protocol details there | Olli Lindgren |
-| 18.8.2017 | 1.4       | Added details about the security server certificates monitoring data | Olli Lindgren |
-| 18.10.2017| 1.5       |  | Joni Laurila |
-| 02.03.2018| 1.6       | Added numbering, terms document references, removed unnecessary anchors | Tatu Repo
+| Date       | Version  | Description                                                                  | Author             |
+|------------|----------|------------------------------------------------------------------------------|--------------------|
+| 15.12.2015 | 1.0      | Initial version               | Ilkka Seppälä         |
+| 04.01.2017 | 1.1      | Fix documentation links | Ilkka Seppälä         |
+| 20.01.2017 | 1.2      | Added license text, table of contents and version history | Sami Kallio |
+| 23.2.2017  | 1.3      | Added reference to the Security Server targeting extension and moved the modified X-Road protocol details there | Olli Lindgren |
+| 18.8.2017  | 1.4      | Added details about the security server certificates monitoring data | Olli Lindgren |
+| 18.10.2017 | 1.5      |  | Joni Laurila |
+| 02.03.2018 | 1.6      | Added numbering, terms document references, removed unnecessary anchors | Tatu Repo
+| 20.01.2020 | 1.7      | Update XroadProcessLister description | Jarkko Hyöty
+
 
 # Table of Contents
 <!-- toc -->
@@ -104,7 +106,7 @@ The following sensors produce monitoring data:
   - data: list of running processes from command `ps -aew -o user,pcpu,start_time,pmem,pid,comm`
   - data is refreshed once per minute
 - `XroadProcessLister`
-  - data: list of running xroad processes from command, showing full command with arguments
+  - data: like ProcessLister, but lists only java processes running as the `xroad` user and includes full command with arguments
   - data is refreshed once per minute
 - `PackageLister`
   - data: list of installed packages and their versions

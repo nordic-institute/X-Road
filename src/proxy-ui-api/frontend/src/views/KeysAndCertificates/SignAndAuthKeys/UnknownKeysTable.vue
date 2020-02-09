@@ -8,20 +8,20 @@
         </tr>
       </thead>
       <tbody v-for="key in keys" v-bind:key="key.id">
-
         <!-- Key type SOFTWARE -->
         <template v-if="tokenType === 'SOFTWARE'">
           <tr>
             <td>
               <div class="name-wrap">
                 <i class="icon-xrd_key icon" @click="keyClick(key)"></i>
-                <div class="clickable-link" @click="keyClick(key)">{{key.label}}</div>
+                <div class="clickable-link" @click="keyClick(key)">{{key.name}}</div>
               </div>
             </td>
             <td>
               <div class="id-wrap">
                 <div class="clickable-link" @click="keyClick(key)">{{key.id}}</div>
                 <SmallButton
+                  v-if="hasPermission"
                   class="table-button-fix"
                   :disabled="disableGenerateCsr"
                   @click="generateCsr(key)"
@@ -44,35 +44,41 @@
               <div class="id-wrap">
                 <div class="clickable-link" @click="keyClick(key)">{{key.id}}</div>
                 <SmallButton
-                        class="table-button-fix"
-                        :disabled="disableGenerateCsr"
-                        @click="generateCsr(key)"
+                  v-if="hasPermission"
+                  class="table-button-fix"
+                  :disabled="disableGenerateCsr"
+                  @click="generateCsr(key)"
                 >{{$t('keys.generateCsr')}}</SmallButton>
               </div>
             </td>
           </tr>
-
-          <tr v-if="hasCertificates(key)" v-for="certificate in key.certificates" v-bind:key="certificate.certificate_details.hash">
-            <td class="td-name">
-              <div class="name-wrap">
-                <v-icon v-bind:class="{hidden: showHardwareTokenImportCert(certificate)}"class="icon" >mdi-file-document-outline</v-icon>
-                <span>{{certificate.certificate_details.issuer_common_name}} {{certificate.certificate_details.serial}}</span>
-              </div>
-            </td>
-            <td>
-              <div class="id-wrap">
-                <SmallButton
-                        v-if="showHardwareTokenImportCert(certificate)"
-                        @click="importCert(certificate.certificate_details.hash)"
-                        class="table-button-fix"
-                >{{$t('keys.importCert')}}</SmallButton>
-              </div>
-            </td>
-          </tr>
+          <template v-if="hasCertificates(key)">
+            <tr
+              v-for="certificate in key.certificates"
+              v-bind:key="certificate.certificate_details.hash"
+            >
+              <td class="td-name">
+                <div class="name-wrap">
+                  <v-icon
+                    v-bind:class="{hidden: showHardwareTokenImportCert(certificate)}"
+                    class="icon"
+                  >mdi-file-document-outline</v-icon>
+                  <span>{{certificate.certificate_details.issuer_common_name}} {{certificate.certificate_details.serial}}</span>
+                </div>
+              </td>
+              <td>
+                <div class="id-wrap">
+                  <SmallButton
+                    v-if="showHardwareTokenImportCert(certificate) && hasPermission"
+                    @click="importCert(certificate.certificate_details.hash)"
+                    class="table-button-fix"
+                  >{{$t('keys.importCert')}}</SmallButton>
+                </div>
+              </td>
+            </tr>
+          </template>
         </template>
-
       </tbody>
-
     </table>
   </div>
 </template>
@@ -83,7 +89,8 @@
  */
 import Vue from 'vue';
 import SmallButton from '@/components/ui/SmallButton.vue';
-import {Key, TokenCertificate} from '@/types';
+import { Key, TokenCertificate } from '@/types';
+import { Permissions } from '@/global';
 
 export default Vue.extend({
   components: {
@@ -106,7 +113,14 @@ export default Vue.extend({
       required: true,
     },
   },
-  computed: {},
+  computed: {
+    hasPermission(): boolean {
+      // Can the user login to the token and see actions
+      return this.$store.getters.hasPermission(
+        Permissions.ACTIVATE_DEACTIVATE_TOKEN,
+      );
+    },
+  },
   methods: {
     keyClick(key: Key): void {
       this.$emit('keyClick', key);
@@ -176,5 +190,4 @@ export default Vue.extend({
 .hidden {
   visibility: hidden;
 }
-
 </style>

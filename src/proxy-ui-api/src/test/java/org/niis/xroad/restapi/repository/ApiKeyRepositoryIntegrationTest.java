@@ -57,18 +57,20 @@ public class ApiKeyRepositoryIntegrationTest {
     @Autowired
     private ApiKeyRepository apiKeyRepository;
 
+    private static final int KEYS_CREATED_ELSEWHERE = 1; // one key in data.sql
+
     @Test
     public void testDelete() throws Exception {
         String plainKey = apiKeyRepository.create(
                 Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"))
                 .getKey();
-        assertEquals(1, apiKeyRepository.listAll().size());
+        assertEquals(KEYS_CREATED_ELSEWHERE + 1, apiKeyRepository.listAll().size());
         PersistentApiKeyType apiKey = apiKeyRepository.get(plainKey);
         assertEquals(2, apiKey.getRoles().size());
 
-        // after remove, listall should be 0 and get(key) should fail
+        // after remove, listall should be reduced and get(key) should fail
         apiKeyRepository.remove(plainKey);
-        assertEquals(0, apiKeyRepository.listAll().size());
+        assertEquals(KEYS_CREATED_ELSEWHERE, apiKeyRepository.listAll().size());
         try {
             apiKey = apiKeyRepository.get(plainKey);
             fail("should throw exception");
@@ -89,7 +91,7 @@ public class ApiKeyRepositoryIntegrationTest {
         PersistentApiKeyType loaded = apiKeyRepository.get(plainKey);
         assertNotNull(loaded);
         String encodedKey = loaded.getEncodedKey();
-        assertEquals(new Long(1), loaded.getId());
+        assertEquals(new Long(KEYS_CREATED_ELSEWHERE + 1), loaded.getId());
         assertTrue(!plainKey.equals(encodedKey));
         assertEquals(encodedKey, loaded.getEncodedKey());
         assertEquals(2, loaded.getRoles().size());

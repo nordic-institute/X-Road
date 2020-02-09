@@ -119,10 +119,10 @@ public class AccessRightService {
      * @param fullServiceCode
      * @return
      * @throws ClientNotFoundException if client with given id was not found
-     * @throws ServiceService.ServiceNotFoundException if service with given fullServicecode was not found
+     * @throws ServiceNotFoundException if service with given fullServicecode was not found
      */
     public List<AccessRightHolderDto> getAccessRightHoldersByService(ClientId clientId, String fullServiceCode)
-            throws ClientNotFoundException, ServiceService.ServiceNotFoundException {
+            throws ClientNotFoundException, ServiceNotFoundException {
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
@@ -153,11 +153,11 @@ public class AccessRightService {
      * @param fullServiceCode
      * @param subjectIds
      * @throws ClientNotFoundException if client with given id was not found
-     * @throws ServiceService.ServiceNotFoundException if service with given fullServicecode was not found
+     * @throws ServiceNotFoundException if service with given fullServicecode was not found
      * @throws AccessRightNotFoundException if attempted to delete access right that did not exist for the service
      */
     private void deleteSoapServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds)
-            throws ClientNotFoundException, AccessRightNotFoundException, ServiceService.ServiceNotFoundException {
+            throws ClientNotFoundException, AccessRightNotFoundException, ServiceNotFoundException {
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
@@ -195,11 +195,11 @@ public class AccessRightService {
      * for a local group that does not exist
      * @throws AccessRightNotFoundException if tried to remove access rights that did not exist for the service
      * @throws ClientNotFoundException if client with given id was not found
-     * @throws ServiceService.ServiceNotFoundException if service with given fullServicecode was not found
+     * @throws ServiceNotFoundException if service with given fullServicecode was not found
      */
     public void deleteSoapServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds,
             Set<Long> localGroupIds) throws LocalGroupNotFoundException, ClientNotFoundException,
-            AccessRightNotFoundException, ServiceService.ServiceNotFoundException {
+            AccessRightNotFoundException, ServiceNotFoundException {
         Set<XRoadId> idsToDelete = new HashSet<>();
         if (localGroupIds != null) {
             idsToDelete.addAll(getLocalGroupsAsXroadIds(localGroupIds));
@@ -217,11 +217,11 @@ public class AccessRightService {
      * @param subjectIds must be persistent objects
      * @return List of {@link AccessRightHolderDto AccessRightHolderDtos}
      * @throws ClientNotFoundException
-     * @throws ServiceService.ServiceNotFoundException
+     * @throws ServiceNotFoundException
      * @throws EndpointNotFoundException
      */
     private List<AccessRightHolderDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
-            Set<XRoadId> subjectIds) throws ClientNotFoundException, ServiceService.ServiceNotFoundException,
+            Set<XRoadId> subjectIds) throws ClientNotFoundException, ServiceNotFoundException,
             DuplicateAccessRightException, EndpointNotFoundException {
         ClientType clientType = clientRepository.getClient(clientId);
         if (clientType == null) {
@@ -298,12 +298,12 @@ public class AccessRightService {
      * @return List of {@link AccessRightHolderDto AccessRightHolderDtos}
      * @throws LocalGroupNotFoundException
      * @throws ClientNotFoundException
-     * @throws ServiceService.ServiceNotFoundException
+     * @throws ServiceNotFoundException
      * @throws EndpointNotFoundException
      */
     public List<AccessRightHolderDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
             Set<XRoadId> subjectIds, Set<Long> localGroupIds) throws LocalGroupNotFoundException,
-            ClientNotFoundException, ServiceService.ServiceNotFoundException, DuplicateAccessRightException,
+            ClientNotFoundException, ServiceNotFoundException, DuplicateAccessRightException,
             IdentifierNotFoundException, EndpointNotFoundException {
         // Get persistent entities in order to change relations
         Set<XRoadId> txSubjects = new HashSet<>();

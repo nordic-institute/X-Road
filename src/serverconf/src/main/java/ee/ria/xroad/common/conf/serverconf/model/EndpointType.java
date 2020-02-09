@@ -70,4 +70,10 @@ public class EndpointType {
         return (ANY_METHOD.equals(method) || method.equalsIgnoreCase(anotherMethod))
                 && (ANY_PATH.equals(path) || PathGlob.matches(path, anotherPath));
     }
+
+    public final boolean isEquivalent(EndpointType other) {
+        return other.getServiceCode().equals(serviceCode)
+                && other.getMethod().equals(method)
+                && other.getPath().equals(path);
+    }
 }
