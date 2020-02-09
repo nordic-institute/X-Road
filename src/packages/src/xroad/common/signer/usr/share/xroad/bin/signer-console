@@ -8,4 +8,4 @@ fi
 
 . /etc/xroad/services/signer-console.conf
 
-rlwrap ${JAVA_HOME}/bin/java ${SIGNER_CONSOLE_PARAMS} ${XROAD_PARAMS} -jar /usr/share/xroad/jlib/signer-console.jar $@
+${JAVA_HOME}/bin/java ${SIGNER_CONSOLE_PARAMS} ${XROAD_PARAMS} -jar /usr/share/xroad/jlib/signer-console.jar $@

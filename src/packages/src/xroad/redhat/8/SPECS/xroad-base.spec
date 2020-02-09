@@ -5,7 +5,7 @@
 
 Name:       xroad-base
 Version:    %{xroad_version}
-# release tag, e.g. 0.201508070816.el7 for snapshots and 1.el7 (for final releases)
+# release tag, e.g. 0.201508070816.el8 for snapshots and 1.el8 (for final releases)
 Release:    %{rel}%{?snapshot}%{?dist}
 Summary:    X-Road base components
 Group:      Applications/Internet
@@ -15,6 +15,7 @@ Requires(preun): systemd
 Requires(postun): systemd
 BuildRequires: systemd
 Requires:  systemd
+# epel-release is required for crudini
 Requires:  epel-release, crudini
 Requires:  jre-1.8.0-headless >= 1.8.0.51
 Requires:  sudo

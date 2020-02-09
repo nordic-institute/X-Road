@@ -12,6 +12,7 @@ Group:              Applications/Internet
 License:            MIT
 BuildRequires:      systemd
 Requires(post):     systemd
+Requires(post):     /usr/sbin/semanage
 Requires(preun):    systemd
 Requires(postun):   systemd
 Requires:           net-tools, policycoreutils-python-utils, tar

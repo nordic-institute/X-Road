@@ -42,8 +42,9 @@ fi
 ########################################
 DIR=$(cd "$(dirname $0)" && pwd)
 cd "$DIR"
+
 # Copy the SPEC and SOURCES to the build folder
-mkdir -p build/xroad/redhat-${REDHAT_VERSION}
+mkdir -p build/xroad/redhat/${REDHAT_VERSION}
 cp -a src/xroad/redhat build/xroad
 mkdir -p build/xroad-jetty9
 cp -a src/xroad-jetty9/redhat build/xroad-jetty9/
@@ -53,7 +54,7 @@ find build/ -name "*.el${REDHAT_VERSION}*.rpm" | xargs rm -f
 #############
 # build xroad rpms
 #############
-ROOT=${DIR}/build/xroad/redhat/${REDHAT_VERSION}
+ROOT="${DIR}/build/xroad/redhat/${REDHAT_VERSION}"
 rpmbuild \
     --define "xroad_version $VERSION" \
     --define "rel $RELEASE" \

@@ -2,7 +2,7 @@
 set -e
 export XROAD=$(cd "$(dirname "$0")"; pwd)
 
-#./compile_code.sh "$@"
+./compile_code.sh "$@"
 
 if command -v docker &>/dev/null; then
     docker build -q -t xroad-deb-bionic $XROAD/packages/docker/deb-bionic
