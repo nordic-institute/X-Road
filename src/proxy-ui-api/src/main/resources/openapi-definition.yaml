@@ -3109,99 +3109,6 @@ paths:
         '500':
           description: internal server error
 
-  /system/timestamping-services:
-    get: # ok
-      tags:
-        - security server
-      summary: view the timestamping services
-      operationId: getTimestampingServices
-      description: Administrator views the timestamping services.
-      responses:
-        '200':
-          description: list of timestamping services
-          content:
-            application/json:
-              schema:
-                type: array
-                uniqueItems: true
-                description: array of timestamping service objects
-                items:
-                  $ref: '#/components/schemas/TimestampingService'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
-    post: # ok
-      tags:
-        - security server
-      summary: add a timestamping service
-      operationId: addTimestampingService
-      description: Administrator selects new timestamping service
-      requestBody:
-        description: Timestamping service to add
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TimestampingService'
-      responses:
-        '201':
-          description: timestamping service created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TimestampingService'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '409':
-          description: an existing item already exists
-        '500':
-          description: internal server error
-  /system/timestamping-services/{url}:
-    delete: # ok
-      tags:
-        - security server
-      summary: delete timestamping service
-      operationId: deleteTimestampingService
-      description: Administrator removes timestamping service.
-      parameters:
-        - in: path
-          name: url
-          description: url of the timestamping service
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-      responses:
-        '204':
-          description: timestamping service deletion was successful
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '500':
-          description: internal server error
   /system/version:
     get: # ok
       tags:
@@ -3228,6 +3135,101 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+
+  /timestamping-services:
+      get: # ok
+          tags:
+              - security server
+          summary: view the timestamping services
+          operationId: getTimestampingServices
+          description: Administrator views the timestamping services.
+          responses:
+              '200':
+                  description: list of timestamping services
+                  content:
+                      application/json:
+                          schema:
+                              type: array
+                              uniqueItems: true
+                              description: array of timestamping service objects
+                              items:
+                                  $ref: '#/components/schemas/TimestampingService'
+              '400':
+                  description: request was invalid
+              '401':
+                  description: authentication credentials are missing
+              '403':
+                  description: request has been refused
+              '404':
+                  description: resource requested does not exists
+              '406':
+                  description: request specified an invalid format
+              '500':
+                  description: internal server error
+      post: # ok
+          tags:
+              - security server
+          summary: add a timestamping service
+          operationId: addTimestampingService
+          description: Administrator selects new timestamping service
+          requestBody:
+              description: Timestamping service to add
+              content:
+                  application/json:
+                      schema:
+                          $ref: '#/components/schemas/TimestampingService'
+          responses:
+              '201':
+                  description: timestamping service created
+                  content:
+                      application/json:
+                          schema:
+                              $ref: '#/components/schemas/TimestampingService'
+              '400':
+                  description: request was invalid
+              '401':
+                  description: authentication credentials are missing
+              '403':
+                  description: request has been refused
+              '404':
+                  description: resource requested does not exists
+              '406':
+                  description: request specified an invalid format
+              '409':
+                  description: an existing item already exists
+              '500':
+                  description: internal server error
+  /timestamping-services/{url}:
+      delete: # ok
+          tags:
+              - security server
+          summary: delete timestamping service
+          operationId: deleteTimestampingService
+          description: Administrator removes timestamping service.
+          parameters:
+              - in: path
+                name: url
+                description: url of the timestamping service
+                required: true
+                schema:
+                    type: string
+                    format: text
+                    minLength: 1
+                    maxLength: 255
+          responses:
+              '204':
+                  description: timestamping service deletion was successful
+              '400':
+                  description: request was invalid
+              '401':
+                  description: authentication credentials are missing
+              '403':
+                  description: request has been refused
+              '404':
+                  description: resource requested does not exists
+              '500':
+                  description: internal server error
+
   /tokens:
     get: # ok
       tags:
@@ -4832,9 +4834,6 @@ components:
       required:
         - name
         - url
-        - status
-        - message
-        - updated_at
       properties:
         name:
           type: string
