@@ -5,19 +5,31 @@
       <div class="details-view-tools" v-if="certificate">
         <large-button
           v-if="showActivate"
+          class="button-spacing"
           outlined
           @click="activateCertificate(certificate.certificate_details.hash)"
+          data-test="activate-button"
         >{{$t('action.activate')}}</large-button>
         <large-button
           v-if="showDisable"
+          class="button-spacing"
           outlined
           @click="deactivateCertificate(certificate.certificate_details.hash)"
+          data-test="deactivate-button"
         >{{$t('action.deactivate')}}</large-button>
+        <large-button
+          v-if="showUnregister"
+          class="button-spacing"
+          outlined
+          @click="confirmUnregisterCertificate = true"
+          data-test="unregister-button"
+        >{{$t('action.unregister')}}</large-button>
         <large-button
           v-if="showDelete"
           class="button-spacing"
           outlined
-          @click="deleteCertificate()"
+          @click="showConfirmDelete()"
+          data-test="delete-button"
         >{{$t('action.delete')}}</large-button>
       </div>
       <template v-if="certificate && certificate.certificate_details">
@@ -34,7 +46,26 @@
       title="cert.deleteCertTitle"
       text="cert.deleteCertConfirm"
       @cancel="confirm = false"
-      @accept="doDeleteCertificate()"
+      @accept="deleteCertificate()"
+    />
+
+    <!-- Confirm dialog for unregister certificate -->
+    <ConfirmDialog
+      :dialog="confirmUnregisterCertificate"
+      :loading="unregisterLoading"
+      title="keys.unregisterTitle"
+      text="keys.unregisterText"
+      @cancel="confirmUnregisterCertificate = false"
+      @accept="unregisterCert()"
+    />
+
+    <!-- Confirm dialog for unregister error handling -->
+    <UnregisterErrorDialog
+      v-if="unregisterErrorResponse"
+      :errorResponse="unregisterErrorResponse"
+      :dialog="confirmUnregisterError"
+      @cancel="confirmUnregisterError = false"
+      @accept="markForDeletion()"
     />
   </div>
 </template>
@@ -49,6 +80,7 @@ import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import CertificateHash from '@/components/certificate/CertificateHash.vue';
+import UnregisterErrorDialog from './UnregisterErrorDialog.vue';
 
 export default Vue.extend({
   components: {
@@ -57,6 +89,7 @@ export default Vue.extend({
     SubViewTitle,
     LargeButton,
     CertificateHash,
+    UnregisterErrorDialog,
   },
   props: {
     hash: {
@@ -71,8 +104,12 @@ export default Vue.extend({
   data() {
     return {
       confirm: false,
-      certificate: null as TokenCertificate | null,
+      certificate: undefined as TokenCertificate | undefined,
       possibleActions: [] as string[],
+      confirmUnregisterCertificate: false,
+      confirmUnregisterError: false,
+      unregisterLoading: false,
+      unregisterErrorResponse: undefined as undefined | object,
     };
   },
   computed: {
@@ -87,6 +124,17 @@ export default Vue.extend({
             Permissions.DELETE_AUTH_CERT,
           );
         }
+      } else {
+        return false;
+      }
+    },
+
+    showUnregister(): boolean {
+      if (
+        this.possibleActions.includes(PossibleActions.UNREGISTER) &&
+        this.$store.getters.hasPermission(Permissions.SEND_AUTH_CERT_DEL_REQ)
+      ) {
+        return true;
       } else {
         return false;
       }
@@ -158,10 +206,10 @@ export default Vue.extend({
           this.$bus.$emit('show-error', error.message);
         });
     },
-    deleteCertificate(): void {
+    showConfirmDelete(): void {
       this.confirm = true;
     },
-    doDeleteCertificate(): void {
+    deleteCertificate(): void {
       this.confirm = false;
 
       api
@@ -185,12 +233,66 @@ export default Vue.extend({
     },
     deactivateCertificate(hash: string): void {
       api
-        .put(`token-certificates/${hash}/deactivate`, hash)
+        .put(`token-certificates/${hash}/disable`, hash)
         .then((res) => {
-          this.$bus.$emit('show-success', 'cert.deactivateSuccess');
+          this.$bus.$emit('show-success', 'cert.disableSuccess');
           this.fetchData(this.hash);
         })
         .catch((error) => this.$bus.$emit('show-error', error.message));
+    },
+
+    unregisterCert(): void {
+      this.unregisterLoading = true;
+
+      if (!this.certificate) {
+        return;
+      }
+
+      api
+        .put(
+          `/token-certificates/${this.certificate.certificate_details.hash}/unregister`,
+          {},
+        )
+        .then((res) => {
+          this.$bus.$emit('show-success', 'keys.keyAdded');
+        })
+        .catch((error) => {
+          if (
+            error.response.data.error.code ===
+            'management_request_sending_failed'
+          ) {
+            this.unregisterErrorResponse = error.response;
+          } else {
+            this.$bus.$emit('show-error', error.message);
+          }
+
+          this.confirmUnregisterError = true;
+        })
+        .finally(() => {
+          this.confirmUnregisterCertificate = false;
+          this.unregisterLoading = false;
+        });
+    },
+
+    markForDeletion(): void {
+      if (!this.certificate) {
+        return;
+      }
+
+      api
+        .put(
+          `/token-certificates/${this.certificate.certificate_details.hash}/mark-for-deletion`,
+          {},
+        )
+        .then((res) => {
+          this.$bus.$emit('show-success', 'keys.certMarkedForDeletion');
+          this.confirmUnregisterError = false;
+          this.$emit('refreshList');
+        })
+        .catch((error) => {
+          this.$bus.$emit('show-error', error.message);
+          this.confirmUnregisterError = false;
+        });
     },
   },
   created() {

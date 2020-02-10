@@ -1,14 +1,19 @@
 <template>
   <div class="row-wrap">
-    <div :class="iconClass"></div>
+    <StatusIcon :status="statusIconType" />
     <div>{{$t(status)}}</div>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
+import { CertificateStatus } from '@/global';
+import StatusIcon from '@/components/ui/StatusIcon.vue';
 
 export default Vue.extend({
+  components: {
+    StatusIcon,
+  },
   props: {
     certificate: {
       type: Object,
@@ -21,19 +26,19 @@ export default Vue.extend({
   computed: {
     status() {
       switch (this.certificate.status) {
-        case 'SAVED':
+        case CertificateStatus.SAVED:
           return 'keys.certStatus.saved';
           break;
-        case 'REGISTRATION_IN_PROGRESS':
+        case CertificateStatus.REGISTRATION_IN_PROGRESS:
           return 'keys.certStatus.registration';
           break;
-        case 'REGISTERED':
+        case CertificateStatus.REGISTERED:
           return 'keys.certStatus.registered';
           break;
-        case 'DELETION_IN_PROGRESS':
+        case CertificateStatus.DELETION_IN_PROGRESS:
           return 'keys.certStatus.deletion';
           break;
-        case 'GLOBAL_ERROR':
+        case CertificateStatus.GLOBAL_ERROR:
           return 'keys.certStatus.globalError';
           break;
         default:
@@ -41,13 +46,25 @@ export default Vue.extend({
           break;
       }
     },
-    iconClass() {
+    statusIconType() {
       switch (this.certificate.status) {
-        case 'SAVED':
-          return 'status-green';
+        case CertificateStatus.SAVED:
+          return 'orange-ring';
+          break;
+        case CertificateStatus.REGISTRATION_IN_PROGRESS:
+          return 'orange';
+          break;
+        case CertificateStatus.REGISTERED:
+          return 'green';
+          break;
+        case CertificateStatus.DELETION_IN_PROGRESS:
+          return 'red';
+          break;
+        case CertificateStatus.GLOBAL_ERROR:
+          return 'red-ring';
           break;
         default:
-          return 'status-red';
+          return 'red-ring';
           break;
       }
     },
@@ -62,22 +79,5 @@ export default Vue.extend({
   display: flex;
   flex-direction: row;
   align-items: baseline;
-}
-
-%status-icon-shared {
-  height: 8px;
-  width: 8px;
-  border-radius: 50%;
-  margin-right: 16px;
-}
-
-.status-red {
-  @extend %status-icon-shared;
-  background: #d0021b;
-}
-
-.status-green {
-  @extend %status-icon-shared;
-  background: #7ed321;
 }
 </style>

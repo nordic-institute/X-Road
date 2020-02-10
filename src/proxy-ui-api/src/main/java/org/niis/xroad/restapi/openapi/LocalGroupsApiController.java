@@ -96,7 +96,7 @@ public class LocalGroupsApiController implements LocalGroupsApi {
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
     public ResponseEntity<Members> addGroupMember(String groupIdString, Members members) {
         if (members == null || members.getItems() == null || members.getItems().size() < 1) {
-            throw new InvalidParametersException("missing member id");
+            throw new BadRequestException("missing member id");
         }
         // remove duplicates
         List<String> uniqueIds = new ArrayList<>(new HashSet<>(members.getItems()));

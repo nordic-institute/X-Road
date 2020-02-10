@@ -27,10 +27,13 @@ package org.niis.xroad.restapi.service;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,13 +100,12 @@ public class ClientService {
     public Set<ClientId> getLocalClientMemberIds() {
         List<ClientType> allClients = getAllLocalClients();
         Set<ClientId> members = new HashSet<>();
-        for (ClientType client: allClients) {
+        for (ClientType client : allClients) {
             ClientId id = client.getIdentifier();
             members.add(ClientId.create(id.getXRoadInstance(), id.getMemberClass(), id.getMemberCode()));
         }
         return members;
     }
-
 
     /**
      * return all global clients as ClientTypes
@@ -121,12 +123,68 @@ public class ClientService {
     }
 
     /**
-     * Return one client, or null if not found
+     * Return one client, or null if not found.
+     * This method does NOT trigger load of lazy loaded properties.
+     * Use {@code getClientIsCerts}, {@code getClientLocalGroups}, and
+     * {@code getClientServiceDescriptions} for that
      * @param id
      * @return the client, or null if matching client was not found
      */
     public ClientType getClient(ClientId id) {
-        return clientRepository.getClient(id);
+        ClientType clientType = clientRepository.getClient(id);
+        return clientType;
+    }
+
+    /**
+     * Returns clientType.getIsCert() that has been fetched with Hibernate.init.
+     *
+     * @param id
+     * @return list of CertificateTypes, or null if client does not exist
+     */
+    public List<CertificateType> getClientIsCerts(ClientId id) {
+        ClientType clientType = getClient(id);
+        if (clientType != null) {
+            Hibernate.initialize(clientType.getIsCert());
+            return clientType.getIsCert();
+        }
+        return null;
+    }
+
+    /**
+     * Returns clientType.getServiceDescription() that has been fetched with Hibernate.init.
+     * Also serviceDescription.services and serviceDescription.client.endpoints have been fetched.
+     *
+     * @param id
+     * @return list of ServiceDescriptionTypes, or null if client does not exist
+     */
+    public List<ServiceDescriptionType> getClientServiceDescriptions(ClientId id) {
+        ClientType clientType = getClient(id);
+        if (clientType != null) {
+            for (ServiceDescriptionType serviceDescriptionType: clientType.getServiceDescription()) {
+                Hibernate.initialize(serviceDescriptionType.getService());
+            }
+            Hibernate.initialize(clientType.getEndpoint());
+            return clientType.getServiceDescription();
+        }
+        return null;
+    }
+
+    /**
+     * Returns clientType.getLocalGroup() that has been fetched with Hibernate.init.
+     * Also localGroup.groupMembers have been fetched.
+     *
+     * @param id
+     * @return list of LocalGroupTypes, or null if client does not exist
+     */
+    public List<LocalGroupType> getClientLocalGroups(ClientId id) {
+        ClientType clientType = getClient(id);
+        if (clientType != null) {
+            for (LocalGroupType localGroupType: clientType.getLocalGroup()) {
+                Hibernate.initialize(localGroupType.getGroupMember());
+            }
+            return clientType.getLocalGroup();
+        }
+        return null;
     }
 
     /**
@@ -303,8 +361,10 @@ public class ClientService {
      * @return
      */
     public Optional<ClientType> findByClientId(ClientId clientId) {
-        return getAllGlobalClients()
-                .stream()
+        List<ClientType> localClients = getAllLocalClients();
+        List<ClientType> globalClients = getAllGlobalClients();
+        List<ClientType> distinctClients = mergeClientListsDistinctively(globalClients, localClients);
+        return distinctClients.stream()
                 .filter(clientType -> clientType.getIdentifier().toShortString().trim()
                         .equals(clientId.toShortString().trim()))
                 .findFirst();
@@ -323,20 +383,32 @@ public class ClientService {
      */
     public List<ClientType> findClients(String name, String instance, String memberClass, String memberCode,
             String subsystemCode, boolean showMembers, boolean internalSearch) {
-        List<ClientType> clients = findLocalClients(name, instance, memberClass, memberCode, subsystemCode,
+        List<ClientType> localClients = findLocalClients(name, instance, memberClass, memberCode, subsystemCode,
                 showMembers);
         if (internalSearch) {
-            return clients;
+            return localClients;
         }
+        List<ClientType> globalClients = findGlobalClients(name, instance, memberClass, memberCode, subsystemCode,
+                showMembers);
+        return mergeClientListsDistinctively(globalClients, localClients);
+    }
+
+    /**
+     * Merge two client lists into one with only unique clients. The distinct clients in the latter list
+     * {@code moreClients} are favoured in the case of duplicates.
+     * @param clients list of clients
+     * @param moreClients list of clients (these will override the ones in {@code clients} in the case of duplicates)
+     * @return
+     */
+    private List<ClientType> mergeClientListsDistinctively(List<ClientType> clients, List<ClientType> moreClients) {
         Map<String, ClientType> uniqueClientMap = new HashMap<>();
-        // add global clients into the HashMap with client identifier string as the key
-        findGlobalClients(name, instance, memberClass, memberCode, subsystemCode, showMembers)
-                .forEach(clientType -> uniqueClientMap.put(clientType.getIdentifier().toShortString(), clientType));
+        // add clients into the HashMap with client identifier string as the key
+        clients.forEach(clientType -> uniqueClientMap.put(clientType.getIdentifier().toShortString(), clientType));
         /*
-          add local clients into the HashMap with client identifier string as the key
+          add other clients into the HashMap with client identifier string as the key
           this conveniently overwrites all duplicate keys
          */
-        clients.forEach(clientType -> uniqueClientMap.put(clientType.getIdentifier().toShortString(), clientType));
+        moreClients.forEach(clientType -> uniqueClientMap.put(clientType.getIdentifier().toShortString(), clientType));
         return new ArrayList<>(uniqueClientMap.values());
     }
 

@@ -40,6 +40,7 @@ import ee.ria.xroad.signer.protocol.dto.MemberSigningInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.message.ActivateCert;
 import ee.ria.xroad.signer.protocol.message.ActivateToken;
+import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 import ee.ria.xroad.signer.protocol.message.DeleteCert;
 import ee.ria.xroad.signer.protocol.message.DeleteCertRequest;
 import ee.ria.xroad.signer.protocol.message.DeleteKey;
@@ -666,8 +667,8 @@ public class SignerCLI {
             @Param(name = "format", description = "Format of request (der/pem)") String format) throws Exception {
         KeyUsageInfo keyUsage = "a".equals(usage) ? KeyUsageInfo.AUTHENTICATION : KeyUsageInfo.SIGNING;
 
-        GenerateCertRequest.RequestFormat requestFormat = format.equalsIgnoreCase("der")
-                ? GenerateCertRequest.RequestFormat.DER : GenerateCertRequest.RequestFormat.PEM;
+        CertificateRequestFormat requestFormat = format.equalsIgnoreCase("der")
+                ? CertificateRequestFormat.DER : CertificateRequestFormat.PEM;
 
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(KEY_ID_PARAM, keyId);

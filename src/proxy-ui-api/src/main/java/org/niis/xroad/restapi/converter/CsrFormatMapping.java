@@ -24,7 +24,7 @@
  */
 package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
+import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.Getter;
 import org.niis.xroad.restapi.openapi.model.CsrFormat;
@@ -32,30 +32,28 @@ import org.niis.xroad.restapi.openapi.model.CsrFormat;
 import java.util.Arrays;
 import java.util.Optional;
 
-import static ee.ria.xroad.signer.protocol.message.GenerateCertRequest.RequestFormat;
-
 /**
- * Mapping between CsrFormat in api (enum) and model (RequestFormat)
+ * Mapping between CsrFormat in api (enum) and model (CertificateRequestFormat)
  */
 @Getter
 public enum CsrFormatMapping {
-    PEM(RequestFormat.PEM, CsrFormat.PEM),
-    DER(RequestFormat.DER, CsrFormat.DER);
+    PEM(CertificateRequestFormat.PEM, CsrFormat.PEM),
+    DER(CertificateRequestFormat.DER, CsrFormat.DER);
 
     private final CsrFormat csrFormat;
-    private final GenerateCertRequest.RequestFormat requestFormat;
+    private final CertificateRequestFormat requestFormat;
 
-    CsrFormatMapping(RequestFormat requestFormat, CsrFormat csrFormat) {
+    CsrFormatMapping(CertificateRequestFormat requestFormat, CsrFormat csrFormat) {
         this.csrFormat = csrFormat;
         this.requestFormat = requestFormat;
     }
 
     /**
-     * Return matching RequestFormat, if any
+     * Return matching CertificateRequestFormat, if any
      * @param csrFormat
      * @return
      */
-    public static Optional<RequestFormat> map(CsrFormat csrFormat) {
+    public static Optional<CertificateRequestFormat> map(CsrFormat csrFormat) {
         return getFor(csrFormat).map(CsrFormatMapping::getRequestFormat);
     }
 
@@ -64,7 +62,7 @@ public enum CsrFormatMapping {
      * @param requestFormat
      * @return
      */
-    public static Optional<CsrFormat> map(RequestFormat requestFormat) {
+    public static Optional<CsrFormat> map(CertificateRequestFormat requestFormat) {
         return getFor(requestFormat).map(CsrFormatMapping::getCsrFormat);
     }
 
@@ -80,11 +78,11 @@ public enum CsrFormatMapping {
     }
 
     /**
-     * return CsrFormatMapping matching the given RequestFormat, if any
+     * return CsrFormatMapping matching the given CertificateRequestFormat, if any
      * @param requestFormat
      * @return
      */
-    public static Optional<CsrFormatMapping> getFor(RequestFormat requestFormat) {
+    public static Optional<CsrFormatMapping> getFor(CertificateRequestFormat requestFormat) {
         return Arrays.stream(values())
                 .filter(mapping -> mapping.requestFormat.equals(requestFormat))
                 .findFirst();

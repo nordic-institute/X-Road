@@ -39,9 +39,11 @@ import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.ServiceDescriptionNotFoundException;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
+import org.niis.xroad.restapi.service.ServiceNotFoundException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
+import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -70,6 +72,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
 
     /**
      * ServiceDescriptionsApiController constructor
+     *
      * @param serviceDescriptionService
      * @param serviceDescriptionConverter
      * @param serviceConverter
@@ -127,33 +130,53 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     }
 
     @Override
-    @PreAuthorize("hasAuthority('EDIT_WSDL')")
+    @PreAuthorize("hasAnyAuthority('EDIT_WSDL', 'EDIT_OPENAPI3', 'EDIT_REST')")
     public ResponseEntity<ServiceDescription> updateServiceDescription(String id,
             ServiceDescriptionUpdate serviceDescriptionUpdate) {
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
-        ServiceDescription serviceDescription;
-        if (serviceDescriptionUpdate.getType() == ServiceType.WSDL) {
-            ServiceDescriptionType updatedServiceDescription = null;
-            try {
+        ServiceDescriptionType updatedServiceDescription = null;
+
+        try {
+
+            if (serviceDescriptionUpdate.getType() == ServiceType.WSDL) {
                 updatedServiceDescription = serviceDescriptionService.updateWsdlUrl(
                         serviceDescriptionId, serviceDescriptionUpdate.getUrl(),
                         serviceDescriptionUpdate.getIgnoreWarnings());
-            } catch (WsdlParser.WsdlNotFoundException | UnhandledWarningsException
-                             | InvalidUrlException | InvalidWsdlException
-                             | ServiceDescriptionService.WrongServiceDescriptionTypeException e) {
-                throw new BadRequestException(e);
-            } catch (ServiceDescriptionService.ServiceAlreadyExistsException
-                    | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
-                throw new ConflictException(e);
-            } catch (ServiceDescriptionNotFoundException e) {
-                throw new ResourceNotFoundException(e);
+            } else if (serviceDescriptionUpdate.getType() == ServiceType.OPENAPI3) {
+                if (serviceDescriptionUpdate.getRestServiceCode() == null) {
+                    throw new BadRequestException("Missing parameter rest_service_code");
+                }
+                updatedServiceDescription =
+                        serviceDescriptionService.updateOpenApi3ServiceDescription(serviceDescriptionId,
+                                serviceDescriptionUpdate.getUrl(), serviceDescriptionUpdate.getRestServiceCode(),
+                                serviceDescriptionUpdate.getNewRestServiceCode(),
+                                serviceDescriptionUpdate.getIgnoreWarnings());
+            } else if (serviceDescriptionUpdate.getType() == ServiceType.REST) {
+                if (serviceDescriptionUpdate.getRestServiceCode() == null) {
+                    throw new BadRequestException("Missing parameter rest_service_code");
+                }
+                updatedServiceDescription = serviceDescriptionService.updateRestServiceDescription(serviceDescriptionId,
+                        serviceDescriptionUpdate.getUrl(), serviceDescriptionUpdate.getRestServiceCode(),
+                        serviceDescriptionUpdate.getNewRestServiceCode());
+            } else {
+                throw new BadRequestException("ServiceType not recognized");
             }
-            serviceDescription = serviceDescriptionConverter.convert(updatedServiceDescription);
-        } else if (serviceDescriptionUpdate.getType() == ServiceType.OPENAPI3) {
-            return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
-        } else {
-            throw new BadRequestException("ServiceType not recognized");
+
+        } catch (WsdlParser.WsdlNotFoundException | OpenApiParser.ParsingException | UnhandledWarningsException
+                | InvalidUrlException | InvalidWsdlException
+                | ServiceDescriptionService.WrongServiceDescriptionTypeException e) {
+            throw new BadRequestException(e);
+        } catch (ServiceDescriptionService.ServiceAlreadyExistsException
+                | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
+            throw new ConflictException(e);
+        } catch (ServiceDescriptionService.UrlAlreadyExistsException
+                    | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
+            throw new ConflictException(e);
+        } catch (ServiceNotFoundException | ServiceDescriptionNotFoundException e) {
+            throw new ResourceNotFoundException(e);
         }
+
+        ServiceDescription serviceDescription = serviceDescriptionConverter.convert(updatedServiceDescription);
         return new ResponseEntity<>(serviceDescription, HttpStatus.OK);
     }
 
@@ -167,8 +190,8 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
                     serviceDescriptionService.refreshServiceDescription(serviceDescriptionId,
                             ignoreWarnings.getIgnoreWarnings()));
         } catch (WsdlParser.WsdlNotFoundException | UnhandledWarningsException
-                                     | InvalidUrlException | InvalidWsdlException
-                                     | ServiceDescriptionService.WrongServiceDescriptionTypeException e) {
+                | InvalidUrlException | InvalidWsdlException
+                | ServiceDescriptionService.WrongServiceDescriptionTypeException e) {
             throw new BadRequestException(e);
         } catch (ServiceDescriptionService.ServiceAlreadyExistsException
                 | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {

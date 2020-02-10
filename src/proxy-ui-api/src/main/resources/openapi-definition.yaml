@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.20"
+  version: "1.0.21"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -350,12 +350,12 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /token-certificates/{hash}/deactivate:
+  /token-certificates/{hash}/disable:
     put: # ok
       tags:
         - security server
       summary: deactivate certificate
-      operationId: deactivateCertificate
+      operationId: disableCertificate
       description: Administrator deactivates selected certificate.
       parameters:
         - in: path
@@ -1791,6 +1791,57 @@ paths:
         '500':
           description: internal server error
   /keys/{id}/csrs/{csr_id}:
+    get: # ok
+      tags:
+        - security server
+      summary: download a CSR binary
+      operationId: downloadCsr
+      description: Administrator downloads a csr that has been created earlier
+      parameters:
+        - in: path
+          name: id
+          description: id of the key
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+        - in: path
+          name: csr_id
+          description: id of the csr
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+        - in: query
+          name: csr_format
+          description: format of the certificate signing request (PEM or DER)
+          required: false
+          schema:
+            $ref: '#/components/schemas/CsrFormat'
+      responses:
+        '201':
+          description: CSR binary
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+                description: csr file
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
     delete: # ok
       tags:
         - security server
@@ -2009,6 +2060,44 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /security-servers:
+    get: # ok
+      tags:
+        - security server
+      summary: get all security servers
+      operationId: getSecurityServers
+      description: SS administrator views the details of all security servers
+      parameters:
+        - in: query
+          name: current_server
+          description: whether to only get the current server's identifier
+          required: false
+          schema:
+            default: false
+            type: boolean
+      responses:
+        '200':
+          description: list of SecurityServer objects
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of SecurityServer objects
+                items:
+                  $ref: '#/components/schemas/SecurityServer'
         '400':
           description: request was invalid
         '401':
@@ -3256,6 +3345,63 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /tokens/{id}/keys-with-csrs:
+    post: # ok
+      tags:
+        - security server
+      summary: add a new key and generate a csr for it
+      operationId: addKeyAndCsr
+      description: Administrator adds a new key and generates a csr for it.
+      parameters:
+        - in: path
+          name: id
+          description: id of the token
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: KeyLabelWithCsrGenerate
+              type: object
+              required:
+                - key_label
+                - csr_generate_request
+              properties:
+                key_label:
+                  type: string
+                  format: text
+                  description: label for the new key
+                  minLength: 1
+                  maxLength: 255
+                  example: My new key
+                csr_generate_request:
+                  $ref: '#/components/schemas/CsrGenerate'
+      responses:
+        '201':
+          description: key created for the token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeyWithCertificateSigningRequestId'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists or token not logged in
+        '500':
+          description: internal server error
   /tokens/{id}/keys:
     post: # ok
       tags:
@@ -4116,6 +4262,20 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
+    KeyWithCertificateSigningRequestId: # ok
+      type: object
+      description: Key and TokenCertificateSigningRequest id
+      required:
+        - key
+        - csr_id
+      properties:
+        key:
+          $ref: '#/components/schemas/Key'
+        csr_id:
+          type: string
+          format: text
+          description: CSR id
+          example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
     Key: # ok
       type: object
       description: key for the certificate
@@ -4317,6 +4477,12 @@ components:
           example: server123
           minLength: 1
           maxLength: 255
+        server_address:
+          type: string
+          format: text
+          description: security server address (ip or name)
+          example: 192.168.1.100
+          maxLength: 255
     Service: # ok
       type: object
       description: service for the service description
@@ -4365,6 +4531,41 @@ components:
           example: https://domain.com/service
           minLength: 1
           maxLength: 255
+        endpoints:
+          type: array
+          description: list of endpoints linked to this service
+          items:
+            $ref: '#/components/schemas/Endpoint'
+    Endpoint:
+      type: object
+      description: Endpoint for a service
+      required:
+        - id
+        - service_code
+        - method
+        - path
+      properties:
+        id:
+          type: string
+          description: unique identifier
+          example: 15
+        service_code:
+          type: string
+          example: example_service_code
+        method:
+          type: string
+          description: http method mapeed to this endpoint
+          example: 'GET'
+          default: '*'
+        path:
+          type: string
+          description: relative path where this endpoint is mapped to
+          example: '/foo'
+          default: '**'
+        generated:
+          type: boolean
+          description: has endpoint been generated from openapi3 description
+          example: true
     ServiceUpdate: # ok
       type: object
       description: object for updating a service or all services within service description
@@ -4499,6 +4700,9 @@ components:
     ServiceDescriptionUpdate:
       type: object
       description: request object for updating a service description url or service code
+      required:
+        - type
+        - url
       properties:
         url:
           type: string
@@ -4512,6 +4716,13 @@ components:
           format: text
           description: service code for REST service
           example: exampleServiceCode
+          minLength: 1
+          maxLength: 255
+        new_rest_service_code:
+          type: string
+          format: test
+          description: new service code for REST service
+          example: newExampleServiceCode
           minLength: 1
           maxLength: 255
         ignore_warnings:

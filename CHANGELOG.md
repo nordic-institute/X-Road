@@ -3,6 +3,19 @@
 ## 6.24.0 - UNRELEASED
 
 ## 6.23.0 - UNRELEASED
+- XRDDEV-730: Validate security server addresses on security server.
+- XRDDEV-732: Validate security server addresses on cental server.
+- XRDDEV-734: Fix operational monitoring data retrieval.
+- XRDDEV-741: Fix too strict log directory permissions cause missing audit.log.
+- XRDDEV-757: Add Central Server support for external databases.
+- XRDDEV-773: Central Server with remote database can be installed with Ansible scripts.
+- XRDDEV-760: Remove central server HA dependency on PostgreSQL BDR extension.
+- XRDDEV-780: Add instructions for setting up a PostgreSQL database cluster for central server HA.
+- XRDDEV-813: Detect PostgreSQL BDR on update and update configuration if necessary.
+- XRDDEV-821: Fix central Server remote database support should respect changes in db.properties during upgrade.
+- XRDDEV-853: Fix environmental monitoring does not list X-Road processes on Ubuntu.
+- XRDDEV-856: Update dependencies with known vulnerabilities.
+- XRDDEV-871: Fix can't setup Central Server remote database.
 
 ## 6.22.1 - 2019-11-07
 - XRDDEV-730: Validate security server addresses.

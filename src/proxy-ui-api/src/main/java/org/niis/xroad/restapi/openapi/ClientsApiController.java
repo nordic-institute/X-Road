@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.converter.ConnectionTypeMapping;
+import org.niis.xroad.restapi.converter.EndpointHelper;
 import org.niis.xroad.restapi.converter.LocalGroupConverter;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
 import org.niis.xroad.restapi.converter.SubjectConverter;
@@ -105,9 +106,11 @@ public class ClientsApiController implements ClientsApi {
     private final AccessRightService accessRightService;
     private final SubjectConverter subjectConverter;
     private final TokenCertificateConverter tokenCertificateConverter;
+    private final EndpointHelper endpointService;
 
     /**
      * ClientsApiController constructor
+     *
      * @param clientService
      * @param tokenService
      * @param clientConverter
@@ -126,7 +129,8 @@ public class ClientsApiController implements ClientsApi {
             LocalGroupService localGroupService, CertificateDetailsConverter certificateDetailsConverter,
             ServiceDescriptionConverter serviceDescriptionConverter,
             ServiceDescriptionService serviceDescriptionService, AccessRightService accessRightService,
-            SubjectConverter subjectConverter, TokenCertificateConverter tokenCertificateConverter) {
+            SubjectConverter subjectConverter, TokenCertificateConverter tokenCertificateConverter,
+            EndpointHelper endpointService) {
         this.clientService = clientService;
         this.tokenService = tokenService;
         this.clientConverter = clientConverter;
@@ -138,10 +142,12 @@ public class ClientsApiController implements ClientsApi {
         this.accessRightService = accessRightService;
         this.subjectConverter = subjectConverter;
         this.tokenCertificateConverter = tokenCertificateConverter;
+        this.endpointService = endpointService;
     }
 
     /**
      * Finds clients matching search terms
+     *
      * @param name
      * @param instance
      * @param memberClass
@@ -172,6 +178,7 @@ public class ClientsApiController implements ClientsApi {
 
     /**
      * Read one client from DB
+     *
      * @param encodedId id that is encoded with the <INSTANCE>:<MEMBER_CLASS>:....
      * encoding
      * @return
@@ -198,6 +205,7 @@ public class ClientsApiController implements ClientsApi {
 
     /**
      * Update a client's connection type
+     *
      * @param encodedId
      * @param connectionTypeWrapper wrapper object containing the connection type to set
      * @return
@@ -206,7 +214,7 @@ public class ClientsApiController implements ClientsApi {
     @Override
     public ResponseEntity<Client> updateClient(String encodedId, ConnectionTypeWrapper connectionTypeWrapper) {
         if (connectionTypeWrapper == null || connectionTypeWrapper.getConnectionType() == null) {
-            throw new InvalidParametersException();
+            throw new BadRequestException();
         }
         ConnectionType connectionType = connectionTypeWrapper.getConnectionType();
         ClientId clientId = clientConverter.convertId(encodedId);
@@ -275,7 +283,7 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('VIEW_CLIENT_INTERNAL_CERTS')")
     public ResponseEntity<List<CertificateDetails>> getClientTlsCertificates(String encodedId) {
         ClientType clientType = getClientType(encodedId);
-        List<CertificateDetails> certificates = clientType.getIsCert()
+        List<CertificateDetails> certificates = clientService.getClientIsCerts(clientType.getIdentifier())
                 .stream()
                 .map(certificateDetailsConverter::convert)
                 .collect(toList());
@@ -301,9 +309,9 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
-    public ResponseEntity<List<LocalGroup>> getClientGroups(String id) {
-        ClientType clientType = getClientType(id);
-        List<LocalGroupType> localGroupTypes = clientType.getLocalGroup();
+    public ResponseEntity<List<LocalGroup>> getClientGroups(String encodedId) {
+        ClientType clientType = getClientType(encodedId);
+        List<LocalGroupType> localGroupTypes = clientService.getClientLocalGroups(clientType.getIdentifier());
         return new ResponseEntity<>(localGroupConverter.convert(localGroupTypes), HttpStatus.OK);
     }
 
@@ -312,7 +320,8 @@ public class ClientsApiController implements ClientsApi {
     public ResponseEntity<List<ServiceDescription>> getClientServiceDescriptions(String encodedId) {
         ClientType clientType = getClientType(encodedId);
         List<ServiceDescription> serviceDescriptions = serviceDescriptionConverter.convert(
-                clientType.getServiceDescription());
+                clientService.getClientServiceDescriptions(clientType.getIdentifier()));
+
         return new ResponseEntity<>(serviceDescriptions, HttpStatus.OK);
     }
 
@@ -362,6 +371,9 @@ public class ClientsApiController implements ClientsApi {
                 throw new ResourceNotFoundException(e);
             } catch (MissingParameterException e) {
                 throw new BadRequestException(e);
+            } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException
+                    | ServiceDescriptionService.UrlAlreadyExistsException e) {
+                throw new ConflictException(e);
             }
         }
         ServiceDescription addedServiceDescription = serviceDescriptionConverter.convert(
