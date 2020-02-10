@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -34,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@Slf4j
 @Component
 public class ExternalProcessRunner {
     /**
@@ -91,7 +93,11 @@ public class ExternalProcessRunner {
 
         // if the process fails we attach the output into the exception
         if (exitCode != 0) {
-            throw new ProcessFailedException(processOutput);
+            String fullCommandString = String.join(" ", commandWithArgs);
+            String processOutputString = String.join("\n", processOutput);
+            String errorMsg = String.format("Failed to run command '%s' with output: \n %s", fullCommandString,
+                    processOutputString);
+            throw new ProcessFailedException(errorMsg, processOutput);
         } else if (processOutput != null && processOutput.size() > 0) {
             // exitCode was 0 but there were some warnings in the output
             output.addAll(processOutput);

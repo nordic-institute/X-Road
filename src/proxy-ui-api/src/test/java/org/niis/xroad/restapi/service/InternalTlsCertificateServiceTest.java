@@ -75,7 +75,7 @@ public class InternalTlsCertificateServiceTest {
                         return Collections.singletonList(SUCCESS);
                     }
                     if (command.equals(MOCK_FAIL_SCRIPT)) {
-                        throw new ProcessFailedException(Collections.singletonList(FAIL));
+                        throw new ProcessFailedException("Mock error msg", Collections.singletonList(FAIL));
                     }
                     if (command.equals(NON_EXISTING_SCRIPT)) {
                         throw new ProcessNotExecutableException(new IOException(ERROR));
@@ -159,7 +159,6 @@ public class InternalTlsCertificateServiceTest {
             internalTlsCertificateService.generateInternalTlsKeyAndCertificate();
         } catch (DeviationAwareRuntimeException e) {
             assertEquals(KEY_CERT_GENERATION_FAILED, e.getErrorDeviation().getCode());
-            assertEquals(FAIL, e.getErrorDeviation().getMetadata().get(0)); // has the output of the script
         }
     }
 
@@ -170,7 +169,6 @@ public class InternalTlsCertificateServiceTest {
             internalTlsCertificateService.generateInternalTlsKeyAndCertificate();
         } catch (DeviationAwareRuntimeException e) {
             assertEquals(KEY_CERT_GENERATION_FAILED, e.getErrorDeviation().getCode());
-            assertEquals(ERROR, e.getErrorDeviation().getMetadata().get(0)); // includes message from IOException
         }
     }
 }

@@ -31,7 +31,7 @@ import java.util.List;
 public class ProcessFailedException extends ServiceException {
     public static final String PROCESS_FAILED = "process_failed";
 
-    public ProcessFailedException(List<String> metaData) {
-        super(new ErrorDeviation(PROCESS_FAILED, metaData));
+    public ProcessFailedException(String msg, List<String> metaData) {
+        super(msg, new ErrorDeviation(PROCESS_FAILED, metaData));
     }
 }

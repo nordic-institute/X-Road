@@ -31,6 +31,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -135,7 +137,8 @@ public class InternalTlsCertificateService {
             externalProcessRunner.execute(generateCertScriptPath, generateCertScriptArgs.split("\\s+"));
             restartXroadProxy();
         } catch (ProcessNotExecutableException | ProcessFailedException e) {
-            e.throwAsDeviationAwareRuntimeException(KEY_CERT_GENERATION_FAILED);
+            log.error("Failed to generate internal TLS key and cert", e);
+            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(KEY_CERT_GENERATION_FAILED));
         }
     }
 
