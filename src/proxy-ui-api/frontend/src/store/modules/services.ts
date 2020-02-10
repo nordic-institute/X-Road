@@ -60,12 +60,14 @@ export const mutations: MutationTree<ServicesState> = {
   },
 
   setService(state, service: Service) {
-    service.endpoints = service.endpoints.sort( (a: Endpoint, b: Endpoint) => {
-      const sortByGenerated = (a.generated === b.generated) ? 0 : a.generated ? -1 : 1;
-      const sortByPathSlashCount = a.path.split('/').length - b.path.split('/').length;
-      const sortByPathLength = a.path.length - b.path.length;
-      return sortByGenerated || sortByPathSlashCount || sortByPathLength;
-    });
+    if (service.endpoints) {
+        service.endpoints = service.endpoints.sort((a: Endpoint, b: Endpoint) => {
+            const sortByGenerated = (a.generated === b.generated) ? 0 : a.generated ? -1 : 1;
+            const sortByPathSlashCount = a.path.split('/').length - b.path.split('/').length;
+            const sortByPathLength = a.path.length - b.path.length;
+            return sortByGenerated || sortByPathSlashCount || sortByPathLength;
+        });
+    }
     state.service = service;
   },
 
