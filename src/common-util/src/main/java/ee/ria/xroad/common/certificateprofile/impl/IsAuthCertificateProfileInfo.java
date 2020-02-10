@@ -39,21 +39,28 @@ public class IsAuthCertificateProfileInfo extends AbstractCertificateProfileInfo
      */
     public IsAuthCertificateProfileInfo(Parameters params) {
         super(new DnFieldDescription[] {
-                // Country Code
+                // Instance identifier
                 new EnumLocalizedFieldDescriptionImpl(
-                        "C", DnFieldLabelLocalizationKey.COUNTRY_CODE, "IS").setReadOnly(true),
-
-                // Organization name
-                new EnumLocalizedFieldDescriptionImpl(
-                        "O", DnFieldLabelLocalizationKey.ORGANIZATION_NAME, "").setReadOnly(false),
-
-                // Serialnumber
-                new EnumLocalizedFieldDescriptionImpl("serialNumber", DnFieldLabelLocalizationKey.SERIAL_NUMBER,
-                        params.getServerId().getXRoadInstance() + "/" + params.getServerId().getServerCode()
-                                + "/" + params.getServerId().getMemberClass()).setReadOnly(true),
+                        "C",
+                        DnFieldLabelLocalizationKey.INSTANCE_IDENTIFIER,
+                        params.getServerId().getXRoadInstance()
+                ).setReadOnly(true),
 
                 // Server code
                 new EnumLocalizedFieldDescriptionImpl(
-                        "CN", DnFieldLabelLocalizationKey.SERVER_DNS_NAME, "").setReadOnly(false) });
+                        "CN",
+                        DnFieldLabelLocalizationKey.SERVER_CODE,
+                        params.getServerId().getServerCode()
+                ).setReadOnly(true),
+
+                // Serialnumber
+                new EnumLocalizedFieldDescriptionImpl(
+                        "serialNumber",
+                        DnFieldLabelLocalizationKey.SERIAL_NUMBER,
+                        params.getServerId().getXRoadInstance()
+                        + "/" + params.getServerId().getServerCode()
+                        + "/" + params.getServerId().getMemberClass()
+                ).setReadOnly(true)
+        });
     }
 }
