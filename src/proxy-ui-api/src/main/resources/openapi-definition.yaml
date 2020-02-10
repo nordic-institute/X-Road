@@ -350,12 +350,12 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /token-certificates/{hash}/deactivate:
+  /token-certificates/{hash}/disable:
     put: # ok
       tags:
         - security server
       summary: deactivate certificate
-      operationId: deactivateCertificate
+      operationId: disableCertificate
       description: Administrator deactivates selected certificate.
       parameters:
         - in: path
