@@ -541,7 +541,7 @@ public class ServiceDescriptionService {
         } else if (serviceDescriptionType.getType().equals(DescriptionType.REST)) {
             serviceDescriptionType = refreshRESTServiceDescription(serviceDescriptionType);
         } else if (serviceDescriptionType.getType().equals(DescriptionType.OPENAPI3)) {
-            serviceDescriptionType = refreshOPENAPI3ServiceDescription(serviceDescriptionType, ignoreWarnings);
+            serviceDescriptionType = refreshOpenApi3ServiceDescription(serviceDescriptionType, ignoreWarnings);
         }
 
         return serviceDescriptionType;
@@ -617,7 +617,7 @@ public class ServiceDescriptionService {
      * @throws OpenApiParser.ParsingException       if parsing openapi3 description fails
      * @throws InvalidUrlException                  if url is invalid
      */
-    private ServiceDescriptionType refreshOPENAPI3ServiceDescription(ServiceDescriptionType serviceDescriptionType,
+    private ServiceDescriptionType refreshOpenApi3ServiceDescription(ServiceDescriptionType serviceDescriptionType,
             boolean ignoreWarnings) throws WrongServiceDescriptionTypeException,
             UnhandledWarningsException, OpenApiParser.ParsingException, InvalidUrlException {
 
@@ -635,7 +635,7 @@ public class ServiceDescriptionService {
 
         serviceDescriptionType.setRefreshedDate(new Date());
 
-        parseOpenapi3ToServiceDescription(serviceDescriptionType.getUrl(),
+        parseOpenApi3ToServiceDescription(serviceDescriptionType.getUrl(),
                 serviceDescriptionType.getService().get(0).getServiceCode(),
                 ignoreWarnings,
                 serviceDescriptionType);
@@ -743,7 +743,7 @@ public class ServiceDescriptionService {
 
         // Parse openapi definition and handle updating endpoints and acls
         if (!serviceDescription.getUrl().equals(url)) {
-            parseOpenapi3ToServiceDescription(url, newRestServiceCode, ignoreWarnings, serviceDescription);
+            parseOpenApi3ToServiceDescription(url, newRestServiceCode, ignoreWarnings, serviceDescription);
         }
 
         serviceDescription.setRefreshedDate(new Date());
@@ -768,7 +768,7 @@ public class ServiceDescriptionService {
      * @throws OpenApiParser.ParsingException if there are errors in the openapi3 description document
      * @throws UnhandledWarningsException     if ignoreWarnings is false and parser returns warnings from openapi
      */
-    private void parseOpenapi3ToServiceDescription(String url, String serviceCode, boolean ignoreWarnings,
+    private void parseOpenApi3ToServiceDescription(String url, String serviceCode, boolean ignoreWarnings,
             ServiceDescriptionType serviceDescription) throws
             OpenApiParser.ParsingException, UnhandledWarningsException {
         OpenApiParser.Result result = openApiParser.parse(url);
