@@ -49,7 +49,6 @@ public class ExternalProcessRunner {
      */
     public List<String> execute(String command, String... args) throws ProcessNotExecutableException,
             ProcessFailedException {
-        List<String> output = new ArrayList<>();
         if (StringUtils.isEmpty(command)) {
             throw new IllegalArgumentException("command cannot be null");
         }
@@ -98,10 +97,7 @@ public class ExternalProcessRunner {
             String errorMsg = String.format("Failed to run command '%s' with output: \n %s", fullCommandString,
                     processOutputString);
             throw new ProcessFailedException(errorMsg, processOutput);
-        } else if (processOutput != null && processOutput.size() > 0) {
-            // exitCode was 0 but there were some warnings in the output
-            output.addAll(processOutput);
         }
-        return output;
+        return processOutput;
     }
 }
