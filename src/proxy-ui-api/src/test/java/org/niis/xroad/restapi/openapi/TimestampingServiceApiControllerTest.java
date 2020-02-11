@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,11 +32,15 @@ import org.niis.xroad.restapi.converter.TimestampingServiceConverter;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.TimestampingServiceService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 
 import java.util.ArrayList;
@@ -52,11 +57,15 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@AutoConfigureTestDatabase
+@Transactional
+@Slf4j
 public class TimestampingServiceApiControllerTest {
 
     @MockBean
     GlobalConfService globalConfService;
 
+    @Autowired
     private TimestampingServicesApiController timestampingServicesApiController;
 
     private static final Map<String, String> TIMESTAMPING_SERVICES = new HashMap<>();
@@ -79,14 +88,10 @@ public class TimestampingServiceApiControllerTest {
                 new ArrayList<String>(TIMESTAMPING_SERVICES.keySet()));
         when(globalConfService.getApprovedTspName(TSA_1_URL)).thenReturn(TIMESTAMPING_SERVICES.get(TSA_1_NAME));
         when(globalConfService.getApprovedTspName(TSA_2_URL)).thenReturn(TIMESTAMPING_SERVICES.get(TSA_2_NAME));
-
-        TimestampingServiceService timestampingServiceService = new TimestampingServiceService(globalConfService);
-        TimestampingServiceConverter timestampingServiceConverter = new TimestampingServiceConverter(globalConfService);
-        timestampingServicesApiController = new TimestampingServicesApiController(
-                timestampingServiceService, timestampingServiceConverter);
     }
 
     @Test
+    @WithMockUser(authorities = { "VIEW_TSPS" })
     public void getTimestampingServices() {
         ResponseEntity<List<TimestampingService>> response =
                 timestampingServicesApiController.getTimestampingServices();
@@ -98,6 +103,7 @@ public class TimestampingServiceApiControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = { "VIEW_TSPS" })
     public void getTimestampingServicesEmptyList() {
         when(globalConfService.getApprovedTspsForThisInstance()).thenReturn(new ArrayList<String>());
         when(globalConfService.getApprovedTspName(any())).thenReturn(null);
