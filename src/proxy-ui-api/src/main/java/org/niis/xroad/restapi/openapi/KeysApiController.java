@@ -202,6 +202,12 @@ public class KeysApiController implements KeysApi {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('VIEW_KEYS')")
+    public ResponseEntity<List<PossibleAction>> getPossibleActionsForKey(String keyId) {
+        return null;
+    }
+
+    @Override
     @PreAuthorize("hasAnyAuthority('DELETE_KEY', 'DELETE_AUTH_KEY', 'DELETE_SIGN_KEY')")
     public ResponseEntity<Void> deleteKey(String keyId) {
         try {

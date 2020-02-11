@@ -5,10 +5,12 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.21"
+  version: "1.0.22"
   title: X-Road UI Based API
   contact:
-    email: lauri.koutaniemi@gofore.com
+    name: Nordic Institute for Interoperability Solutions (NIIS)
+    url: https://github.com/nordic-institute/X-Road-development/#enhancement-requests-and-error-reports
+    email: info@niis.org
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -1906,6 +1908,41 @@ paths:
             format: text
             minLength: 1
             maxLength: 40
+      responses:
+        '200':
+          description: possible actions that can be done on the certificate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PossibleActions'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /keys/{id}/possible-actions:
+    get: # ok
+      tags:
+        - security server
+      summary: get possible actions for one key
+      operationId: getPossibleActionsForKey
+      description: UI needs to know which actions can be done on one key
+      parameters:
+        - in: path
+          name: id
+          description: id of the key
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
       responses:
         '200':
           description: possible actions that can be done on the certificate

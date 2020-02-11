@@ -29,6 +29,7 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.Key;
@@ -156,11 +157,23 @@ public class KeysApiControllerTest {
 
     @Test
     @WithMockUser(authorities = { "VIEW_KEYS" })
-    public void getPossibleActionsForCsr() throws Exception {
+    public void getPossibleActionsForCsr() {
         ResponseEntity<List<PossibleAction>> response = keysApiController
                 .getPossibleActionsForCsr(GOOD_SIGN_KEY_ID, GOOD_CSR_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Set<PossibleAction> allActions = new HashSet(Arrays.asList(PossibleAction.values()));
         assertEquals(allActions, new HashSet<>(response.getBody()));
     }
+
+    @Ignore
+    @Test
+    @WithMockUser(authorities = { "VIEW_KEYS" })
+    public void getPossibleActionsForKey() {
+        ResponseEntity<List<PossibleAction>> response = keysApiController
+                .getPossibleActionsForKey(GOOD_SIGN_KEY_ID);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Set<PossibleAction> allActions = new HashSet(Arrays.asList(PossibleAction.values()));
+        assertEquals(allActions, new HashSet<>(response.getBody()));
+    }
+
 }
