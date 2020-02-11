@@ -69,10 +69,16 @@ public class UserApiController implements UserApi {
      */
     @PreAuthorize("permitAll()")
     @Override
-    public ResponseEntity<User> user() {
+    public ResponseEntity<User> getUser() {
         User user = new User();
-        user.setUsername("username is unknown (TODO)");
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = "unknown";
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof String) {
+            // principal is a String for both API key and PAM/session authentication
+            username = (String) principal;
+        }
+        user.setUsername(username);
         user.setPermissions(new ArrayList<>(getAuthorities(authentication, name -> !name.startsWith("ROLE_"))));
         user.setRoles(new ArrayList<>(getAuthorities(authentication, name -> name.startsWith("ROLE_"))));
         return new ResponseEntity<>(user, HttpStatus.OK);

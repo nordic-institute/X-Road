@@ -2051,7 +2051,7 @@ paths:
       tags:
         - security server
       summary: get user data for the logged user
-      operationId: user
+      operationId: getUser
       description: Administrator gets user data from backend.
       responses:
         '200':
