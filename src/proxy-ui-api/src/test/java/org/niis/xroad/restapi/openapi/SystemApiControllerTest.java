@@ -30,11 +30,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
+import org.niis.xroad.restapi.openapi.model.Version;
 import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
+import org.niis.xroad.restapi.service.VersionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,6 +63,9 @@ public class SystemApiControllerTest {
     @MockBean
     private InternalTlsCertificateRepository mockRepository;
 
+    @MockBean
+    private VersionService versionService;
+
     @Autowired
     private SystemApiController systemApiController;
 
@@ -72,6 +79,17 @@ public class SystemApiControllerTest {
     @WithMockUser(authorities = { "VIEW_INTERNAL_SSL_CERT" })
     public void getSystemCertificateWithViewInternalSslCertPermission() throws Exception {
         getSystemCertificate();
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_VERSION" })
+    public void getVersion() throws Exception {
+        String versionNumber = "6.24.0";
+        given(versionService.getVersion()).willReturn(versionNumber);
+        ResponseEntity<Version> response = systemApiController.systemVersion();
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(versionNumber, response.getBody().getInfo());
     }
 
     private void getSystemCertificate() throws IOException {
