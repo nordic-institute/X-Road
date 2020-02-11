@@ -204,7 +204,12 @@ public class KeysApiController implements KeysApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_KEYS')")
     public ResponseEntity<List<PossibleAction>> getPossibleActionsForKey(String keyId) {
-        return null;
+        try {
+            EnumSet<PossibleActionEnum> actions = keyService.getPossibleActionsForKey(keyId);
+            return new ResponseEntity<>(possibleActionConverter.convert(actions), HttpStatus.OK);
+        } catch (KeyNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
     }
 
     @Override

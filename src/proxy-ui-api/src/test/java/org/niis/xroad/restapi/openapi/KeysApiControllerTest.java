@@ -29,7 +29,6 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.restapi.openapi.model.Key;
@@ -114,6 +113,9 @@ public class KeysApiControllerTest {
         // by default all actions are possible
         doReturn(EnumSet.allOf(PossibleActionEnum.class)).when(tokenCertificateService)
                 .getPossibleActionsForCsr(any());
+        doReturn(EnumSet.allOf(PossibleActionEnum.class)).when(keyService)
+                .getPossibleActionsForKey(any());
+
     }
 
     private Object returnKeyInfoOrThrow(String keyId) throws KeyNotFoundException {
@@ -165,7 +167,6 @@ public class KeysApiControllerTest {
         assertEquals(allActions, new HashSet<>(response.getBody()));
     }
 
-    @Ignore
     @Test
     @WithMockUser(authorities = { "VIEW_KEYS" })
     public void getPossibleActionsForKey() {
