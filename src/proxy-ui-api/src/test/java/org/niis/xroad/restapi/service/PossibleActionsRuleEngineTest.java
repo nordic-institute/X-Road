@@ -338,6 +338,14 @@ public class PossibleActionsRuleEngineTest {
                 createTestToken(false, true,
                         true, false));
         assertFalse(actions.contains(PossibleActionEnum.DELETE));
+
+        // cant delete if inactive
+        actions = getPossibleKeyActions(
+                createTestToken(true, false,
+                        false, false));
+        assertFalse(actions.contains(PossibleActionEnum.DELETE));
+
+
     }
 
     /**
