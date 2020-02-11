@@ -533,8 +533,15 @@ public class ServiceDescriptionServiceIntegrationTest {
                 .anyMatch(ep -> ep.getServiceCode().equals("openapi3-test")
                         && ep.getMethod().equals("PUT")
                         && ep.getPath().equals("/foo")));
+    }
 
-
+    @Test
+    @WithMockUser(authorities = { "REFRESH_OPENAPI3" })
+    public void refreshOpenApi3ServiceDescriptionUpdatesDate() throws Exception {
+        ServiceDescriptionType serviceDescriptiontype = serviceDescriptionService.getServiceDescriptiontype(6L);
+        Date originalRefreshedDate = serviceDescriptiontype.getRefreshedDate();
+        serviceDescriptionService.refreshServiceDescription(6L, false);
+        assertTrue(originalRefreshedDate.compareTo(serviceDescriptiontype.getRefreshedDate()) < 0);
     }
 
     @WithMockUser(authorities = "ADD_OPENAPI3")
