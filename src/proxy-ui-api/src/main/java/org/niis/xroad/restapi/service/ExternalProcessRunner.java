@@ -50,6 +50,7 @@ public class ExternalProcessRunner {
      * @return the output of the executed process as a List of Strings
      * @throws ProcessNotExecutableException in the case of IOException or if the process is interrupted
      * @throws ProcessFailedException if the process' exit code is not 0
+     * @throws InterruptedException if the process running thread is interrupted
      */
     public List<String> execute(String command, String... args) throws ProcessNotExecutableException,
             ProcessFailedException, InterruptedException {
@@ -93,7 +94,7 @@ public class ExternalProcessRunner {
             }
             exitCode = process.exitValue();
         } catch (InterruptedException e) {
-            // we don't want to throw the InterruptedException from here but we want to retain the interrupted status
+            // retain the interrupted status
             Thread.currentThread().interrupt();
             throw e;
         } finally {

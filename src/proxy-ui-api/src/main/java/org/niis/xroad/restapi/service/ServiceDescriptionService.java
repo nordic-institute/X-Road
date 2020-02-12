@@ -217,6 +217,7 @@ public class ServiceDescriptionService {
      * @throws InvalidUrlException              if url was empty or invalid
      * @throws WsdlUrlAlreadyExistsException    conflict: another service description has same url
      * @throws ServiceAlreadyExistsException    conflict: same service exists in another SD
+     * @throws InterruptedException             if the thread running the WSDL validator is interrupted
      */
     public ServiceDescriptionType addWsdlServiceDescription(ClientId clientId, String url, boolean ignoreWarnings)
             throws InvalidWsdlException,
@@ -485,6 +486,7 @@ public class ServiceDescriptionService {
      * @throws InvalidUrlException                  if url was empty or invalid
      * @throws WsdlUrlAlreadyExistsException        conflict: another service description has same url
      * @throws ServiceAlreadyExistsException        conflict: same service exists in another SD
+     * @throws InterruptedException                 if the thread running the WSDL validator is interrupted
      */
     public ServiceDescriptionType updateWsdlUrl(Long id, String url, boolean ignoreWarnings)
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
@@ -515,6 +517,7 @@ public class ServiceDescriptionService {
      * @throws InvalidUrlException                  if url was empty or invalid
      * @throws WsdlUrlAlreadyExistsException        conflict: another service description has same url
      * @throws ServiceAlreadyExistsException        conflict: same service exists in another SD
+     * @throws InterruptedException                 if the thread running the WSDL validator is interrupted
      */
     public ServiceDescriptionType refreshServiceDescription(Long id, boolean ignoreWarnings)
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
@@ -930,7 +933,6 @@ public class ServiceDescriptionService {
      * @return list of validation warnings that can be ignored by choice
      * @throws WsdlValidator.WsdlValidationFailedException
      * @throws WsdlValidator.WsdlValidatorNotExecutableException
-     * @throws InvalidUrlException
      */
     private List<String> validateWsdl(String url) throws WsdlValidator.WsdlValidationFailedException,
             WsdlValidator.WsdlValidatorNotExecutableException, InterruptedException {
