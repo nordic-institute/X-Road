@@ -27,17 +27,3 @@ server:
 logging:
   config: file:/etc/xroad/conf.d/proxy-ui-api-logback.xml
 
-file-upload-endpoints:
-  endpointDefinitions:
-    -
-      httpMethod: POST
-      pathEnding: /backups/upload
-    -
-      httpMethod: POST
-      pathEnding: /tls-certificates
-    -
-      httpMethod: POST
-      pathEnding: /certificates
-    -
-      httpMethod: POST
-      pathEnding: /certificate/import

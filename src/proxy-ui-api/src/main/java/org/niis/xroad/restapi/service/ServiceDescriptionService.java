@@ -34,6 +34,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
+import org.hibernate.Hibernate;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
@@ -106,6 +107,7 @@ public class ServiceDescriptionService {
             ServiceChangeChecker serviceChangeChecker,
             WsdlValidator wsdlValidator, UrlValidator urlValidator,
             OpenApiParser openApiParser) {
+
         this.serviceDescriptionRepository = serviceDescriptionRepository;
         this.clientService = clientService;
         this.clientRepository = clientRepository;
@@ -859,13 +861,20 @@ public class ServiceDescriptionService {
     }
 
     /**
-     * Return matching ServiceDescription or null
+     * Return matching ServiceDescription or null.
+     * serviceDescription.services and serviceDescription.client are always loaded
+     * with Hibernate.init()
      *
      * @param id
      * @return ServiceDescriptionType
      */
     public ServiceDescriptionType getServiceDescriptiontype(Long id) {
-        return serviceDescriptionRepository.getServiceDescription(id);
+        ServiceDescriptionType serviceDescriptionType = serviceDescriptionRepository.getServiceDescription(id);
+        if (serviceDescriptionType != null) {
+            Hibernate.initialize(serviceDescriptionType.getService());
+            Hibernate.initialize(serviceDescriptionType.getClient().getEndpoint());
+        }
+        return serviceDescriptionType;
     }
 
     /**

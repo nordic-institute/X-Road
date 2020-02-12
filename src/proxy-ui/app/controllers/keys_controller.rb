@@ -37,13 +37,14 @@ java_import Java::ee.ria.xroad.signer.protocol.dto.KeyUsageInfo
 java_import Java::ee.ria.xroad.signer.protocol.dto.TokenInfo
 java_import Java::ee.ria.xroad.signer.protocol.dto.TokenStatusInfo
 java_import Java::ee.ria.xroad.signer.protocol.message.GenerateCertRequest
+java_import Java::ee.ria.xroad.signer.protocol.message.CertificateRequestFormat
 
 class KeysController < ApplicationController
 
   PARAM_KEY_USAGE_AUTH = "auth"
   PARAM_KEY_USAGE_SIGN = "sign"
 
-  CSR_FORMATS = GenerateCertRequest::RequestFormat.values.map { |e| e.toString }
+  CSR_FORMATS = CertificateRequestFormat.values.map { |e| e.toString }
 
   include Keys::TokenRenderer
 
@@ -241,7 +242,7 @@ class KeysController < ApplicationController
 
     csr = SignerProxy::generateCertRequest(
       params[:key_id], client_id, key_usage, subject_name,
-      GenerateCertRequest::RequestFormat.valueOf(params[:csr_format]))
+      CertificateRequestFormat.valueOf(params[:csr_format])).certRequest
 
     if params[:key_usage] == PARAM_KEY_USAGE_AUTH
       identifier = "securityserver_" \

@@ -204,7 +204,7 @@ public class KeyService {
         if (keyInfo.getUsage() == KeyUsageInfo.AUTHENTICATION) {
             for (CertificateInfo certificateInfo: keyInfo.getCerts()) {
                 if (certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGINPROG)
-                    || certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED)) {
+                        || certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED)) {
                     unregisterAuthCert(certificateInfo);
                 }
             }

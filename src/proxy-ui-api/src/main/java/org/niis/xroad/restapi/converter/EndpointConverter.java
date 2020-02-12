@@ -22,31 +22,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi;
+package org.niis.xroad.restapi.converter;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 
-/**
- * Thrown if parameters were invalid.
- * Results in http 400 BAD_REQUEST
- * to do: replace with BadRequestException and ServiceExceptions
- */
-@ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class InvalidParametersException extends OpenApiException {
-    public InvalidParametersException() {
+import org.niis.xroad.restapi.openapi.model.Endpoint;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Component
+public class EndpointConverter {
+
+    public Endpoint convert(EndpointType endpointType) {
+        Endpoint endpoint = new Endpoint();
+
+        endpoint.setId(String.valueOf(endpointType.getId()));
+        endpoint.setServiceCode(endpointType.getServiceCode());
+        endpoint.setMethod(endpointType.getMethod());
+        endpoint.setPath(endpointType.getPath());
+        endpoint.setGenerated(endpointType.isGenerated());
+        return endpoint;
     }
 
-    public InvalidParametersException(String msg) {
-        super(msg);
-    }
-
-    public InvalidParametersException(String msg, Throwable t) {
-        super(msg, t);
-    }
-
-    public InvalidParametersException(Throwable t) {
-        super(t);
+    public List<Endpoint> convert(List<EndpointType> endpointTypes) {
+        return endpointTypes.stream().map(e -> convert(e)).collect(Collectors.toList());
     }
 
 }

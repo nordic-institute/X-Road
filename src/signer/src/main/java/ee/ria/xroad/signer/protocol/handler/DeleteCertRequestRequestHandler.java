@@ -34,7 +34,7 @@ public class DeleteCertRequestRequestHandler
 
     @Override
     protected Object handle(DeleteCertRequest message) throws Exception {
-        return deleteCertRequest(message.getCertId());
+        return deleteCertRequest(message.getCertRequestId());
     }
 
 }

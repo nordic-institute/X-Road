@@ -90,7 +90,7 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
 
     @Override
     @PreAuthorize("hasAnyAuthority('ACTIVATE_DISABLE_AUTH_CERT','ACTIVATE_DISABLE_SIGN_CERT')")
-    public ResponseEntity<Void> deactivateCertificate(String hash) {
+    public ResponseEntity<Void> disableCertificate(String hash) {
         try {
             tokenCertificateService.deactivateCertificate(hash);
         } catch (CertificateNotFoundException e) {
@@ -164,9 +164,6 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
             tokenCertificateService.deleteCertificate(hash);
         } catch (CertificateNotFoundException | KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (TokenCertificateService.KeyNotOperationalException
-                | TokenCertificateService.SignerOperationFailedException e) {
-            throw new InternalServerErrorException(e);
         } catch (ActionNotPossibleException e) {
             throw new ConflictException(e);
         }

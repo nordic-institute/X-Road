@@ -107,7 +107,7 @@ public class CertificateAuthorityService {
         if (Boolean.TRUE.equals(caInfo.getAuthenticationOnly()) && KeyUsageInfo.SIGNING == keyUsageInfo) {
             throw new WrongKeyUsageException();
         }
-        if (memberId != null) {
+        if (keyUsageInfo == KeyUsageInfo.SIGNING) {
             // validate that the member exists or has a subsystem on this server
             if (!clientService.getLocalClientMemberIds().contains(memberId)) {
                 throw new ClientNotFoundException("client with id " + memberId + ", or subsystem for it, not found");
