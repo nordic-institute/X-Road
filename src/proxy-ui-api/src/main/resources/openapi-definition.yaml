@@ -5,7 +5,7 @@ servers:
     url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
 info:
   description: X-Road UI Based API
-  version: "1.0.21"
+  version: "1.0.22"
   title: X-Road UI Based API
   contact:
     email: lauri.koutaniemi@gofore.com
@@ -3978,6 +3978,11 @@ components:
           example: ABC
           minLength: 1
           maxLength: 255
+        owner:
+          type: boolean
+          description: if this client is the owner member of this security server
+          example: false
+          readOnly: true
         connection_type:
           $ref: '#/components/schemas/ConnectionType'
         status:
