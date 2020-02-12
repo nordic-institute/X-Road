@@ -132,7 +132,7 @@ public class InternalTlsCertificateService {
      * exception will be thrown if the generation is interrupted or otherwise unable to be executed or if the
      * restarting fails.
      */
-    public void generateInternalTlsKeyAndCertificate() {
+    public void generateInternalTlsKeyAndCertificate() throws InterruptedException {
         try {
             externalProcessRunner.execute(generateCertScriptPath, generateCertScriptArgs.split("\\s+"));
             restartXroadProxy();
@@ -150,7 +150,8 @@ public class InternalTlsCertificateService {
      * @throws ProcessFailedException
      * @throws ProcessNotExecutableException
      */
-    private void restartXroadProxy() throws ProcessFailedException, ProcessNotExecutableException {
+    private void restartXroadProxy() throws ProcessFailedException, ProcessNotExecutableException,
+            InterruptedException {
         log.warn("restarting xroad-proxy");
         String bash = "/bin/bash";
         String[] bashRestartXroadProxyArgs = new String[] {"-c", "sudo service xroad-proxy restart 2>&1"};

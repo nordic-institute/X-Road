@@ -84,6 +84,7 @@ import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.restapi.openapi.ApiUtil.createCreatedResponse;
+import static org.niis.xroad.restapi.openapi.ServiceDescriptionsApiController.WSDL_VALIDATOR_INTERRUPTED;
 
 /**
  * clients api
@@ -350,6 +351,8 @@ public class ClientsApiController implements ClientsApi {
                     | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
                 // deviation data (errorcode + warnings) copied
                 throw new ConflictException(e);
+            } catch (InterruptedException e) {
+                throw new InternalServerErrorException(new ErrorDeviation(WSDL_VALIDATOR_INTERRUPTED));
             }
         } else if (serviceDescription.getType() == ServiceType.OPENAPI3) {
             try {

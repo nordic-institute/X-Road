@@ -57,7 +57,6 @@ import static org.niis.xroad.restapi.service.InternalTlsCertificateService.KEY_C
 public class InternalTlsCertificateServiceTest {
 
     public static final String SUCCESS = "SUCCESS";
-    public static final String FAIL = "FAIL";
     public static final String ERROR = "ERROR";
 
     public static final String MOCK_SUCCESS_SCRIPT = "src/test/resources/script/success.sh";
@@ -75,7 +74,7 @@ public class InternalTlsCertificateServiceTest {
                         return Collections.singletonList(SUCCESS);
                     }
                     if (command.equals(MOCK_FAIL_SCRIPT)) {
-                        throw new ProcessFailedException("Mock error msg", Collections.singletonList(FAIL));
+                        throw new ProcessFailedException("Mock error msg");
                     }
                     if (command.equals(NON_EXISTING_SCRIPT)) {
                         throw new ProcessNotExecutableException(new IOException(ERROR));
@@ -153,7 +152,7 @@ public class InternalTlsCertificateServiceTest {
     }
 
     @Test
-    public void generateInternalTlsKeyAndCertificateFail() {
+    public void generateInternalTlsKeyAndCertificateFail() throws Exception {
         internalTlsCertificateService.setGenerateCertScriptPath(MOCK_FAIL_SCRIPT);
         try {
             internalTlsCertificateService.generateInternalTlsKeyAndCertificate();
@@ -163,7 +162,7 @@ public class InternalTlsCertificateServiceTest {
     }
 
     @Test
-    public void generateInternalTlsKeyAndCertificateNotExecutable() {
+    public void generateInternalTlsKeyAndCertificateNotExecutable() throws Exception {
         internalTlsCertificateService.setGenerateCertScriptPath(NON_EXISTING_SCRIPT);
         try {
             internalTlsCertificateService.generateInternalTlsKeyAndCertificate();

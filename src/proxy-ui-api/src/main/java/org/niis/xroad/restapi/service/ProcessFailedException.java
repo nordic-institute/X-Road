@@ -26,12 +26,10 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-import java.util.List;
-
 public class ProcessFailedException extends ServiceException {
     public static final String PROCESS_FAILED = "process_failed";
 
-    public ProcessFailedException(String msg, List<String> metaData) {
-        super(msg, new ErrorDeviation(PROCESS_FAILED, metaData));
+    public ProcessFailedException(String msg) {
+        super(msg, new ErrorDeviation(PROCESS_FAILED));
     }
 }

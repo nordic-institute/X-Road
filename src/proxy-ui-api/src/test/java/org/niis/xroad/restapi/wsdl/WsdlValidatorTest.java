@@ -36,6 +36,7 @@ import java.util.List;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.niis.xroad.restapi.wsdl.InvalidWsdlException.ERROR_INVALID_WSDL;
 
 /**
  * Test WSDLValidator
@@ -43,7 +44,6 @@ import static org.junit.Assert.assertNotNull;
  * new Spring application context we are instantiating the tested component via it's constructor (WsdlValidator)
  */
 public class WsdlValidatorTest {
-    public static final String MOCK_VALIDATOR_ERROR = "ERROR: this is not fine";
     public static final String MOCK_VALIDATOR_WARNING = "WARNING: this can be ignored";
     public static final String MOCK_VALIDATOR = "src/test/resources/validator/mock-wsdlvalidator.sh";
     public static final String FOOBAR_VALIDATOR = "/bin/foobar-validator";
@@ -79,8 +79,7 @@ public class WsdlValidatorTest {
             wsdlValidator.executeValidator("src/test/resources/wsdl/error.wsdl");
             fail("should have thrown WsdlValidationException");
         } catch (WsdlValidator.WsdlValidationFailedException expected) {
-            assertEquals(Collections.singletonList(MOCK_VALIDATOR_ERROR),
-                    expected.getErrorDeviation().getMetadata());
+            assertEquals(ERROR_INVALID_WSDL, expected.getErrorDeviation().getCode());
         }
     }
 

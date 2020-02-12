@@ -31,13 +31,13 @@ import java.io.IOException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.niis.xroad.restapi.service.ProcessFailedException.PROCESS_FAILED;
 
 public class ExternalProcessRunnerTest {
 
     public static final String MOCK_SUCCESS_SCRIPT = "src/test/resources/script/success.sh";
     public static final String MOCK_FAIL_SCRIPT = "src/test/resources/script/fail.sh";
     public static final String NON_EXISTING_SCRIPT = "/path/to/non/existing/script.sh";
-    public static final String FAIL = "FAIL";
     public static final String SCRIPT_ARGS = "args";
 
     private final ExternalProcessRunner externalProcessRunner = new ExternalProcessRunner();
@@ -56,7 +56,7 @@ public class ExternalProcessRunnerTest {
         try {
             externalProcessRunner.execute(MOCK_FAIL_SCRIPT, SCRIPT_ARGS);
         } catch (ProcessFailedException e) {
-            assertEquals(FAIL, e.getErrorDeviation().getMetadata().get(0));
+            assertEquals(PROCESS_FAILED, e.getErrorDeviation().getCode());
         }
     }
 

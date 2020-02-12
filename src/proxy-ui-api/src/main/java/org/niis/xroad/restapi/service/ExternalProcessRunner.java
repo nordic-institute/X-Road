@@ -25,6 +25,7 @@
 package org.niis.xroad.restapi.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.utils.IOUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -34,10 +35,13 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
 public class ExternalProcessRunner {
+    private static final long TIMEOUT = 60000;
+
     /**
      * Executes the given command with given arguments.
      * @param command the command to execute
@@ -48,7 +52,7 @@ public class ExternalProcessRunner {
      * @throws ProcessFailedException if the process' exit code is not 0
      */
     public List<String> execute(String command, String... args) throws ProcessNotExecutableException,
-            ProcessFailedException {
+            ProcessFailedException, InterruptedException {
         if (StringUtils.isEmpty(command)) {
             throw new IllegalArgumentException("command cannot be null");
         }
@@ -74,20 +78,29 @@ public class ExternalProcessRunner {
             br.lines().forEach(processOutput::add);
         } catch (IOException e) {
             process.destroy();
+            IOUtils.closeQuietly(process.getErrorStream());
+            IOUtils.closeQuietly(process.getOutputStream());
             throw new ProcessNotExecutableException(e);
         }
 
         int exitCode;
 
         try {
-            exitCode = process.waitFor();
+            boolean hasExited = process.waitFor(TIMEOUT, TimeUnit.MILLISECONDS);
+            // exit value cannot be asked if the process is still running after timeout - instead throw and destroy
+            if (!hasExited) {
+                throw new ProcessFailedException("Process timed out");
+            }
+            exitCode = process.exitValue();
         } catch (InterruptedException e) {
             // we don't want to throw the InterruptedException from here but we want to retain the interrupted status
             Thread.currentThread().interrupt();
-            throw new ProcessNotExecutableException(e);
+            throw e;
         } finally {
             // always destroy the process
             process.destroy();
+            IOUtils.closeQuietly(process.getErrorStream());
+            IOUtils.closeQuietly(process.getOutputStream());
         }
 
         // if the process fails we attach the output into the exception
@@ -96,7 +109,7 @@ public class ExternalProcessRunner {
             String processOutputString = String.join("\n", processOutput);
             String errorMsg = String.format("Failed to run command '%s' with output: \n %s", fullCommandString,
                     processOutputString);
-            throw new ProcessFailedException(errorMsg, processOutput);
+            throw new ProcessFailedException(errorMsg);
         }
         return processOutput;
     }

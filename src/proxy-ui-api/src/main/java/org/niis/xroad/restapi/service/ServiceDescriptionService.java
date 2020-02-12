@@ -225,7 +225,7 @@ public class ServiceDescriptionService {
             UnhandledWarningsException,
             ServiceAlreadyExistsException,
             InvalidUrlException,
-            WsdlUrlAlreadyExistsException {
+            WsdlUrlAlreadyExistsException, InterruptedException {
         ClientType client = clientService.getClient(clientId);
         if (client == null) {
             throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + " not found");
@@ -493,7 +493,7 @@ public class ServiceDescriptionService {
             UnhandledWarningsException,
             InvalidUrlException,
             ServiceAlreadyExistsException,
-            WsdlUrlAlreadyExistsException {
+            WsdlUrlAlreadyExistsException, InterruptedException {
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptiontype(id);
         if (serviceDescriptionType == null) {
             throw new ServiceDescriptionNotFoundException("Service description with id " + id.toString());
@@ -520,7 +520,7 @@ public class ServiceDescriptionService {
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
             ServiceDescriptionNotFoundException, WrongServiceDescriptionTypeException,
             UnhandledWarningsException, InvalidUrlException, ServiceAlreadyExistsException,
-            WsdlUrlAlreadyExistsException {
+            WsdlUrlAlreadyExistsException, InterruptedException {
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptiontype(id);
         if (serviceDescriptionType == null) {
             throw new ServiceDescriptionNotFoundException("Service description with id " + id.toString()
@@ -775,7 +775,7 @@ public class ServiceDescriptionService {
             boolean ignoreWarnings)
             throws InvalidWsdlException, WsdlParser.WsdlNotFoundException,
             WrongServiceDescriptionTypeException, UnhandledWarningsException,
-            ServiceAlreadyExistsException, InvalidUrlException, WsdlUrlAlreadyExistsException {
+            ServiceAlreadyExistsException, InvalidUrlException, WsdlUrlAlreadyExistsException, InterruptedException {
 
         // Shouldn't be able to edit e.g. REST service descriptions with a WSDL URL
         if (serviceDescriptionType.getType() != DescriptionType.WSDL) {
@@ -933,7 +933,7 @@ public class ServiceDescriptionService {
      * @throws InvalidUrlException
      */
     private List<String> validateWsdl(String url) throws WsdlValidator.WsdlValidationFailedException,
-            WsdlValidator.WsdlValidatorNotExecutableException {
+            WsdlValidator.WsdlValidatorNotExecutableException, InterruptedException {
         return wsdlValidator.executeValidator(url);
     }
 
@@ -1003,7 +1003,7 @@ public class ServiceDescriptionService {
             InvalidWsdlException,
             InvalidUrlException,
             WsdlUrlAlreadyExistsException,
-            ServiceAlreadyExistsException {
+            ServiceAlreadyExistsException, InterruptedException {
 
         WsdlProcessingResult result = new WsdlProcessingResult();
         // check for valid url (is this not enough??

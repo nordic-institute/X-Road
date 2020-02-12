@@ -64,7 +64,7 @@ public class WsdlValidator {
      * @throws WsdlValidationFailedException when validation itself fails.
      */
     public List<String> executeValidator(String wsdlUrl) throws WsdlValidatorNotExecutableException,
-            WsdlValidationFailedException {
+            WsdlValidationFailedException, InterruptedException {
         List<String> warnings = new ArrayList<>();
         // validator not set - this is ok since validator is optional
         if (StringUtils.isEmpty(getWsdlValidatorCommand())) {
