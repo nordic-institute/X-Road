@@ -99,6 +99,7 @@ public class ExternalProcessRunner {
         } finally {
             // always destroy the process
             process.destroy();
+            IOUtils.closeQuietly(process.getInputStream());
             IOUtils.closeQuietly(process.getErrorStream());
             IOUtils.closeQuietly(process.getOutputStream());
         }
