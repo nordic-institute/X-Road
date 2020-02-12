@@ -15,7 +15,7 @@ Conflicts:          xroad-centralserver
 %define src %{_topdir}/..
 
 %description
-This is meta package of X-Road security server with Finnish settings
+This is meta package of X-Road security server with Icelandic settings
 
 %clean
 
