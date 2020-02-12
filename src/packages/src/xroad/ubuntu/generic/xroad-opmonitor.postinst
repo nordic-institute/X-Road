@@ -35,23 +35,24 @@ configure() {
 
   db_properties=/etc/xroad/db.properties
   root_properties=/etc/xroad.properties
-
-  RET=
-  db_get xroad-common/database-host
-  db_host="$RET"
-  db_url=jdbc:postgresql://${db_host}/${db_name}
-  db_addr=${db_host%%:*}
-  db_port=${db_host##*:}
-  db_initialized=false
+  db_host=127.0.0.1:5432
 
   if  [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]
   then
     master_passwd=$(crudini --get ${root_properties} '' postgres.connection.password)
     export PGPASSWORD=${master_passwd}
     psql_cmd=remote_psql
+    RET=
+    db_get xroad-common/database-host
+    db_host="$RET"
   else
     psql_cmd=local_psql
   fi
+
+  db_url=jdbc:postgresql://${db_host}/${db_name}
+  db_addr=${db_host%%:*}
+  db_port=${db_host##*:}
+  db_initialized=false
 
   if  [[ -f ${db_properties}  && $(get_prop ${db_properties} op-monitor.hibernate.connection.url) != "" ]]
   then
