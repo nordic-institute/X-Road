@@ -7,5 +7,5 @@ trap 'rc=$?; rm --preserve-root -rf $DIR; exit $rc' EXIT
 unzip -q /usr/share/xroad/jlib/webapps/center-ui.war -d $DIR
 cd $DIR/WEB-INF
 mkdir -p db/migrate
-cp -r vendor/engines/center-common/db/migrate/* db/migrate/
+cp -r vendor/engines/center-common/db/migrate-legacy/* db/migrate/
 GEM_HOME=$DIR/WEB-INF/gems/ RAILS_ENV=production java -Dlogback.configurationFile=/usr/share/xroad/db/logback.xml -cp "lib/*" org.jruby.Main -S rake $*

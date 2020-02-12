@@ -12,7 +12,7 @@ class RefactorHaSupport < ActiveRecord::Migration
       if version.to_i() >= 90600
         #A bit more efficient version for a more recent PostgreSQL
         execute <<-SQL
-CREATE OR REPLACE FUNCTION public.insert_node_name()
+CREATE OR REPLACE FUNCTION insert_node_name()
  RETURNS trigger
  LANGUAGE plpgsql
 AS $function$
@@ -32,7 +32,7 @@ $function$
       else
         # legacy version, need to catch exception (more expensive) if current_setting fails
         execute <<-SQL
-CREATE OR REPLACE FUNCTION public.insert_node_name()
+CREATE OR REPLACE FUNCTION insert_node_name()
  RETURNS trigger
  LANGUAGE plpgsql
 AS $function$
