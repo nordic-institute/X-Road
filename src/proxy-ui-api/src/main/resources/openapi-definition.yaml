@@ -4014,6 +4014,11 @@ components:
           example: ABC
           minLength: 1
           maxLength: 255
+        owner:
+          type: boolean
+          description: if this client is the owner member of this security server
+          example: false
+          readOnly: true
         connection_type:
           $ref: '#/components/schemas/ConnectionType'
         status:
