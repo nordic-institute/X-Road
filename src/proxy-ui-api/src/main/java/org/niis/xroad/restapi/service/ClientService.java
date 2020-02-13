@@ -125,12 +125,12 @@ public class ClientService {
     /**
      * Return one client, or null if not found.
      * This method does NOT trigger load of lazy loaded properties.
-     * Use {@code getClientIsCerts}, {@code getClientLocalGroups}, and
-     * {@code getClientServiceDescriptions} for that
+     * Use {@code getLocalClientIsCerts}, {@code getLocalClientLocalGroups}, and
+     * {@code getLocalClientServiceDescriptions} for that
      * @param id
      * @return the client, or null if matching client was not found
      */
-    public ClientType getClient(ClientId id) {
+    public ClientType getLocalClient(ClientId id) {
         ClientType clientType = clientRepository.getClient(id);
         return clientType;
     }
@@ -141,8 +141,8 @@ public class ClientService {
      * @param id
      * @return list of CertificateTypes, or null if client does not exist
      */
-    public List<CertificateType> getClientIsCerts(ClientId id) {
-        ClientType clientType = getClient(id);
+    public List<CertificateType> getLocalClientIsCerts(ClientId id) {
+        ClientType clientType = getLocalClient(id);
         if (clientType != null) {
             Hibernate.initialize(clientType.getIsCert());
             return clientType.getIsCert();
@@ -157,8 +157,8 @@ public class ClientService {
      * @param id
      * @return list of ServiceDescriptionTypes, or null if client does not exist
      */
-    public List<ServiceDescriptionType> getClientServiceDescriptions(ClientId id) {
-        ClientType clientType = getClient(id);
+    public List<ServiceDescriptionType> getLocalClientServiceDescriptions(ClientId id) {
+        ClientType clientType = getLocalClient(id);
         if (clientType != null) {
             for (ServiceDescriptionType serviceDescriptionType: clientType.getServiceDescription()) {
                 Hibernate.initialize(serviceDescriptionType.getService());
@@ -176,8 +176,8 @@ public class ClientService {
      * @param id
      * @return list of LocalGroupTypes, or null if client does not exist
      */
-    public List<LocalGroupType> getClientLocalGroups(ClientId id) {
-        ClientType clientType = getClient(id);
+    public List<LocalGroupType> getLocalClientLocalGroups(ClientId id) {
+        ClientType clientType = getLocalClient(id);
         if (clientType != null) {
             for (LocalGroupType localGroupType: clientType.getLocalGroup()) {
                 Hibernate.initialize(localGroupType.getGroupMember());
@@ -196,7 +196,7 @@ public class ClientService {
      * @throws ClientNotFoundException if client was not found
      */
     public ClientType updateConnectionType(ClientId id, String connectionType) throws ClientNotFoundException {
-        ClientType clientType = getClientType(id);
+        ClientType clientType = getLocalClientOrThrowNotFound(id);
         // validate connectionType param by creating enum out of it
         IsAuthentication enumValue = IsAuthentication.valueOf(connectionType);
         clientType.setIsAuthentication(connectionType);
@@ -205,11 +205,11 @@ public class ClientService {
     }
 
     /**
-     * Get a client, throw exception if not found
+     * Get a local client, throw exception if not found
      * @throws ClientNotFoundException if not found
      */
-    private ClientType getClientType(ClientId id) throws ClientNotFoundException {
-        ClientType clientType = clientRepository.getClient(id);
+    private ClientType getLocalClientOrThrowNotFound(ClientId id) throws ClientNotFoundException {
+        ClientType clientType = getLocalClient(id);
         if (clientType == null) {
             throw new ClientNotFoundException("client with id " + id + " not found");
         }
@@ -233,7 +233,7 @@ public class ClientService {
             throw new CertificateException("cannot convert bytes to certificate", e);
         }
         String hash = calculateCertHexHash(x509Certificate);
-        ClientType clientType = getClientType(id);
+        ClientType clientType = getLocalClientOrThrowNotFound(id);
         Optional<CertificateType> duplicate = clientType.getIsCert().stream()
                 .filter(cert -> hash.equalsIgnoreCase(calculateCertHexHash(cert.getData())))
                 .findFirst();
@@ -286,7 +286,7 @@ public class ClientService {
      */
     public ClientType deleteTlsCertificate(ClientId id, String certificateHash)
             throws ClientNotFoundException, CertificateNotFoundException {
-        ClientType clientType = getClientType(id);
+        ClientType clientType = getLocalClientOrThrowNotFound(id);
         Optional<CertificateType> certificateType = clientType.getIsCert().stream()
                 .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
                 .findAny();
@@ -308,7 +308,7 @@ public class ClientService {
      */
     public Optional<CertificateType> getTlsCertificate(ClientId id, String certificateHash)
             throws ClientNotFoundException {
-        ClientType clientType = getClientType(id);
+        ClientType clientType = getLocalClientOrThrowNotFound(id);
         Optional<CertificateType> certificateType = clientType.getIsCert().stream()
                 .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
                 .findAny();

@@ -117,7 +117,7 @@ public class ClientServiceIntegrationTest {
     @Test
     public void updateConnectionType() throws Exception {
         ClientId id = TestUtils.getM1Ss1ClientId();
-        ClientType clientType = clientService.getClient(id);
+        ClientType clientType = clientService.getLocalClient(id);
         assertEquals("SSLNOAUTH", clientType.getIsAuthentication());
         assertEquals(2, clientType.getLocalGroup().size());
 
@@ -128,7 +128,7 @@ public class ClientServiceIntegrationTest {
         }
 
         clientService.updateConnectionType(id, "NOSSL");
-        clientType = clientService.getClient(id);
+        clientType = clientService.getLocalClient(id);
         assertEquals("NOSSL", clientType.getIsAuthentication());
         assertEquals(2, clientType.getLocalGroup().size());
     }
@@ -137,12 +137,12 @@ public class ClientServiceIntegrationTest {
     public void addCertificatePem() throws Exception {
 
         ClientId id = TestUtils.getM1Ss1ClientId();
-        ClientType clientType = clientService.getClient(id);
+        ClientType clientType = clientService.getLocalClient(id);
         assertEquals(0, clientType.getIsCert().size());
 
         clientService.addTlsCertificate(id, pemBytes);
 
-        clientType = clientService.getClient(id);
+        clientType = clientService.getLocalClient(id);
         assertEquals(1, clientType.getIsCert().size());
         assertTrue(Arrays.equals(derBytes, clientType.getIsCert().get(0).getData()));
     }
@@ -151,7 +151,7 @@ public class ClientServiceIntegrationTest {
     public void addInvalidCertificate() throws Exception {
 
         ClientId id = TestUtils.getM1Ss1ClientId();
-        ClientType clientType = clientService.getClient(id);
+        ClientType clientType = clientService.getLocalClient(id);
         assertEquals(0, clientType.getIsCert().size());
 
         try {
@@ -165,12 +165,12 @@ public class ClientServiceIntegrationTest {
     public void addCertificateDer() throws Exception {
 
         ClientId id = TestUtils.getM1Ss1ClientId();
-        ClientType clientType = clientService.getClient(id);
+        ClientType clientType = clientService.getLocalClient(id);
         assertEquals(0, clientType.getIsCert().size());
 
         clientService.addTlsCertificate(id, derBytes);
 
-        clientType = clientService.getClient(id);
+        clientType = clientService.getLocalClient(id);
         assertEquals(1, clientType.getIsCert().size());
         assertTrue(Arrays.equals(derBytes, clientType.getIsCert().get(0).getData()));
     }
@@ -179,7 +179,7 @@ public class ClientServiceIntegrationTest {
     public void addDuplicate() throws Exception {
 
         ClientId id = TestUtils.getM1Ss1ClientId();
-        ClientType clientType = clientService.getClient(id);
+        ClientType clientType = clientService.getLocalClient(id);
         assertEquals(0, clientType.getIsCert().size());
 
         clientService.addTlsCertificate(id, derBytes);
@@ -195,7 +195,7 @@ public class ClientServiceIntegrationTest {
     public void deleteCertificate() throws Exception {
 
         ClientId id = TestUtils.getM1Ss1ClientId();
-        ClientType clientType = clientService.getClient(id);
+        ClientType clientType = clientService.getLocalClient(id);
         assertEquals(0, clientType.getIsCert().size());
 
         clientService.addTlsCertificate(id, derBytes);
@@ -206,11 +206,11 @@ public class ClientServiceIntegrationTest {
             fail("should have thrown CertificateNotFoundException");
         } catch (CertificateNotFoundException expected) {
         }
-        clientType = clientService.getClient(id);
+        clientType = clientService.getLocalClient(id);
         assertEquals(1, clientType.getIsCert().size());
 
         clientService.deleteTlsCertificate(id, hash);
-        clientType = clientService.getClient(id);
+        clientType = clientService.getLocalClient(id);
         assertEquals(0, clientType.getIsCert().size());
     }
 

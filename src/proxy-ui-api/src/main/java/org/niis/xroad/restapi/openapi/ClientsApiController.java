@@ -188,7 +188,7 @@ public class ClientsApiController implements ClientsApi {
      */
     private ClientType getClientType(String encodedId) {
         ClientId clientId = clientConverter.convertId(encodedId);
-        ClientType clientType = clientService.getClient(clientId);
+        ClientType clientType = clientService.getLocalClient(clientId);
         if (clientType == null) {
             throw new ResourceNotFoundException("client with id " + encodedId + " not found");
         }
@@ -284,7 +284,7 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('VIEW_CLIENT_INTERNAL_CERTS')")
     public ResponseEntity<List<CertificateDetails>> getClientTlsCertificates(String encodedId) {
         ClientType clientType = getClientType(encodedId);
-        List<CertificateDetails> certificates = clientService.getClientIsCerts(clientType.getIdentifier())
+        List<CertificateDetails> certificates = clientService.getLocalClientIsCerts(clientType.getIdentifier())
                 .stream()
                 .map(certificateDetailsConverter::convert)
                 .collect(toList());
@@ -312,7 +312,7 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
     public ResponseEntity<List<LocalGroup>> getClientGroups(String encodedId) {
         ClientType clientType = getClientType(encodedId);
-        List<LocalGroupType> localGroupTypes = clientService.getClientLocalGroups(clientType.getIdentifier());
+        List<LocalGroupType> localGroupTypes = clientService.getLocalClientLocalGroups(clientType.getIdentifier());
         return new ResponseEntity<>(localGroupConverter.convert(localGroupTypes), HttpStatus.OK);
     }
 
@@ -321,7 +321,7 @@ public class ClientsApiController implements ClientsApi {
     public ResponseEntity<List<ServiceDescription>> getClientServiceDescriptions(String encodedId) {
         ClientType clientType = getClientType(encodedId);
         List<ServiceDescription> serviceDescriptions = serviceDescriptionConverter.convert(
-                clientService.getClientServiceDescriptions(clientType.getIdentifier()));
+                clientService.getLocalClientServiceDescriptions(clientType.getIdentifier()));
 
         return new ResponseEntity<>(serviceDescriptions, HttpStatus.OK);
     }

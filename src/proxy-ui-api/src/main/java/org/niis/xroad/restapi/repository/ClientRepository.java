@@ -81,7 +81,7 @@ public class ClientRepository {
     }
 
     /**
-     * return one client
+     * return one local client
      * @param id
      * @return the client, or null if matching client was not found
      */
@@ -91,7 +91,7 @@ public class ClientRepository {
     }
 
     /**
-     * return all clients
+     * return all local clients
      * @return
      */
     public List<ClientType> getAllLocalClients() {
