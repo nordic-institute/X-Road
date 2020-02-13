@@ -31,8 +31,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.repository.InternalTlsCertificateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,12 +55,29 @@ import java.security.cert.X509Certificate;
 @PreAuthorize("isAuthenticated()")
 public class InternalTlsCertificateService {
 
+    public static final String KEY_CERT_GENERATION_FAILED = "key_and_cert_generation_failed";
+
     private static final String CERT_PEM_FILENAME = "./cert.pem";
     private static final String CERT_CER_FILENAME = "./cert.cer";
 
-    @Autowired
+    private final ExternalProcessRunner externalProcessRunner;
+    private final String generateCertScriptArgs;
+
+    @Setter
+    private String generateCertScriptPath;
     @Setter
     private InternalTlsCertificateRepository internalTlsCertificateRepository;
+
+    @Autowired
+    public InternalTlsCertificateService(InternalTlsCertificateRepository internalTlsCertificateRepository,
+            ExternalProcessRunner externalProcessRunner,
+            @Value("${script.generate-certificate.path}") String generateCertScriptPath,
+            @Value("${script.generate-certificate.args}") String generateCertScriptArgs) {
+        this.internalTlsCertificateRepository = internalTlsCertificateRepository;
+        this.externalProcessRunner = externalProcessRunner;
+        this.generateCertScriptPath = generateCertScriptPath;
+        this.generateCertScriptArgs = generateCertScriptArgs;
+    }
 
     public X509Certificate getInternalTlsCertificate() {
         return internalTlsCertificateRepository.getInternalTlsCertificate();
@@ -68,7 +88,6 @@ public class InternalTlsCertificateService {
      * two files:
      * - cert.pem PEM encoded certificate
      * - cert.cer DER encoded certificate
-     *
      * @return byte array that contains the exported certs.tar.gz
      */
     public byte[] exportInternalTlsCertificate() {
@@ -105,5 +124,38 @@ public class InternalTlsCertificateService {
         tarOutputStream.putArchiveEntry(archiveEntry);
         tarOutputStream.write(fileBytes);
         tarOutputStream.closeArchiveEntry();
+    }
+
+    /**
+     * Generates a new TLS key and certificate for internal use for the current Security Server and restarts
+     * <code>xroad-proxy</code> process in order to forcefully load the newly created TLS certificate. A runtime
+     * exception will be thrown if the generation is interrupted or otherwise unable to be executed or if the
+     * restarting fails.
+     */
+    public void generateInternalTlsKeyAndCertificate() throws InterruptedException {
+        try {
+            externalProcessRunner.execute(generateCertScriptPath, generateCertScriptArgs.split("\\s+"));
+            restartXroadProxy();
+        } catch (ProcessNotExecutableException | ProcessFailedException e) {
+            log.error("Failed to generate internal TLS key and cert", e);
+            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(KEY_CERT_GENERATION_FAILED));
+        }
+    }
+
+    /**
+     * NOTE: This method should be replaced with a proper way to load the newly generated TLS cert on the fly!
+     * This method is for restarting the xroad-proxy process in order to force load the newly created internal TLS cert.
+     * The functionality is the same as in sysparams_controller.rb#restart_service
+     * @see <a href="https://jira.niis.org/browse/XRDDEV-873">XRDDEV-873</a>
+     * @throws ProcessFailedException
+     * @throws ProcessNotExecutableException
+     */
+    private void restartXroadProxy() throws ProcessFailedException, ProcessNotExecutableException,
+            InterruptedException {
+        log.warn("restarting xroad-proxy");
+        String bash = "/bin/bash";
+        String[] bashRestartXroadProxyArgs = new String[] {"-c", "sudo service xroad-proxy restart 2>&1"};
+        externalProcessRunner.execute(bash, bashRestartXroadProxyArgs);
+        log.warn("restarted xroad-proxy");
     }
 }

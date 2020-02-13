@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.openapi;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.restapi.converter.VersionConverter;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.Version;
 import org.niis.xroad.restapi.service.InternalTlsCertificateService;
@@ -49,6 +50,7 @@ import java.security.cert.X509Certificate;
 @Slf4j
 @PreAuthorize("denyAll")
 public class SystemApiController implements SystemApi {
+    public static final String INTERNAL_KEY_CERT_INTERRUPTED = "internal_key_cert_interrupted";
 
     private final InternalTlsCertificateService internalTlsCertificateService;
     private final CertificateDetailsConverter certificateDetailsConverter;
@@ -93,4 +95,14 @@ public class SystemApiController implements SystemApi {
         return new ResponseEntity<>(version, HttpStatus.OK);
     }
 
+    @Override
+    @PreAuthorize("hasAuthority('GENERATE_INTERNAL_SSL')")
+    public ResponseEntity<Void> generateSystemTlsKeyAndCertificate() {
+        try {
+            internalTlsCertificateService.generateInternalTlsKeyAndCertificate();
+        } catch (InterruptedException e) {
+            throw new InternalServerErrorException(new ErrorDeviation(INTERNAL_KEY_CERT_INTERRUPTED));
+        }
+        return ApiUtil.createCreatedResponse("/api/system/certificate", null);
+    }
 }

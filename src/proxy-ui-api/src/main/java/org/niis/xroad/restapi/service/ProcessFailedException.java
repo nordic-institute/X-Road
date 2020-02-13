@@ -24,44 +24,12 @@
  */
 package org.niis.xroad.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.DeviationAwareException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.exceptions.WarningDeviation;
 
-import java.util.Collection;
+public class ProcessFailedException extends ServiceException {
+    public static final String PROCESS_FAILED = "process_failed";
 
-/**
- * Root class for all checked service layer exceptions
- */
-public abstract class ServiceException extends DeviationAwareException {
-
-    public ServiceException(String msg, Throwable t, ErrorDeviation errorDeviation) {
-        super(msg, t, errorDeviation);
-    }
-
-    public ServiceException(String msg, Throwable t, ErrorDeviation errorDeviation,
-            Collection<WarningDeviation> warningDeviations) {
-        super(msg, t, errorDeviation, warningDeviations);
-    }
-
-    public ServiceException(ErrorDeviation errorDeviation, Collection<WarningDeviation> warningDeviations) {
-        super(errorDeviation, warningDeviations);
-    }
-
-    public ServiceException(Throwable t, ErrorDeviation errorDeviation) {
-        super(t, errorDeviation);
-    }
-
-    public ServiceException(Throwable t, ErrorDeviation errorDeviation,
-            Collection<WarningDeviation> warningDeviations) {
-        super(t, errorDeviation, warningDeviations);
-    }
-
-    public ServiceException(ErrorDeviation errorDeviation) {
-        super(errorDeviation);
-    }
-
-    public ServiceException(String msg, ErrorDeviation errorDeviation) {
-        super(msg, errorDeviation);
+    public ProcessFailedException(String msg) {
+        super(msg, new ErrorDeviation(PROCESS_FAILED));
     }
 }
