@@ -65,3 +65,8 @@ file-upload-endpoints:
     -
       httpMethod: POST
       pathEnding: /certificate/import
+
+script:
+  generate-certificate:
+    path: /usr/share/xroad/scripts/generate_certificate.sh
+    args: -n internal -f -S -p 2>&1

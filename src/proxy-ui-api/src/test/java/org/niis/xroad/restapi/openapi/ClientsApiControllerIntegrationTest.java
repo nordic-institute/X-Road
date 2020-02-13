@@ -669,8 +669,7 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            assertErrorWithMetadata(ERROR_INVALID_WSDL,
-                    WsdlValidatorTest.MOCK_VALIDATOR_ERROR, expected);
+            assertEquals(ERROR_INVALID_WSDL, expected.getErrorDeviation().getCode());
         }
 
         // cannot ignore these fatal errors
@@ -679,8 +678,7 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            assertErrorWithMetadata(ERROR_INVALID_WSDL,
-                    WsdlValidatorTest.MOCK_VALIDATOR_ERROR, expected);
+            assertEquals(ERROR_INVALID_WSDL, expected.getErrorDeviation().getCode());
         }
 
     }
@@ -696,8 +694,7 @@ public class ClientsApiControllerIntegrationTest {
             clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription);
             fail("should have thrown BadRequestException");
         } catch (BadRequestException expected) {
-            assertErrorWithMetadata(ERROR_INVALID_WSDL,
-                    WsdlValidatorTest.MOCK_VALIDATOR_ERROR, expected);
+            assertEquals(ERROR_INVALID_WSDL, expected.getErrorDeviation().getCode());
         }
     }
 
