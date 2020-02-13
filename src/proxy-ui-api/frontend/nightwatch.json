@@ -9,7 +9,7 @@
   "disable_colors": false,
   "test_workers" : false,
   "test_settings" : {
-    "default": {
+    "default": { 
       "globals" : {
         "login_usr" : "xrd",
         "login_pwd" : "secret",
