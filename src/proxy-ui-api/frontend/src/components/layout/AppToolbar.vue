@@ -11,7 +11,7 @@
     ></v-img>
     <div class="separator"></div>
     <div class="server-type">Security Server</div>
-    <div class="white--text server-name" v-show="currentSecurityServer.id" :title="currentSecurityServer.server_address">
+    <div class="white--text server-name" data-test="app-toolbar-server-name" v-show="currentSecurityServer.id" :title="currentSecurityServer.server_address">
         {{`${currentSecurityServer.instance_id} : ${currentSecurityServer.server_code}`}}
     </div>
     <v-spacer></v-spacer>
