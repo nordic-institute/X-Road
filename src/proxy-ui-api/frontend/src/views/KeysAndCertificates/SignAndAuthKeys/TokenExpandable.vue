@@ -66,6 +66,7 @@
           @generateCsr="generateCsr"
           @certificateClick="certificateClick"
           @importCertByHash="importCertByHash"
+          @refreshList="fetchData"
         />
 
         <!-- SIGN keys table -->
