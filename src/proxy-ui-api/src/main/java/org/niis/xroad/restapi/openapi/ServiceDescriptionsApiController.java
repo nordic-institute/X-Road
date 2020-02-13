@@ -39,7 +39,6 @@ import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.service.InvalidUrlException;
 import org.niis.xroad.restapi.service.ServiceDescriptionNotFoundException;
 import org.niis.xroad.restapi.service.ServiceDescriptionService;
-import org.niis.xroad.restapi.service.ServiceNotFoundException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
@@ -172,7 +171,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         } catch (ServiceDescriptionService.UrlAlreadyExistsException
                     | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
             throw new ConflictException(e);
-        } catch (ServiceNotFoundException | ServiceDescriptionNotFoundException e) {
+        } catch (ServiceDescriptionNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
 
@@ -181,7 +180,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     }
 
     @Override
-    @PreAuthorize("hasAuthority('REFRESH_WSDL')")
+    @PreAuthorize("hasAnyAuthority('REFRESH_WSDL', 'REFRESH_REST', 'REFRESH_OPENAPI3')")
     public ResponseEntity<ServiceDescription> refreshServiceDescription(String id, IgnoreWarnings ignoreWarnings) {
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
         ServiceDescription serviceDescription = null;
@@ -191,7 +190,8 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
                             ignoreWarnings.getIgnoreWarnings()));
         } catch (WsdlParser.WsdlNotFoundException | UnhandledWarningsException
                 | InvalidUrlException | InvalidWsdlException
-                | ServiceDescriptionService.WrongServiceDescriptionTypeException e) {
+                | ServiceDescriptionService.WrongServiceDescriptionTypeException
+                | OpenApiParser.ParsingException e) {
             throw new BadRequestException(e);
         } catch (ServiceDescriptionService.ServiceAlreadyExistsException
                 | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
