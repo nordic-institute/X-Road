@@ -16,6 +16,17 @@
         "login_wrong_usr" : "foo",
         "login_wrong_pwd" : "bar"
       }
+    },
+    "chrome": {
+      "desiredCapabilities" : {
+        "browserName" : "chrome",
+        "javascriptEnabled" : true,
+        "acceptSslCerts" : true,
+        "acceptInsecureCerts": true,
+        "chromeOptions" : {
+          "w3c": false
+        }
+      },
     }
   }
 }
